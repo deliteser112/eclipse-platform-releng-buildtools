@@ -463,8 +463,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "truth",
-      artifact = "com.google.truth:truth:0.28",
-      sha1 = "0a388c7877c845ff4b8e19689dda5ac9d34622c4",
+      artifact = "com.google.truth:truth:0.30",
+      sha1 = "9d591b5a66eda81f0b88cf1c748ab8853d99b18b",
   )
 
   native.maven_jar(
