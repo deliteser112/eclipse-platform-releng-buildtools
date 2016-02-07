@@ -1,6 +1,7 @@
 # App Engine architecture
 
-This document contains information on the overall architecture of the Domain Registry project as it is implemented in App Engine.
+This document contains information on the overall architecture of the Domain
+Registry project as it is implemented in App Engine.
 
 ## Modules
 

@@ -24,12 +24,20 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
+import google.registry.config.RegistryEnvironment;
 import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservedList;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -71,6 +79,13 @@ class UpdateTldCommand extends CreateOrUpdateTldCommand {
       names = "--remove_allowed_nameservers",
       description = "A comma-separated list of allowed nameservers to be removed from the TLD")
   List<String> allowedNameserversRemove;
+
+  @Nullable
+  @Parameter(
+      names = "--set_current_tld_state",
+      description = "Set the current TLD state. Specifically, adds a TLD transition at the "
+          + "current time for the specified state.")
+  TldState setCurrentTldState;
 
   @Override
   Registry getOldRegistry(String tld) {
@@ -116,12 +131,27 @@ class UpdateTldCommand extends CreateOrUpdateTldCommand {
   }
 
   @Override
+  Optional<Map.Entry<DateTime, TldState>> getTldStateTransitionToAdd() {
+    return setCurrentTldState != null
+        ? Optional.of(Maps.immutableEntry(DateTime.now(DateTimeZone.UTC), setCurrentTldState))
+        : Optional.<Map.Entry<DateTime, TldState>>absent();
+  }
+
+  @Override
   protected void initTldCommand() throws Exception {
+    // Due to per-instance caching on Registry, different instances can end up in different TLD
+    // states at the same time, so --set_current_tld_state should never be used in production.
+    checkArgument(
+        !RegistryEnvironment.get().equals(RegistryEnvironment.PRODUCTION)
+            || setCurrentTldState == null,
+        "--set_current_tld_state is not safe to use in production.");
     checkConflicts("reserved_lists", reservedListNames, reservedListsAdd, reservedListsRemove);
     checkConflicts(
         "allowed_registrants", allowedRegistrants, allowedRegistrantsAdd, allowedRegistrantsRemove);
     checkConflicts(
         "allowed_nameservers", allowedNameservers, allowedNameserversAdd, allowedNameserversRemove);
+    checkArgument(setCurrentTldState == null || tldStateTransitions.isEmpty(),
+        "Don't pass both --set_current_tld_state and --tld_state_transitions");
   }
 
   private static ImmutableSet<String> formUpdatedList(

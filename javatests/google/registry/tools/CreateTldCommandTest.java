@@ -242,6 +242,16 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
+  public void testFailure_bothTldStateFlags() throws Exception {
+    thrown.expect(IllegalArgumentException.class);
+    DateTime now = DateTime.now(UTC);
+    runCommandForced(
+        String.format("--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE", now, now.plus(1)),
+        "--initial_tld_state=GENERAL_AVAILABILITY",
+        "xn--q9jyb4c");
+    }
+
+  @Test
   public void testFailure_negativeInitialRenewBillingCost() throws Exception {
     thrown.expect(IllegalArgumentException.class);
     runCommandForced(

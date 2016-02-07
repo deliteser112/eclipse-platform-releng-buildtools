@@ -36,6 +36,7 @@ import google.registry.tools.params.OptionalStringParameter;
 import google.registry.tools.params.TransitionListParameter.BillingCostTransitions;
 import google.registry.tools.params.TransitionListParameter.TldStateTransitions;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.money.Money;
@@ -214,6 +215,8 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
   abstract ImmutableSet<String> getReservedLists(Registry oldRegistry);
 
+  abstract Optional<Map.Entry<DateTime, TldState>> getTldStateTransitionToAdd();
+
   /** Subclasses can override this to set their own properties. */
   void setCommandSpecificProperties(@SuppressWarnings("unused") Registry.Builder builder) {}
 
@@ -260,8 +263,24 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
         builder.setDnsPaused(!dns);
       }
 
+      Optional<Map.Entry<DateTime, TldState>> tldStateTransitionToAdd =
+          getTldStateTransitionToAdd();
       if (!tldStateTransitions.isEmpty()) {
         builder.setTldStateTransitions(tldStateTransitions);
+      } else if (tldStateTransitionToAdd.isPresent()) {
+        ImmutableSortedMap.Builder<DateTime, TldState> newTldStateTransitions =
+            ImmutableSortedMap.naturalOrder();
+        if (oldRegistry != null) {
+          checkArgument(
+              oldRegistry.getTldStateTransitions().lastKey().isBefore(
+                  tldStateTransitionToAdd.get().getKey()),
+              "Cannot add %s at %s when there is a later transition already scheduled",
+              tldStateTransitionToAdd.get().getValue(),
+              tldStateTransitionToAdd.get().getKey());
+          newTldStateTransitions.putAll(oldRegistry.getTldStateTransitions());
+        }
+        builder.setTldStateTransitions(
+            newTldStateTransitions.put(getTldStateTransitionToAdd().get()).build());
       }
 
       if (!renewBillingCostTransitions.isEmpty()) {

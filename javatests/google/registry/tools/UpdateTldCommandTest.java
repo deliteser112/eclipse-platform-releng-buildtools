@@ -95,6 +95,17 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   }
 
   @Test
+  public void testSuccess_setTldState() throws Exception {
+    Registry registry = persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setTldStateTransitions(ImmutableSortedMap.of(START_OF_TIME, TldState.PREDELEGATION))
+            .build());
+    runCommandForced("--set_current_tld_state=SUNRISE", "xn--q9jyb4c");
+    registry = Registry.get("xn--q9jyb4c");
+    assertThat(registry.getTldState(now.plusDays(1))).isEqualTo(TldState.SUNRISE);
+  }
+
+  @Test
   public void testSuccess_renewBillingCostTransitions() throws Exception {
     DateTime later = now.plusMonths(1);
     runCommandForced(
@@ -455,6 +466,65 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
     runCommandForced(
         String.format("--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE", now, now.minus(1)),
         "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_bothTldStateFlags() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Don't pass both --set_current_tld_state and --tld_state_transitions");
+    runCommandForced(
+        String.format("--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE", now, now.plusDays(1)),
+        "--set_current_tld_state=GENERAL_AVAILABILITY",
+        "xn--q9jyb4c");
+    }
+
+  @Test
+  public void testFailure_setCurrentTldState_outOfOrder() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class, "The TLD states are chronologically out of order");
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setTldStateTransitions(
+                ImmutableSortedMap.of(
+                    START_OF_TIME, TldState.PREDELEGATION,
+                    now.minusMonths(1), TldState.GENERAL_AVAILABILITY))
+            .build());
+    runCommandForced("--set_current_tld_state=SUNRISE", "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_setCurrentTldState_laterTransitionScheduled() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        " when there is a later transition already scheduled");
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setTldStateTransitions(
+                ImmutableSortedMap.of(
+                    START_OF_TIME, TldState.PREDELEGATION,
+                    now.plusMonths(1), TldState.GENERAL_AVAILABILITY))
+            .build());
+    runCommandForced("--set_current_tld_state=SUNRISE", "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_setCurrentTldState_inProduction() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "--set_current_tld_state is not safe to use in production.");
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setTldStateTransitions(
+                ImmutableSortedMap.of(
+                    START_OF_TIME, TldState.PREDELEGATION,
+                    now.minusMonths(1), TldState.GENERAL_AVAILABILITY))
+            .build());
+    runCommandInEnvironment(
+        RegistryToolEnvironment.PRODUCTION,
+        "--set_current_tld_state=SUNRISE",
+        "xn--q9jyb4c",
+        "--force");
   }
 
   @Test
