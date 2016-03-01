@@ -1,0 +1,28 @@
+{
+  "objectClassName" : "entity",
+  "handle" : "2-ROID",
+  "status" : ["active"],
+  "roles" : ["registrant"],
+  "links" :
+  [
+    {
+      "value" : "entity/2-ROID",
+      "rel" : "self",
+      "href" : "entity/2-ROID",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "vcardArray" :
+  [
+    "vcard",
+    [
+      ["version", {}, "text", "4.0"],
+      ["fn", {}, "text", "(◕‿◕)"],
+      ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
+      ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
+      ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
+      ["email", {}, "text", "lol@cat.みんな"]
+    ]
+  ],
+  "port43": "whois.google.com"
+}

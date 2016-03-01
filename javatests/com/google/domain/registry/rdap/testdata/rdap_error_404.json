@@ -1,0 +1,11 @@
+{
+  "lang": "en",
+  "errorCode": 404,
+  "title": "Not Found",
+  "description": [
+    "%NAME%"
+  ],
+  "rdapConformance": [
+    "rdap_level_0"
+  ]
+}

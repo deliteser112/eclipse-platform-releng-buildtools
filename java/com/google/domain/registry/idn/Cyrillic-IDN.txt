@@ -1,0 +1,57 @@
+# Registry: Charleston Road Registry Inc.
+# Script: Cyrillic
+# Version: 1.0
+# Effective Date: 04-12-2012
+# Contact: tas-contact.google.com
+# Address: 1600 Amphitheatre Parkway Mountain View, CA 94043, USA
+# Telephone: +1 (650) 253-0000
+# Website: www.google.com
+# Notes: This table describes codepoints allowed for the Cyrillic script.
+# The hyphen (U+002D), as well as the digits zero to nine (U+0030 .. U+0039), for
+# purposes of Internationalised Domain Name registration are considered to form
+# part of the Cyrillic script.
+
+U+002D                   # HYPHEN-MINUS
+U+0030                   # DIGIT ZERO
+U+0031                   # DIGIT ONE
+U+0032                   # DIGIT TWO
+U+0033                   # DIGIT THREE
+U+0034                   # DIGIT FOUR
+U+0035                   # DIGIT FIVE
+U+0036                   # DIGIT SIX
+U+0037                   # DIGIT SEVEN
+U+0038                   # DIGIT EIGHT
+U+0039                   # DIGIT NINE
+U+0430  ## \ CYRILLIC SMALL LETTER A
+U+0431  ## ^ CYRILLIC SMALL LETTER BE
+U+0432  ## _ CYRILLIC SMALL LETTER VE
+U+0433  ## ` CYRILLIC SMALL LETTER GHE
+U+0434  ## a CYRILLIC SMALL LETTER DE
+U+0435  ## b CYRILLIC SMALL LETTER IE
+U+0436  ## c CYRILLIC SMALL LETTER ZHE
+U+0437  ## f CYRILLIC SMALL LETTER ZE
+U+0438  ## h CYRILLIC SMALL LETTER I
+U+0439  ## i CYRILLIC SMALL LETTER SHORT I
+U+043A  ## j CYRILLIC SMALL LETTER KA
+U+043B  ## l CYRILLIC SMALL LETTER EL
+U+043C  ## m CYRILLIC SMALL LETTER EM
+U+043D  ## n CYRILLIC SMALL LETTER EN
+U+043E  ## o CYRILLIC SMALL LETTER O
+U+043F  ## q CYRILLIC SMALL LETTER PE
+U+0440  ## r CYRILLIC SMALL LETTER ER
+U+0441  ## s CYRILLIC SMALL LETTER ES
+U+0442  ## t CYRILLIC SMALL LETTER TE
+U+0443  ## u CYRILLIC SMALL LETTER U
+U+0444  ## v CYRILLIC SMALL LETTER EF
+U+0445  ## w CYRILLIC SMALL LETTER HA
+U+0446  ## x CYRILLIC SMALL LETTER TSE
+U+0447  ## y CYRILLIC SMALL LETTER CHE
+U+0448  ## z CYRILLIC SMALL LETTER SHA
+U+0449  ## { CYRILLIC SMALL LETTER SHCHA
+U+044A  ## | CYRILLIC SMALL LETTER HARD SIGN
+U+044B  ## } CYRILLIC SMALL LETTER YERU
+U+044C  ## ~ CYRILLIC SMALL LETTER SOFT SIGN
+U+044D  ## ^? CYRILLIC SMALL LETTER E
+
+U+044E  ## * CYRILLIC SMALL LETTER YU
+U+044F  ## 5 CYRILLIC SMALL LETTER YA

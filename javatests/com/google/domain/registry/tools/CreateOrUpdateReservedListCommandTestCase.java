@@ -1,0 +1,68 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.tools;
+
+import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.google.common.io.Files;
+
+import com.beust.jcommander.ParameterException;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+
+/**
+ * Base class for common testing setup for create and update commands for Reserved Lists.
+ *
+ * @param <T> command type
+ */
+public abstract class CreateOrUpdateReservedListCommandTestCase
+    <T extends CreateOrUpdateReservedListCommand> extends CommandTestCase<T> {
+
+  String reservedTermsPath;
+  String invalidReservedTermsPath;
+
+  @Before
+  public void init() throws IOException {
+    File reservedTermsFile = tmpDir.newFile("xn--q9jyb4c_common-reserved.txt");
+    File invalidReservedTermsFile = tmpDir.newFile("reserved-terms-wontparse.csv");
+    String reservedTermsCsv = readResourceUtf8(
+        CreateOrUpdateReservedListCommandTestCase.class, "testdata/example_reserved_terms.csv");
+    Files.write(reservedTermsCsv, reservedTermsFile, UTF_8);
+    Files.write("sdfgagmsdgs,sdfgsd\nasdf234tafgs,asdfaw\n\n", invalidReservedTermsFile, UTF_8);
+    reservedTermsPath = reservedTermsFile.getPath();
+    invalidReservedTermsPath = invalidReservedTermsFile.getPath();
+  }
+
+  @Test
+  public void testFailure_fileDoesntExist() throws Exception {
+    thrown.expect(ParameterException.class);
+    runCommandForced(
+        "--name=xn--q9jyb4c-blah",
+        "--input=" + reservedTermsPath + "-nonexistent");
+  }
+
+  @Test
+  public void testFailure_fileDoesntParse() throws Exception {
+    thrown.expect(IllegalArgumentException.class);
+    runCommandForced(
+        "--name=xn--q9jyb4c-blork",
+        "--input=" + invalidReservedTermsPath);
+  }
+}

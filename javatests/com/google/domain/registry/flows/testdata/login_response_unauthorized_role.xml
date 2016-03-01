@@ -1,0 +1,11 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+    <response>
+        <result code="2200">
+            <msg>User id is not allowed to login as requested registrar: person@example.com</msg>
+        </result>
+        <trID>
+            <clTRID>ABC-12345</clTRID>
+            <svTRID>Mt2PuhrJTKO1nM/MbHxT4g==-2a</svTRID>
+        </trID>
+    </response>
+</epp>

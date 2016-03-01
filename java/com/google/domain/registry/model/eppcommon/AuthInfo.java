@@ -1,0 +1,90 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.model.eppcommon;
+
+import com.google.domain.registry.model.EppResource;
+import com.google.domain.registry.model.ImmutableObject;
+
+import com.googlecode.objectify.annotation.Embed;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlValue;
+import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+/**
+ * The "authInfoType" complex type.
+ * <p>
+ * RFCs 5731 and 5732 define this almost identically up to the namespace.
+ */
+@XmlTransient
+public abstract class AuthInfo extends ImmutableObject {
+
+  /**
+   * Verify that the authorization info is valid for the given resource in the given tld.
+   *
+   * @throws BadAuthInfoException if this authorization info is invalid for this resource
+   */
+  public abstract void verifyAuthorizedFor(EppResource eppResource) throws BadAuthInfoException;
+
+  protected PasswordAuth pw;
+
+  public PasswordAuth getPw() {
+    return pw;
+  }
+
+  /** The "pwAuthInfoType" complex type. */
+  @Embed
+  @XmlType(namespace = "urn:ietf:params:xml:ns:eppcom-1.0")
+  public static class PasswordAuth extends ImmutableObject {
+    @XmlValue
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
+    String value;
+
+    @XmlAttribute(name = "roid")
+    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+    String repoId;
+
+    public String getValue() {
+      return value;
+    }
+
+    public String getRepoId() {
+      return repoId;
+    }
+
+    public static PasswordAuth create(String value, String repoId) {
+      PasswordAuth instance = new PasswordAuth();
+      instance.value = value;
+      instance.repoId = repoId;
+      return instance;
+    }
+
+    public static PasswordAuth create(String value) {
+      return create(value, null);
+    }
+  }
+
+  /** Returns the repoId for the contact this auth info is associated with. */
+  protected String getRepoId() {
+    return pw.getRepoId();
+  }
+
+  /** Exception to throw when an auth info can't be verified. */
+  public static class BadAuthInfoException extends Exception {}
+}

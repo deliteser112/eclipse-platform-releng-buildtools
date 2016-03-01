@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" version="2.5"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+                             http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  <!-- Servlets -->
+
+  <servlet>
+    <display-name>Verify OTE</display-name>
+    <servlet-name>verify-ote</servlet-name>
+    <servlet-class>com.google.domain.registry.ui.server.admin.VerifyOteServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>verify-ote</servlet-name>
+    <url-pattern>/_dr/admin/verifyOte</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <display-name>Create Groups for Registrar</display-name>
+    <servlet-name>create-groups</servlet-name>
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>create-groups</servlet-name>
+    <url-pattern>/_dr/admin/createGroups</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <display-name>Create Premium List</display-name>
+    <servlet-name>create-premium-list</servlet-name>
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>create-premium-list</servlet-name>
+    <url-pattern>/_dr/admin/createPremiumList</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <display-name>List Entities</display-name>
+    <servlet-name>list-entities</servlet-name>
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>list-entities</servlet-name>
+    <url-pattern>/_dr/admin/list/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <display-name>Delete Entity</display-name>
+    <servlet-name>delete-entity</servlet-name>
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>delete-entity</servlet-name>
+    <url-pattern>/_dr/admin/deleteEntity</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <display-name>Update Premium List</display-name>
+    <servlet-name>update-premium-list</servlet-name>
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>update-premium-list</servlet-name>
+    <url-pattern>/_dr/admin/updatePremiumList</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Backend endpoint to initate loadtests.</description>
+    <display-name>Load Test</display-name>
+    <servlet-name>loadtest</servlet-name>
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>loadtest</servlet-name>
+    <url-pattern>/_dr/loadtest</url-pattern>
+  </servlet-mapping>
+
+  <!-- Command line tool uses this endpoint to modify the datastore. -->
+  <servlet>
+    <display-name>Remote API Servlet</display-name>
+    <servlet-name>RemoteApiServlet</servlet-name>
+    <servlet-class>com.google.apphosting.utils.remoteapi.RemoteApiServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RemoteApiServlet</servlet-name>
+    <url-pattern>/remote_api</url-pattern>
+  </servlet-mapping>
+
+  <!--  ExecuteEppCommand uses this to execute remotely. -->
+  <servlet>
+    <description>
+      Execute epp from the registry tool.
+    </description>
+    <display-name>Registry tool EPP endpoint</display-name>
+    <servlet-name>epptool</servlet-name>
+    <servlet-class>com.google.domain.registry.flows.EppToolServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>epptool</servlet-name>
+    <url-pattern>/_dr/epptool</url-pattern>
+  </servlet-mapping>
+
+  <!--  Mapreduce to delete all prober data. -->
+  <servlet>
+    <description>
+      Deletes all billing events, history entries, domains, poll messages, foreign key indexes, and eCatcher entities in prober namespaces.
+    </description>
+    <display-name>Delete Prober Data Mapreduce</display-name>
+    <servlet-name>delete-prober-data</servlet-name>
+    <!-- TODO(b/27309488): maybe move this to the backend module + BackendServlet. -->
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>delete-prober-data</servlet-name>
+    <url-pattern>/_dr/task/deleteProberData</url-pattern>
+  </servlet-mapping>
+
+  <!--  Mapreduce to delete all entities in non-default namespaces. -->
+  <servlet>
+    <description>
+      Deletes entities in non-default namespaces.
+    </description>
+    <display-name>Annihilate Non-Default Namespaces Mapreduce</display-name>
+    <servlet-name>annihilate-non-default-namespaces</servlet-name>
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>annihilate-non-default-namespaces</servlet-name>
+    <url-pattern>/_dr/task/annihilateNonDefaultNamespaces</url-pattern>
+  </servlet-mapping>
+
+  <!--  Mapreduce to re-save all EppResources. -->
+  <servlet>
+    <description>
+      Re-saves all EppResources.
+    </description>
+    <display-name>Re-Save All EPP Resources</display-name>
+    <servlet-name>resave-all-eppresources</servlet-name>
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>resave-all-eppresources</servlet-name>
+    <url-pattern>/_dr/task/resaveAllEppResources</url-pattern>
+  </servlet-mapping>
+
+  <!-- This path serves up the App Engine results page for mapreduce runs. -->
+  <servlet>
+    <servlet-name>mapreduce</servlet-name>
+    <servlet-class>com.google.appengine.tools.mapreduce.MapReduceServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>mapreduce</servlet-name>
+    <url-pattern>/_dr/mapreduce/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- Pipeline GUI servlets. -->
+  <servlet>
+    <servlet-name>pipeline</servlet-name>
+    <servlet-class>com.google.appengine.tools.pipeline.impl.servlets.PipelineServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>pipeline</servlet-name>
+    <url-pattern>/_ah/pipeline/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- Registrar detail report publishing action. -->
+  <servlet>
+    <servlet-name>publish-detail-report</servlet-name>
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>publish-detail-report</servlet-name>
+    <url-pattern>/_dr/publishDetailReport</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>generate-zone-files</servlet-name>
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>generate-zone-files</servlet-name>
+    <url-pattern>/_dr/task/generateZoneFiles</url-pattern>
+  </servlet-mapping>
+
+  <!-- Security config -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Internal</web-resource-name>
+      <description>
+        Any request path starting with `/_dr/` will be restricted to requests originating
+        from the backend or by anyone authenticated to a Google account that's listed in
+        the AppEngine control panel settings for this project as a Viewer/Owner/Developer.
+        The `_dr` is short for Domain Registry to follow AppEngine naming conventions.
+      </description>
+      <url-pattern>/_dr/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+  </security-constraint>
+
+  <!-- Require TLS on all requests. -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Secure</web-resource-name>
+      <description>
+        Require encryption for all paths. http URLs will be redirected to https.
+      </description>
+      <url-pattern>/*</url-pattern>
+    </web-resource-collection>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+  </security-constraint>
+
+  <!-- Shut down external access to registrar console. -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Internal</web-resource-name>
+      <description>
+        Go home rogue registrar!
+      </description>
+      <url-pattern>/registrar*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+  </security-constraint>
+
+  <!-- Restrict access to source code. -->
+  <!-- These are only included in the default module war, but restricting here too for safety. -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Internal</web-resource-name>
+      <description>No soup for you!</description>
+      <url-pattern>/assets/sources/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+  </security-constraint>
+
+  <!-- See: https://code.google.com/p/objectify-appengine/wiki/Setup -->
+  <filter>
+    <filter-name>ObjectifyFilter</filter-name>
+    <filter-class>com.googlecode.objectify.ObjectifyFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>ObjectifyFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <!-- Register types with Objectify. -->
+  <filter>
+    <filter-name>OfyFilter</filter-name>
+    <filter-class>com.google.domain.registry.model.ofy.OfyFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>OfyFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+</web-app>

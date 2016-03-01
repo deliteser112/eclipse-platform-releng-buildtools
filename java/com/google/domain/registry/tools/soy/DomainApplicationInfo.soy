@@ -1,0 +1,29 @@
+{namespace domain.registry.tools autoescape="strict"}
+/**
+ * Domain application info request
+ */
+{template .domainapplicationinfo}
+{@param domainName: string}
+{@param id: string}
+{@param phase: string}
+{@param? subphase: string}
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+   <info>
+    <domain:info
+     xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+      <domain:name>{$domainName}</domain:name>
+    </domain:info>
+   </info>
+   <extension>
+    <launch:info
+     xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
+      <launch:phase{if $subphase} name="{$subphase}"{/if}>{$phase}</launch:phase>
+      <launch:applicationID>{$id}</launch:applicationID>
+    </launch:info>
+   </extension>
+   <clTRID>GTechTool</clTRID>
+  </command>
+</epp>
+{/template}

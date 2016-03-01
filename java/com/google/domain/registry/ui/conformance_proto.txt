@@ -1,0 +1,8 @@
+# -*-protobuf-*-
+
+requirement: {
+  type: BANNED_PROPERTY_WRITE
+  error_message: 'Assignment to Element.prototype.innerHTML is not allowed. '
+      'Use goog.dom.safe.setInnerHtml instead. '
+  value: 'Element.prototype.innerHTML'
+}

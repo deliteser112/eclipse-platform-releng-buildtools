@@ -1,0 +1,240 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+goog.provide('registry.registrar.ContactSettings');
+
+goog.require('goog.Uri');
+goog.require('goog.array');
+goog.require('goog.dom');
+goog.require('goog.events');
+goog.require('goog.events.EventType');
+goog.require('goog.json');
+goog.require('goog.soy');
+goog.require('registry.Resource');
+goog.require('registry.ResourceComponent');
+goog.require('registry.soy.registrar.contacts');
+goog.require('registry.util');
+
+
+
+/**
+ * Contact Settings page.  Registrar Contacts are not really a proper
+ * REST resource as they're still passed from the server as a member
+ * field of Registrar, so this class behaves like an item page,
+ * updating only that field of the Registrar object and not
+ * implementing the create action from edit_item.
+ * @param {!registry.registrar.Console} console
+ * @param {string} xsrfToken Security token to pass back to the server.
+ * @constructor
+ * @extends {registry.ResourceComponent}
+ * @final
+ */
+registry.registrar.ContactSettings = function(console, xsrfToken) {
+  registry.registrar.ContactSettings.base(
+      this, 'constructor',
+      console,
+      new registry.Resource(new goog.Uri('/registrar-settings'), xsrfToken),
+      registry.soy.registrar.contacts.contact,
+      null);
+};
+goog.inherits(registry.registrar.ContactSettings, registry.ResourceComponent);
+
+
+/** @override */
+registry.registrar.ContactSettings.prototype.setupAppbar = function() {
+  registry.registrar.ContactSettings.base(this, 'setupAppbar');
+  // Setup delete only on existing items, not on creates.
+  if (goog.isDefAndNotNull(this.model)) {
+    var deleteBtn = goog.dom.createDom('button', {
+      type: 'button',
+      id: 'reg-app-btn-delete',
+      className: goog.getCssName('kd-button')
+    },
+    'Delete');
+    goog.events.listen(deleteBtn, goog.events.EventType.CLICK,
+        goog.bind(this.sendDelete, this));
+    goog.dom.insertSiblingBefore(deleteBtn,
+        goog.dom.getRequiredElement('reg-app-btn-cancel'));
+  }
+};
+
+
+/** @override */
+registry.registrar.ContactSettings.prototype.renderItem = function(rspObj) {
+  var contentElt = goog.dom.getRequiredElement('reg-content');
+  /** @type {!registry.json.RegistrarContact} */
+  var contacts = rspObj.contacts;
+  if (this.id) {
+    var targetContactNdx;
+    var targetContact;
+    for (var c in contacts) {
+      var ct = contacts[c];
+      if (ct.emailAddress == this.id) {
+        targetContactNdx = c;
+        targetContact = ct;
+        break;
+      }
+    }
+    if (!targetContact) {
+      registry.util.butter('No contact with the given email.');
+      return;
+    }
+    var typesList = targetContact.types.toLowerCase().split(',');
+    var actualTypesLookup = {};
+    for (var t in typesList) {
+      actualTypesLookup[typesList[t]] = true;
+    }
+    goog.soy.renderElement(
+        contentElt,
+        registry.soy.registrar.contacts.contact,
+        {
+          item: targetContact,
+          namePrefix: 'contacts[' + targetContactNdx + '].',
+          actualTypesLookup: actualTypesLookup,
+          readonly: (rspObj.readonly || false)
+        });
+    this.setupAppbar();
+  } else {
+    var contactsByType = {};
+    for (var c in contacts) {
+      var contact = contacts[c];
+      var types = contact.types;
+      if (!types) {
+        continue;
+      }
+      types = types.split(',');
+      for (var t in types) {
+        var type = types[t].toLowerCase();
+        var contactsList = contactsByType[type];
+        if (!contactsList) {
+          contactsByType[type] = contactsList = [];
+        }
+        contactsList.push(contact);
+      }
+    }
+    goog.soy.renderElement(
+        contentElt,
+        registry.soy.registrar.contacts.set,
+        {contactsByType: contactsByType });
+  }
+};
+
+
+/** @override */
+registry.registrar.ContactSettings.prototype.add = function() {
+  var newContactNdx = this.model.contacts.length;
+  goog.soy.renderElement(goog.dom.getRequiredElement('reg-content'),
+                         registry.soy.registrar.contacts.contact,
+                         {
+                           item: {},
+                           namePrefix: 'contacts[' + newContactNdx + '].',
+                           actualTypesLookup: {},
+                           readonly: false
+                         });
+  this.toggleEdit();
+};
+
+
+/** @override */
+registry.registrar.ContactSettings.prototype.sendDelete = function() {
+  var ndxToDel = null;
+  for (var i = 0; i < this.model.contacts.length; i++) {
+    var contact = this.model.contacts[i];
+    if (contact.emailAddress == this.id) {
+      ndxToDel = i;
+    }
+  }
+  if (goog.isNull(ndxToDel)) {
+    throw new Error('Email to delete does not match model.');
+  }
+  var modelCopy = /** @type {!Object}
+                   */ (goog.json.parse(goog.json.serialize(this.model)));
+  goog.array.removeAt(modelCopy.contacts, ndxToDel);
+  this.resource.update(modelCopy, goog.bind(this.handleDeleteResponse, this));
+};
+
+
+/** @override */
+registry.registrar.ContactSettings.prototype.prepareUpdate =
+    function(modelCopy) {
+  var form = registry.util.parseForm('item');
+  var contact;
+  // Handle update/create.
+  if (this.id) {
+    // Update contact, so overwrite it in the model before sending
+    // back to server.
+    var once = false;
+    for (var c in form.contacts) {
+      if (once) {
+        throw new Error('More than one contact parsed from form: ' + c);
+      }
+      contact = form.contacts[c];
+      modelCopy.contacts[c] = contact;
+      once = true;
+    }
+  } else {
+    // Add contact.
+    contact = form.contacts.pop();
+    modelCopy.contacts.push(contact);
+  }
+  contact.visibleInWhoisAsAdmin = contact.visibleInWhoisAsAdmin == 'true';
+  contact.visibleInWhoisAsTech = contact.visibleInWhoisAsTech == 'true';
+  contact.types = '';
+  for (var tNdx in contact.type) {
+    if (contact.type[tNdx]) {
+      if (contact.types.length > 0) {
+        contact.types += ',';
+      }
+      contact.types += ('' + tNdx).toUpperCase();
+    }
+  }
+  delete contact['type'];
+  this.nextId = contact.emailAddress;
+};
+
+
+// XXX: Should be hoisted up.
+/**
+ * Handler for contact save that navigates to that item on success.
+ * Does nothing on failure as UI will be left with error messages for
+ * the user to resolve.
+ * @param {!Object} rsp Decoded XML/JSON response from the server.
+ * @override
+ */
+registry.registrar.ContactSettings.prototype.handleCreateResponse =
+    function(rsp) {
+  this.handleUpdateResponse(rsp);
+  if (rsp.status == 'SUCCESS') {
+    this.console.view('contact-settings/' + this.nextId);
+  }
+  return rsp;
+};
+
+
+/**
+ * Handler for contact delete that navigates back to the collection on success.
+ * Does nothing on failure as UI will be left with error messages for
+ * the user to resolve.
+ * @param {!Object} rsp Decoded XML/JSON response from the server.
+ * @override
+ */
+registry.registrar.ContactSettings.prototype.handleDeleteResponse =
+    function(rsp) {
+  this.handleUpdateResponse(rsp);
+  if (rsp.status == 'SUCCESS') {
+    this.id = null;
+    this.console.view('contact-settings');
+  }
+  return rsp;
+};

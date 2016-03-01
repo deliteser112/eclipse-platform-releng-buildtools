@@ -1,0 +1,127 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.util;
+
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.Nullable;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionContext;
+
+/** An {@link HttpSession} that only provides support for getting/setting attributes. */
+@SuppressWarnings("deprecation")
+public class BasicHttpSession implements HttpSession {
+
+  private final Map<String, Object> map = new HashMap<>();
+  boolean isValid = true;
+
+  @Override
+  public long getCreationTime() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public String getId() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public long getLastAccessedTime() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ServletContext getServletContext() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void setMaxInactiveInterval(int interval) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int getMaxInactiveInterval() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public HttpSessionContext getSessionContext() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Object getAttribute(@Nullable String name) {
+    checkValid();
+    return map.get(name);
+  }
+
+  @Override
+  public Object getValue(@Nullable String name) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Enumeration<?> getAttributeNames() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public String[] getValueNames() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void setAttribute(@Nullable String name, @Nullable Object value) {
+    checkValid();
+    map.put(name, value);
+  }
+
+  @Override
+  public void putValue(@Nullable String name, @Nullable Object value) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void removeAttribute(@Nullable String name) {
+    checkValid();
+    map.remove(name);
+  }
+
+  @Override
+  public void removeValue(@Nullable String name) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void invalidate() {
+    isValid = false;
+    map.clear();
+  }
+
+  @Override
+  public boolean isNew() {
+    throw new UnsupportedOperationException();
+  }
+
+  private void checkValid() {
+    if (!isValid) {
+      throw new IllegalStateException("This session has been invalidated.");
+    }
+  }
+}

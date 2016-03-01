@@ -1,0 +1,68 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.testing.sftp;
+
+import static com.google.common.base.Preconditions.checkState;
+
+import com.google.domain.registry.util.NetworkUtils;
+
+import org.apache.ftpserver.FtpServer;
+import org.apache.ftpserver.ftplet.FtpException;
+import org.apache.sshd.server.session.SessionFactory;
+import org.junit.rules.ExternalResource;
+
+import java.io.File;
+import java.io.IOException;
+
+import javax.annotation.Nullable;
+
+/**
+ * JUnit Rule for creating an in-process {@link TestSftpServer SFTP Server}.
+ *
+ * @see TestSftpServer
+ */
+public final class SftpServerRule extends ExternalResource {
+
+  @Nullable
+  private FtpServer server;
+
+  /**
+   * Starts an SFTP server on a randomly selected port.
+   *
+   * @return the port on which the server is listening
+   */
+  public int serve(String user, String pass, File home) throws IOException, FtpException {
+    checkState(server == null, "You already have an SFTP server!");
+    int port = NetworkUtils.pickUnusedPort();
+    server = createSftpServer(user, pass, home, port);
+    return port;
+  }
+
+  @Override
+  protected void after() {
+    if (server != null) {
+      server.stop();
+      server = null;
+    }
+  }
+
+  private static FtpServer createSftpServer(String user, String pass, File home, int port)
+      throws FtpException {
+    FtpServer server =
+        TestSftpServer.createSftpServer(user, pass, null, port, home, new SessionFactory());
+    server.start();
+    return server;
+  }
+}

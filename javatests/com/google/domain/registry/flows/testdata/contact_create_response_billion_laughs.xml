@@ -1,0 +1,10 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <response>
+    <result code="2001">
+      <msg>Syntax error at line 20, column 32: The entity &quot;lol9&quot; was referenced, but not declared.</msg>
+    </result>
+    <trID>
+      <svTRID>HmioO3vzQN+XVIUfZJxHeQ==-11</svTRID>
+    </trID>
+  </response>
+</epp>

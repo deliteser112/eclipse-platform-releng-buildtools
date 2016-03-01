@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" version="2.5"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+                             http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  <!-- Servlets -->
+
+  <!-- RDE -->
+
+  <servlet>
+    <description>
+      Responsible for scanning the database to create a full deposit for a single TLD
+      and streaming it to cloud storage. Requests are sent here by App Engine after
+      `RdeCreateCronServlet` enqueues a task specifying a URL that points to this servlet.
+    </description>
+    <display-name>RDE Staging Task</display-name>
+    <servlet-name>rdeStagingTask</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>rdeStagingTask</servlet-name>
+    <url-pattern>/_dr/task/rdeStaging</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>
+      Once `rdeCreateFullCron` finishes writing a deposit file to cloud storage, it'll
+      launch this task with the cloud filename so it can be uploaded to Iron Mountain
+      via SFTP. The file is deleted once the upload completes. This should be run via
+      `rde-upload-backend`.
+    </description>
+    <display-name>RDE Upload Task</display-name>
+    <servlet-name>rdeUploadTask</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>rdeUploadTask</servlet-name>
+    <url-pattern>/_dr/task/rdeUpload</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>
+      Sends an XML RDE report to ICANN's HTTP server after rdeUploadTask finishes.
+    </description>
+    <display-name>RDE Report Task</display-name>
+    <servlet-name>rdeReportTask</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>rdeReportTask</servlet-name>
+    <url-pattern>/_dr/task/rdeReport</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>
+      Bulk Registration Data Access. This task creates a thin escrow deposit
+      and saves it to cloud storage, where a separate script owned by the SREs
+      uploads it to ICANN.
+    </description>
+    <display-name>BRDA Copy Task</display-name>
+    <servlet-name>brdaCopyTask</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>brdaCopyTask</servlet-name>
+    <url-pattern>/_dr/task/brdaCopy</url-pattern>
+  </servlet-mapping>
+
+  <!-- Trademark Clearinghouse -->
+
+  <servlet>
+    <description>Downloads TMCH DNL data from MarksDB.</description>
+    <display-name>DNL Downloader</display-name>
+    <servlet-name>tmchDnl</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>tmchDnl</servlet-name>
+    <url-pattern>/_dr/task/tmchDnl</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Downloads TMCH SMDRL data from MarksDB.</description>
+    <display-name>SMDRL Downloader</display-name>
+    <servlet-name>tmchSmdrl</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>tmchSmdrl</servlet-name>
+    <url-pattern>/_dr/task/tmchSmdrl</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Downloads TMCH CRL data from MarksDB.</description>
+    <display-name>CRL Downloader</display-name>
+    <servlet-name>tmchCrl</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>tmchCrl</servlet-name>
+    <url-pattern>/_dr/task/tmchCrl</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>
+      Reads the LORDN queues and uploads CSV data for sunrise and claims marks to MarksDB.
+    </description>
+    <display-name>NORDN Upload Task</display-name>
+    <servlet-name>nordnUploadTask</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>nordnUploadTask</servlet-name>
+    <url-pattern>/_dr/task/nordnUpload</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Verifies upload of LORDN data to MarksDB.</description>
+    <display-name> NORDN Verify Task</display-name>
+    <servlet-name>nordnVerifyTask</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>nordnVerifyTask</servlet-name>
+    <url-pattern>/_dr/task/nordnVerify</url-pattern>
+  </servlet-mapping>
+
+  <!-- TODO(b/24564175): Remove this entry. -->
+  <servlet>
+    <description>Write DNS updates.</description>
+    <display-name>WriteDnsServlet</display-name>
+    <servlet-name>writeDns</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>writeDns</servlet-name>
+    <url-pattern>/_dr/task/writeDns</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>
+      Read the DNS push and pull queues and kick off the appropriate tasks to update zone.</description>
+    <display-name>Read DNS Queue</display-name>
+    <servlet-name>readDnsQueue</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>readDnsQueue</servlet-name>
+    <url-pattern>/_dr/cron/readDnsQueue</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Publish DNS updates.</description>
+    <display-name>Publish DNS Updates</display-name>
+    <servlet-name>publishDnsUpdates</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>publishDnsUpdates</servlet-name>
+    <url-pattern>/_dr/task/publishDnsUpdates</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>
+      Endpoint to manually refresh DNS information.
+    </description>
+    <display-name>DNS Refresh</display-name>
+    <servlet-name>dns-refresh</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>dns-refresh</servlet-name>
+    <url-pattern>/_dr/dnsRefresh</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Export a datastore backup snapshot to GCS.</description>
+    <display-name>Export snapshot to GCS</display-name>
+    <servlet-name>exportSnapshot</servlet-name>
+    <servlet-class>com.google.domain.registry.export.ExportSnapshotServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>exportSnapshot</servlet-name>
+    <url-pattern>/_dr/task/exportSnapshot</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Check the completion of a datastore backup snapshot.</description>
+    <display-name>Check on snapshot status</display-name>
+    <servlet-name>checkSnapshot</servlet-name>
+    <servlet-class>com.google.domain.registry.export.CheckSnapshotServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>checkSnapshot</servlet-name>
+    <url-pattern>/_dr/task/checkSnapshot</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Load a datastore backup snapshot into BigQuery.</description>
+    <display-name>Load snapshot into BigQuery</display-name>
+    <servlet-name>loadSnapshot</servlet-name>
+    <servlet-class>com.google.domain.registry.export.LoadSnapshotServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>loadSnapshot</servlet-name>
+    <url-pattern>/_dr/task/loadSnapshot</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Update a view to point at a certain snapshot in BigQuery.</description>
+    <display-name>Update snapshot view in BigQuery</display-name>
+    <servlet-name>updateSnapshotView</servlet-name>
+    <servlet-class>com.google.domain.registry.export.UpdateSnapshotViewServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>updateSnapshotView</servlet-name>
+    <url-pattern>/_dr/task/updateSnapshotView</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Polls state of jobs in Bigquery</description>
+    <display-name>Bigquery Job Poll Task</display-name>
+    <servlet-name>poll-bigquery-job</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>poll-bigquery-job</servlet-name>
+    <url-pattern>/_dr/task/pollBigqueryJob</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Fan out a cron task over an adjustable range of TLDs.</description>
+    <display-name>TLD Cron Fanout</display-name>
+    <servlet-name>tld-fanout</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>tld-fanout</servlet-name>
+    <url-pattern>/_dr/cron/fanout</url-pattern>
+  </servlet-mapping>
+
+  <!-- Backups. -->
+
+  <servlet>
+    <description>Fan out a cron task over all commit log buckets.</description>
+    <display-name>Commit Log Bucket Cron Fanout</display-name>
+    <servlet-name>commit-log-fanout</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>commit-log-fanout</servlet-name>
+    <url-pattern>/_dr/cron/commitLogFanout</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Deletes old commit logs from datastore.</description>
+    <display-name>Delete Old Commit Logs</display-name>
+    <servlet-name>delete-commits</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>delete-commits</servlet-name>
+    <url-pattern>/_dr/task/deleteOldCommitLogs</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Checkpoint commit logs.</description>
+    <servlet-name>checkpoint-commit-logs</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>checkpoint-commit-logs</servlet-name>
+    <url-pattern>/_dr/cron/commitLogCheckpoint</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Export commit log diff.</description>
+    <servlet-name>export-commit-log-diff</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>export-commit-log-diff</servlet-name>
+    <url-pattern>/_dr/task/exportCommitLogDiff</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Delete EppResources, children, and indices.</description>
+    <servlet-name>kill-epp-resources</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>kill-epp-resources</servlet-name>
+    <url-pattern>/_dr/task/killAllEppResources</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Restore commit logs.</description>
+    <servlet-name>restore-commit-logs</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>restore-commit-logs</servlet-name>
+    <url-pattern>/_dr/task/restoreCommitLogs</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>Delete commit logs.</description>
+    <servlet-name>kill-commit-logs</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>kill-commit-logs</servlet-name>
+    <url-pattern>/_dr/task/killCommitLogs</url-pattern>
+  </servlet-mapping>
+
+  <!-- MapReduce servlet. -->
+  <servlet>
+    <servlet-name>mapreduce</servlet-name>
+    <servlet-class>com.google.appengine.tools.mapreduce.MapReduceServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>mapreduce</servlet-name>
+    <url-pattern>/_dr/mapreduce/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- Pipeline GUI servlets. -->
+  <servlet>
+    <servlet-name>pipeline</servlet-name>
+    <servlet-class>com.google.appengine.tools.pipeline.impl.servlets.PipelineServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>pipeline</servlet-name>
+    <url-pattern>/_ah/pipeline/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- Synchronize registrars spreadsheet task.  -->
+  <servlet>
+    <servlet-name>sync-registrars-sheet</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>sync-registrars-sheet</servlet-name>
+    <url-pattern>/_dr/task/syncRegistrarsSheet</url-pattern>
+  </servlet-mapping>
+
+  <!-- TLD reserved terms exporting servlet. -->
+  <servlet>
+    <servlet-name>export-reserved-terms</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>export-reserved-terms</servlet-name>
+    <url-pattern>/_dr/task/exportReservedTerms</url-pattern>
+  </servlet-mapping>
+
+  <!-- RegistrarContact changes syncing to Google Groups servlet. -->
+  <servlet>
+    <servlet-name>sync-group-members</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>sync-group-members</servlet-name>
+    <url-pattern>/_dr/task/syncGroupMembers</url-pattern>
+  </servlet-mapping>
+
+  <!--  Mapreduce to delete the specified contact resource if it is not referenced by any domains. -->
+  <servlet>
+    <description>
+      Deletes the specified contact resource if it is not referenced by any domains.
+    </description>
+    <display-name>Delete Contact Resource</display-name>
+    <servlet-name>delete-contact-resource</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>delete-contact-resource</servlet-name>
+    <url-pattern>/_dr/task/deleteContactResource</url-pattern>
+  </servlet-mapping>
+
+  <!--  Mapreduce to delete the specified host resource if it is not referenced by any domains. -->
+  <servlet>
+    <description>
+      Deletes the specified host resource if it is not referenced by any domains.
+    </description>
+    <display-name>Delete Host Resource</display-name>
+    <servlet-name>delete-host-resource</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>delete-host-resource</servlet-name>
+    <url-pattern>/_dr/task/deleteHostResource</url-pattern>
+  </servlet-mapping>
+
+  <!--  Mapreduce to enqueue DNS update tasks following a host rename. -->
+  <servlet>
+    <description>
+      Enqueues DNS update tasks following a host rename
+    </description>
+    <display-name>DNS Refresh For Host Rename</display-name>
+    <servlet-name>dns-refresh-for-host-rename</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>dns-refresh-for-host-rename</servlet-name>
+    <url-pattern>/_dr/task/dnsRefreshForHostRename</url-pattern>
+  </servlet-mapping>
+
+  <!-- Security config -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Internal</web-resource-name>
+      <description>
+        Any request path starting with `/_dr/` will be restricted to requests originating
+        from the backend or by anyone authenticated to a Google account that's listed in
+        the AppEngine control panel settings for this project as a Viewer/Owner/Developer.
+        The `_dr` is short for Domain Registry to follow AppEngine naming conventions.
+      </description>
+      <url-pattern>/_dr/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+  </security-constraint>
+
+  <!-- Require TLS on all requests. -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Secure</web-resource-name>
+      <description>
+        Require encryption for all paths. http URLs will be redirected to https.
+      </description>
+      <url-pattern>/*</url-pattern>
+    </web-resource-collection>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+  </security-constraint>
+
+  <!-- Shut down external access to registrar console. -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Internal</web-resource-name>
+      <description>
+        Go home rogue registrar!
+      </description>
+      <url-pattern>/registrar*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+  </security-constraint>
+
+  <!-- Restrict access to source code. -->
+  <!-- These are only included in the default module war, but restricting here too for safety. -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Internal</web-resource-name>
+      <description>No soup for you!</description>
+      <url-pattern>/assets/sources/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+  </security-constraint>
+
+  <!-- See: https://code.google.com/p/objectify-appengine/wiki/Setup -->
+  <filter>
+    <filter-name>ObjectifyFilter</filter-name>
+    <filter-class>com.googlecode.objectify.ObjectifyFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>ObjectifyFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <!-- Register types with Objectify. -->
+  <filter>
+    <filter-name>OfyFilter</filter-name>
+    <filter-class>com.google.domain.registry.model.ofy.OfyFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>OfyFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+</web-app>

@@ -1,0 +1,76 @@
+# Registry: Charleston Road Registry Inc.
+# Script: Arabic
+# Version: 1.0
+# Effective Date: 04-12-2012
+# Contact: tas-contact.google.com
+# Address: 1600 Amphitheatre Parkway Mountain View, CA 94043, USA
+# Telephone: +1 (650) 253-0000
+# Website: www.google.com
+# Notes: This table describes codepoints allowed for the Arabic script.
+# Registrations using either Arabic-Indic or Arabic digits are allowed,
+# but digit types are not allowed to be mixed.  Homogeneity is enforced
+# by the registry.
+
+# Common (allowed in all scripts)
+U+002D                   # HYPHEN-MINUS
+U+0030                   # DIGIT ZERO
+U+0031                   # DIGIT ONE
+U+0032                   # DIGIT TWO
+U+0033                   # DIGIT THREE
+U+0034                   # DIGIT FOUR
+U+0035                   # DIGIT FIVE
+U+0036                   # DIGIT SIX
+U+0037                   # DIGIT SEVEN
+U+0038                   # DIGIT EIGHT
+U+0039                   # DIGIT NINE
+U+0660                   # ARABIC-INDIC DIGIT ZERO
+U+0661                   # ARABIC-INDIC DIGIT ONE
+U+0662                   # ARABIC-INDIC DIGIT TWO
+U+0663                   # ARABIC-INDIC DIGIT THREE
+U+0664                   # ARABIC-INDIC DIGIT FOUR
+U+0665                   # ARABIC-INDIC DIGIT FIVE
+U+0666                   # ARABIC-INDIC DIGIT SIX
+U+0667                   # ARABIC-INDIC DIGIT SEVEN
+U+0668                   # ARABIC-INDIC DIGIT EIGHT
+U+0669                   # ARABIC-INDIC DIGIT NINE
+U+0621                   # ARABIC LETTER HAMZAH
+U+0622                   # ARABIC LETTER MADDAH ON ALEF
+U+0623                   # ARABIC LETTER HAMZAH ON ALEF
+U+0624                   # ARABIC LETTER HAMZAH ON WAW
+U+0625                   # ARABIC LETTER HAMZAH UNDER ALEF
+U+0626                   # ARABIC LETTER HAMZAH ON YA
+U+0627                   # ARABIC LETTER ALEF
+U+0628                   # ARABIC LETTER BAA
+U+0629                   # ARABIC LETTER TAA MARBUTAH
+U+062A                   # ARABIC LETTER TAA
+U+062B                   # ARABIC LETTER THAA
+U+062C                   # ARABIC LETTER JEEM
+U+062D                   # ARABIC LETTER HAA
+U+062E                   # ARABIC LETTER KHAA
+U+062F                   # ARABIC LETTER DAL
+U+0630                   # ARABIC LETTER THAL
+U+0631                   # ARABIC LETTER RA
+U+0632                   # ARABIC LETTER ZAIN
+U+0633                   # ARABIC LETTER SEEN
+U+0634                   # ARABIC LETTER SHEEN
+U+0635                   # ARABIC LETTER SAD
+U+0636                   # ARABIC LETTER DAD
+U+0637                   # ARABIC LETTER TAH
+U+0638                   # ARABIC LETTER DHAH
+U+0639                   # ARABIC LETTER AIN
+U+063A                   # ARABIC LETTER GHAIN
+U+063B                   # ARABIC LETTER KEHEH WITH TWO DOTS ABOVE
+U+063C                   # ARABIC LETTER KEHEH WITH THREE DOTS BELOW
+U+063D                   # ARABIC LETTER FARSI YEH WITH INVERTED V
+U+063E                   # ARABIC LETTER FARSI YEH WITH TWO DOTS ABOVE
+U+063F                   # ARABIC LETTER FARSI YEH WITH THREE DOTS ABOVE
+U+0641                   # ARABIC LETTER FA
+U+0642                   # ARABIC LETTER QAF
+U+0643                   # ARABIC LETTER CAF
+U+0644                   # ARABIC LETTER LAM
+U+0645                   # ARABIC LETTER MEEM
+U+0646                   # ARABIC LETTER NOON
+U+0647                   # ARABIC LETTER HA
+U+0648                   # ARABIC LETTER WAW
+U+0649                   # ARABIC LETTER ALEF MAQSURAH
+U+064A                   # ARABIC LETTER YA

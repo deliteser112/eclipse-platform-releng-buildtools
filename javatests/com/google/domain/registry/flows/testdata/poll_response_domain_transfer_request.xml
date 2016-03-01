@@ -1,0 +1,26 @@
+<epp xmlns:domain="urn:ietf:params:xml:ns:domain-1.0" xmlns:contact="urn:ietf:params:xml:ns:contact-1.0" xmlns:host="urn:ietf:params:xml:ns:host-1.0" xmlns:launch="urn:ietf:params:xml:ns:launch-1.0" xmlns:rgp="urn:ietf:params:xml:ns:rgp-1.0" xmlns="urn:ietf:params:xml:ns:epp-1.0" xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1" xmlns:mark="urn:ietf:params:xml:ns:mark-1.0" xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+    <response>
+        <result code="1301">
+            <msg>Command completed successfully; ack to dequeue</msg>
+        </result>
+        <msgQ count="1" id="1-C-EXAMPLE-18-22">
+            <qDate>2001-01-01T00:00:00Z</qDate>
+            <msg>Transfer requested.</msg>
+        </msgQ>
+        <resData>
+            <domain:trnData>
+                <domain:name>fakesite.example</domain:name>
+                <domain:trStatus>pending</domain:trStatus>
+                <domain:reID>TheRegistrar</domain:reID>
+                <domain:reDate>2001-01-01T00:00:00Z</domain:reDate>
+                <domain:acID>NewRegistrar</domain:acID>
+                <domain:acDate>2001-01-06T00:00:00Z</domain:acDate>
+                <domain:exDate>2003-06-01T00:04:00Z</domain:exDate>
+            </domain:trnData>
+        </resData>
+        <trID>
+            <clTRID>ABC-12345</clTRID>
+            <svTRID>BYiJH5vHRRW6EuYXo/Kdsg==-23</svTRID>
+        </trID>
+    </response>
+</epp>

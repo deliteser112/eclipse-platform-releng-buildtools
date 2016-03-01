@@ -1,0 +1,187 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.flows.contact;
+
+import static com.google.domain.registry.testing.ContactResourceSubject.assertAboutContacts;
+import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static com.google.domain.registry.testing.DatastoreHelper.deleteResource;
+import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+
+import com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
+import com.google.domain.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException;
+import com.google.domain.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException;
+import com.google.domain.registry.model.contact.ContactAuthInfo;
+import com.google.domain.registry.model.contact.ContactResource;
+import com.google.domain.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import com.google.domain.registry.model.reporting.HistoryEntry;
+import com.google.domain.registry.model.transfer.TransferStatus;
+
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+/** Unit tests for {@link ContactTransferQueryFlow}. */
+public class ContactTransferQueryFlowTest
+    extends ContactTransferFlowTestCase<ContactTransferQueryFlow, ContactResource> {
+
+  @Before
+  public void setUp() throws Exception {
+    setEppInput("contact_transfer_query.xml");
+    clock.setTo(DateTime.parse("2000-06-10T22:00:00.0Z"));
+    setClientIdForFlow("NewRegistrar");
+    setupContactWithPendingTransfer();
+  }
+
+  private void doSuccessfulTest(String commandFilename, String expectedXmlFilename)
+      throws Exception {
+    setEppInput(commandFilename);
+    eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
+    // Setup done; run the test.
+    assertTransactionalFlow(false);
+    runFlowAssertResponse(readFile(expectedXmlFilename));
+    assertAboutContacts().that(reloadResourceByUniqueIdYesterday())
+        .hasOneHistoryEntryEachOfTypes(HistoryEntry.Type.CONTACT_TRANSFER_REQUEST);
+    assertNoBillingEvents();
+  }
+
+  private void doFailingTest(String commandFilename) throws Exception {
+    setEppInput(commandFilename);
+    eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
+    // Setup done; run the test.
+    assertTransactionalFlow(false);
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess() throws Exception {
+    doSuccessfulTest("contact_transfer_query.xml", "contact_transfer_query_response.xml");
+  }
+
+  @Test
+  public void testSuccess_withContactRoid() throws Exception {
+    doSuccessfulTest("contact_transfer_query_with_roid.xml", "contact_transfer_query_response.xml");
+  }
+
+  @Test
+  public void testSuccess_sponsoringClient() throws Exception {
+    setClientIdForFlow("TheRegistrar");
+    doSuccessfulTest("contact_transfer_query.xml", "contact_transfer_query_response.xml");
+  }
+
+  @Test
+  public void testSuccess_withAuthinfo() throws Exception {
+    setClientIdForFlow("ClientZ");
+    doSuccessfulTest("contact_transfer_query_with_authinfo.xml",
+        "contact_transfer_query_response.xml");
+  }
+
+  @Test
+  public void testSuccess_clientApproved() throws Exception {
+    changeTransferStatus(TransferStatus.CLIENT_APPROVED);
+    doSuccessfulTest("contact_transfer_query.xml",
+        "contact_transfer_query_response_client_approved.xml");
+  }
+
+ @Test
+  public void testSuccess_clientRejected() throws Exception {
+    changeTransferStatus(TransferStatus.CLIENT_REJECTED);
+    doSuccessfulTest("contact_transfer_query.xml",
+        "contact_transfer_query_response_client_rejected.xml");
+  }
+
+ @Test
+  public void testSuccess_clientCancelled() throws Exception {
+    changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
+    doSuccessfulTest("contact_transfer_query.xml",
+        "contact_transfer_query_response_client_cancelled.xml");
+  }
+
+  @Test
+  public void testSuccess_serverApproved() throws Exception {
+    changeTransferStatus(TransferStatus.SERVER_APPROVED);
+    doSuccessfulTest("contact_transfer_query.xml",
+        "contact_transfer_query_response_server_approved.xml");
+  }
+
+  @Test
+  public void testSuccess_serverCancelled() throws Exception {
+    changeTransferStatus(TransferStatus.SERVER_CANCELLED);
+    doSuccessfulTest("contact_transfer_query.xml",
+        "contact_transfer_query_response_server_cancelled.xml");
+  }
+
+  @Test
+  public void testFailure_pendingDeleteContact() throws Exception {
+    changeTransferStatus(TransferStatus.SERVER_CANCELLED);
+    contact = persistResource(
+        contact.asBuilder().setDeletionTime(clock.nowUtc().plusDays(1)).build());
+    doSuccessfulTest("contact_transfer_query.xml",
+        "contact_transfer_query_response_server_cancelled.xml");
+  }
+
+  @Test
+  public void testFailure_badContactPassword() throws Exception {
+    thrown.expect(BadAuthInfoForResourceException.class);
+    // Change the contact's password so it does not match the password in the file.
+    contact = persistResource(
+        contact.asBuilder()
+            .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
+            .build());
+    doFailingTest("contact_transfer_query_with_authinfo.xml");
+  }
+
+  @Test
+  public void testFailure_badContactRoid() throws Exception {
+    thrown.expect(BadAuthInfoForResourceException.class);
+    // Set the contact to a different ROID, but don't persist it; this is just so the substitution
+    // code above will write the wrong ROID into the file.
+    contact = contact.asBuilder().setRepoId("DEADBEEF_TLD-ROID").build();
+    doFailingTest("contact_transfer_query_with_roid.xml");
+  }
+
+  @Test
+  public void testFailure_neverBeenTransferred() throws Exception {
+    thrown.expect(NoTransferHistoryToQueryException.class);
+    changeTransferStatus(null);
+    doFailingTest("contact_transfer_query.xml");
+  }
+
+  @Test
+  public void testFailure_unrelatedClient() throws Exception {
+    thrown.expect(NotAuthorizedToViewTransferException.class);
+    setClientIdForFlow("ClientZ");
+    doFailingTest("contact_transfer_query.xml");
+  }
+
+  @Test
+  public void testFailure_deletedContact() throws Exception {
+    thrown.expect(
+        ResourceToQueryDoesNotExistException.class,
+        String.format("(%s)", getUniqueIdFromCommand()));
+    contact = persistResource(
+        contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+    doFailingTest("contact_transfer_query.xml");
+  }
+
+  @Test
+  public void testFailure_nonexistentContact() throws Exception {
+    thrown.expect(
+        ResourceToQueryDoesNotExistException.class,
+        String.format("(%s)", getUniqueIdFromCommand()));
+    deleteResource(contact);
+    doFailingTest("contact_transfer_query.xml");
+  }
+}

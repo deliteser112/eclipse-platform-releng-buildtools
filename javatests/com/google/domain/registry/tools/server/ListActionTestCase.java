@@ -1,0 +1,92 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.tools.server;
+
+import static com.google.common.truth.Truth.assertThat;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
+
+import com.google.common.base.Optional;
+import com.google.domain.registry.testing.AppEngineRule;
+import com.google.domain.registry.testing.ExceptionRule;
+import com.google.domain.registry.testing.FakeJsonResponse;
+
+import org.junit.Rule;
+
+import java.util.List;
+import java.util.regex.Pattern;
+
+/**
+ * Base class for tests of list actions.
+ */
+public class ListActionTestCase {
+
+  @Rule
+  public final AppEngineRule appEngine = AppEngineRule.builder()
+      .withDatastore()
+      .build();
+
+  @Rule
+  public final ExceptionRule thrown = new ExceptionRule();
+
+  private FakeJsonResponse response;
+
+  void runAction(
+      ListObjectsAction<?> action,
+      Optional<String> fields,
+      Optional<Boolean> printHeaderRow,
+      Optional<Boolean> fullFieldNames) {
+    response = new FakeJsonResponse();
+    action.response = response;
+    action.fields = fields;
+    action.printHeaderRow = printHeaderRow;
+    action.fullFieldNames = fullFieldNames;
+    action.run();
+    assertThat(response.getStatus()).isEqualTo(SC_OK);
+  }
+
+  void testRunSuccess(
+      ListObjectsAction<?> action,
+      Optional<String> fields,
+      Optional<Boolean> printHeaderRow,
+      Optional<Boolean> fullFieldNames,
+      String ... expectedLinePatterns) {
+    assertThat(expectedLinePatterns).isNotNull();
+    runAction(action, fields, printHeaderRow, fullFieldNames);
+    assertThat(response.getResponseMap().get("status")).isEqualTo("success");
+    Object obj = response.getResponseMap().get("lines");
+    assertThat(obj).isInstanceOf(List.class);
+    @SuppressWarnings("unchecked")
+    List<String> lines = (List<String>) obj;
+    assertThat(lines).hasSize(expectedLinePatterns.length);
+    for (int i = 0; i < lines.size(); i++) {
+      assertThat(lines.get(i)).containsMatch(Pattern.compile(expectedLinePatterns[i]));
+    }
+  }
+
+  void testRunError(
+      ListObjectsAction<?> action,
+      Optional<String> fields,
+      Optional<Boolean> printHeaderRow,
+      Optional<Boolean> fullFieldNames,
+      String expectedErrorPattern) {
+    assertThat(expectedErrorPattern).isNotNull();
+    runAction(action, fields, printHeaderRow, fullFieldNames);
+    assertThat(response.getResponseMap().get("status")).isEqualTo("error");
+    Object obj = response.getResponseMap().get("error");
+    assertThat(obj).isInstanceOf(String.class);
+    String error = obj.toString();
+    assertThat(error).containsMatch(Pattern.compile(expectedErrorPattern));
+  }
+}

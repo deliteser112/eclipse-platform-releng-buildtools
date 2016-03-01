@@ -1,0 +1,88 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.whois;
+
+import static com.google.domain.registry.request.Action.Method.POST;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
+
+import com.google.common.net.MediaType;
+import com.google.domain.registry.request.Action;
+import com.google.domain.registry.request.Response;
+import com.google.domain.registry.util.Clock;
+import com.google.domain.registry.util.FormattingLogger;
+
+import org.joda.time.DateTime;
+
+import java.io.Reader;
+
+import javax.inject.Inject;
+
+/**
+ * HTTP request handler for WHOIS protocol requests sent to us by a proxy.
+ *
+ * <p>All commands and responses conform to the WHOIS spec as defined in RFC 3912. Commands must
+ * be sent via an HTTP POST in the request body.
+ *
+ * <p>This servlet is meant to serve as a low level interface for the proxy app which forwards us
+ * requests received on port 43. However this interface is technically higher level because it
+ * sends back proper HTTP error codes such as 200, 400, 500, etc. These are discarded by the proxy
+ * because WHOIS specifies no manner for differentiating successful and erroneous requests.
+ *
+ * @see WhoisHttpServer
+ * @see <a href="http://www.ietf.org/rfc/rfc3912.txt">RFC 3912: WHOIS Protocol Specification</a>
+ */
+@Action(path = "/_dr/whois", method = POST)
+public class WhoisServer implements Runnable {
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+
+  /** WHOIS doesn't define an encoding, nor any way to specify an encoding in the protocol. */
+  static final MediaType CONTENT_TYPE = MediaType.PLAIN_TEXT_UTF_8;
+
+  /**
+   * As stated above, this is the low level interface intended for port 43, and as such, it
+   * always prefers ASCII.
+   */
+  static final boolean PREFER_UNICODE = false;
+
+  @Inject Clock clock;
+  @Inject Reader input;
+  @Inject Response response;
+  @Inject WhoisServer() {}
+
+  @Override
+  public void run() {
+    String responseText;
+    DateTime now = clock.nowUtc();
+    try {
+      responseText = new WhoisReader(input, now)
+          .readCommand()
+          .executeQuery(now)
+          .getPlainTextOutput(PREFER_UNICODE);
+    } catch (WhoisException e) {
+      responseText = e.getPlainTextOutput(PREFER_UNICODE);
+    } catch (Throwable t) {
+      logger.severe(t, "WHOIS request crashed");
+      responseText = "Internal Server Error";
+    }
+    // Note that we always return 200 (OK) even if an error was hit. This is because returning an
+    // non-OK HTTP status code will cause the proxy server to silently close the connection. Since
+    // WHOIS has no way to return errors, it's better to convert any such errors into strings and
+    // return them directly.
+    response.setStatus(SC_OK);
+    response.setContentType(CONTENT_TYPE);
+    response.setPayload(responseText);
+  }
+}

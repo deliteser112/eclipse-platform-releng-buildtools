@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rde:deposit type="DIFF" id="20101017002" prevId="20101017001"
+  xmlns:domain="urn:ietf:params:xml:ns:domain-1.0"
+  xmlns:contact="urn:ietf:params:xml:ns:contact-1.0"
+  xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1"
+  xmlns:rde="urn:ietf:params:xml:ns:rde-1.0"
+  xmlns:rdeHeader="urn:ietf:params:xml:ns:rdeHeader-1.0"
+  xmlns:rdeDom="urn:ietf:params:xml:ns:rdeDomain-1.0"
+  xmlns:rdeHost="urn:ietf:params:xml:ns:rdeHost-1.0"
+  xmlns:rdeContact="urn:ietf:params:xml:ns:rdeContact-1.0"
+  xmlns:rdeRegistrar="urn:ietf:params:xml:ns:rdeRegistrar-1.0"
+  xmlns:rdeIDN="urn:ietf:params:xml:ns:rdeIDN-1.0"
+  xmlns:rdeNNDN="urn:ietf:params:xml:ns:rdeNNDN-1.0"
+  xmlns:rdeEppParams="urn:ietf:params:xml:ns:rdeEppParams-1.0"
+  xmlns:epp="urn:ietf:params:xml:ns:epp-1.0">
+
+  <rde:watermark>2010-10-17T00:00:00Z</rde:watermark>
+  <rde:rdeMenu>
+    <rde:version>1.0</rde:version>
+    <rde:objURI>urn:ietf:params:xml:ns:rdeHeader-1.0</rde:objURI>
+    <rde:objURI>urn:ietf:params:xml:ns:rdeContact-1.0</rde:objURI>
+    <rde:objURI>urn:ietf:params:xml:ns:rdeHost-1.0</rde:objURI>
+    <rde:objURI>urn:ietf:params:xml:ns:rdeDomain-1.0</rde:objURI>
+    <rde:objURI>urn:ietf:params:xml:ns:rdeRegistrar-1.0</rde:objURI>
+    <rde:objURI>urn:ietf:params:xml:ns:rdeIDN-1.0</rde:objURI>
+    <rde:objURI>urn:ietf:params:xml:ns:rdeNNDN-1.0</rde:objURI>
+    <rde:objURI>urn:ietf:params:xml:ns:rdeEppParams-1.0</rde:objURI>
+  </rde:rdeMenu>
+
+  <!-- Deletes -->
+  <rde:deletes>
+    <rdeDom:delete>
+      <rdeDom:name>example2.test</rdeDom:name>
+    </rdeDom:delete>
+  </rde:deletes>
+
+  <!-- Contents -->
+  <rde:contents>
+    <!-- Header -->
+    <rdeHeader:header>
+      <rdeHeader:tld>test</rdeHeader:tld>
+      <rdeHeader:count
+        uri="urn:ietf:params:xml:ns:rdeDomain-1.0">1
+        </rdeHeader:count>
+      <rdeHeader:count
+        uri="urn:ietf:params:xml:ns:rdeHost-1.0">1
+        </rdeHeader:count>
+      <rdeHeader:count
+        uri="urn:ietf:params:xml:ns:rdeContact-1.0">1
+        </rdeHeader:count>
+      <rdeHeader:count
+        uri="urn:ietf:params:xml:ns:rdeRegistrar-1.0">1
+      </rdeHeader:count>
+      <rdeHeader:count
+        uri="urn:ietf:params:xml:ns:rdeIDN-1.0">1
+        </rdeHeader:count>
+      <rdeHeader:count
+        uri="urn:ietf:params:xml:ns:rdeNNDN-1.0">1
+        </rdeHeader:count>
+      <rdeHeader:count
+        uri="urn:ietf:params:xml:ns:rdeEppParams-1.0">1
+    </rdeHeader:count>
+    </rdeHeader:header>
+  </rde:contents>
+</rde:deposit>

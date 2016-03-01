@@ -1,0 +1,72 @@
+{namespace domain.registry.tools autoescape="strict"}
+/**
+ * Create contact
+ */
+{template .createcontact}
+  {@param? id: string}
+  {@param? name: string}
+  {@param? org: string}
+  {@param? street: list<string>}
+  {@param? city: string}
+  {@param? state: string}
+  {@param? zip: string}
+  {@param? cc: string}
+  {@param? phone: string}
+  {@param? fax: string}
+  {@param? email: string}
+  {@param password: string}
+
+  <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+  <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+    <command>
+      <create>
+        <contact:create
+         xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
+          {if $id}
+            <contact:id>{$id}</contact:id>
+          {/if}
+          <contact:postalInfo type="loc">
+            {if $name}
+              <contact:name>{$name}</contact:name>
+            {/if}
+            {if $org}
+              <contact:org>{$org}</contact:org>
+            {/if}
+            <contact:addr>
+              {if $street}
+                {foreach $s in $street}
+                  <contact:street>{$s}</contact:street>
+                {/foreach}
+              {/if}
+              {if $city}
+                <contact:city>{$city}</contact:city>
+              {/if}
+              {if $state}
+                <contact:sp>{$state}</contact:sp>
+              {/if}
+              {if $zip}
+                <contact:pc>{$zip}</contact:pc>
+              {/if}
+              {if $cc}
+                <contact:cc>{$cc}</contact:cc>
+              {/if}
+            </contact:addr>
+          </contact:postalInfo>
+          {if $phone}
+            <contact:voice>{$phone}</contact:voice>
+          {/if}
+          {if $fax}
+            <contact:fax>{$fax}</contact:fax>
+          {/if}
+          {if $email}
+            <contact:email>{$email}</contact:email>
+          {/if}
+          <contact:authInfo>
+            <contact:pw>{$password}</contact:pw>
+          </contact:authInfo>
+        </contact:create>
+      </create>
+      <clTRID>GTechTool</clTRID>
+    </command>
+  </epp>
+{/template}

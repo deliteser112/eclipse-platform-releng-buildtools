@@ -1,0 +1,310 @@
+{
+  "status": [
+    "delete prohibited",
+    "renew prohibited",
+    "transfer prohibited",
+    "update prohibited"
+  ],
+  "unicodeName": "%NAME%",
+  "handle": "%HANDLE%",
+  "links": [
+    {
+      "href": "https://example.com/rdap/domain/%PUNYCODENAME%",
+      "type": "application/rdap+json",
+      "rel": "self",
+      "value": "https://example.com/rdap/domain/%PUNYCODENAME%"
+    }
+  ],
+  "nameservers": [
+    {
+      "status": [
+        "active"
+      ],
+      "handle": "5-ROID",
+      "links": [
+        {
+          "href": "https://example.com/rdap/nameserver/ns1.cat.lol",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/nameserver/ns1.cat.lol"
+        }
+      ],
+      "ldhName": "ns1.cat.lol",
+      "ipAddresses": {
+        "v4": [
+          "1.2.3.4"
+        ]
+      },
+      "objectClassName": "nameserver"
+    },
+    {
+      "status": [
+        "active"
+      ],
+      "handle": "6-ROID",
+      "links": [
+        {
+          "href": "https://example.com/rdap/nameserver/ns2.cat.lol",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/nameserver/ns2.cat.lol"
+        }
+      ],
+      "ldhName": "ns2.cat.lol",
+      "ipAddresses": {
+        "v6": [
+          "bad:f00d:cafe::15:beef"
+        ]
+      },
+      "objectClassName": "nameserver"
+    }
+  ],
+  "ldhName": "%PUNYCODENAME%",
+  "entities": [
+    {
+      "status": [
+        "active"
+      ],
+      "handle": "3-ROID",
+      "roles": [
+        "administrative"
+      ],
+      "links": [
+        {
+          "href": "https://example.com/rdap/entity/3-ROID",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/entity/3-ROID"
+        }
+      ],
+      "objectClassName": "entity",
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "Santa Claus"
+          ],
+          [
+            "org",
+            {},
+            "text",
+            "GOOGLE INCORPORATED <script>"
+          ],
+          [
+            "adr",
+            {},
+            "text",
+            [
+              "",
+              "",
+              "123 Example Boulevard <script>",
+              "KOKOMO",
+              "BM",
+              "31337",
+              "United States"
+            ]
+          ],
+          [
+            "tel",
+            {
+              "type": [
+                "voice"
+              ]
+            },
+            "uri",
+            "tel:+1.2126660420"
+          ],
+          [
+            "tel",
+            {
+              "type": [
+                "fax"
+              ]
+            },
+            "uri",
+            "tel:+1.2126660420"
+          ],
+          [
+            "email",
+            {},
+            "text",
+            "BOFH@cat.lol"
+          ]
+        ]
+      ]
+    },
+    {
+      "status": [
+        "active"
+      ],
+      "handle": "4-ROID",
+      "roles": [
+        "technical"
+      ],
+      "links": [
+        {
+          "href": "https://example.com/rdap/entity/4-ROID",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/entity/4-ROID"
+        }
+      ],
+      "objectClassName": "entity",
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "The Raven"
+          ],
+          [
+            "org",
+            {},
+            "text",
+            "GOOGLE INCORPORATED <script>"
+          ],
+          [
+            "adr",
+            {},
+            "text",
+            [
+              "",
+              "",
+              "123 Example Boulevard <script>",
+              "KOKOMO",
+              "BM",
+              "31337",
+              "United States"
+            ]
+          ],
+          [
+            "tel",
+            {
+              "type": [
+                "voice"
+              ]
+            },
+            "uri",
+            "tel:+1.2126660420"
+          ],
+          [
+            "tel",
+            {
+              "type": [
+                "fax"
+              ]
+            },
+            "uri",
+            "tel:+1.2126660420"
+          ],
+          [
+            "email",
+            {},
+            "text",
+            "bog@cat.lol"
+          ]
+        ]
+      ]
+    },
+    {
+      "status": [
+        "active"
+      ],
+      "handle": "2-ROID",
+      "roles": [
+        "registrant"
+      ],
+      "links": [
+        {
+          "href": "https://example.com/rdap/entity/2-ROID",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/entity/2-ROID"
+        }
+      ],
+      "objectClassName": "entity",
+      "vcardArray": [
+        "vcard",
+        [
+          [
+            "version",
+            {},
+            "text",
+            "4.0"
+          ],
+          [
+            "fn",
+            {},
+            "text",
+            "Goblin Market"
+          ],
+          [
+            "org",
+            {},
+            "text",
+            "GOOGLE INCORPORATED <script>"
+          ],
+          [
+            "adr",
+            {},
+            "text",
+            [
+              "",
+              "",
+              "123 Example Boulevard <script>",
+              "KOKOMO",
+              "BM",
+              "31337",
+              "United States"
+            ]
+          ],
+          [
+            "tel",
+            {
+              "type": [
+                "voice"
+              ]
+            },
+            "uri",
+            "tel:+1.2126660420"
+          ],
+          [
+            "tel",
+            {
+              "type": [
+                "fax"
+              ]
+            },
+            "uri",
+            "tel:+1.2126660420"
+          ],
+          [
+            "email",
+            {},
+            "text",
+            "lol@cat.lol"
+          ]
+        ]
+      ]
+    }
+  ],
+  "objectClassName": "domain",
+  "port43": "whois.example.tld"
+}

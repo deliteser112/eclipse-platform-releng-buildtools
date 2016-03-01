@@ -1,0 +1,21 @@
+{namespace domain.registry.tools autoescape="strict"}
+
+/**
+ * Domain check request
+ */
+{template .domaincheck}
+{@param domainNames: list<string>}
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <check>
+      <domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+      {foreach $d in $domainNames}
+        <domain:name>{$d}</domain:name>
+      {/foreach}
+      </domain:check>
+    </check>
+    <clTRID>GTechTool</clTRID>
+  </command>
+</epp>
+{/template}

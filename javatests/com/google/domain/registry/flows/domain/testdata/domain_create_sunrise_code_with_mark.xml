@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <create>
+      <domain:create
+       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>exampleone.tld</domain:name>
+        <domain:registrant>jd1234</domain:registrant>
+        <domain:contact type="admin">sh8013</domain:contact>
+        <domain:contact type="tech">sh8013</domain:contact>
+        <domain:authInfo>
+          <domain:pw>2fooBAR</domain:pw>
+        </domain:authInfo>
+      </domain:create>
+    </create>
+    <extension>
+      <launch:create
+       xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
+        <launch:phase>sunrise</launch:phase>
+        <launch:codeMark>
+          <launch:code>49FD46E6C4B45C55D4AC</launch:code>
+          <mark:mark
+            xmlns:mark="urn:ietf:params:xml:ns:mark-1.0">
+            <mark:trademark>
+              <mark:id>1234-2</mark:id>
+              <mark:markName>Example One</mark:markName>
+              <mark:holder entitlement="owner">
+                <mark:org>Example Inc.</mark:org>
+                <mark:addr>
+                  <mark:street>123 Example Dr.</mark:street>
+                  <mark:street>Suite 100</mark:street>
+                  <mark:city>Reston</mark:city>
+                  <mark:sp>VA</mark:sp>
+                  <mark:pc>20190</mark:pc>
+                  <mark:cc>US</mark:cc>
+                </mark:addr>
+              </mark:holder>
+              <mark:jurisdiction>US</mark:jurisdiction>
+              <mark:class>35</mark:class>
+              <mark:class>36</mark:class>
+              <mark:label>example-one</mark:label>
+              <mark:label>exampleone</mark:label>
+              <mark:goodsAndServices>Dirigendas et eiusmodi
+              featuring infringo in airfare et cartam servicia.
+              </mark:goodsAndServices>
+              <mark:regNum>234235</mark:regNum>
+              <mark:regDate>2009-08-16T09:00:00.0Z</mark:regDate>
+              <mark:exDate>2015-08-16T09:00:00.0Z</mark:exDate>
+            </mark:trademark>
+          </mark:mark>
+        </launch:codeMark>
+      </launch:create>
+    </extension>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>

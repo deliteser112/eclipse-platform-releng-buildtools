@@ -1,0 +1,117 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.model.domain.launch;
+
+import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+
+import com.google.common.collect.ImmutableList;
+import com.google.domain.registry.model.eppinput.EppInput.CommandExtension;
+import com.google.domain.registry.model.smd.AbstractSignedMark;
+import com.google.domain.registry.model.smd.EncodedSignedMark;
+import com.google.domain.registry.model.smd.SignedMark;
+
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlElementRefs;
+import javax.xml.bind.annotation.XmlEnumValue;
+import javax.xml.bind.annotation.XmlRootElement;
+
+/**
+ * An XML data object that represents a launch extension that may be present on EPP domain create
+ * commands.
+ * <p>
+ * This object holds XML data which JAXB will unmarshal from an EPP domain create command extension.
+ * The XML will have the following enclosing structure:
+ *
+ * <pre> {@code
+ *   <epp>
+ *     <command>
+ *       <create>
+ *         <!-- domain create XML data -->
+ *       </create>
+ *       <extension>
+ *         <launch:create>
+ *           <!-- launch create XML payload data -->
+ *         </launch:create>
+ *       </extension>
+ *     </command>
+ *   </epp>
+ * } </pre>
+ *
+ * @see CommandExtension
+ */
+@XmlRootElement(name = "create")
+public class LaunchCreateExtension extends LaunchExtension implements CommandExtension {
+
+  /** Type of domain creation being requested. */
+  public enum CreateType {
+    /**
+     * A Launch Application refers to a registration made during a launch phase when the server
+     * accepts multiple applications for the same domain name.
+     */
+    @XmlEnumValue("application")
+    APPLICATION,
+
+    /**
+     * A Launch Registration refers to a registration made during a launch phase when the server
+     * uses a "first-come, first-served" model.
+     */
+    @XmlEnumValue("registration")
+    REGISTRATION;
+  }
+
+  @XmlAttribute
+  CreateType type;
+
+  /**
+   * A list of signed marks or encoded signed marks which assert the client's ability to register
+   * the specified domain name.  Each one contains both a Mark object with information about its
+   * claim(s), and an XML signature over that mark object which is cryptographically signed. This is
+   * used in the "signed mark" validation model.
+   */
+  @XmlElementRefs({
+      @XmlElementRef(type = EncodedSignedMark.class),
+      @XmlElementRef(type = SignedMark.class)})
+  List<AbstractSignedMark> signedMarks;
+
+  /**
+   * A CodeMark is an abstract entity which contains either a secret code or a mark (or both) to
+   * assert its ability to register a particular mark. It is used in the "code", "mark", and "code
+   * with mark" validation models, none of which are supported by this codebase at this time. As
+   * such, it is stored only as an Object to mark its existence, but not further unmarshaled.
+   */
+  List<Object> codeMark;
+
+  /** The claims notice for this create, required if creating a domain with a claimed label. */
+  LaunchNotice notice;
+
+  public CreateType getCreateType() {
+    return type;
+  }
+
+  public ImmutableList<AbstractSignedMark> getSignedMarks() {
+    return nullToEmptyImmutableCopy(signedMarks);
+  }
+
+  public boolean hasCodeMarks() {
+    return codeMark != null && !codeMark.isEmpty();
+  }
+
+  public LaunchNotice getNotice() {
+    return notice;
+  }
+}

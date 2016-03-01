@@ -1,0 +1,104 @@
+{namespace registry.soy.registrar.contactepp autoescape="strict"}
+
+
+/* XXX: Forces first postalInfo type to be "int" and second "loc" if it is
+ *      present, for compatibility with the server. */
+/**
+ * Contact create request.
+ * @param item
+ * @param clTrid
+ */
+{template .create}
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <create>
+      <contact:create xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
+        <contact:id>{$item['contact:id']}</contact:id>
+        {foreach $pi in $item['contact:postalInfo']}
+          <contact:postalInfo type="{if index($pi) == 0}int{else}loc{/if}">
+            <contact:name>{$pi['contact:name']}</contact:name>
+            <contact:org>{$pi['contact:org']}</contact:org>
+            <contact:addr>
+              {let $addr: $pi['contact:addr'] /}
+              <contact:street>{$addr['contact:street']}</contact:street>
+              <contact:city>{$addr['contact:city']}</contact:city>
+              <contact:sp>{$addr['contact:sp']}</contact:sp>
+              <contact:pc>{$addr['contact:pc']}</contact:pc>
+              <contact:cc>{$addr['contact:cc']}</contact:cc>
+            </contact:addr>
+          </contact:postalInfo>
+        {/foreach}
+        <contact:voice>{$item['contact:voice']}</contact:voice>
+        <contact:fax>{$item['contact:fax']}</contact:fax>
+        <contact:email>{$item['contact:email']}</contact:email>
+        <contact:authInfo>
+          <contact:pw>{$item['contact:authInfo']['contact:pw']}</contact:pw>
+        </contact:authInfo>
+      </contact:create>
+    </create>
+    <clTRID>{$clTrid}</clTRID>
+  </command>
+</epp>
+{/template}
+
+
+/* XXX: Forces first postalInfo type to be "int" and second "loc" if it is
+ *      present, for compatibility with the server. */
+/**
+ * Contact update request.
+ * @param item
+ * @param clTrid
+ */
+{template .update}
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <update>
+      <contact:update xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
+        <contact:id>{$item['contact:id']}</contact:id>
+        <contact:chg>
+          {foreach $pi in $item['contact:postalInfo']}
+            <contact:postalInfo type="{if index($pi) == 0}int{else}loc{/if}">
+              <contact:name>{$pi['contact:name']}</contact:name>
+              <contact:org>{$pi['contact:org']}</contact:org>
+              {let $addr: $pi['contact:addr'] /}
+              <contact:addr>
+                <contact:street>{$addr['contact:street']}</contact:street>
+                <contact:city>{$addr['contact:city']}</contact:city>
+                <contact:sp>{$addr['contact:sp']}</contact:sp>
+                <contact:pc>{$addr['contact:pc']}</contact:pc>
+                <contact:cc>{$addr['contact:cc']}</contact:cc>
+              </contact:addr>
+            </contact:postalInfo>
+          {/foreach}
+          <contact:voice>{$item['contact:voice']}</contact:voice>
+          <contact:fax>{$item['contact:fax']}</contact:fax>
+          <contact:email>{$item['contact:email']}</contact:email>
+          <contact:authInfo>
+            <contact:pw>{$item['contact:authInfo']['contact:pw']}</contact:pw>
+          </contact:authInfo>
+        </contact:chg>
+      </contact:update>
+    </update>
+    <clTRID>{$clTrid}</clTRID>
+  </command>
+</epp>
+{/template}
+
+
+/**
+ * Contact info request.
+ * @param id
+ * @param clTrid
+ */
+{template .info}
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <info>
+      <contact:info xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
+        <contact:id>{$id}</contact:id>
+      </contact:info>
+    </info>
+    <clTRID>{$clTrid}</clTRID>
+  </command>
+</epp>
+{/template}

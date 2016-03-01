@@ -1,0 +1,17 @@
+{
+  "status": [
+    "active"
+  ],
+  "handle": "%HANDLE%",
+  "links": [
+    {
+      "href": "https://example.tld/rdap/nameserver/%NAME%",
+      "type": "application/rdap+json",
+      "rel": "self",
+      "value": "https://example.tld/rdap/nameserver/%NAME%"
+    }
+  ],
+  "ldhName": "%NAME%",
+  "objectClassName": "nameserver",
+  "port43": "whois.example.tld"
+}

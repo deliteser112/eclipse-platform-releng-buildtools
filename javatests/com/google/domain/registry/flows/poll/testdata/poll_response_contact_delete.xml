@@ -1,0 +1,15 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+    <response>
+        <result code="1301">
+            <msg>Command completed successfully; ack to dequeue</msg>
+        </result>
+        <msgQ count="1" id="2-2-ROID-5-6">
+            <qDate>2011-01-01T01:01:01Z</qDate>
+            <msg>Deleted contact jd1234</msg>
+        </msgQ>
+        <trID>
+            <clTRID>ABC-12345</clTRID>
+            <svTRID>server-trid</svTRID>
+        </trID>
+    </response>
+</epp>

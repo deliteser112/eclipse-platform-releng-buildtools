@@ -1,0 +1,17 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <update>
+      <host:update xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+        <host:name>%oldName%</host:name>
+        <host:add>
+        </host:add>
+        <host:rem>
+        </host:rem>
+        <host:chg>
+          <host:name>%newName%</host:name>
+        </host:chg>
+      </host:update>
+    </update>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>

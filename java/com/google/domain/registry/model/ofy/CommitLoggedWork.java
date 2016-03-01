@@ -1,0 +1,213 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.model.ofy;
+
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Predicates.in;
+import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.Maps.filterKeys;
+import static com.google.common.collect.Sets.difference;
+import static com.google.common.collect.Sets.union;
+import static com.google.domain.registry.model.ofy.CommitLogBucket.loadBucket;
+import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
+import static com.googlecode.objectify.ObjectifyService.ofy;
+
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.domain.registry.model.BackupGroupRoot;
+import com.google.domain.registry.model.ImmutableObject;
+import com.google.domain.registry.util.Clock;
+
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.VoidWork;
+import com.googlecode.objectify.Work;
+
+import org.joda.time.DateTime;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+/** Wrapper for {@link Work} that associates a time with each attempt. */
+class CommitLoggedWork<R> extends VoidWork {
+
+  private final Work<R> work;
+  private final Clock clock;
+
+  /**
+   * Temporary place to store the result of a non-void work.
+   *
+   * <p>We don't want to return the result directly because we are going to try to recover from a
+   * {@link com.google.appengine.api.datastore.DatastoreTimeoutException} deep inside Objectify
+   * when it tries to commit the transaction. When an exception is thrown the return value would be
+   * lost, but sometimes we will be able to determine that we actually succeeded despite the
+   * timeout, and we'll want to get the result.
+   */
+  private R result;
+
+  /**
+   * Temporary place to store the key of the commit log manifest.
+   *
+   * <p>We can use this to determine whether a transaction that failed with a
+   * {@link com.google.appengine.api.datastore.DatastoreTimeoutException} actually succeeded. If
+   * the manifest exists, and if the contents of the commit log are what we expected to have saved,
+   * then the transaction committed. If the manifest does not exist, then the transaction failed and
+   * is retryable.
+   */
+  protected CommitLogManifest manifest;
+
+  /**
+   * Temporary place to store the mutations belonging to the commit log manifest.
+   *
+   * <p>These are used along with the manifest to determine whether a transaction succeeded.
+   */
+  protected ImmutableSet<ImmutableObject> mutations = ImmutableSet.of();
+
+  /** Lifecycle marker to track whether {@link #vrun} has been called. */
+  private boolean vrunCalled;
+
+  CommitLoggedWork(Work<R> work, Clock clock) {
+    this.work = work;
+    this.clock = clock;
+  }
+
+  protected TransactionInfo createNewTransactionInfo() {
+    return new TransactionInfo(clock.nowUtc());
+  }
+
+  boolean hasRun() {
+    return vrunCalled;
+  }
+
+  R getResult() {
+    checkState(vrunCalled, "Cannot call getResult() before vrun()");
+    return result;
+  }
+
+  CommitLogManifest getManifest() {
+    checkState(vrunCalled, "Cannot call getManifest() before vrun()");
+    return manifest;
+  }
+
+  ImmutableSet<ImmutableObject> getMutations() {
+    checkState(vrunCalled, "Cannot call getMutations() before vrun()");
+    return mutations;
+  }
+
+  @Override
+  public void vrun() {
+    // The previous time will generally be null, except when using transactNew.
+    TransactionInfo previous = Ofy.TRANSACTION_INFO.get();
+    // Set the time to be used for "now" within the transaction.
+    try {
+      Ofy.TRANSACTION_INFO.set(createNewTransactionInfo());
+      result = work.run();
+      saveCommitLog(Ofy.TRANSACTION_INFO.get());
+    } finally {
+      Ofy.TRANSACTION_INFO.set(previous);
+    }
+    vrunCalled = true;
+  }
+
+  /** Records all mutations enrolled by this transaction to a {@link CommitLogManifest} entry. */
+  private void saveCommitLog(TransactionInfo info) {
+    ImmutableSet<Key<?>> touchedKeys = info.getTouchedKeys();
+    if (touchedKeys.isEmpty()) {
+      return;
+    }
+    CommitLogBucket bucket = loadBucket(info.bucketKey);
+    // Enforce unique monotonic property on CommitLogBucket.getLastWrittenTime().
+    if (isBeforeOrAt(info.transactionTime, bucket.getLastWrittenTime())) {
+      throw new TimestampInversionException(info.transactionTime, bucket.getLastWrittenTime());
+    }
+    Map<Key<BackupGroupRoot>, BackupGroupRoot> rootsForTouchedKeys =
+        getBackupGroupRoots(touchedKeys);
+    Map<Key<BackupGroupRoot>, BackupGroupRoot> rootsForUntouchedKeys =
+        getBackupGroupRoots(difference(getObjectifySessionCacheKeys(), touchedKeys));
+    // Check the update timestamps of all keys in the transaction, whether touched or merely read.
+    checkBackupGroupRootTimestamps(
+        info.transactionTime,
+        union(rootsForUntouchedKeys.entrySet(), rootsForTouchedKeys.entrySet()));
+    // Find any BGRs that have children which were touched but were not themselves touched.
+    Set<BackupGroupRoot> untouchedRootsWithTouchedChildren =
+        ImmutableSet.copyOf(filterKeys(rootsForTouchedKeys, not(in(touchedKeys))).values());
+    manifest = CommitLogManifest.create(info.bucketKey, info.transactionTime, info.getDeletes());
+    final Key<CommitLogManifest> manifestKey = Key.create(manifest);
+    mutations = FluentIterable
+        .from(union(info.getSaves(), untouchedRootsWithTouchedChildren))
+        .transform(new Function<Object, ImmutableObject>() {
+            @Override
+            public CommitLogMutation apply(Object saveEntity) {
+              return CommitLogMutation.create(manifestKey, saveEntity);
+            }})
+        .toSet();
+    ofy().save()
+      .entities(new ImmutableSet.Builder<>()
+          .add(manifest)
+          .add(bucket.asBuilder().setLastWrittenTime(info.transactionTime).build())
+          .addAll(mutations)
+          .addAll(untouchedRootsWithTouchedChildren)
+          .build())
+      .now();
+  }
+
+  /**
+   * Returns keys read by Objectify during this transaction.
+   *
+   * <p>This won't include the keys of asynchronous save and delete operations that haven't been
+   * reaped. But that's ok because we already logged all of those keys in {@link TransactionInfo}
+   * and only need this method to figure out what was loaded.
+   */
+  private ImmutableSet<Key<?>> getObjectifySessionCacheKeys() {
+    return ((SessionKeyExposingObjectify) ofy()).getSessionKeys();
+  }
+
+  /** Check that the timestamp of each BackupGroupRoot is in the past. */
+  private void checkBackupGroupRootTimestamps(
+      DateTime transactionTime, Set<Entry<Key<BackupGroupRoot>, BackupGroupRoot>> bgrEntries) {
+    ImmutableMap.Builder<Key<BackupGroupRoot>, DateTime> builder = new ImmutableMap.Builder<>();
+    for (Entry<Key<BackupGroupRoot>, BackupGroupRoot> entry : bgrEntries) {
+      DateTime updateTime = entry.getValue().getUpdateAutoTimestamp().getTimestamp();
+      if (!updateTime.isBefore(transactionTime)) {
+        builder.put(entry.getKey(), updateTime);
+      }
+    }
+    ImmutableMap<Key<BackupGroupRoot>, DateTime> problematicRoots = builder.build();
+    if (!problematicRoots.isEmpty()) {
+      throw new TimestampInversionException(transactionTime, problematicRoots);
+    }
+  }
+
+  /** Find the set of {@link BackupGroupRoot} ancestors of the given keys. */
+  private Map<Key<BackupGroupRoot>, BackupGroupRoot> getBackupGroupRoots(Iterable<Key<?>> keys) {
+    Set<Key<BackupGroupRoot>> rootKeys = new HashSet<>();
+    for (Key<?> key : keys) {
+      while (key != null
+          && !BackupGroupRoot.class
+              .isAssignableFrom(ofy().factory().getMetadata(key).getEntityClass())) {
+        key = key.getParent();
+      }
+      if (key != null) {
+        @SuppressWarnings("unchecked")
+        Key<BackupGroupRoot> rootKey = (Key<BackupGroupRoot>) key;
+        rootKeys.add(rootKey);
+      }
+    }
+    return ImmutableMap.copyOf(ofy().load().keys(rootKeys));
+  }
+}

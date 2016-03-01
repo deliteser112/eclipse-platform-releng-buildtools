@@ -1,0 +1,55 @@
+# Registry: Charleston Road Registry Inc.
+# Script: Hebrew
+# Version: 1.0
+# Effective Date: 04-12-2012
+# Contact: tas-contact.google.com
+# Address: 1600 Amphitheatre Parkway Mountain View, CA 94043, USA
+# Telephone: +1 (650) 253-0000
+# Website: www.google.com
+# Notes: This table describes codepoints allowed for the Hebrew script.
+#
+# Code Point
+#
+U+002D # HYPHEN-MINUS
+#
+U+0030 # DIGIT ZERO
+
+# Character
+
+U+0031                         # DIGIT ONE
+U+0032                         # DIGIT TWO
+U+0033                         # DIGIT THREE
+U+0034                         # DIGIT FOUR
+U+0035                         # DIGIT FIVE
+U+0036                         # DIGIT SIX
+U+0037                         # DIGIT SEVEN
+U+0038                         # DIGIT EIGHT
+U+0039                         # DIGIT NINE
+#
+U+05D0                         # HEBREW LETTER ALEF
+U+05D1                         # HEBREW LETTER BET
+U+05D2 # HEBREW LETTER GIMEL
+U+05D3 # HEBREW LETTER DALET
+U+05D4                         # HEBREW LETTER HE
+U+05D5                         # HEBREW LETTER VAV
+U+05D6 # HEBREW LETTER ZAYIN
+U+05D7                         # HEBREW LETTER HET
+U+05D8                         # HEBREW LETTER TET
+U+05D9                         # HEBREW LETTER YOD
+U+05DA # HEBREW LETTER FINAL KAF
+U+05DB                         # HEBREW LETTER KAF
+U+05DC # HEBREW LETTER LAMED
+U+05DD # HEBREW LETTER FINAL MEM
+U+05DE                         # HEBREW LETTER MEM
+U+05DF # HEBREW LETTER FINAL NUN
+U+05E0                         # HEBREW LETTER NUN
+U+05E1 # HEBREW LETTER SAMEKH
+U+05E2                         # HEBREW LETTER AYIN
+U+05E3 # HEBREW LETTER FINAL PE
+U+05E4                         # HEBREW LETTER PE
+U+05E5 # HEBREW LETTER FINAL TSADI
+U+05E6 # HEBREW LETTER TSADI
+U+05E7                         # HEBREW LETTER QOF
+U+05E8                         # HEBREW LETTER RESH
+U+05E9                         # HEBREW LETTER SHIN
+U+05EA                         # HEBREW LETTER TAV

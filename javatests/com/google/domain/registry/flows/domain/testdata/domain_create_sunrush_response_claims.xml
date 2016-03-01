@@ -1,0 +1,25 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <response>
+    <result code="1000">
+      <msg>Command completed successfully</msg>
+    </result>
+    <resData>
+      <domain:creData
+       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>example-one.tld</domain:name>
+        <domain:crDate>2013-08-09T12:05:59Z</domain:crDate>
+      </domain:creData>
+    </resData>
+    <extension>
+      <launch:creData
+       xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
+        <launch:phase name="landrush">sunrise</launch:phase>
+        <launch:applicationID>1-TLD</launch:applicationID>
+      </launch:creData>
+    </extension>
+    <trID>
+      <clTRID>ABC-12345</clTRID>
+      <svTRID>server-trid</svTRID>
+    </trID>
+  </response>
+</epp>

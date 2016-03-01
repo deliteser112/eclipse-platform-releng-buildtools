@@ -1,0 +1,32 @@
+{namespace domain.registry.tools autoescape="strict"}
+
+/**
+ * Domain check fee request
+ */
+{template .domaincheckfee}
+{@param domainNames: list<string>}
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <check>
+      <domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+      {foreach $d in $domainNames}
+        <domain:name>{$d}</domain:name>
+      {/foreach}
+      </domain:check>
+    </check>
+    <extension>
+      <fee:check xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+      {foreach $d in $domainNames}
+        <fee:domain>
+          <fee:name>{$d}</fee:name>
+          <fee:command>create</fee:command>
+          <fee:period unit="y">1</fee:period>
+        </fee:domain>
+      {/foreach}
+      </fee:check>
+    </extension>
+    <clTRID>GTechTool</clTRID>
+  </command>
+</epp>
+{/template}

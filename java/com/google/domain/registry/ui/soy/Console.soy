@@ -1,0 +1,162 @@
+{namespace registry.soy.console autoescape="strict"}
+
+
+/**
+ * Common header fragment.
+ */
+{template .header}
+  {@param app: string} /** App identifier, e.g. 'admin', 'registrar'. */
+  {@param? subtitle: string} /** Extra stuff to put in {@code <title>}. */
+   <!doctype html>
+  <meta charset="utf-8">
+  {literal}<!--
+
+    CHARLESTON ROAD REGISTRY SHARED REGISTRATION SYSTEM
+                  ICANN-GTLD-AGB-20120604
+          _____                        _
+         |  __ \                      (_)
+         | |  | | ___  _ __ ___   __ _ _ _ __
+         | |  | |/ _ \| '_ ` _ \ / _` | | '_ \
+         | |__| | (_) | | | | | | (_| | | | | |
+         |_____/ \___/|_| |_| |_|\__,_|_|_| |_|
+         |  __ \          (_)   | |
+         | |__) |___  __ _ _ ___| |_ _ __ _   _
+         |  _  // _ \/ _` | / __| __| '__| | | |
+         | | \ \  __/ (_| | \__ \ |_| |  | |_| |
+         |_|  \_\___|\__, |_|___/\__|_|   \__, |
+                      __/ |                __/ |
+                     |___/                |___/
+
+-->{/literal}
+  <title>Domain Registry {if isNonnull($subtitle)} - {$subtitle}{/if}</title>
+  <link rel="icon" href="/assets/images/ribbon_certified-64.png">
+  {switch DEBUG}
+    {case com.google.domain.registry.ui.ConsoleDebug.PRODUCTION}
+      <link rel="stylesheet" href="/assets/css/{$app}_bin.css">
+    {case com.google.domain.registry.ui.ConsoleDebug.DEBUG}
+      <link rel="stylesheet" href="/assets/css/{$app}_dbg.css">
+    {case com.google.domain.registry.ui.ConsoleDebug.RAW}
+      {if $app == 'admin'}
+        <link rel="stylesheet"
+              href="/assets/sources/java/com/google/domain/registry/ui/css/admin_imports_raw.css">
+      {else}
+        <link rel="stylesheet"
+              href="/assets/sources/java/com/google/domain/registry/ui/css/registrar_imports_raw.css">
+      {/if}
+    {default}
+      <!-- No DEBUG option set. -->
+  {/switch}
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300">
+{/template}
+
+
+/**
+ * Happy little googley bar.
+ */
+{template .googlebar}
+  {@param user: map<string, ?>}
+  <div id="kd-googlebar" role="banner">
+    <a class="{css logo}" href="/registrar">
+      <img src="/assets/images/glogo_black.png" alt="Google">Registry
+    </a>
+    <div id="kd-search">
+      <input id="kd-searchfield"
+             name="kd-searchfield"
+             type="text"
+             placeholder="Search using format 'contact/id'"
+             x-webkit-speech>
+      <a id="kd-searchbutton"
+         class="{css kd-button} {css kd-button-submit}"
+         style="-webkit-user-select: none;">
+        <img width="21" height="21" alt="Search White"
+             src="/assets/images/icons/svg/search.svg">
+      </a>
+    </div>
+    <div class="{css kd-butterbar}">
+      <p>
+        <span class="{css kd-butterbar-text}"></span>{sp}
+        <a class="{css kd-butterbar-dismiss}">Dismiss</a>
+      </p>
+    </div>
+    <div id="kd-social" class="{css kd-buttonbar} {css right}">
+      {if isNonnull($user['id'])}
+        <span class="{css kd-name} {css mobile-hide} {css x-crush-hide}">
+          {$user['name']}{sp}
+          <a href="{$user['actionHref']}" tabindex="-1">{$user['actionName']}</a>
+        </span>
+      {else}
+        <a href="{$user['actionHref']}"
+           class="{css kd-button} {css kd-button-submit}"
+           tabindex="-1">{$user['actionName']}</a>
+      {/if}
+    </div>
+  </div>
+{/template}
+
+
+/** Appbar add/back, edit/cancel appbar. */
+{template .appbarButtons}
+  <div id="reg-app-buttons" class="{css kd-buttonbar} {css left}">
+    <button id="reg-app-btn-add"
+            type="button"
+            class="{css kd-button} {css kd-button-submit} {css hidden}">
+      Add</button>
+    <div id="reg-app-btns-edit" class="{css hidden}">
+      <button id="reg-app-btn-edit"
+              type="button"
+              class="{css kd-button} {css kd-button-submit}">
+        Edit</button>
+      <button id="reg-app-btn-back" type="button" class="{css kd-button}">
+        Back</button>
+    </div>
+    <div id="reg-app-btns-save" class="{css hidden}">
+      <button id="reg-app-btn-save"
+              type="button"
+              class="{css kd-button} {css kd-button-submit}">
+        Save</button>
+      <button id="reg-app-btn-cancel" type="button" class="{css kd-button}">
+        Cancel</button>
+    </div>
+  </div>
+{/template}
+
+
+/**
+ * Create button for domain, contact and host.
+ */
+{template .navCreateButton}
+  <a id="reg-create-button"
+     class="{css kd-button} {css kd-button-action} {css kd-menubutton}"
+     style="-webkit-user-select: none;">
+    <span class="{css label}">Create</span>
+    <span class="{css kd-disclosureindicator}"></span>
+    <ul class="{css kd-menulist}" style="top: 27px;">
+      <li class="{css kd-menulistitem}"
+          style="-webkit-user-select: none;"
+          id="reg-menu-domain-create">Domain
+      <li class="{css kd-menulistitem}"
+          style="-webkit-user-select: none;"
+          id="reg-menu-contact-create">Contact
+      <li class="{css kd-menulistitem}"
+          style="-webkit-user-select: none;"
+          id="reg-menu-host-create">Host
+    </ul>
+  </a>
+{/template}
+
+
+/**
+ * Legal notices included as footer.
+ */
+{template .footer}
+  <div class="{css pageFooter} {css clearfix}">
+    <ul class="{css linklist} {css right}">
+      <li>
+        ©2016 Google
+      <li>
+        <a href="https://www.registry.google/about/privacy.html">Privacy</a>
+      <li>
+        <a href="https://www.google.com/intl/en/policies/terms/">Terms</a>
+    </ul>
+  </div>
+{/template}

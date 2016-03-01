@@ -1,0 +1,21 @@
+{
+  "objectClassName" : "nameserver",
+  "handle" : "5-ROID",
+  "ldhName" : "ns1.cat.xn--q9jyb4c",
+  "unicodeName" : "ns1.cat.みんな",
+  "status" : ["active"],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.google.com/nameserver/ns1.cat.xn--q9jyb4c",
+      "rel" : "self",
+      "href" : "http://myserver.google.com/nameserver/ns1.cat.xn--q9jyb4c",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "ipAddresses" :
+  {
+    "v4" : ["1.2.3.4"]
+  },
+  "port43": "whois.google.com"
+}

@@ -1,0 +1,11 @@
+{
+  "lang": "en",
+  "errorCode": 422,
+  "title": "Unprocessable Entity",
+  "description": [
+    "%NAME%"
+  ],
+  "rdapConformance": [
+    "rdap_level_0"
+  ]
+}

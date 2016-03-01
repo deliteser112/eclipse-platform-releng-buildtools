@@ -1,0 +1,21 @@
+{
+  "objectClassName" : "nameserver",
+  "handle" : "6-ROID",
+  "ldhName" : "ns2.cat.xn--q9jyb4c",
+  "unicodeName" : "ns2.cat.みんな",
+  "status" : ["active"],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.google.com/nameserver/ns2.cat.xn--q9jyb4c",
+      "rel" : "self",
+      "href" : "http://myserver.google.com/nameserver/ns2.cat.xn--q9jyb4c",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "ipAddresses" :
+  {
+    "v6" : ["bad:f00d:cafe::15:beef"]
+  },
+  "port43": "whois.google.com"
+}

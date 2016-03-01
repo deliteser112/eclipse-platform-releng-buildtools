@@ -1,0 +1,88 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.model.eppcommon;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.domain.registry.model.Buildable;
+import com.google.domain.registry.model.ImmutableObject;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlValue;
+import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+/**
+ * Container for generic E164 phone number.
+ * <p>
+ * This is the "e164" type from {@link "http://tools.ietf.org/html/rfc5733"}. It also matches the
+ * "e164Type" type from {@link "http://tools.ietf.org/html/draft-lozano-tmch-smd"}.
+ *
+ * <blockquote><p>
+ * "Contact telephone number structure is derived from structures defined in [ITU.E164.2005].
+ * Telephone numbers described in this mapping are character strings that MUST begin with a plus
+ * sign ("+", ASCII value 0x002B), followed by a country code defined in [ITU.E164.2005], followed
+ * by a dot (".", ASCII value 0x002E), followed by a sequence of digits representing the telephone
+ * number. An optional "x" attribute is provided to note telephone extension information."
+ * </blockquote>
+ *
+ * @see com.google.domain.registry.model.contact.ContactPhoneNumber
+ * @see com.google.domain.registry.model.mark.MarkPhoneNumber
+ */
+@XmlTransient
+public class PhoneNumber extends ImmutableObject {
+
+  @XmlValue
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  String phoneNumber;
+
+  @XmlAttribute(name = "x")
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  String extension;
+
+  public String getPhoneNumber() {
+    return phoneNumber;
+  }
+
+  public String getExtension() {
+    return extension;
+  }
+
+  public String toPhoneString() {
+    return phoneNumber + (extension != null ? " x" + extension : "");
+  }
+
+  /** A builder for constructing {@link PhoneNumber}. */
+  @VisibleForTesting
+  public static class Builder<T extends PhoneNumber> extends Buildable.Builder<T> {
+    @Override
+    public T build() {
+      checkNotNull(getInstance().phoneNumber, "phoneNumber");
+      return super.build();
+    }
+
+    public Builder<T> setPhoneNumber(String phoneNumber) {
+      getInstance().phoneNumber = phoneNumber;
+      return this;
+    }
+
+    public Builder<T> setExtension(String extension) {
+      getInstance().extension = extension;
+      return this;
+    }
+  }
+}

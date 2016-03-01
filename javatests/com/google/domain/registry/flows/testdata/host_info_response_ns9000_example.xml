@@ -1,0 +1,25 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <response>
+    <result code="1000">
+      <msg>Command completed successfully</msg>
+    </result>
+    <resData>
+      <host:infData
+       xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+        <host:name>ns9000.example.external</host:name>
+        <host:roid>NS1_EXAMPLE1-REP</host:roid>
+        <host:status s="clientUpdateProhibited"/>
+        <host:status s="linked"/>
+        <host:clID>NewRegistrar</host:clID>
+        <host:crID>NewRegistrar</host:crID>
+        <host:crDate>2000-06-06T00:01:00Z</host:crDate>
+        <host:upID>NewRegistrar</host:upID>
+        <host:upDate>2002-05-30T01:01:00Z</host:upDate>
+      </host:infData>
+    </resData>
+    <trID>
+      <clTRID>ABC-12345</clTRID>
+      <svTRID>server-trid</svTRID>
+    </trID>
+  </response>
+</epp>

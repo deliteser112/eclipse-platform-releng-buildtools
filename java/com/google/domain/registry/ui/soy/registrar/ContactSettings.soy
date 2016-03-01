@@ -1,0 +1,291 @@
+{namespace registry.soy.registrar.contacts autoescape="strict"}
+
+
+/** Registrar contacts listing for view only. */
+{template .set}
+  {@param contactsByType: map<string, ?>}
+  {let $possibleTypesLookup: [
+      ['admin', 'Primary', 'Primary contact for general issues.'],
+      ['billing', 'Billing', 'Contact for financial communications & invoices.'],
+      ['tech', 'Technical', 'Contact for technical communications about the registry.'],
+      ['legal', 'Legal', 'Contact for all legal communications.'],
+      ['marketing', 'Marketing', 'Contact for registry promotions and campaigns.'],
+      ['abuse', 'Abuse', 'Contact for abuse complaints.'],
+      ['whois', 'WHOIS-Inquiry', 'Contact for inquiries about WHOIS accuracy.']] /}
+  <div class="{css set}">
+  <h1>Contact settings</h1>
+  <table>
+    {foreach $type in $possibleTypesLookup}
+      {if isNonnull($contactsByType[$type[0]])}
+        <tr class="{css kd-settings-pane-section}">
+          <td>
+            <label class="{css setting-label}">{$type[1]}
+              {sp}contact{if length($contactsByType[$type[0]]) > 1}s{/if}</label>
+            <span class="{css description}">{$type[2]}</span>
+          </td>
+          <td id="{$type[0]}-contacts"
+              class="{css info} {css summary} {css domain-registrar-contacts}">
+            {foreach $c in $contactsByType[$type[0]]}
+              {call .contactInfoCompact}
+                {param namePrefix: 'contacts[' + index($c) + '].' /}
+                {param name: $c['name'] /}
+                {param emailAddress: $c['emailAddress'] /}
+                {param visibleInWhois:
+                    ($c['visibleInWhoisAsAdmin'] or $c['visibleInWhoisAsTech']) /}
+                {param phoneNumber: $c['phoneNumber'] /}
+                {param faxNumber: $c['faxNumber'] /}
+              {/call}
+              {if (index($c) + 1) % 3 == 0}<br>{/if}
+            {/foreach}
+          </td>
+      {/if}
+    {/foreach}
+  </table>
+  </div>
+{/template}
+
+
+/** Compact readonly contact info view. */
+{template .contactInfoCompact}
+  {@param namePrefix: string}
+  {@param name: string}
+  {@param emailAddress: string}
+  {@param visibleInWhois: bool}
+  {@param? phoneNumber: string}
+  {@param? faxNumber: string}
+  <div class="{css domain-registrar-contact}">
+    <div class="{css domain-registrar-contact-name}"
+         id="{$namePrefix}name">
+      {$name}
+      {if $visibleInWhois}
+        <i class="{css domain-registrar-contact-visible-in-whois}"
+           onmouseover="this.childNodes[0].style.visibility = 'visible'"
+           onmouseout="this.childNodes[0].style.visibility = 'hidden'">
+          <div class="{css tooltip}">
+            Visible in WHOIS <span class="{css pointer}"></span>
+          </div>
+        </i>
+      {/if}
+    </div>
+    {if isNonnull($phoneNumber)}
+      <div class="{css domain-registrar-contact-phoneNumber}"
+           id="{$namePrefix}phoneNumber">{$phoneNumber}</div>
+    {/if}
+    {if isNonnull($faxNumber)}
+      <div class="{css domain-registrar-contact-faxNumber}"
+           id="{$namePrefix}faxNumber">{$faxNumber} (Fax)</div>
+    {/if}
+    <div class="{css domain-registrar-contact-emailAddress}"
+         id="{$namePrefix}emailAddress">{$emailAddress}</div>
+    <a href="#contact-settings/{$emailAddress}">View/Edit</a>
+  </div>
+{/template}
+
+
+/** Registrar contact item page. */
+{template .contact}
+  {@param namePrefix: string}
+  {@param item: map<string, ?>}
+  {@param actualTypesLookup: map<string, bool>}
+  {@param readonly: bool}
+  <form name="item" class="{css item} {css registrar}">
+    <h1>Contact Details</h1>
+    {call .contactInfo data="all"}
+      {param namePrefix: $namePrefix /}
+      {param item: $item /}
+      {param actualTypesLookup: $actualTypesLookup /}
+      {param readonly: $readonly /}
+    {/call}
+  </form>
+{/template}
+
+
+/** Contact info for view and edit. */
+{template .contactInfo}
+  {@param namePrefix: string}
+  {@param item: map<string, ?>}
+  {@param actualTypesLookup: map<string, bool>}
+  {@param? readonly: bool}
+  {let $possibleTypesLookup: [
+      ['admin', 'Primary', 'Primary contact for general issues.'],
+      ['billing', 'Billing', 'Contact for financial communications & invoices.'],
+      ['tech', 'Technical', 'Contact for technical communications about the registry.'],
+      ['legal', 'Legal', 'Contact for all legal communications.'],
+      ['marketing', 'Marketing', 'Contact for registry promotions and campaigns.'],
+      ['abuse', 'Abuse', 'Contact for abuse complaints.'],
+      ['whois', 'WHOIS-Inquiry', 'Contact for inquiries about WHOIS accuracy.']] /}
+  <div>
+    <table>
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'Name' /}
+        {param namePrefix: $namePrefix /}
+        {param name: 'name' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'Email' /}
+        {param namePrefix: $namePrefix /}
+        {param name: 'emailAddress' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'Phone' /}
+        {param namePrefix: $namePrefix /}
+        {param name: 'phoneNumber' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'Fax' /}
+        {param namePrefix: $namePrefix /}
+        {param name: 'faxNumber' /}
+      {/call}
+      {if $readonly}
+        {call .contactTypeSettingsView_}
+          {param item: $item /}
+          {param possibleTypesLookup: $possibleTypesLookup /}
+          {param actualTypesLookup: $actualTypesLookup /}
+        {/call}
+      {else}
+        {call .contactTypeSettingsEdit_}
+          {param item: $item /}
+          {param namePrefix: $namePrefix /}
+          {param possibleTypesLookup: $possibleTypesLookup /}
+          {param actualTypesLookup: $actualTypesLookup /}
+        {/call}
+      {/if}
+    </table>
+    {if isNonnull($item['gaeUserId'])}
+      <input type="hidden" name="{$namePrefix}gaeUserId" value="{$item['gaeUserId']}">
+    {/if}
+  </div>
+{/template}
+
+
+/** @private */
+{template .contactTypeSettingsView_ private="true"}
+  {@param item: map<string, ?>}
+  {@param possibleTypesLookup: list<list<string>>}
+  {@param actualTypesLookup: map<string, bool>}
+  <tr class="{css kd-settings-pane-section}">
+    <td>
+      <label class="{css setting-label}">Contact type</label>
+    <td class="{css setting}">
+      <div class="{css setting-item-list}">
+        {foreach $type in $possibleTypesLookup}
+          {if $actualTypesLookup[$type[0]]}
+            <div>{$type[1]} contact</div>
+          {/if}
+        {/foreach}
+      </div>
+    </td>
+  <tr><td colspan="2"><hr></tr>
+  <tr class="{css kd-settings-pane-section}">
+    <td>
+      <label class="{css setting-label}">Show in WHOIS</label>
+    </td>
+    <td class="{css setting}">
+      <p class="{css setting-item-list}">
+        {let $visibleAsAdmin: $item['visibleInWhoisAsAdmin'] == true /}
+        {let $visibleAsTech: $item['visibleInWhoisAsTech'] == true /}
+        {if (not $visibleAsAdmin) and (not $visibleAsTech)}
+          <span class="{css whois-not-visible}">Not visible in WHOIS</span>
+        {else}
+          {if $visibleAsAdmin}Admin{/if}
+          {if $visibleAsAdmin and $visibleAsTech},{sp}{/if}
+          {if $visibleAsTech}Technical{/if}
+        {/if}
+{/template}
+
+
+/** @private */
+{template .contactTypeSettingsEdit_ private="true"}
+  {@param item: map<string, ?>}
+  {@param namePrefix: string}
+  {@param possibleTypesLookup: list<list<string>>}
+  {@param actualTypesLookup: map<string, bool>}
+  <tr class="{css kd-settings-pane-section}">
+    <td>
+      <label class="{css setting-label}">Contact type</label>
+      <span class="{css description}">
+        Subscribe this contact to the checked mailing lists.
+      </span>
+    </td>
+    <td class="{css setting}">
+      {call .contactCheckboxes_}
+        {param namePrefix: $namePrefix /}
+        {param possibleTypesLookup: $possibleTypesLookup /}
+        {param actualTypesLookup: $actualTypesLookup /}
+      {/call}
+  </tr>
+  <tr><td colspan="2"><hr></tr>
+    {call .whoisVisibleRadios_}
+      {param description: 'Show in WHOIS as Admin contact' /}
+      {param fieldName: $namePrefix + 'visibleInWhoisAsAdmin' /}
+      {param visible: $item['visibleInWhoisAsAdmin'] == true /}
+    {/call}
+    {call .whoisVisibleRadios_}
+      {param description: 'Show in WHOIS as Technical contact' /}
+      {param fieldName: $namePrefix + 'visibleInWhoisAsTech' /}
+      {param visible: $item['visibleInWhoisAsTech'] == true /}
+    {/call}
+{/template}
+
+
+/** @private */
+{template .whoisVisibleRadios_ private="true"}
+  {@param description: string}
+  {@param fieldName: string}
+  {@param visible: bool}
+  <tr class="{css kd-settings-pane-section}">
+    <td>
+      <label for="{$fieldName}">{$description}</label>
+    </td>
+    <td class="{css setting}">
+      <label for="{$fieldName}">
+        <input
+          name="{$fieldName}"
+          type="radio"
+          value="true"
+          {if $visible} checked{/if}>{sp}Yes
+      </label>
+      <label for="{$fieldName}">
+        <input
+          name="{$fieldName}"
+          type="radio"
+          value="false"
+          {if not $visible} checked{/if}>{sp}No
+      </label>
+    </td>
+{/template}
+
+
+/** @private */
+{template .contactCheckboxes_ private="true"}
+  {@param namePrefix: string}
+  {@param actualTypesLookup: map<string, bool>}
+  {@param possibleTypesLookup: list<list<string>>}
+  {foreach $type in $possibleTypesLookup}
+    {let $name: $namePrefix + 'type.' + $type[0] /}
+    {let $checked: $actualTypesLookup[$type[0]] /}
+    <div class="{css checkbox-with-label}">
+      <input type="checkbox"
+             name="{$name}"
+             id="{$name}"
+             {if $checked} checked{/if}>
+      <label for="{$name}">
+        {$type[1]} contact
+        <span class="{css description}">{$type[2]}</span>
+      </label>
+    </div>
+  {/foreach}
+{/template}
+
+
+/** IP address form input. */
+{template .ip}
+  {@param name: string}
+  {@param ip: string}
+  <div class="{css ip}">
+    <input name="{$name}" value="{$ip}" readonly>
+    <button type="button" class="{css kd-button} {css btn-remove} {css hidden}">
+      <i class="{css icon-remove} {css edit}">x</i>
+    </button>
+  </div>
+{/template}

@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bindings xmlns="http://java.sun.com/xml/ns/jaxb"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+          xsi:schemaLocation="http://java.sun.com/xml/ns/jaxb
+                              http://java.sun.com/xml/ns/jaxb/bindingschema_2_0.xsd"
+          extensionBindingPrefixes="xjc"
+          version="2.1">
+  <globalBindings generateElementClass="true">
+    <xjc:simple/>
+    <xjc:superClass name="com.google.domain.registry.xjc.XjcObject"/>
+    <xjc:javaType name="org.joda.time.DateTime" xmlType="xsd:dateTime"
+                  adapter="com.google.domain.registry.xml.UtcDateTimeAdapter"/>
+    <xjc:javaType name="org.joda.time.LocalDate" xmlType="xsd:date"
+                  adapter="com.google.domain.registry.xml.DateAdapter"/>
+  </globalBindings>
+  <bindings schemaLocation="epp.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.epp"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcEpp"/>
+        <typeName prefix="XjcEpp"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:element[@name='epp']">
+      <class name="XjcEppElement"/>
+    </bindings>
+    <bindings node="//xsd:complexType[@name='eppType']">
+      <class name="XjcEpp"/>
+    </bindings>
+    <bindings node="//xsd:complexType[@name='responseType']">
+      <class name="XjcEppResponse"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="eppcom.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.eppcom"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcEppcom"/>
+        <typeName prefix="XjcEppcom"/>
+      </nameXmlTransform>
+    </schemaBindings>
+  </bindings>
+  <bindings schemaLocation="domain.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.domain"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcDomain"/>
+        <typeName prefix="XjcDomain"/>
+      </nameXmlTransform>
+    </schemaBindings>
+  </bindings>
+  <bindings schemaLocation="host.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.host"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcHost"/>
+        <typeName prefix="XjcHost"/>
+      </nameXmlTransform>
+    </schemaBindings>
+  </bindings>
+  <bindings schemaLocation="contact.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.contact"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcContact"/>
+        <typeName prefix="XjcContact"/>
+      </nameXmlTransform>
+    </schemaBindings>
+  </bindings>
+  <bindings schemaLocation="rgp.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rgp"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRgp"/>
+        <typeName prefix="XjcRgp"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:simpleType[@name='rgpOpType']">
+      <typesafeEnumClass name="OpType"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="mark.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.mark"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcMark"/>
+        <typeName prefix="XjcMark"/>
+      </nameXmlTransform>
+    </schemaBindings>
+  </bindings>
+  <bindings schemaLocation="smd.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.smd"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcSmd"/>
+        <typeName prefix="XjcSmd"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <!-- The 'signedMarkType' type has both an attribute and an element named
+         'id'. We must rename one of them for the generated class to compile.
+         -->
+    <bindings node="//xsd:complexType[@name='signedMarkType']">
+      <bindings node=".//xsd:attribute[@name='id']">
+        <property name="idAttribute"/>
+      </bindings>
+    </bindings>
+    <!-- Rename 'XjcSmdSignedMarkType' to 'XjcSmdSignedMark' -->
+    <bindings node="//xsd:complexType[@name='signedMarkType']">
+      <class name="XjcSmdSignedMark"/>
+    </bindings>
+    <!-- Rename wrapper 'XjcSmdSignedMark' to 'XjcSmdSignedMarkElement' -->
+    <bindings node="//xsd:element[@name='signedMark']">
+      <class name="XjcSmdSignedMarkElement"/>
+    </bindings>
+    <!-- Rename not needed for 'XjcSmdEncodedSignedMark' -->
+    <!-- Rename 'XjcSmdIssuerInfoType' to 'XjcSmdIssuerInfo' -->
+    <bindings node="//xsd:complexType[@name='issuerInfoType']">
+      <class name="XjcSmdIssuerInfo"/>
+    </bindings>
+    <!-- Rename 'XjcAbstractSmdSignedMarkType' to 'XjcAbstractSmdSignedMark' -->
+    <bindings node="//xsd:complexType[@name='abstractSignedMarkType']">
+      <class name="XjcSmdAbstractSignedMark"/>
+    </bindings>
+    <!-- Rename wrapper 'XjcSmdAbstractSignedMark' to 'XjcSmdAbstractSignedMarkElement' -->
+    <bindings node="//xsd:element[@name='abstractSignedMark']">
+      <class name="XjcSmdAbstractSignedMarkElement"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="dsig.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.dsig"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcDsig"/>
+        <typeName prefix="XjcDsig"/>
+      </nameXmlTransform>
+    </schemaBindings>
+  </bindings>
+  <bindings schemaLocation="launch.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.launch"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcLaunch"/>
+        <typeName prefix="XjcLaunch"/>
+      </nameXmlTransform>
+    </schemaBindings>
+  </bindings>
+  <bindings schemaLocation="secdns.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.secdns"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcSecdns"/>
+        <typeName prefix="XjcSecdns"/>
+      </nameXmlTransform>
+    </schemaBindings>
+  </bindings>
+  <bindings schemaLocation="rde.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rde"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRde"/>
+        <typeName prefix="XjcRde"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='rdeMenuType']">
+      <class name="XjcRdeMenuType"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="rde-contact.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rdecontact"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRdeContact"/>
+        <typeName prefix="XjcRdeContact"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='abstractContentType']">
+      <class name="XjcRdeContact"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='contact']">
+      <class name="XjcRdeContactElement"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='abstractContact']">
+      <class name="XjcRdeContactAbstract"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="rde-domain.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rdedomain"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRdeDomain"/>
+        <typeName prefix="XjcRdeDomain"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='abstractContentType']">
+      <class name="XjcRdeDomain"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='domain']">
+      <class name="XjcRdeDomainElement"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='abstractDomain']">
+      <class name="XjcRdeDomainAbstract"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="rde-eppparams.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rdeeppparams"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRdeEppParams"/>
+        <typeName prefix="XjcRdeEppParams"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='abstractContentType']">
+      <class name="XjcRdeEppParams"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='eppParams']">
+      <class name="XjcRdeEppParamsElement"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='abstractEppParams']">
+      <class name="XjcRdeEppParamsAbstract"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="rde-header.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rdeheader"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRdeHeader"/>
+        <typeName prefix="XjcRdeHeader"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='contentType']">
+      <class name="XjcRdeHeader"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='header']">
+      <class name="XjcRdeHeaderElement"/>
+    </bindings>
+    <bindings node="//xsd:complexType[@name='countType']">
+      <class name="XjcRdeHeaderCount"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="rde-host.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rdehost"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRdeHost"/>
+        <typeName prefix="XjcRdeHost"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='abstractContentType']">
+      <class name="XjcRdeHost"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='host']">
+      <class name="XjcRdeHostElement"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="rde-idn.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rdeidn"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRdeIdn"/>
+        <typeName prefix="XjcRdeIdn"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='contentType']">
+      <class name="XjcRdeIdn"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='idnTableRef']">
+      <class name="XjcRdeIdnElement"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="rde-nndn.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rdenndn"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRdeNndn"/>
+        <typeName prefix="XjcRdeNndn"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='abstractContentType']">
+      <class name="XjcRdeNndn"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='NNDN']">
+      <class name="XjcRdeNndnElement"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='abstractNNDN']">
+      <class name="XjcRdeNndnAbstract"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="rde-notification.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rdenotification"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRdeNotification"/>
+        <typeName prefix="XjcRdeNotification"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='notificationType']">
+      <class name="XjcRdeNotification"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='notification']">
+      <class name="XjcRdeNotificationElement"/>
+    </bindings>
+    <bindings node="//xsd:simpleType[@name='nameType']">
+      <class name="XjcRdeNotificationName"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="rde-policy.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rdepolicy"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRdePolicy"/>
+        <typeName prefix="XjcRdePolicy"/>
+        <anonymousTypeName prefix="XjcRdePolicy"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:element[@name='policy']">
+      <class name="XjcRdePolicyElement"/>
+    </bindings>
+    <bindings node="//xsd:complexType[@name='policyType']">
+      <class name="XjcRdePolicy"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="rde-registrar.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rderegistrar"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRdeRegistrar"/>
+        <typeName prefix="XjcRdeRegistrar"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='abstractContentType']">
+      <class name="XjcRdeRegistrar"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='registrar']">
+      <class name="XjcRdeRegistrarElement"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='abstractRegistrar']">
+      <class name="XjcRdeRegistrarAbstract"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="rde-report.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.rdereport"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcRdeReport"/>
+        <typeName prefix="XjcRdeReport"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:element[@name='report']">
+      <class name="XjcRdeReport"/>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="iirdea.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="com.google.domain.registry.xjc.iirdea"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcIirdea"/>
+        <typeName prefix="XjcIirdea"/>
+      </nameXmlTransform>
+    </schemaBindings>
+    <bindings node="//xsd:complexType[@name='responseType']">
+      <class name="XjcIirdeaResponse"/>
+    </bindings>
+    <bindings node="//xsd:element[@name='response']">
+      <class name="XjcIirdeaResponseElement"/>
+    </bindings>
+    <bindings node="//xsd:complexType[@name='resultType']">
+      <class name="XjcIirdeaResult"/>
+    </bindings>
+    <bindings node="//xsd:simpleType[@name='codeType']">
+      <class name="XjcIirdeaCode"/>
+    </bindings>
+  </bindings>
+</bindings>

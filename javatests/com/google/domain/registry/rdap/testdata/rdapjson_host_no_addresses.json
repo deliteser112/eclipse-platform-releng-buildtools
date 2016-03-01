@@ -1,0 +1,17 @@
+{
+  "objectClassName" : "nameserver",
+  "handle" : "8-ROID",
+  "ldhName" : "ns4.cat.xn--q9jyb4c",
+  "unicodeName" : "ns4.cat.みんな",
+  "status" : ["active"],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.google.com/nameserver/ns4.cat.xn--q9jyb4c",
+      "rel" : "self",
+      "href" : "http://myserver.google.com/nameserver/ns4.cat.xn--q9jyb4c",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "port43": "whois.google.com"
+}

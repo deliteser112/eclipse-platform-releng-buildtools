@@ -1,0 +1,6 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <poll op="req" msgID="12345"/>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>

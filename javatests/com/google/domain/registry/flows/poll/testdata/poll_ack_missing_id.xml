@@ -1,0 +1,6 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <poll op="ack"/>
+    <clTRID>ABC-12346</clTRID>
+  </command>
+</epp>

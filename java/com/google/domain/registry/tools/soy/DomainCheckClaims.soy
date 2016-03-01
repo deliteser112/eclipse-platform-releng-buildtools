@@ -1,0 +1,28 @@
+{namespace domain.registry.tools autoescape="strict"}
+
+/**
+ * Domain check claims request
+ */
+{template .domaincheckclaims}
+{@param domainNames: list<string>}
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <check>
+      <domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+      {foreach $d in $domainNames}
+        <domain:name>{$d}</domain:name>
+      {/foreach}
+      </domain:check>
+    </check>
+    <extension>
+      <launch:check
+       xmlns:launch="urn:ietf:params:xml:ns:launch-1.0"
+       type="claims">
+        <launch:phase>claims</launch:phase>
+      </launch:check>
+    </extension>
+    <clTRID>GTechTool</clTRID>
+  </command>
+</epp>
+{/template}

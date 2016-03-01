@@ -1,0 +1,88 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.xml;
+
+import static com.google.common.base.Throwables.propagateIfInstanceOf;
+import static com.google.common.base.Verify.verify;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.ByteArrayOutputStream;
+import java.util.regex.Pattern;
+
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.MarshalException;
+import javax.xml.bind.Marshaller;
+import javax.xml.validation.Schema;
+
+/** JAXB marshaller for building pieces of XML documents in a single thread. */
+@NotThreadSafe
+public final class XmlFragmentMarshaller {
+
+  private static final Pattern XMLNS_PATTERN = Pattern.compile(" xmlns:\\w+=\"[^\"]+\"");
+
+  private final ByteArrayOutputStream os = new ByteArrayOutputStream();
+  private final Marshaller marshaller;
+  private final Schema schema;
+
+  XmlFragmentMarshaller(JAXBContext jaxbContext, Schema schema) {
+    try {
+      marshaller = jaxbContext.createMarshaller();
+      marshaller.setProperty(Marshaller.JAXB_ENCODING, UTF_8.toString());
+      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+      marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
+    } catch (JAXBException e) {
+      throw new RuntimeException(e);
+    }
+    this.schema = schema;
+  }
+
+  /**
+   * Turns an individual JAXB element into an XML fragment string.
+   *
+   * @throws MarshalException if schema validation failed
+   */
+  public String marshal(JAXBElement<?> element) throws MarshalException {
+    return internalMarshal(element, true);
+  }
+
+  /** Turns an individual JAXB element into an XML fragment string. */
+  public String marshalLenient(JAXBElement<?> element) {
+    try {
+      return internalMarshal(element, false);
+    } catch (MarshalException e) {
+      throw new RuntimeException("MarshalException shouldn't be thrown in lenient mode", e);
+    }
+  }
+
+  private String internalMarshal(JAXBElement<?> element, boolean strict) throws MarshalException {
+    os.reset();
+    marshaller.setSchema(strict ? schema : null);
+    try {
+      marshaller.marshal(element, os);
+    } catch (JAXBException e) {
+      propagateIfInstanceOf(e, MarshalException.class);
+      throw new RuntimeException("Mysterious XML exception", e);
+    }
+    String fragment = new String(os.toByteArray(), UTF_8);
+    int endOfFirstLine = fragment.indexOf(">\n");
+    verify(endOfFirstLine > 0, "Bad XML fragment:\n%s", fragment);
+    String firstLine = fragment.substring(0, endOfFirstLine + 2);
+    String rest = fragment.substring(firstLine.length());
+    return XMLNS_PATTERN.matcher(firstLine).replaceAll("") + rest;
+  }
+}

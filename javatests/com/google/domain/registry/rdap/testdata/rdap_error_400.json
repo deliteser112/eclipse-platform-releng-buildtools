@@ -1,0 +1,11 @@
+{
+  "lang": "en",
+  "errorCode": 400,
+  "title": "Bad Request",
+  "description": [
+    "%NAME%"
+  ],
+  "rdapConformance": [
+    "rdap_level_0"
+  ]
+}

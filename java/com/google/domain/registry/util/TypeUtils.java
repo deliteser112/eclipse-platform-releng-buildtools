@@ -1,0 +1,92 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.util;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.reflect.Modifier.isFinal;
+import static java.lang.reflect.Modifier.isStatic;
+
+import com.google.common.base.Predicate;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+
+/** Utilities methods related to reflection. */
+public class TypeUtils {
+
+  /** A {@TypeToken} that removes an ugly cast in the common cases of getting a known type. */
+  public static class TypeInstantiator<T> extends TypeToken<T> {
+    protected TypeInstantiator(Class<?> declaringClass) {
+      super(declaringClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Class<T> getExactType() {
+      return (Class<T>) getRawType();
+    }
+
+    public T instantiate() {
+      return TypeUtils.instantiate(getExactType());
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T> T instantiate(Class<?> clazz) {
+    checkArgument(Modifier.isPublic(clazz.getModifiers()),
+        "AppEngine's custom security manager won't let us reflectively access non-public types");
+    try {
+      return (T) clazz.newInstance();
+    } catch (InstantiationException | IllegalAccessException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * Aggregates enum "values" in a typesafe enum pattern into a string->field map.
+   */
+  @SuppressWarnings("unchecked")
+  public static <T> ImmutableMap<String, T> getTypesafeEnumMapping(Class<T> clazz) {
+    ImmutableMap.Builder<String, T> builder = new ImmutableMap.Builder<>();
+    for (Field field : clazz.getFields()) {
+      if (isFinal(field.getModifiers())
+          && isStatic(field.getModifiers())
+          && clazz.isAssignableFrom(field.getType())) {
+        try {
+          T enumField = (T) field.get(null);
+          builder.put(field.getName(), enumField);
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+          throw new RuntimeException(String.format(
+              "Could not retrieve static final field mapping for %s", clazz.getName()), e);
+        }
+      }
+    }
+    return builder.build();
+  }
+
+  /** Returns a predicate that tests whether classes are annotated with the given annotation. */
+  public static final Predicate<Class<?>> hasAnnotation(
+      final Class<? extends Annotation> annotation) {
+    return new Predicate<Class<?>>() {
+        @Override
+        public boolean apply(Class<?> clazz) {
+          return clazz.isAnnotationPresent(annotation);
+        }
+      };
+  }
+}

@@ -1,0 +1,48 @@
+{namespace domain.registry.tools autoescape="strict"}
+
+/**
+ * Create anchor tenant domain
+ */
+{template .createanchortenant}
+{@param domainName: string}
+{@param contactId: string}
+{@param password: string}
+{@param period: int}
+{@param? reason: string}
+{@param? feeCurrency: string}
+{@param? fee: string}
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <create>
+      <domain:create
+       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>{$domainName}</domain:name>
+        <domain:period unit="y">{$period}</domain:period>
+        <domain:registrant>{$contactId}</domain:registrant>
+        <domain:contact type="admin">{$contactId}</domain:contact>
+        <domain:contact type="tech">{$contactId}</domain:contact>
+        <domain:authInfo>
+          <domain:pw>{$password}</domain:pw>
+        </domain:authInfo>
+      </domain:create>
+    </create>
+    <extension>
+      <metadata:metadata xmlns:metadata="urn:google:params:xml:ns:metadata-1.0">
+      {if $reason}
+        <metadata:reason>{$reason}</metadata:reason>
+      {/if}
+        <metadata:requestedByRegistrar>false</metadata:requestedByRegistrar>
+        <metadata:anchorTenant>true</metadata:anchorTenant>
+      </metadata:metadata>
+      {if $fee}
+      <fee:create xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+        <fee:currency>{$feeCurrency}</fee:currency>
+        <fee:fee>{$fee}</fee:fee>
+      </fee:create>
+      {/if}
+    </extension>
+    <clTRID>GTechTool</clTRID>
+  </command>
+</epp>
+{/template}

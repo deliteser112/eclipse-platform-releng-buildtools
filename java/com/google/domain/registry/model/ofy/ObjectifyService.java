@@ -1,0 +1,182 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.model.ofy;
+
+import static com.google.appengine.api.memcache.ErrorHandlers.getConsistentLogAndContinue;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Predicates.not;
+import static com.google.domain.registry.util.TypeUtils.hasAnnotation;
+import static com.googlecode.objectify.ObjectifyService.factory;
+
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterables;
+import com.google.domain.registry.config.RegistryEnvironment;
+import com.google.domain.registry.model.EntityClasses;
+import com.google.domain.registry.model.ImmutableObject;
+import com.google.domain.registry.model.translators.CidrAddressBlockTranslatorFactory;
+import com.google.domain.registry.model.translators.CommitLogRevisionsTranslatorFactory;
+import com.google.domain.registry.model.translators.CreateAutoTimestampTranslatorFactory;
+import com.google.domain.registry.model.translators.CurrencyUnitTranslatorFactory;
+import com.google.domain.registry.model.translators.DurationTranslatorFactory;
+import com.google.domain.registry.model.translators.InetAddressTranslatorFactory;
+import com.google.domain.registry.model.translators.ReadableInstantUtcTranslatorFactory;
+import com.google.domain.registry.model.translators.UpdateAutoTimestampTranslatorFactory;
+
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.impl.translate.TranslatorFactory;
+import com.googlecode.objectify.impl.translate.opt.joda.MoneyStringTranslatorFactory;
+
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+
+/**
+ * An instance of Ofy, obtained via {@code #ofy()}, should be used to access all persistable
+ * objects. The class contains a static initializer to call factory().register(...) on all
+ * persistable objects in this package.
+ */
+public class ObjectifyService {
+
+  /**
+   * A placeholder String passed into DatastoreService.allocateIds that ensures that all ids are
+   * initialized from the same id pool.
+   */
+  public static final String APP_WIDE_ALLOCATION_KIND = "common";
+
+  /** A singleton instance of our Ofy wrapper. */
+  private static final Ofy OFY = new Ofy(null);
+
+  /**
+   * Returns a singleton {@link Ofy} instance.
+   *
+   * <p><b>Deprecated:</b> This will go away once everything injects {@code Ofy}.
+   */
+  public static Ofy ofy() {
+    return OFY;
+  }
+
+  static {
+    initOfyOnce();
+  }
+
+  /** Ensures that Objectify has been fully initialized. */
+  public static void initOfy() {
+    // This method doesn't actually do anything; it's here so that callers have something to call
+    // to ensure that the static initialization of ObjectifyService has been performed (which Java
+    // guarantees will happen exactly once, before any static methods are invoked).
+    //
+    // See JLS section 12.4: http://docs.oracle.com/javase/specs/jls/se7/html/jls-12.html#jls-12.4
+  }
+
+  /**
+   * Performs static initialization for Objectify to register types and do other setup.
+   *
+   * <p>This method is non-idempotent, so it should only be called exactly once, which is achieved
+   * by calling it from this class's static initializer block.
+   */
+  private static void initOfyOnce() {
+    // Set an ObjectifyFactory that uses our extended ObjectifyImpl.
+    // The "false" argument means that we are not using the v5-style Objectify embedded entities.
+    com.googlecode.objectify.ObjectifyService.setFactory(new ObjectifyFactory(false) {
+      @Override
+      public Objectify begin() {
+        return new SessionKeyExposingObjectify(this);
+      }});
+
+    // Translators must be registered before any entities can be registered.
+    registerTranslators();
+    registerEntityClasses(EntityClasses.ALL_CLASSES);
+
+    // Set the memcache error handler so that we don't see internally logged errors.
+    factory().setMemcacheErrorHandler(getConsistentLogAndContinue(Level.INFO));
+  }
+
+  /** Register translators that allow less common types to be stored directly in Datastore. */
+  private static void registerTranslators() {
+    for (TranslatorFactory<?> translatorFactory : Arrays.asList(
+        new ReadableInstantUtcTranslatorFactory(),
+        new CidrAddressBlockTranslatorFactory(),
+        new CurrencyUnitTranslatorFactory(),
+        new DurationTranslatorFactory(),
+        new InetAddressTranslatorFactory(),
+        new MoneyStringTranslatorFactory(),
+        new CreateAutoTimestampTranslatorFactory(),
+        new UpdateAutoTimestampTranslatorFactory(),
+        new CommitLogRevisionsTranslatorFactory())) {
+      factory().getTranslators().add(translatorFactory);
+    }
+  }
+
+  /** Register classes that can be persisted via Objectify as datastore entities. */
+  private static void registerEntityClasses(
+      Iterable<Class<? extends ImmutableObject>> entityClasses) {
+    // Register all the @Entity classes before any @EntitySubclass classes so that we can check
+    // that every @Entity registration is a new kind and every @EntitySubclass registration is not.
+    // This is future-proofing for Objectify 5.x where the registration logic gets less lenient.
+    for (Class<?> clazz : Iterables.concat(
+        Iterables.filter(entityClasses, hasAnnotation(Entity.class)),
+        Iterables.filter(entityClasses, not(hasAnnotation(Entity.class))))) {
+      String kind = Key.getKind(clazz);
+      boolean registered = factory().getMetadata(kind) != null;
+      if (clazz.isAnnotationPresent(Entity.class)) {
+        // Objectify silently ignores re-registrations for a given kind string, even if the classes
+        // being registered are distinct. Throw an exception if that would happen here.
+        checkState(!registered,
+            "Kind '%s' already registered, cannot register new @Entity %s",
+            kind, clazz.getCanonicalName());
+      } else if (clazz.isAnnotationPresent(EntitySubclass.class)) {
+        // Ensure that any @EntitySubclass classes have also had their parent @Entity registered,
+        // which Objectify nominally requires but doesn't enforce in 4.x (though it may in 5.x).
+        checkState(registered,
+            "No base entity for kind '%s' registered yet, cannot register new @EntitySubclass %s",
+            kind, clazz.getCanonicalName());
+      }
+      com.googlecode.objectify.ObjectifyService.register(clazz);
+      // Autogenerated ids make the commit log code very difficult since we won't always be able
+      // to create a key for an entity immediately when requesting a save. Disallow that here.
+      checkState(
+          !factory().getMetadata(clazz).getKeyMetadata().isIdGeneratable(),
+          "Can't register %s: Autogenerated ids (@Id on a Long) are not supported.", kind);
+    }
+  }
+
+  /** Counts of used ids for use in unit tests. Outside tests this is never used. */
+  private static final AtomicLong nextTestId = new AtomicLong(1); // ids cannot be zero
+
+  /** Allocates an id. */
+  public static long allocateId() {
+    return RegistryEnvironment.UNITTEST.equals(RegistryEnvironment.get())
+      ? nextTestId.getAndIncrement()
+      : DatastoreServiceFactory.getDatastoreService()
+          .allocateIds(APP_WIDE_ALLOCATION_KIND, 1)
+          .iterator()
+          .next()
+          .getId();
+  }
+
+  /** Resets the global test id counter (i.e. sets the next id to 1). */
+  @VisibleForTesting
+  public static void resetNextTestId() {
+    checkState(RegistryEnvironment.UNITTEST.equals(RegistryEnvironment.get()),
+        "Can't call resetTestIdCounts() from RegistryEnvironment.%s",
+        RegistryEnvironment.get());
+    nextTestId.set(1); // ids cannot be zero
+  }
+}

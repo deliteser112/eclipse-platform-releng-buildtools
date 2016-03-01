@@ -1,0 +1,165 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.rde;
+
+import static com.google.common.base.Verify.verify;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.google.domain.registry.model.ImmutableObject;
+import com.google.domain.registry.model.contact.ContactResource;
+import com.google.domain.registry.model.domain.DomainResource;
+import com.google.domain.registry.model.host.HostResource;
+import com.google.domain.registry.model.rde.RdeMode;
+import com.google.domain.registry.model.registrar.Registrar;
+import com.google.domain.registry.tldconfig.idn.IdnTable;
+import com.google.domain.registry.util.FormattingLogger;
+import com.google.domain.registry.xjc.XjcXmlTransformer;
+import com.google.domain.registry.xjc.rde.XjcRdeContentsType;
+import com.google.domain.registry.xjc.rde.XjcRdeDeposit;
+import com.google.domain.registry.xjc.rde.XjcRdeDepositTypeType;
+import com.google.domain.registry.xjc.rde.XjcRdeMenuType;
+import com.google.domain.registry.xjc.rdeidn.XjcRdeIdn;
+import com.google.domain.registry.xjc.rdeidn.XjcRdeIdnElement;
+import com.google.domain.registry.xjc.rdepolicy.XjcRdePolicy;
+import com.google.domain.registry.xjc.rdepolicy.XjcRdePolicyElement;
+import com.google.domain.registry.xml.XmlException;
+import com.google.domain.registry.xml.XmlFragmentMarshaller;
+
+import com.googlecode.objectify.Key;
+
+import org.joda.time.DateTime;
+
+import java.io.ByteArrayOutputStream;
+import java.io.Serializable;
+import java.util.Collection;
+
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.MarshalException;
+
+/** XML document <i>fragment</i> marshaller for RDE. */
+@NotThreadSafe
+public final class RdeMarshaller implements Serializable {
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+
+  private static final long serialVersionUID = 202890386611768455L;
+
+  private transient XmlFragmentMarshaller memoizedMarshaller;
+
+  /** Returns top-portion of XML document. */
+  public String makeHeader(
+      String depositId, DateTime watermark, Collection<String> uris, int revision) {
+    // We can't make JAXB marshal half an element. So we're going to use a kludge where we provide
+    // it with the minimum data necessary to marshal a deposit, and then cut it up by manually.
+    XjcRdeMenuType menu = new XjcRdeMenuType();
+    menu.setVersion("1.0");
+    menu.getObjURIs().addAll(uris);
+    XjcRdePolicy policy = new XjcRdePolicy();
+    policy.setScope("this-will-be-trimmed");
+    policy.setElement("/make/strict/validation/pass");
+    XjcRdeContentsType contents = new XjcRdeContentsType();
+    contents.getContents().add(new XjcRdePolicyElement(policy));
+    XjcRdeDeposit deposit = new XjcRdeDeposit();
+    deposit.setId(depositId);
+    deposit.setWatermark(watermark);
+    deposit.setType(XjcRdeDepositTypeType.FULL);
+    if (revision > 0) {
+      deposit.setResend(revision);
+    }
+    deposit.setRdeMenu(menu);
+    deposit.setContents(contents);
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    try {
+      XjcXmlTransformer.marshalStrict(deposit, os, UTF_8);
+    } catch (XmlException e) {
+      throw new RuntimeException(e);
+    }
+    String rdeDocument = os.toString();
+    String marker = "<rde:contents>\n";
+    int startOfContents = rdeDocument.indexOf(marker);
+    verify(startOfContents > 0, "Bad RDE document:\n%s", rdeDocument);
+    return rdeDocument.substring(0, startOfContents + marker.length());
+  }
+
+  /** Returns bottom-portion of XML document. */
+  public String makeFooter() {
+    return "\n</rde:contents>\n</rde:deposit>\n";
+  }
+
+  /** Turns XJC element into XML fragment, with schema validation. */
+  public String marshalStrictlyOrDie(JAXBElement<?> element) {
+    try {
+      return getMarshaller().marshal(element);
+    } catch (MarshalException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /** Turns {@link ContactResource} object into an XML fragment. */
+  public DepositFragment marshalContact(ContactResource contact) {
+    return marshalResource(RdeResourceType.CONTACT, contact,
+        ContactResourceToXjcConverter.convert(contact));
+  }
+
+  /** Turns {@link DomainResource} object into an XML fragment. */
+  public DepositFragment marshalDomain(DomainResource domain, RdeMode mode) {
+    return marshalResource(RdeResourceType.DOMAIN, domain,
+        DomainResourceToXjcConverter.convert(domain, mode));
+  }
+
+  /** Turns {@link HostResource} object into an XML fragment. */
+  public DepositFragment marshalHost(HostResource host) {
+    return marshalResource(RdeResourceType.HOST, host,
+        HostResourceToXjcConverter.convert(host));
+  }
+
+  /** Turns {@link Registrar} object into an XML fragment. */
+  public DepositFragment marshalRegistrar(Registrar registrar) {
+    return marshalResource(RdeResourceType.REGISTRAR, registrar,
+        RegistrarToXjcConverter.convert(registrar));
+  }
+
+  /** Turns {@link IdnTable} object into an XML fragment. */
+  public String marshalIdn(IdnTable idn) {
+    XjcRdeIdn bean = new XjcRdeIdn();
+    bean.setId(idn.getName());
+    bean.setUrl(idn.getUrl().toString());
+    bean.setUrlPolicy(idn.getPolicy().toString());
+    return marshalStrictlyOrDie(new XjcRdeIdnElement(bean));
+  }
+
+  private DepositFragment marshalResource(
+      RdeResourceType type, ImmutableObject resource, JAXBElement<?> element) {
+    String xml = "";
+    String error = "";
+    try {
+      xml = getMarshaller().marshal(element);
+    } catch (MarshalException e) {
+      error = String.format("RDE XML schema validation failed: %s\n%s%s\n",
+          Key.create(resource),
+          e.getLinkedException(),
+          getMarshaller().marshalLenient(element));
+      logger.severe(error);
+    }
+    return DepositFragment.create(type, xml, error);
+  }
+
+  private XmlFragmentMarshaller getMarshaller() {
+    return memoizedMarshaller != null
+        ?  memoizedMarshaller
+        : (memoizedMarshaller = XjcXmlTransformer.get().createFragmentMarshaller());
+  }
+}

@@ -1,0 +1,211 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.export.sheet;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.domain.registry.model.registrar.RegistrarContact.Type.ABUSE;
+import static com.google.domain.registry.model.registrar.RegistrarContact.Type.ADMIN;
+import static com.google.domain.registry.model.registrar.RegistrarContact.Type.BILLING;
+import static com.google.domain.registry.model.registrar.RegistrarContact.Type.LEGAL;
+import static com.google.domain.registry.model.registrar.RegistrarContact.Type.MARKETING;
+import static com.google.domain.registry.model.registrar.RegistrarContact.Type.TECH;
+import static com.google.domain.registry.model.registrar.RegistrarContact.Type.WHOIS;
+
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Ordering;
+import com.google.domain.registry.model.registrar.Registrar;
+import com.google.domain.registry.model.registrar.RegistrarAddress;
+import com.google.domain.registry.model.registrar.RegistrarContact;
+import com.google.domain.registry.util.Clock;
+import com.google.domain.registry.util.DateTimeUtils;
+import com.google.gdata.util.ServiceException;
+
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+
+import java.io.IOException;
+
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+
+/**
+ * Class for synchronizing all {@link Registrar} datastore objects to a Google Spreadsheet.
+ *
+ * @see SyncRegistrarsSheetTask
+ */
+class SyncRegistrarsSheet {
+
+  @Inject Clock clock;
+  @Inject SheetSynchronizer sheetSynchronizer;
+  @Inject SyncRegistrarsSheet() {}
+
+  /** Returns true if a {@link Registrar} entity was modified in past {@code duration}. */
+  boolean wasRegistrarsModifiedInLast(Duration duration) {
+    DateTime watermark = clock.nowUtc().minus(duration);
+    for (Registrar registrar : Registrar.loadAll()) {
+      if (DateTimeUtils.isAtOrAfter(registrar.getLastUpdateTime(), watermark)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Performs the synchronization operation. */
+  void run(String spreadsheetId) throws IOException, ServiceException {
+    sheetSynchronizer.synchronize(
+        spreadsheetId,
+        FluentIterable
+            .from(
+                new Ordering<Registrar>() {
+                  @Override
+                  public int compare(Registrar left, Registrar right) {
+                    return left.getClientIdentifier().compareTo(right.getClientIdentifier());
+                  }
+                }.immutableSortedCopy(Registrar.loadAll()))
+            .filter(
+                new Predicate<Registrar>() {
+                  @Override
+                  public boolean apply(Registrar registrar) {
+                    return registrar.getType() == Registrar.Type.REAL
+                        || registrar.getType() == Registrar.Type.OTE;
+                  }
+                })
+            .transform(
+                new Function<Registrar, ImmutableMap<String, String>>() {
+                  @Override
+                  public ImmutableMap<String, String> apply(Registrar registrar) {
+                    ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
+                    ImmutableSortedSet<RegistrarContact> contacts = registrar.getContacts();
+                    RegistrarAddress address =
+                        firstNonNull(
+                            registrar.getLocalizedAddress(),
+                            firstNonNull(
+                                registrar.getInternationalizedAddress(),
+                                new RegistrarAddress.Builder()
+                                    .setStreet(ImmutableList.of("UNKNOWN"))
+                                    .setCity("UNKNOWN")
+                                    .setCountryCode("US")
+                                    .build()));
+                    //
+                    // （╯°□°）╯ WARNING WARNING WARNING
+                    //
+                    // Do not change these mappings simply because the Registrar model changed. Only
+                    // change these mappings if the people who use the spreadsheet requested it be
+                    // changed.
+                    //
+                    // These values are hard-coded because they correspond to actual spreadsheet
+                    // columns. If you change this dictionary, then you'll need to manually add new
+                    // columns to the registrar spreadsheets for all environments before deployment,
+                    // and you'll need to remove deleted columns probably like a week after
+                    // deployment.
+                    //
+                    builder.put("clientIdentifier", convert(registrar.getClientIdentifier()));
+                    builder.put("registrarName", convert(registrar.getRegistrarName()));
+                    builder.put("state", convert(registrar.getState()));
+                    builder.put("ianaIdentifier", convert(registrar.getIanaIdentifier()));
+                    builder.put("billingIdentifier", convert(registrar.getBillingIdentifier()));
+                    builder.put("primaryContacts", convertContacts(contacts, byType(ADMIN)));
+                    builder.put("techContacts", convertContacts(contacts, byType(TECH)));
+                    builder.put("marketingContacts", convertContacts(contacts, byType(MARKETING)));
+                    builder.put("abuseContacts", convertContacts(contacts, byType(ABUSE)));
+                    builder.put("whoisInquiryContacts", convertContacts(contacts, byType(WHOIS)));
+                    builder.put("legalContacts", convertContacts(contacts, byType(LEGAL)));
+                    builder.put("billingContacts", convertContacts(contacts, byType(BILLING)));
+                    builder.put(
+                        "contactsMarkedAsWhoisAdmin",
+                        convertContacts(
+                            contacts,
+                            new Predicate<RegistrarContact>() {
+                              @Override
+                              public boolean apply(RegistrarContact contact) {
+                                return contact.getVisibleInWhoisAsAdmin();
+                              }
+                            }));
+                    builder.put(
+                        "contactsMarkedAsWhoisTech",
+                        convertContacts(
+                            contacts,
+                            new Predicate<RegistrarContact>() {
+                              @Override
+                              public boolean apply(RegistrarContact contact) {
+                                return contact.getVisibleInWhoisAsTech();
+                              }
+                            }));
+                    builder.put("emailAddress", convert(registrar.getEmailAddress()));
+                    builder.put("address.street", convert(address.getStreet()));
+                    builder.put("address.city", convert(address.getCity()));
+                    builder.put("address.state", convert(address.getState()));
+                    builder.put("address.zip", convert(address.getZip()));
+                    builder.put("address.countryCode", convert(address.getCountryCode()));
+                    builder.put("phoneNumber", convert(registrar.getPhoneNumber()));
+                    builder.put("faxNumber", convert(registrar.getFaxNumber()));
+                    builder.put("creationTime", convert(registrar.getCreationTime()));
+                    builder.put("lastUpdateTime", convert(registrar.getLastUpdateTime()));
+                    builder.put("allowedTlds", convert(registrar.getAllowedTlds()));
+                    builder.put("whoisServer", convert(registrar.getWhoisServer()));
+                    builder.put("blockPremiumNames", convert(registrar.getBlockPremiumNames()));
+                    builder.put("ipAddressWhitelist", convert(registrar.getIpAddressWhitelist()));
+                    builder.put("url", convert(registrar.getUrl()));
+                    builder.put("referralUrl", convert(registrar.getReferralUrl()));
+                    builder.put("icannReferralEmail", convert(registrar.getIcannReferralEmail()));
+                    return builder.build();
+                  }
+                })
+            .toList());
+  }
+
+  private static String convertContacts(
+      Iterable<RegistrarContact> contacts, Predicate<RegistrarContact> filter) {
+    StringBuilder result = new StringBuilder();
+    boolean first = true;
+    for (RegistrarContact contact : contacts) {
+      if (!filter.apply(contact)) {
+        continue;
+      }
+      if (first) {
+        first = false;
+      } else {
+        result.append("\n");
+      }
+      result.append(contact.toStringMultilinePlainText());
+    }
+    return result.toString();
+  }
+
+  private static Predicate<RegistrarContact> byType(final RegistrarContact.Type type) {
+    return new Predicate<RegistrarContact>() {
+      @Override
+      public boolean apply(RegistrarContact contact) {
+        return contact.getTypes().contains(type);
+      }};
+  }
+
+  /** Converts a value to a string representation that can be stored in a spreadsheet cell. */
+  private static String convert(@Nullable Object value) {
+    if (value == null) {
+      return "";
+    } else if (value instanceof Iterable) {
+      return Joiner.on('\n').join((Iterable<?>) value);
+    } else {
+      return value.toString();
+    }
+  }
+}

@@ -1,0 +1,27 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <greeting>
+    <svID>Charleston Road Registry</svID>
+    <svDate>2000-06-08T22:00:00.0Z</svDate>
+    <svcMenu>
+      <version>1.0</version>
+      <lang>en</lang>
+      <objURI>urn:ietf:params:xml:ns:host-1.0</objURI>
+      <objURI>urn:ietf:params:xml:ns:contact-1.0</objURI>
+      <objURI>urn:ietf:params:xml:ns:domain-1.0</objURI>
+      <svcExtension>
+        <extURI>urn:ietf:params:xml:ns:launch-1.0</extURI>
+        <extURI>urn:ietf:params:xml:ns:rgp-1.0</extURI>
+        <extURI>urn:ietf:params:xml:ns:secDNS-1.1</extURI>
+        <extURI>urn:ietf:params:xml:ns:fee-0.6</extURI>
+      </svcExtension>
+    </svcMenu>
+    <dcp>
+      <access><all/></access>
+      <statement>
+        <purpose><admin/><prov/></purpose>
+        <recipient><ours/><public/></recipient>
+        <retention><indefinite/></retention>
+      </statement>
+    </dcp>
+  </greeting>
+</epp>

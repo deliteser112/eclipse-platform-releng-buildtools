@@ -1,0 +1,96 @@
+{namespace registry.soy.registrar.hostepp autoescape="strict"}
+
+
+/**
+ * Host create request.
+ * @param item
+ * @param clTrid
+ */
+{template .create}
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <create>
+      <host:create xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+        <host:name>{$item['host:name']}</host:name>
+        {if isNonnull($item['host:addr'])}
+          {foreach $addr in $item['host:addr']}
+            {let $type: strContains($addr['value'], ':') ? 'v6' : 'v4' /}
+            <host:addr ip="{$type}">{$addr['value']}</host:addr>
+          {/foreach}
+        {/if}
+      </host:create>
+    </create>
+    <clTRID>{$clTrid}</clTRID>
+  </command>
+</epp>
+{/template}
+
+
+/**
+ * Host update request.
+ * @param item
+ * @param clTrid
+ * @param? addAddrs list of addrs to add.
+ * @param? remAddrs list of addrs to remove.
+ */
+{template .update}
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <update>
+      <host:update xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+        <host:name>{$item['host:name']}</host:name>
+        {call .addRem}
+          {param isAdd: true /}
+          {param addrs: $addAddrs /}
+        {/call}
+        {call .addRem}
+          {param isAdd: false /}
+          {param addrs: $remAddrs /}
+        {/call}
+        {if $item['host:name'] != $item['host:chgName']}
+          <host:chg>
+            <host:name>{$item['host:chgName']}</host:name>
+          </host:chg>
+        {/if}
+      </host:update>
+    </update>
+    <clTRID>{$clTrid}</clTRID>
+  </command>
+</epp>
+{/template}
+
+
+/**
+ * Host info request.
+ * @param clTrid
+ * @param id The hostname (named "id" to preserve component API).
+ */
+{template .info}
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <info>
+      <host:info xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+        <host:name>{$id}</host:name>
+      </host:info>
+    </info>
+    <clTRID>{$clTrid}</clTRID>
+  </command>
+</epp>
+{/template}
+
+
+/**
+ * @param isAdd
+ * @param? addrs
+ */
+{template .addRem}
+  {let $tagName: $isAdd ? 'host:add' : 'host:rem' /}
+  {if length($addrs) > 0}
+    <{$tagName}>
+      {foreach $addr in $addrs}
+        {let $type: strContains($addr, ':') ? 'v6' : 'v4' /}
+        <host:addr ip="{$type}">{$addr}</host:addr>
+      {/foreach}
+    </{$tagName}>
+  {/if}
+{/template}

@@ -1,0 +1,47 @@
+{
+  "nameserverSearchResults" :
+  [
+    {
+      "objectClassName" : "nameserver",
+      "handle" : "3-ROID",
+      "status" : ["active"],
+      "ldhName" : "ns2.cat.lol",
+      "links" :
+      [
+        {
+          "value" : "https://example.tld/rdap/nameserver/ns2.cat.lol",
+          "rel" : "self",
+          "type" : "application/rdap+json",
+          "href" : "https://example.tld/rdap/nameserver/ns2.cat.lol"
+        }
+      ],
+      "ipAddresses" :
+      {
+        "v6" : ["bad:f00d:cafe::15:beef"]
+      },
+      "port43": "whois.example.tld"
+    },
+    {
+      "objectClassName" : "nameserver",
+      "handle" : "4-ROID",
+      "status" : ["active"],
+      "ldhName" : "ns1.cat2.lol",
+      "links" :
+      [
+        {
+          "value" : "https://example.tld/rdap/nameserver/ns1.cat2.lol",
+          "rel" : "self",
+          "type" : "application/rdap+json",
+          "href" : "https://example.tld/rdap/nameserver/ns1.cat2.lol"
+        }
+      ],
+      "ipAddresses" :
+      {
+        "v4" : ["1.2.3.3"]
+        "v6" : ["bad:f00d:cafe::15:beef"]
+      },
+      "port43": "whois.example.tld"
+    }
+  ],
+  "rdapConformance" : ["rdap_level_0"]
+}

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <create>
+      <domain:create
+       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>exampleone.tld</domain:name>
+        <domain:ns>
+          <domain:hostObj>ns1.example.net</domain:hostObj>
+          <domain:hostObj>ns2.example.net</domain:hostObj>
+        </domain:ns>
+        <domain:registrant>jd1234</domain:registrant>
+        <domain:contact type="admin">sh8013</domain:contact>
+        <domain:contact type="tech">sh8013</domain:contact>
+        <domain:authInfo>
+          <domain:pw>2fooBAR</domain:pw>
+        </domain:authInfo>
+      </domain:create>
+    </create>
+    <extension>
+      <launch:create
+       xmlns:launch="urn:ietf:params:xml:ns:launch-1.0"
+       type="application">
+        <launch:phase>sunrise</launch:phase>
+        <smd:signedMark xmlns:smd="urn:ietf:params:xml:ns:signedMark-1.0" id="signedMark">
+          <smd:id>1-2</smd:id>
+          <smd:issuerInfo issuerID="2">
+            <smd:org>Example Inc.</smd:org>
+            <smd:email>support@example.tld</smd:email>
+            <smd:url>http://www.example.tld</smd:url>
+            <smd:voice x="1234">+1.7035555555</smd:voice>
+          </smd:issuerInfo>
+          <smd:notBefore>2009-08-16T09:00:00.0Z</smd:notBefore>
+          <smd:notAfter>2010-08-16T09:00:00.0Z</smd:notAfter>
+          <mark:mark xmlns:mark="urn:ietf:params:xml:ns:mark-1.0">
+            <mark:trademark>
+              <mark:id>1234-2</mark:id>
+              <mark:markName>Example One</mark:markName>
+              <mark:holder entitlement="owner">
+                <mark:org>Example Inc.</mark:org>
+                <mark:addr>
+                  <mark:street>123 Example Dr.</mark:street>
+                  <mark:street>Suite 100</mark:street>
+                  <mark:city>Reston</mark:city>
+                  <mark:sp>VA</mark:sp>
+                  <mark:pc>20190</mark:pc>
+                  <mark:cc>US</mark:cc>
+                </mark:addr>
+              </mark:holder>
+              <mark:jurisdiction>US</mark:jurisdiction>
+              <mark:class>35</mark:class>
+              <mark:class>36</mark:class>
+              <mark:label>example-one</mark:label>
+              <mark:label>exampleone</mark:label>
+              <mark:goodsAndServices>Dirigendas et eiusmodi featuring infringo in airfare et cartam servicia.</mark:goodsAndServices>
+              <mark:regNum>234235</mark:regNum>
+              <mark:regDate>2009-08-16T09:00:00.0Z</mark:regDate>
+              <mark:exDate>2015-08-16T09:00:00.0Z</mark:exDate>
+            </mark:trademark>
+          </mark:mark>
+          <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+    <SignedInfo>
+     <CanonicalizationMethod
+  Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+     <SignatureMethod
+  Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+     <Reference URI="#signedMark">
+      <Transforms>
+       <Transform
+  Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+      </Transforms>
+      <DigestMethod
+  Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+      <DigestValue>
+       miF4M2aTd1Y3tKOzJtiyl2VpzAnVPnV1Hq7Zax+yzrA=
+      </DigestValue>
+     </Reference>
+    </SignedInfo>
+    <SignatureValue>
+     MELpHTWEVfG1JcsG1/a//o54OnlJ5A864+X5JwfqgGBBeZSzGHNzwzTKFzIyyyfn
+     lGxVwNMoBV5aSvkF7oEKMNVzfcl/P0czNQZ/LJ83p3Ol27/iUNsqgCaGf9Zupw+M
+     XT4Q2lOrIw+qSx5g7q9T83siMLvkD5uEYlU5dPqgsObLTW8/doTQrA14RcxgY4kG
+     a4+t5B1cT+5VaghTOPb8uUSEDKjnOsGdy8p24wgyK9n8h0CTSS2ZQ6Zq/RmQeT7D
+     sbceUHheQ+mkQWIljpMQqsiBjw5XXh4jkEgfAzrb6gkYEF+X8ReuPZuOYC4QjIET
+     yx8ifN4KE3GIbMXeF4LDsA==
+    </SignatureValue>
+    <KeyInfo>
+     <KeyValue>
+      <RSAKeyValue>
+       <Modulus>
+        o/cwvXhbVYl0RDWWvoyeZpETVZVVcMCovUVNg/swWinuMgEWgVQFrz0xA04pEhXC
+        FVv4evbUpekJ5buqU1gmQyOsCKQlhOHTdPjvkC5upDqa51Flk0TMaMkIQjs7aUKC
+        mA4RG4tTTGK/EjR1ix8/D0gHYVRldy1YPrMP+ou75bOVnIos+HifrAtrIv4qEqwL
+        L4FTZAUpaCa2BmgXfy2CSRQbxD5Or1gcSa3vurh5sPMCNxqaXmIXmQipS+DuEBqM
+        M8tldaN7RYojUEKrGVsNk5i9y2/7sjn1zyyUPf7vL4GgDYqhJYWV61DnXgx/Jd6C
+        WxvsnDF6scscQzUTEl+hyw==
+       </Modulus>
+       <Exponent>
+        AQAB
+       </Exponent>
+      </RSAKeyValue>
+     </KeyValue>
+     <X509Data>
+      <X509Certificate>
+       MIIESTCCAzGgAwIBAgIBAjANBgkqhkiG9w0BAQsFADBiMQswCQYDVQQGEwJVUzEL
+       MAkGA1UECBMCQ0ExFDASBgNVBAcTC0xvcyBBbmdlbGVzMRMwEQYDVQQKEwpJQ0FO
+       TiBUTUNIMRswGQYDVQQDExJJQ0FOTiBUTUNIIFRFU1QgQ0EwHhcNMTMwMjA4MDAw
+       MDAwWhcNMTgwMjA3MjM1OTU5WjBsMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0Ex
+       FDASBgNVBAcTC0xvcyBBbmdlbGVzMRcwFQYDVQQKEw5WYWxpZGF0b3IgVE1DSDEh
+       MB8GA1UEAxMYVmFsaWRhdG9yIFRNQ0ggVEVTVCBDRVJUMIIBIjANBgkqhkiG9w0B
+       AQEFAAOCAQ8AMIIBCgKCAQEAo/cwvXhbVYl0RDWWvoyeZpETVZVVcMCovUVNg/sw
+       WinuMgEWgVQFrz0xA04pEhXCFVv4evbUpekJ5buqU1gmQyOsCKQlhOHTdPjvkC5u
+       pDqa51Flk0TMaMkIQjs7aUKCmA4RG4tTTGK/EjR1ix8/D0gHYVRldy1YPrMP+ou7
+       5bOVnIos+HifrAtrIv4qEqwLL4FTZAUpaCa2BmgXfy2CSRQbxD5Or1gcSa3vurh5
+       sPMCNxqaXmIXmQipS+DuEBqMM8tldaN7RYojUEKrGVsNk5i9y2/7sjn1zyyUPf7v
+       L4GgDYqhJYWV61DnXgx/Jd6CWxvsnDF6scscQzUTEl+hywIDAQABo4H/MIH8MAwG
+       A1UdEwEB/wQCMAAwHQYDVR0OBBYEFPZEcIQcD/Bj2IFz/LERuo2ADJviMIGMBgNV
+       HSMEgYQwgYGAFO0/7kEh3FuEKS+Q/kYHaD/W6wihoWakZDBiMQswCQYDVQQGEwJV
+       UzELMAkGA1UECBMCQ0ExFDASBgNVBAcTC0xvcyBBbmdlbGVzMRMwEQYDVQQKEwpJ
+       Q0FOTiBUTUNIMRswGQYDVQQDExJJQ0FOTiBUTUNIIFRFU1QgQ0GCAQEwDgYDVR0P
+       AQH/BAQDAgeAMC4GA1UdHwQnMCUwI6AhoB+GHWh0dHA6Ly9jcmwuaWNhbm4ub3Jn
+       L3RtY2guY3JsMA0GCSqGSIb3DQEBCwUAA4IBAQB2qSy7ui+43cebKUKwWPrzz9y/
+       IkrMeJGKjo40n+9uekaw3DJ5EqiOf/qZ4pjBD++oR6BJCb6NQuQKwnoAz5lE4Ssu
+       y5+i93oT3HfyVc4gNMIoHm1PS19l7DBKrbwbzAea/0jKWVzrvmV7TBfjxD3AQo1R
+       bU5dBr6IjbdLFlnO5x0G0mrG7x5OUPuurihyiURpFDpwH8KAH1wMcCpXGXFRtGKk
+       wydgyVYAty7otkl/z3bZkCVT34gPvF70sR6+QxUy8u0LzF5A/beYaZpxSYG31amL
+       AdXitTWFipaIGea9lEGFM0L9+Bg7XzNn4nVLXokyEB3bgS4scG6QznX23FGk
+      </X509Certificate>
+     </X509Data>
+    </KeyInfo>
+   </Signature>
+        </smd:signedMark>
+      </launch:create>
+    </extension>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>

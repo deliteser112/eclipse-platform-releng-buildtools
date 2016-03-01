@@ -1,0 +1,109 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.tools;
+
+import static com.google.common.truth.Truth.assertThat;
+
+import com.google.domain.registry.rde.RdeTestData;
+import com.google.domain.registry.xml.XmlException;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+/** Unit tests for {@link ValidateEscrowDepositCommand}. */
+@RunWith(JUnit4.class)
+public class ValidateEscrowDepositCommandTest
+    extends CommandTestCase<ValidateEscrowDepositCommand> {
+
+  @Test
+  public void testRun_plainXml() throws Exception {
+    String file = writeToTmpFile(RdeTestData.get("deposit_full.xml").read());
+    runCommand("--input=" + file);
+    assertThat(getStdoutAsString()).isEqualTo(""
+        + "ID: 20101017001\n"
+        + "Previous ID: 20101010001\n"
+        + "Type: FULL\n"
+        + "Watermark: 2010-10-17T00:00:00.000Z\n"
+        + "RDE Version: 1.0\n"
+        + "\n"
+        + "RDE Object URIs:\n"
+        + "  - urn:ietf:params:xml:ns:rdeContact-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeDomain-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeEppParams-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeHeader-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeHost-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeIDN-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeNNDN-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeRegistrar-1.0\n"
+        + "\n"
+        + "Contents:\n"
+        + "  - XjcRdeContact: 1 entry\n"
+        + "  - XjcRdeDomain: 2 entries\n"
+        + "  - XjcRdeEppParams: 1 entry\n"
+        + "  - XjcRdeHeader: 1 entry\n"
+        + "  - XjcRdeHost: 2 entries\n"
+        + "  - XjcRdeIdn: 1 entry\n"
+        + "  - XjcRdeNndn: 1 entry\n"
+        + "  - XjcRdePolicy: 1 entry\n"
+        + "  - XjcRdeRegistrar: 1 entry\n"
+        + "\n"
+        + "RDE deposit is XML schema valid\n");
+  }
+
+  @Test
+  public void testRun_plainXml_badReference() throws Exception {
+    String file = writeToTmpFile(RdeTestData.get("deposit_full_badref.xml").read());
+    runCommand("--input=" + file);
+    assertThat(getStdoutAsString()).isEqualTo(""
+        + "ID: 20101017001\n"
+        + "Previous ID: 20101010001\n"
+        + "Type: FULL\n"
+        + "Watermark: 2010-10-17T00:00:00.000Z\n"
+        + "RDE Version: 1.0\n"
+        + "\n"
+        + "RDE Object URIs:\n"
+        + "  - urn:ietf:params:xml:ns:rdeContact-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeDomain-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeEppParams-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeHeader-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeHost-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeIDN-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeNNDN-1.0\n"
+        + "  - urn:ietf:params:xml:ns:rdeRegistrar-1.0\n"
+        + "\n"
+        + "Contents:\n"
+        + "  - XjcRdeContact: 1 entry\n"
+        + "  - XjcRdeDomain: 2 entries\n"
+        + "  - XjcRdeEppParams: 1 entry\n"
+        + "  - XjcRdeHeader: 1 entry\n"
+        + "  - XjcRdeHost: 2 entries\n"
+        + "  - XjcRdeIdn: 1 entry\n"
+        + "  - XjcRdeNndn: 1 entry\n"
+        + "  - XjcRdePolicy: 1 entry\n"
+        + "  - XjcRdeRegistrar: 1 entry\n"
+        + "\n"
+        + "Bad host refs: ns1.LAFFO.com\n"
+        + "RDE deposit is XML schema valid but has bad references\n");
+  }
+
+  @Test
+  public void testRun_badXml() throws Exception {
+    String file = writeToTmpFile(RdeTestData.loadUtf8("deposit_full.xml").substring(0, 2000));
+    thrown.expect(XmlException.class, "Syntax error at line 46, column 38: "
+        + "XML document structures must start and end within the same entity.");
+    runCommand("--input=" + file);
+  }
+}

@@ -1,0 +1,90 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.flows.contact;
+
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.domain.registry.testing.DatastoreHelper.newContactResource;
+import static com.google.domain.registry.testing.DatastoreHelper.persistContactWithPendingTransfer;
+import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+
+import com.google.domain.registry.flows.Flow;
+import com.google.domain.registry.flows.ResourceFlowTestCase;
+import com.google.domain.registry.model.EppResource;
+import com.google.domain.registry.model.contact.ContactResource;
+import com.google.domain.registry.model.registry.Registry;
+import com.google.domain.registry.model.transfer.TransferStatus;
+import com.google.domain.registry.testing.AppEngineRule;
+
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.junit.Before;
+
+/**
+ * Base class for contact transfer flow unit tests.
+ *
+ * @param <F> the flow type
+ * @param <R> the resource type
+ */
+public class ContactTransferFlowTestCase<F extends Flow, R extends EppResource>
+    extends ResourceFlowTestCase<F, R>{
+
+  // Transfer is requested on the 6th and expires on the 11th.
+  // The "now" of this flow is on the 9th, 3 days in.
+
+  private static final DateTime TRANSFER_REQUEST_TIME = DateTime.parse("2000-06-06T22:00:00.0Z");
+  private static final DateTime TRANSFER_EXPIRATION_TIME =
+      TRANSFER_REQUEST_TIME.plus(Registry.DEFAULT_TRANSFER_GRACE_PERIOD);
+  private static final Duration TIME_SINCE_REQUEST = Duration.standardDays(3);
+
+  protected ContactResource contact;
+
+  public ContactTransferFlowTestCase() {
+    checkState(!Registry.DEFAULT_TRANSFER_GRACE_PERIOD.isShorterThan(TIME_SINCE_REQUEST));
+    clock.setTo(TRANSFER_REQUEST_TIME.plus(TIME_SINCE_REQUEST));
+  }
+
+  @Before
+  public void initContactTest() {
+    // Registrar ClientZ is used in tests that need another registrar that definitely doesn't own
+    // the resources in question.
+    persistResource(
+        AppEngineRule.makeRegistrar1().asBuilder().setClientIdentifier("ClientZ").build());
+  }
+
+  /** Adds a contact that has a pending transfer on it from TheRegistrar to NewRegistrar. */
+  protected void setupContactWithPendingTransfer() throws Exception {
+    contact = persistContactWithPendingTransfer(
+        newContactResource("sh8013"),
+        TRANSFER_REQUEST_TIME,
+        TRANSFER_EXPIRATION_TIME,
+        TRANSFER_REQUEST_TIME);
+  }
+
+  /** Changes the transfer status on the persisted contact. */
+  protected void changeTransferStatus(TransferStatus transferStatus) {
+    contact = persistResource(
+        contact.asBuilder()
+            .setTransferData(
+                contact.getTransferData().asBuilder().setTransferStatus(transferStatus).build())
+            .build());
+    clock.advanceOneMilli();
+  }
+
+  /** Changes the client ID that the flow will run as. */
+  @Override
+  protected void setClientIdForFlow(String clientId) {
+    sessionMetadata.setClientId(clientId);
+  }
+}

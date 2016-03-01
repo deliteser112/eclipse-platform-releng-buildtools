@@ -1,0 +1,13 @@
+rich,USD 100
+richer,USD 1000
+silver,USD 588
+iridium,USD 13117
+gold,USD 24317
+platinum,USD 87741
+rhodium,USD 88415
+diamond,USD 1000000
+palladium,USD 877
+aluminum,USD 11
+copper,USD 15
+brass,USD 20
+platinum,USD 80000 #this should be ignored as a cheaper duplicate

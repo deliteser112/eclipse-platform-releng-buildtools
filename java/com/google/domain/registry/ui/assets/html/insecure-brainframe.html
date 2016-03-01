@@ -1,0 +1,10 @@
+<!doctype html>
+<!-- This can only be used by admins in a testing environment. -->
+<!-- This iframe provides no isolation of Braintree from Console. -->
+<script src="https://js.braintreegateway.com/v2/braintree.js"></script>
+<script src="/assets/sources/javascript/closure/base.js"></script>
+<script src="/assets/sources/deps-runfiles.js"></script>
+<body style="margin:0">
+<form><div id="brainframe"></div></form>
+<script>goog.require('registry.registrar.BrainFrame.main');</script>
+<script>registry.registrar.BrainFrame.main('*', 'brainframe');</script>

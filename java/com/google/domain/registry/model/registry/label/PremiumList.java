@@ -1,0 +1,383 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.model.registry.label;
+
+import static com.google.appengine.api.datastore.DatastoreServiceFactory.getDatastoreService;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Iterables.partition;
+import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static com.google.domain.registry.model.ofy.ObjectifyService.allocateId;
+import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
+import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.google.domain.registry.config.RegistryEnvironment;
+import com.google.domain.registry.model.Buildable;
+import com.google.domain.registry.model.ImmutableObject;
+import com.google.domain.registry.model.annotations.VirtualEntity;
+import com.google.domain.registry.model.registry.Registry;
+
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.VoidWork;
+import com.googlecode.objectify.Work;
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
+import com.googlecode.objectify.annotation.OnLoad;
+import com.googlecode.objectify.annotation.Parent;
+import com.googlecode.objectify.cmd.Query;
+
+import org.joda.money.Money;
+import org.joda.time.DateTime;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+
+import javax.annotation.Nullable;
+
+/**
+ * A premium list entity, persisted to Datastore, that is used to check domain label prices.
+ */
+@Entity
+@Cache
+public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.PremiumListEntry> {
+
+  /** The number of premium list entry entities that are created and deleted per batch. */
+  private static final int TRANSACTION_BATCH_SIZE = 200;
+
+  /** Stores the revision key for the set of currently used premium list entry entities. */
+  Key<PremiumListRevision> revisionKey;
+
+  @Ignore
+  Map<String, PremiumListEntry> premiumListMap;
+
+  /** Virtual parent entity for premium list entry entities associated with a single revision. */
+  @Entity
+  @VirtualEntity
+  public static class PremiumListRevision extends ImmutableObject {
+    @Parent
+    Key<PremiumList> parent;
+
+    @Id
+    long revisionId;
+
+    static Key<PremiumListRevision> createKey(PremiumList parent) {
+      PremiumListRevision revision = new PremiumListRevision();
+      revision.parent = Key.create(parent);
+      revision.revisionId = allocateId();
+      return Key.create(revision);
+    }
+  }
+
+  private static LoadingCache<String, PremiumList> cache = CacheBuilder
+      .newBuilder()
+      .expireAfterWrite(
+          RegistryEnvironment.get().config().getDomainLabelListCacheDuration().getMillis(),
+          MILLISECONDS)
+      .build(new CacheLoader<String, PremiumList>() {
+        @Override
+        public PremiumList load(final String listName) {
+          return ofy().doTransactionless(new Work<PremiumList>() {
+            @Override
+            public PremiumList run() {
+              return ofy().load()
+                  .type(PremiumList.class)
+                  .parent(getCrossTldKey())
+                  .id(listName)
+                  .now();
+            }});
+        }});
+
+  /**
+   * Gets the premium price for the specified label on the specified tld, or returns Optional.absent
+   * if there is no premium price.
+   */
+  public static Optional<Money> getPremiumPrice(String label, String tld) {
+    Registry registry = Registry.get(checkNotNull(tld, "tld"));
+    if (registry.getPremiumList() == null) {
+      return Optional.<Money> absent();
+    }
+    String listName = registry.getPremiumList().getName();
+    Optional<PremiumList> premiumList = get(listName);
+    if (!premiumList.isPresent()) {
+      throw new IllegalStateException("Could not load premium list named " + listName);
+    }
+    return premiumList.get().getPremiumPrice(label);
+  }
+
+  @OnLoad
+  private void loadPremiumListMap() {
+    try {
+      ImmutableMap.Builder<String, PremiumListEntry> entriesMap = new ImmutableMap.Builder<>();
+      if (revisionKey != null) {
+        for (PremiumListEntry entry : loadEntriesForCurrentRevision()) {
+          entriesMap.put(entry.getLabel(), entry);
+        }
+      }
+      premiumListMap = entriesMap.build();
+    } catch (Exception e) {
+      throw new RuntimeException("Could not retrieve entries for premium list " + name, e);
+    }
+  }
+
+  /**
+   * Gets the premium price for the specified label in the current PremiumList, or returns
+   * Optional.absent if there is no premium price.
+   */
+  public Optional<Money> getPremiumPrice(String label) {
+    return Optional.fromNullable(
+        premiumListMap.containsKey(label) ? premiumListMap.get(label).getValue() : null);
+  }
+
+  public Map<String, PremiumListEntry> getPremiumListEntries() {
+    return nullToEmptyImmutableCopy(premiumListMap);
+  }
+
+  public Key<PremiumListRevision> getRevisionKey() {
+    return revisionKey;
+  }
+
+  /** Returns the PremiumList with the specified name. */
+  public static Optional<PremiumList> get(String name) {
+    try {
+      return Optional.of(cache.get(name));
+    } catch (InvalidCacheLoadException e) {
+      return Optional.<PremiumList> absent();
+    } catch (ExecutionException e) {
+      throw new UncheckedExecutionException("Could not retrieve premium list named " + name, e);
+    }
+  }
+
+  /**
+   * Returns whether a PremiumList of the given name exists, without going through the overhead
+   * of loading up all of the premium list entities. Also does not hit the cache.
+   */
+  public static boolean exists(String name) {
+    try {
+      // Use DatastoreService to bypass the @OnLoad method that loads the premium list entries.
+      getDatastoreService().get(Key.create(getCrossTldKey(), PremiumList.class, name).getRaw());
+      return true;
+    } catch (EntityNotFoundException e) {
+      return false;
+    }
+  }
+
+  /**
+   * A premium list entry entity, persisted to Datastore.  Each instance represents the price of a
+   * single label on a given TLD.
+   */
+  @Entity
+  @Cache
+  public static class PremiumListEntry extends DomainLabelEntry<Money, PremiumListEntry>
+      implements Buildable {
+
+    @Parent
+    Key<PremiumListRevision> parent;
+
+    Money price;
+
+    @Override
+    public Money getValue() {
+      return price;
+    }
+
+    @Override
+    public Builder asBuilder() {
+      return new Builder(clone(this));
+    }
+
+    /**
+     * A builder for constructing {@link PremiumList} objects, since they are immutable.
+     */
+    public static class Builder extends DomainLabelEntry.Builder<PremiumListEntry, Builder> {
+      public Builder() {}
+
+      private Builder(PremiumListEntry instance) {
+        super(instance);
+      }
+
+      public Builder setParent(Key<PremiumListRevision> parentKey) {
+        getInstance().parent = parentKey;
+        return this;
+      }
+
+      public Builder setPrice(Money price) {
+        getInstance().price = price;
+        return this;
+      }
+    }
+  }
+
+  @Override
+  @Nullable
+  PremiumListEntry createFromLine(String originalLine) {
+    List<String> lineAndComment = splitOnComment(originalLine);
+    if (lineAndComment.isEmpty()) {
+      return null;
+    }
+    String line = lineAndComment.get(0);
+    String comment = lineAndComment.get(1);
+    List<String> parts = Splitter.on(',').trimResults().splitToList(line);
+    checkArgument(parts.size() == 2, "Could not parse line in premium list: %s", originalLine);
+    return new PremiumListEntry.Builder()
+        .setLabel(parts.get(0))
+        .setPrice(Money.parse(parts.get(1)))
+        .setComment(comment)
+        .build();
+  }
+
+  /**
+   * Persists a PremiumList object to Datastore.
+   *
+   * <p> The flow here is: save the new premium list entries parented on that revision entity,
+   * save/update the PremiumList, and then delete the old premium list entries associated with the
+   * old revision.
+   */
+  public PremiumList saveAndUpdateEntries() {
+    final Optional<PremiumList> oldPremiumList = get(name);
+    // Save the new child entities in a series of transactions.
+    for (final List<PremiumListEntry> batch
+        : partition(premiumListMap.values(), TRANSACTION_BATCH_SIZE)) {
+      ofy().transactNew(new VoidWork() {
+        @Override
+        public void vrun() {
+          ofy().save().entities(batch);
+        }});
+    }
+    // Save the new PremiumList itself.
+    PremiumList updated = ofy().transactNew(new Work<PremiumList>() {
+        @Override
+        public PremiumList run() {
+          DateTime now = ofy().getTransactionTime();
+          // Assert that the premium list hasn't been changed since we started this process.
+          checkState(
+              Objects.equals(
+                  ofy().load().type(PremiumList.class).parent(getCrossTldKey()).id(name).now(),
+                  oldPremiumList.orNull()),
+              "PremiumList was concurrently edited");
+          PremiumList newList = PremiumList.this.asBuilder()
+              .setLastUpdateTime(now)
+              .setCreationTime(
+                  oldPremiumList.isPresent() ? oldPremiumList.get().creationTime : now)
+              .build();
+          ofy().save().entity(newList);
+          return newList;
+        }});
+    // Update the cache.
+    PremiumList.cache.put(name, updated);
+    // Delete the entities under the old PremiumList, if any.
+    if (oldPremiumList.isPresent()) {
+      oldPremiumList.get().deleteEntries();
+    }
+    return updated;
+  }
+
+  @Override
+  public boolean hasReference(Registry registry, Key<? extends BaseDomainLabelList<?, ?>> key) {
+    return Objects.equals(registry.getPremiumList(), key);
+  }
+
+  /** Deletes the PremiumList and all of its child entities. */
+  public void delete() {
+    ofy().transactNew(new VoidWork() {
+      @Override
+      public void vrun() {
+        ofy().delete().entity(PremiumList.this);
+      }});
+    deleteEntries();
+    cache.invalidate(name);
+  }
+
+  private void deleteEntries() {
+    if (revisionKey == null) {
+      return;
+    }
+    for (final List<Key<PremiumListEntry>> batch : partition(
+        loadEntriesForCurrentRevision().keys(),
+        TRANSACTION_BATCH_SIZE)) {
+      ofy().transactNew(new VoidWork() {
+        @Override
+        public void vrun() {
+          ofy().delete().keys(batch);
+        }});
+    }
+  }
+
+  private Query<PremiumListEntry> loadEntriesForCurrentRevision() {
+    return ofy().load().type(PremiumListEntry.class).ancestor(revisionKey);
+  }
+
+  @Override
+  public Builder asBuilder() {
+    return new Builder(clone(this));
+  }
+
+  /** A builder for constructing {@link PremiumList} objects, since they are immutable.  */
+  public static class Builder extends BaseDomainLabelList.Builder<PremiumList, Builder> {
+
+    public Builder() {}
+
+    private Builder(PremiumList instance) {
+      super(instance);
+    }
+
+    private boolean entriesWereUpdated;
+
+    public Builder setPremiumListMap(ImmutableMap<String, PremiumListEntry> premiumListMap) {
+      entriesWereUpdated = true;
+      getInstance().premiumListMap = premiumListMap;
+      return this;
+    }
+
+    /** Updates the premiumListMap from input lines. */
+    public Builder setPremiumListMapFromLines(Iterable<String> lines) {
+      return setPremiumListMap(getInstance().parse(lines));
+    }
+
+    @Override
+    public PremiumList build() {
+      final PremiumList instance = getInstance();
+      if (getInstance().revisionKey == null || entriesWereUpdated) {
+        getInstance().revisionKey = PremiumListRevision.createKey(instance);
+      }
+      // When we build an instance, make sure all entries are parented on its revisionKey.
+      instance.premiumListMap = Maps.transformValues(
+          nullToEmpty(instance.premiumListMap),
+          new Function<PremiumListEntry, PremiumListEntry>() {
+            @Override
+            public PremiumListEntry apply(PremiumListEntry entry) {
+              return entry.asBuilder().setParent(instance.revisionKey).build();
+            }});
+      return super.build();
+    }
+  }
+}

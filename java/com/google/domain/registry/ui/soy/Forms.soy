@@ -1,0 +1,308 @@
+{namespace registry.soy.forms autoescape="strict"}
+
+
+/**
+ * Input field.
+ * @param name Input field name.
+ * @param? item This will be used to set default value with $item[$name].
+ * @param? label Input field label.
+ * @param? placeholder Placeholder text.
+ */
+{template .inputField}
+  <label for="{$name}">
+    {if isNonnull($label)}
+      {$label}
+    {else}
+      {$name}
+    {/if}
+  </label>
+  <input id="{$name}"
+         name="{$name}"
+         class="{css $name}"
+         {if isNonnull($item) and isNonnull($item[$name])}
+           value="{$item[$name]}"
+         {/if}
+         {if isNonnull($placeholder)}
+           placeholder="{$placeholder}"
+         {/if}>
+{/template}
+
+
+/**
+ * Input field in a table row.
+ * @param name Input field name.
+ * @param? item This will be used to set default value with $item[$name].
+ * @param? itemPrefix
+ * @param? namePrefix
+ * @param? label Input field label.
+ * @param? description Input field description.
+ * @param? placeholder Placeholder text.
+ * @param? readonly
+ */
+{template .inputFieldRow}
+  <tr class="{css kd-settings-pane-section}">
+    <td>
+      <label for="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}"
+             class="{css setting-label}">
+        {if isNonnull($label)}
+          {$label}
+        {else}
+          {$name}
+        {/if}
+      </label>
+      {if isNonnull($description)}
+        <span class="{css description}">{$description}</span>
+      {/if}
+    </td>
+    <td class="{css setting}">
+      <input id="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}"
+             name="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}"
+             {if isNonnull($item)}
+               {if isNonnull($itemPrefix) and isNonnull($item[$itemPrefix + $name])}
+                 value="{$item[$itemPrefix + $name]['keyValue'] ?: $item[$itemPrefix + $name]}"
+               {elseif isNonnull($item[$name])}
+                 value="{$item[$name]['keyValue'] ?: $item[$name]}"
+               {/if}
+             {/if}
+             {if isNonnull($placeholder) and not $readonly}
+               placeholder="{$placeholder}"
+             {/if}
+             {if $readonly}
+               readonly
+             {/if}>
+    </td>
+  </tr>
+{/template}
+
+
+/* XXX: Should move other impls in this file to use this. */
+/** Input field label. */
+{template .inputFieldLabel}
+  {@param label: string}
+  {@param? forId: string}
+  {@param? description: string}
+  <label {if isNonnull($forId)}for="{$forId}"{/if} class="{css setting-label}">
+    {$label}
+  </label>
+  {if isNonnull($description)}
+    <span class="{css description}">{$description}</span>
+  {/if}
+{/template}
+
+
+/** Input field value. */
+{template .inputFieldValue}
+  {@param name: string}
+  {@param? readonly: bool}
+  {@param? value: ?}
+  {@param? namePrefix: string}
+  {@param? placeholder: string}
+  {@param? clazz: string}
+  {let $forId: isNonnull($namePrefix) ? $namePrefix + $name : $name /}
+  <input name="{$forId}"
+         id="{$forId}"
+         value="{if isNonnull($value)}{$value['keyValue'] ?: $value}{/if}"
+         {if isNonnull($clazz)}class="{$clazz}"{/if}
+         {if isNonnull($placeholder) and not $readonly}
+         placeholder="{$placeholder}"
+         {/if}
+         {if $readonly}readonly{/if}>
+{/template}
+
+
+/** Input field in a table row. */
+{template .inputFieldRowWithValue}
+  {@param label: string}
+  {@param name: string}
+  {@param? readonly: bool}
+  {@param? namePrefix: string}
+  {@param? value: ?}
+  {@param? description: string}
+  {@param? placeholder: string}
+  {@param? clazz: string}
+  {let $forId: isNonnull($namePrefix) ? $namePrefix + $name : $name /}
+  <tr class="{css kd-settings-pane-section}">
+    <td>
+      {call .inputFieldLabel data="all"}
+        {param forId: $forId /}
+      {/call}
+    </td>
+    <td class="{css setting}">
+      {call .inputFieldValue data="all" /}
+    </td>
+  </tr>
+{/template}
+
+
+/**
+ * Form input row for a table.
+ * @param name Input field name.
+ * @param? item This will be used to set default value with $item[$name].
+ * @param? itemPrefix
+ * @param? namePrefix
+ * @param? label Input field label.
+ * @param? readonly
+ */
+{template .textareaFieldRow}
+  <tr>
+    <td>
+      <label for="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}">
+        {if isNonnull($label)}
+          {$label}
+        {else}
+          {$name}
+        {/if}
+      </label>
+    </td>
+    <td>
+      <textarea id="{$name}"
+                name="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}"
+                {if $readonly}
+                  readonly
+                {/if}
+                >{if isNonnull($item)}
+                   {if isNonnull($itemPrefix) and isNonnull($item[$itemPrefix + $name])}
+                     {$item[$itemPrefix + $name]}
+                   {elseif isNonnull($item[$name])}
+                     {$item[$name]}
+                   {/if}
+                 {/if}</textarea>
+    </td>
+  </tr>
+{/template}
+
+
+/**
+ * Form input row for a table.
+ * @param name Input field name.
+ * @param value
+ * @param? namePrefix
+ * @param? label Input field label.
+ * @param? readonly
+ */
+{template .textareaFieldRowWithValue}
+  <tr>
+    <td>
+      <label for="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}">
+        {if isNonnull($label)}
+          {$label}
+        {else}
+          {$name}
+        {/if}
+      </label>
+    </td>
+    <td>
+      <textarea id="{$name}"
+                name="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}"
+                {if $readonly}
+                  readonly
+                {/if}
+                >{if isNonnull($value) and isNonnull($value['keyValue'])}
+                   {$value['keyValue']}
+                 {/if}</textarea>
+    </td>
+  </tr>
+{/template}
+
+
+/**
+ * Select control.
+ * @param name Input field name.
+ * @param options Items listed in the selector.
+ * @param selected Name of the selected option.
+ * @param? namePrefix
+ * @param? label Input field label.
+ * @param? readonly
+ */
+{template .selectRow}
+  {let $forId: isNonnull($namePrefix) ? $namePrefix + $name : $name /}
+  <tr>
+    <td>
+      <label for="{$forId}">
+        {if isNonnull($label)}
+          {$label}
+        {else}
+          {$name}
+        {/if}
+      </label>
+    </td>
+    <td>
+      <select id="{$name}"
+              name="{$name}"
+              class="{css kd-button} {css reg-select}"
+              {if $readonly}disabled{/if}>
+        {foreach $option in $options}
+          <option value="{$option}" {if $selected == $option}selected{/if}>
+            {$option}
+          </option>
+        {/foreach}
+      </select>
+    </td>
+  </tr>
+{/template}
+
+
+/**
+ * @param name
+ * @param values
+ * @param? checkedValue the default checked value.
+ */
+{template .inputRadioWithValue}
+<tr>
+  <td colspan="2">
+    {foreach $value in $values}
+    <input type="radio"
+           name="{$name}"
+           value="{$value}"
+           {if $checkedValue == $value}checked{/if}>
+    {/foreach}
+  </td>
+</tr>
+{/template}
+
+
+/** Checkbox with label. */
+{template .inputCheckboxRow}
+  {@param name: string}
+  {@param? checked: bool}
+  {@param? label: string}
+  {@param? description: string}
+  <tr>
+    <td>
+      {call .inputFieldLabel data="all"}
+        {param label: $label ? $label : $name /}
+        {param forId: $name /}
+      {/call}
+    </td>
+    <td>
+      <input id="{$name}"
+             type="checkbox"
+             name="{$name}"
+             value="{$name}"
+             {if isNonnull($checked) and $checked}checked{/if}>
+    </td>
+  </tr>
+{/template}
+
+
+/** Drop-down select button widget. */
+{template .menuButton}
+  {@param id: string} /** ID for button. */
+  {@param selected: string} /** Selected item. */
+  {@param items: list<string>} /** Selectable items. */
+  <div id="{$id}" class="{css kd-button} {css kd-menubutton} {css kd-select}">
+    <span class="{css label}">
+      {$selected}
+    </span>
+    <span class="{css kd-disclosureindicator}"></span>
+    <ul class="{css kd-menulist}">
+      {foreach $item in $items}
+        <li class="{css kd-menulistitem}
+                   {if $item == $selected}
+                     {sp}{css selected}
+                   {/if}">
+          {$item}
+      {/foreach}
+    </ul>
+  </div>
+{/template}

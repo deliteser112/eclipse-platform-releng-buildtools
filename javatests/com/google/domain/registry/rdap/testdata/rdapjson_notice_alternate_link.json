@@ -1,0 +1,18 @@
+{
+  "title" : "RDAP Help",
+  "description" :
+  [
+    "RDAP Help Topics (use \/help\/topic for information)",
+    "syntax",
+    "tos (Terms of Service)"
+  ],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.google.com/help/index",
+      "rel" : "alternate",
+      "type" : "text/html",
+      "href" : "http://myserver.google.com/about/rdap/index.html"
+    }
+  ]
+}

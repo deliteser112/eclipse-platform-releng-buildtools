@@ -1,0 +1,187 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.tools;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.collect.Iterables.transform;
+import static com.google.common.io.BaseEncoding.base16;
+import static com.google.domain.registry.flows.EppXmlTransformer.unmarshal;
+import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.tools.CommandUtilities.addHeader;
+
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
+import com.google.domain.registry.flows.EppException;
+import com.google.domain.registry.flows.EppXmlTransformer;
+import com.google.domain.registry.model.domain.DesignatedContact;
+import com.google.domain.registry.model.domain.DomainApplication;
+import com.google.domain.registry.model.domain.DomainCommand;
+import com.google.domain.registry.model.domain.Period;
+import com.google.domain.registry.model.domain.launch.ApplicationStatus;
+import com.google.domain.registry.model.domain.launch.LaunchNotice;
+import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
+import com.google.domain.registry.model.eppinput.EppInput;
+import com.google.domain.registry.model.eppinput.EppInput.ResourceCommandWrapper;
+import com.google.domain.registry.model.host.HostResource;
+import com.google.domain.registry.model.reporting.HistoryEntry;
+import com.google.domain.registry.model.smd.SignedMark;
+import com.google.domain.registry.tools.soy.DomainAllocateSoyInfo;
+import com.google.template.soy.data.SoyMapData;
+
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.VoidWork;
+import com.googlecode.objectify.Work;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/** Command to allocated a domain from a domain application. */
+@Parameters(separators = " =", commandDescription = "Allocate a domain application")
+final class AllocateDomainCommand extends MutatingEppToolCommand {
+
+  @Parameter(
+      names = "--ids",
+      description = "Comma-delimited list of application IDs to update.",
+      required = true)
+  String ids;
+
+  private final List<Key<DomainApplication>> applicationKeys = new ArrayList<>();
+
+  @Override
+  protected String verify() throws Exception {
+    StringBuilder builder = new StringBuilder();
+    // Check to see that we allocated everything.
+    return builder.append(ofy().transactNewReadOnly(new Work<String>() {
+      @Override
+      public String run() {
+        String failureMessage = FluentIterable
+            .from(ofy().load().keys(applicationKeys).values())
+            .transform(new Function<DomainApplication, String>() {
+                @Override
+                public String apply(DomainApplication application) {
+                  return application.getApplicationStatus() == ApplicationStatus.ALLOCATED
+                       ? null : application.getFullyQualifiedDomainName();
+                }})
+            .join(Joiner.on('\n').skipNulls());
+        return failureMessage.isEmpty() ? "ALL SUCCEEDED" : addHeader("FAILURES", failureMessage);
+      }})).toString();
+  }
+
+  /** Extract the registration period from the XML used to create the domain application. */
+  private static Period extractPeriodFromXml(byte[] xmlBytes) throws EppException {
+    EppInput eppInput = unmarshal(xmlBytes);
+    return ((DomainCommand.Create)
+        ((ResourceCommandWrapper) eppInput.getCommandWrapper().getCommand())
+            .getResourceCommand()).getPeriod();
+  }
+
+  @Override
+  void initMutatingEppToolCommand() {
+    checkArgument(superuser, "This command MUST be run as --superuser.");
+    setSoyTemplate(DomainAllocateSoyInfo.getInstance(), DomainAllocateSoyInfo.CREATE);
+    ofy().transactNewReadOnly(new VoidWork() {
+      @Override
+      public void vrun() {
+        Iterable<Key<DomainApplication>> keys = transform(
+            Splitter.on(',').split(ids),
+            new Function<String, Key<DomainApplication>>() {
+              @Override
+              public Key<DomainApplication> apply(String applicationId) {
+                return Key.create(DomainApplication.class, applicationId);
+              }});
+        for (DomainApplication application : ofy().load().keys(keys).values()) {
+          // If the application is already allocated print a warning but do not fail.
+          if (application.getApplicationStatus() == ApplicationStatus.ALLOCATED) {
+            System.err.printf(
+                "Application %s has already been allocated\n", application.getRepoId());
+            continue;
+          }
+          // Ensure domain doesn't already have a final status which it shouldn't be updated from.
+          checkState(
+              !application.getApplicationStatus().isFinalStatus(),
+              "Application has final status %s",
+              application.getApplicationStatus());
+          try {
+            HistoryEntry history = checkNotNull(
+                ofy().load()
+                    .type(HistoryEntry.class)
+                    .ancestor(checkNotNull(application))
+                    .order("modificationTime")
+                    .first()
+                    .now(),
+                "Could not find any history entries for domain application %s",
+                application.getRepoId());
+            String clientTransactionId =
+                emptyToNull(history.getTrid().getClientTransactionId());
+            Period period = checkNotNull(extractPeriodFromXml(history.getXmlBytes()));
+            checkArgument(period.getUnit() == Period.Unit.YEARS);
+            ImmutableMap.Builder<String, String> contactsMapBuilder = new ImmutableMap.Builder<>();
+            for (DesignatedContact contact : application.getContacts()) {
+              contactsMapBuilder.put(
+                  contact.getType().toString().toLowerCase(),
+                  contact.getContactId().getLinked().get().getForeignKey());
+            }
+            LaunchNotice launchNotice = application.getLaunchNotice();
+            addSoyRecord(application.getCurrentSponsorClientId(), new SoyMapData(
+                "name", application.getFullyQualifiedDomainName(),
+                "period", period.getValue(),
+                "nameservers", FluentIterable.from(application.loadNameservers())
+                    .transform(new Function<HostResource, String>() {
+                        @Override
+                        public String apply(HostResource host) {
+                          return host.getForeignKey();
+                        }})
+                    .toList(),
+                "registrant", application.loadRegistrant().getForeignKey(),
+                "contacts", contactsMapBuilder.build(),
+                "authInfo", application.getAuthInfo().getPw().getValue(),
+                "smdId", application.getEncodedSignedMarks().isEmpty()
+                    ? null : EppXmlTransformer.<SignedMark>unmarshal(
+                         application.getEncodedSignedMarks().get(0).getBytes()).getId(),
+                "applicationRoid", application.getRepoId(),
+                "applicationTime", application.getCreationTime().toString(),
+                "launchNotice", launchNotice == null ? null : ImmutableMap.of(
+                    "noticeId", launchNotice.getNoticeId().getTcnId(),
+                    "expirationTime", launchNotice.getExpirationTime().toString(),
+                    "acceptedTime", launchNotice.getAcceptedTime().toString()),
+                "dsRecords", FluentIterable.from(application.getDsData())
+                    .transform(new Function<DelegationSignerData, ImmutableMap<String, ?>>() {
+                        @Override
+                        public ImmutableMap<String, ?> apply(DelegationSignerData dsData) {
+                          return ImmutableMap.of(
+                              "keyTag", dsData.getKeyTag(),
+                              "algorithm", dsData.getAlgorithm(),
+                              "digestType", dsData.getDigestType(),
+                              "digest", base16().encode(dsData.getDigest()));
+                        }})
+                    .toList(),
+                "clTrid", clientTransactionId));
+            applicationKeys.add(Key.create(application));
+          } catch (EppException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+    });
+  }
+}

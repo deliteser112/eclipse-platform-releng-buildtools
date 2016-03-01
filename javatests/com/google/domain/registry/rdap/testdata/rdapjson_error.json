@@ -1,0 +1,13 @@
+{
+  "rdapConformance" :
+  [
+    "rdap_level_0"
+  ],
+  "lang" : "en"
+  "errorCode" : 400,
+  "title" : "Invalid Domain Name",
+  "description" :
+  [
+    "Not a valid domain name"
+  ]
+}

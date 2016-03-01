@@ -1,0 +1,126 @@
+{namespace registry.soy.registrar.payment autoescape="strict"}
+
+
+/** Page allowing registrar to send registry money. */
+{template .form}
+  {@param currencies: list<string>} /** Currencies in which customer can remit payment. */
+  {@param brainframe: uri} /** Location of Braintree iframe sandbox iframe HTML. */
+  <div class="{css reg-payment}">
+    <h1>Make a Payment</h1>
+    <p>
+      Please use the form below to pay your monthly invoice by credit card.
+    <p>
+      The bill you received from the registry should list an outstanding balance
+      for each currency. If you hold an outstanding balance in multiple currencies,
+      this form should be filled out and submitted separately for each one.
+    <form method="post" action="#" class="{css reg-payment-form}">
+      <fieldset>
+        <ul>
+        <li>
+          <label for="amount">Amount</label>
+          <input type="text"
+                 id="amount"
+                 name="amount"
+                 autocomplete="off"
+                 autofocus>
+        <li>
+          <label>Currency</label>
+          {call registry.soy.forms.menuButton}
+            {param id: 'currency' /}
+            {param selected: $currencies[0] /}
+            {param items: $currencies /}
+          {/call}
+        <li>
+          <label>Payment Method</label>
+          <iframe src="{$brainframe}"
+                  id="method"
+                  class="{css reg-payment-form-method}"
+                  height="0"
+                  width="100%"
+                  frameBorder="0"
+                  scrolling="no"></iframe>
+          <div class="{css reg-payment-form-method-info} {css hidden}"></div>
+        </ul>
+        <input type="submit" value="Submit Payment"
+               class="{css reg-payment-form-submit}{sp}
+                      {css kd-button}{sp}
+                      {css kd-button-submit}{sp}
+                      {css disabled}">
+        <img alt="[Processing...]"
+             class="{css reg-payment-form-loader}"
+             src="/assets/images/loader1x.gif"
+             width="22" height="22">
+      </fieldset>
+    </form>
+  </div>
+{/template}
+
+
+/** Page allowing registrar to send registry money. */
+{template .success}
+  {@param id: string} /** Transaction ID from payment gateway. */
+  {@param formattedAmount: string} /** Amount in which payment was made. */
+  <div class="{css reg-payment}">
+    <h1>Payment Processed</h1>
+    <p>
+      Your payment of {$formattedAmount} was successfully processed with
+      the Transaction ID {$id}.
+    <p>
+      <button class="{css reg-payment-again} {css kd-button} {css kd-button-submit}">
+        Make Another Payment
+      </button>
+  </div>
+{/template}
+
+
+/** Information about credit card payment method, once it's been entered. */
+{template .methodInfoCard}
+  {@param cardType: string} /** Type of credit card, e.g. Visa. */
+  {@param lastTwo: string} /** Last two digits of credit card number. */
+  {if $cardType == 'Amex'}
+    American Express: xxxx xxxxxx xxx{$lastTwo}
+  {else}
+    {$cardType}: xxxx xxxx xxxx xx{$lastTwo}
+  {/if}
+{/template}
+
+
+/** Information about PayPal payment method, once it's been entered. */
+{template .methodInfoPaypal}
+  {@param email: string} /** Email address associated with PayPal account. */
+  PayPal: {$email}
+{/template}
+
+
+/** Page used to block browsers without necessary features. */
+{template .unsupported}
+  <div class="{css reg-payment}">
+    <img alt="[Crying Android]"
+         class="{css reg-cryingAndroid}"
+         src="/assets/images/android_sad.png"
+         width="183"
+         height="275">
+    <h1>Browser Unsupported</h1>
+    <p>
+      The Payment page requires features which are not present in your
+      browser. Please use one of the following compatible browsers:
+    <ul class="{css reg-bullets}">
+      <li>Chrome
+      <li>Android
+      <li>Safari
+      <li>Firefox
+      <li>IE 10+ or Edge
+    </ul>
+  </div>
+{/template}
+
+
+/** Page used to disable page in sandbox environment. */
+{template .sandbox}
+  <div class="{css reg-payment}">
+    <h1>Payment Page Disabled</h1>
+    <p>
+      The payment page is not available in the OT&amp;E environment. Please
+      login to the production Registrar Console.
+  </div>
+{/template}

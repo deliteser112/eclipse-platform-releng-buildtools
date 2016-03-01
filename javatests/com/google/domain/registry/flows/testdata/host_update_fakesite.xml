@@ -1,0 +1,21 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <update>
+      <host:update xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+        <host:name>ns3.fakesite.example</host:name>
+        <host:add>
+          <host:status s="clientUpdateProhibited"/>
+        </host:add>
+        <host:rem>
+          <host:addr ip="v4">192.0.2.2</host:addr>
+          <host:addr ip="v4">192.0.2.29</host:addr>
+          <host:addr ip="v6">1080:0:0:0:8:800:200C:417A</host:addr>
+        </host:rem>
+        <host:chg>
+          <host:name>ns9000.example.external</host:name>
+        </host:chg>
+      </host:update>
+    </update>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>

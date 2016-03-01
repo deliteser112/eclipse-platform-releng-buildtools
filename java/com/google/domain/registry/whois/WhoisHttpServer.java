@@ -1,0 +1,178 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.whois;
+
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.base.Verify.verify;
+import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
+import static com.google.common.net.HttpHeaders.CACHE_CONTROL;
+import static com.google.common.net.HttpHeaders.EXPIRES;
+import static com.google.common.net.HttpHeaders.LAST_MODIFIED;
+import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
+import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.domain.registry.config.ConfigModule.Config;
+import com.google.domain.registry.request.Action;
+import com.google.domain.registry.request.RequestPath;
+import com.google.domain.registry.request.Response;
+import com.google.domain.registry.util.Clock;
+import com.google.domain.registry.util.FormattingLogger;
+
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
+import javax.inject.Inject;
+
+/**
+ * Human-Friendly HTTP WHOIS API
+ *
+ * <p>This API uses easy to understand paths rather than {@link WhoisServer} which
+ * requires a POST request containing a WHOIS command. Because the typical WHOIS command is
+ * along the lines of {@code "domain google.lol"} or the equivalent {@code "google.lol}, this
+ * servlet is just going to replace the slashes with spaces and let {@link WhoisReader}
+ * figure out what to do.
+ *
+ * <p>This servlet accepts requests from any origin.
+ *
+ * <p>You can send AJAX requests to our WHOIS API from your <em>very own</em> website using the
+ * following embed code:
+ *
+ * <pre>
+ *   <p>
+ *     <input id="query-input" placeholder="Domain, Nameserver, IP, etc." autofocus>
+ *     <button id="search-button">Lookup</button>
+ *   <p>
+ *     <pre id="whois-results"></pre>
+ *   <script>
+ *    (function() {
+ *      var WHOIS_API_URL = 'https://domain-registry-alpha.appspot.com/whois/';
+ *      function OnKeyPressQueryInput(ev) {
+ *        if (typeof ev == 'undefined' && window.event) {
+ *          ev = window.event;
+ *        }
+ *        if (ev.keyCode == 13) {
+ *          document.getElementById('search-button').click();
+ *        }
+ *      }
+ *      function OnClickSearchButton() {
+ *        var query = document.getElementById('query-input').value;
+ *        var req = new XMLHttpRequest();
+ *        req.onreadystatechange = function() {
+ *          if (req.readyState == 4) {
+ *            var results = document.getElementById('whois-results');
+ *            results.textContent = req.responseText;
+ *          }
+ *        };
+ *        req.open('GET', WHOIS_API_URL + escape(query), true);
+ *        req.send();
+ *      }
+ *      document.getElementById('search-button').onclick = OnClickSearchButton;
+ *      document.getElementById('query-input').onkeypress = OnKeyPressQueryInput;
+ *    })();
+ *   </script>
+ * </pre>
+ *
+ * @see WhoisServer
+ */
+@Action(path = WhoisHttpServer.PATH, isPrefix = true)
+public final class WhoisHttpServer implements Runnable {
+
+  public static final String PATH = "/whois/";
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+
+  /**
+   * Cross-origin resource sharing (CORS) allowed origins policy.
+   *
+   * <p>This field specifies the value of the {@code Access-Control-Allow-Origin} response header.
+   * Without this header, other domains such as charlestonroadregistry.com would not be able to
+   * send requests to our WHOIS interface.
+   *
+   * <p>Our policy shall be to allow requests from pretty much anywhere using a wildcard policy.
+   * The reason this is safe is because our WHOIS interface doesn't allow clients to modify data,
+   * nor does it allow them to fetch user data. Only publicly available information is returned.
+   *
+   * @see <a href="http://www.w3.org/TR/cors/#access-control-allow-origin-response-header">
+   *        W3C CORS § 5.1 Access-Control-Allow-Origin Response Header</a>
+   */
+  private static final String CORS_ALLOW_ORIGIN = "*";
+
+  /** We're going to let any HTTP proxy in the world cache our responses. */
+  private static final String CACHE_CONTROL_VALUE = "public";
+
+  /** Responses may be cached for up to a day. */
+  private static final String X_CONTENT_NO_SNIFF = "nosniff";
+
+  /** Splitter that turns information on HTTP into a list of tokens. */
+  private static final Splitter SLASHER = Splitter.on('/').trimResults().omitEmptyStrings();
+
+  /** Joiner that turns {@link #SLASHER} tokens into a normal WHOIS query. */
+  private static final Joiner JOINER = Joiner.on(' ');
+
+  @Inject Clock clock;
+  @Inject Response response;
+  @Inject @Config("whoisHttpExpires") Duration expires;
+  @Inject @RequestPath String requestPath;
+  @Inject WhoisHttpServer() {}
+
+  @Override
+  public void run() {
+    verify(requestPath.startsWith(PATH));
+    String path = nullToEmpty(requestPath);
+    try {
+      // Extremely permissive parsing that turns stuff like "/hello/world/" into "hello world".
+      String command = decode(JOINER.join(SLASHER.split(path.substring(PATH.length())))) + "\r\n";
+      Reader reader = new StringReader(command);
+      DateTime now = clock.nowUtc();
+      sendResponse(SC_OK, new WhoisReader(reader, now).readCommand().executeQuery(now));
+    } catch (WhoisException e) {
+      sendResponse(e.getStatus(), e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void sendResponse(int status, WhoisResponse whoisResponse) {
+    response.setStatus(status);
+    response.setDateHeader(LAST_MODIFIED, whoisResponse.getTimestamp());
+    response.setDateHeader(EXPIRES, whoisResponse.getTimestamp().plus(expires));
+    response.setHeader(CACHE_CONTROL, CACHE_CONTROL_VALUE);
+    response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, CORS_ALLOW_ORIGIN);
+    response.setHeader(X_CONTENT_TYPE_OPTIONS, X_CONTENT_NO_SNIFF);
+    response.setContentType(PLAIN_TEXT_UTF_8);
+    response.setPayload(whoisResponse.getPlainTextOutput(true));
+  }
+
+  /** Removes {@code %xx} escape codes from request path components. */
+  private String decode(String pathData)
+      throws UnsupportedEncodingException, WhoisException {
+    try {
+      return URLDecoder.decode(pathData, "UTF-8");
+    } catch (IllegalArgumentException e) {
+      logger.infofmt("Malformed WHOIS request path: %s (%s)", requestPath, pathData);
+      throw new WhoisException(clock.nowUtc(), SC_BAD_REQUEST, "Malformed path query.");
+    }
+  }
+}

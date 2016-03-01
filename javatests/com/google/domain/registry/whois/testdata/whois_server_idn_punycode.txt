@@ -1,0 +1,58 @@
+Domain Name: cat.xn--q9jyb4c
+Registry Domain ID: 9-Q9JYB4C
+Registrar WHOIS Server: whois.example.com
+Registrar URL: http://www.example.com
+Updated Date: 2009-05-29T20:13:00Z
+Creation Date: 2000-10-08T00:45:00Z
+Registrar Registration Expiration Date: 2110-10-08T00:44:59Z
+Registrar: Yes Virginia &lt;script&gt;
+Sponsoring Registrar IANA ID: 1
+Domain Status: clientDeleteProhibited https://www.icann.org/epp#clientDeleteProhibited
+Domain Status: clientRenewProhibited https://www.icann.org/epp#clientRenewProhibited
+Domain Status: clientTransferProhibited https://www.icann.org/epp#clientTransferProhibited
+Domain Status: serverUpdateProhibited https://www.icann.org/epp#serverUpdateProhibited
+Registry Registrant ID: 5372808-ERL
+Registrant Name: (◕‿◕)
+Registrant Organization: GOOGLE INCORPORATED &lt;script&gt;
+Registrant Street: 123 Example Boulevard &lt;script&gt;
+Registrant City: KOKOMO
+Registrant State/Province: BM
+Registrant Postal Code: 31337
+Registrant Country: US
+Registrant Phone: +1.2126660420
+Registrant Phone Ext:
+Registrant Fax: +1.2126660420
+Registrant Fax Ext:
+Registrant Email: lol@cat.みんな
+Registry Admin ID: 5372808-IRL
+Admin Name: Santa Claus
+Admin Organization: GOOGLE INCORPORATED &lt;script&gt;
+Admin Street: 123 Example Boulevard &lt;script&gt;
+Admin City: KOKOMO
+Admin State/Province: BM
+Admin Postal Code: 31337
+Admin Country: US
+Admin Phone: +1.2126660420
+Admin Phone Ext:
+Admin Fax: +1.2126660420
+Admin Fax Ext:
+Admin Email: BOFH@cat.みんな
+Registry Tech ID: 5372808-TRL
+Tech Name: The Raven
+Tech Organization: GOOGLE INCORPORATED &lt;script&gt;
+Tech Street: 123 Example Boulevard &lt;script&gt;
+Tech City: KOKOMO
+Tech State/Province: BM
+Tech Postal Code: 31337
+Tech Country: US
+Tech Phone: +1.2126660420
+Tech Phone Ext:
+Tech Fax: +1.2126660420
+Tech Fax Ext:
+Tech Email: bog@cat.みんな
+Name Server: ns1.cat.xn--q9jyb4c
+Name Server: ns2.cat.xn--q9jyb4c
+DNSSEC: signedDelegation
+For more information on Whois status codes, please visit https://icann.org/epp
+URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
+>>> Last update of WHOIS database: 2009-06-29T20:13:00Z <<<

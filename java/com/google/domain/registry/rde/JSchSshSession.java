@@ -1,0 +1,128 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.rde;
+
+import com.google.common.base.Splitter;
+import com.google.domain.registry.config.ConfigModule.Config;
+import com.google.domain.registry.util.FormattingLogger;
+
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpException;
+
+import org.joda.time.Duration;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.URI;
+
+import javax.inject.Inject;
+
+/**
+ * SFTP connection {@link Session} delegate that implements {@link Closeable}.
+ *
+ * <p>This class acts as syntactic sugar for JSch so we can open and close SFTP connections in a
+ * way that's friendlier to Java 7 try-resource statements. Delegate methods are provided on an
+ * as-needed basis.
+ *
+ * @see JSchSftpChannel
+ * @see RdeUploadTask
+ * @see com.jcraft.jsch.Session
+ */
+final class JSchSshSession implements Closeable {
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+
+  /** Factory for {@link JSchSshSession}. */
+  static final class JSchSshSessionFactory {
+
+    private final Duration sshTimeout;
+
+    @Inject
+    JSchSshSessionFactory(@Config("sshTimeout") Duration sshTimeout) {
+      this.sshTimeout = sshTimeout;
+    }
+
+    /**
+     * Connect to remote SSH endpoint specified by {@code url}.
+     *
+     * @throws JSchException if we fail to open the connection.
+     */
+    JSchSshSession create(JSch jsch, URI uri) throws JSchException {
+      RdeUploadUrl url = RdeUploadUrl.create(uri);
+      logger.info("Connecting to SSH endpoint: " + url);
+      Session session = jsch.getSession(
+          url.getUser().or("domain-registry"),
+          url.getHost(),
+          url.getPort());
+      if (url.getPass().isPresent()) {
+        session.setPassword(url.getPass().get());
+      }
+      session.setTimeout((int) sshTimeout.getMillis());
+      session.connect((int) sshTimeout.getMillis());
+      return new JSchSshSession(session, url, (int) sshTimeout.getMillis());
+    }
+  }
+
+  private final Session session;
+  private final RdeUploadUrl url;
+  private final int timeout;
+
+  private JSchSshSession(Session session, RdeUploadUrl url, int timeout) {
+    this.session = session;
+    this.url = url;
+    this.timeout = timeout;
+  }
+
+  /**
+   * Opens a new SFTP channel over this SSH session.
+   *
+   * @throws JSchException
+   * @throws SftpException
+   * @see JSchSftpChannel
+   */
+  public JSchSftpChannel openSftpChannel() throws JSchException, SftpException {
+    ChannelSftp chan = (ChannelSftp) session.openChannel("sftp");
+    chan.connect(timeout);
+    if (url.getPath().isPresent()) {
+      String dir = url.getPath().get();
+      try {
+        chan.cd(dir);
+      } catch (SftpException e) {
+        logger.warning(e.toString());
+        mkdirs(chan, dir);
+        chan.cd(dir);
+      }
+    }
+    return new JSchSftpChannel(chan);
+  }
+
+  private void mkdirs(ChannelSftp chan, String dir) throws SftpException {
+    StringBuilder pathBuilder = new StringBuilder(dir.length());
+    for (String part : Splitter.on('/').omitEmptyStrings().split(dir)) {
+      pathBuilder.append(part);
+      chan.mkdir(pathBuilder.toString());
+      pathBuilder.append('/');
+    }
+  }
+
+  /** @see com.jcraft.jsch.Session#disconnect() */
+  @Override
+  public void close() throws IOException {
+    session.disconnect();
+  }
+}

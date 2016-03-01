@@ -1,0 +1,58 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.tools.server;
+
+import static com.google.domain.registry.request.Action.Method.GET;
+import static com.google.domain.registry.request.Action.Method.POST;
+
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.domain.registry.model.registrar.Registrar;
+import com.google.domain.registry.request.Action;
+
+import javax.inject.Inject;
+
+/** An action that lists registrars, for use by the registry_tool list_registrars command. */
+@Action(path = ListRegistrarsAction.PATH, method = {GET, POST})
+public final class ListRegistrarsAction extends ListObjectsAction<Registrar> {
+
+  public static final String PATH = "/_dr/admin/list/registrars";
+
+  @Inject ListRegistrarsAction() {}
+
+  @Override
+  public ImmutableSet<String> getPrimaryKeyFields() {
+    return ImmutableSet.of("clientIdentifier");
+  }
+
+  @Override
+  public ImmutableSet<Registrar> loadObjects() {
+    return ImmutableSet.copyOf(Registrar.loadAll());
+  }
+
+  @Override
+  public ImmutableBiMap<String, String> getFieldAliases() {
+    return ImmutableBiMap.of(
+        "clientId", "clientIdentifier",
+        "premiumNames", "blockPremiumNames");
+  }
+
+  @Override
+  public ImmutableMap<String, String> getFieldOverrides(Registrar registrar) {
+    return ImmutableMap.of(
+        "blockPremiumNames", registrar.getBlockPremiumNames() ? "blocked" : "-");
+  }
+}

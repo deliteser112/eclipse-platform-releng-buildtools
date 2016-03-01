@@ -1,0 +1,60 @@
+Domain Name: EXAMPLE.tld
+Registry Domain ID: 3-TLD
+Registrar WHOIS Server: whois.nic.fakewhois.example
+Registrar URL: http://www.referral.example/path
+Updated Date: 2009-05-29T20:13:00Z
+Creation Date: 2000-10-08T00:45:00Z
+Registrar Registration Expiration Date: 2010-10-08T00:44:59Z
+Registrar: New Registrar
+Sponsoring Registrar IANA ID: 5555555
+Domain Status: addPeriod https://www.icann.org/epp#addPeriod
+Domain Status: clientDeleteProhibited https://www.icann.org/epp#clientDeleteProhibited
+Domain Status: clientRenewProhibited https://www.icann.org/epp#clientRenewProhibited
+Domain Status: clientTransferProhibited https://www.icann.org/epp#clientTransferProhibited
+Domain Status: serverUpdateProhibited https://www.icann.org/epp#serverUpdateProhibited
+Domain Status: transferPeriod https://www.icann.org/epp#transferPeriod
+Registry Registrant ID: 5372808-ERL
+Registrant Name: EXAMPLE REGISTRANT
+Registrant Organization: EXAMPLE ORGANIZATION
+Registrant Street: 123 EXAMPLE STREET
+Registrant City: ANYTOWN
+Registrant State/Province: AP
+Registrant Postal Code: A1A1A1
+Registrant Country: EX
+Registrant Phone: +1.5555551212
+Registrant Phone Ext: 1234
+Registrant Fax: +1.5555551213
+Registrant Fax Ext: 4321
+Registrant Email: EMAIL@EXAMPLE.tld
+Registry Admin ID: 5372809-ERL
+Admin Name: EXAMPLE REGISTRANT ADMINISTRATIVE
+Admin Organization: EXAMPLE REGISTRANT ORGANIZATION
+Admin Street: 123 EXAMPLE STREET
+Admin City: ANYTOWN
+Admin State/Province: AP
+Admin Postal Code: A1A1A1
+Admin Country: EX
+Admin Phone: +1.5555551212
+Admin Phone Ext: 1234
+Admin Fax: +1.5555551213
+Admin Fax Ext:
+Admin Email: EMAIL@EXAMPLE.tld
+Registry Tech ID: 5372811-ERL
+Tech Name: EXAMPLE REGISTRAR TECHNICAL
+Tech Organization: EXAMPLE REGISTRAR LLC
+Tech Street: 123 EXAMPLE STREET
+Tech City: ANYTOWN
+Tech State/Province: AP
+Tech Postal Code: A1A1A1
+Tech Country: EX
+Tech Phone: +1.1235551234
+Tech Phone Ext: 1234
+Tech Fax: +1.5555551213
+Tech Fax Ext: 93
+Tech Email: EMAIL@EXAMPLE.tld
+Name Server: NS01.EXAMPLEREGISTRAR.tld
+Name Server: NS02.EXAMPLEREGISTRAR.tld
+DNSSEC: signedDelegation
+For more information on Whois status codes, please visit https://icann.org/epp
+URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
+>>> Last update of WHOIS database: 2009-05-29T20:15:00Z <<<

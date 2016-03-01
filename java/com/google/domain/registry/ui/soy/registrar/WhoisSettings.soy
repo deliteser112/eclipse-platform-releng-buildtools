@@ -1,0 +1,216 @@
+{namespace registry.soy.registrar.whois autoescape="strict"}
+
+
+
+/** Registrar whois settings page for view and edit. */
+{template .settings}
+  {@param clientIdentifier: string}
+  {@param ianaIdentifier: int}
+  {@param icannReferralEmail: string}
+  {@param readonly: bool}
+  {@param? whoisServer: string}
+  {@param? referralUrl: string}
+  // Passed to .contactInfo_
+  {@param emailAddress: string}
+  {@param? localizedAddress: ?}
+  {@param? phoneNumber: string}
+  {@param? faxNumber: string}
+  {let $whoisServerNonNull: $whoisServer ?: 'None' /}
+  {let $referralUrlNonNull: $referralUrl ?: 'None' /}
+  <form name="item" class="{css item} {css registrar} {css kd-settings-pane}">
+    <h1>WHOIS Settings</h1>
+    {if $readonly}
+      <p>General registrar information for your WHOIS record.  This
+      information is always visible in WHOIS.
+    {/if}
+    <table>
+    {call registry.soy.forms.inputFieldRowWithValue}
+      {param label: 'Name' /}
+      {param name: 'clientIdentifier' /}
+      {param value: $clientIdentifier /}
+      {param readonly: true /}
+    {/call}
+    {call registry.soy.forms.inputFieldRowWithValue}
+      {param label: 'IANA ID' /}
+      {param name: 'ianaIdentifier' /}
+      {param value: $ianaIdentifier /}
+      {param readonly: true /}
+    {/call}
+    {call registry.soy.forms.inputFieldRowWithValue}
+      {param label: 'ICANN referral email' /}
+      {param name: 'icannReferralEmail' /}
+      {param value: $icannReferralEmail /}
+      {param readonly: true /}
+    {/call}
+    {call .contactInfo_ data="all" /}
+    <tr><td colspan="2"><hr>
+    {call registry.soy.forms.inputFieldRowWithValue}
+      {param label: 'WHOIS server' /}
+      {param name: 'whoisServer' /}
+      {param value: $whoisServerNonNull /}
+      {param readonly: $readonly /}
+    {/call}
+    {call registry.soy.forms.inputFieldRowWithValue}
+      {param label: 'Referral URL' /}
+      {param name: 'referralUrl' /}
+      {param value: $referralUrlNonNull /}
+      {param readonly: $readonly /}
+    {/call}
+    </table>
+  </form>
+{/template}
+
+
+/**
+ * Contact info.
+ */
+{template .contactInfo_ private="true"}
+  {@param emailAddress: string}
+  {@param readonly: bool}
+  {@param? localizedAddress: ?}
+  {@param? phoneNumber: string}
+  {@param? faxNumber: string}
+  {if $readonly}
+    <tr class="{css kd-settings-pane-section}">
+      <td><label class="{css setting-label}">Contact info</label></td>
+      <td class="{css setting-group-compact}">
+        {if isNonnull($localizedAddress)}
+          {call .viewAddress_ data="$localizedAddress"}
+            {param id: 'localizedAddress' /}
+          {/call}
+        {/if}
+        {if isNonnull($phoneNumber)}
+          <input type="hidden"
+                 name="phoneNumber"
+                 id="phoneNumber"
+                 value="{$phoneNumber}">
+          <div class="{css contact-phone-number}">{$phoneNumber}</div>
+        {/if}
+        {if isNonnull($faxNumber)}
+          <input type="hidden"
+                 name="faxNumber"
+                 id="faxNumber"
+                 value="{$faxNumber}">
+          <div class="{css contact-fax-number}">{$faxNumber} (Fax)</div>
+        {/if}
+        <input type="hidden"
+               name="emailAddress"
+               id="emailAddress"
+               value="{$emailAddress}">
+        <div class="{css contact-fax-number}">{$emailAddress}</div>
+      </td>
+  {else}
+    {call registry.soy.forms.inputFieldRowWithValue}
+      {param label: 'Email' /}
+      {param name: 'emailAddress' /}
+      {param value: $emailAddress /}
+      {param readonly: false /}
+    {/call}
+    {call registry.soy.forms.inputFieldRowWithValue}
+      {param label: 'Phone' /}
+      {param name: 'phoneNumber' /}
+      {param value: $phoneNumber /}
+      {param readonly: false /}
+    {/call}
+    {call registry.soy.forms.inputFieldRowWithValue}
+      {param label: 'Fax' /}
+      {param name: 'faxNumber' /}
+      {param value: $faxNumber /}
+      {param readonly: false /}
+    {/call}
+    {call .editAddress_ data="$localizedAddress"}
+      {param id: 'localizedAddress' /}
+    {/call}
+  {/if}
+{/template}
+
+
+/**
+ * Read-only view of address.
+ */
+{template .viewAddress_ private="true"}
+  {@param id: string}
+  {@param street: list<string>}
+  {@param city: string}
+  {@param? state: string}
+  {@param? zip: string}
+  {@param countryCode: string}
+  {foreach $line in $street}
+    <input type="hidden"
+           name="{$id}.street[{index($line)}]"
+           id="{$id}.street[{index($line)}]"
+           value="{$street[index($line)]}">
+    <div class="{css contact-address-street}">{$street[index($line)]}</div>
+  {/foreach}
+  <input type="hidden" name="{$id}.city" id="{$id}.city" value="{$city}">
+  <input type="hidden" name="{$id}.state" id="{$id}.state" value="{$state}">
+  <input type="hidden" name="{$id}.zip" id="{$id}.zip" value="{$zip}">
+  <input type="hidden"
+         name="{$id}.countryCode"
+         id="{$id}.countryCode"
+         value="{$countryCode}">
+  <div class="{css contact-address-city}">{$city},</div>
+  {if isNonnull($state)}
+    {sp}<div class="{css contact-address-state}">{$state}</div>
+  {/if}
+  {if isNonnull($zip)}
+    {sp}<div class="{css contact-address-zip}">{$zip}</div>
+  {/if}
+  {sp}<div class="{css contact-address-cc}">{$countryCode}</div>
+{/template}
+
+
+/**
+ * Editor of address.
+ */
+{template .editAddress_ private="true"}
+  {@param id: string}
+  {@param? street: list<string>}
+  {@param? city: string}
+  {@param? state: string}
+  {@param? zip: string}
+  {@param? countryCode: string}
+  {let $street2: $street ?: [] /}
+  {let $city2: $city ?: '' /}
+  {let $state2: $state ?: '' /}
+  {let $zip2: $zip ?: '' /}
+  {let $countryCode2: $countryCode ?: '' /}
+  <tr class="{css kd-settings-pane-section}">
+    <td>
+      <label for="{$id}.street[0]"
+             class="{css setting-label}">Street Address</label>
+    <td class="{css setting}">
+      <input id="{$id}.street[0]"
+             name="{$id}.street[0]"
+             value="{if isNonnull($street2[0])}{$street2[0]}{/if}">
+      <input id="{$id}.street[1]"
+             name="{$id}.street[1]"
+             value="{if isNonnull($street2[1])}{$street2[1]}{/if}">
+      <input id="{$id}.street[2]"
+             name="{$id}.street[2]"
+             value="{if isNonnull($street2[2])}{$street2[2]}{/if}">
+  {call registry.soy.forms.inputFieldRowWithValue}
+    {param label: 'City' /}
+    {param name: $id + '.city' /}
+    {param value: $city2 /}
+    {param readonly: false /}
+  {/call}
+  {call registry.soy.forms.inputFieldRowWithValue}
+    {param label: 'State/Region' /}
+    {param name: $id + '.state' /}
+    {param value: $state2 /}
+    {param readonly: false /}
+  {/call}
+  {call registry.soy.forms.inputFieldRowWithValue}
+    {param label: 'Zip/Postal Code' /}
+    {param name: $id + '.zip' /}
+    {param value: $zip2 /}
+    {param readonly: false /}
+  {/call}
+  {call registry.soy.forms.inputFieldRowWithValue}
+    {param label: 'Country Code' /}
+    {param name: $id + '.countryCode' /}
+    {param value: $countryCode2 /}
+    {param readonly: false /}
+  {/call}
+{/template}

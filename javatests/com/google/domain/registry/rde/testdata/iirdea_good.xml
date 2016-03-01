@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response xmlns="urn:ietf:params:xml:ns:iirdea-1.0">
+  <result code="1000">
+    <msg>You done well.</msg>
+  </result>
+</response>

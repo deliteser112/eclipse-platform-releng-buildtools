@@ -1,0 +1,91 @@
+{
+  "objectClassName" : "entity",
+  "handle" : "unicoderegistrar",
+  "status" : ["active"],
+  "roles" : ["registrar"],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.google.com/entity/unicoderegistrar",
+      "rel" : "self",
+      "href" : "http://myserver.google.com/entity/unicoderegistrar",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "publicIds" :
+  [
+    {
+      "type" : "IANA Registrar ID",
+      "identifier" : "1"
+    }
+  ],
+  "vcardArray" :
+  [
+    "vcard",
+    [
+      ["version", {}, "text", "4.0"],
+      ["fn", {}, "text", "みんな"],
+      ["adr", {}, "text", [
+        "",
+        "",
+        "123 Example Boulevard <script>",
+        "Williamsburg <script>",
+        "NY",
+        "11211",
+        "United States"]],
+      ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
+      ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+      ["email", {}, "text", "contact-us@example.com"]
+    ]
+  ],
+  "entities" :
+  [
+    {
+      "objectClassName" : "entity",
+      "status" : ["active"],
+      "roles" : ["administrative"],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Jane Doe"],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551215"],
+          ["email", {}, "text", "janedoe@example.com"]
+        ]
+      ],
+    },
+    {
+      "objectClassName" : "entity",
+      "status" : ["active"],
+      "roles" : ["technical"],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "John Doe"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+          ["email", {}, "text", "johndoe@example.com"]
+        ]
+      ],
+    },
+    {
+      "objectClassName" : "entity",
+      "status" : ["active"],
+      "roles" : ["administrative", "technical"],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Play Doe"],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551217"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551218"],
+          ["email", {}, "text", "playdoe@example.com"]
+        ]
+      ],
+    }
+  ],
+  "port43": "whois.google.com"
+}

@@ -1,0 +1,62 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.groups;
+
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.services.admin.directory.model.Group;
+
+import java.io.IOException;
+import java.util.Set;
+
+/**
+ * Interface for common operations on Groups.
+ */
+public interface GroupsConnection {
+
+  /** The role of a member in a group. */
+  public enum Role {
+    MEMBER,
+    MANAGER,
+    OWNER
+  }
+
+  /**
+   * Adds a member to the specified group with the given role. This function is idempotent; if the
+   * member already exists in the group, then it returns normally. If the group doesn't exist, then
+   * it is created.
+   */
+  public void addMemberToGroup(String groupKey, String email, Role role) throws IOException;
+
+  /**
+   * Removes a member from the specified group, or throws {@link GoogleJsonResponseException} if the
+   * member doesn't exist.
+   */
+  public void removeMemberFromGroup(String groupKey, String email) throws IOException;
+
+  /**
+   * Returns all of the members of the specified group. Note that it gets members only; not owners
+   * or managers. Returns an empty set if the group in question does not exist.
+   */
+  public Set<String> getMembersOfGroup(String groupKey) throws IOException;
+
+  /**
+   * Creates a group with the given email address (groupKey) that is open for external members to
+   * join, and returns it. This function is idempotent; if the given group already exists, then this
+   * function returns as normal without error (and without modifying the existing group in any way,
+   * including permissions on who is able to join). The configured admin owner for the Google App is
+   * automatically added as an owner.
+   */
+  public Group createGroup(String groupKey) throws IOException;
+}

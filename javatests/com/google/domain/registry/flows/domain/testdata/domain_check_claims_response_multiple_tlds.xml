@@ -1,0 +1,28 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <response>
+    <result code="1000">
+      <msg>Command completed successfully</msg>
+    </result>
+    <extension>
+      <launch:chkData xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
+       <launch:phase>claims</launch:phase>
+       <launch:cd>
+         <launch:name exists="1">example.tld1</launch:name>
+         <launch:claimKey>
+         2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001
+         </launch:claimKey>
+       </launch:cd>
+       <launch:cd>
+         <launch:name exists="1">example.tld2</launch:name>
+         <launch:claimKey>
+         2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001
+         </launch:claimKey>
+       </launch:cd>
+      </launch:chkData>
+     </extension>
+       <trID>
+      <clTRID>ABC-12345</clTRID>
+      <svTRID>server-trid</svTRID>
+    </trID>
+  </response>
+</epp>

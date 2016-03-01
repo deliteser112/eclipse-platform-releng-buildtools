@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" version="2.5"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+                             http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  <!-- Servlets -->
+  <servlet>
+    <description>
+      This is the primary EPP endpoint for the Registry.  It accepts
+      EPP XHRs from our TLS proxy.
+    </description>
+    <display-name>EPP</display-name>
+    <servlet-name>epp</servlet-name>
+    <servlet-class>com.google.domain.registry.flows.EppTlsServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>epp</servlet-name>
+    <url-pattern>/_dr/epp</url-pattern>
+  </servlet-mapping>
+
+  <!-- Registrar Console -->
+  <servlet>
+    <description>
+      Registrar Console UI servlet.
+    </description>
+    <display-name>Registrar Console UI</display-name>
+    <servlet-name>registrar-ui</servlet-name>
+    <servlet-class>com.google.domain.registry.ui.server.registrar.ConsoleUiServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>registrar-ui</servlet-name>
+    <url-pattern>/registrar</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>
+      Registrar Console XHR servlet.  Accepts EPP XHRs from GAE GAIA-authenticated frontend sessions.
+    </description>
+    <display-name>Registrar Console XHR</display-name>
+    <servlet-name>registrar-xhr</servlet-name>
+    <servlet-class>com.google.domain.registry.flows.EppConsoleServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>registrar-xhr</servlet-name>
+    <url-pattern>/registrar-xhr</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <display-name>Registrar Self-serve Settings</display-name>
+    <servlet-name>registrar-settings</servlet-name>
+    <servlet-class>com.google.domain.registry.ui.server.registrar.RegistrarServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>registrar-settings</servlet-name>
+    <url-pattern>/registrar-settings</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <display-name>Registrar Braintree Payment Form Setup</display-name>
+    <servlet-name>registrar-payment-setup</servlet-name>
+    <servlet-class>com.google.domain.registry.module.frontend.FrontendServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>registrar-payment-setup</servlet-name>
+    <url-pattern>/registrar-payment-setup</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <display-name>Registrar Braintree Payment</display-name>
+    <servlet-name>registrar-payment</servlet-name>
+    <servlet-class>com.google.domain.registry.module.frontend.FrontendServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>registrar-payment</servlet-name>
+    <url-pattern>/registrar-payment</url-pattern>
+  </servlet-mapping>
+
+  <!-- Admin Console -->
+  <servlet>
+    <display-name>Admin UI Servlet</display-name>
+    <servlet-name>admin-ui</servlet-name>
+    <servlet-class>com.google.domain.registry.ui.server.admin.AdminUiServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>admin-ui</servlet-name>
+    <url-pattern>/_dr/admin</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <display-name>Registry Admin</display-name>
+    <servlet-name>registry-admin</servlet-name>
+    <servlet-class>com.google.domain.registry.ui.server.admin.RegistryServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>registry-admin</servlet-name>
+    <url-pattern>/_dr/admin/registry/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <display-name>Registrar Admin</display-name>
+    <servlet-name>registrar-admin</servlet-name>
+    <servlet-class>com.google.domain.registry.ui.server.admin.RegistrarServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>registrar-admin</servlet-name>
+    <url-pattern>/_dr/admin/registrar/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- WHOIS -->
+  <servlet>
+    <description>
+      HTTP WHOIS API.
+    </description>
+    <display-name>WHOIS</display-name>
+    <servlet-name>whois</servlet-name>
+    <servlet-class>com.google.domain.registry.module.frontend.FrontendServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>whois</servlet-name>
+    <url-pattern>/whois/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description>
+      WHOIS Protocol API.
+    </description>
+    <display-name>WHOIS Protocol</display-name>
+    <servlet-name>whois-protocol</servlet-name>
+    <servlet-class>com.google.domain.registry.module.frontend.FrontendServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>whois-protocol</servlet-name>
+    <url-pattern>/_dr/whois</url-pattern>
+  </servlet-mapping>
+
+  <!-- RDAP (new WHOIS) -->
+  <servlet>
+    <description>
+      RDAP API.
+    </description>
+    <display-name>RDAP</display-name>
+    <servlet-name>rdap</servlet-name>
+    <servlet-class>com.google.domain.registry.module.frontend.FrontendServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>rdap</servlet-name>
+    <url-pattern>/rdap/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- Public API to do availability checks -->
+  <servlet>
+    <description>
+      Availability Check API.
+    </description>
+    <display-name>Availability Check</display-name>
+    <servlet-name>check</servlet-name>
+    <servlet-class>com.google.domain.registry.ui.server.api.CheckApiServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>check</servlet-name>
+    <url-pattern>/check</url-pattern>
+  </servlet-mapping>
+
+  <!-- Whitebox Metrics servlet. -->
+  <servlet>
+    <servlet-name>metrics</servlet-name>
+    <servlet-class>com.google.domain.registry.monitoring.whitebox.MetricsTaskServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>metrics</servlet-name>
+    <url-pattern>/_dr/task/metrics</url-pattern>
+  </servlet-mapping>
+
+  <!-- Security config -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Internal</web-resource-name>
+      <description>
+        Any request path starting with `/_dr/` will be restricted to requests originating
+        from the backend or by anyone authenticated to a Google account that's listed in
+        the AppEngine control panel settings for this project as a Viewer/Owner/Developer.
+        The `_dr` is short for Domain Registry to follow AppEngine naming conventions.
+      </description>
+      <url-pattern>/_dr/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>profile-registrar-xhr</web-resource-name>
+      <description>
+        Only allow logged-in users to even try to issue EPP commands. This is an additional
+        layer of safety on top of in-servlet authentication and XSRF protection.
+      </description>
+      <url-pattern>/registrar-xhr</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>*</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>profile-registrar-settings</web-resource-name>
+      <description>
+        Only allow logged-in users to even try to change registrar settings. This is an additional
+        layer of safety on top of in-servlet authentication and XSRF protection.
+      </description>
+      <url-pattern>/registrar-settings</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>*</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>profile-registrar-payment</web-resource-name>
+      <description>
+        Only allow logged-in users to even try to change registrar settings. This is an additional
+        layer of safety on top of in-servlet authentication and XSRF protection.
+      </description>
+      <url-pattern>/registrar-payment</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>*</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>profile-registrar-payment-token</web-resource-name>
+      <description>
+        Only allow logged-in users to even try to change registrar settings. This is an additional
+        layer of safety on top of in-servlet authentication and XSRF protection.
+      </description>
+      <url-pattern>/registrar-payment-token</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>*</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+  <!-- Require TLS on all requests. -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Secure</web-resource-name>
+      <description>
+        Require encryption for all paths. http URLs will be redirected to https.
+      </description>
+      <url-pattern>/*</url-pattern>
+    </web-resource-collection>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+  </security-constraint>
+
+  <!-- Restrict access to source code. -->
+  <!-- This directory contains all the JavaScript sources verbatim. -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>internal-sources</web-resource-name>
+      <description>No soup for you!</description>
+      <url-pattern>/assets/sources/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+  <!-- TODO(b/26776367): Move these files to /assets/sources. -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>admin-bin-js-map</web-resource-name>
+      <description>No soup for you!</description>
+      <url-pattern>/assets/js/admin_bin.js.map</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>admin-dbg-js</web-resource-name>
+      <description>No soup for you!</description>
+      <url-pattern>/assets/js/admin_dbg.js</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>registrar-bin-js-map</web-resource-name>
+      <description>No soup for you!</description>
+      <url-pattern>/assets/js/registrar_bin.js.map</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>registrar-dbg-js</web-resource-name>
+      <description>No soup for you!</description>
+      <url-pattern>/assets/js/registrar_dbg.js</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>brain-bin-js-map</web-resource-name>
+      <description>No soup for you!</description>
+      <url-pattern>/assets/js/brain_bin.js.map</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>admin-dbg-css</web-resource-name>
+      <description>No soup for you!</description>
+      <url-pattern>/assets/css/admin_dbg.css</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>registrar-dbg-css</web-resource-name>
+      <description>No soup for you!</description>
+      <url-pattern>/assets/css/registrar_dbg.css</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+  <!-- See: https://code.google.com/p/objectify-appengine/wiki/Setup -->
+  <filter>
+    <filter-name>ObjectifyFilter</filter-name>
+    <filter-class>com.googlecode.objectify.ObjectifyFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>ObjectifyFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <!-- Register types with Objectify. -->
+  <filter>
+    <filter-name>OfyFilter</filter-name>
+    <filter-class>com.google.domain.registry.model.ofy.OfyFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>OfyFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+</web-app>

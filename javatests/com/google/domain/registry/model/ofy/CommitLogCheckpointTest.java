@@ -1,0 +1,107 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.model.ofy;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static org.joda.time.DateTimeZone.UTC;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.domain.registry.config.TestRegistryConfig;
+import com.google.domain.registry.testing.AppEngineRule;
+import com.google.domain.registry.testing.ExceptionRule;
+import com.google.domain.registry.testing.RegistryConfigRule;
+
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+/** Tests for {@link CommitLogCheckpoint}. */
+@RunWith(JUnit4.class)
+public class CommitLogCheckpointTest {
+
+  @Rule
+  public final AppEngineRule appEngine = AppEngineRule.builder()
+      .withDatastore()
+      .build();
+
+  @Rule
+  public final RegistryConfigRule configRule = new RegistryConfigRule();
+
+  @Rule
+  public final ExceptionRule thrown = new ExceptionRule();
+
+  private static final DateTime T1 = START_OF_TIME;
+  private static final DateTime T2 = START_OF_TIME.plusMillis(1);
+  private static final DateTime T3 = START_OF_TIME.plusMillis(2);
+
+  @Before
+  public void before() {
+    // Use 3 buckets to make the tests below more realistic.
+    configRule.override(new TestRegistryConfig() {
+      @Override
+      public int getCommitLogBucketCount() {
+        return 3;
+      }});
+  }
+
+  @Test
+  public void test_getCheckpointTime() {
+    DateTime now = DateTime.now(UTC);
+    CommitLogCheckpoint checkpoint =
+        CommitLogCheckpoint.create(now, ImmutableMap.of(1, T1, 2, T2, 3, T3));
+    assertThat(checkpoint.getCheckpointTime()).isEqualTo(now);
+  }
+
+  @Test
+  public void test_getBucketTimestamps() {
+    CommitLogCheckpoint checkpoint =
+        CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(1, T1, 2, T2, 3, T3));
+    assertThat(checkpoint.getBucketTimestamps()).containsExactly(1, T1, 2, T2, 3, T3);
+  }
+
+  @Test
+  public void test_getBucketTimestamps_whenOnlyOneBucket_stillWorks() {
+    configRule.override(new TestRegistryConfig() {
+      @Override
+      public int getCommitLogBucketCount() {
+        return 1;
+      }});
+    CommitLogCheckpoint checkpoint =
+        CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(1, T1));
+    assertThat(checkpoint.getBucketTimestamps()).containsExactly(1, T1);
+  }
+
+  @Test
+  public void test_create_notEnoughBucketTimestamps_throws() {
+    thrown.expect(IllegalArgumentException.class, "Bucket ids are incorrect");
+    CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(1, T1, 2, T2));
+  }
+
+  @Test
+  public void test_create_tooManyBucketTimestamps_throws() {
+    thrown.expect(IllegalArgumentException.class, "Bucket ids are incorrect");
+    CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(1, T1, 2, T2, 3, T3, 4, T1));
+  }
+
+  @Test
+  public void test_create_wrongBucketIds_throws() {
+    thrown.expect(IllegalArgumentException.class, "Bucket ids are incorrect");
+    CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(0, T1, 1, T2, 2, T3));
+  }
+}

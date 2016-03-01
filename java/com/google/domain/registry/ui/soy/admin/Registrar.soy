@@ -1,0 +1,360 @@
+{namespace registry.soy.admin.registrar autoescape="strict"}
+
+
+/**
+ * Set view for registrars.
+ * @param set
+ */
+{template .registrars}
+  <div class="{css set}">
+    <h1>Registrars</h1>
+    <table id="registrars">
+      <tr>
+        <th>Name</th>
+        <th>Status</th>
+        <th>TLDs</th>
+      </tr>
+      {foreach $registrar in $set}
+        <tr>
+          <td class="{css client-identifier}">
+            <a href="/_dr/admin#registrar/{$registrar['clientIdentifier']}">
+              {$registrar['clientIdentifier']}</a>
+          </td>
+          <td>
+            {$registrar.state}
+          </td>
+          <td>
+            {if isNonnull($registrar.allowedTlds)}
+              {length($registrar.allowedTlds)}
+            {else}
+              0
+            {/if}
+          </td>
+        </tr>
+      {/foreach}
+    </table>
+    <form name="create">
+      <h2>New Registrar</h2>
+      <table>
+        {call registry.soy.forms.inputFieldRow}
+          {param label: 'Registrar ID (clientIdentifier)' /}
+          {param name: 'clientIdentifier' /}
+        {/call}
+        {call registry.soy.forms.inputFieldRow}
+          {param name: 'registrarName' /}
+        {/call}
+        {call registry.soy.forms.inputFieldRow}
+          {param name: 'icannReferralEmail' /}
+        {/call}
+        {call registry.soy.forms.inputFieldRow}
+          {param name: 'emailAddress' /}
+        {/call}
+        {call registry.soy.forms.inputFieldRow}
+          {param label: 'Street' /}
+          {param name: 'localizedAddress.street[0]' /}
+        {/call}
+        {call registry.soy.forms.inputFieldRow}
+          {param label: 'City' /}
+          {param name: 'localizedAddress.city' /}
+        {/call}
+        {call registry.soy.forms.inputFieldRow}
+          {param label: 'Country code' /}
+          {param name: 'localizedAddress.countryCode' /}
+        {/call}
+      </table>
+      <button type="button"
+              id="create-button"
+              class="{css kd-button} {css kd-button-submit}">Create</button>
+    </form>
+  </div>
+{/template}
+
+
+/**
+ * Item view for registrar.
+ * @param item
+ */
+{template .registrar}
+  <form name="item" class="{css item} {css registrar}">
+    <h1>{$item['clientIdentifier']}</h1>
+    <table>
+      {call .registrarAdminFields_ data="all" /}
+      {call .registrarResourcesFields_ data="all" /}
+      {call .registrarWhoisFields_ data="all" /}
+      {call .registrarSecurityFields_ data="all" /}
+      {call .registrarContactFields_ data="all" /}
+      {call .registrarMiscFields_ data="all" /}
+    </table>
+  </form>
+{/template}
+
+
+/**
+ * Administrative-only fields.
+ * @private
+ */
+{template .registrarAdminFields_}
+  {@param item: map<string, ?>}
+  <tr class="{css section-lead}">
+    <th colspan="2">Admin settings - Admin Visible only</th>
+    {call registry.soy.forms.selectRow data="all"}
+      {param label: 'State' /}
+      {param name: 'state' /}
+      {param description: 'model: state' /}
+      {param options: ['PENDING', 'ACTIVE', 'SUSPENDED'] /}
+      {param selected: $item['state'] /}
+    {/call}
+    {call registry.soy.forms.inputFieldRow data="all"}
+      {param label: 'Allowed TLDs' /}
+      {param name: 'allowedTlds' /}
+      {param placeholder: 'e.g. foo,bar' /}
+      {param description: 'model: allowedTlds' /}
+    {/call}
+    {call registry.soy.forms.inputFieldRow data="all"}
+      {param label: 'New EPP password' /}
+      {param name: 'password' /}
+      {param description: 'model: password' /}
+    {/call}
+    {call registry.soy.forms.inputCheckboxRow data="all"}
+      {param label: 'Block premium names' /}
+      {param name: 'blockPremiumNames' /}
+      {param checked: $item['blockPremiumNames'] ? true : null /}
+      {param description: 'model: blockPremiumNames' /}
+    {/call}
+{/template}
+
+
+/**
+ * Public WHOIS fields.
+ * @private
+ */
+{template .registrarResourcesFields_}
+  {@param item: map<string, ?>}
+  <tr class="{css section-lead}">
+    <th colspan="2">Resources settings - Admin &amp; Registrar Visible</th>
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'Drive Folder ID' /}
+        {param name: 'driveFolderId' /}
+        {param description: 'model: driveFolderId' /}
+      {/call}
+{/template}
+
+
+/**
+ * Public WHOIS fields.
+ * @private
+ */
+{template .registrarWhoisFields_}
+  {@param item: map<string, ?>}
+  <tr class="{css section-lead}">
+    <th colspan="2">WHOIS settings - Admin &amp; Registrar Visible</th>
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'Name' /}
+        {param name: 'registrarName' /}
+        {param description: 'model: registrarName' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'IANA ID' /}
+        {param name: 'ianaIdentifier' /}
+        {param description: 'model: ianaIdentifier' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'ICANN referral email' /}
+        {param name: 'icannReferralEmail' /}
+        {param description: 'model: icannReferralEmail' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'Email' /}
+        {param name: 'emailAddress' /}
+        {param description: 'model: emailAddress' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'Phone' /}
+        {param name: 'phoneNumber' /}
+        {param description: 'model: phoneNumber' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'Fax' /}
+        {param name: 'faxNumber' /}
+        {param description: 'model: faxNumber' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRowWithValue data="all"}
+        {param label: 'Street 1' /}
+        {param name: 'localizedAddress.street[0]' /}
+        {param value: $item['localizedAddress'].street[0] /}
+        {param description: 'model: localizedAddress.street[0]' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRowWithValue data="all"}
+        {param label: 'Street 2' /}
+        {param name: 'localizedAddress.street[1]' /}
+        {param value: $item['localizedAddress'].street[1] /}
+        {param description: 'model: localizedAddress.street[1]' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRowWithValue data="all"}
+        {param label: 'Street 3' /}
+        {param name: 'localizedAddress.street[2]' /}
+        {param value: $item['localizedAddress'].street[2] /}
+        {param description: 'model: localizedAddress.street[2]' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRowWithValue data="all"}
+        {param label: 'City' /}
+        {param name: 'localizedAddress.city' /}
+        {param value: $item['localizedAddress'].city /}
+        {param description: 'model: localizedAddress.city' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRowWithValue data="all"}
+        {param label: 'State/Region' /}
+        {param name: 'localizedAddress.state' /}
+        {param value: $item['localizedAddress'].state /}
+        {param description: 'model: localizedAddress.state' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRowWithValue data="all"}
+        {param label: 'Zip/Postal code' /}
+        {param name: 'localizedAddress.zip' /}
+        {param value: $item['localizedAddress'].zip /}
+        {param description: 'model: localizedAddress.zip' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRowWithValue data="all"}
+        {param label: 'Country code' /}
+        {param name: 'localizedAddress.countryCode' /}
+        {param value: $item['localizedAddress'].countryCode /}
+        {param description: 'model: localizedAddress.countryCode' /}
+      {/call}
+      <tr class="{css section-lead}">
+        <th colspan="2"><em>These are filled in by default to google servers</em></th>
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'WHOIS server' /}
+        {param name: 'whoisServer' /}
+        {param description: 'model: whoisServer' /}
+        {param placeholder: 'e.g. whois.nic.foo' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'Referral URL' /}
+        {param name: 'referralUrl' /}
+        {param description: 'model: referralUrl' /}
+        {param placeholder: 'http://whois.nic.google' /}
+      {/call}
+{/template}
+
+
+/**
+ * Security settings, like SSL cert and IP whitelist.
+ * @private
+ */
+{template .registrarSecurityFields_}
+  {@param item: map<string, ?>}
+  <tr class="{css section-lead}">
+    <th colspan="2">Security settings - Admin &amp; Registrar Visible</th>
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'IP whitelist' /}
+        {param name: 'ipAddressWhitelist' /}
+        {param placeholder: 'e.g. 1.1.1.1/24' /}
+        {param description: 'model: ipAddressWhitelist' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param label: 'Telephone passcode' /}
+        {param name: 'phonePasscode' /}
+        {param placeholder: 'e.g. 01234' /}
+        {param description: 'model: ipAddressWhitelist (Registrar read-only)' /}
+      {/call}
+      {call registry.soy.forms.textareaFieldRow data="all"}
+        {param label: 'SSL certificate' /}
+        {param name: 'clientCertificate' /}
+        {param description: 'model: clientCertificate' /}
+      {/call}
+      <tr>
+        <td><label>clientCertificateHash</label></td>
+        <td>{$item['clientCertificateHash']}</td>
+      </tr>
+      <tr>
+        <td><label>lastCertificateUpdateTime</label></td>
+        <td>{$item['lastCertificateUpdateTime']}</td>
+      </tr>
+{/template}
+
+
+/**
+ * Registrar communication contacts.
+ * @private
+ */
+{template .registrarContactFields_}
+  {@param item: map<string, ?>}
+  <tr class="{css section-lead}">
+    <th colspan="2">
+      <button id="add-contact-button" type="button"
+              class="{css kd-button} {css add-contact-button} {css hidden}">
+        Add Contact</button>
+      Contacts
+    </th>
+  </tr>
+  <tr>
+    <td id="contacts" colspan="2">
+      {if isNonnull($item['contacts'])}
+        {foreach $c in $item['contacts']}
+          {call .contactInfo data="all"}
+            {param namePrefix: 'contacts[' + index($c) + '].' /}
+            {param item: $c /}
+          {/call}
+        {/foreach}
+      {/if}
+    </td>
+  </tr>
+{/template}
+
+
+/**
+ * Extra fields for internal use.
+ * @private
+ */
+{template .registrarMiscFields_}
+  {@param item: map<string, ?>}
+  <tr class="{css section-lead}">
+    <th colspan="2">External IDs</th>
+  {call registry.soy.forms.inputFieldRow data="all"}
+    {param name: 'billingIdentifier' /}
+  {/call}
+  <tr class="{css section-lead}">
+    <th colspan="2">Does anybody use this stuff?</th>
+  {call registry.soy.forms.inputFieldRow data="all"}
+    {param name: 'url' /}
+  {/call}
+  <tr class="{css section-lead}">
+    <th colspan="2">Metadata</th>
+  <tr>
+    <td>creationTime</td>
+    <td>{$item['creationTime']}</td>
+  <tr>
+    <td>lastUpdateTime</td>
+    <td>{$item['lastUpdateTime']}</td>
+{/template}
+
+
+/** Contact info. Removable. */
+{template .contactInfo}
+  {@param namePrefix: string}
+  <div>
+    <table>
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param name: 'name' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param name: 'emailAddress' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param name: 'phoneNumber' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param name: 'faxNumber' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param name: 'types' /}
+      {/call}
+      {call registry.soy.forms.inputFieldRow data="all"}
+        {param name: 'gaeUserId' /}
+      {/call}
+    </table>
+    <button type="button" class="{css kd-button} {css remove} {css hidden}">
+      Remove
+    </button>
+  </div>
+{/template}

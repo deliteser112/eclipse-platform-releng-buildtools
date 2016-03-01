@@ -1,0 +1,14 @@
+<!doctype html>
+<!-- Production iframe sandbox for Braintree iframe -->
+<!-- -->
+<!-- In order to securely embed Braintree's iframe, this iframe must be -->
+<!-- served from a separate origin. To do this, we manually deploy this -->
+<!-- as a static HTML file to a cloud storage bucket, as follows:       -->
+<!-- -->
+<!-- gsutil cp -a public-read -z html brainframe.html gs://domain-registry/brainframe.html -->
+<!-- curl https://domain-registry.storage.googleapis.com/brainframe.html -->
+<script src="https://js.braintreegateway.com/v2/braintree.js"></script>
+<script src="https://domain-registry.appspot.com/assets/js/brain_bin.js"></script>
+<body style="margin:0">
+<form><div id="brainframe"></div></form>
+<script>registry.registrar.BrainFrame.main('https://domain-registry.appspot.com', 'brainframe');</script>

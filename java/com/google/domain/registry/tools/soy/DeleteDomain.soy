@@ -1,0 +1,28 @@
+{namespace domain.registry.tools autoescape="strict"}
+
+/**
+ * Delete domain request
+ */
+{template .deletedomain}
+{@param domainName: string}
+{@param reason: string}
+{@param requestedByRegistrar: any}
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <delete>
+      <domain:delete
+       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>{$domainName}</domain:name>
+      </domain:delete>
+    </delete>
+    <extension>
+      <metadata:metadata xmlns:metadata="urn:google:params:xml:ns:metadata-1.0">
+        <metadata:reason>Deleted by registry administrator: {$reason}</metadata:reason>
+        <metadata:requestedByRegistrar>{$requestedByRegistrar}</metadata:requestedByRegistrar>
+      </metadata:metadata>
+    </extension>
+    <clTRID>GTechTool</clTRID>
+  </command>
+</epp>
+{/template}

@@ -1,0 +1,11 @@
+{
+  "lang": "en",
+  "errorCode": 501,
+  "title": "Not Implemented",
+  "description": [
+    "%NAME%"
+  ],
+  "rdapConformance": [
+    "rdap_level_0"
+  ]
+}

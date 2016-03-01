@@ -1,0 +1,80 @@
+{
+  "objectClassName" : "entity",
+  "handle" : "%NAME%",
+  "status" : ["active"],
+  "roles" : ["registrar"],
+  "links" :
+  [
+    {
+      "value" : "https://example.com/rdap/entity/%NAME%",
+      "rel" : "self",
+      "href": "https://example.com/rdap/entity/%NAME%",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "publicIds" :
+  [
+    {
+      "type" : "IANA Registrar ID",
+      "identifier" : "1"
+    }
+  ],
+  "vcardArray" :
+  [
+    "vcard",
+    [
+      ["version", {}, "text", "4.0"],
+      ["fn", {}, "text", "Yes Virginia <script>"],
+      ["adr", {}, "text",
+        [
+          "",
+          "",
+          "123 Example Boulevard <script>"
+          "Williamsburg <script>",
+          "NY",
+          "11211",
+          "United States"
+        ]
+      ],
+      ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
+      ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+      ["email", {}, "text", "contact-us@example.com"]
+    ]
+  ],
+  "entities" :
+  [
+    {
+      "objectClassName" : "entity",
+      "status" : ["active"],
+      "roles" : ["administrative"],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Jane Doe"],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551215"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551216"],
+          ["email", {}, "text", "janedoe@example.com"]
+        ]
+      ],
+    },
+    {
+      "objectClassName" : "entity",
+      "status" : ["active"],
+      "roles" : ["technical"],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "John Doe"],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551213"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+          ["email", {}, "text", "johndoe@example.com"]
+        ]
+      ],
+    }
+  ],
+  "port43": "whois.example.tld"
+}

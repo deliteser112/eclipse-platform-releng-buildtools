@@ -1,0 +1,133 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.model.eppcommon;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.domain.registry.model.Buildable;
+import com.google.domain.registry.model.ImmutableObject;
+import com.google.domain.registry.model.JsonMapBuilder;
+import com.google.domain.registry.model.Jsonifiable;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+/**
+ * Container for generic street address.
+ * <p>
+ * This is the "addrType" type from {@link "http://tools.ietf.org/html/rfc5733"}. It also matches
+ * the "addrType" type from {@link "http://tools.ietf.org/html/draft-lozano-tmch-smd"}.
+ *
+ * @see com.google.domain.registry.model.contact.ContactAddress
+ * @see com.google.domain.registry.model.mark.MarkAddress
+ * @see com.google.domain.registry.model.registrar.RegistrarAddress
+ */
+@XmlTransient
+public class Address extends ImmutableObject implements Jsonifiable {
+
+  /** The schema validation will enforce that this has 3 lines at most. */
+  @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
+  List<String> street;
+
+  @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
+  String city;
+
+  @XmlElement(name = "sp")
+  @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
+  String state;
+
+  @XmlElement(name = "pc")
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  String zip;
+
+  @XmlElement(name = "cc")
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  String countryCode;
+
+  public ImmutableList<String> getStreet() {
+    return nullToEmptyImmutableCopy(street);
+  }
+
+  public String getCity() {
+    return city;
+  }
+
+  public String getState() {
+    return state;
+  }
+
+  public String getZip() {
+    return zip;
+  }
+
+  public String getCountryCode() {
+    return countryCode;
+  }
+
+  @Override
+  public Map<String, Object> toJsonMap() {
+    return new JsonMapBuilder()
+        .putListOfStrings("street", street)
+        .put("city", city)
+        .put("state", state)
+        .put("zip", zip)
+        .put("countryCode", countryCode)
+        .build();
+  }
+
+  /** A builder for constructing {@link Address}. */
+  @VisibleForTesting
+  public static class Builder<T extends Address> extends Buildable.Builder<T> {
+    public Builder<T> setStreet(ImmutableList<String> street) {
+      checkArgument(
+          street == null || (!street.isEmpty() && street.size() <= 3),
+          "Street address must have [1-3] lines: %s", street);
+      getInstance().street = street;
+      return this;
+    }
+
+    public Builder<T> setCity(String city) {
+      getInstance().city = city;
+      return this;
+    }
+
+    public Builder<T> setState(String state) {
+      getInstance().state = state;
+      return this;
+    }
+
+    public Builder<T> setZip(String zip) {
+      getInstance().zip = zip;
+      return this;
+    }
+
+    public Builder<T> setCountryCode(String countryCode) {
+      checkArgument(
+          countryCode == null || countryCode.length() == 2,
+          "Country code should be a 2 character string");
+      getInstance().countryCode = countryCode;
+      return this;
+    }
+  }
+}

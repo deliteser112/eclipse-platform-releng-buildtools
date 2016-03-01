@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response xmlns="urn:ietf:params:xml:ns:iirdea-1.0">
+  <result code="2001">
+    <msg>The structure of the report is invalid.</msg>
+    <description>
+      'XX' could not be parsed as a number (line: 2 column:3)
+    </description>
+  </result>
+</response>

@@ -1,0 +1,60 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.tools;
+
+import com.google.domain.registry.tools.Command.GtechCommand;
+import com.google.domain.registry.tools.soy.DeleteDomainSoyInfo;
+import com.google.template.soy.data.SoyMapData;
+
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
+
+/** A command to delete a domain via EPP. */
+@Parameters(separators = " =", commandDescription = "Delete domain")
+final class DeleteDomainCommand extends MutatingEppToolCommand implements GtechCommand {
+
+  @Parameter(
+      names = {"-c", "--client"},
+      description = "Client identifier of the registrar to execute the command as",
+      required = true)
+  String clientIdentifier;
+
+  @Parameter(
+      names = {"-n", "--domain_name"},
+      description = "Domain to delete.",
+      required = true)
+  private String domainName;
+
+  @Parameter(
+      names = {"--reason"},
+      description = "Reason for the change.",
+      required = true)
+  private String reason;
+
+  @Parameter(
+      names = {"--registrar_request"},
+      description = "Whether the change was requested by a registrar.",
+      arity = 1)
+  private boolean requestedByRegistrar = false;
+
+  @Override
+  void initMutatingEppToolCommand() {
+    setSoyTemplate(DeleteDomainSoyInfo.getInstance(), DeleteDomainSoyInfo.DELETEDOMAIN);
+    addSoyRecord(clientIdentifier, new SoyMapData(
+        "domainName", domainName,
+        "reason", reason,
+        "requestedByRegistrar", requestedByRegistrar));
+  }
+}

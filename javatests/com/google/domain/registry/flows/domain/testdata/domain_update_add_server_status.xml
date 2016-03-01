@@ -1,0 +1,21 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <update>
+      <domain:update
+       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>example.tld</domain:name>
+        <domain:add>
+          <domain:status s="serverRenewProhibited"
+           lang="en">Renew prohibited.</domain:status>
+        </domain:add>
+      </domain:update>
+    </update>
+    <extension>
+      <metadata:metadata xmlns:metadata="urn:google:params:xml:ns:metadata-1.0">
+        <metadata:reason>Test</metadata:reason>
+        <metadata:requestedByRegistrar>true</metadata:requestedByRegistrar>
+      </metadata:metadata>
+    </extension>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>

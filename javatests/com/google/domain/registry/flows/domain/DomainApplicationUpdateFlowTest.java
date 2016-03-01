@@ -1,0 +1,625 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.flows.domain;
+
+import static com.google.common.collect.Sets.union;
+import static com.google.common.io.BaseEncoding.base16;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
+import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static com.google.domain.registry.testing.DatastoreHelper.createTld;
+import static com.google.domain.registry.testing.DatastoreHelper.generateNewDomainRoid;
+import static com.google.domain.registry.testing.DatastoreHelper.newDomainApplication;
+import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
+import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
+import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static com.google.domain.registry.testing.DomainApplicationSubject.assertAboutApplications;
+import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.domain.registry.flows.EppException.UnimplementedExtensionException;
+import com.google.domain.registry.flows.FlowRunner.CommitMode;
+import com.google.domain.registry.flows.FlowRunner.UserPrivileges;
+import com.google.domain.registry.flows.ResourceFlowTestCase;
+import com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
+import com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
+import com.google.domain.registry.flows.ResourceUpdateFlow.AddRemoveSameValueEppException;
+import com.google.domain.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException;
+import com.google.domain.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException;
+import com.google.domain.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
+import com.google.domain.registry.flows.domain.BaseDomainUpdateFlow.EmptySecDnsUpdateException;
+import com.google.domain.registry.flows.domain.BaseDomainUpdateFlow.MaxSigLifeChangeNotSupportedException;
+import com.google.domain.registry.flows.domain.BaseDomainUpdateFlow.SecDnsAllUsageException;
+import com.google.domain.registry.flows.domain.BaseDomainUpdateFlow.UrgentAttributeNotSupportedException;
+import com.google.domain.registry.flows.domain.DomainApplicationUpdateFlow.ApplicationStatusProhibitsUpdateException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.LinkedResourceDoesNotExistException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.TooManyNameserversException;
+import com.google.domain.registry.model.contact.ContactResource;
+import com.google.domain.registry.model.domain.DesignatedContact;
+import com.google.domain.registry.model.domain.DesignatedContact.Type;
+import com.google.domain.registry.model.domain.DomainApplication;
+import com.google.domain.registry.model.domain.DomainApplication.Builder;
+import com.google.domain.registry.model.domain.ReferenceUnion;
+import com.google.domain.registry.model.domain.launch.ApplicationStatus;
+import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
+import com.google.domain.registry.model.eppcommon.StatusValue;
+import com.google.domain.registry.model.host.HostResource;
+import com.google.domain.registry.model.registrar.Registrar;
+import com.google.domain.registry.model.registry.Registry.TldState;
+import com.google.domain.registry.model.reporting.HistoryEntry;
+
+import org.junit.Before;
+import org.junit.Test;
+
+/** Unit tests for {@link DomainApplicationUpdateFlow}. */
+public class DomainApplicationUpdateFlowTest
+    extends ResourceFlowTestCase<DomainApplicationUpdateFlow, DomainApplication> {
+
+  private static final DelegationSignerData SOME_DSDATA =
+      DelegationSignerData.create(1, 2, 3, new byte[]{0, 1, 2});
+
+  ContactResource sh8013Contact;
+  ContactResource mak21Contact;
+  ContactResource unusedContact;
+
+  public DomainApplicationUpdateFlowTest() {
+    // Note that "domain_update_sunrise.xml" tests adding and removing the same contact type.
+    setEppInput("domain_update_sunrise.xml");
+  }
+
+  @Before
+  public void setUp() {
+    createTld("tld", TldState.SUNRUSH);
+  }
+
+  private void persistReferencedEntities() {
+    // Grab the 1 id for use with the DomainApplication.
+    generateNewDomainRoid("tld");
+    for (int i = 1; i <= 14; ++i) {
+      persistActiveHost(String.format("ns%d.example.tld", i));
+    }
+    sh8013Contact = persistActiveContact("sh8013");
+    mak21Contact = persistActiveContact("mak21");
+    unusedContact = persistActiveContact("unused");
+  }
+
+  private DomainApplication persistApplication() throws Exception {
+    return persistResource(newApplicationBuilder()
+        .setContacts(ImmutableSet.of(
+            DesignatedContact.create(Type.TECH, ReferenceUnion.create(sh8013Contact)),
+            DesignatedContact.create(Type.ADMIN, ReferenceUnion.create(unusedContact))))
+        .setNameservers(ImmutableSet.of(ReferenceUnion.create(
+            loadByUniqueId(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
+        .build());
+  }
+
+  private Builder newApplicationBuilder() throws Exception {
+    return newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD");
+  }
+
+  private DomainApplication persistNewApplication() throws Exception {
+    return persistResource(newApplicationBuilder().build());
+  }
+
+  private void doSuccessfulTest() throws Exception {
+    assertTransactionalFlow(true);
+    clock.advanceOneMilli();
+    runFlowAssertResponse(readFile("domain_update_response.xml"));
+    // Check that the application was updated. These values came from the xml.
+    DomainApplication application = reloadResourceByUniqueId();
+    assertAboutApplications().that(application)
+        .hasStatusValue(StatusValue.CLIENT_HOLD).and()
+        .hasOnlyOneHistoryEntryWhich()
+        .hasType(HistoryEntry.Type.DOMAIN_APPLICATION_UPDATE);
+    assertThat(application.getAuthInfo().getPw().getValue()).isEqualTo("2BARfoo");
+    // Check that the hosts and contacts have correct linked status
+    assertNoBillingEvents();
+  }
+
+  @Test
+  public void testDryRun() throws Exception {
+    persistReferencedEntities();
+    persistApplication();
+    dryRunFlowAssertResponse(readFile("domain_update_response.xml"));
+  }
+
+  @Test
+  public void testSuccess() throws Exception {
+    persistReferencedEntities();
+    persistApplication();
+    doSuccessfulTest();
+  }
+
+  @Test
+  public void testSuccess_maxNumberOfNameservers() throws Exception {
+    persistReferencedEntities();
+    persistApplication();
+    modifyApplicationToHave13Nameservers();
+    doSuccessfulTest();
+  }
+
+  @Test
+  public void testSuccess_removeContact() throws Exception {
+    setEppInput("domain_update_sunrise_remove_contact.xml");
+    persistReferencedEntities();
+    persistApplication();
+    doSuccessfulTest();
+  }
+
+  @Test
+  public void testSuccess_registrantMovedToTechContact() throws Exception {
+    setEppInput("domain_update_sunrise_registrant_to_tech.xml");
+    persistReferencedEntities();
+    ContactResource sh8013 = loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc());
+    persistResource(
+        newApplicationBuilder().setRegistrant(ReferenceUnion.create(sh8013)).build());
+    clock.advanceOneMilli();
+    runFlowAssertResponse(readFile("domain_update_response.xml"));
+  }
+
+  @Test
+  public void testSuccess_multipleReferencesToSameContactRemoved() throws Exception {
+    setEppInput("domain_update_sunrise_remove_multiple_contacts.xml");
+    persistReferencedEntities();
+    ContactResource sh8013 = loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc());
+    ReferenceUnion<ContactResource> sh8013ReferenceUnion = ReferenceUnion.create(sh8013);
+    persistResource(newApplicationBuilder()
+        .setRegistrant(sh8013ReferenceUnion)
+        .setContacts(ImmutableSet.of(
+            DesignatedContact.create(Type.ADMIN, sh8013ReferenceUnion),
+            DesignatedContact.create(Type.BILLING, sh8013ReferenceUnion),
+            DesignatedContact.create(Type.TECH, sh8013ReferenceUnion)))
+        .build());
+    clock.advanceOneMilli();
+    runFlowAssertResponse(readFile("domain_update_response.xml"));
+  }
+
+  @Test
+  public void testSuccess_removeClientUpdateProhibited() throws Exception {
+    persistReferencedEntities();
+    persistResource(persistApplication().asBuilder().setStatusValues(
+        ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED)).build());
+    clock.advanceOneMilli();
+    runFlow();
+    assertAboutApplications().that(reloadResourceByUniqueId())
+        .doesNotHaveStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED);
+  }
+
+  private void doSecDnsSuccessfulTest(
+      String xmlFilename,
+      ImmutableSet<DelegationSignerData> originalDsData,
+      ImmutableSet<DelegationSignerData> expectedDsData)
+      throws Exception {
+    setEppInput(xmlFilename);
+    persistResource(newApplicationBuilder().setDsData(originalDsData).build());
+    assertTransactionalFlow(true);
+    clock.advanceOneMilli();
+    runFlowAssertResponse(readFile("domain_update_response.xml"));
+    assertAboutApplications().that(reloadResourceByUniqueId())
+        .hasExactlyDsData(expectedDsData).and()
+        .hasOnlyOneHistoryEntryWhich()
+        .hasType(HistoryEntry.Type.DOMAIN_APPLICATION_UPDATE);
+  }
+
+  @Test
+  public void testSuccess_secDnsAdd() throws Exception {
+    doSecDnsSuccessfulTest(
+        "domain_update_sunrise_dsdata_add.xml",
+        null,
+        ImmutableSet.of(DelegationSignerData.create(
+            12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))));
+  }
+
+
+  @Test
+  public void testSuccess_secDnsAddPreservesExisting() throws Exception {
+    doSecDnsSuccessfulTest(
+        "domain_update_sunrise_dsdata_add.xml",
+        ImmutableSet.of(SOME_DSDATA),
+        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
+            12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))));
+  }
+
+  @Test
+  public void testSuccess_secDnsAddToMaxRecords() throws Exception {
+    ImmutableSet.Builder<DelegationSignerData> builder = new ImmutableSet.Builder<>();
+    for (int i = 0; i < 7; ++i) {
+      builder.add(DelegationSignerData.create(i, 2, 3, new byte[]{0, 1, 2}));
+    }
+    ImmutableSet<DelegationSignerData> commonDsData = builder.build();
+
+    doSecDnsSuccessfulTest(
+        "domain_update_sunrise_dsdata_add.xml",
+        commonDsData,
+        ImmutableSet.copyOf(
+            union(commonDsData, ImmutableSet.of(DelegationSignerData.create(
+                12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))))));
+  }
+
+  @Test
+  public void testSuccess_secDnsRemove() throws Exception {
+    doSecDnsSuccessfulTest(
+        "domain_update_sunrise_dsdata_rem.xml",
+        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
+            12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))),
+        ImmutableSet.of(SOME_DSDATA));
+  }
+
+  @Test
+  public void testSuccess_secDnsRemoveAll() throws Exception {
+    // As an aside, this test also validates that it's ok to set the 'urgent' attribute to false.
+    doSecDnsSuccessfulTest(
+        "domain_update_sunrise_dsdata_rem_all.xml",
+        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
+            12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))),
+        ImmutableSet.<DelegationSignerData>of());
+  }
+
+  @Test
+  public void testSuccess_secDnsAddRemove() throws Exception {
+    doSecDnsSuccessfulTest(
+        "domain_update_sunrise_dsdata_add_rem.xml",
+        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
+            12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))),
+        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
+            12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))));
+  }
+
+  @Test
+  public void testSuccess_secDnsAddRemoveToMaxRecords() throws Exception {
+    ImmutableSet.Builder<DelegationSignerData> builder = new ImmutableSet.Builder<>();
+    for (int i = 0; i < 7; ++i) {
+      builder.add(DelegationSignerData.create(i, 2, 3, new byte[]{0, 1, 2}));
+    }
+    ImmutableSet<DelegationSignerData> commonDsData = builder.build();
+
+    doSecDnsSuccessfulTest(
+        "domain_update_sunrise_dsdata_add_rem.xml",
+        ImmutableSet.copyOf(
+            union(commonDsData, ImmutableSet.of(DelegationSignerData.create(
+                12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))))),
+        ImmutableSet.copyOf(
+            union(commonDsData, ImmutableSet.of(DelegationSignerData.create(
+                12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))))));
+  }
+
+  @Test
+  public void testSuccess_secDnsAddRemoveSame() throws Exception {
+    // Adding and removing the same dsData is a no-op because removes are processed first.
+    doSecDnsSuccessfulTest(
+        "domain_update_sunrise_dsdata_add_rem_same.xml",
+        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
+            12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))),
+        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
+            12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))));
+  }
+
+  @Test
+  public void testSuccess_secDnsRemoveAlreadyNotThere() throws Exception {
+    // Removing a dsData that isn't there is a no-op.
+    doSecDnsSuccessfulTest(
+        "domain_update_sunrise_dsdata_rem.xml",
+        ImmutableSet.of(SOME_DSDATA),
+        ImmutableSet.of(SOME_DSDATA));
+  }
+
+  private void doSecDnsFailingTest(Class<? extends Exception> expectedException, String xmlFilename)
+      throws Exception {
+    thrown.expect(expectedException);
+    setEppInput(xmlFilename);
+    persistReferencedEntities();
+    persistNewApplication();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_secDnsAllCannotBeFalse() throws Exception {
+    doSecDnsFailingTest(
+        SecDnsAllUsageException.class, "domain_update_sunrise_dsdata_rem_all_false.xml");
+  }
+
+  @Test
+  public void testFailure_secDnsEmptyNotAllowed() throws Exception {
+    doSecDnsFailingTest(EmptySecDnsUpdateException.class, "domain_update_sunrise_dsdata_empty.xml");
+  }
+
+  @Test
+  public void testFailure_secDnsUrgentNotSupported() throws Exception {
+    doSecDnsFailingTest(
+        UrgentAttributeNotSupportedException.class,
+        "domain_update_sunrise_dsdata_urgent.xml");
+  }
+
+  @Test
+  public void testFailure_secDnsChangeNotSupported() throws Exception {
+    doSecDnsFailingTest(
+        MaxSigLifeChangeNotSupportedException.class,
+        "domain_update_sunrise_maxsiglife.xml");
+  }
+
+  @Test
+  public void testFailure_secDnsTooManyDsRecords() throws Exception {
+    thrown.expect(TooManyDsRecordsException.class);
+    ImmutableSet.Builder<DelegationSignerData> builder = new ImmutableSet.Builder<>();
+    for (int i = 0; i < 8; ++i) {
+      builder.add(DelegationSignerData.create(i, 2, 3, new byte[]{0, 1, 2}));
+    }
+
+    setEppInput("domain_update_sunrise_dsdata_add.xml");
+    persistResource(newApplicationBuilder().setDsData(builder.build()).build());
+    runFlow();
+  }
+
+  private void modifyApplicationToHave13Nameservers() throws Exception {
+    ImmutableSet.Builder<ReferenceUnion<HostResource>> nameservers = new ImmutableSet.Builder<>();
+    for (int i = 1; i < 15; i++) {
+      if (i != 2) { // Skip 2 since that's the one that the tests will add.
+        nameservers.add(ReferenceUnion.create(loadByUniqueId(
+            HostResource.class, String.format("ns%d.example.tld", i), clock.nowUtc())));
+      }
+    }
+    persistResource(reloadResourceByUniqueId().asBuilder()
+        .setNameservers(nameservers.build())
+        .build());
+  }
+
+  @Test
+  public void testFailure_tooManyNameservers() throws Exception {
+    thrown.expect(TooManyNameserversException.class);
+    setEppInput("domain_update_sunrise_add_nameserver.xml");
+    persistReferencedEntities();
+    persistApplication();
+    // Modify application to have 13 nameservers. We will then remove one and add one in the test.
+    modifyApplicationToHave13Nameservers();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_wrongExtension() throws Exception {
+    thrown.expect(UnimplementedExtensionException.class);
+    setEppInput("domain_update_sunrise_wrong_extension.xml");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_neverExisted() throws Exception {
+    thrown.expect(
+        ResourceToMutateDoesNotExistException.class,
+        String.format("(%s)", getUniqueIdFromCommand()));
+    persistReferencedEntities();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_existedButWasDeleted() throws Exception {
+    thrown.expect(
+        ResourceToMutateDoesNotExistException.class,
+        String.format("(%s)", getUniqueIdFromCommand()));
+    persistReferencedEntities();
+    persistResource(newApplicationBuilder().setDeletionTime(START_OF_TIME).build());
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_clientUpdateProhibited() throws Exception {
+    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
+    setEppInput("domain_update_sunrise_authinfo.xml");
+    persistReferencedEntities();
+    persistResource(newApplicationBuilder().setStatusValues(
+        ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED)).build());
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_serverUpdateProhibited() throws Exception {
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    persistReferencedEntities();
+    persistResource(newApplicationBuilder().setStatusValues(
+        ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED)).build());
+    runFlow();
+  }
+
+  private void doIllegalApplicationStatusTest(ApplicationStatus status) throws Exception {
+    thrown.expect(ApplicationStatusProhibitsUpdateException.class);
+    persistReferencedEntities();
+    persistResource(newApplicationBuilder().setApplicationStatus(status).build());
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_allocatedApplicationStatus() throws Exception {
+    doIllegalApplicationStatusTest(ApplicationStatus.ALLOCATED);
+  }
+
+  @Test
+  public void testFailure_invalidApplicationStatus() throws Exception {
+    doIllegalApplicationStatusTest(ApplicationStatus.INVALID);
+  }
+
+  @Test
+  public void testFailure_rejectedApplicationStatus() throws Exception {
+    doIllegalApplicationStatusTest(ApplicationStatus.REJECTED);
+  }
+
+  @Test
+  public void testFailure_missingHost() throws Exception {
+    thrown.expect(
+        LinkedResourceDoesNotExistException.class,
+        "(ns2.example.tld)");
+    persistActiveHost("ns1.example.tld");
+    persistActiveContact("sh8013");
+    persistActiveContact("mak21");
+    persistNewApplication();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_missingContact() throws Exception {
+    thrown.expect(
+        LinkedResourceDoesNotExistException.class,
+        "(sh8013)");
+    persistActiveHost("ns1.example.tld");
+    persistActiveHost("ns2.example.tld");
+    persistActiveContact("mak21");
+    persistNewApplication();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_addingDuplicateContact() throws Exception {
+    thrown.expect(DuplicateContactForRoleException.class);
+    persistReferencedEntities();
+    persistActiveContact("foo");
+    persistNewApplication();
+    // Add a tech contact to the persisted entity, which should cause the flow to fail when it tries
+    // to add "mak21" as a second tech contact.
+    persistResource(reloadResourceByUniqueId().asBuilder().setContacts(ImmutableSet.of(
+        DesignatedContact.create(Type.TECH, ReferenceUnion.create(
+            loadByUniqueId(ContactResource.class, "foo", clock.nowUtc()))))).build());
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_clientProhibitedStatusValue() throws Exception {
+    thrown.expect(StatusNotClientSettableException.class);
+    setEppInput("domain_update_sunrise_prohibited_status.xml");
+    persistReferencedEntities();
+    persistNewApplication();
+    runFlow();
+  }
+
+
+  @Test
+  public void testSuccess_superuserProhibitedStatusValue() throws Exception {
+    setEppInput("domain_update_sunrise_prohibited_status.xml");
+    persistReferencedEntities();
+    persistNewApplication();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE,
+        UserPrivileges.SUPERUSER,
+        readFile("domain_update_response.xml"));
+  }
+
+  @Test
+  public void testFailure_duplicateContactInCommand() throws Exception {
+    thrown.expect(DuplicateContactForRoleException.class);
+    setEppInput("domain_update_sunrise_duplicate_contact.xml");
+    persistReferencedEntities();
+    persistNewApplication();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_missingContactType() throws Exception {
+    // We need to test for missing type, but not for invalid - the schema enforces that for us.
+    thrown.expect(MissingContactTypeException.class);
+    setEppInput("domain_update_sunrise_missing_contact_type.xml");
+    persistReferencedEntities();
+    persistNewApplication();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_unauthorizedClient() throws Exception {
+    thrown.expect(ResourceNotOwnedException.class);
+    sessionMetadata.setClientId("NewRegistrar");
+    persistReferencedEntities();
+    persistApplication();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_notAuthorizedForTld() throws Exception {
+    thrown.expect(NotAuthorizedForTldException.class);
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
+    persistReferencedEntities();
+    persistApplication();
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_superuserUnauthorizedClient() throws Exception {
+    sessionMetadata.setSuperuser(true);
+    sessionMetadata.setClientId("NewRegistrar");
+    persistReferencedEntities();
+    persistApplication();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_update_response.xml"));
+  }
+
+  @Test
+  public void testFailure_sameNameserverAddedAndRemoved() throws Exception {
+    thrown.expect(AddRemoveSameValueEppException.class);
+    setEppInput("domain_update_sunrise_add_remove_same_host.xml");
+    persistReferencedEntities();
+    persistResource(newApplicationBuilder()
+        .setNameservers(ImmutableSet.of(ReferenceUnion.create(
+            loadByUniqueId(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
+        .build());
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_sameContactAddedAndRemoved() throws Exception {
+    thrown.expect(AddRemoveSameValueEppException.class);
+    setEppInput("domain_update_sunrise_add_remove_same_contact.xml");
+    persistReferencedEntities();
+    persistResource(newApplicationBuilder()
+        .setContacts(ImmutableSet.of(DesignatedContact.create(
+            Type.TECH,
+            ReferenceUnion.create(
+                loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc())))))
+        .build());
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_removeAdmin() throws Exception {
+    thrown.expect(MissingAdminContactException.class);
+    setEppInput("domain_update_sunrise_remove_admin.xml");
+    persistReferencedEntities();
+    persistResource(newApplicationBuilder()
+        .setContacts(ImmutableSet.of(
+            DesignatedContact.create(Type.ADMIN, ReferenceUnion.create(sh8013Contact)),
+            DesignatedContact.create(Type.TECH, ReferenceUnion.create(sh8013Contact))))
+        .build());
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_removeTech() throws Exception {
+    thrown.expect(MissingTechnicalContactException.class);
+    setEppInput("domain_update_sunrise_remove_tech.xml");
+    persistReferencedEntities();
+    persistResource(newApplicationBuilder()
+        .setContacts(ImmutableSet.of(
+            DesignatedContact.create(Type.ADMIN, ReferenceUnion.create(sh8013Contact)),
+            DesignatedContact.create(Type.TECH, ReferenceUnion.create(sh8013Contact))))
+        .build());
+    runFlow();
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "objectClassName" : "entity",
+  "handle" : "3-ROID",
+  "status" : ["active"],
+  "roles" : ["administrative"],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.google.com/entity/3-ROID",
+      "rel" : "self",
+      "href" : "http://myserver.google.com/entity/3-ROID",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "vcardArray" :
+  [
+    "vcard",
+    [
+      ["version", {}, "text", "4.0"],
+      ["fn", {}, "text", "Santa Claus"],
+      ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
+      ["adr", {}, "text", [
+        "",
+        "",
+        [
+          "Santa Claus Tower",
+          "41st floor",
+          "Suite みんな"
+        ],
+        "KOKOMO",
+        "BM",
+        "31337",
+        "United States"]],
+      ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
+      ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"]
+    ]
+  ],
+  "port43": "whois.google.com"
+}

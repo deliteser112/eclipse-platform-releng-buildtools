@@ -1,0 +1,28 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <response>
+    <result code="1000">
+      <msg>Command completed successfully</msg>
+    </result>
+    <resData>
+      <host:chkData
+       xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+        <host:cd>
+          <host:name avail="1">ns1.example.tld</host:name>
+        </host:cd>
+        <host:cd>
+          <!-- The RFC uses ns2.example2.tld here; it's clearly a typo. -->
+          <host:name avail="0">ns2.example.tld</host:name>
+          <host:reason>In use</host:reason>
+        </host:cd>
+        <host:cd>
+          <!-- The RFC uses ns3.example3.tld here; it's clearly a typo. -->
+          <host:name avail="1">ns3.example.tld</host:name>
+        </host:cd>
+      </host:chkData>
+    </resData>
+    <trID>
+      <clTRID>ABC-12345</clTRID>
+      <svTRID>server-trid</svTRID>
+    </trID>
+  </response>
+</epp>

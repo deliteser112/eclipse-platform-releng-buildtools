@@ -1,0 +1,201 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.google.domain.registry.flows.domain;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.domain.registry.testing.DatastoreHelper.assertBillingEvents;
+import static com.google.domain.registry.testing.DatastoreHelper.deleteResource;
+import static com.google.domain.registry.testing.DatastoreHelper.getPollMessages;
+import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static com.google.domain.registry.testing.DomainResourceSubject.assertAboutDomains;
+
+import com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
+import com.google.domain.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException;
+import com.google.domain.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException;
+import com.google.domain.registry.model.contact.ContactAuthInfo;
+import com.google.domain.registry.model.domain.DomainAuthInfo;
+import com.google.domain.registry.model.domain.DomainResource;
+import com.google.domain.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import com.google.domain.registry.model.reporting.HistoryEntry;
+import com.google.domain.registry.model.transfer.TransferStatus;
+
+import org.junit.Before;
+import org.junit.Test;
+
+/** Unit tests for {@link DomainTransferQueryFlow}. */
+public class DomainTransferQueryFlowTest
+    extends DomainTransferFlowTestCase<DomainTransferQueryFlow, DomainResource> {
+
+  @Before
+  public void setUp() throws Exception {
+    setEppInput("domain_transfer_query.xml");
+    setClientIdForFlow("NewRegistrar");
+    setupDomainWithPendingTransfer();
+  }
+
+  private void doSuccessfulTest(String commandFilename, String expectedXmlFilename)
+      throws Exception {
+    setEppInput(commandFilename);
+    // Replace the ROID in the xml file with the one generated in our test.
+    eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
+    // Setup done; run the test.
+    assertTransactionalFlow(false);
+    runFlowAssertResponse(readFile(expectedXmlFilename));
+    assertAboutDomains().that(domain).hasOneHistoryEntryEachOfTypes(
+        HistoryEntry.Type.DOMAIN_CREATE,
+        HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST);
+    assertBillingEvents(
+        getBillingEventForImplicitTransfer(),
+        getGainingClientAutorenewEvent(),
+        getLosingClientAutorenewEvent());
+    // Look in the future and make sure the poll messages for implicit ack are there.
+    assertThat(getPollMessages("NewRegistrar", clock.nowUtc().plusYears(1)))
+        .hasSize(1);
+    assertThat(getPollMessages("TheRegistrar", clock.nowUtc().plusYears(1)))
+        .hasSize(1);
+  }
+
+  private void doFailingTest(String commandFilename) throws Exception {
+    setEppInput(commandFilename);
+    // Replace the ROID in the xml file with the one generated in our test.
+    eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
+    // Setup done; run the test.
+    assertTransactionalFlow(false);
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess() throws Exception {
+    doSuccessfulTest("domain_transfer_query.xml", "domain_transfer_query_response.xml");
+  }
+
+  @Test
+  public void testSuccess_sponsoringClient() throws Exception {
+    setClientIdForFlow("TheRegistrar");
+    doSuccessfulTest("domain_transfer_query.xml", "domain_transfer_query_response.xml");
+  }
+
+  @Test
+  public void testSuccess_domainAuthInfo() throws Exception {
+    setClientIdForFlow("ClientZ");
+    doSuccessfulTest("domain_transfer_query_domain_authinfo.xml",
+        "domain_transfer_query_response.xml");
+  }
+
+  @Test
+  public void testSuccess_contactAuthInfo() throws Exception {
+    setClientIdForFlow("ClientZ");
+    doSuccessfulTest("domain_transfer_query_contact_authinfo.xml",
+        "domain_transfer_query_response.xml");
+  }
+  @Test
+  public void testSuccess_clientApproved() throws Exception {
+    changeTransferStatus(TransferStatus.CLIENT_APPROVED);
+    doSuccessfulTest("domain_transfer_query.xml",
+        "domain_transfer_query_response_client_approved.xml");
+  }
+
+ @Test
+  public void testSuccess_clientRejected() throws Exception {
+    changeTransferStatus(TransferStatus.CLIENT_REJECTED);
+    doSuccessfulTest("domain_transfer_query.xml",
+        "domain_transfer_query_response_client_rejected.xml");
+  }
+
+ @Test
+  public void testSuccess_clientCancelled() throws Exception {
+    changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
+    doSuccessfulTest("domain_transfer_query.xml",
+        "domain_transfer_query_response_client_cancelled.xml");
+  }
+
+  @Test
+  public void testSuccess_serverApproved() throws Exception {
+    changeTransferStatus(TransferStatus.SERVER_APPROVED);
+    doSuccessfulTest("domain_transfer_query.xml",
+        "domain_transfer_query_response_server_approved.xml");
+  }
+
+  @Test
+  public void testSuccess_serverCancelled() throws Exception {
+    changeTransferStatus(TransferStatus.SERVER_CANCELLED);
+    doSuccessfulTest("domain_transfer_query.xml",
+        "domain_transfer_query_response_server_cancelled.xml");
+  }
+
+  @Test
+  public void testFailure_pendingDeleteDomain() throws Exception {
+    changeTransferStatus(TransferStatus.SERVER_CANCELLED);
+    domain = persistResource(
+        domain.asBuilder().setDeletionTime(clock.nowUtc().plusDays(1)).build());
+    doSuccessfulTest("domain_transfer_query.xml",
+        "domain_transfer_query_response_server_cancelled.xml");
+  }
+
+  @Test
+  public void testFailure_badContactPassword() throws Exception {
+    thrown.expect(BadAuthInfoForResourceException.class);
+    // Change the contact's password so it does not match the password in the file.
+    contact = persistResource(
+        contact.asBuilder()
+            .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
+            .build());
+    doFailingTest("domain_transfer_query_contact_authinfo.xml");
+  }
+
+  @Test
+  public void testFailure_badDomainPassword() throws Exception {
+    thrown.expect(BadAuthInfoForResourceException.class);
+    // Change the domain's password so it does not match the password in the file.
+    domain = persistResource(domain.asBuilder()
+        .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
+        .build());
+    doFailingTest("domain_transfer_query_domain_authinfo.xml");
+  }
+
+  @Test
+  public void testFailure_neverBeenTransferred() throws Exception {
+    thrown.expect(NoTransferHistoryToQueryException.class);
+    changeTransferStatus(null);
+    doFailingTest("domain_transfer_query.xml");
+  }
+
+  @Test
+  public void testFailure_unrelatedClient() throws Exception {
+    thrown.expect(NotAuthorizedToViewTransferException.class);
+    setClientIdForFlow("ClientZ");
+    doFailingTest("domain_transfer_query.xml");
+  }
+
+  @Test
+  public void testFailure_deletedDomain() throws Exception {
+    thrown.expect(
+        ResourceToQueryDoesNotExistException.class,
+        String.format("(%s)", getUniqueIdFromCommand()));
+    domain = persistResource(
+            domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+    doFailingTest("domain_transfer_query.xml");
+  }
+
+  @Test
+  public void testFailure_nonexistentDomain() throws Exception {
+    thrown.expect(
+        ResourceToQueryDoesNotExistException.class,
+        String.format("(%s)", getUniqueIdFromCommand()));
+    deleteResource(domain);
+    doFailingTest("domain_transfer_query.xml");
+  }
+}
