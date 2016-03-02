@@ -4,6 +4,7 @@ package(default_visibility = ["//java/com/google/domain/registry:registry_projec
 java_library(
     name = "braintree",
     srcs = glob(["*.java"]),
+    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/domain/registry/config",
         "//java/com/google/domain/registry/keyring/api",

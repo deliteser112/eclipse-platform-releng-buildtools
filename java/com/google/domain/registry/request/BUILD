@@ -7,6 +7,7 @@ java_library(
         ["*.java"],
         exclude = ["Modules.java"],
     ),
+    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",
@@ -30,6 +31,7 @@ java_library(
 java_library(
     name = "modules",
     srcs = ["Modules.java"],
+    visibility = ["//visibility:public"],
     deps = [
         ":request",
         "//java/com/google/api/client/extensions/appengine/http",

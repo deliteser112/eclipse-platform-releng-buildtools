@@ -6,6 +6,7 @@ package(
 java_library(
     name = "bigquery",
     srcs = glob(["*.java"]),
+    visibility = ["//visibility:public"],
     deps = [
         "//apiserving/discoverydata/bigquery:bigqueryv2",
         "//java/com/google/api/client/extensions/appengine/http",

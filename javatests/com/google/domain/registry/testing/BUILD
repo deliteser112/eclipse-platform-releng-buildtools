@@ -17,6 +17,7 @@ java_library(
         "//java/com/google/domain/registry/env/common/default:WEB-INF/datastore-indexes.xml",
         "//java/com/google/domain/registry/env/common/default:WEB-INF/queue.xml",
     ] + glob(["*.csv"]),
+    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/base",
         "//java/com/google/common/cache",

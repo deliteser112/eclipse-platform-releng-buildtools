@@ -6,6 +6,7 @@ package(
 java_library(
     name = "api",
     srcs = glob(["*.java"]),
+    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/base",
         "//third_party/java/bouncycastle",

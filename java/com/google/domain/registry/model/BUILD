@@ -65,6 +65,7 @@ java_library(
         "*/*.java",
         "*/*/*.java",
     ]) + ["FieldExposerRegistry.java"] + FIELD_EXPOSERS,
+    visibility = ["//visibility:public"],
     deps = [
         ":field_exposer_registry",
         ":field_exposers",

@@ -1,3 +1,5 @@
+workspace(name = "domain_registry")
+
 maven_jar(
     name = "aopalliance",
     artifact = "aopalliance:aopalliance:1.0",

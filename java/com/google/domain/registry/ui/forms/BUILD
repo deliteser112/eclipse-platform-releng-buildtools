@@ -4,6 +4,7 @@ package(default_visibility = ["//java/com/google/domain/registry:registry_projec
 java_library(
     name = "forms",
     srcs = glob(["*.java"]),
+    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",

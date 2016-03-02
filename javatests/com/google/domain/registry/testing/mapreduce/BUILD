@@ -8,6 +8,7 @@ load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 java_library(
     name = "mapreduce",
     srcs = glob(["*.java"]),
+    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/base",
         "//java/com/google/common/collect",

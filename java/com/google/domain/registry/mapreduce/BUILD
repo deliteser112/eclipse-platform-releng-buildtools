@@ -6,6 +6,7 @@ package(
 java_library(
     name = "mapreduce",
     srcs = glob(["*.java"]),
+    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",
