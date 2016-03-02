@@ -79,7 +79,7 @@ public class DnsRefreshForHostRenameAction implements MapreduceAction {
         .runMapOnly(
             new DnsRefreshForHostRenameMapper(host),
             ImmutableList.of(EppResourceInputs.createEntityInput(DomainResource.class)))));
-    }
+  }
 
   /** Map over domains and refresh the dns of those that referenced this host. */
   public static class DnsRefreshForHostRenameMapper extends Mapper<DomainResource, Void, Void> {
