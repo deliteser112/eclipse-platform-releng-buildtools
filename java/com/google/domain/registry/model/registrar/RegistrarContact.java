@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Sets.difference;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
 import static com.google.domain.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
 
@@ -52,7 +53,7 @@ import java.util.Set;
  * *MUST* also modify the persisted Registrar entity with {@link Registrar#contactsRequireSyncing}
  * set to true.
  */
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @Entity
 public class RegistrarContact extends ImmutableObject implements Jsonifiable {
 

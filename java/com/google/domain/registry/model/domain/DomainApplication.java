@@ -14,6 +14,7 @@
 
 package com.google.domain.registry.model.domain;
 
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableList;
@@ -50,7 +51,7 @@ import javax.xml.bind.annotation.XmlType;
     "lastEppUpdateClientId",
     "lastEppUpdateTime",
     "authInfo"})
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @EntitySubclass(index = true)
 @ExternalMessagingName("application")
 public class DomainApplication extends DomainBase {

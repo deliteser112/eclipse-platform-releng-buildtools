@@ -15,6 +15,7 @@
 package com.google.domain.registry.model.server;
 
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 
 import com.google.domain.registry.model.annotations.NotBackedUp;
 import com.google.domain.registry.model.annotations.NotBackedUp.Reason;
@@ -29,7 +30,7 @@ import java.util.UUID;
 
 /** A secret number used for generating tokens (such as XSRF tokens). */
 @Entity
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @Unindex
 @NotBackedUp(reason = Reason.AUTO_GENERATED)
 public class ServerSecret extends CrossTldSingleton {

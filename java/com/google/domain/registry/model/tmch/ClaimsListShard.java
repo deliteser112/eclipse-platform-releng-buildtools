@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 import static com.google.domain.registry.model.ofy.ObjectifyService.allocateId;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static com.google.domain.registry.util.CacheUtils.memoizeWithShortExpiration;
 import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
 
@@ -245,7 +246,7 @@ public class ClaimsListShard extends ImmutableObject {
    * that is live.
    */
   @Entity
-  @Cache
+  @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   @NotBackedUp(reason = Reason.EXTERNALLY_SOURCED)
   public static class ClaimsListSingleton extends CrossTldSingleton {
     Key<ClaimsListRevision> activeRevision;

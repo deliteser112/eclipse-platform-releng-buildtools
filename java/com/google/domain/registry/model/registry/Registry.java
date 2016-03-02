@@ -20,6 +20,7 @@ import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
 import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static com.google.domain.registry.model.registry.label.PremiumList.getPremiumPrice;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
@@ -68,7 +69,7 @@ import org.joda.time.Duration;
 import java.util.Set;
 
 /** Persisted per-TLD configuration data. */
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @Entity
 public class Registry extends BackupGroupRoot implements Buildable {
 

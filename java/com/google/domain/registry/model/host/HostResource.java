@@ -17,6 +17,7 @@ package com.google.domain.registry.model.host;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static com.google.domain.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
 
@@ -65,7 +66,7 @@ import javax.xml.bind.annotation.XmlType;
     "lastEppUpdateClientId",
     "lastEppUpdateTime",
     "lastTransferTime" })
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @Entity
 @ExternalMessagingName("host")
 public class HostResource extends EppResource implements ForeignKeyedEppResource {

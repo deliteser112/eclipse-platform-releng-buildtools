@@ -17,6 +17,7 @@ package com.google.domain.registry.model.domain;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.domain.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
 import static com.google.domain.registry.model.EppResourceUtils.setAutomaticTransferSuccessProperties;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static com.google.domain.registry.util.CollectionUtils.difference;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static com.google.domain.registry.util.CollectionUtils.union;
@@ -72,7 +73,7 @@ import javax.xml.bind.annotation.XmlType;
     "registrationExpirationTime",
     "lastTransferTime",
     "authInfo"})
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @EntitySubclass(index = true)
 @ExternalMessagingName("domain")
 public class DomainResource extends DomainBase implements ForeignKeyedEppResource {

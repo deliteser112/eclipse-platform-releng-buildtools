@@ -16,6 +16,7 @@ package com.google.domain.registry.model.contact;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.domain.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
@@ -60,7 +61,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
     "lastTransferTime",
     "authInfo",
     "disclose" })
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @Entity
 @ExternalMessagingName("contact")
 public class ContactResource extends EppResource implements ForeignKeyedEppResource {

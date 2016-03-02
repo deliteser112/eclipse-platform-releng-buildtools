@@ -16,6 +16,7 @@ package com.google.domain.registry.model.index;
 
 import static com.google.common.collect.Maps.filterValues;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static com.google.domain.registry.util.TypeUtils.instantiate;
 
 import com.google.common.base.Predicate;
@@ -46,17 +47,17 @@ import java.util.Map;
 public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroupRoot {
 
   /** The {@link ForeignKeyIndex} type for {@link ContactResource} entities. */
-  @Cache
+  @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   @Entity
   public static class ForeignKeyContactIndex extends ForeignKeyIndex<ContactResource> {}
 
   /** The {@link ForeignKeyIndex} type for {@link DomainResource} entities. */
-  @Cache
+  @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   @Entity
   public static class ForeignKeyDomainIndex extends ForeignKeyIndex<DomainResource> {}
 
   /** The {@link ForeignKeyIndex} type for {@link HostResource} entities. */
-  @Cache
+  @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   @Entity
   public static class ForeignKeyHostIndex extends ForeignKeyIndex<HostResource> {}
 

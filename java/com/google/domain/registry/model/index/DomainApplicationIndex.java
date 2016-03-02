@@ -17,6 +17,7 @@ package com.google.domain.registry.model.index;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static com.google.domain.registry.util.CollectionUtils.isNullOrEmpty;
 import static com.google.domain.registry.util.DateTimeUtils.latestOf;
 
@@ -43,7 +44,7 @@ import javax.annotation.Nullable;
  * necessary to query them explicitly from Datastore.
  */
 @Entity
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 public class DomainApplicationIndex extends BackupGroupRoot {
 
   @Id

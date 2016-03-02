@@ -22,6 +22,7 @@ import static com.google.common.collect.Iterables.partition;
 import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static com.google.domain.registry.model.ofy.ObjectifyService.allocateId;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -68,7 +69,7 @@ import javax.annotation.Nullable;
  * A premium list entity, persisted to Datastore, that is used to check domain label prices.
  */
 @Entity
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.PremiumListEntry> {
 
   /** The number of premium list entry entities that are created and deleted per batch. */
@@ -196,7 +197,7 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
    * single label on a given TLD.
    */
   @Entity
-  @Cache
+  @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   public static class PremiumListEntry extends DomainLabelEntry<Money, PremiumListEntry>
       implements Buildable {
 

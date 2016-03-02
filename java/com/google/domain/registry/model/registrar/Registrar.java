@@ -26,6 +26,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static com.google.domain.registry.model.registry.Registries.assertTldExists;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
@@ -77,7 +78,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /** Information about a registrar. */
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @Entity
 public class Registrar extends ImmutableObject implements Buildable, Jsonifiable {
 

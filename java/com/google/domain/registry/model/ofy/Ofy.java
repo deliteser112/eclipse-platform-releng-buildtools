@@ -68,6 +68,15 @@ public class Ofy {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
+  /**
+   * Recommended memcache expiration time, which is one hour, specified in seconds.
+   * <p>
+   * This value should used as a cache expiration time for any entities annotated with an Objectify
+   * {@code @Cache} annotation, to put an upper bound on unlikely-but-possible divergence between
+   * memcache and datastore when a memcache write fails.
+   */
+  public static final int RECOMMENDED_MEMCACHE_EXPIRATION = 3600;
+
   /** Default clock for transactions that don't provide one. */
   @NonFinalForTesting
   static Clock clock = new SystemClock();

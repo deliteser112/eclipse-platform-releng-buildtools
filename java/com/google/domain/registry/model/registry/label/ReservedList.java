@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static com.google.domain.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static com.google.domain.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
 import static com.google.domain.registry.model.registry.label.ReservationType.UNRESERVED;
@@ -55,7 +56,7 @@ import javax.annotation.Nullable;
  * A reserved list entity, persisted to Datastore, that is used to check domain label reservations.
  */
 @Entity
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 public final class ReservedList
     extends BaseDomainLabelList<ReservationType, ReservedList.ReservedListEntry> {
 

@@ -16,6 +16,7 @@ package com.google.domain.registry.model.tmch;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 
 import com.google.domain.registry.model.annotations.NotBackedUp;
 import com.google.domain.registry.model.annotations.NotBackedUp.Reason;
@@ -32,7 +33,7 @@ import javax.annotation.concurrent.Immutable;
 
 /** Datastore singleton for ICANN's TMCH CA certificate revocation list (CRL). */
 @Entity
-@Cache
+@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @Immutable
 @NotBackedUp(reason = Reason.EXTERNALLY_SOURCED)
 public final class TmchCrl extends CrossTldSingleton {
