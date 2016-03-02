@@ -37,7 +37,6 @@ java_library(
         "@dagger_compiler//jar",
         ":dagger-producers",
         ":dagger-runtime",
-        "//third_party/java/google_java_format:lib",
         "//third_party/java/javapoet",
     ],
 )

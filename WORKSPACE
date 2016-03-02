@@ -282,12 +282,6 @@ maven_jar(
 )
 
 maven_jar(
-    name = "google_java_format",
-    artifact = "com.google.googlejavaformat:google-java-format:0.1-alpha",
-    sha1 = "ea73bf013f9e0b69caff0ebf60800dda66a9fd4a",
-)
-
-maven_jar(
     name = "guice",
     artifact = "com.google.inject:guice:3.0",
     sha1 = "9d84f15fe35e2c716a02979fb62f50a29f38aefa",
