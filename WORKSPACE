@@ -448,12 +448,6 @@ maven_jar(
 )
 
 maven_jar(
-    name = "sshd_core",
-    artifact = "org.apache.sshd:sshd-core:0.7.0",
-    sha1 = "ef5d0cae23845dead3fc53ecd61bd990ed42f60f",
-)
-
-maven_jar(
     name = "soy",
     artifact = "com.google.template:soy:2016-01-12",
     sha1 = "adadc37aecf1042de7c9c6a6eb8f34719500ed69",
