@@ -80,9 +80,20 @@ public abstract class RdapActionBase implements Runnable {
   /** Returns the servlet action path; used to extract the search string from the incoming path. */
   abstract String getActionPath();
 
-  /** Does the actual search and returns an RDAP JSON object. */
-  abstract ImmutableMap<String, Object> getJsonObjectForResource(String searchString)
-      throws HttpException;
+  /**
+   * Does the actual search and returns an RDAP JSON object.
+   *
+   * @param pathSearchString the search string in the URL path
+   * @param isHeadRequest whether the returned map will actually be used. HTTP HEAD requests don't
+   *        actually return anything. However, we usually still want to go through the process of
+   *        building a map, to make sure that the request would return a 500 status if it were
+   *        invoked using GET. So this field should usually be ignored, unless there's some
+   *        expensive task required to create the map which will never result in a request failure.
+   * @param linkBase the base URL for RDAP link structures
+   * @return A map (probably containing nested maps and lists) with the final JSON response data.
+   */
+  abstract ImmutableMap<String, Object> getJsonObjectForResource(
+      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException;
 
   @Override
   public void run() {
@@ -98,11 +109,13 @@ public abstract class RdapActionBase implements Runnable {
           pathProper.startsWith(getActionPath()),
           "%s doesn't start with %s", pathProper, getActionPath());
       ImmutableMap<String, Object> rdapJson =
-          getJsonObjectForResource(pathProper.substring(getActionPath().length()));
+          getJsonObjectForResource(
+              pathProper.substring(getActionPath().length()),
+              requestMethod == Action.Method.HEAD,
+              rdapLinkBase);
       response.setStatus(SC_OK);
       if (requestMethod != Action.Method.HEAD) {
-        response.setPayload(
-            JSONValue.toJSONString(RdapJsonFormatter.makeFinalRdapJson(rdapJson)));
+        response.setPayload(JSONValue.toJSONString(rdapJson));
       }
       response.setContentType(MediaType.create("application", "rdap+json"));
     } catch (HttpException e) {

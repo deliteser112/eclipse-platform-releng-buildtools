@@ -19,9 +19,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.domain.registry.request.Action.Method.GET;
 import static com.google.domain.registry.request.Action.Method.HEAD;
 import static com.google.domain.registry.testing.DatastoreHelper.createTld;
+import static com.google.domain.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.domain.registry.model.ofy.Ofy;
+import com.google.domain.registry.rdap.RdapJsonFormatter.BoilerplateType;
+import com.google.domain.registry.request.HttpException;
 import com.google.domain.registry.testing.AppEngineRule;
 import com.google.domain.registry.testing.FakeClock;
 import com.google.domain.registry.testing.FakeResponse;
@@ -68,14 +71,22 @@ public class RdapActionBaseTest {
     }
 
     @Override
-    public ImmutableMap<String, Object> getJsonObjectForResource(String searchString) {
-      if (searchString.equals("IllegalArgumentException")) {
+    public ImmutableMap<String, Object> getJsonObjectForResource(
+        String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
+      if (pathSearchString.equals("IllegalArgumentException")) {
         throw new IllegalArgumentException();
       }
-      if (searchString.equals("RuntimeException")) {
+      if (pathSearchString.equals("RuntimeException")) {
         throw new RuntimeException();
       }
-      return ImmutableMap.<String, Object>of("key", "value");
+      ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+      builder.put("key", "value");
+      RdapJsonFormatter.addTopLevelEntries(
+          builder,
+          BoilerplateType.OTHER,
+          null,
+          "http://myserver.google.com/");
+      return builder.build();
     }
   }
 
@@ -92,6 +103,7 @@ public class RdapActionBaseTest {
   private Object generateActualJson(String domainName) {
     action.requestPath = RdapTestAction.PATH + domainName;
     action.requestMethod = GET;
+    action.rdapLinkBase = "http://myserver.google.com/";
     action.run();
     return JSONValue.parse(response.getPayload());
   }
@@ -99,6 +111,7 @@ public class RdapActionBaseTest {
   private String generateHeadPayload(String domainName) {
     action.requestPath = RdapTestAction.PATH + domainName;
     action.requestMethod = HEAD;
+    action.rdapLinkBase = "http://myserver.google.com/";
     action.run();
     return response.getPayload();
   }
@@ -124,7 +137,7 @@ public class RdapActionBaseTest {
   @Test
   public void testValidName_works() throws Exception {
     assertThat(generateActualJson("no.thing")).isEqualTo(JSONValue.parse(
-        "{\"rdapConformance\":[\"rdap_level_0\"], \"key\":\"value\"}"));
+    loadFileWithSubstitutions(this.getClass(), "rdapjson_toplevel.json", null)));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

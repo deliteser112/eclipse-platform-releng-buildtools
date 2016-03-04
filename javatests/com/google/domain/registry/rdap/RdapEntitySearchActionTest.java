@@ -166,6 +166,8 @@ public class RdapEntitySearchActionTest {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("entitySearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
+    RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.com/rdap/");
+    RdapTestHelper.addNonDomainBoilerplateRemarks(builder);
     return builder.build();
   }
 

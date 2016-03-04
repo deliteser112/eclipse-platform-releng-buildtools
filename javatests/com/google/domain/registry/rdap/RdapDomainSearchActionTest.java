@@ -210,6 +210,8 @@ public class RdapDomainSearchActionTest {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("domainSearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
+    RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.com/rdap/");
+    RdapTestHelper.addDomainBoilerplateRemarks(builder);
     return builder.build();
   }
 

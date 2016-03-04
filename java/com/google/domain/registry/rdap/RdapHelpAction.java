@@ -19,6 +19,7 @@ import static com.google.domain.registry.request.Action.Method.HEAD;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.domain.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import com.google.domain.registry.rdap.RdapJsonFormatter.MakeRdapJsonNoticeParameters;
 import com.google.domain.registry.request.Action;
 import com.google.domain.registry.request.HttpException;
@@ -36,6 +37,16 @@ public class RdapHelpAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/help";
 
+  /**
+   * Path for the terms of service. The terms of service are also used to create the required
+   * boilerplate notice, so we make it a publicly visible that we can use elsewhere to reference it.
+   */
+  public static final String TERMS_OF_SERVICE_PATH = "/tos";
+
+  /**
+   * Map from a relative path underneath the RDAP root path to the appropriate
+   * {@link MakeRdapJsonNoticeParameters} object.
+   */
   private static final ImmutableMap<String, MakeRdapJsonNoticeParameters> HELP_MAP =
       ImmutableMap.of(
           "/",
@@ -76,7 +87,7 @@ public class RdapHelpAction extends RdapActionBase {
               .linkValueSuffix("help/syntax")
               .linkHrefUrlString("https://www.registry.google/about/rdap/syntax.html")
               .build(),
-          "/tos",
+          TERMS_OF_SERVICE_PATH,
           MakeRdapJsonNoticeParameters.builder()
               .title("RDAP Terms of Service")
               .description(ImmutableList.of(
@@ -119,8 +130,21 @@ public class RdapHelpAction extends RdapActionBase {
   }
 
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(String pathSearchString)
-      throws HttpException {
+  public ImmutableMap<String, Object> getJsonObjectForResource(
+      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
+    // We rely on addTopLevelEntries to notice if we are sending the TOS notice, and not add a
+    // duplicate boilerplate entry.
+    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+    RdapJsonFormatter.addTopLevelEntries(
+        builder,
+        BoilerplateType.OTHER,
+        ImmutableList.of(getJsonHelpNotice(pathSearchString, rdapLinkBase)),
+        rdapLinkBase);
+    return builder.build();
+  }
+
+  static ImmutableMap<String, Object> getJsonHelpNotice(
+      String pathSearchString, String rdapLinkBase) {
     if (pathSearchString.isEmpty()) {
       pathSearchString = "/";
     }
@@ -128,10 +152,8 @@ public class RdapHelpAction extends RdapActionBase {
       throw new NotFoundException("no help found for " + pathSearchString);
     }
     try {
-      return ImmutableMap.of(
-          "notices",
-          (Object) ImmutableList.of(RdapJsonFormatter.makeRdapJsonNotice(
-              HELP_MAP.get(pathSearchString), rdapLinkBase)));
+      return RdapJsonFormatter.makeRdapJsonNotice(
+          HELP_MAP.get(pathSearchString), rdapLinkBase);
     } catch (Exception e) {
       throw new InternalServerErrorException("unable to read help for " + pathSearchString);
     }

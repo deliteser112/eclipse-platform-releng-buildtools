@@ -128,6 +128,12 @@ public class RdapNameserverActionTest {
       if (!map.containsKey("port43")) {
         builder.put("port43", "whois.example.tld");
       }
+      if (!map.containsKey("notices")) {
+        RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.tld/rdap/");
+      }
+      if (!map.containsKey("remarks")) {
+        RdapTestHelper.addNonDomainBoilerplateRemarks(builder);
+      }
       obj = builder.build();
     }
     return obj;

@@ -49,8 +49,8 @@ public class RdapIpAction extends RdapActionBase {
   }
 
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(String pathSearchString)
-      throws HttpException {
+  public ImmutableMap<String, Object> getJsonObjectForResource(
+      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
     throw new NotImplementedException("Domain Name Registry information only");
   }
 }

@@ -1,25 +1,11 @@
 {
-  "rdapConformance" : ["rdap_level_0"],
+  "key" : "value",
+  "rdapConformance" :
+  [
+    "rdap_level_0"
+  ],
   "notices" :
   [
-    {
-      "title" : "RDAP Help",
-      "description" :
-      [
-        "RDAP Help Topics (use \/help\/topic for information)",
-        "syntax",
-        "tos (Terms of Service)"
-      ],
-      "links" :
-      [
-        {
-          "value" : "https://example.tld/rdap/help/%NAME%",
-          "rel" : "alternate",
-          "type" : "text/html",
-          "href" : "https://www.registry.google/about/rdap/index.html"
-        }
-      ]
-    },
     {
       "title" : "RDAP Terms of Service",
       "description" :
@@ -38,7 +24,7 @@
       "links" :
       [
         {
-          "value" : "https://example.tld/rdap/help/tos",
+          "value" : "http://myserver.google.com/help/tos",
           "rel" : "alternate",
           "href" : "https://www.registry.google/about/rdap/tos.html",
           "type" : "text/html"
@@ -52,6 +38,37 @@
       "description" :
       [
         "This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"
+      ]
+    },
+    {
+      "title" : "EPP Status Codes",
+      "description" :
+      [
+        "For more information on domain status codes, please visit https://icann.org/epp"
+      ],
+      "links" :
+      [
+        {
+          "value" :  "https://icann.org/epp",
+          "rel" : "alternate",
+          "href" : "https://icann.org/epp",
+          "type" : "text/html"
+        }
+      ]
+    },
+    {
+      "description" :
+      [
+        "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf"
+      ],
+      "links" :
+      [
+        {
+          "value" : "https://www.icann.org/wicf",
+          "rel" : "alternate",
+          "href" : "https://www.icann.org/wicf",
+          "type" : "text/html"
+        }
       ]
     }
   ]

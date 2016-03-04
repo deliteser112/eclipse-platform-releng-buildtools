@@ -72,8 +72,20 @@ import javax.annotation.Nullable;
  */
 public class RdapJsonFormatter {
 
+  /**
+   * What type of boilerplate notices are required for the RDAP JSON messages? The ICANN RDAP
+   * Profile specifies that, for instance, domain name responses should include a remark about
+   * domain status codes. So we need to know when to include such boilerplate.
+   */
+  public enum BoilerplateType {
+    DOMAIN,
+    OTHER
+  }
+
   private static final String RDAP_CONFORMANCE_LEVEL = "rdap_level_0";
   private static final String VCARD_VERSION_NUMBER = "4.0";
+  static final String NOTICES = "notices";
+  private static final String REMARKS = "remarks";
 
   /** Status values specified in RFC 7483 10.2.2. */
   private enum RdapStatus {
@@ -183,19 +195,45 @@ public class RdapJsonFormatter {
         }});
 
   /**
-   * Takes an object returned by one of the other methods, and creates a final JSON object suitable
-   * for conversion and transmission. This involves adding one top-level entry, since RFC 7483
-   * specifies that the top-level object should include an entry indicating the conformance level.
+   * Adds the required top-level boilerplate. RFC 7483 specifies that the top-level object should
+   * include an entry indicating the conformance level. The ICANN RDAP Profile document (dated 3
+   * December 2015) mandates several additional entries, in sections 1.4.4, 1.4.10, 1.5.18 and
+   * 1.5.20. Note that this method will only work if there are no object-specific remarks already in
+   * the JSON object being built. If there are, the boilerplate must be merged in.
    *
-   * @param rdapJson an RDAP JSON object created by one of the other methods
-   * @return an RDAP JSON object with same info as the input, with additional top-level fields
+   * @param builder a builder for a JSON map object
+   * @param boilerplateType type of boilerplate to be added; the ICANN RDAP Profile document
+   *        mandates extra boilerplate for domain objects
+   * @param notices a list of notices to be inserted before the boilerplate notices. If the TOS
+   *        notice is in this list, the method avoids adding a second copy.
+   * @param rdapLinkBase the base for link URLs
    */
-  public static ImmutableMap<String, Object> makeFinalRdapJson(
-      ImmutableMap<String, Object> rdapJson) {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.putAll(rdapJson);
+  static void addTopLevelEntries(
+      ImmutableMap.Builder<String, Object> builder,
+      BoilerplateType boilerplateType,
+      @Nullable Iterable<ImmutableMap<String, Object>> notices,
+      String rdapLinkBase) {
     builder.put("rdapConformance", CONFORMANCE_LIST);
-    return builder.build();
+    ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder = ImmutableList.builder();
+    ImmutableMap<String, Object> tosNotice =
+        RdapHelpAction.getJsonHelpNotice(RdapHelpAction.TERMS_OF_SERVICE_PATH, rdapLinkBase);
+    boolean tosNoticeFound = false;
+    if (notices != null) {
+      noticesBuilder.addAll(notices);
+      for (ImmutableMap<String, Object> notice : notices) {
+        if (notice.equals(tosNotice)) {
+          tosNoticeFound = true;
+          break;
+        }
+      }
+    }
+    if (!tosNoticeFound) {
+      noticesBuilder.add(tosNotice);
+    }
+    builder.put(NOTICES, noticesBuilder.build());
+    builder.put(REMARKS, (boilerplateType == BoilerplateType.DOMAIN)
+        ? RdapIcannStandardInformation.domainBoilerplateRemarks
+        : RdapIcannStandardInformation.nonDomainBoilerplateRemarks);
   }
 
   /** AutoValue class to build parameters to {@link #makeRdapJsonNotice}. */
@@ -225,7 +263,7 @@ public class RdapJsonFormatter {
 
   /**
    * Creates a JSON object containing a notice or remark object, as defined by RFC 7483 section 4.3.
-   * The object should then be inserted into a "notices" or "remarks" array. The builder fields are:
+   * The object should then be inserted into a notices or remarks array. The builder fields are:
    *
    * <p>title: the title of the notice; if null, the notice will have no title
    *
@@ -251,8 +289,8 @@ public class RdapJsonFormatter {
    * @see <a href="https://tools.ietf.org/html/rfc7483">
    *     RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
    */
-  public static ImmutableMap<String, Object>
-        makeRdapJsonNotice(MakeRdapJsonNoticeParameters parameters, @Nullable String linkBase) {
+  static ImmutableMap<String, Object> makeRdapJsonNotice(
+      MakeRdapJsonNoticeParameters parameters, @Nullable String linkBase) {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     if (parameters.title() != null) {
       builder.put("title", parameters.title());
@@ -293,8 +331,11 @@ public class RdapJsonFormatter {
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
    */
-  public static ImmutableMap<String, Object> makeRdapJsonForDomain(
-      DomainResource domainResource, @Nullable String linkBase, @Nullable String whoisServer) {
+  static ImmutableMap<String, Object> makeRdapJsonForDomain(
+      DomainResource domainResource,
+      boolean isTopLevel,
+      @Nullable String linkBase,
+      @Nullable String whoisServer) {
     // Kick off the database loads of the nameservers that we will need.
     Set<Ref<HostResource>> hostRefs = new LinkedHashSet<>();
     for (ReferenceUnion<HostResource> hostReference : domainResource.getNameservers()) {
@@ -328,7 +369,7 @@ public class RdapJsonFormatter {
     ImmutableList.Builder<Object> nsBuilder = new ImmutableList.Builder<>();
     for (HostResource hostResource
         : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
-      nsBuilder.add(makeRdapJsonForHost(hostResource, linkBase, null));
+      nsBuilder.add(makeRdapJsonForHost(hostResource, false, linkBase, null));
     }
     ImmutableList<Object> ns = nsBuilder.build();
     if (!ns.isEmpty()) {
@@ -341,7 +382,7 @@ public class RdapJsonFormatter {
       ContactResource loadedContact =
           loadedContacts.get(designatedContact.getContactId().getLinked().key());
       entitiesBuilder.add(makeRdapJsonForContact(
-          loadedContact, Optional.of(designatedContact.getType()), linkBase, null));
+          loadedContact, false, Optional.of(designatedContact.getType()), linkBase, null));
     }
     ImmutableList<Object> entities = entitiesBuilder.build();
     if (!entities.isEmpty()) {
@@ -349,6 +390,9 @@ public class RdapJsonFormatter {
     }
     if (whoisServer != null) {
       builder.put("port43", whoisServer);
+    }
+    if (isTopLevel) {
+      addTopLevelEntries(builder, BoilerplateType.DOMAIN, null, linkBase);
     }
     return builder.build();
   }
@@ -361,8 +405,11 @@ public class RdapJsonFormatter {
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
    */
-  public static ImmutableMap<String, Object> makeRdapJsonForHost(
-      HostResource hostResource, @Nullable String linkBase, @Nullable String whoisServer) {
+  static ImmutableMap<String, Object> makeRdapJsonForHost(
+      HostResource hostResource,
+      boolean isTopLevel,
+      @Nullable String linkBase,
+      @Nullable String whoisServer) {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("objectClassName", "nameserver");
     builder.put("handle", hostResource.getRepoId());
@@ -403,6 +450,9 @@ public class RdapJsonFormatter {
     if (whoisServer != null) {
       builder.put("port43", whoisServer);
     }
+    if (isTopLevel) {
+      addTopLevelEntries(builder, BoilerplateType.OTHER, null, linkBase);
+    }
     return builder.build();
   }
 
@@ -415,8 +465,9 @@ public class RdapJsonFormatter {
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
    */
-  public static ImmutableMap<String, Object> makeRdapJsonForContact(
+  static ImmutableMap<String, Object> makeRdapJsonForContact(
       ContactResource contactResource,
+      boolean isTopLevel,
       Optional<DesignatedContact.Type> contactType,
       @Nullable String linkBase,
       @Nullable String whoisServer) {
@@ -464,6 +515,9 @@ public class RdapJsonFormatter {
     if (whoisServer != null) {
       builder.put("port43", whoisServer);
     }
+    if (isTopLevel) {
+      addTopLevelEntries(builder, BoilerplateType.OTHER, null, linkBase);
+    }
     return builder.build();
   }
 
@@ -475,8 +529,11 @@ public class RdapJsonFormatter {
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
    */
-  public static ImmutableMap<String, Object> makeRdapJsonForRegistrar(
-      Registrar registrar, @Nullable String linkBase, @Nullable String whoisServer) {
+  static ImmutableMap<String, Object> makeRdapJsonForRegistrar(
+      Registrar registrar,
+      boolean isTopLevel,
+      @Nullable String linkBase,
+      @Nullable String whoisServer) {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("objectClassName", "entity");
     builder.put("handle", registrar.getClientIdentifier());
@@ -534,6 +591,9 @@ public class RdapJsonFormatter {
     if (whoisServer != null) {
       builder.put("port43", whoisServer);
     }
+    if (isTopLevel) {
+      addTopLevelEntries(builder, BoilerplateType.OTHER, null, linkBase);
+    }
     return builder.build();
   }
 
@@ -544,7 +604,7 @@ public class RdapJsonFormatter {
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
    */
-  public static ImmutableMap<String, Object> makeRdapJsonForRegistrarContact(
+  static ImmutableMap<String, Object> makeRdapJsonForRegistrarContact(
       RegistrarContact registrarContact, @Nullable String whoisServer) {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("objectClassName", "entity");
@@ -705,7 +765,7 @@ public class RdapJsonFormatter {
    * @see <a href="https://tools.ietf.org/html/rfc7483">
    *        RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
    */
-  public static ImmutableMap<String, Object> makeError(
+  static ImmutableMap<String, Object> makeError(
       int status, String title, String description) {
     return ImmutableMap.<String, Object>of(
         "rdapConformance", CONFORMANCE_LIST,

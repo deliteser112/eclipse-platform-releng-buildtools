@@ -3,24 +3,6 @@
   "notices" :
   [
     {
-      "title" : "RDAP Help",
-      "description" :
-      [
-        "RDAP Help Topics (use \/help\/topic for information)",
-        "syntax",
-        "tos (Terms of Service)"
-      ],
-      "links" :
-      [
-        {
-          "value" : "https://example.tld/rdap/help/%NAME%",
-          "rel" : "alternate",
-          "type" : "text/html",
-          "href" : "https://www.registry.google/about/rdap/index.html"
-        }
-      ]
-    },
-    {
       "title" : "RDAP Terms of Service",
       "description" :
       [

@@ -29,6 +29,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.Booleans;
 import com.google.domain.registry.model.domain.DomainResource;
 import com.google.domain.registry.model.host.HostResource;
+import com.google.domain.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import com.google.domain.registry.request.Action;
 import com.google.domain.registry.request.HttpException;
 import com.google.domain.registry.request.HttpException.BadRequestException;
@@ -82,8 +83,8 @@ public class RdapDomainSearchAction extends RdapActionBase {
 
   /** Parses the parameters and calls the appropriate search function. */
   @Override
-  public ImmutableMap<String, Object>
-      getJsonObjectForResource(final String pathSearchString) throws HttpException {
+  public ImmutableMap<String, Object> getJsonObjectForResource(
+      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
     DateTime now = clock.nowUtc();
     // RDAP syntax example: /rdap/domains?name=exam*.com.
     // The pathSearchString is not used by search commands.
@@ -122,7 +123,10 @@ public class RdapDomainSearchAction extends RdapActionBase {
     if (results.isEmpty()) {
       throw new NotFoundException("No domains found");
     }
-    return ImmutableMap.<String, Object>of("domainSearchResults", results);
+    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+    builder.put("domainSearchResults", results);
+    RdapJsonFormatter.addTopLevelEntries(builder, BoilerplateType.DOMAIN, null, rdapLinkBase);
+    return builder.build();
   }
 
   /** Searches for domains by domain name, returning a JSON array of domain info maps. */
@@ -136,7 +140,8 @@ public class RdapDomainSearchAction extends RdapActionBase {
         return ImmutableList.of();
       }
       return ImmutableList.of(
-          RdapJsonFormatter.makeRdapJsonForDomain(domainResource, rdapLinkBase, rdapWhoisServer));
+          RdapJsonFormatter.makeRdapJsonForDomain(
+              domainResource, false, rdapLinkBase, rdapWhoisServer));
     // Handle queries with a wildcard.
     } else {
       Query<DomainResource> query = ofy().load()
@@ -153,7 +158,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
         if (domainResource.getDeletionTime().isAfter(now)) {
           builder.add(
               RdapJsonFormatter.makeRdapJsonForDomain(
-                  domainResource, rdapLinkBase, rdapWhoisServer));
+                  domainResource, false, rdapLinkBase, rdapWhoisServer));
         }
       }
       return builder.build();
@@ -262,7 +267,8 @@ public class RdapDomainSearchAction extends RdapActionBase {
           .limit(1000);
       for (DomainResource domainResource : query) {
         builder.add(
-            RdapJsonFormatter.makeRdapJsonForDomain(domainResource, rdapLinkBase, rdapWhoisServer));
+            RdapJsonFormatter.makeRdapJsonForDomain(
+                domainResource, false, rdapLinkBase, rdapWhoisServer));
       }
     }
     return builder.build();

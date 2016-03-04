@@ -28,6 +28,7 @@ import com.google.common.primitives.Booleans;
 import com.google.domain.registry.config.ConfigModule.Config;
 import com.google.domain.registry.model.domain.DomainResource;
 import com.google.domain.registry.model.host.HostResource;
+import com.google.domain.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import com.google.domain.registry.request.Action;
 import com.google.domain.registry.request.HttpException;
 import com.google.domain.registry.request.HttpException.BadRequestException;
@@ -77,8 +78,8 @@ public class RdapNameserverSearchAction extends RdapActionBase {
 
   /** Parses the parameters and calls the appropriate search function. */
   @Override
-  public ImmutableMap<String, Object>
-      getJsonObjectForResource(final String pathSearchString) throws HttpException {
+  public ImmutableMap<String, Object> getJsonObjectForResource(
+      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
     DateTime now = clock.nowUtc();
     // RDAP syntax example: /rdap/nameservers?name=ns*.example.com.
     // The pathSearchString is not used by search commands.
@@ -105,7 +106,10 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     if (results.isEmpty()) {
       throw new NotFoundException("No nameservers found");
     }
-    return ImmutableMap.<String, Object>of("nameserverSearchResults", results);
+    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+    builder.put("nameserverSearchResults", results);
+    RdapJsonFormatter.addTopLevelEntries(builder, BoilerplateType.OTHER, null, rdapLinkBase);
+    return builder.build();
   }
 
   /** Searches for nameservers by name, returning a JSON array of nameserver info maps. */
@@ -120,7 +124,8 @@ public class RdapNameserverSearchAction extends RdapActionBase {
         throw new NotFoundException("No nameservers found");
       }
       return ImmutableList.of(
-          RdapJsonFormatter.makeRdapJsonForHost(hostResource, rdapLinkBase, rdapWhoisServer));
+          RdapJsonFormatter.makeRdapJsonForHost(
+              hostResource, false, rdapLinkBase, rdapWhoisServer));
     // Handle queries with a wildcard, but no suffix. There are no pending deletes for hosts, so we
     // can call queryUndeleted.
     } else if (partialStringQuery.getSuffix() == null) {
@@ -131,7 +136,8 @@ public class RdapNameserverSearchAction extends RdapActionBase {
       ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
       for (HostResource hostResource : query) {
         builder.add(
-            RdapJsonFormatter.makeRdapJsonForHost(hostResource, rdapLinkBase, rdapWhoisServer));
+            RdapJsonFormatter.makeRdapJsonForHost(
+                hostResource, false, rdapLinkBase, rdapWhoisServer));
       }
       return builder.build();
     // Handle queries with a wildcard and a suffix. In this case, it is more efficient to do things
@@ -151,7 +157,8 @@ public class RdapNameserverSearchAction extends RdapActionBase {
           HostResource hostResource = loadByUniqueId(HostResource.class, fqhn, clock.nowUtc());
           if (hostResource != null) {
             builder.add(
-                RdapJsonFormatter.makeRdapJsonForHost(hostResource, rdapLinkBase, rdapWhoisServer));
+                RdapJsonFormatter.makeRdapJsonForHost(
+                    hostResource, false, rdapLinkBase, rdapWhoisServer));
           }
         }
       }
@@ -174,7 +181,8 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
     for (HostResource hostResource : query) {
       builder.add(
-          RdapJsonFormatter.makeRdapJsonForHost(hostResource, rdapLinkBase, rdapWhoisServer));
+          RdapJsonFormatter.makeRdapJsonForHost(
+              hostResource, false, rdapLinkBase, rdapWhoisServer));
     }
     return builder.build();
   }

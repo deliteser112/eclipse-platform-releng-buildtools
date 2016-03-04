@@ -24,6 +24,7 @@ import com.google.domain.registry.model.contact.ContactResource;
 import com.google.domain.registry.model.domain.DesignatedContact;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.request.Action;
+import com.google.domain.registry.request.HttpException;
 import com.google.domain.registry.request.HttpException.BadRequestException;
 import com.google.domain.registry.request.HttpException.NotFoundException;
 import com.google.domain.registry.util.Clock;
@@ -58,7 +59,8 @@ public class RdapEntityAction extends RdapActionBase {
   }
 
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(String pathSearchString) {
+  public ImmutableMap<String, Object> getJsonObjectForResource(
+      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
     // The query string is not used; the RDAP syntax is /rdap/entity/handle (the handle is the roid
     // for contacts and the client identifier for registrars). Since RDAP's concept of an entity
     // includes both contacts and registrars, search for one first, then the other.
@@ -70,6 +72,7 @@ public class RdapEntityAction extends RdapActionBase {
       if ((contactResource != null) && clock.nowUtc().isBefore(contactResource.getDeletionTime())) {
         return RdapJsonFormatter.makeRdapJsonForContact(
             contactResource,
+            true,
             Optional.<DesignatedContact.Type>absent(),
             rdapLinkBase,
             rdapWhoisServer);
@@ -80,7 +83,8 @@ public class RdapEntityAction extends RdapActionBase {
       wasValidKey = true;
       Registrar registrar = Registrar.loadByClientId(clientId);
       if ((registrar != null) && registrar.isActiveAndPubliclyVisible()) {
-        return RdapJsonFormatter.makeRdapJsonForRegistrar(registrar, rdapLinkBase, rdapWhoisServer);
+        return RdapJsonFormatter.makeRdapJsonForRegistrar(
+            registrar, true, rdapLinkBase, rdapWhoisServer);
       }
     }
     throw !wasValidKey

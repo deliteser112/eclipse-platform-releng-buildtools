@@ -187,32 +187,36 @@ public class RdapJsonFormatterTest {
 
   @Test
   public void testRegistrar() throws Exception {
-    assertThat(RdapJsonFormatter.makeRdapJsonForRegistrar(registrar, LINK_BASE, WHOIS_SERVER))
-        .isEqualTo(loadJson("rdapjson_registrar.json"));
+    assertThat(
+        RdapJsonFormatter.makeRdapJsonForRegistrar(registrar, false, LINK_BASE, WHOIS_SERVER))
+            .isEqualTo(loadJson("rdapjson_registrar.json"));
   }
 
   @Test
   public void testHost_ipv4() throws Exception {
-    assertThat(RdapJsonFormatter.makeRdapJsonForHost(hostResourceIpv4, LINK_BASE, WHOIS_SERVER))
-        .isEqualTo(loadJson("rdapjson_host_ipv4.json"));
+    assertThat(
+        RdapJsonFormatter.makeRdapJsonForHost(hostResourceIpv4, false, LINK_BASE, WHOIS_SERVER))
+            .isEqualTo(loadJson("rdapjson_host_ipv4.json"));
   }
 
   @Test
   public void testHost_ipv6() throws Exception {
-    assertThat(RdapJsonFormatter.makeRdapJsonForHost(hostResourceIpv6, LINK_BASE, WHOIS_SERVER))
-        .isEqualTo(loadJson("rdapjson_host_ipv6.json"));
+    assertThat(
+        RdapJsonFormatter.makeRdapJsonForHost(hostResourceIpv6, false, LINK_BASE, WHOIS_SERVER))
+            .isEqualTo(loadJson("rdapjson_host_ipv6.json"));
   }
 
   @Test
   public void testHost_both() throws Exception {
-    assertThat(RdapJsonFormatter.makeRdapJsonForHost(hostResourceBoth, LINK_BASE, WHOIS_SERVER))
-        .isEqualTo(loadJson("rdapjson_host_both.json"));
+    assertThat(
+        RdapJsonFormatter.makeRdapJsonForHost(hostResourceBoth, false, LINK_BASE, WHOIS_SERVER))
+            .isEqualTo(loadJson("rdapjson_host_both.json"));
   }
 
   @Test
   public void testHost_noAddresses() throws Exception {
     assertThat(RdapJsonFormatter.makeRdapJsonForHost(
-            hostResourceNoAddresses, LINK_BASE, WHOIS_SERVER))
+            hostResourceNoAddresses, false, LINK_BASE, WHOIS_SERVER))
         .isEqualTo(loadJson("rdapjson_host_no_addresses.json"));
   }
 
@@ -221,6 +225,7 @@ public class RdapJsonFormatterTest {
     assertThat(
             RdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceRegistrant,
+                false,
                 Optional.of(DesignatedContact.Type.REGISTRANT),
                 LINK_BASE,
                 WHOIS_SERVER))
@@ -232,6 +237,7 @@ public class RdapJsonFormatterTest {
     assertThat(
             RdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceRegistrant,
+                false,
                 Optional.of(DesignatedContact.Type.REGISTRANT),
                 LINK_BASE_NO_TRAILING_SLASH,
                 WHOIS_SERVER))
@@ -243,6 +249,7 @@ public class RdapJsonFormatterTest {
     assertThat(
             RdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceRegistrant,
+                false,
                 Optional.of(DesignatedContact.Type.REGISTRANT),
                 null,
                 WHOIS_SERVER))
@@ -254,6 +261,7 @@ public class RdapJsonFormatterTest {
     assertThat(
             RdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceAdmin,
+                false,
                 Optional.of(DesignatedContact.Type.ADMIN),
                 LINK_BASE,
                 WHOIS_SERVER))
@@ -265,6 +273,7 @@ public class RdapJsonFormatterTest {
     assertThat(
             RdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceTech,
+                false,
                 Optional.of(DesignatedContact.Type.TECH),
                 LINK_BASE,
                 WHOIS_SERVER))
@@ -274,7 +283,8 @@ public class RdapJsonFormatterTest {
   @Test
   public void testDomain_full() throws Exception {
     assertThat(
-            RdapJsonFormatter.makeRdapJsonForDomain(domainResourceFull, LINK_BASE, WHOIS_SERVER))
+            RdapJsonFormatter.makeRdapJsonForDomain(
+                domainResourceFull, false, LINK_BASE, WHOIS_SERVER))
         .isEqualTo(loadJson("rdapjson_domain_full.json"));
   }
 
@@ -282,7 +292,7 @@ public class RdapJsonFormatterTest {
   public void testDomain_noRegistrant() throws Exception {
     assertThat(
             RdapJsonFormatter.makeRdapJsonForDomain(
-                domainResourceNoRegistrant, LINK_BASE, WHOIS_SERVER))
+                domainResourceNoRegistrant, false, LINK_BASE, WHOIS_SERVER))
         .isEqualTo(loadJson("rdapjson_domain_no_registrant.json"));
   }
 
@@ -290,7 +300,7 @@ public class RdapJsonFormatterTest {
   public void testDomain_noContacts() throws Exception {
     assertThat(
             RdapJsonFormatter.makeRdapJsonForDomain(
-                domainResourceNoContacts, LINK_BASE, WHOIS_SERVER))
+                domainResourceNoContacts, false, LINK_BASE, WHOIS_SERVER))
         .isEqualTo(loadJson("rdapjson_domain_no_contacts.json"));
   }
 
@@ -298,7 +308,7 @@ public class RdapJsonFormatterTest {
   public void testDomain_noNameservers() throws Exception {
     assertThat(
             RdapJsonFormatter.makeRdapJsonForDomain(
-                domainResourceNoNameservers, LINK_BASE, WHOIS_SERVER))
+                domainResourceNoNameservers, false, LINK_BASE, WHOIS_SERVER))
         .isEqualTo(loadJson("rdapjson_domain_no_nameservers.json"));
   }
 
@@ -375,8 +385,49 @@ public class RdapJsonFormatterTest {
 
   @Test
   public void testTopLevel() throws Exception {
-    assertThat(
-            RdapJsonFormatter.makeFinalRdapJson(ImmutableMap.<String, Object>of("key", "value")))
-        .isEqualTo(loadJson("rdapjson_toplevel.json"));
+    ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+    builder.put("key", "value");
+    RdapJsonFormatter.addTopLevelEntries(
+        builder,
+        RdapJsonFormatter.BoilerplateType.OTHER,
+        null,
+        LINK_BASE);
+    assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel.json"));
+  }
+
+  @Test
+  public void testTopLevel_withTermsOfService() throws Exception {
+    ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+    builder.put("key", "value");
+    RdapJsonFormatter.addTopLevelEntries(
+        builder,
+        RdapJsonFormatter.BoilerplateType.OTHER,
+        ImmutableList.of(RdapHelpAction.getJsonHelpNotice("/tos", LINK_BASE)),
+        LINK_BASE);
+    assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel.json"));
+  }
+
+  @Test
+  public void testTopLevel_domain() throws Exception {
+    ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+    builder.put("key", "value");
+    RdapJsonFormatter.addTopLevelEntries(
+        builder,
+        RdapJsonFormatter.BoilerplateType.DOMAIN,
+        null,
+        LINK_BASE);
+    assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel_domain.json"));
+  }
+
+  @Test
+  public void testTopLevel_domainWithTermsOfService() throws Exception {
+    ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+    builder.put("key", "value");
+    RdapJsonFormatter.addTopLevelEntries(
+        builder,
+        RdapJsonFormatter.BoilerplateType.DOMAIN,
+        ImmutableList.of(RdapHelpAction.getJsonHelpNotice("/tos", LINK_BASE)),
+        LINK_BASE);
+    assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel_domain.json"));
   }
 }

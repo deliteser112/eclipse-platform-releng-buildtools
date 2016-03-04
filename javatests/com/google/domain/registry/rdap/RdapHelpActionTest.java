@@ -109,7 +109,8 @@ public class RdapHelpActionTest {
 
   @Test
   public void testHelpActionTos_works() throws Exception {
-    generateActualJson("/tos");
+    assertThat(generateActualJson("/tos"))
+        .isEqualTo(generateExpectedJson("", "rdap_help_tos.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 }

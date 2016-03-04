@@ -49,8 +49,8 @@ public class RdapDomainAction extends RdapActionBase {
   }
 
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(String pathSearchString)
-      throws HttpException {
+  public ImmutableMap<String, Object> getJsonObjectForResource(
+      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
     pathSearchString = canonicalizeName(pathSearchString);
     validateDomainName(pathSearchString);
     // The query string is not used; the RDAP syntax is /rdap/domain/mydomain.com.
@@ -59,6 +59,7 @@ public class RdapDomainAction extends RdapActionBase {
     if (domainResource == null) {
       throw new NotFoundException(pathSearchString + " not found");
     }
-    return RdapJsonFormatter.makeRdapJsonForDomain(domainResource, rdapLinkBase, rdapWhoisServer);
+    return RdapJsonFormatter.makeRdapJsonForDomain(
+        domainResource, true, rdapLinkBase, rdapWhoisServer);
   }
 }

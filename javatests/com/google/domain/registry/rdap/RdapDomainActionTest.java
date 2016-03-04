@@ -164,6 +164,12 @@ public class RdapDomainActionTest {
       if (!map.containsKey("rdapConformance")) {
         builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
       }
+      if (!map.containsKey("notices")) {
+        RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.com/rdap/");
+      }
+      if (!map.containsKey("remarks")) {
+        RdapTestHelper.addDomainBoilerplateRemarks(builder);
+      }
       if (!map.containsKey("port43")) {
         builder.put("port43", "whois.example.com");
       }
