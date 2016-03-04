@@ -28,7 +28,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.config.RegistryEnvironment;
 import com.google.domain.registry.model.EppResource.Builder;
 import com.google.domain.registry.model.EppResource.ForeignKeyedEppResource;
-import com.google.domain.registry.model.EppResource.SharedFields;
 import com.google.domain.registry.model.contact.ContactResource;
 import com.google.domain.registry.model.domain.DomainBase;
 import com.google.domain.registry.model.domain.ReferenceUnion;
@@ -179,7 +178,7 @@ public final class EppResourceUtils {
   }
 
   /**
-   * Loads resources that match some filter and that have {@link SharedFields#deletionTime} that is
+   * Loads resources that match some filter and that have {@link EppResource#deletionTime} that is
    * not before "now".
    *
    * <p>This is an eventually consistent query.
@@ -194,7 +193,7 @@ public final class EppResourceUtils {
     return transform(
         ofy().load().type(clazz)
             .filter(filterDefinition, filterValue)
-            .filter("sharedFields.deletionTime >", now.toDate()),
+            .filter("deletionTime >", now.toDate()),
         EppResourceUtils.<T>transformAtTime(now));
   }
 
@@ -379,7 +378,7 @@ public final class EppResourceUtils {
                 ? "allContacts.contactId.linked"
                 : "nameservers.linked",
             ref)
-        .filter("sharedFields.deletionTime >", now)
+        .filter("deletionTime >", now)
         .limit(limit)
         .keys()
         .list();

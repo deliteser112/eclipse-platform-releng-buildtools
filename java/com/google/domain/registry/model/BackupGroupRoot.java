@@ -14,8 +14,6 @@
 
 package com.google.domain.registry.model;
 
-import com.google.domain.registry.model.EppResource.SharedFields;
-
 import javax.xml.bind.annotation.XmlTransient;
 
 /**
@@ -30,9 +28,8 @@ public abstract class BackupGroupRoot extends ImmutableObject {
   /**
    * An automatically managed timestamp of when this object was last written to datastore.
    *
-   * <p>Note that this is distinct from the EPP-specified {@link SharedFields#lastUpdateTime} on
-   * {@link EppResource} objects, in that it is updated on every save, rather than just in response
-   * to an {@code <update>} command.
+   * <p>Note that this is distinct from the EPP-specified {@link EppResource#lastEppUpdateTime}, in
+   * that this is updated on every save, rather than only in response to an {@code <update>} command
    */
   @XmlTransient
   UpdateAutoTimestamp updateTimestamp = UpdateAutoTimestamp.create(null);

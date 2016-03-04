@@ -230,7 +230,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
         .load()
         .type(HostResource.class)
         .filter("inetAddresses", inetAddress.getHostAddress())
-        .filter("sharedFields.deletionTime", END_OF_TIME)
+        .filter("deletionTime", END_OF_TIME)
         .limit(1000)
         .keys();
     ImmutableList.Builder<Ref<HostResource>> builder = new ImmutableList.Builder<>();
@@ -258,7 +258,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
       Query<DomainResource> query = ofy().load()
           .type(DomainResource.class)
           .filter("nameservers.linked in", chunk)
-          .filter("sharedFields.deletionTime >", now)
+          .filter("deletionTime >", now)
           .limit(1000);
       for (DomainResource domainResource : query) {
         builder.add(

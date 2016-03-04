@@ -172,7 +172,7 @@ public abstract class RdapActionBase implements Runnable {
         .type(clazz)
         .filter(filterField + " >=", partialStringQuery.getInitialString())
         .filter(filterField + " <", partialStringQuery.getNextInitialString())
-        .filter("sharedFields.deletionTime", END_OF_TIME)
+        .filter("deletionTime", END_OF_TIME)
         .limit(resultSetMaxSize);
   }
 }

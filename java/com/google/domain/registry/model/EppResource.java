@@ -35,7 +35,6 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
-import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.condition.IfNull;
 
 import org.joda.time.DateTime;
@@ -62,6 +61,7 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
   // TODO(b/19035583): Remove this after touching all resources and waiting long enough to be sure
   // we don't need to reload old commit logs.
   @XmlTransient
+  @Deprecated
   SharedFields sharedFields = new SharedFields();
 
   /** The ID of the registrar that is currently sponsoring this resource. */
@@ -270,25 +270,6 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
     /** Data about any pending or past transfers on this contact. */
     @IgnoreSave(IfNull.class)
     TransferData transferData;
-  }
-
-  /** Read sharedFields values into their new locations. */
-  // TODO(b/25442343,b/19035583): Remove this.
-  @OnLoad
-  public void loadLegacySharedFields() {
-    currentSponsorClientId = sharedFields.currentSponsorClientId;
-    creationClientId = sharedFields.creationRegistryClientId;
-    lastEppUpdateClientId = sharedFields.lastUpdateRegistryClientId;
-    creationTime = sharedFields.creationTime;
-    deletionTime = sharedFields.deletionTime;
-    lastEppUpdateTime = sharedFields.lastUpdateTime;
-    lastTransferTime = sharedFields.lastTransferTime;
-    status = sharedFields.statusValues == null
-        ? null
-        : FluentIterable.from(sharedFields.statusValues)
-            .transform(StatusValue.LEGACY_CONVERTER.reverse())
-            .toSet();
-    transferData = sharedFields.transferData;
   }
 
   /** Abstract builder for {@link EppResource} types. */

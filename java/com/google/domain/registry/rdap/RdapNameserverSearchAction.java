@@ -169,7 +169,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
         .load()
         .type(HostResource.class)
         .filter("inetAddresses", inetAddress.getHostAddress())
-        .filter("sharedFields.deletionTime", END_OF_TIME)
+        .filter("deletionTime", END_OF_TIME)
         .limit(rdapResultSetMaxSize);
     ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
     for (HostResource hostResource : query) {

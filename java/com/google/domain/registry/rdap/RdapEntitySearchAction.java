@@ -134,7 +134,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
           .filterKey(">=", Key.create(ContactResource.class, partialStringQuery.getInitialString()))
           .filterKey(
               "<", Key.create(ContactResource.class, partialStringQuery.getNextInitialString()))
-          .filter("sharedFields.deletionTime", END_OF_TIME)
+          .filter("deletionTime", END_OF_TIME)
           .limit(rdapResultSetMaxSize);
       for (ContactResource contactResource : query) {
         builder.add(RdapJsonFormatter.makeRdapJsonForContact(
