@@ -31,7 +31,7 @@ java_plugin(
     visibility = ["//visibility:private"],
     deps = [
         "@auto_factory//jar",
-        "@bazel_tools//third_party:guava",
+        "@guava//jar",
         "@javawriter//jar",
         ":auto_common",
     ],
@@ -43,7 +43,7 @@ java_plugin(
     visibility = ["//visibility:private"],
     deps = [
         "@auto_service//jar",
-        "@bazel_tools//third_party:guava",
+        "@guava//jar",
         ":auto_common",
     ],
 )
@@ -54,8 +54,8 @@ java_plugin(
     visibility = ["//visibility:private"],
     deps = [
         "@auto_value//jar",
-        "@bazel_tools//third_party:guava",
-        "@bazel_tools//third_party:jsr305",
+        "@guava//jar",
         ":auto_common",
+        "//third_party/java/jsr305_annotations",
     ],
 )

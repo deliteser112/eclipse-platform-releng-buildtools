@@ -26,5 +26,6 @@ java_library(
         "//third_party/java/jsr305_annotations",
         "//third_party/java/jsr330_inject",
         "//third_party/java/objectify:objectify-v4_1",
+        "//third_party/java/servlet/servlet_api",
     ],
 )

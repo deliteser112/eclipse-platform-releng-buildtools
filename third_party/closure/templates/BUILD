@@ -13,13 +13,13 @@ java_library(
         "@asm_analysis//jar",
         "@asm_commons//jar",
         "@asm_util//jar",
-        "@bazel_tools//third_party:guava",
-        "@bazel_tools//third_party:jsr305",
-        "@bazel_tools//third_party:jsr330_inject",
+        "@guava//jar",
         "@guice//jar",
         "@guice_assistedinject//jar",
         "@guice_multibindings//jar",
         "@icu4j//jar",
+        "//third_party/java/jsr305_annotations",
+        "//third_party/java/jsr330_inject",
     ],
 )
 

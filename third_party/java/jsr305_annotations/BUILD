@@ -4,5 +4,5 @@ licenses(["notice"])  # BSD License
 
 java_library(
     name = "jsr305_annotations",
-    exports = ["@bazel_tools//third_party:jsr305"],
+    exports = ["@jsr305//jar"],
 )

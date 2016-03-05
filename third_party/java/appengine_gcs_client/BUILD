@@ -4,8 +4,8 @@ licenses(["notice"])  # Apache License 2.0
 
 java_library(
     name = "appengine_gcs_client",
-    exports = [
-        "@appengine_gcs_client//jar",
+    exports = ["@appengine_gcs_client//jar"],
+    runtime_deps = [
         "@google_api_client_appengine//jar",
         "@google_api_services_storage//jar",
         "@google_http_client_appengine//jar",

@@ -5,5 +5,8 @@ licenses(["reciprocal"])  # Common Public License 1.0
 java_library(
     name = "junit",
     testonly = 1,
-    exports = ["@bazel_tools//third_party:junit4"],
+    exports = [
+        "@hamcrest_core//jar",
+        "@junit//jar",
+    ],
 )

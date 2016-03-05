@@ -5,5 +5,5 @@ licenses(["notice"])  # Apache License 2.0
 java_library(
     name = "truth",
     testonly = 1,
-    exports = ["@bazel_tools//third_party:truth"],
+    exports = ["@truth//jar"],
 )

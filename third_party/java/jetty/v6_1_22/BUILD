@@ -8,6 +8,6 @@ java_library(
     exports = [
         "@jetty//jar",
         "@jetty_util//jar",
-        "@servlet_api//jar",
     ],
+    runtime_deps = ["@servlet_api//jar"],
 )

@@ -156,11 +156,12 @@ maven_jar(
     sha1 = "5a2f4be6cf41e27ed7119d26cb8f106300d87d91",
 )
 
-new_git_repository(
+new_http_archive(
     name = "closure_library",
     build_file = "third_party/closure/library/closure_library.BUILD",
-    remote = "https://github.com/google/closure-library.git",
-    tag = "20160208",
+    sha256 = "8f610300e4930190137505a574a54d12346426f2a7b4f179026e41674e452a86",
+    strip_prefix = "closure-library-20160208",
+    url = "https://github.com/google/closure-library/archive/20160208.zip",
 )
 
 maven_jar(
@@ -284,6 +285,24 @@ maven_jar(
 )
 
 maven_jar(
+    name = "gson",
+    artifact = "com.google.code.gson:gson:2.4",
+    sha1 = "0695b63d702f505b9b916e02272e3b6381bade7f",
+)
+
+maven_jar(
+    name = "guava",
+    artifact = "com.google.guava:guava:19.0",
+    sha1 = "6ce200f6b23222af3d8abb6b6459e6c44f4bb0e9",
+)
+
+maven_jar(
+    name = "guava_testlib",
+    artifact = "com.google.guava:guava-testlib:19.0",
+    sha1 = "ce5b880b206de3f76d364988a6308c68c726f74a",
+)
+
+maven_jar(
     name = "guice",
     artifact = "com.google.inject:guice:3.0",
     sha1 = "9d84f15fe35e2c716a02979fb62f50a29f38aefa",
@@ -392,6 +411,12 @@ maven_jar(
 )
 
 maven_jar(
+    name = "joda_time",
+    artifact = "joda-time:joda-time:2.3",
+    sha1 = "56498efd17752898cfcc3868c1b6211a07b12b8f",
+)
+
+maven_jar(
     name = "json",
     artifact = "org.json:json:20090211",
     sha1 = "c183aa3a2a6250293808bba12262c8920ce5a51c",
@@ -404,6 +429,24 @@ maven_jar(
 )
 
 maven_jar(
+    name = "jsr305",
+    artifact = "com.google.code.findbugs:jsr305:1.3.9",
+    sha1 = "40719ea6961c0cb6afaeb6a921eaa1f6afd4cfdf",
+)
+
+maven_jar(
+    name = "jsr330_inject",
+    artifact = "javax.inject:javax.inject:1",
+    sha1 = "6975da39a7040257bd51d21a231b76c915872d38",
+)
+
+maven_jar(
+    name = "junit",
+    artifact = "junit:junit:4.11",
+    sha1 = "4e031bb61df09069aeb2bffb4019e7a5034a4ee0",
+)
+
+maven_jar(
     name = "jzlib",
     artifact = "com.jcraft:jzlib:1.1.3",
     sha1 = "c01428efa717624f7aabf4df319939dda9646b2d",
@@ -413,6 +456,12 @@ maven_jar(
     name = "mina_core",
     artifact = "org.apache.mina:mina-core:2.0.0",
     sha1 = "4ae3550e925c2621eca3ef9fb4de5298d6f91cc4",
+)
+
+maven_jar(
+    name = "mockito",
+    artifact = "org.mockito:mockito-all:1.9.5",
+    sha1 = "79a8984096fc6591c1e3690e07d41be506356fa5",
 )
 
 # XXX: new_http_archive() doesn't maintain the executable bit.
@@ -463,4 +512,10 @@ maven_jar(
     name = "sshd_core",
     artifact = "org.apache.sshd:sshd-core:0.7.0",
     sha1 = "ef5d0cae23845dead3fc53ecd61bd990ed42f60f",
+)
+
+maven_jar(
+    name = "truth",
+    artifact = "com.google.truth:truth:0.28",
+    sha1 = "0a388c7877c845ff4b8e19689dda5ac9d34622c4",
 )

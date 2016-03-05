@@ -8,9 +8,9 @@ java_binary(
     main_class = "com.google.common.css.compiler.commandline.ClosureCommandLineCompiler",
     runtime_deps = [
         "@args4j//jar",
-        "@bazel_tools//third_party:gson",
-        "@bazel_tools//third_party:guava",
-        "@bazel_tools//third_party:jsr305",
         "@closure_stylesheets//jar",
+        "@gson//jar",
+        "@guava//jar",
+        "//third_party/java/jsr305_annotations",
     ],
 )

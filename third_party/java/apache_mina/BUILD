@@ -4,8 +4,6 @@ licenses(["notice"])  # Apache License 2.0
 
 java_library(
     name = "core",
-    exports = [
-        "@mina_core//jar",
-        "//third_party/java/slf4j_api",
-    ],
+    exports = ["@mina_core//jar"],
+    runtime_deps = ["//third_party/java/slf4j_api"],
 )

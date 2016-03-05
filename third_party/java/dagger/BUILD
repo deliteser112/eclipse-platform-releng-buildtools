@@ -10,34 +10,34 @@ java_library(
 java_library(
     name = "dagger-runtime",
     exports = [
-        "@bazel_tools//third_party:jsr330_inject",
         "@dagger//jar",
+        "//third_party/java/jsr330_inject",
     ],
 )
 
 java_library(
     name = "dagger-producers",
     exports = [
-        "@bazel_tools//third_party:guava",
-        "@bazel_tools//third_party:jsr330_inject",
         "@dagger_producers//jar",
+        "@guava//jar",
+        "//third_party/java/jsr330_inject",
     ],
 )
 
 java_library(
     name = "dagger-compiler",
-    exports = [
-        "@bazel_tools//third_party:auto_common",
-        "@bazel_tools//third_party:auto_service",
-        "@bazel_tools//third_party:auto_value",
-        "@bazel_tools//third_party:gson",
-        "@bazel_tools//third_party:guava",
-        "@bazel_tools//third_party:jsr305",
-        "@bazel_tools//third_party:jsr330_inject",
-        "@dagger_compiler//jar",
+    exports = ["@dagger_compiler//jar"],
+    runtime_deps = [
+        "@gson//jar",
+        "@guava//jar",
         ":dagger-producers",
         ":dagger-runtime",
+        "//third_party/java/auto:auto_common",
+        "//third_party/java/auto:auto_service",
+        "//third_party/java/auto:auto_value",
         "//third_party/java/javapoet",
+        "//third_party/java/jsr305_annotations",
+        "//third_party/java/jsr330_inject",
     ],
 )
 
