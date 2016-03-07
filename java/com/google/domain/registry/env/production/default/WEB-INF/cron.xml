@@ -181,9 +181,10 @@
   </cron>
 
   <cron>
-    <url><![CDATA[/_dr/cron/fanout?queue=dns-cron&endpoint=/_dr/task/writeDns&forEachRealTld&forEachTestTld&jitterSeconds=60]]></url>
+    <url><![CDATA[/_dr/cron/readDnsQueue?jitterSeconds=45]]></url>
     <description>
-      Write updates to the DNS system. Lease tasks from the dns-pull queue until empty.
+      Lease all tasks from the dns-pull queue, group by TLD, and invoke PublishDnsUpdates for each
+      group.
     </description>
     <schedule>every 1 minutes synchronized</schedule>
     <target>backend</target>
