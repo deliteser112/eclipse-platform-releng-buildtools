@@ -223,7 +223,7 @@ public final class ConfigModule {
   public static String provideGoogleAppsAdminEmailAddress(RegistryEnvironment environment) {
     switch (environment) {
       case PRODUCTION:
-        return "admin@googleregistry.co";
+        return "admin@registry.google";
       default:
         return "admin@domainregistry-sandbox.co";
     }
@@ -240,7 +240,7 @@ public final class ConfigModule {
   public static String providePublicDomainName(RegistryEnvironment environment) {
     switch (environment) {
       case PRODUCTION:
-        return "googleregistry.co";
+        return "registry.google";
       default:
         return "domainregistry-sandbox.co";
     }
