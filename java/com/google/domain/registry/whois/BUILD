@@ -7,6 +7,7 @@ java_library(
     name = "whois",
     srcs = glob(["*.java"]),
     resources = ["disclaimer.txt"],
+    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",

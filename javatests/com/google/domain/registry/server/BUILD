@@ -3,6 +3,7 @@ package(default_visibility = ["//java/com/google/domain/registry:registry_projec
 
 java_library(
     name = "TestServer",
+    visibility = ["//visibility:public"],
     srcs = [
         "HealthzServlet.java",
         "Route.java",
