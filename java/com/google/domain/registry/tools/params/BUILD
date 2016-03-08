@@ -5,6 +5,7 @@ package(
 
 java_library(
     name = "params",
+    visibility = ["//visibility:public"],
     srcs = glob(["*.java"]),
     deps = [
         "//java/com/google/common/annotations",
