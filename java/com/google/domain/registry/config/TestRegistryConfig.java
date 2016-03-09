@@ -53,6 +53,11 @@ public class TestRegistryConfig implements RegistryConfig {
   }
 
   @Override
+  public String getDomainListsBucket() {
+    return getProjectId() + "-domain-lists";
+  }
+
+  @Override
   public String getSnapshotsDataset() {
     return "snapshots";
   }

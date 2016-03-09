@@ -82,6 +82,12 @@ public final class ConfigModule {
     return config.getCommitLogDatastoreRetention();
   }
 
+  @Provides
+  @Config("domainListsGcsBucket")
+  public static String provideDomainListsGcsBucket(RegistryConfig config) {
+    return config.getDomainListsBucket();
+  }
+
   /**
    * Maximum number of commit logs to delete per transaction.
    *

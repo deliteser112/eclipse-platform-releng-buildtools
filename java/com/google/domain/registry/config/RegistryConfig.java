@@ -45,6 +45,13 @@ public interface RegistryConfig {
   public String getSnapshotsBucket();
 
   /**
+   * Returns the Google Cloud Storage bucket for storing exported domain lists.
+   *
+   * @see com.google.domain.registry.export.ExportDomainListsAction
+   */
+  public String getDomainListsBucket();
+
+  /**
    * Returns the BigQuery dataset for storing directly imported datastore snapshots.
    *
    * @see com.google.domain.registry.export.LoadSnapshotServlet

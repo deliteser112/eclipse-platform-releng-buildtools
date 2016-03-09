@@ -125,6 +125,15 @@
   </cron>
 
   <cron>
+    <url><![CDATA[/_dr/task/exportDomainLists]]></url>
+    <description>
+      This job exports lists of all active domain names to Google Cloud Storage.
+    </description>
+    <schedule>every 12 hours synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
     <url><![CDATA[/_dr/cron/fanout?queue=export-snapshot&endpoint=/_dr/task/exportSnapshot&runInEmpty]]></url>
     <description>
       This job fires off a datastore backup-as-a-service job that generates snapshot files in GCS.

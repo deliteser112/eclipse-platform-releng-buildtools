@@ -28,6 +28,7 @@ import com.google.domain.registry.dns.ReadDnsQueueAction;
 import com.google.domain.registry.dns.RefreshDns;
 import com.google.domain.registry.dns.WriteDnsTask;
 import com.google.domain.registry.export.BigqueryPollJobAction;
+import com.google.domain.registry.export.ExportDomainListsAction;
 import com.google.domain.registry.export.ExportRequestModule;
 import com.google.domain.registry.export.ExportReservedTermsTask;
 import com.google.domain.registry.export.SyncGroupMembersTask;
@@ -81,6 +82,7 @@ interface BackendRequestComponent {
   DeleteOldCommitLogsAction deleteOldCommitLogsAction();
   DnsRefreshForHostRenameAction dnsRefreshForHostRenameAction();
   ExportCommitLogDiffAction exportCommitLogDiffAction();
+  ExportDomainListsAction exportDomainListsAction();
   ExportReservedTermsTask exportReservedTermsTask();
   NordnUploadAction nordnUploadAction();
   NordnVerifyAction nordnVerifyAction();

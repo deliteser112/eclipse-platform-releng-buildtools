@@ -364,6 +364,15 @@
     <url-pattern>/_dr/task/syncGroupMembers</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>export-domain-lists</servlet-name>
+    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>export-domain-lists</servlet-name>
+    <url-pattern>/_dr/task/exportDomainLists</url-pattern>
+  </servlet-mapping>
+
   <!--  Mapreduce to delete the specified contact resource if it is not referenced by any domains. -->
   <servlet>
     <description>

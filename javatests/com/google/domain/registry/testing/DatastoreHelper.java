@@ -286,8 +286,7 @@ public class DatastoreHelper {
   }
 
   public static DomainResource persistDomainAsDeleted(DomainResource domain, DateTime now) {
-    return persistResource(
-        domain.asBuilder().setDeletionTime(now.minusDays(1)).build());
+    return persistResource(domain.asBuilder().setDeletionTime(now.minusDays(1)).build());
   }
 
   /** Persists a domain and enqueues a LORDN task of the appropriate type for it. */

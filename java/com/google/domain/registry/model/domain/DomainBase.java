@@ -52,7 +52,7 @@ import javax.xml.bind.annotation.XmlTransient;
 public abstract class DomainBase extends EppResource {
 
   /**
-   * Fully qualified domain name, which serves as the foreign key for this domain.
+   * Fully qualified domain name (puny-coded), which serves as the foreign key for this domain.
    * <p>
    * This is only unique in the sense that for any given lifetime specified as the time range from
    * (creationTime, deletionTime) there can only be one domain in the datastore with this name.
