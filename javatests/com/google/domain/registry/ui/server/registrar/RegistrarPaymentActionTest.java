@@ -22,6 +22,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.domain.registry.model.registrar.Registrar;
+import com.google.domain.registry.testing.AppEngineRule;
 
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.Result;
@@ -35,6 +37,7 @@ import com.braintreegateway.ValidationErrors;
 
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -48,6 +51,9 @@ import java.math.BigDecimal;
 /** Tests for {@link RegistrarPaymentAction}. */
 @RunWith(MockitoJUnitRunner.class)
 public class RegistrarPaymentActionTest {
+
+  @Rule
+  public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Mock
   private BraintreeGateway braintreeGateway;
@@ -71,6 +77,7 @@ public class RegistrarPaymentActionTest {
 
   @Before
   public void before() throws Exception {
+    paymentAction.registrar = Registrar.loadByClientId("TheRegistrar");
     paymentAction.accountIds =
         ImmutableMap.of(
             CurrencyUnit.USD, "merchant-account-usd",
@@ -106,6 +113,8 @@ public class RegistrarPaymentActionTest {
         .isEqualTo(BigDecimal.valueOf(123.4).setScale(2));
     assertThat(extractField(String.class, transactionRequest, "merchantAccountId"))
         .isEqualTo("merchant-account-usd");
+    assertThat(extractField(String.class, transactionRequest, "customerId"))
+        .isEqualTo("TheRegistrar");
   }
 
   @Test

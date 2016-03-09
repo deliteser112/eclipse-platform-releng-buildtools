@@ -24,6 +24,7 @@ import static java.util.Arrays.asList;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.domain.registry.config.ConfigModule.Config;
+import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.request.Action;
 import com.google.domain.registry.request.JsonActionRunner;
 import com.google.domain.registry.request.JsonActionRunner.JsonAction;
@@ -145,6 +146,7 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
 
   @Inject BraintreeGateway braintreeGateway;
   @Inject JsonActionRunner jsonActionRunner;
+  @Inject Registrar registrar;
   @Inject @Config("braintreeMerchantAccountIds") ImmutableMap<CurrencyUnit, String> accountIds;
   @Inject RegistrarPaymentAction() {}
 
@@ -183,6 +185,7 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
                 .amount(amount.getAmount())
                 .paymentMethodNonce(paymentMethodNonce)
                 .merchantAccountId(merchantAccountId)
+                .customerId(registrar.getClientIdentifier())
                 .options()
                     .submitForSettlement(true)
                     .done());

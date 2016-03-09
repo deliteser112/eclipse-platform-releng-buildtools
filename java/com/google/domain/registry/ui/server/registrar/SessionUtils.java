@@ -33,6 +33,7 @@ import com.google.domain.registry.util.FormattingLogger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -47,6 +48,7 @@ public class SessionUtils {
 
   private final UserService userService;
 
+  @Inject
   public SessionUtils(UserService userService) {
     this.userService = checkNotNull(userService);
   }
