@@ -38,6 +38,5 @@ java_binary(
     create_executable = 0,
     runtime_deps = [
         ":tools",
-        "//java/com/google/domain/registry/ui/server/admin",  # VerifyOteServlet
     ],
 )

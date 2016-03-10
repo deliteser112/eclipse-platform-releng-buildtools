@@ -49,7 +49,6 @@ java_library(
         "//java/com/google/domain/registry/flows",
         "//java/com/google/domain/registry/module/backend",
         "//java/com/google/domain/registry/module/frontend",
-        "//java/com/google/domain/registry/ui/server/admin",
         "//java/com/google/domain/registry/ui/server/api",
         "//java/com/google/domain/registry/ui/server/registrar",
         "//third_party/java/jsr305_annotations",

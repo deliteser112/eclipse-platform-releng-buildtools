@@ -15,10 +15,8 @@ filegroup(
     name = "js_files_recursive",
     srcs = [
         "//java/com/google/domain/registry/ui/js:js_files",
-        "//java/com/google/domain/registry/ui/js/admin:js_files",
         "//java/com/google/domain/registry/ui/js/registrar:js_files",
         "//java/com/google/domain/registry/ui/soy:js_files",
-        "//java/com/google/domain/registry/ui/soy/admin:js_files",
         "//java/com/google/domain/registry/ui/soy/api:js_files",
         "//java/com/google/domain/registry/ui/soy/registrar:js_files",
     ],
@@ -27,15 +25,12 @@ filegroup(
 filegroup(
     name = "runfiles",
     srcs = [
-        "admin_bin.js",
-        "admin_bin_map.js",
         "brain_bin.js",
         "brain_bin_map.js",
         "registrar_bin.js",
         "registrar_bin_map.js",
         ":assets_recursive",
         "//java/com/google/domain/registry/ui:deps-runfiles.js",
-        "//java/com/google/domain/registry/ui/css:admin_bin.css",
         "//java/com/google/domain/registry/ui/css:registrar_bin.css",
         "//java/com/google/domain/registry/ui/html:html_files",
         "//javascript/closure:js_files_recursive",
@@ -73,7 +68,6 @@ closure_js_deps(
     name = "deps",
     srcs = [
         "//java/com/google/domain/registry/ui/js",
-        "//java/com/google/domain/registry/ui/js/admin",
         "//java/com/google/domain/registry/ui/js/registrar",
     ],
 )
@@ -83,8 +77,7 @@ SOURCEMAP_SCRUB = ("  -e 's@b....-out/[^/]*/bin/@@g'" +
                    "  -e 's@\"java/@\"/assets/sources/java/@g'" +
                    "  -e 's@\"javascript/@\"/assets/sources/javascript/@g'" +
                    "  -e 's@\"third_party/@\"/assets/sources/third_party/@g'" +
-                   "  -e 's@\"external/@\"/assets/sources/external/@g'" +
-                   "  -e 's@sources/java/.*/admin_bin.js@js/admin_bin_map.js@g'")
+                   "  -e 's@\"external/@\"/assets/sources/external/@g'")
 
 ################################################################################
 ## Registrar Console
@@ -163,44 +156,4 @@ genrule(
     outs = ["brain_bin_map.js"],
     cmd = "cat $(location brain_bin.js) >$@ && " +
           "echo '//# sourceMappingURL=brain_bin.js.map' >>$@",
-)
-
-################################################################################
-## Admin Console
-
-closure_js_binary(
-    name = "admin_bin",
-    externs_list = ["//java/com/google/domain/registry/ui/externs"],
-    main = "registry.admin.main",
-    deps = [
-        "//java/com/google/domain/registry/ui/css:admin_bin",
-        "//java/com/google/domain/registry/ui/js/admin",
-    ],
-)
-
-genrule(
-    name = "admin_bin_sourcemap",
-    srcs = ["admin_bin.sourcemap"],
-    outs = ["admin_bin.js.map"],
-    cmd = "sed $(location admin_bin.sourcemap) " + SOURCEMAP_SCRUB + "  >$@",
-)
-
-genrule(
-    name = "admin_mapped",
-    srcs = ["admin_bin.js"],
-    outs = ["admin_bin_map.js"],
-    cmd = "cat $(location admin_bin.js) >$@ && " +
-          "echo '//# sourceMappingURL=admin_bin.js.map' >>$@",
-)
-
-closure_js_binary(
-    name = "admin_dbg",
-    debug = 1,
-    externs_list = ["//java/com/google/domain/registry/ui/externs"],
-    formatting = "PRETTY_PRINT",
-    main = "registry.admin.main",
-    deps = [
-        "//java/com/google/domain/registry/ui/css:admin_dbg",
-        "//java/com/google/domain/registry/ui/js/admin",
-    ],
 )

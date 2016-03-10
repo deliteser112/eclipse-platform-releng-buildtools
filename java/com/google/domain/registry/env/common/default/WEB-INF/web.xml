@@ -81,40 +81,6 @@
     <url-pattern>/registrar-payment</url-pattern>
   </servlet-mapping>
 
-  <!-- Admin Console -->
-  <servlet>
-    <display-name>Admin UI Servlet</display-name>
-    <servlet-name>admin-ui</servlet-name>
-    <servlet-class>com.google.domain.registry.ui.server.admin.AdminUiServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>admin-ui</servlet-name>
-    <url-pattern>/_dr/admin</url-pattern>
-  </servlet-mapping>
-
-  <servlet>
-    <display-name>Registry Admin</display-name>
-    <servlet-name>registry-admin</servlet-name>
-    <servlet-class>com.google.domain.registry.ui.server.admin.RegistryServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>registry-admin</servlet-name>
-    <url-pattern>/_dr/admin/registry/*</url-pattern>
-  </servlet-mapping>
-
-  <servlet>
-    <display-name>Registrar Admin</display-name>
-    <servlet-name>registrar-admin</servlet-name>
-    <servlet-class>com.google.domain.registry.ui.server.admin.RegistrarServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>registrar-admin</servlet-name>
-    <url-pattern>/_dr/admin/registrar/*</url-pattern>
-  </servlet-mapping>
-
   <!-- WHOIS -->
   <servlet>
     <description>
@@ -283,26 +249,6 @@
   <!-- TODO(b/26776367): Move these files to /assets/sources. -->
   <security-constraint>
     <web-resource-collection>
-      <web-resource-name>admin-bin-js-map</web-resource-name>
-      <description>No soup for you!</description>
-      <url-pattern>/assets/js/admin_bin.js.map</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>admin</role-name>
-    </auth-constraint>
-  </security-constraint>
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>admin-dbg-js</web-resource-name>
-      <description>No soup for you!</description>
-      <url-pattern>/assets/js/admin_dbg.js</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>admin</role-name>
-    </auth-constraint>
-  </security-constraint>
-  <security-constraint>
-    <web-resource-collection>
       <web-resource-name>registrar-bin-js-map</web-resource-name>
       <description>No soup for you!</description>
       <url-pattern>/assets/js/registrar_bin.js.map</url-pattern>
@@ -326,16 +272,6 @@
       <web-resource-name>brain-bin-js-map</web-resource-name>
       <description>No soup for you!</description>
       <url-pattern>/assets/js/brain_bin.js.map</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>admin</role-name>
-    </auth-constraint>
-  </security-constraint>
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>admin-dbg-css</web-resource-name>
-      <description>No soup for you!</description>
-      <url-pattern>/assets/css/admin_dbg.css</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>admin</role-name>

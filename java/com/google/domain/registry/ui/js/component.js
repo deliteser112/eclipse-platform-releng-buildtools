@@ -38,8 +38,6 @@ goog.require('registry.util');
  *         |-ui/js/resource_component.js - JSON resources
  *         |       ^
  *         |        \
- *         |         |- ui/js/admin/registrar.js
- *         |         |- ui/js/admin/registry.js
  *         |         |- ui/js/registrar/settings.js
  *         |
  *         |-ui/js/registrar/xml_resource_component.js - EPP resources

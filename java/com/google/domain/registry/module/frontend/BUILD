@@ -37,7 +37,6 @@ java_binary(
     runtime_deps = [
         ":frontend",
         "//java/com/google/domain/registry/monitoring/whitebox",  # MetricsTaskServlet
-        "//java/com/google/domain/registry/ui/server/admin",  # AdminUiServlet, etc.
         "//java/com/google/domain/registry/ui/server/api",  # CheckApiServlet
         "//java/com/google/domain/registry/ui/server/registrar",  # ConsoleUiServlet, etc.
     ],

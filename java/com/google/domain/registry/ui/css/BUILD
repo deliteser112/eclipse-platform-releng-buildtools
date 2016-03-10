@@ -48,23 +48,3 @@ closure_css_binary(
     debug = 1,
     deps = [":registrar_lib"],
 )
-
-closure_css_library(
-    name = "admin_lib",
-    srcs = [
-        "admin-console.css",
-        "forms.css",
-    ],
-    deps = [":registry_lib"],
-)
-
-closure_css_binary(
-    name = "admin_bin",
-    deps = [":admin_lib"],
-)
-
-closure_css_binary(
-    name = "admin_dbg",
-    debug = 1,
-    deps = [":admin_lib"],
-)

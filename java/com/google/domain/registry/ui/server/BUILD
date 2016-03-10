@@ -6,8 +6,6 @@ java_library(
     srcs = glob(["*.java"]),
     resources = [
         "//java/com/google/domain/registry/ui:globals.txt",
-        "//java/com/google/domain/registry/ui/css:admin_bin.css.js",
-        "//java/com/google/domain/registry/ui/css:admin_dbg.css.js",
         "//java/com/google/domain/registry/ui/css:registrar_bin.css.js",
         "//java/com/google/domain/registry/ui/css:registrar_dbg.css.js",
     ],

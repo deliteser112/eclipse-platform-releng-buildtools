@@ -76,15 +76,7 @@ public final class RegistryTestServer {
       route("/registrar-payment",
           com.google.domain.registry.module.frontend.FrontendServlet.class),
       route("/registrar-payment-setup",
-          com.google.domain.registry.module.frontend.FrontendServlet.class),
-
-      // Admin Console
-      route("/_dr/admin",
-          com.google.domain.registry.ui.server.admin.AdminUiServlet.class),
-      route("/_dr/admin/registry/*",
-          com.google.domain.registry.ui.server.admin.RegistryServlet.class),
-      route("/_dr/admin/registrar/*",
-          com.google.domain.registry.ui.server.admin.RegistrarServlet.class));
+          com.google.domain.registry.module.frontend.FrontendServlet.class));
 
   private final TestServer server;
 
