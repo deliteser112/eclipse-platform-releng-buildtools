@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.admin;
+package com.google.domain.registry.tools.server;
 
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Maps.toMap;
@@ -64,7 +64,9 @@ import com.google.domain.registry.model.eppinput.EppInput;
 import com.google.domain.registry.model.eppinput.EppInput.ResourceCommandWrapper;
 import com.google.domain.registry.model.host.HostCommand;
 import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.security.JsonTransportServlet;
+import com.google.domain.registry.request.Action;
+import com.google.domain.registry.request.JsonActionRunner;
+import com.google.domain.registry.request.JsonActionRunner.JsonAction;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -72,26 +74,35 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
+import javax.inject.Inject;
 
 /**
  * A servlet that verifies a registrar's OTE status. Note that this is eventually consistent, so
  * OT&amp;E commands that have been run just previously to verification may not be picked up yet.
  */
-public class VerifyOteServlet extends JsonTransportServlet {
+@Action(
+    path = VerifyOteAction.PATH,
+    method = Action.Method.POST,
+    xsrfProtection = true,
+    xsrfScope = "admin")
+public class VerifyOteAction implements Runnable, JsonAction {
 
-  public static final String XSRF_SCOPE = "admin";
+  public static final String PATH = "/_dr/admin/verifyOte";
 
-  public VerifyOteServlet() {
-    super(XSRF_SCOPE, true);
+  @Inject JsonActionRunner jsonActionRunner;
+  @Inject VerifyOteAction() {}
+
+  @Override
+  public void run() {
+    jsonActionRunner.run(this);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public Map<String, Object> doJsonPost(HttpServletRequest req, Map<String, ?> params) {
-    final boolean summarize = Boolean.parseBoolean((String) params.get("summarize"));
+  public Map<String, Object> handleJsonRequest(Map<String, ?> json) {
+    final boolean summarize = Boolean.parseBoolean((String) json.get("summarize"));
     return toMap(
-        (List<String>) params.get("registrars"),
+        (List<String>) json.get("registrars"),
         new Function<String, Object>() {
           @Nonnull
           @Override

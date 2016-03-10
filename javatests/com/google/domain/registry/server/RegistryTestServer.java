@@ -84,9 +84,7 @@ public final class RegistryTestServer {
       route("/_dr/admin/registry/*",
           com.google.domain.registry.ui.server.admin.RegistryServlet.class),
       route("/_dr/admin/registrar/*",
-          com.google.domain.registry.ui.server.admin.RegistrarServlet.class),
-      route("/_dr/admin/verifyOte",
-          com.google.domain.registry.ui.server.admin.VerifyOteServlet.class));
+          com.google.domain.registry.ui.server.admin.RegistrarServlet.class));
 
   private final TestServer server;
 

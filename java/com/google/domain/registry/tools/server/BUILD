@@ -12,6 +12,7 @@ java_library(
         "//java/com/google/common/io",
         "//java/com/google/domain/registry/config",
         "//java/com/google/domain/registry/export",
+        "//java/com/google/domain/registry/flows",
         "//java/com/google/domain/registry/gcs",
         "//java/com/google/domain/registry/groups",
         "//java/com/google/domain/registry/mapreduce",

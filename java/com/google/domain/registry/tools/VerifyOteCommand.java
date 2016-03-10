@@ -26,12 +26,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.config.RegistryEnvironment;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.tools.Command.GtechCommand;
+import com.google.domain.registry.tools.server.VerifyOteAction;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -81,11 +83,13 @@ final class VerifyOteCommand implements ServerSideCommand, GtechCommand {
       // the input is valid.
       verifyNotNull(loadByClientId(clientId + "-1"), "Registrar %s does not exist.", clientId);
     }
-    Iterable<String> registrars =
+    Collection<String> registrars =
         mainParameters.isEmpty() ? getAllRegistrarNames() : mainParameters;
     Map<String, Object> response = connection.sendJson(
-        "/_dr/admin/verifyOte",
-        ImmutableMap.of("summarize", Boolean.toString(summarize), "registrars", registrars));
+        VerifyOteAction.PATH,
+        ImmutableMap.of(
+            "summarize", Boolean.toString(summarize),
+            "registrars", new ArrayList<>(registrars)));
     System.out.println(Strings.repeat("-", 80));
     for (Entry<String, Object> registrar : response.entrySet()) {
       System.out.printf(

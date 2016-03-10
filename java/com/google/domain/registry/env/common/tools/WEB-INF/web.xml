@@ -8,7 +8,7 @@
   <servlet>
     <display-name>Verify OTE</display-name>
     <servlet-name>verify-ote</servlet-name>
-    <servlet-class>com.google.domain.registry.ui.server.admin.VerifyOteServlet</servlet-class>
+    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet-mapping>
