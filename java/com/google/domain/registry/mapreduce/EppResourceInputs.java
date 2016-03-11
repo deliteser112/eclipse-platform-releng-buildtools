@@ -97,7 +97,7 @@ public class EppResourceInputs {
   }
 
   /** Base class for {@link Input} classes that map over {@link EppResourceIndex}. */
-  private abstract static class BaseInput<R, I> extends Input<I> {
+  private abstract static class BaseInput<I> extends Input<I> {
 
     private static final long serialVersionUID = -6681886718929462122L;
 
@@ -117,7 +117,7 @@ public class EppResourceInputs {
   /**
    * A MapReduce {@link Input} that loads all {@link EppResourceIndex} entities.
    */
-  private static class IndexInput extends BaseInput<EppResourceIndex, EppResourceIndex> {
+  private static class IndexInput extends BaseInput<EppResourceIndex> {
 
     private static final long serialVersionUID = -1231269296567279059L;
 
@@ -128,7 +128,7 @@ public class EppResourceInputs {
   }
 
   /** A MapReduce {@link Input} that loads all {@link EppResource} objects of a given type. */
-  private static class EntityInput<R extends EppResource> extends BaseInput<R, R> {
+  private static class EntityInput<R extends EppResource> extends BaseInput<R> {
 
     private static final long serialVersionUID = 8162607479124406226L;
 
@@ -150,7 +150,7 @@ public class EppResourceInputs {
    *
    * <p>When mapping over keys we can't distinguish between Objectify polymorphic types.
    */
-  private static class KeyInput<R extends EppResource> extends BaseInput<R, Key<R>> {
+  private static class KeyInput<R extends EppResource> extends BaseInput<Key<R>> {
 
     private static final long serialVersionUID = -5426821384707653743L;
 
