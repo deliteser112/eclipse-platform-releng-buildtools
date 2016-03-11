@@ -268,7 +268,7 @@ public class CidrAddressBlock implements Iterable<InetAddress>, Serializable {
     int bitMask = (-1 << (8 - numBits));
 
     // Truncate the byte in which the CIDR boundary falls.
-    bytes[cidrByte] = (byte) ((int) bytes[cidrByte] & bitMask);
+    bytes[cidrByte] = (byte) (bytes[cidrByte] & bitMask);
 
     // All bytes following the cidrByte get zeroed.
     for (int i = cidrByte + 1; i < bytes.length; ++i) {
@@ -417,7 +417,7 @@ public class CidrAddressBlock implements Iterable<InetAddress>, Serializable {
     int bitMask = ~(-1 << (8 - numBits));
 
     // Set all non-prefix bits where the CIDR boundary falls.
-    bytes[cidrByte] = (byte) ((int) bytes[cidrByte] | bitMask);
+    bytes[cidrByte] = (byte) (bytes[cidrByte] | bitMask);
 
     // All bytes following the cidrByte get set to all ones.
     for (int i = cidrByte + 1; i < bytes.length; ++i) {
