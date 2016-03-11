@@ -31,7 +31,7 @@ def _impl(ctx):
   srcs, externs = collect_js_srcs(ctx)
   args = [
       "third_party/closure/compiler/compiler",
-      "--checks-only",
+      "--checks_only",
       "--language_in=%s" % determine_js_language(ctx),
       "--compilation_level=" + ctx.attr.compilation_level,
       "--warning_level=VERBOSE",
