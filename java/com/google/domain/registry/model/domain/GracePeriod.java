@@ -14,9 +14,9 @@
 
 package com.google.domain.registry.model.domain;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.google.common.base.Optional;
 import com.google.domain.registry.model.ImmutableObject;
 import com.google.domain.registry.model.billing.BillingEvent;
 import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
@@ -78,15 +78,9 @@ public class GracePeriod extends ImmutableObject {
     return clientId;
   }
 
-  /**
-   * Returns the ref to the billing event associated with this grace period, or null if there is
-   * no applicable billing event (i.e. this is a redemption grace period).
-   */
-  @Nullable
-  public Ref<? extends BillingEvent> getBillingEvent() {
-    return Optional.<Ref<? extends BillingEvent>>fromNullable(billingEventOneTime)
-        .or(Optional.<Ref<? extends BillingEvent>>fromNullable(billingEventRecurring))
-        .orNull();
+  /** Returns true if this GracePeriod has an associated BillingEvent; i.e. if it's refundable. */
+  public boolean hasBillingEvent() {
+    return billingEventOneTime != null || billingEventRecurring != null;
   }
 
   /**
@@ -106,26 +100,53 @@ public class GracePeriod extends ImmutableObject {
     return billingEventRecurring;
   }
 
-  /**
-   * Constructs a GracePeriod with some interpretation of the parameters.  In particular, selects
-   * the field to store the billing event ref in based on the specified grace period status type.
+  private static GracePeriod createInternal(
+       GracePeriodStatus type,
+       DateTime expirationTime,
+       String clientId,
+       @Nullable Ref<BillingEvent.OneTime> billingEventOneTime,
+       @Nullable Ref<BillingEvent.Recurring> billingEventRecurring) {
+    checkArgument((billingEventOneTime == null) || (billingEventRecurring == null),
+        "A grace period can have at most one billing event");
+    checkArgument((billingEventRecurring != null) == (GracePeriodStatus.AUTO_RENEW.equals(type)),
+        "Recurring billing events must be present on (and only on) autorenew grace periods");
+    GracePeriod instance = new GracePeriod();
+    instance.type = checkArgumentNotNull(type);
+    instance.expirationTime = checkArgumentNotNull(expirationTime);
+    instance.clientId = checkArgumentNotNull(clientId);
+    instance.billingEventOneTime = billingEventOneTime;
+    instance.billingEventRecurring = billingEventRecurring;
+    return instance;
+  }
+
+  /** Create a GracePeriod for an (optional) OneTime billing event.
+   *
+   * <p>Normal callers should always use {@link #forBillingEvent} instead, assuming they do not
+   * need to avoid loading the BillingEvent from datastore.  This method should typically be
+   * called only from test code to explicitly construct GracePeriods.
    */
-  @SuppressWarnings("unchecked")
   public static GracePeriod create(
       GracePeriodStatus type,
       DateTime expirationTime,
       String clientId,
-      @Nullable Ref<? extends BillingEvent> billingEvent) {
-    GracePeriod instance = new GracePeriod();
-    instance.type = checkNotNull(type);
-    instance.expirationTime = checkNotNull(expirationTime);
-    instance.clientId = checkNotNull(clientId);
-    if (GracePeriodStatus.AUTO_RENEW.equals(instance.type)) {
-      instance.billingEventRecurring = (Ref<BillingEvent.Recurring>) billingEvent;
-    } else {
-      instance.billingEventOneTime = (Ref<BillingEvent.OneTime>) billingEvent;
-    }
-    return instance;
+      @Nullable Ref<BillingEvent.OneTime> billingEventOneTime) {
+    return createInternal(type, expirationTime, clientId, billingEventOneTime, null);
+  }
+
+  /** Create a GracePeriod for a Recurring billing event. */
+  public static GracePeriod createForRecurring(
+      GracePeriodStatus type,
+      DateTime expirationTime,
+      String clientId,
+      Ref<BillingEvent.Recurring> billingEventRecurring) {
+    checkArgumentNotNull(billingEventRecurring);
+    return createInternal(type, expirationTime, clientId, null, billingEventRecurring);
+  }
+
+  /** Create a GracePeriod with no billing event. */
+  public static GracePeriod createWithoutBillingEvent(
+      GracePeriodStatus type, DateTime expirationTime, String clientId) {
+    return createInternal(type, expirationTime, clientId, null, null);
   }
 
   /** Constructs a GracePeriod of the given type from the provided one-time BillingEvent. */

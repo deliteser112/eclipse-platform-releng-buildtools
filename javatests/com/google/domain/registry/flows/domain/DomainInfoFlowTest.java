@@ -32,6 +32,7 @@ import com.google.domain.registry.flows.domain.DomainFlowUtils.BadPeriodUnitExce
 import com.google.domain.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.FeeChecksDontSupportPhasesException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.RestoresAreAlwaysForOneYearException;
+import com.google.domain.registry.model.billing.BillingEvent.Recurring;
 import com.google.domain.registry.model.contact.ContactAuthInfo;
 import com.google.domain.registry.model.contact.ContactResource;
 import com.google.domain.registry.model.domain.DesignatedContact;
@@ -47,6 +48,7 @@ import com.google.domain.registry.model.eppcommon.StatusValue;
 import com.google.domain.registry.model.host.HostResource;
 import com.google.domain.registry.testing.AppEngineRule;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
 import org.joda.time.DateTime;
@@ -278,8 +280,11 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     persistTestEntities(false);
     // Add an AUTO_RENEW grace period to the saved resource.
     persistResource(domain.asBuilder()
-        .addGracePeriod(GracePeriod.create(
-            GracePeriodStatus.AUTO_RENEW, clock.nowUtc().plusDays(1), "foo", null))
+        .addGracePeriod(GracePeriod.createForRecurring(
+            GracePeriodStatus.AUTO_RENEW,
+            clock.nowUtc().plusDays(1),
+            "foo",
+            Ref.create(Key.create(Recurring.class, 12345))))
         .build());
     doSuccessfulTest("domain_info_response_autorenewperiod.xml", false);
   }

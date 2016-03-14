@@ -110,11 +110,10 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
           .setDeletionTime(deletionTime)
           // Clear out all old grace periods and add REDEMPTION, which does not include a ref
           // to a billing event because there isn't one for a domain delete.
-          .setGracePeriods(ImmutableSet.of(GracePeriod.create(
+          .setGracePeriods(ImmutableSet.of(GracePeriod.createWithoutBillingEvent(
               GracePeriodStatus.REDEMPTION,
               now.plus(registry.getRedemptionGracePeriodLength()),
-              getClientId(),
-              null)))
+              getClientId())))
           .setDeletePollMessage(Key.create(deletePollMessage));
     }
   }
@@ -130,7 +129,7 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
     ImmutableList.Builder<Credit> creditsBuilder = new ImmutableList.Builder<>();
     for (GracePeriod gracePeriod : existingResource.getGracePeriods()) {
       // No cancellation is written if the grace period was not for a billable event.
-      if (gracePeriod.getBillingEvent() != null) {
+      if (gracePeriod.hasBillingEvent()) {
         ofy().save().entity(
             BillingEvent.Cancellation.forGracePeriod(gracePeriod, historyEntry, targetId));
 

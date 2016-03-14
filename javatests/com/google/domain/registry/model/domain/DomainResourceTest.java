@@ -416,7 +416,7 @@ public class DomainResourceTest extends EntityTestCase {
         .isEqualTo(oldExpirationTime.plusYears(3));
     assertThat(renewedThreeTimes.getLastEppUpdateTime()).isEqualTo(clock.nowUtc());
     assertThat(renewedThreeTimes.getGracePeriods())
-        .containsExactly(GracePeriod.create(
+        .containsExactly(GracePeriod.createForRecurring(
             GracePeriodStatus.AUTO_RENEW,
             oldExpirationTime.plusYears(2).plus(
                 Registry.get("com").getAutoRenewGracePeriodLength()),

@@ -287,7 +287,7 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
       DateTime newExpirationTime  = lastAutorenewTime.plusYears(1);
       builder
           .setRegistrationExpirationTime(newExpirationTime)
-          .addGracePeriod(GracePeriod.create(
+          .addGracePeriod(GracePeriod.createForRecurring(
               GracePeriodStatus.AUTO_RENEW,
               lastAutorenewTime.plus(Registry.get(getTld()).getAutoRenewGracePeriodLength()),
               getCurrentSponsorClientId(),

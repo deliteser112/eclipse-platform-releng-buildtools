@@ -389,7 +389,9 @@ public abstract class BillingEvent extends ImmutableObject
           .setEventTime(historyEntry.getModificationTime())
           // The charge being cancelled will take place at the grace period's expiration time.
           .setBillingTime(gracePeriod.getExpirationTime())
-          .setEventRef(gracePeriod.getBillingEvent())
+          .setEventRef(firstNonNull(
+              gracePeriod.getOneTimeBillingEvent(),
+              gracePeriod.getRecurringBillingEvent()))
           .setParent(historyEntry)
           .build();
     }

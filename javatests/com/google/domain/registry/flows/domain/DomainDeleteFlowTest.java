@@ -143,7 +143,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .build());
     domain = persistResource(
         domain.asBuilder()
-            .setGracePeriods(ImmutableSet.of(GracePeriod.create(
+            .setGracePeriods(ImmutableSet.of(GracePeriod.createForRecurring(
                 GracePeriodStatus.AUTO_RENEW,
                 A_MONTH_AGO.plusDays(45),
                 "TheRegistrar",

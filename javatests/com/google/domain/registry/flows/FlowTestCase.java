@@ -227,7 +227,13 @@ public abstract class FlowTestCase<F extends Flow> {
         new Function<GracePeriod, BillingEvent>() {
           @Override
           public BillingEvent apply(GracePeriod gracePeriod) {
-            return gracePeriod.getBillingEvent().get();
+            assertThat(gracePeriod.hasBillingEvent())
+                .named("Billing event is present for grace period: " + gracePeriod)
+                .isTrue();
+            return firstNonNull(
+                gracePeriod.getOneTimeBillingEvent(),
+                gracePeriod.getRecurringBillingEvent())
+                    .get();
           }};
     assertThat(canonicalizeGracePeriods(Maps.toMap(actual, gracePeriodExpander)))
         .isEqualTo(canonicalizeGracePeriods(expected));
