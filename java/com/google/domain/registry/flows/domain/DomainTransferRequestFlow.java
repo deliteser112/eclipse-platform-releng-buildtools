@@ -201,7 +201,7 @@ public class DomainTransferRequestFlow
           .setClientId(existingResource.getCurrentSponsorClientId())
           .setEventTime(automaticTransferTime)
           .setBillingTime(expirationTime.plus(registry.getAutoRenewGracePeriodLength()))
-          .setEventRef(existingResource.getAutorenewBillingEvent())
+          .setRecurringEventRef(existingResource.getAutorenewBillingEvent())
           .setParent(historyEntry)
           .build();
       ofy().save().entity(autorenewCancellation);

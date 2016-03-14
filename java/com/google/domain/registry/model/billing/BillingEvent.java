@@ -376,24 +376,30 @@ public abstract class BillingEvent extends ImmutableObject
             GracePeriodStatus.TRANSFER, Reason.TRANSFER);
 
     /**
-     * Creates a cancellation billing event for the provided grace period parented on the provided
-     * history entry (and with the same event time) that will cancel out the
-     * grace-period-originating billing event on the supplied targetId.
+     * Creates a cancellation billing event (parented on the provided history entry, and with the
+     * history entry's event time) that will cancel out the provided grace period's billing event,
+     * using the supplied targetId and deriving other metadata (clientId, billing time, and the
+     * cancellation reason) from the grace period.
      */
     public static BillingEvent.Cancellation forGracePeriod(
         GracePeriod gracePeriod, HistoryEntry historyEntry, String targetId) {
-      return new BillingEvent.Cancellation.Builder()
+      checkArgument(gracePeriod.hasBillingEvent(),
+          "Cannot create cancellation for grace period without billing event");
+      BillingEvent.Cancellation.Builder builder = new BillingEvent.Cancellation.Builder()
           .setReason(checkNotNull(GRACE_PERIOD_TO_REASON.get(gracePeriod.getType())))
           .setTargetId(targetId)
           .setClientId(gracePeriod.getClientId())
           .setEventTime(historyEntry.getModificationTime())
           // The charge being cancelled will take place at the grace period's expiration time.
           .setBillingTime(gracePeriod.getExpirationTime())
-          .setEventRef(firstNonNull(
-              gracePeriod.getOneTimeBillingEvent(),
-              gracePeriod.getRecurringBillingEvent()))
-          .setParent(historyEntry)
-          .build();
+          .setParent(historyEntry);
+      // Set the grace period's billing event using the appropriate Cancellation builder method.
+      if (gracePeriod.getOneTimeBillingEvent() != null) {
+        builder.setOneTimeEventRef(gracePeriod.getOneTimeBillingEvent());
+      } else if (gracePeriod.getRecurringBillingEvent() != null) {
+        builder.setRecurringEventRef(gracePeriod.getRecurringBillingEvent());
+      }
+      return builder.build();
     }
 
     @Override
@@ -403,8 +409,6 @@ public abstract class BillingEvent extends ImmutableObject
 
     /** A builder for {@link Cancellation} since it is immutable. */
     public static class Builder extends BillingEvent.Builder<Cancellation, Builder> {
-
-      private Ref<? extends BillingEvent> refTemp;
 
       public Builder() {}
 
@@ -417,28 +421,23 @@ public abstract class BillingEvent extends ImmutableObject
         return this;
       }
 
-      public Builder setEventRef(Ref<? extends BillingEvent> eventRef) {
-        refTemp = eventRef;
+      public Builder setOneTimeEventRef(Ref<BillingEvent.OneTime> eventRef) {
+        getInstance().refOneTime = eventRef;
+        return this;
+      }
+
+      public Builder setRecurringEventRef(Ref<BillingEvent.Recurring> eventRef) {
+        getInstance().refRecurring = eventRef;
         return this;
       }
 
       @Override
-      @SuppressWarnings("unchecked")
       public Cancellation build() {
         Cancellation instance = getInstance();
         checkNotNull(instance.billingTime);
         checkNotNull(instance.reason);
-        // If refTemp is set, use it to populate the correct ref.
-        if (refTemp != null) {
-          if (Reason.AUTO_RENEW.equals(instance.reason)) {
-            instance.refRecurring = (Ref<BillingEvent.Recurring>) refTemp;
-          } else {
-            instance.refOneTime = (Ref<BillingEvent.OneTime>) refTemp;
-          }
-        }
-        // Ensure that even if refTemp was not set, the builder has exactly one of the two refs
-        // set to a non-null value (using != as an XOR for booleans).
-        checkState((instance.refOneTime == null) != (instance.refRecurring == null));
+        checkState((instance.refOneTime == null) != (instance.refRecurring == null),
+            "Cancellations must have exactly one billing event ref set");
         return super.build();
       }
     }

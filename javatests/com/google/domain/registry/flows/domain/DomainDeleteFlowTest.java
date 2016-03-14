@@ -169,7 +169,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .setClientId("TheRegistrar")
             .setEventTime(eventTime)
             .setBillingTime(TIME_BEFORE_FLOW.plusDays(1))
-            .setEventRef(Ref.create(graceBillingEvent))
+            .setOneTimeEventRef(Ref.create(graceBillingEvent))
             .setParent(historyEntryDomainDelete)
             .build());
   }

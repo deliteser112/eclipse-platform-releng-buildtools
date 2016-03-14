@@ -373,7 +373,7 @@ public class DomainTransferApproveFlowTest
             .setEventTime(clock.nowUtc())  // The cancellation happens at the moment of transfer.
             .setBillingTime(
                 oldExpirationTime.plus(Registry.get("tld").getAutoRenewGracePeriodLength()))
-            .setEventRef(domain.getAutorenewBillingEvent()));
+            .setRecurringEventRef(domain.getAutorenewBillingEvent()));
   }
 
   @Test

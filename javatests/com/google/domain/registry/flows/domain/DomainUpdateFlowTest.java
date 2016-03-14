@@ -198,7 +198,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setClientId("TheRegistrar")
             .setEventTime(clock.nowUtc())
             .setBillingTime(sunrushAddBillingEvent.getBillingTime())
-            .setEventRef(Ref.create(sunrushAddBillingEvent))
+            .setOneTimeEventRef(Ref.create(sunrushAddBillingEvent))
             .setParent(historyEntryDomainUpdate)
             .build(),
         regularAddBillingEvent);

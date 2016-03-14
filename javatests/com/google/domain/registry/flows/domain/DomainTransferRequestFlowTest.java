@@ -407,7 +407,7 @@ public class DomainTransferRequestFlowTest
             .setBillingTime(oldResource.getRegistrationExpirationTime().plus(
                 Registry.get("tld").getAutoRenewGracePeriodLength()))
             // The cancellation should refer to the old autorenew billing event.
-            .setEventRef(oldResource.getAutorenewBillingEvent()));
+            .setRecurringEventRef(oldResource.getAutorenewBillingEvent()));
   }
 
   @Test
