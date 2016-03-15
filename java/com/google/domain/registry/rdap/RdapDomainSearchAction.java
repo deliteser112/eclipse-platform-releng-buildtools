@@ -36,6 +36,7 @@ import com.google.domain.registry.request.HttpException.BadRequestException;
 import com.google.domain.registry.request.HttpException.NotFoundException;
 import com.google.domain.registry.request.Parameter;
 import com.google.domain.registry.util.Clock;
+import com.google.domain.registry.util.Idn;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
@@ -44,7 +45,6 @@ import com.googlecode.objectify.cmd.QueryKeys;
 
 import org.joda.time.DateTime;
 
-import java.net.IDN;
 import java.net.InetAddress;
 import java.util.List;
 
@@ -102,7 +102,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
       // TODO(b/24329745): improve IDN handling
       String asciiName;
       try {
-        asciiName = IDN.toASCII(nameParam.get());
+        asciiName = Idn.toASCII(nameParam.get());
       } catch (Exception e) {
         throw new BadRequestException("Invalid value of nsLdhName parameter");
       }

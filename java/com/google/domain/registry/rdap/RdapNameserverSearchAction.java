@@ -35,12 +35,12 @@ import com.google.domain.registry.request.HttpException.BadRequestException;
 import com.google.domain.registry.request.HttpException.NotFoundException;
 import com.google.domain.registry.request.Parameter;
 import com.google.domain.registry.util.Clock;
+import com.google.domain.registry.util.Idn;
 
 import com.googlecode.objectify.cmd.Query;
 
 import org.joda.time.DateTime;
 
-import java.net.IDN;
 import java.net.InetAddress;
 
 import javax.inject.Inject;
@@ -98,7 +98,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
             "Name parameter must contain only letters, dots"
                 + " and hyphens, and an optional single wildcard");
       }
-      results = searchByName(RdapSearchPattern.create(IDN.toASCII(nameParam.get()), true), now);
+      results = searchByName(RdapSearchPattern.create(Idn.toASCII(nameParam.get()), true), now);
     } else {
       // syntax: /rdap/nameservers?ip=1.2.3.4
       results = searchByIp(ipParam.get());

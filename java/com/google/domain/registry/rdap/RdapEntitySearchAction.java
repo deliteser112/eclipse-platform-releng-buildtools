@@ -40,8 +40,6 @@ import com.google.domain.registry.util.Clock;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
 
-import java.net.IDN;
-
 import javax.inject.Inject;
 
 /**
@@ -93,7 +91,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
       throw new NotImplementedException("Entity name search not implemented");
     } else {
       // syntax: /rdap/entities?handle=12345-*
-      results = searchByHandle(RdapSearchPattern.create(IDN.toASCII(handleParam.get()), false));
+      // The handle is either the contact roid or the registrar clientId.
+      results = searchByHandle(RdapSearchPattern.create(handleParam.get(), false));
     }
     if (results.isEmpty()) {
       throw new NotFoundException("No entities found");
