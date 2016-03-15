@@ -14,7 +14,7 @@
 
 package com.google.domain.registry.tools.mapreduce;
 
-import static com.google.domain.registry.mapreduce.EppResourceInputs.createEntityInput;
+import static com.google.domain.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import static com.google.domain.registry.util.PipelineUtils.createJobPath;
 

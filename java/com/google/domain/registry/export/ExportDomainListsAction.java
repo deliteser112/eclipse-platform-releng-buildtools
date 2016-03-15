@@ -15,7 +15,7 @@
 package com.google.domain.registry.export;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
-import static com.google.domain.registry.mapreduce.EppResourceInputs.createEntityInput;
+import static com.google.domain.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static com.google.domain.registry.model.EppResourceUtils.isActive;
 import static com.google.domain.registry.model.registry.Registries.getTldsOfType;
 import static com.google.domain.registry.util.PipelineUtils.createJobPath;

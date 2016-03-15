@@ -6,12 +6,12 @@ load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 
 
 java_library(
-    name = "mapreduce",
+    name = "inputs",
     srcs = glob(["*.java"]),
     deps = [
         "//java/com/google/common/base",
         "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/mapreduce",
+        "//java/com/google/domain/registry/mapreduce/inputs",
         "//java/com/google/domain/registry/model",
         "//javatests/com/google/domain/registry/testing",
         "//third_party/java/appengine:appengine-api-testonly",
@@ -28,5 +28,5 @@ GenTestRules(
     default_test_size = "medium",
     jvm_flags = ["-XX:MaxPermSize=256m"],
     test_files = glob(["*Test.java"]),
-    deps = [":mapreduce"],
+    deps = [":inputs"],
 )

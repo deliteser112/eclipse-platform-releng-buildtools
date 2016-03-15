@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.mapreduce;
+package com.google.domain.registry.mapreduce.inputs;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
-import static com.google.domain.registry.mapreduce.EppResourceInputs.createEntityInput;
-import static com.google.domain.registry.mapreduce.EppResourceInputs.createKeyInput;
+import static com.google.domain.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
+import static com.google.domain.registry.mapreduce.inputs.EppResourceInputs.createKeyInput;
 import static com.google.domain.registry.model.index.EppResourceIndexBucket.getBucketKey;
 import static com.google.domain.registry.testing.DatastoreHelper.createTld;
 import static com.google.domain.registry.testing.DatastoreHelper.newDomainApplication;

@@ -17,6 +17,7 @@ java_library(
         "//java/com/google/domain/registry/gcs",
         "//java/com/google/domain/registry/keyring/api",
         "//java/com/google/domain/registry/mapreduce",
+        "//java/com/google/domain/registry/mapreduce/inputs",
         "//java/com/google/domain/registry/model",
         "//java/com/google/domain/registry/request",
         "//java/com/google/domain/registry/tldconfig/idn",

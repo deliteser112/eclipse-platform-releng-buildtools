@@ -22,9 +22,9 @@ import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNo
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.google.domain.registry.dns.DnsQueue;
-import com.google.domain.registry.mapreduce.EppResourceInputs;
 import com.google.domain.registry.mapreduce.MapreduceAction;
 import com.google.domain.registry.mapreduce.MapreduceRunner;
+import com.google.domain.registry.mapreduce.inputs.EppResourceInputs;
 import com.google.domain.registry.model.domain.DomainResource;
 import com.google.domain.registry.model.domain.ReferenceUnion;
 import com.google.domain.registry.model.host.HostResource;

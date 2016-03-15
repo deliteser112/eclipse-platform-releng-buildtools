@@ -26,6 +26,7 @@ java_library(
         "//java/com/google/domain/registry/config",
         "//java/com/google/domain/registry/dns",
         "//java/com/google/domain/registry/mapreduce",
+        "//java/com/google/domain/registry/mapreduce/inputs",
         "//java/com/google/domain/registry/model",
         "//java/com/google/domain/registry/monitoring/whitebox",
         "//java/com/google/domain/registry/request",

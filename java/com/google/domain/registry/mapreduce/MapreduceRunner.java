@@ -34,6 +34,7 @@ import com.google.appengine.tools.pipeline.Job0;
 import com.google.appengine.tools.pipeline.JobSetting;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
+import com.google.domain.registry.mapreduce.inputs.ConcatenatingInput;
 import com.google.domain.registry.request.Parameter;
 import com.google.domain.registry.util.FormattingLogger;
 import com.google.domain.registry.util.PipelineUtils;

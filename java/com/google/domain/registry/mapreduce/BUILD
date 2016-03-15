@@ -11,7 +11,7 @@ java_library(
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
-        "//java/com/google/domain/registry/config",
+        "//java/com/google/domain/registry/mapreduce/inputs",
         "//java/com/google/domain/registry/model",
         "//java/com/google/domain/registry/request",
         "//java/com/google/domain/registry/util",
