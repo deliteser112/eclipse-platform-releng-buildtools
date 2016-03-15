@@ -59,69 +59,41 @@
     <url-pattern>/registrar-settings</url-pattern>
   </servlet-mapping>
 
+  <!-- Servlet for injected frontend actions -->
   <servlet>
-    <display-name>Registrar Braintree Payment Form Setup</display-name>
-    <servlet-name>registrar-payment-setup</servlet-name>
+    <display-name>FrontendServlet</display-name>
+    <servlet-name>frontend-servlet</servlet-name>
     <servlet-class>com.google.domain.registry.module.frontend.FrontendServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
+
+  <!-- Registrar Braintree payment form setup. -->
   <servlet-mapping>
-    <servlet-name>registrar-payment-setup</servlet-name>
+    <servlet-name>frontend-servlet</servlet-name>
     <url-pattern>/registrar-payment-setup</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <display-name>Registrar Braintree Payment</display-name>
-    <servlet-name>registrar-payment</servlet-name>
-    <servlet-class>com.google.domain.registry.module.frontend.FrontendServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
+  <!-- Registrar Braintree payment. -->
   <servlet-mapping>
-    <servlet-name>registrar-payment</servlet-name>
+    <servlet-name>frontend-servlet</servlet-name>
     <url-pattern>/registrar-payment</url-pattern>
   </servlet-mapping>
 
-  <!-- WHOIS -->
-  <servlet>
-    <description>
-      HTTP WHOIS API.
-    </description>
-    <display-name>WHOIS</display-name>
-    <servlet-name>whois</servlet-name>
-    <servlet-class>com.google.domain.registry.module.frontend.FrontendServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
+  <!-- HTTP WHOIS. -->
   <servlet-mapping>
-    <servlet-name>whois</servlet-name>
+    <servlet-name>frontend-servlet</servlet-name>
     <url-pattern>/whois/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <description>
-      WHOIS Protocol API.
-    </description>
-    <display-name>WHOIS Protocol</display-name>
-    <servlet-name>whois-protocol</servlet-name>
-    <servlet-class>com.google.domain.registry.module.frontend.FrontendServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
+  <!-- Protocol WHOIS. -->
   <servlet-mapping>
-    <servlet-name>whois-protocol</servlet-name>
+    <servlet-name>frontend-servlet</servlet-name>
     <url-pattern>/_dr/whois</url-pattern>
   </servlet-mapping>
 
-  <!-- RDAP (new WHOIS) -->
-  <servlet>
-    <description>
-      RDAP API.
-    </description>
-    <display-name>RDAP</display-name>
-    <servlet-name>rdap</servlet-name>
-    <servlet-class>com.google.domain.registry.module.frontend.FrontendServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
+  <!-- RDAP (new WHOIS). -->
   <servlet-mapping>
-    <servlet-name>rdap</servlet-name>
+    <servlet-name>frontend-servlet</servlet-name>
     <url-pattern>/rdap/*</url-pattern>
   </servlet-mapping>
 

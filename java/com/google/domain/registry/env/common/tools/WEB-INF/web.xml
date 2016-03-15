@@ -5,80 +5,46 @@
                              http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
   <!-- Servlets -->
 
+  <!-- Servlet for injected tools actions -->
   <servlet>
-    <display-name>Verify OTE</display-name>
-    <servlet-name>verify-ote</servlet-name>
+    <display-name>ToolsServlet</display-name>
+    <servlet-name>tools-servlet</servlet-name>
     <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
+
   <servlet-mapping>
-    <servlet-name>verify-ote</servlet-name>
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/admin/verifyOte</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <display-name>Create Groups for Registrar</display-name>
-    <servlet-name>create-groups</servlet-name>
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>create-groups</servlet-name>
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/admin/createGroups</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <display-name>Create Premium List</display-name>
-    <servlet-name>create-premium-list</servlet-name>
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>create-premium-list</servlet-name>
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/admin/createPremiumList</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <display-name>List Entities</display-name>
-    <servlet-name>list-entities</servlet-name>
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>list-entities</servlet-name>
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/admin/list/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <display-name>Delete Entity</display-name>
-    <servlet-name>delete-entity</servlet-name>
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>delete-entity</servlet-name>
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/admin/deleteEntity</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <display-name>Update Premium List</display-name>
-    <servlet-name>update-premium-list</servlet-name>
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>update-premium-list</servlet-name>
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/admin/updatePremiumList</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <description>Backend endpoint to initate loadtests.</description>
-    <display-name>Load Test</display-name>
-    <servlet-name>loadtest</servlet-name>
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>loadtest</servlet-name>
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/loadtest</url-pattern>
   </servlet-mapping>
 
@@ -110,33 +76,15 @@
   </servlet-mapping>
 
   <!--  Mapreduce to delete all prober data. -->
-  <servlet>
-    <description>
-      Deletes all billing events, history entries, domains, poll messages, foreign key indexes, and eCatcher entities in prober namespaces.
-    </description>
-    <display-name>Delete Prober Data Mapreduce</display-name>
-    <servlet-name>delete-prober-data</servlet-name>
-    <!-- TODO(b/27309488): maybe move this to the backend module + BackendServlet. -->
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>delete-prober-data</servlet-name>
+    <!-- TODO(b/27309488): maybe move this to the backend module + BackendServlet. -->
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/task/deleteProberData</url-pattern>
   </servlet-mapping>
 
   <!--  Mapreduce to re-save all EppResources. -->
-  <servlet>
-    <description>
-      Re-saves all EppResources.
-    </description>
-    <display-name>Re-Save All EPP Resources</display-name>
-    <servlet-name>resave-all-eppresources</servlet-name>
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>resave-all-eppresources</servlet-name>
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/task/resaveAllEppResources</url-pattern>
   </servlet-mapping>
 
@@ -161,21 +109,13 @@
   </servlet-mapping>
 
   <!-- Registrar detail report publishing action. -->
-  <servlet>
-    <servlet-name>publish-detail-report</servlet-name>
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>publish-detail-report</servlet-name>
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/publishDetailReport</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <servlet-name>generate-zone-files</servlet-name>
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>generate-zone-files</servlet-name>
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/task/generateZoneFiles</url-pattern>
   </servlet-mapping>
 
