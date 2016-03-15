@@ -37,7 +37,7 @@ import javax.annotation.concurrent.Immutable;
  * preferable to using a plain {@link URI}.
  *
  * @see java.net.URI
- * @see RdeUploadTask
+ * @see RdeUploadAction
  */
 @Immutable
 final class RdeUploadUrl implements Comparable<RdeUploadUrl> {

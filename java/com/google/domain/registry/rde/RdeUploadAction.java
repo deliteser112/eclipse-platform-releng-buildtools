@@ -67,17 +67,17 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 /**
- * Task that securely uploads an RDE XML file from Cloud Storage to a trusted third party (such as
+ * Action that securely uploads an RDE XML file from Cloud Storage to a trusted third party (such as
  * Iron Mountain) via SFTP.
  *
- * <p>This task is invoked by {@link RdeStagingAction} once it's created the files we need. The date
- * is calculated from {@link CursorType#RDE_UPLOAD}.
+ * <p>This action is invoked by {@link RdeStagingAction} once it's created the files we need. The
+ * date is calculated from {@link CursorType#RDE_UPLOAD}.
  *
- * <p>Once this task completes, it rolls the cursor forward a day and triggers
- * {@link RdeReportTask}.
+ * <p>Once this action completes, it rolls the cursor forward a day and triggers
+ * {@link RdeReportAction}.
  */
-@Action(path = RdeUploadTask.PATH, method = POST)
-public final class RdeUploadTask implements Runnable, EscrowTask {
+@Action(path = RdeUploadAction.PATH, method = POST)
+public final class RdeUploadAction implements Runnable, EscrowTask {
 
   static final String PATH = "/_dr/task/rdeUpload";
 
@@ -106,14 +106,14 @@ public final class RdeUploadTask implements Runnable, EscrowTask {
   @Inject @Key("rdeSigningKey") PGPKeyPair signingKey;
   @Inject @Key("rdeStagingDecryptionKey") PGPPrivateKey stagingDecryptionKey;
   @Inject @Named("rde-report") Queue reportQueue;
-  @Inject RdeUploadTask() {}
+  @Inject RdeUploadAction() {}
 
   @Override
   public void run() {
     runner.lockRunAndRollForward(this, Registry.get(tld), timeout, CursorType.RDE_UPLOAD, interval);
     taskEnqueuer.enqueue(
         reportQueue,
-        withUrl(RdeReportTask.PATH).param(RequestParameters.PARAM_TLD, tld));
+        withUrl(RdeReportAction.PATH).param(RequestParameters.PARAM_TLD, tld));
   }
 
   @Override
@@ -122,7 +122,7 @@ public final class RdeUploadTask implements Runnable, EscrowTask {
         RegistryCursor.load(Registry.get(tld), CursorType.RDE_STAGING).or(START_OF_TIME);
     if (!stagingCursor.isAfter(watermark)) {
       logger.infofmt("tld=%s uploadCursor=%s stagingCursor=%s", tld, watermark, stagingCursor);
-      throw new ServiceUnavailableException("Waiting for RdeStagingTask to complete");
+      throw new ServiceUnavailableException("Waiting for RdeStagingAction to complete");
     }
     DateTime sftpCursor =
         RegistryCursor.load(Registry.get(tld), CursorType.RDE_UPLOAD_SFTP).or(START_OF_TIME);

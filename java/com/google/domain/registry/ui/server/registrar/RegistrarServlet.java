@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.domain.registry.config.RegistryConfig;
 import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.export.sheet.SyncRegistrarsSheetTask;
+import com.google.domain.registry.export.sheet.SyncRegistrarsSheetAction;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.model.registrar.RegistrarContact;
 import com.google.domain.registry.security.JsonResponseHelper;
@@ -148,7 +148,7 @@ public class RegistrarServlet extends ResourceServlet {
     if (CollectionUtils.difference(changedKeys, "lastUpdateTime").isEmpty()) {
       return;
     }
-    SyncRegistrarsSheetTask.enqueueBackendTask();
+    SyncRegistrarsSheetAction.enqueueBackendTask();
     ImmutableList<String> toEmailAddress = CONFIG.getRegistrarChangesNotificationEmailAddresses();
     if (!toEmailAddress.isEmpty()) {
       SendEmailUtils.sendEmail(

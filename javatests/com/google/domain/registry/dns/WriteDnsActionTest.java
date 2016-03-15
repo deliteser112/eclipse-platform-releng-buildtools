@@ -46,9 +46,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.inject.Provider;
 
-/** Unit tests for {@link WriteDnsTask}. */
+/** Unit tests for {@link WriteDnsAction}. */
 @RunWith(MockitoJUnitRunner.class)
-public class WriteDnsTaskTest {
+public class WriteDnsActionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -77,16 +77,16 @@ public class WriteDnsTaskTest {
   }
 
   private void run(String tld) {
-    WriteDnsTask task = new WriteDnsTask();
-    task.dnsQueue = dnsQueue;
-    task.timeout = Duration.standardSeconds(10);
-    task.tld = tld;
-    task.writerProvider = new Provider<DnsWriter>() {
+    WriteDnsAction action = new WriteDnsAction();
+    action.dnsQueue = dnsQueue;
+    action.timeout = Duration.standardSeconds(10);
+    action.tld = tld;
+    action.writerProvider = new Provider<DnsWriter>() {
       @Override
       public DnsWriter get() {
         return dnsWriter;
       }};
-    task.run();
+    action.run();
   }
 
   @After

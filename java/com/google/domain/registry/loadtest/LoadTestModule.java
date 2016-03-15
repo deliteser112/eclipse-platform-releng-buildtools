@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 @Module
 public final class LoadTestModule {
 
-  // There's already an @Parameter("clientId") for CreateGroupsTask that's only optional, and we
+  // There's already an @Parameter("clientId") for CreateGroupsAction that's only optional, and we
   // want this one to be required, so give it a different name.
   @Provides
   @Parameter("loadtestClientId")

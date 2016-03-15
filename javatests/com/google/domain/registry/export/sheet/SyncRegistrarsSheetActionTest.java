@@ -39,9 +39,9 @@ import java.util.concurrent.Callable;
 
 import javax.annotation.Nullable;
 
-/** Unit tests for {@link SyncRegistrarsSheetTask}. */
+/** Unit tests for {@link SyncRegistrarsSheetAction}. */
 @RunWith(JUnit4.class)
-public class SyncRegistrarsSheetTaskTest {
+public class SyncRegistrarsSheetActionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -52,20 +52,20 @@ public class SyncRegistrarsSheetTaskTest {
   private final FakeResponse response = new FakeResponse();
   private final SyncRegistrarsSheet syncRegistrarsSheet = mock(SyncRegistrarsSheet.class);
 
-  private void runTask(@Nullable String idConfig, @Nullable String idParam) {
-    SyncRegistrarsSheetTask task = new SyncRegistrarsSheetTask();
-    task.response = response;
-    task.syncRegistrarsSheet = syncRegistrarsSheet;
-    task.idConfig = Optional.fromNullable(idConfig);
-    task.idParam = Optional.fromNullable(idParam);
-    task.interval = Duration.standardHours(1);
-    task.timeout = Duration.standardHours(1);
-    task.run();
+  private void runAction(@Nullable String idConfig, @Nullable String idParam) {
+    SyncRegistrarsSheetAction action = new SyncRegistrarsSheetAction();
+    action.response = response;
+    action.syncRegistrarsSheet = syncRegistrarsSheet;
+    action.idConfig = Optional.fromNullable(idConfig);
+    action.idParam = Optional.fromNullable(idParam);
+    action.interval = Duration.standardHours(1);
+    action.timeout = Duration.standardHours(1);
+    action.run();
   }
 
   @Test
   public void testPost_withoutParamsOrSystemProperty_dropsTask() throws Exception {
-    runTask(null, null);
+    runAction(null, null);
     assertThat(response.getPayload()).startsWith("MISSINGNO");
     verifyZeroInteractions(syncRegistrarsSheet);
   }
@@ -73,7 +73,7 @@ public class SyncRegistrarsSheetTaskTest {
   @Test
   public void testPost_withoutParams_runsSyncWithDefaultIdAndChecksIfModified() throws Exception {
     when(syncRegistrarsSheet.wasRegistrarsModifiedInLast(any(Duration.class))).thenReturn(true);
-    runTask("jazz", null);
+    runAction("jazz", null);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).startsWith("OK");
@@ -85,7 +85,7 @@ public class SyncRegistrarsSheetTaskTest {
   @Test
   public void testPost_noModificationsToRegistrarEntities_doesNothing() throws Exception {
     when(syncRegistrarsSheet.wasRegistrarsModifiedInLast(any(Duration.class))).thenReturn(false);
-    runTask("NewRegistrar", null);
+    runAction("NewRegistrar", null);
     assertThat(response.getPayload()).startsWith("NOTMODIFIED");
     verify(syncRegistrarsSheet).wasRegistrarsModifiedInLast(any(Duration.class));
     verifyNoMoreInteractions(syncRegistrarsSheet);
@@ -93,7 +93,7 @@ public class SyncRegistrarsSheetTaskTest {
 
   @Test
   public void testPost_overrideId_runsSyncWithCustomIdAndDoesNotCheckModified() throws Exception {
-    runTask(null, "foobar");
+    runAction(null, "foobar");
     assertThat(response.getPayload()).startsWith("OK");
     verify(syncRegistrarsSheet).run(eq("foobar"));
     verifyNoMoreInteractions(syncRegistrarsSheet);
@@ -105,10 +105,10 @@ public class SyncRegistrarsSheetTaskTest {
     Lock.executeWithLocks(new Callable<Void>() {
       @Override
       public Void call() throws Exception {
-        runTask(null, "foobar");
+        runAction(null, "foobar");
         return null;
       }
-    }, SyncRegistrarsSheetTask.class, "", Duration.standardHours(1), lockName);
+    }, SyncRegistrarsSheetAction.class, "", Duration.standardHours(1), lockName);
     assertThat(response.getPayload()).startsWith("LOCKED");
     verifyZeroInteractions(syncRegistrarsSheet);
   }

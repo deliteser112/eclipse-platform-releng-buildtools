@@ -36,9 +36,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Unit tests for {@link RefreshDns}. */
+/** Unit tests for {@link RefreshDnsAction}. */
 @RunWith(JUnit4.class)
-public class RefreshDnsTest {
+public class RefreshDnsActionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -53,12 +53,12 @@ public class RefreshDnsTest {
   private final FakeClock clock = new FakeClock();
 
   private void run(TargetType type, String name) {
-    RefreshDns refreshDns = new RefreshDns();
-    refreshDns.clock = clock;
-    refreshDns.domainOrHostName = name;
-    refreshDns.type = type;
-    refreshDns.dnsQueue = dnsQueue;
-    refreshDns.run();
+    RefreshDnsAction action = new RefreshDnsAction();
+    action.clock = clock;
+    action.domainOrHostName = name;
+    action.type = type;
+    action.dnsQueue = dnsQueue;
+    action.run();
   }
 
   @Before

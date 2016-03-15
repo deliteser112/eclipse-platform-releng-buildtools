@@ -14,8 +14,8 @@
 
 package com.google.domain.registry.export;
 
-import static com.google.domain.registry.export.ExportReservedTermsTask.EXPORT_MIME_TYPE;
-import static com.google.domain.registry.export.ExportReservedTermsTask.RESERVED_TERMS_FILENAME;
+import static com.google.domain.registry.export.ExportReservedTermsAction.EXPORT_MIME_TYPE;
+import static com.google.domain.registry.export.ExportReservedTermsAction.RESERVED_TERMS_FILENAME;
 import static com.google.domain.registry.testing.DatastoreHelper.createTld;
 import static com.google.domain.registry.testing.DatastoreHelper.persistReservedList;
 import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
@@ -47,9 +47,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 
-/** Unit tests for {@link ExportReservedTermsTask}. */
+/** Unit tests for {@link ExportReservedTermsAction}. */
 @RunWith(MockitoJUnitRunner.class)
-public class ExportReservedTermsTaskTest {
+public class ExportReservedTermsActionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -68,12 +68,12 @@ public class ExportReservedTermsTaskTest {
   @Mock
   private Response response;
 
-  private void runTask(String tld) {
-    ExportReservedTermsTask task = new ExportReservedTermsTask();
-    task.response = response;
-    task.driveConnection = driveConnection;
-    task.tld = tld;
-    task.run();
+  private void runAction(String tld) {
+    ExportReservedTermsAction action = new ExportReservedTermsAction();
+    action.response = response;
+    action.driveConnection = driveConnection;
+    action.tld = tld;
+    action.run();
   }
 
   @Before
@@ -96,7 +96,7 @@ public class ExportReservedTermsTaskTest {
 
   @Test
   public void test_uploadFileToDrive_succeeds() throws Exception {
-    runTask("tld");
+    runAction("tld");
     byte[] expected =
         ("This is a disclaimer.\ncat\nlol\n")
         .getBytes(UTF_8);
@@ -112,7 +112,7 @@ public class ExportReservedTermsTaskTest {
         .setReservedLists(ImmutableSet.<ReservedList>of())
         .setDriveFolderId(null)
         .build());
-    runTask("tld");
+    runAction("tld");
     verify(response).setStatus(SC_OK);
     verify(response).setPayload("No reserved lists configured");
   }
@@ -121,7 +121,7 @@ public class ExportReservedTermsTaskTest {
   public void test_uploadFileToDrive_failsWhenDriveFolderIdIsNull() throws Exception {
     thrown.expectRootCause(NullPointerException.class, "No drive folder associated with this TLD");
     persistResource(Registry.get("tld").asBuilder().setDriveFolderId(null).build());
-    runTask("tld");
+    runAction("tld");
     verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
   }
 
@@ -133,7 +133,7 @@ public class ExportReservedTermsTaskTest {
         any(MediaType.class),
         anyString(),
         any(byte[].class))).thenThrow(new IOException("errorMessage"));
-    runTask("tld");
+    runAction("tld");
     verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
   }
 
@@ -141,7 +141,7 @@ public class ExportReservedTermsTaskTest {
   public void test_uploadFileToDrive_failsWhenTldDoesntExist() throws Exception {
     thrown.expectRootCause(
         RegistryNotFoundException.class, "No registry object found for fakeTld");
-    runTask("fakeTld");
+    runAction("fakeTld");
     verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
   }
 }

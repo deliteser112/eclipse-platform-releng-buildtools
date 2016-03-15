@@ -26,9 +26,9 @@ import org.junit.runners.Suite.SuiteClasses;
   NordnVerifyAction.class,
   SmdrlCsvParserTest.class,
   TmchCertificateAuthorityTest.class,
-  TmchCrlTaskTest.class,
-  TmchDnlTaskTest.class,
-  TmchSmdrlTaskTest.class,
+  TmchCrlActionTest.class,
+  TmchDnlActionTest.class,
+  TmchSmdrlActionTest.class,
   TmchXmlSignatureTest.class,
 })
 class TmchTestSuite {}

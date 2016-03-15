@@ -325,11 +325,11 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     executeTasksUntilEmpty("mapreduce", clock);
     assertTasksEnqueued("rde-upload",
         new TaskMatcher()
-            .url(RdeUploadTask.PATH)
+            .url(RdeUploadAction.PATH)
             .param(RequestParameters.PARAM_TLD, "lol"));
     assertTasksEnqueued("brda",
         new TaskMatcher()
-            .url(BrdaCopyTask.PATH)
+            .url(BrdaCopyAction.PATH)
             .param(RequestParameters.PARAM_TLD, "lol")
             .param(RdeModule.PARAM_WATERMARK, "2000-01-04T00:00:00.000Z"));
   }

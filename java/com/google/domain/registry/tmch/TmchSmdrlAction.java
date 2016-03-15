@@ -30,9 +30,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-/** Task to download the latest signed mark revocation list from MarksDB. */
+/** Action to download the latest signed mark revocation list from MarksDB. */
 @Action(path = "/_dr/task/tmchSmdrl", method = POST, automaticallyPrintOk = true)
-public final class TmchSmdrlTask implements Runnable {
+public final class TmchSmdrlAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
   private static final String SMDRL_CSV_PATH = "/smdrl/smdrl-latest.csv";
@@ -40,7 +40,7 @@ public final class TmchSmdrlTask implements Runnable {
 
   @Inject Marksdb marksdb;
   @Inject @Key("marksdbSmdrlLogin") Optional<String> marksdbSmdrlLogin;
-  @Inject TmchSmdrlTask() {}
+  @Inject TmchSmdrlAction() {}
 
   /** Synchronously fetches latest signed mark revocation list and saves it to datastore. */
   @Override

@@ -32,6 +32,6 @@ import dagger.Component;
 })
 interface DnsTestComponent {
   DnsQueue dnsQueue();
-  RefreshDns refreshDns();
-  WriteDnsTask writeDnsTask();
+  RefreshDnsAction refreshDns();
+  WriteDnsAction writeDnsAction();
 }

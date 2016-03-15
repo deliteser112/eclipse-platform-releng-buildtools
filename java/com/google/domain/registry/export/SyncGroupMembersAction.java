@@ -48,10 +48,12 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /**
- * Syncs changes to {@link RegistrarContact} entities with Google Groups using the Directory API.
+ * Action that syncs changes to {@link RegistrarContact} entities with Google Groups.
+ *
+ * <p>This uses the <a href="https://developers.google.com/admin-sdk/directory/">Directory API</a>.
  */
 @Action(path = "/_dr/task/syncGroupMembers", method = POST)
-public final class SyncGroupMembersTask implements Runnable {
+public final class SyncGroupMembersAction implements Runnable {
 
   /**
    * The number of threads to run simultaneously (one per registrar) while processing group syncs.
@@ -90,7 +92,7 @@ public final class SyncGroupMembersTask implements Runnable {
   @Inject GroupsConnection groupsConnection;
   @Inject Response response;
   @Inject @Config("publicDomainName") String publicDomainName;
-  @Inject SyncGroupMembersTask() {}
+  @Inject SyncGroupMembersAction() {}
 
   private void sendResponse(Result result, @Nullable List<Throwable> causes) {
     for (Throwable cause : nullToEmpty(causes)) {

@@ -28,14 +28,14 @@ import java.security.SignatureException;
 import java.security.cert.CRLException;
 import java.security.cert.CertificateNotYetValidException;
 
-/** Unit tests for {@link TmchCrlTask}. */
-public class TmchCrlTaskTest extends TmchTaskTestCase {
+/** Unit tests for {@link TmchCrlAction}. */
+public class TmchCrlActionTest extends TmchActionTestCase {
 
-  private TmchCrlTask newTmchCrlTask() throws MalformedURLException {
-    TmchCrlTask result = new TmchCrlTask();
-    result.marksdb = marksdb;
-    result.tmchCrlUrl = new URL("http://sloth.lol/tmch.crl");
-    return result;
+  private TmchCrlAction newTmchCrlAction() throws MalformedURLException {
+    TmchCrlAction action = new TmchCrlAction();
+    action.marksdb = marksdb;
+    action.tmchCrlUrl = new URL("http://sloth.lol/tmch.crl");
+    return action;
   }
 
   @Test
@@ -44,7 +44,7 @@ public class TmchCrlTaskTest extends TmchTaskTestCase {
     configRule.useTmchProdCert();
     when(httpResponse.getContent()).thenReturn(
         readResourceBytes(TmchCertificateAuthority.class, "icann-tmch.crl").read());
-    newTmchCrlTask().run();
+    newTmchCrlAction().run();
     verify(httpResponse).getContent();
     verify(fetchService).fetch(httpRequest.capture());
     assertThat(httpRequest.getValue().getURL().toString()).isEqualTo("http://sloth.lol/tmch.crl");
@@ -57,7 +57,7 @@ public class TmchCrlTaskTest extends TmchTaskTestCase {
     when(httpResponse.getContent()).thenReturn(
         readResourceBytes(TmchCertificateAuthority.class, "icann-tmch-test.crl").read());
     thrown.expectRootCause(CRLException.class, "New CRL is more out of date than our current CRL.");
-    newTmchCrlTask().run();
+    newTmchCrlAction().run();
   }
 
   @Test
@@ -66,7 +66,7 @@ public class TmchCrlTaskTest extends TmchTaskTestCase {
     when(httpResponse.getContent()).thenReturn(
         readResourceBytes(TmchCertificateAuthority.class, "icann-tmch.crl").read());
     thrown.expectRootCause(SignatureException.class, "Signature does not match.");
-    newTmchCrlTask().run();
+    newTmchCrlAction().run();
   }
 
   @Test
@@ -75,6 +75,6 @@ public class TmchCrlTaskTest extends TmchTaskTestCase {
     when(httpResponse.getContent()).thenReturn(
         readResourceBytes(TmchCertificateAuthority.class, "icann-tmch-test.crl").read());
     thrown.expectRootCause(CertificateNotYetValidException.class);
-    newTmchCrlTask().run();
+    newTmchCrlAction().run();
   }
 }

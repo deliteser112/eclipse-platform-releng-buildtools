@@ -27,13 +27,13 @@ import java.security.GeneralSecurityException;
 
 import javax.inject.Inject;
 
-/** Task to download the latest ICANN TMCH CRL from MarksDB. */
+/** Action to download the latest ICANN TMCH CRL from MarksDB. */
 @Action(path = "/_dr/task/tmchCrl", method = POST, automaticallyPrintOk = true)
-public final class TmchCrlTask implements Runnable {
+public final class TmchCrlAction implements Runnable {
 
   @Inject Marksdb marksdb;
   @Inject @Config("tmchCrlUrl") URL tmchCrlUrl;
-  @Inject TmchCrlTask() {}
+  @Inject TmchCrlAction() {}
 
   /** Synchronously fetches latest ICANN TMCH CRL and saves it to datastore. */
   @Override

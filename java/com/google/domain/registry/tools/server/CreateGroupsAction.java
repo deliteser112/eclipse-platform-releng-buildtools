@@ -14,7 +14,7 @@
 
 package com.google.domain.registry.tools.server;
 
-import static com.google.domain.registry.export.SyncGroupMembersTask.getGroupEmailAddressForContactType;
+import static com.google.domain.registry.export.SyncGroupMembersAction.getGroupEmailAddressForContactType;
 import static com.google.domain.registry.request.Action.Method.POST;
 import static java.util.Arrays.asList;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -42,9 +42,9 @@ import java.util.List;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-/** A task that creates Google Groups for a registrar's mailing lists. */
-@Action(path = CreateGroupsTask.PATH, method = POST)
-public class CreateGroupsTask implements Runnable {
+/** Action that creates Google Groups for a registrar's mailing lists. */
+@Action(path = CreateGroupsAction.PATH, method = POST)
+public class CreateGroupsAction implements Runnable {
 
   public static final String PATH = "/_dr/admin/createGroups";
   public static final String CLIENT_ID_PARAM = "clientId";
@@ -55,7 +55,7 @@ public class CreateGroupsTask implements Runnable {
   @Inject Response response;
   @Inject @Config("publicDomainName") String publicDomainName;
   @Inject @Parameter("clientId") Optional<String> clientId;
-  @Inject CreateGroupsTask() {}
+  @Inject CreateGroupsAction() {}
 
   @Override
   public void run() {

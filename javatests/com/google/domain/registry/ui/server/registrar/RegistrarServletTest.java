@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.export.sheet.SyncRegistrarsSheetTask;
+import com.google.domain.registry.export.sheet.SyncRegistrarsSheetAction;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
 
@@ -54,7 +54,7 @@ public class RegistrarServletTest extends RegistrarServletTestCase {
         new InternetAddress("notification2@test.example"));
     assertThat(message.getContent()).isEqualTo(expectedEmailBody);
     assertTasksEnqueued("sheet", new TaskMatcher()
-        .url(SyncRegistrarsSheetTask.PATH)
+        .url(SyncRegistrarsSheetAction.PATH)
         .method("GET")
         .header("Host", "backend.hostname"));
   }

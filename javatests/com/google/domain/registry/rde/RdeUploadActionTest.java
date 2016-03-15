@@ -85,9 +85,9 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.URI;
 
-/** Unit tests for {@link RdeUploadTask}. */
+/** Unit tests for {@link RdeUploadAction}. */
 @RunWith(MockitoJUnitRunner.class)
-public class RdeUploadTaskTest {
+public class RdeUploadActionTest {
 
   private static final int BUFFER_SIZE = 64 * 1024;
   private static final ByteSource REPORT_XML = RdeTestData.get("report.xml");
@@ -176,35 +176,35 @@ public class RdeUploadTaskTest {
           return ioSpy.register(super.create(os, signingKey));
         }};
 
-  private RdeUploadTask createTask(URI uploadUrl) {
+  private RdeUploadAction createAction(URI uploadUrl) {
     try (Keyring keyring = new RdeKeyringModule().get()) {
-      RdeUploadTask task = new RdeUploadTask();
-      task.clock = clock;
-      task.gcsUtils = new GcsUtils(gcsService, BUFFER_SIZE);
-      task.ghostryde = new Ghostryde(BUFFER_SIZE);
-      task.jsch =
+      RdeUploadAction action = new RdeUploadAction();
+      action.clock = clock;
+      action.gcsUtils = new GcsUtils(gcsService, BUFFER_SIZE);
+      action.ghostryde = new Ghostryde(BUFFER_SIZE);
+      action.jsch =
           JSchModule.provideJSch(
               keyring.getRdeSshClientPrivateKey(), keyring.getRdeSshClientPublicKey());
-      task.jschSshSessionFactory = new JSchSshSessionFactory(standardSeconds(3));
-      task.response = response;
-      task.pgpCompressionFactory = compressFactory;
-      task.pgpEncryptionFactory = encryptFactory;
-      task.pgpFileFactory = literalFactory;
-      task.pgpSigningFactory = signFactory;
-      task.tarFactory = tarFactory;
-      task.bucket = "bucket";
-      task.interval = standardDays(1);
-      task.timeout = standardSeconds(23);
-      task.tld = "tld";
-      task.sftpCooldown = standardSeconds(7);
-      task.uploadUrl = uploadUrl;
-      task.receiverKey = keyring.getRdeReceiverKey();
-      task.signingKey = keyring.getRdeSigningKey();
-      task.stagingDecryptionKey = keyring.getRdeStagingDecryptionKey();
-      task.reportQueue = QueueFactory.getQueue("rde-report");
-      task.runner = runner;
-      task.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
-      return task;
+      action.jschSshSessionFactory = new JSchSshSessionFactory(standardSeconds(3));
+      action.response = response;
+      action.pgpCompressionFactory = compressFactory;
+      action.pgpEncryptionFactory = encryptFactory;
+      action.pgpFileFactory = literalFactory;
+      action.pgpSigningFactory = signFactory;
+      action.tarFactory = tarFactory;
+      action.bucket = "bucket";
+      action.interval = standardDays(1);
+      action.timeout = standardSeconds(23);
+      action.tld = "tld";
+      action.sftpCooldown = standardSeconds(7);
+      action.uploadUrl = uploadUrl;
+      action.receiverKey = keyring.getRdeReceiverKey();
+      action.signingKey = keyring.getRdeSigningKey();
+      action.stagingDecryptionKey = keyring.getRdeStagingDecryptionKey();
+      action.reportQueue = QueueFactory.getQueue("rde-report");
+      action.runner = runner;
+      action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
+      return action;
     }
   }
 
@@ -243,13 +243,13 @@ public class RdeUploadTaskTest {
   @Test
   public void testRun() throws Exception {
     createTld("lol");
-    RdeUploadTask task = createTask(null);
-    task.tld = "lol";
-    task.run();
+    RdeUploadAction action = createAction(null);
+    action.tld = "lol";
+    action.run();
     verify(runner).lockRunAndRollForward(
-        task, Registry.get("lol"), standardSeconds(23), CursorType.RDE_UPLOAD, standardDays(1));
+        action, Registry.get("lol"), standardSeconds(23), CursorType.RDE_UPLOAD, standardDays(1));
     assertTasksEnqueued("rde-report", new TaskMatcher()
-        .url(RdeReportTask.PATH)
+        .url(RdeReportAction.PATH)
         .param(RequestParameters.PARAM_TLD, "lol"));
     verifyNoMoreInteractions(runner);
   }
@@ -264,7 +264,7 @@ public class RdeUploadTaskTest {
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
         RegistryCursor.create(Registry.get("tld"), CursorType.RDE_STAGING, stagingCursor));
-    createTask(uploadUrl).runWithLock(uploadCursor);
+    createAction(uploadUrl).runWithLock(uploadCursor);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo("OK tld 2010-10-17T00:00:00.000Z\n");
@@ -283,7 +283,7 @@ public class RdeUploadTaskTest {
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
         RegistryCursor.create(Registry.get("tld"), CursorType.RDE_STAGING, stagingCursor));
-    createTask(uploadUrl).runWithLock(uploadCursor);
+    createAction(uploadUrl).runWithLock(uploadCursor);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo("OK tld 2010-10-17T00:00:00.000Z\n");
@@ -311,7 +311,7 @@ public class RdeUploadTaskTest {
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistSimpleResource(
         RegistryCursor.create(Registry.get("tld"), CursorType.RDE_STAGING, stagingCursor));
-    createTask(uploadUrl).runWithLock(uploadCursor);
+    createAction(uploadUrl).runWithLock(uploadCursor);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo("OK tld 2010-10-17T00:00:00.000Z\n");
@@ -331,7 +331,7 @@ public class RdeUploadTaskTest {
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
         RegistryCursor.create(Registry.get("tld"), CursorType.RDE_STAGING, stagingCursor));
-    createTask(uploadUrl).runWithLock(uploadCursor);
+    createAction(uploadUrl).runWithLock(uploadCursor);
     // Only verify signature for SFTP versions, since we check elsewhere that the GCS files are
     // identical to the ones sent over SFTP.
     Process pid = gpg.exec("gpg", "--verify",
@@ -349,8 +349,8 @@ public class RdeUploadTaskTest {
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
         RegistryCursor.create(Registry.get("tld"), CursorType.RDE_STAGING, stagingCursor));
-    thrown.expect(ServiceUnavailableException.class, "Waiting for RdeStagingTask to complete");
-    createTask(null).runWithLock(uploadCursor);
+    thrown.expect(ServiceUnavailableException.class, "Waiting for RdeStagingAction to complete");
+    createAction(null).runWithLock(uploadCursor);
   }
 
   private String slurp(InputStream is) throws FileNotFoundException, IOException {

@@ -46,14 +46,14 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /**
- * Task for synchronizing the registrars spreadsheet.
+ * Action for synchronizing the registrars spreadsheet.
  *
  * <p>You can specify the spreadsheet ID by passing the "id" parameter. If this parameter is not
  * specified, then the spreadsheet ID will be obtained from the registry configuration.
  *
- * <p>Cron will run this task hourly. So in order to minimize Google Spreadsheets I/O, this task
+ * <p>Cron will run this action hourly. So in order to minimize Google Spreadsheets I/O, this action
  * will iterate through all registrars and check if any entries were modified in the past hour. If
- * no modifications were made, the task will exit without performing any syncing.
+ * no modifications were made, the action will exit without performing any syncing.
  *
  * <p><b>Note:</b> Setting the "id" parameter will disable the registrar update check.
  *
@@ -63,8 +63,8 @@ import javax.inject.Inject;
  *
  * @see SyncRegistrarsSheet
  */
-@Action(path = SyncRegistrarsSheetTask.PATH, method = POST)
-public class SyncRegistrarsSheetTask implements Runnable {
+@Action(path = SyncRegistrarsSheetAction.PATH, method = POST)
+public class SyncRegistrarsSheetAction implements Runnable {
 
   private enum Result {
     OK(SC_OK, "Sheet successfully updated."),
@@ -116,7 +116,7 @@ public class SyncRegistrarsSheetTask implements Runnable {
   @Inject @Config("sheetRegistrarId") Optional<String> idConfig;
   @Inject @Config("sheetRegistrarInterval") Duration interval;
   @Inject @Parameter("id") Optional<String> idParam;
-  @Inject SyncRegistrarsSheetTask() {}
+  @Inject SyncRegistrarsSheetAction() {}
 
   @Override
   public void run() {

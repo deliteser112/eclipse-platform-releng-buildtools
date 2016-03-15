@@ -26,16 +26,16 @@ import com.google.domain.registry.model.smd.SignedMarkRevocationList;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
-/** Unit tests for {@link TmchSmdrlTask}. */
-public class TmchSmdrlTaskTest extends TmchTaskTestCase {
+/** Unit tests for {@link TmchSmdrlAction}. */
+public class TmchSmdrlActionTest extends TmchActionTestCase {
 
   private static final DateTime now = DateTime.parse("2014-01-01T00:00:00Z");
 
-  private TmchSmdrlTask newTmchSmdrlTask() {
-    TmchSmdrlTask result = new TmchSmdrlTask();
-    result.marksdb = marksdb;
-    result.marksdbSmdrlLogin = Optional.absent();
-    return result;
+  private TmchSmdrlAction newTmchSmdrlAction() {
+    TmchSmdrlAction action = new TmchSmdrlAction();
+    action.marksdb = marksdb;
+    action.marksdbSmdrlLogin = Optional.absent();
+    return action;
   }
 
   @Test
@@ -46,7 +46,7 @@ public class TmchSmdrlTaskTest extends TmchTaskTestCase {
     when(httpResponse.getContent())
         .thenReturn(loadBytes("smdrl-latest.csv").read())
         .thenReturn(loadBytes("smdrl-latest.sig").read());
-    newTmchSmdrlTask().run();
+    newTmchSmdrlAction().run();
     verify(fetchService, times(2)).fetch(httpRequest.capture());
     assertThat(httpRequest.getAllValues().get(0).getURL().toString())
         .isEqualTo(MARKSDB_URL + "/smdrl/smdrl-latest.csv");

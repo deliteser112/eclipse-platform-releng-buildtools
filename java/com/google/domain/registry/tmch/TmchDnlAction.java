@@ -30,9 +30,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-/** Task to download the latest domain name list (aka claims list) from MarksDB. */
+/** Action to download the latest domain name list (aka claims list) from MarksDB. */
 @Action(path = "/_dr/task/tmchDnl", method = POST, automaticallyPrintOk = true)
-public final class TmchDnlTask implements Runnable {
+public final class TmchDnlAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
   private static final String DNL_CSV_PATH = "/dnl/dnl-latest.csv";
@@ -40,7 +40,7 @@ public final class TmchDnlTask implements Runnable {
 
   @Inject Marksdb marksdb;
   @Inject @Key("marksdbDnlLogin") Optional<String> marksdbDnlLogin;
-  @Inject TmchDnlTask() {}
+  @Inject TmchDnlAction() {}
 
   /** Synchronously fetches latest domain name list and saves it to datastore. */
   @Override

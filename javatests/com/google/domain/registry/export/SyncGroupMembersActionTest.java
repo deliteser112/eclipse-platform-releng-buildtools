@@ -15,7 +15,7 @@
 package com.google.domain.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.export.SyncGroupMembersTask.getGroupEmailAddressForContactType;
+import static com.google.domain.registry.export.SyncGroupMembersAction.getGroupEmailAddressForContactType;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import static com.google.domain.registry.model.registrar.RegistrarContact.Type.ADMIN;
 import static com.google.domain.registry.model.registrar.RegistrarContact.Type.MARKETING;
@@ -47,13 +47,13 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.io.IOException;
 
 /**
- * Unit tests for {@link SyncGroupMembersTask}.
+ * Unit tests for {@link SyncGroupMembersAction}.
  *
  * <p>Note that this relies on the registrars NewRegistrar and TheRegistrar created by default in
  * {@link AppEngineRule}.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SyncGroupMembersTaskTest {
+public class SyncGroupMembersActionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -72,12 +72,12 @@ public class SyncGroupMembersTaskTest {
   @Mock
   private Response response;
 
-  private void runTask() {
-    SyncGroupMembersTask task = new SyncGroupMembersTask();
-    task.groupsConnection = connection;
-    task.response = response;
-    task.publicDomainName = "domain-registry.example";
-    task.run();
+  private void runAction() {
+    SyncGroupMembersAction action = new SyncGroupMembersAction();
+    action.groupsConnection = connection;
+    action.response = response;
+    action.publicDomainName = "domain-registry.example";
+    action.run();
   }
 
   @Test
@@ -108,7 +108,7 @@ public class SyncGroupMembersTaskTest {
         .asBuilder()
         .setContactsRequireSyncing(false)
         .build());
-    runTask();
+    runAction();
     verify(response).setStatus(SC_OK);
     verify(response).setPayload("NOT_MODIFIED No registrar contacts have been updated "
         + "since the last time servlet ran.\n");
@@ -117,7 +117,7 @@ public class SyncGroupMembersTaskTest {
 
   @Test
   public void test_doPost_syncsNewContact() throws Exception {
-    runTask();
+    runAction();
     verify(connection).addMemberToGroup(
         "newregistrar-primary-contacts@domain-registry.example",
         "janedoe@theregistrar.com",
@@ -131,7 +131,7 @@ public class SyncGroupMembersTaskTest {
   public void test_doPost_removesOldContact() throws Exception {
     when(connection.getMembersOfGroup("newregistrar-primary-contacts@domain-registry.example"))
         .thenReturn(ImmutableSet.of("defunct@example.com", "janedoe@theregistrar.com"));
-    runTask();
+    runAction();
     verify(connection).removeMemberFromGroup(
         "newregistrar-primary-contacts@domain-registry.example", "defunct@example.com");
     verify(response).setStatus(SC_OK);
@@ -145,7 +145,7 @@ public class SyncGroupMembersTaskTest {
     ofy().deleteWithoutBackup()
         .entities(Registrar.loadByClientId("NewRegistrar").getContacts())
         .now();
-    runTask();
+    runAction();
     verify(connection).removeMemberFromGroup(
         "newregistrar-primary-contacts@domain-registry.example", "defunct@example.com");
     verify(connection).removeMemberFromGroup(
@@ -178,7 +178,7 @@ public class SyncGroupMembersTaskTest {
             .setEmailAddress("hexadecimal@snow.fall")
             .setTypes(ImmutableSet.of(TECH))
             .build());
-    runTask();
+    runAction();
     verify(connection).removeMemberFromGroup(
         "newregistrar-primary-contacts@domain-registry.example", "defunct@example.com");
     verify(connection).addMemberToGroup(
@@ -211,7 +211,7 @@ public class SyncGroupMembersTaskTest {
         .thenReturn(ImmutableSet.<String> of());
     when(connection.getMembersOfGroup("theregistrar-primary-contacts@domain-registry.example"))
         .thenThrow(new IOException("Internet was deleted"));
-    runTask();
+    runAction();
     verify(connection).addMemberToGroup(
         "newregistrar-primary-contacts@domain-registry.example",
         "janedoe@theregistrar.com",

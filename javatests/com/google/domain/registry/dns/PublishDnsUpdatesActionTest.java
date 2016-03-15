@@ -40,7 +40,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.inject.Provider;
 
-/** Unit tests for {@link WriteDnsTask}. */
+/** Unit tests for {@link WriteDnsAction}. */
 @RunWith(MockitoJUnitRunner.class)
 public class PublishDnsUpdatesActionTest {
 

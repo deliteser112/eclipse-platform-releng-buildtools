@@ -38,7 +38,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 /** Common code for unit tests of classes that extend {@link Marksdb}. */
 @RunWith(MockitoJUnitRunner.class)
-public class TmchTaskTestCase {
+public class TmchActionTestCase {
 
   static final String MARKSDB_LOGIN = "lolcat:attack";
   static final String MARKSDB_LOGIN_BASE64 = "bG9sY2F0OmF0dGFjaw==";

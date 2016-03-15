@@ -169,7 +169,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
 
     // Write a file to GCS containing the byte length (ASCII) of the raw unencrypted XML.
     //
-    // This is necessary because RdeUploadTask creates a tar file which requires that the length
+    // This is necessary because RdeUploadAction creates a tar file which requires that the length
     // be outputted. We don't want to have to decrypt the entire ghostryde file to determine the
     // length, so we just save it separately.
     logger.infofmt("Writing %s", xmlLengthFilename);
@@ -195,7 +195,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       }
     }
 
-    // Now that we're done, kick off RdeUploadTask and roll forward the cursor transactionally.
+    // Now that we're done, kick off RdeUploadAction and roll forward the cursor transactionally.
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
@@ -213,11 +213,11 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
         RdeRevision.saveRevision(tld, watermark, mode, revision);
         if (mode == RdeMode.FULL) {
           taskEnqueuer.enqueue(getQueue("rde-upload"),
-              withUrl(RdeUploadTask.PATH)
+              withUrl(RdeUploadAction.PATH)
                   .param(RequestParameters.PARAM_TLD, tld));
         } else {
           taskEnqueuer.enqueue(getQueue("brda"),
-              withUrl(BrdaCopyTask.PATH)
+              withUrl(BrdaCopyAction.PATH)
                   .param(RequestParameters.PARAM_TLD, tld)
                   .param(RdeModule.PARAM_WATERMARK, watermark.toString()));
         }

@@ -49,7 +49,7 @@ import javax.inject.Inject;
 /**
  * Class for synchronizing all {@link Registrar} datastore objects to a Google Spreadsheet.
  *
- * @see SyncRegistrarsSheetTask
+ * @see SyncRegistrarsSheetAction
  */
 class SyncRegistrarsSheet {
 

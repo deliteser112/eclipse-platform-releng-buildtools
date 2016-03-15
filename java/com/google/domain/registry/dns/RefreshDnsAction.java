@@ -28,15 +28,15 @@ import com.google.domain.registry.util.Clock;
 
 import javax.inject.Inject;
 
-/** Endpoint for manually triggering refresh of DNS information. */
+/** Action that manually triggers refresh of DNS information. */
 @Action(path = "/_dr/dnsRefresh", automaticallyPrintOk = true)
-public final class RefreshDns implements Runnable {
+public final class RefreshDnsAction implements Runnable {
 
   @Inject Clock clock;
   @Inject DnsQueue dnsQueue;
   @Inject @Parameter("name") String domainOrHostName;
   @Inject @Parameter("type") TargetType type;
-  @Inject RefreshDns() {}
+  @Inject RefreshDnsAction() {}
 
   @Override
   public void run() {

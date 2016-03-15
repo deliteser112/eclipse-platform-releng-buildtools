@@ -52,10 +52,10 @@ public class RegistryCursor extends ImmutableObject {
      * of each other will be merged into a single deposit. This is problematic in situations where
      * the cursor might be a few days behind and is trying to catch up.
      *
-     * <p>The way we solve this problem is by having {@code RdeUploadTask} check this cursor before
-     * performing an upload for a given TLD. If the cursor is less than two hours old, the task will
-     * fail with a status code above 300 and App Engine will keep retrying the task until it's
-     * ready.
+     * <p>The way we solve this problem is by having {@code RdeUploadAction} check this cursor
+     * before performing an upload for a given TLD. If the cursor is less than two hours old, the
+     * action will fail with a status code above 300 and App Engine will keep retrying the action
+     * until it's ready.
      */
     RDE_UPLOAD_SFTP;
   }

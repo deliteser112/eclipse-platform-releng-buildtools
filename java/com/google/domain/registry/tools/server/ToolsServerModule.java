@@ -36,7 +36,7 @@ public class ToolsServerModule {
   @Provides
   @Parameter("clientId")
   static Optional<String> provideClientId(HttpServletRequest req) {
-    return Optional.fromNullable(emptyToNull(req.getParameter(CreateGroupsTask.CLIENT_ID_PARAM)));
+    return Optional.fromNullable(emptyToNull(req.getParameter(CreateGroupsAction.CLIENT_ID_PARAM)));
   }
 
   @Provides

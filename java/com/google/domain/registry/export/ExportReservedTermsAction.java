@@ -34,9 +34,9 @@ import com.google.domain.registry.util.FormattingLogger;
 
 import javax.inject.Inject;
 
-/** Exports the publicly viewable reserved terms list for a TLD to Google Drive. */
+/** Action that exports the publicly viewable reserved terms list for a TLD to Google Drive. */
 @Action(path = "/_dr/task/exportReservedTerms", method = POST)
-public class ExportReservedTermsTask implements Runnable {
+public class ExportReservedTermsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
   static final MediaType EXPORT_MIME_TYPE = MediaType.PLAIN_TEXT_UTF_8;
@@ -45,7 +45,7 @@ public class ExportReservedTermsTask implements Runnable {
   @Inject DriveConnection driveConnection;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
   @Inject Response response;
-  @Inject ExportReservedTermsTask() {}
+  @Inject ExportReservedTermsAction() {}
 
   /**
    * Exports the reserved terms for the TLD specified via the "tld" param to a newline-delimited

@@ -22,7 +22,7 @@ import com.google.domain.registry.request.RequestModule;
 import com.google.domain.registry.request.RequestScope;
 import com.google.domain.registry.tools.mapreduce.DeleteProberDataAction;
 import com.google.domain.registry.tools.mapreduce.ResaveAllEppResourcesAction;
-import com.google.domain.registry.tools.server.CreateGroupsTask;
+import com.google.domain.registry.tools.server.CreateGroupsAction;
 import com.google.domain.registry.tools.server.CreatePremiumListAction;
 import com.google.domain.registry.tools.server.DeleteEntityAction;
 import com.google.domain.registry.tools.server.GenerateZoneFilesAction;
@@ -52,7 +52,7 @@ import dagger.Subcomponent;
     })
 interface ToolsRequestComponent {
   AnnihilateNonDefaultNamespacesAction annihilateNonDefaultNamespacesAction();
-  CreateGroupsTask createGroupsTask();
+  CreateGroupsAction createGroupsAction();
   CreatePremiumListAction createPremiumListAction();
   DeleteEntityAction deleteEntityAction();
   DeleteProberDataAction deleteProberDataAction();

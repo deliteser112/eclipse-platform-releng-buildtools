@@ -25,14 +25,14 @@ import com.google.domain.registry.model.tmch.ClaimsListShard;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
-/** Unit tests for {@link TmchDnlTask}. */
-public class TmchDnlTaskTest extends TmchTaskTestCase {
+/** Unit tests for {@link TmchDnlAction}. */
+public class TmchDnlActionTest extends TmchActionTestCase {
 
-  private TmchDnlTask newTmchDnlTask() {
-    TmchDnlTask result = new TmchDnlTask();
-    result.marksdb = marksdb;
-    result.marksdbDnlLogin = Optional.of(MARKSDB_LOGIN);
-    return result;
+  private TmchDnlAction newTmchDnlAction() {
+    TmchDnlAction action = new TmchDnlAction();
+    action.marksdb = marksdb;
+    action.marksdbDnlLogin = Optional.of(MARKSDB_LOGIN);
+    return action;
   }
 
   @Test
@@ -41,7 +41,7 @@ public class TmchDnlTaskTest extends TmchTaskTestCase {
     when(httpResponse.getContent())
         .thenReturn(TmchTestData.loadBytes("dnl-latest.csv").read())
         .thenReturn(TmchTestData.loadBytes("dnl-latest.sig").read());
-    newTmchDnlTask().run();
+    newTmchDnlAction().run();
     verify(fetchService, times(2)).fetch(httpRequest.capture());
     assertThat(httpRequest.getAllValues().get(0).getURL().toString())
         .isEqualTo(MARKSDB_URL + "/dnl/dnl-latest.csv");

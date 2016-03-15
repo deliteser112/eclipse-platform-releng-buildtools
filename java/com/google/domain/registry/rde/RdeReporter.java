@@ -51,7 +51,7 @@ import javax.inject.Inject;
 /**
  * Class that uploads a decrypted XML deposit report to ICANN's webserver.
  *
- * @see RdeReportTask
+ * @see RdeReportAction
  */
 public class RdeReporter {
 

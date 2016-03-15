@@ -132,7 +132,7 @@ public final class ConfigModule {
     return projectId + "-icann-brda";
   }
 
-  /** @see com.google.domain.registry.rde.BrdaCopyTask */
+  /** @see com.google.domain.registry.rde.BrdaCopyAction */
   @Provides
   @Config("brdaDayOfWeek")
   public static int provideBrdaDayOfWeek() {
@@ -238,8 +238,8 @@ public final class ConfigModule {
   /**
    * Returns the publicly accessible domain name for the running Google Apps instance.
    *
-   * @see com.google.domain.registry.export.SyncGroupMembersTask
-   * @see com.google.domain.registry.tools.server.CreateGroupsTask
+   * @see com.google.domain.registry.export.SyncGroupMembersAction
+   * @see com.google.domain.registry.tools.server.CreateGroupsAction
    */
   @Provides
   @Config("publicDomainName")
@@ -264,7 +264,7 @@ public final class ConfigModule {
    * <p>This file needs to be downloaded at least once a day and verified to make sure it was
    * signed by {@code icann-tmch.crt}.
    *
-   * @see com.google.domain.registry.tmch.TmchCrlTask
+   * @see com.google.domain.registry.tmch.TmchCrlAction
    * @see "http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-5.2.3.2"
    */
   @Provides
@@ -325,7 +325,7 @@ public final class ConfigModule {
    *
    * <p>You must append {@code "/TLD/ID"} to this URL.
    *
-   * @see com.google.domain.registry.rde.RdeReportTask
+   * @see com.google.domain.registry.rde.RdeReportAction
    */
   @Provides
   @Config("rdeReportUrlPrefix")
@@ -382,7 +382,7 @@ public final class ConfigModule {
    * which cloud storage files are uploaded. The password should not be included, as it's better to
    * use public key authentication.
    *
-   * @see com.google.domain.registry.rde.RdeUploadTask
+   * @see com.google.domain.registry.rde.RdeUploadAction
    */
   @Provides
   @Config("rdeUploadUrl")
@@ -407,7 +407,7 @@ public final class ConfigModule {
    *
    * <p>This ID, as you'd expect, comes from the URL of the spreadsheet.
    *
-   * @see com.google.domain.registry.export.sheet.SyncRegistrarsSheetTask
+   * @see com.google.domain.registry.export.sheet.SyncRegistrarsSheetAction
    */
   @Provides
   @Config("sheetRegistrarId")
@@ -437,7 +437,7 @@ public final class ConfigModule {
   /**
    * Returns SSH client connection and read timeout.
    *
-   * @see com.google.domain.registry.rde.RdeUploadTask
+   * @see com.google.domain.registry.rde.RdeUploadAction
    */
   @Provides
   @Config("sshTimeout")

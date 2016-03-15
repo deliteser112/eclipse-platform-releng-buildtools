@@ -38,7 +38,7 @@ public interface Keyring extends AutoCloseable {
    * <p>This keypair should only be known to the domain registry shared
    * registry system.
    *
-   * @see com.google.domain.registry.rde.RdeUploadTask
+   * @see com.google.domain.registry.rde.RdeUploadAction
    */
   PGPKeyPair getRdeSigningKey();
 
@@ -65,28 +65,28 @@ public interface Keyring extends AutoCloseable {
    * invocation of the RDE upload thing.
    *
    * @see #getRdeStagingEncryptionKey()
-   * @see com.google.domain.registry.rde.RdeUploadTask
+   * @see com.google.domain.registry.rde.RdeUploadAction
    */
   PGPPrivateKey getRdeStagingDecryptionKey();
 
   /**
    * Returns public key of escrow agent for encrypting deposits as they're uploaded.
    *
-   * @see com.google.domain.registry.rde.RdeUploadTask
+   * @see com.google.domain.registry.rde.RdeUploadAction
    */
   PGPPublicKey getRdeReceiverKey();
 
   /**
    * Returns the PGP key we use to sign Bulk Registration Data Access (BRDA) deposits.
    *
-   * @see com.google.domain.registry.rde.BrdaCopyTask
+   * @see com.google.domain.registry.rde.BrdaCopyAction
    */
   PGPKeyPair getBrdaSigningKey();
 
   /**
    * Returns public key of receiver of Bulk Registration Data Access (BRDA) deposits.
    *
-   * @see com.google.domain.registry.rde.BrdaCopyTask
+   * @see com.google.domain.registry.rde.BrdaCopyAction
    */
   PGPPublicKey getBrdaReceiverKey();
 
@@ -97,7 +97,7 @@ public interface Keyring extends AutoCloseable {
    * {@code ~/.ssh/id_rsa.pub} file. It's usually a single line with the name of
    * the algorithm, the base64 key, and the email address of the owner.
    *
-   * @see com.google.domain.registry.rde.RdeUploadTask
+   * @see com.google.domain.registry.rde.RdeUploadAction
    */
   String getRdeSshClientPublicKey();
 
@@ -112,21 +112,21 @@ public interface Keyring extends AutoCloseable {
    * admin console. The request should originate from a backend task queue servlet
    * invocation of the RDE upload thing.
    *
-   * @see com.google.domain.registry.rde.RdeUploadTask
+   * @see com.google.domain.registry.rde.RdeUploadAction
    */
   String getRdeSshClientPrivateKey();
 
   /**
    * Returns password to be used when uploading reports to ICANN.
    *
-   * @see com.google.domain.registry.rde.RdeReportTask
+   * @see com.google.domain.registry.rde.RdeReportAction
    */
   String getIcannReportingPassword();
 
   /**
    * Returns {@code user:password} login for TMCH MarksDB HTTP server DNL interface.
    *
-   * @see com.google.domain.registry.tmch.TmchDnlTask
+   * @see com.google.domain.registry.tmch.TmchDnlAction
    */
   String getMarksdbDnlLogin();
 
@@ -140,7 +140,7 @@ public interface Keyring extends AutoCloseable {
   /**
    * Returns {@code user:password} login for TMCH MarksDB HTTP server SMDRL interface.
    *
-   * @see com.google.domain.registry.tmch.TmchSmdrlTask
+   * @see com.google.domain.registry.tmch.TmchSmdrlAction
    */
   String getMarksdbSmdrlLogin();
 

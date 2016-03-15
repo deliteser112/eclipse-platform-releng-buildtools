@@ -53,9 +53,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-/** Unit tests for {@link BrdaCopyTask}. */
+/** Unit tests for {@link BrdaCopyAction}. */
 @RunWith(JUnit4.class)
-public class BrdaCopyTaskTest {
+public class BrdaCopyActionTest {
 
   private static final ByteSource DEPOSIT_XML = RdeTestData.get("deposit_full.xml");  // 2010-10-17
 
@@ -98,24 +98,24 @@ public class BrdaCopyTaskTest {
 
   private final GcsService gcsService = GcsServiceFactory.createGcsService();
   private final GcsUtils gcsUtils = new GcsUtils(gcsService, 1024);
-  private final BrdaCopyTask task = new BrdaCopyTask();
+  private final BrdaCopyAction action = new BrdaCopyAction();
 
   @Before
   public void before() throws Exception {
-    task.gcsUtils = gcsUtils;
-    task.ghostryde = new Ghostryde(23);
-    task.pgpCompressionFactory = new RydePgpCompressionOutputStreamFactory(Providers.of(1024));
-    task.pgpEncryptionFactory = new RydePgpEncryptionOutputStreamFactory(Providers.of(1024));
-    task.pgpFileFactory = new RydePgpFileOutputStreamFactory(Providers.of(1024));
-    task.pgpSigningFactory = new RydePgpSigningOutputStreamFactory();
-    task.tarFactory = new RydeTarOutputStreamFactory();
-    task.tld = "lol";
-    task.watermark = DateTime.parse("2010-10-17TZ");
-    task.brdaBucket = "tub";
-    task.stagingBucket = "keg";
-    task.receiverKey = receiverKey;
-    task.signingKey = signingKey;
-    task.stagingDecryptionKey = decryptKey;
+    action.gcsUtils = gcsUtils;
+    action.ghostryde = new Ghostryde(23);
+    action.pgpCompressionFactory = new RydePgpCompressionOutputStreamFactory(Providers.of(1024));
+    action.pgpEncryptionFactory = new RydePgpEncryptionOutputStreamFactory(Providers.of(1024));
+    action.pgpFileFactory = new RydePgpFileOutputStreamFactory(Providers.of(1024));
+    action.pgpSigningFactory = new RydePgpSigningOutputStreamFactory();
+    action.tarFactory = new RydeTarOutputStreamFactory();
+    action.tld = "lol";
+    action.watermark = DateTime.parse("2010-10-17TZ");
+    action.brdaBucket = "tub";
+    action.stagingBucket = "keg";
+    action.receiverKey = receiverKey;
+    action.signingKey = signingKey;
+    action.stagingDecryptionKey = decryptKey;
 
     byte[] xml = DEPOSIT_XML.read();
     GcsTestingUtils.writeGcsFile(gcsService, STAGE_FILE,
@@ -126,7 +126,7 @@ public class BrdaCopyTaskTest {
 
   @Test
   public void testRun() throws Exception {
-    task.run();
+    action.run();
     assertThat(gcsUtils.existsAndNotEmpty(STAGE_FILE)).isTrue();
     assertThat(gcsUtils.existsAndNotEmpty(RYDE_FILE)).isTrue();
     assertThat(gcsUtils.existsAndNotEmpty(SIG_FILE)).isTrue();
@@ -135,7 +135,7 @@ public class BrdaCopyTaskTest {
   @Test
   public void testRun_rydeFormat() throws Exception {
     assumeTrue(hasCommand("gpg --version"));
-    task.run();
+    action.run();
 
     File rydeTmp = new File(gpg.getCwd(), "ryde");
     Files.write(readGcsFile(gcsService, RYDE_FILE), rydeTmp);
@@ -174,7 +174,7 @@ public class BrdaCopyTaskTest {
   @Test
   public void testRun_rydeSignature() throws Exception {
     assumeTrue(hasCommand("gpg --version"));
-    task.run();
+    action.run();
 
     File rydeTmp = new File(gpg.getCwd(), "ryde");
     File sigTmp = new File(gpg.getCwd(), "ryde.sig");

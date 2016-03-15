@@ -40,7 +40,7 @@ import javax.inject.Inject;
  * as-needed basis.
  *
  * @see JSchSftpChannel
- * @see RdeUploadTask
+ * @see RdeUploadAction
  * @see com.jcraft.jsch.Session
  */
 final class JSchSshSession implements Closeable {

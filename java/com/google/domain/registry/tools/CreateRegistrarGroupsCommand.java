@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.server.CreateGroupsTask;
+import com.google.domain.registry.tools.server.CreateGroupsAction;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -77,8 +77,8 @@ public class CreateRegistrarGroupsCommand extends ConfirmingCommand
   protected String execute() throws IOException {
     for (Registrar registrar : registrars) {
       connection.send(
-          CreateGroupsTask.PATH,
-          ImmutableMap.of(CreateGroupsTask.CLIENT_ID_PARAM, registrar.getClientIdentifier()),
+          CreateGroupsAction.PATH,
+          ImmutableMap.of(CreateGroupsAction.CLIENT_ID_PARAM, registrar.getClientIdentifier()),
           MediaType.PLAIN_TEXT_UTF_8,
           new byte[0]);
     }

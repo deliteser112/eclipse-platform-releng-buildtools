@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.modules.ModulesService;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.export.sheet.SyncRegistrarsSheetTask;
+import com.google.domain.registry.export.sheet.SyncRegistrarsSheetAction;
 import com.google.domain.registry.model.ofy.Ofy;
 import com.google.domain.registry.testing.AppEngineRule;
 import com.google.domain.registry.testing.ExceptionRule;
@@ -95,7 +95,7 @@ public class RegistrarServletTestCase {
     inject.setStaticField(Ofy.class, "clock", clock);
     inject.setStaticField(ResourceServlet.class, "sessionUtils", sessionUtils);
     inject.setStaticField(SendEmailUtils.class, "emailService", emailService);
-    inject.setStaticField(SyncRegistrarsSheetTask.class, "modulesService", modulesService);
+    inject.setStaticField(SyncRegistrarsSheetAction.class, "modulesService", modulesService);
     message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
     when(emailService.createMessage()).thenReturn(message);
     when(req.getMethod()).thenReturn("POST");

@@ -49,9 +49,9 @@ import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
-/** Task that consumes pull-queue for zone updates to write to the DNS server. */
+/** Action that consumes pull-queue for zone updates to write to the DNS server. */
 @Action(path = "/_dr/task/writeDns", method = POST, automaticallyPrintOk = true)
-public final class WriteDnsTask implements Runnable, Callable<Void> {
+public final class WriteDnsAction implements Runnable, Callable<Void> {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -59,7 +59,7 @@ public final class WriteDnsTask implements Runnable, Callable<Void> {
   @Inject Provider<DnsWriter> writerProvider;
   @Inject @Config("dnsWriteLockTimeout") Duration timeout;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
-  @Inject WriteDnsTask() {}
+  @Inject WriteDnsAction() {}
 
   /** Runs the task. */
   @Override

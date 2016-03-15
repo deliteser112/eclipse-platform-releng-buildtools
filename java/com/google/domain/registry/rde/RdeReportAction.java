@@ -48,10 +48,10 @@ import java.io.InputStream;
 import javax.inject.Inject;
 
 /**
- * Uploads a small XML RDE report to ICANN after {@link RdeUploadTask} has finished.
+ * Action that uploads a small XML RDE report to ICANN after {@link RdeUploadAction} has finished.
  */
-@Action(path = RdeReportTask.PATH, method = POST)
-public final class RdeReportTask implements Runnable, EscrowTask {
+@Action(path = RdeReportAction.PATH, method = POST)
+public final class RdeReportAction implements Runnable, EscrowTask {
 
   static final String PATH = "/_dr/task/rdeReport";
 
@@ -67,7 +67,7 @@ public final class RdeReportTask implements Runnable, EscrowTask {
   @Inject @Config("rdeInterval") Duration interval;
   @Inject @Config("rdeReportLockTimeout") Duration timeout;
   @Inject @Key("rdeStagingDecryptionKey") PGPPrivateKey stagingDecryptionKey;
-  @Inject RdeReportTask() {}
+  @Inject RdeReportAction() {}
 
   @Override
   public void run() {
@@ -80,7 +80,7 @@ public final class RdeReportTask implements Runnable, EscrowTask {
         RegistryCursor.load(Registry.get(tld), CursorType.RDE_UPLOAD).or(START_OF_TIME);
     if (!stagingCursor.isAfter(watermark)) {
       logger.infofmt("tld=%s reportCursor=%s uploadCursor=%s", tld, watermark, stagingCursor);
-      throw new NoContentException("Waiting for RdeUploadTask to complete");
+      throw new NoContentException("Waiting for RdeUploadAction to complete");
     }
     String prefix = RdeNamingUtils.makeRydeFilename(tld, watermark, FULL, 1, 0);
     GcsFilename reportFilename = new GcsFilename(bucket, prefix + "-report.xml.ghostryde");

@@ -66,9 +66,9 @@ import org.mockito.ArgumentCaptor;
 import java.io.ByteArrayInputStream;
 import java.util.Map;
 
-/** Unit tests for {@link RdeReportTask}. */
+/** Unit tests for {@link RdeReportAction}. */
 @RunWith(JUnit4.class)
-public class RdeReportTaskTest {
+public class RdeReportActionTest {
 
   private static final ByteSource REPORT_XML = RdeTestData.get("report.xml");
   private static final ByteSource IIRDEA_BAD_XML = RdeTestData.get("iirdea_bad.xml");
@@ -96,24 +96,24 @@ public class RdeReportTaskTest {
   private final GcsFilename reportFile =
       new GcsFilename("tub", "test_2006-06-06_full_S1_R0-report.xml.ghostryde");
 
-  private RdeReportTask createTask() {
+  private RdeReportAction createAction() {
     RdeReporter reporter = new RdeReporter();
     reporter.config = config;
     reporter.reportUrlPrefix = "https://rde-report.example";
     reporter.urlFetchService = urlFetchService;
     reporter.password = "foo";
-    RdeReportTask task = new RdeReportTask();
-    task.gcsUtils = new GcsUtils(gcsService, 1024);
-    task.ghostryde = new Ghostryde(1024);
-    task.response = response;
-    task.bucket = "tub";
-    task.tld = "test";
-    task.interval = standardDays(1);
-    task.reporter = reporter;
-    task.timeout = standardSeconds(30);
-    task.stagingDecryptionKey = new RdeKeyringModule().get().getRdeStagingDecryptionKey();
-    task.runner = runner;
-    return task;
+    RdeReportAction action = new RdeReportAction();
+    action.gcsUtils = new GcsUtils(gcsService, 1024);
+    action.ghostryde = new Ghostryde(1024);
+    action.response = response;
+    action.bucket = "tub";
+    action.tld = "test";
+    action.interval = standardDays(1);
+    action.reporter = reporter;
+    action.timeout = standardSeconds(30);
+    action.stagingDecryptionKey = new RdeKeyringModule().get().getRdeStagingDecryptionKey();
+    action.runner = runner;
+    return action;
   }
 
   @Before
@@ -131,11 +131,11 @@ public class RdeReportTaskTest {
   @Test
   public void testRun() throws Exception {
     createTld("lol");
-    RdeReportTask task = createTask();
-    task.tld = "lol";
-    task.run();
+    RdeReportAction action = createAction();
+    action.tld = "lol";
+    action.run();
     verify(runner).lockRunAndRollForward(
-        task, Registry.get("lol"), standardSeconds(30), CursorType.RDE_REPORT, standardDays(1));
+        action, Registry.get("lol"), standardSeconds(30), CursorType.RDE_REPORT, standardDays(1));
     verifyNoMoreInteractions(runner);
   }
 
@@ -144,7 +144,7 @@ public class RdeReportTaskTest {
     when(httpResponse.getResponseCode()).thenReturn(SC_OK);
     when(httpResponse.getContent()).thenReturn(IIRDEA_GOOD_XML.read());
     when(urlFetchService.fetch(request.capture())).thenReturn(httpResponse);
-    createTask().runWithLock(loadRdeReportCursor());
+    createAction().runWithLock(loadRdeReportCursor());
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo("OK test 2006-06-06T00:00:00.000Z\n");
@@ -171,7 +171,7 @@ public class RdeReportTaskTest {
     when(httpResponse.getContent()).thenReturn(IIRDEA_BAD_XML.read());
     when(urlFetchService.fetch(request.capture())).thenReturn(httpResponse);
     thrown.expect(InternalServerErrorException.class, "The structure of the report is invalid.");
-    createTask().runWithLock(loadRdeReportCursor());
+    createAction().runWithLock(loadRdeReportCursor());
   }
 
   @Test
@@ -179,7 +179,7 @@ public class RdeReportTaskTest {
     class ExpectedException extends RuntimeException {}
     when(urlFetchService.fetch(any(HTTPRequest.class))).thenThrow(new ExpectedException());
     thrown.expect(ExpectedException.class);
-    createTask().runWithLock(loadRdeReportCursor());
+    createAction().runWithLock(loadRdeReportCursor());
   }
 
   private DateTime loadRdeReportCursor() {

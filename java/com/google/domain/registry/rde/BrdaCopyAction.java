@@ -43,11 +43,11 @@ import java.io.OutputStream;
 import javax.inject.Inject;
 
 /**
- * Task that re-encrypts a BRDA escrow deposit and puts it into the upload bucket.
+ * Action that re-encrypts a BRDA escrow deposit and puts it into the upload bucket.
  *
- * <p>This task is run by the mapreduce for each BRDA staging file it generates. The staging file is
- * encrypted with our internal {@link Ghostryde} encryption. We then re-encrypt it as a RyDE file,
- * which is what the third-party escrow provider understands.
+ * <p>This action is run by the mapreduce for each BRDA staging file it generates. The staging file
+ * is encrypted with our internal {@link Ghostryde} encryption. We then re-encrypt it as a RyDE
+ * file, which is what the third-party escrow provider understands.
  *
  * <p>Then we put the RyDE file (along with our digital signature) into the configured BRDA bucket.
  * This bucket is special because a separate script will rsync it to the third party escrow provider
@@ -55,8 +55,8 @@ import javax.inject.Inject;
  *
  * @see "http://newgtlds.icann.org/en/applicants/agb/agreement-approved-09jan14-en.htm"
  */
-@Action(path = BrdaCopyTask.PATH, method = POST, automaticallyPrintOk = true)
-public final class BrdaCopyTask implements Runnable {
+@Action(path = BrdaCopyAction.PATH, method = POST, automaticallyPrintOk = true)
+public final class BrdaCopyAction implements Runnable {
 
   static final String PATH = "/_dr/task/brdaCopy";
 
@@ -76,7 +76,7 @@ public final class BrdaCopyTask implements Runnable {
   @Inject @Key("brdaReceiverKey") PGPPublicKey receiverKey;
   @Inject @Key("brdaSigningKey") PGPKeyPair signingKey;
   @Inject @Key("rdeStagingDecryptionKey") PGPPrivateKey stagingDecryptionKey;
-  @Inject BrdaCopyTask() {}
+  @Inject BrdaCopyAction() {}
 
   @Override
   public void run() {

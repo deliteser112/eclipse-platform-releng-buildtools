@@ -38,10 +38,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 /**
- * Unit tests for {@link CreateGroupsTask}.
+ * Unit tests for {@link CreateGroupsAction}.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class CreateGroupsTaskTest {
+public class CreateGroupsActionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -60,32 +60,32 @@ public class CreateGroupsTaskTest {
   @Mock
   private Response response;
 
-  private void runTask(String clientId) {
-    CreateGroupsTask task = new CreateGroupsTask();
-    task.response = response;
-    task.groupsConnection = connection;
-    task.publicDomainName = "domain-registry.example";
-    task.clientId = Optional.fromNullable(clientId);
-    task.run();
+  private void runAction(String clientId) {
+    CreateGroupsAction action = new CreateGroupsAction();
+    action.response = response;
+    action.groupsConnection = connection;
+    action.publicDomainName = "domain-registry.example";
+    action.clientId = Optional.fromNullable(clientId);
+    action.run();
   }
 
   @Test
   public void test_invalidRequest_missingClientId() throws Exception {
     thrown.expect(BadRequestException.class,
         "Error creating Google Groups, missing parameter: clientId");
-    runTask(null);
+    runAction(null);
   }
 
   @Test
   public void test_invalidRequest_invalidClientId() throws Exception {
     thrown.expect(BadRequestException.class,
         "Error creating Google Groups; could not find registrar with id completelyMadeUpClientId");
-    runTask("completelyMadeUpClientId");
+    runAction("completelyMadeUpClientId");
   }
 
   @Test
   public void test_createsAllGroupsSuccessfully() throws Exception {
-    runTask("NewRegistrar");
+    runAction("NewRegistrar");
     verify(response).setStatus(SC_OK);
     verify(response).setPayload("Success!");
     verifyGroupCreationCallsForNewRegistrar();
@@ -103,7 +103,7 @@ public class CreateGroupsTaskTest {
         "newregistrar-technical-contacts@domain-registry.example",
         Role.MEMBER);
     try {
-      runTask("NewRegistrar");
+      runAction("NewRegistrar");
     } catch (InternalServerErrorException e) {
       String responseString = e.toString();
       assertThat(responseString).contains("abuse => Success");
