@@ -125,21 +125,6 @@
     <url-pattern>/_dr/task/deleteProberData</url-pattern>
   </servlet-mapping>
 
-  <!--  Mapreduce to delete all entities in non-default namespaces. -->
-  <servlet>
-    <description>
-      Deletes entities in non-default namespaces.
-    </description>
-    <display-name>Annihilate Non-Default Namespaces Mapreduce</display-name>
-    <servlet-name>annihilate-non-default-namespaces</servlet-name>
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>annihilate-non-default-namespaces</servlet-name>
-    <url-pattern>/_dr/task/annihilateNonDefaultNamespaces</url-pattern>
-  </servlet-mapping>
-
   <!--  Mapreduce to re-save all EppResources. -->
   <servlet>
     <description>

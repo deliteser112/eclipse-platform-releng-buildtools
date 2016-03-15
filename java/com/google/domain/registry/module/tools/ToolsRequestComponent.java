@@ -37,7 +37,6 @@ import com.google.domain.registry.tools.server.ListTldsAction;
 import com.google.domain.registry.tools.server.ToolsServerModule;
 import com.google.domain.registry.tools.server.UpdatePremiumListAction;
 import com.google.domain.registry.tools.server.VerifyOteAction;
-import com.google.domain.registry.tools.server.javascrap.AnnihilateNonDefaultNamespacesAction;
 
 import dagger.Subcomponent;
 
@@ -51,7 +50,6 @@ import dagger.Subcomponent;
         ToolsServerModule.class,
     })
 interface ToolsRequestComponent {
-  AnnihilateNonDefaultNamespacesAction annihilateNonDefaultNamespacesAction();
   CreateGroupsAction createGroupsAction();
   CreatePremiumListAction createPremiumListAction();
   DeleteEntityAction deleteEntityAction();
