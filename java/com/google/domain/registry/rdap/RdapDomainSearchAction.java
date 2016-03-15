@@ -99,7 +99,6 @@ public class RdapDomainSearchAction extends RdapActionBase {
     ImmutableList<ImmutableMap<String, Object>> results;
     if (nameParam.isPresent()) {
       // syntax: /rdap/domains?name=exam*.com
-      // TODO(b/24329745): improve IDN handling
       String asciiName;
       try {
         asciiName = Idn.toASCII(nameParam.get());

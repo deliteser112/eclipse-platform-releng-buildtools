@@ -92,7 +92,6 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     ImmutableList<ImmutableMap<String, Object>> results;
     if (nameParam.isPresent()) {
       // syntax: /rdap/nameservers?name=exam*.com
-      // TODO(b/24329745): improve IDN handling
       if (!LDH_PATTERN.matcher(nameParam.get()).matches()) {
         throw new BadRequestException(
             "Name parameter must contain only letters, dots"
