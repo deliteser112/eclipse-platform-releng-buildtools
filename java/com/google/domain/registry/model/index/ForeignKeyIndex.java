@@ -114,7 +114,7 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
 
   /** Create a {@link ForeignKeyIndex} key for a resource. */
   public static Key<ForeignKeyIndex<?>> createKey(EppResource resource) {
-    return Key.create(
+    return Key.<ForeignKeyIndex<?>>create(
         RESOURCE_CLASS_TO_FKI_CLASS.get(resource.getClass()), resource.getForeignKey());
   }
 
