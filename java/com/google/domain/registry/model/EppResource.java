@@ -22,7 +22,6 @@ import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.domain.registry.model.eppcommon.StatusValue;
@@ -31,11 +30,8 @@ import com.google.domain.registry.model.ofy.CommitLogManifest;
 import com.google.domain.registry.model.transfer.TransferData;
 
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
-import com.googlecode.objectify.condition.IfNull;
 
 import org.joda.time.DateTime;
 
@@ -56,13 +52,6 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
   @Id
   @XmlElement(name = "roid")
   String repoId;
-
-  /** The shared fields for this resource. */
-  // TODO(b/19035583): Remove this after touching all resources and waiting long enough to be sure
-  // we don't need to reload old commit logs.
-  @XmlTransient
-  @Deprecated
-  SharedFields sharedFields = new SharedFields();
 
   /** The ID of the registrar that is currently sponsoring this resource. */
   @Index
@@ -209,69 +198,6 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
   /** EppResources that are loaded via foreign keys should implement this marker interface. */
   public interface ForeignKeyedEppResource {}
 
-  /** Common shared fields for {@link EppResource} types. */
-  //TODO(b/19035583): Delete this class.
-  @Embed
-  public static class SharedFields extends ImmutableObject {
-
-    /** The id of the registry client that is currently sponsoring this resource. */
-    @Index
-    String currentSponsorClientId;
-
-    /** The ID of the registry client that created this resource. */
-    String creationRegistryClientId;
-
-    /**
-     * The ID of the last registry client to update this resource. This does not refer to the last
-     * delta made on this object, which might include transfer flows or out-of-band edits; a
-     * resource must literally have had an EPP {@literal <update>} called on it for this field to be
-     * set. Can be null if the resource has never had {@literal <update>} called on it.
-     */
-    @IgnoreSave(IfNull.class)
-    String lastUpdateRegistryClientId;
-
-    /** The time when this resource was created. */
-    @XmlTransient
-    CreateAutoTimestamp creationTime = CreateAutoTimestamp.create(null);
-
-    /**
-     * The time when this resource was or will be deleted.
-     * <p>
-     * For deleted resources, this is in the past.
-     * For pending-delete resources, this is in the near future.
-     * For active resources, this is {@code END_OF_TIME}.
-     * <p>
-     * This scheme allows for setting pending deletes in the future and having them magically drop
-     * out of the index at that time, as long as we query for resources whose delete time is
-     * before now.
-     */
-    @Index
-    DateTime deletionTime;
-
-    /**
-     * The time that this resource was last updated. Can be null if the resource has never had
-     * {@literal <update>} called on it.
-     */
-    @IgnoreSave(IfNull.class)
-    DateTime lastUpdateTime;
-
-    /**
-     * The time that this resource was last transferred. Can be null if the resource has never been
-     * transferred.
-     */
-    @IgnoreSave(IfNull.class)
-    DateTime lastTransferTime;
-
-    /** Legacy field for status values associated with this resource. */
-    // TODO(b/25442343): Remove this.
-    @XmlTransient
-    Set<StatusValue.LegacyStatusValue> statusValues;
-
-    /** Data about any pending or past transfers on this contact. */
-    @IgnoreSave(IfNull.class)
-    TransferData transferData;
-  }
-
   /** Abstract builder for {@link EppResource} types. */
   public abstract static class Builder<T extends EppResource, B extends Builder<?, ?>>
       extends GenericBuilder<T, B> {
@@ -282,76 +208,54 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
     /** Create a {@link Builder} wrapping the given instance. */
     protected Builder(T instance) {
       super(instance);
-      // Clone the SharedFields since the setters on this builder mutate its fields directly.
-      instance.sharedFields = ImmutableObject.clone(instance.sharedFields);
     }
 
     /** Set the time this resource was created. Should only be used in tests. */
     @VisibleForTesting
     public B setCreationTimeForTest(DateTime creationTime) {
       getInstance().creationTime = CreateAutoTimestamp.create(creationTime);
-      // TODO(b/19035583): Stop setting the legacy field.
-      getInstance().sharedFields.creationTime = CreateAutoTimestamp.create(creationTime);
       return thisCastToDerived();
     }
 
     /** Set the time after which this resource should be considered deleted. */
     public B setDeletionTime(DateTime deletionTime) {
       getInstance().deletionTime = deletionTime;
-      // TODO(b/19035583): Stop setting the legacy field.
-      getInstance().sharedFields.deletionTime = deletionTime;
       return thisCastToDerived();
     }
 
     /** Set the current sponsoring registrar. */
     public B setCurrentSponsorClientId(String currentSponsorClientId) {
       getInstance().currentSponsorClientId = currentSponsorClientId;
-      // TODO(b/19035583): Stop setting the legacy field.
-      getInstance().sharedFields.currentSponsorClientId = currentSponsorClientId;
       return thisCastToDerived();
     }
 
     /** Set the registrar that created this resource. */
     public B setCreationClientId(String creationClientId) {
       getInstance().creationClientId = creationClientId;
-      // TODO(b/19035583): Stop setting the legacy field.
-      getInstance().sharedFields.creationRegistryClientId = creationClientId;
       return thisCastToDerived();
     }
 
     /** Set the time when a {@literal <update>} was performed on this resource. */
     public B setLastEppUpdateTime(DateTime lastEppUpdateTime) {
       getInstance().lastEppUpdateTime = lastEppUpdateTime;
-      // TODO(b/19035583): Stop setting the legacy field.
-      getInstance().sharedFields.lastUpdateTime = lastEppUpdateTime;
       return thisCastToDerived();
     }
 
     /** Set the registrar who last performed a {@literal <update>} on this resource. */
     public B setLastEppUpdateClientId(String lastEppUpdateClientId) {
       getInstance().lastEppUpdateClientId = lastEppUpdateClientId;
-      // TODO(b/19035583): Stop setting the legacy field.
-      getInstance().sharedFields.lastUpdateRegistryClientId = lastEppUpdateClientId;
       return thisCastToDerived();
     }
 
     /** Set the time when this resource was transferred. */
     public B setLastTransferTime(DateTime lastTransferTime) {
       getInstance().lastTransferTime = lastTransferTime;
-      // TODO(b/19035583): Stop setting the legacy field.
-      getInstance().sharedFields.lastTransferTime = lastTransferTime;
       return thisCastToDerived();
     }
 
     /** Set this resource's status values. */
     public B setStatusValues(ImmutableSet<StatusValue> statusValues) {
       getInstance().status = statusValues;
-      // TODO(b/25442343): Stop setting the legacy field.
-      getInstance().sharedFields.statusValues = statusValues == null
-          ? null
-          : FluentIterable.from(statusValues)
-              .transform(StatusValue.LEGACY_CONVERTER)
-              .toSet();
       return thisCastToDerived();
     }
 
@@ -380,8 +284,6 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
     /** Set this resource's transfer data. */
     public B setTransferData(TransferData transferData) {
       getInstance().transferData = transferData;
-      // TODO(b/19035583): Stop setting the legacy field.
-      getInstance().sharedFields.transferData = transferData;
       return thisCastToDerived();
     }
 

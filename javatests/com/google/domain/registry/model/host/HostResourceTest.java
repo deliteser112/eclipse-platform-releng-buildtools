@@ -24,8 +24,6 @@ import static com.google.domain.registry.testing.HostResourceSubject.assertAbout
 
 import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.SharedFields;
 import com.google.domain.registry.model.billing.BillingEvent;
 import com.google.domain.registry.model.domain.DomainResource;
 import com.google.domain.registry.model.eppcommon.StatusValue;
@@ -45,7 +43,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
 import java.net.InetAddress;
 
 import javax.annotation.Nullable;
@@ -108,12 +105,10 @@ public class HostResourceTest extends EntityTestCase {
     verifyIndexing(
         persistResource(hostResource.cloneProjectedAtTime(clock.nowUtc())),
         "deletionTime",
-        "sharedFields.deletionTime",
         "fullyQualifiedHostName",
         "inetAddresses",
         "superordinateDomain",
-        "currentSponsorClientId",
-        "sharedFields.currentSponsorClientId");
+        "currentSponsorClientId");
   }
 
   @Test
@@ -158,12 +153,7 @@ public class HostResourceTest extends EntityTestCase {
     HostResource withNull = new HostResource.Builder().setTransferData(null).build();
     HostResource withEmpty = withNull.asBuilder().setTransferData(TransferData.EMPTY).build();
     assertThat(withNull).isEqualTo(withEmpty);
-    // We don't have package access to SharedFields so we need to use reflection to check for null.
-    Field sharedFieldsField = EppResource.class.getDeclaredField("sharedFields");
-    sharedFieldsField.setAccessible(true);
-    Field transferDataField = SharedFields.class.getDeclaredField("transferData");
-    transferDataField.setAccessible(true);
-    assertThat(transferDataField.get(sharedFieldsField.get(withEmpty))).isNull();
+    assertThat(withEmpty.hasTransferData()).isFalse();
   }
 
   @Test

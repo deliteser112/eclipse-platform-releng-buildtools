@@ -28,8 +28,6 @@ import static org.joda.money.CurrencyUnit.USD;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.SharedFields;
 import com.google.domain.registry.model.billing.BillingEvent;
 import com.google.domain.registry.model.domain.launch.ApplicationStatus;
 import com.google.domain.registry.model.domain.launch.LaunchNotice;
@@ -51,8 +49,6 @@ import org.joda.money.Money;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.lang.reflect.Field;
 
 /** Unit tests for {@link DomainApplication}. */
 public class DomainApplicationTest extends EntityTestCase {
@@ -131,8 +127,6 @@ public class DomainApplicationTest extends EntityTestCase {
         "nameservers.linked",
         "deletionTime",
         "currentSponsorClientId",
-        "sharedFields.deletionTime",
-        "sharedFields.currentSponsorClientId",
         "tld");
   }
 
@@ -186,11 +180,6 @@ public class DomainApplicationTest extends EntityTestCase {
     DomainApplication withNull = emptyBuilder().setTransferData(null).build();
     DomainApplication withEmpty = withNull.asBuilder().setTransferData(TransferData.EMPTY).build();
     assertThat(withNull).isEqualTo(withEmpty);
-    // We don't have package access to SharedFields so we need to use reflection to check for null.
-    Field sharedFieldsField = EppResource.class.getDeclaredField("sharedFields");
-    sharedFieldsField.setAccessible(true);
-    Field transferDataField = SharedFields.class.getDeclaredField("transferData");
-    transferDataField.setAccessible(true);
-    assertThat(transferDataField.get(sharedFieldsField.get(withEmpty))).isNull();
+    assertThat(withEmpty.hasTransferData()).isFalse();
   }
 }

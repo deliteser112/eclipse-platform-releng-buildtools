@@ -108,11 +108,9 @@ public class MutatingCommandTest {
     String changes = command.prompt();
     assertThat(changes).isEqualTo(
         "Update HostResource@2-ROID\n"
-            + "sharedFields.lastUpdateTime -> [null, 2014-09-09T09:09:09.000Z]\n"
             + "lastEppUpdateTime -> [null, 2014-09-09T09:09:09.000Z]\n"
             + "\n"
             + "Update HostResource@3-ROID\n"
-            + "sharedFields.currentSponsorClientId -> [TheRegistrar, Registrar2]\n"
             + "currentSponsorClientId -> [TheRegistrar, Registrar2]\n"
             + "\n"
             + "Update Registrar@Registrar1\n"
@@ -240,7 +238,6 @@ public class MutatingCommandTest {
             + host1 + "\n"
             + "\n"
             + "Update HostResource@3-ROID\n"
-            + "sharedFields.currentSponsorClientId -> [TheRegistrar, Registrar2]\n"
             + "currentSponsorClientId -> [TheRegistrar, Registrar2]\n"
             + "\n"
             + "Delete Registrar@Registrar1\n"
@@ -281,7 +278,6 @@ public class MutatingCommandTest {
             + host1 + "\n"
             + "\n"
             + "Update HostResource@3-ROID\n"
-            + "sharedFields.currentSponsorClientId -> [TheRegistrar, Registrar2]\n"
             + "currentSponsorClientId -> [TheRegistrar, Registrar2]\n"
             + "\n"
             + "Delete Registrar@Registrar1\n"

@@ -24,8 +24,6 @@ import static com.google.domain.registry.testing.DatastoreHelper.persistResource
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.SharedFields;
 import com.google.domain.registry.model.billing.BillingEvent;
 import com.google.domain.registry.model.contact.Disclose.PostalInfoChoice;
 import com.google.domain.registry.model.contact.PostalInfo.Type;
@@ -43,8 +41,6 @@ import com.googlecode.objectify.Key;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.lang.reflect.Field;
 
 /** Unit tests for {@link ContactResource}. */
 public class ContactResourceTest extends EntityTestCase {
@@ -134,9 +130,7 @@ public class ContactResourceTest extends EntityTestCase {
     verifyIndexing(
         contactResource,
         "deletionTime",
-        "currentSponsorClientId",
-        "sharedFields.deletionTime",
-        "sharedFields.currentSponsorClientId");
+        "currentSponsorClientId");
   }
 
   @Test
@@ -173,12 +167,7 @@ public class ContactResourceTest extends EntityTestCase {
     ContactResource withNull = new ContactResource.Builder().setTransferData(null).build();
     ContactResource withEmpty = withNull.asBuilder().setTransferData(TransferData.EMPTY).build();
     assertThat(withNull).isEqualTo(withEmpty);
-    // We don't have package access to SharedFields so we need to use reflection to check for null.
-    Field sharedFieldsField = EppResource.class.getDeclaredField("sharedFields");
-    sharedFieldsField.setAccessible(true);
-    Field transferDataField = SharedFields.class.getDeclaredField("transferData");
-    transferDataField.setAccessible(true);
-    assertThat(transferDataField.get(sharedFieldsField.get(withEmpty))).isNull();
+    assertThat(withEmpty.hasTransferData()).isFalse();
   }
 
   @Test

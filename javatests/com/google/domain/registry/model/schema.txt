@@ -5,17 +5,6 @@ enum com.google.common.collect.BoundType {
 class com.google.domain.registry.model.CreateAutoTimestamp {
   org.joda.time.DateTime timestamp;
 }
-class com.google.domain.registry.model.EppResource$SharedFields {
-  com.google.domain.registry.model.CreateAutoTimestamp creationTime;
-  com.google.domain.registry.model.transfer.TransferData transferData;
-  java.lang.String creationRegistryClientId;
-  java.lang.String currentSponsorClientId;
-  java.lang.String lastUpdateRegistryClientId;
-  java.util.Set<com.google.domain.registry.model.eppcommon.StatusValue$LegacyStatusValue> statusValues;
-  org.joda.time.DateTime deletionTime;
-  org.joda.time.DateTime lastTransferTime;
-  org.joda.time.DateTime lastUpdateTime;
-}
 class com.google.domain.registry.model.UpdateAutoTimestamp {
   org.joda.time.DateTime timestamp;
 }
@@ -146,7 +135,6 @@ class com.google.domain.registry.model.contact.ContactResource {
   @Id java.lang.String repoId;
   com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Ref<com.google.domain.registry.model.ofy.CommitLogManifest>> revisions;
   com.google.domain.registry.model.CreateAutoTimestamp creationTime;
-  com.google.domain.registry.model.EppResource$SharedFields sharedFields;
   com.google.domain.registry.model.UpdateAutoTimestamp updateTimestamp;
   com.google.domain.registry.model.contact.ContactAuthInfo authInfo;
   com.google.domain.registry.model.contact.ContactPhoneNumber fax;
@@ -201,7 +189,6 @@ class com.google.domain.registry.model.domain.DomainApplication {
   @Id java.lang.String repoId;
   com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Ref<com.google.domain.registry.model.ofy.CommitLogManifest>> revisions;
   com.google.domain.registry.model.CreateAutoTimestamp creationTime;
-  com.google.domain.registry.model.EppResource$SharedFields sharedFields;
   com.google.domain.registry.model.UpdateAutoTimestamp updateTimestamp;
   com.google.domain.registry.model.domain.DomainAuthInfo authInfo;
   com.google.domain.registry.model.domain.launch.ApplicationStatus applicationStatus;
@@ -232,7 +219,6 @@ class com.google.domain.registry.model.domain.DomainBase {
   @Id java.lang.String repoId;
   com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Ref<com.google.domain.registry.model.ofy.CommitLogManifest>> revisions;
   com.google.domain.registry.model.CreateAutoTimestamp creationTime;
-  com.google.domain.registry.model.EppResource$SharedFields sharedFields;
   com.google.domain.registry.model.UpdateAutoTimestamp updateTimestamp;
   com.google.domain.registry.model.domain.DomainAuthInfo authInfo;
   com.google.domain.registry.model.domain.launch.LaunchNotice launchNotice;
@@ -255,7 +241,6 @@ class com.google.domain.registry.model.domain.DomainResource {
   @Id java.lang.String repoId;
   com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Ref<com.google.domain.registry.model.ofy.CommitLogManifest>> revisions;
   com.google.domain.registry.model.CreateAutoTimestamp creationTime;
-  com.google.domain.registry.model.EppResource$SharedFields sharedFields;
   com.google.domain.registry.model.UpdateAutoTimestamp updateTimestamp;
   com.google.domain.registry.model.domain.DomainAuthInfo authInfo;
   com.google.domain.registry.model.domain.launch.LaunchNotice launchNotice;
@@ -370,9 +355,6 @@ enum com.google.domain.registry.model.eppcommon.StatusValue {
   SERVER_TRANSFER_PROHIBITED;
   SERVER_UPDATE_PROHIBITED;
 }
-class com.google.domain.registry.model.eppcommon.StatusValue$LegacyStatusValue {
-  java.lang.String xmlStatusValue;
-}
 class com.google.domain.registry.model.eppcommon.Trid {
   java.lang.String clientTransactionId;
   java.lang.String serverTransactionId;
@@ -387,7 +369,6 @@ class com.google.domain.registry.model.host.HostResource {
   @Id java.lang.String repoId;
   com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Ref<com.google.domain.registry.model.ofy.CommitLogManifest>> revisions;
   com.google.domain.registry.model.CreateAutoTimestamp creationTime;
-  com.google.domain.registry.model.EppResource$SharedFields sharedFields;
   com.google.domain.registry.model.UpdateAutoTimestamp updateTimestamp;
   com.google.domain.registry.model.transfer.TransferData transferData;
   com.googlecode.objectify.Ref<com.google.domain.registry.model.domain.DomainResource> superordinateDomain;
