@@ -59,6 +59,7 @@ import javax.inject.Inject;
 public class ExportDomainListsAction implements MapreduceAction {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final int MAX_NUM_REDUCE_SHARDS = 100;
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
@@ -73,6 +74,7 @@ public class ExportDomainListsAction implements MapreduceAction {
     response.sendJavaScriptRedirect(createJobPath(mrRunner
         .setJobName("Export domain lists")
         .setModuleName("backend")
+        .setDefaultReduceShards(Math.min(realTlds.size(), MAX_NUM_REDUCE_SHARDS))
         .runMapreduce(
             new ExportDomainListsMapper(DateTime.now(UTC), realTlds),
             new ExportDomainListsReducer(gcsBucket, gcsBufferSize),
