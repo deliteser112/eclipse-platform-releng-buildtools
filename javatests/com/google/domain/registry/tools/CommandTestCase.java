@@ -76,13 +76,16 @@ public abstract class CommandTestCase<C extends Command> {
 
   void runCommand(String... args) throws Exception {
     RegistryToolEnvironment.UNITTEST.setup();
-    JCommander jcommander = new JCommander(command);
-    jcommander.addConverterFactory(new ParameterFactory());
-    jcommander.parse(args);
-    command.run();
-    // Clear the session cache so that subsequent reads for verification purposes hit datastore.
-    // This primarily matters for AutoTimestamp fields, which otherwise won't have updated values.
-    ofy().clearSessionCache();
+    try {
+      JCommander jcommander = new JCommander(command);
+      jcommander.addConverterFactory(new ParameterFactory());
+      jcommander.parse(args);
+      command.run();
+    } finally {
+      // Clear the session cache so that subsequent reads for verification purposes hit datastore.
+      // This primarily matters for AutoTimestamp fields, which otherwise won't have updated values.
+      ofy().clearSessionCache();
+    }
   }
 
   /** Adds "--force" as the first parameter, then runs the command. */
