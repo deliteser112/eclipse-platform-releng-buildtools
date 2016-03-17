@@ -117,6 +117,7 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
   private void createRegistrar(String registrarName, String password, String tld) throws Exception {
     CreateRegistrarCommand command = new CreateRegistrarCommand();
     command.mainParameters = ImmutableList.of(registrarName);
+    command.createGoogleGroups = false; // Don't create Google Groups for OT&E registrars.
     command.allowedTlds = ImmutableList.of(tld);
     command.registrarName = registrarName;
     command.registrarType = Registrar.Type.OTE;

@@ -21,23 +21,38 @@ import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT_
 import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
 import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
+import com.google.common.net.MediaType;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.testing.CertificateSamples;
+import com.google.domain.registry.tools.ServerSideCommand.Connection;
 
 import com.beust.jcommander.ParameterException;
 
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+
+import java.io.IOException;
 
 /** Unit tests for {@link CreateRegistrarCommand}. */
 public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarCommand> {
 
+  @Mock
+  private Connection connection;
+
   @Before
   public void init() {
     CreateRegistrarCommand.requireAddress = false;
+    command.setConnection(connection);
   }
 
   @Test
@@ -70,6 +85,12 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     assertThat(registrar.getCreationTime()).isIn(Range.closed(before, after));
     assertThat(registrar.getLastUpdateTime()).isEqualTo(registrar.getCreationTime());
     assertThat(registrar.getBlockPremiumNames()).isFalse();
+
+    verify(connection).send(
+        eq("/_dr/admin/createGroups"),
+        eq(ImmutableMap.of("clientId", "clientz")),
+        eq(MediaType.PLAIN_TEXT_UTF_8),
+        eq(new byte[0]));
   }
 
   @Test
@@ -141,6 +162,59 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     Registrar registrar = Registrar.loadByClientId("clientz");
     assertThat(registrar).isNotNull();
     assertThat(registrar.getAllowedTlds()).containsExactly("xn--q9jyb4c", "foobar");
+  }
+
+  @Test
+  public void testSuccess_groupCreationCanBeDisabled() throws Exception {
+    runCommandForced(
+        "--name=blobio",
+        "--password=some_password",
+        "--registrar_type=TEST",
+        "--passcode=01234",
+        "--icann_referral_email=foo@bar.test",
+        "--create_groups=false",
+        "clientz");
+
+    verifyZeroInteractions(connection);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testFailure_groupCreationFails() throws Exception {
+    when(
+            connection.send(
+                Mockito.anyString(),
+                Mockito.anyMapOf(String.class, String.class),
+                Mockito.any(MediaType.class),
+                Mockito.any(byte[].class)))
+        .thenThrow(new IOException("BAD ROBOT NO COOKIE"));
+    runCommandForced(
+        "--name=blobio",
+        "--password=some_password",
+        "--registrar_type=TEST",
+        "--passcode=01234",
+        "--icann_referral_email=foo@bar.test",
+        "clientz");
+
+    Registrar registrar = Registrar.loadByClientId("clientz");
+    assertThat(registrar).isNotNull();
+    assertInStdout("Registrar created, but groups creation failed with error");
+    assertInStdout("BAD ROBOT NO COOKIE");
+  }
+
+  @Test
+  public void testSuccess_groupCreationDoesntOccurOnAlphaEnv() throws Exception {
+    runCommandInEnvironment(
+        RegistryToolEnvironment.ALPHA,
+        "--name=blobio",
+        "--password=some_password",
+        "--registrar_type=TEST",
+        "--passcode=01234",
+        "--icann_referral_email=foo@bar.test",
+        "--force",
+        "clientz");
+
+    verifyZeroInteractions(connection);
   }
 
   @Test

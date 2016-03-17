@@ -68,7 +68,7 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
   private final List<Key<DomainApplication>> applicationKeys = new ArrayList<>();
 
   @Override
-  protected String verify() throws Exception {
+  protected String postExecute() throws Exception {
     StringBuilder builder = new StringBuilder();
     // Check to see that we allocated everything.
     return builder.append(ofy().transactNewReadOnly(new Work<String>() {

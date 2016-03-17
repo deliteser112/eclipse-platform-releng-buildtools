@@ -73,6 +73,15 @@ public class CreateRegistrarGroupsCommand extends ConfirmingCommand
           }})));
   }
 
+  /** Calls the server endpoint to create groups for the specified registrar client id. */
+  static void executeOnServer(Connection connection, String clientIdentifier) throws IOException {
+    connection.send(
+        CreateGroupsAction.PATH,
+        ImmutableMap.of(CreateGroupsAction.CLIENT_ID_PARAM, clientIdentifier),
+        MediaType.PLAIN_TEXT_UTF_8,
+        new byte[0]);
+  }
+
   @Override
   protected String execute() throws IOException {
     for (Registrar registrar : registrars) {

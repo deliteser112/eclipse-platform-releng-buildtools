@@ -19,16 +19,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Iterables.filter;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.domain.registry.model.registrar.Registrar.State.ACTIVE;
+import static com.google.domain.registry.tools.RegistryToolEnvironment.PRODUCTION;
+import static com.google.domain.registry.tools.RegistryToolEnvironment.SANDBOX;
+import static com.google.domain.registry.tools.RegistryToolEnvironment.UNITTEST;
 import static com.google.domain.registry.util.RegistrarUtils.normalizeClientId;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.tools.Command.GtechCommand;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 import java.util.List;
@@ -37,11 +43,28 @@ import javax.annotation.Nullable;
 
 /** Command to create a Registrar. */
 @Parameters(separators = " =", commandDescription = "Create new registrar account(s)")
-final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand implements GtechCommand {
+final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand
+    implements GtechCommand, ServerSideCommand {
+
+  private static final ImmutableSet<RegistryToolEnvironment> ENVIRONMENTS_ALLOWING_GROUP_CREATION =
+      ImmutableSet.of(PRODUCTION, SANDBOX, UNITTEST);
 
   // Allows test cases to be cleaner.
   @VisibleForTesting
   static boolean requireAddress = true;
+
+  @Parameter(
+      names = "--create_groups",
+      description = "Whether the Google Groups for this registrar should be created",
+      arity = 1)
+  boolean createGoogleGroups = true;
+
+  private Connection connection;
+
+  @Override
+  public void setConnection(Connection connection) {
+    this.connection = connection;
+  }
 
   @Override
   protected void initRegistrarCommand() throws Exception {
@@ -84,5 +107,25 @@ final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand implem
           collisions.get(0).getClientIdentifier()));
     }
     return null;
+  }
+
+  @Override
+  protected String postExecute() throws Exception {
+    if (!createGoogleGroups) {
+      return "";
+    }
+    // Allow prod and sandbox because they actually have Groups, and UNITTEST for testing.
+    if (!ENVIRONMENTS_ALLOWING_GROUP_CREATION.contains(RegistryToolEnvironment.get())) {
+      return "\nSkipping registrar groups creation because only production and sandbox support it.";
+    }
+    try {
+      // We know it is safe to use the only main parameter here because initRegistrarCommand has
+      // already verified that there is only one, and getOldRegistrar has already verified that a
+      // registrar with this clientIdentifier doesn't already exist.
+      CreateRegistrarGroupsCommand.executeOnServer(connection, getOnlyElement(mainParameters));
+    } catch (Exception e) {
+      return "\nRegistrar created, but groups creation failed with error:\n" + e;
+    }
+    return "\nRegistrar groups created successfully.";
   }
 }

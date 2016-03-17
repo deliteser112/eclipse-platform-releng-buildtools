@@ -34,7 +34,7 @@ public abstract class ConfirmingCommand implements Command {
       printLineIfNotEmpty(prompt());
       if (force || promptForYes("Perform this command?")) {
         System.out.println(execute());
-        printLineIfNotEmpty(verify());
+        printLineIfNotEmpty(postExecute());
       } else {
         System.out.println("Command aborted.");
       }
@@ -57,8 +57,11 @@ public abstract class ConfirmingCommand implements Command {
   /** Perform the command and return a result description. */
   protected abstract String execute() throws Exception;
 
-  /** Verify result and/or perform any post-execution steps, and return optional description. */
-  protected String verify() throws Exception {
+  /**
+   * Perform any post-execution steps (e.g. verifying the result), and return a description String
+   * to be printed if non-empty.
+   */
+  protected String postExecute() throws Exception {
     return "";
   }
 }
