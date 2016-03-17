@@ -30,35 +30,50 @@ public class RegistryToolEnvironmentTest {
   public final ExpectedException thrown = ExpectedException.none();
 
   @Test
-  public void testFromArgs_shortNotation_works() throws Exception {
-    RegistryToolEnvironment.loadFromArgs(new String[] { "-e", "alpha" });
+  public void testGet_withoutSetup_throws() throws Exception {
+    thrown.expect(IllegalStateException.class);
+    RegistryToolEnvironment.get();
+  }
+
+  @Test
+  public void testSetup_changesEnvironmentReturnedByGet() throws Exception {
+    RegistryToolEnvironment.UNITTEST.setup();
+    assertThat(RegistryToolEnvironment.get()).isEqualTo(RegistryToolEnvironment.UNITTEST);
+
+    RegistryToolEnvironment.ALPHA.setup();
     assertThat(RegistryToolEnvironment.get()).isEqualTo(RegistryToolEnvironment.ALPHA);
+  }
+
+  @Test
+  public void testFromArgs_shortNotation_works() throws Exception {
+    assertThat(RegistryToolEnvironment.parseFromArgs(new String[] { "-e", "alpha" }))
+        .isEqualTo(RegistryToolEnvironment.ALPHA);
   }
 
   @Test
   public void testFromArgs_longNotation_works() throws Exception {
-    RegistryToolEnvironment.loadFromArgs(new String[] { "--environment", "alpha" });
-    assertThat(RegistryToolEnvironment.get()).isEqualTo(RegistryToolEnvironment.ALPHA);
+    assertThat(RegistryToolEnvironment.parseFromArgs(new String[] { "--environment", "alpha" }))
+        .isEqualTo(RegistryToolEnvironment.ALPHA);
   }
 
   @Test
   public void testFromArgs_uppercase_works() throws Exception {
-    RegistryToolEnvironment.loadFromArgs(new String[] { "-e", "QA" });
-    assertThat(RegistryToolEnvironment.get()).isEqualTo(RegistryToolEnvironment.QA);
+    assertThat(RegistryToolEnvironment.parseFromArgs(new String[] { "-e", "QA" }))
+        .isEqualTo(RegistryToolEnvironment.QA);
   }
 
   @Test
   public void testFromArgs_equalsNotation_works() throws Exception {
-    RegistryToolEnvironment.loadFromArgs(new String[] { "-e=sandbox" });
-    assertThat(RegistryToolEnvironment.get()).isEqualTo(RegistryToolEnvironment.SANDBOX);
-    RegistryToolEnvironment.loadFromArgs(new String[] { "--environment=sandbox" });
-    assertThat(RegistryToolEnvironment.get()).isEqualTo(RegistryToolEnvironment.SANDBOX);
+    assertThat(RegistryToolEnvironment.parseFromArgs(new String[] { "-e=sandbox" }))
+        .isEqualTo(RegistryToolEnvironment.SANDBOX);
+    assertThat(RegistryToolEnvironment.parseFromArgs(new String[] { "--environment=sandbox" }))
+        .isEqualTo(RegistryToolEnvironment.SANDBOX);
   }
 
   @Test
   public void testFromArgs_envFlagAfterCommandName_getsIgnored() throws Exception {
     thrown.expect(IllegalArgumentException.class);
-    RegistryToolEnvironment.loadFromArgs(new String[] {
+    RegistryToolEnvironment.parseFromArgs(new String[] {
         "registrar_activity_report",
         "-e", "1406851199"});
   }
@@ -66,30 +81,32 @@ public class RegistryToolEnvironmentTest {
   @Test
   public void testFromArgs_missingEnvironmentFlag_throwsIae() throws Exception {
     thrown.expect(IllegalArgumentException.class);
-    RegistryToolEnvironment.loadFromArgs(new String[] {});
+    RegistryToolEnvironment.parseFromArgs(new String[] {});
   }
 
   @Test
   public void testFromArgs_extraEnvFlagAfterCommandName_getsIgnored() throws Exception {
-    RegistryToolEnvironment.loadFromArgs(new String[] {
+    String[] args = new String[] {
         "-e", "alpha",
         "registrar_activity_report",
-        "-e", "1406851199"});
-    assertThat(RegistryToolEnvironment.get()).isEqualTo(RegistryToolEnvironment.ALPHA);
+        "-e", "1406851199"};
+    assertThat(RegistryToolEnvironment.parseFromArgs(args))
+        .isEqualTo(RegistryToolEnvironment.ALPHA);
   }
 
   @Test
   public void testFromArgs_loggingFlagWithUnderscores_isntConsideredCommand() throws Exception {
-    RegistryToolEnvironment.loadFromArgs(new String[] {
+    String[] args = new String[] {
         "--logging_properties_file", "my_file.properties",
         "-e", "alpha",
-        "list_tlds"});
-    assertThat(RegistryToolEnvironment.get()).isEqualTo(RegistryToolEnvironment.ALPHA);
+        "list_tlds"};
+    assertThat(RegistryToolEnvironment.parseFromArgs(args))
+        .isEqualTo(RegistryToolEnvironment.ALPHA);
   }
 
   @Test
   public void testFromArgs_badName_throwsIae() throws Exception {
     thrown.expect(IllegalArgumentException.class);
-    RegistryToolEnvironment.loadFromArgs(new String[] { "-e", "alphaville" });
+    RegistryToolEnvironment.parseFromArgs(new String[] { "-e", "alphaville" });
   }
 }

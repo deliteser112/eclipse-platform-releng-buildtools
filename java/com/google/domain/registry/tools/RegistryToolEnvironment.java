@@ -15,7 +15,7 @@
 package com.google.domain.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -60,21 +60,23 @@ enum RegistryToolEnvironment {
    *
    * @see #get()
    */
-  static void loadFromArgs(String[] args) {
-    instance = valueOf(getFlagValue(args, FLAGS).toUpperCase());
+  static RegistryToolEnvironment parseFromArgs(String[] args) {
+    return valueOf(getFlagValue(args, FLAGS).toUpperCase());
   }
 
   /**
    * Returns the current environment.
    *
-   * <p>This should be called after {@link #loadFromArgs(String[])}.
+   * <p>This should be called after {@link #parseFromArgs(String[])}.
    */
   static RegistryToolEnvironment get() {
-    return checkNotNull(instance);
+    checkState(instance != null, "No RegistryToolEnvironment has been set up");
+    return instance;
   }
 
   /** Setup execution environment. Call this method before any classes are loaded. */
   void setup() {
+    instance = this;
     System.setProperty(RegistryEnvironment.PROPERTY, actualEnvironment.name());
     for (ImmutableMap.Entry<String, String> entry : extraProperties.entrySet()) {
       System.setProperty(entry.getKey(), entry.getValue());

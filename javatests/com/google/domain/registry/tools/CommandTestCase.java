@@ -55,7 +55,7 @@ public abstract class CommandTestCase<C extends Command> {
 
   private ByteArrayOutputStream stdout = new ByteArrayOutputStream();
 
-  C command = newCommandInstance();
+  protected C command;
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -70,12 +70,15 @@ public abstract class CommandTestCase<C extends Command> {
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
   @Before
-  public final void initStreams() {
+  public final void beforeCommandTestCase() {
+    // Ensure the UNITTEST environment has been set before constructing a new command instance.
+    RegistryToolEnvironment.UNITTEST.setup();
+    command = newCommandInstance();
     System.setOut(new PrintStream(stdout));
   }
 
-  void runCommand(String... args) throws Exception {
-    RegistryToolEnvironment.UNITTEST.setup();
+  void runCommandInEnvironment(RegistryToolEnvironment env, String... args) throws Exception {
+    env.setup();
     try {
       JCommander jcommander = new JCommander(command);
       jcommander.addConverterFactory(new ParameterFactory());
@@ -85,7 +88,13 @@ public abstract class CommandTestCase<C extends Command> {
       // Clear the session cache so that subsequent reads for verification purposes hit datastore.
       // This primarily matters for AutoTimestamp fields, which otherwise won't have updated values.
       ofy().clearSessionCache();
+      // Reset back to UNITTEST environment.
+      RegistryToolEnvironment.UNITTEST.setup();
     }
+  }
+
+  void runCommand(String... args) throws Exception {
+    runCommandInEnvironment(RegistryToolEnvironment.UNITTEST, args);
   }
 
   /** Adds "--force" as the first parameter, then runs the command. */

@@ -50,8 +50,7 @@ public class RegistryToolTest {
 
   @Before
   public void init() {
-    RegistryToolEnvironment.loadFromArgs(new String[] { "-e", "alpha" });
-    RegistryToolEnvironment.get().setup();
+    RegistryToolEnvironment.UNITTEST.setup();
   }
 
   @Test

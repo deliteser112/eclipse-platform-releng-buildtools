@@ -76,8 +76,7 @@ public final class RegistryTool {
           .build();
 
   public static void main(String[] args) throws Exception {
-    RegistryToolEnvironment.loadFromArgs(args);
-    RegistryToolEnvironment.get().setup();
+    RegistryToolEnvironment.parseFromArgs(args).setup();
     new RegistryCli().run("registry_tool", args, COMMAND_MAP);
   }
 }
