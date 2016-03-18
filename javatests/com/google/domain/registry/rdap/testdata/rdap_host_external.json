@@ -12,6 +12,13 @@
     }
   ],
   "ldhName": "%NAME%",
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventActor": "foo",
+      "eventDate": "1999-01-01T00:00:00.000Z"
+    },
+  ],
   "objectClassName": "nameserver",
   "port43": "whois.example.tld"
 }

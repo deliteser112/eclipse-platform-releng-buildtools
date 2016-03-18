@@ -1,6 +1,6 @@
 {
   "objectClassName" : "nameserver",
-  "handle" : "7-ROID",
+  "handle" : "C-ROID",
   "ldhName" : "ns3.cat.xn--q9jyb4c",
   "unicodeName" : "ns3.cat.みんな",
   "status" : ["active"],
@@ -12,6 +12,13 @@
       "href" : "http://myserver.google.com/nameserver/ns3.cat.xn--q9jyb4c",
       "type" : "application/rdap+json"
     }
+  ],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventActor": "foo",
+      "eventDate": "1997-01-01T00:00:00.000Z"
+    },
   ],
   "ipAddresses" :
   {

@@ -7,7 +7,7 @@
         "transfer prohibited",
         "update prohibited"
       ],
-      "handle": "13-EXAMPLE",
+      "handle": "21-EXAMPLE",
       "links": [
         {
           "href": "https://example.com/rdap/domain/cat.example",
@@ -16,12 +16,27 @@
           "value": "https://example.com/rdap/domain/cat.example"
         }
       ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        },
+        {
+          "eventAction": "expiration",
+          "eventDate": "2110-10-08T00:44:59.000Z"
+        },
+        {
+          "eventAction": "last changed",
+          "eventDate": "2009-05-29T20:13:00.000Z"
+        }
+      ],
       "nameservers": [
         {
           "status": [
             "active"
           ],
-          "handle": "5-ROID",
+          "handle": "8-ROID",
           "links": [
             {
               "href": "https://example.com/rdap/nameserver/ns1.cat.lol",
@@ -36,13 +51,20 @@
               "1.2.3.4"
             ]
           },
+          "events": [
+            {
+              "eventAction": "registration",
+              "eventActor": "foo",
+              "eventDate": "1999-01-01T00:00:00.000Z"
+            }
+          ],
           "objectClassName": "nameserver"
         },
         {
           "status": [
             "active"
           ],
-          "handle": "12-ROID",
+          "handle": "1F-ROID",
           "links": [
             {
               "href": "https://example.com/rdap/nameserver/ns2.external.tld",
@@ -57,6 +79,13 @@
               "bad:f00d:cafe::15:beef"
             ]
           },
+          "events": [
+            {
+              "eventAction": "registration",
+              "eventActor": "foo",
+              "eventDate": "1998-01-01T00:00:00.000Z"
+            }
+          ],
           "objectClassName": "nameserver"
         }
       ],
@@ -66,16 +95,23 @@
           "status": [
             "active"
           ],
-          "handle": "10-ROID",
+          "handle": "1B-ROID",
           "roles": [
             "administrative"
           ],
           "links": [
             {
-              "href": "https://example.com/rdap/entity/10-ROID",
+              "href": "https://example.com/rdap/entity/1B-ROID",
               "type": "application/rdap+json",
               "rel": "self",
-              "value": "https://example.com/rdap/entity/10-ROID"
+              "value": "https://example.com/rdap/entity/1B-ROID"
+            }
+          ],
+          "events": [
+            {
+              "eventAction": "registration",
+              "eventActor": "foo",
+              "eventDate": "1998-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",
@@ -147,16 +183,23 @@
           "status": [
             "active"
           ],
-          "handle": "11-ROID",
+          "handle": "1D-ROID",
           "roles": [
             "technical"
           ],
           "links": [
             {
-              "href": "https://example.com/rdap/entity/11-ROID",
+              "href": "https://example.com/rdap/entity/1D-ROID",
               "type": "application/rdap+json",
               "rel": "self",
-              "value": "https://example.com/rdap/entity/11-ROID"
+              "value": "https://example.com/rdap/entity/1D-ROID"
+            }
+          ],
+          "events": [
+            {
+              "eventAction": "registration",
+              "eventActor": "foo",
+              "eventDate": "1997-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",
@@ -228,16 +271,23 @@
           "status": [
             "active"
           ],
-          "handle": "F-ROID",
+          "handle": "19-ROID",
           "roles": [
             "registrant"
           ],
           "links": [
             {
-              "href": "https://example.com/rdap/entity/F-ROID",
+              "href": "https://example.com/rdap/entity/19-ROID",
               "type": "application/rdap+json",
               "rel": "self",
-              "value": "https://example.com/rdap/entity/F-ROID"
+              "value": "https://example.com/rdap/entity/19-ROID"
+            }
+          ],
+          "events": [
+            {
+              "eventAction": "registration",
+              "eventActor": "foo",
+              "eventDate": "1999-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",
@@ -316,7 +366,7 @@
         "transfer prohibited",
         "update prohibited"
       ],
-      "handle": "7-LOL",
+      "handle": "C-LOL",
       "links": [
         {
           "href": "https://example.com/rdap/domain/cat.lol",
@@ -325,12 +375,27 @@
           "value": "https://example.com/rdap/domain/cat.lol"
         }
       ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        },
+        {
+          "eventAction": "expiration",
+          "eventDate": "2110-10-08T00:44:59.000Z"
+        },
+        {
+          "eventAction": "last changed",
+          "eventDate": "2009-05-29T20:13:00.000Z"
+        }
+      ],
       "nameservers": [
         {
           "status": [
             "active"
           ],
-          "handle": "5-ROID",
+          "handle": "8-ROID",
           "links": [
             {
               "href": "https://example.com/rdap/nameserver/ns1.cat.lol",
@@ -345,13 +410,20 @@
               "1.2.3.4"
             ]
           },
+          "events": [
+            {
+              "eventAction": "registration",
+              "eventActor": "foo",
+              "eventDate": "1999-01-01T00:00:00.000Z"
+            }
+          ],
           "objectClassName": "nameserver"
         },
         {
           "status": [
             "active"
           ],
-          "handle": "6-ROID",
+          "handle": "A-ROID",
           "links": [
             {
               "href": "https://example.com/rdap/nameserver/ns2.cat.lol",
@@ -366,6 +438,13 @@
               "bad:f00d:cafe::15:beef"
             ]
           },
+          "events": [
+            {
+              "eventAction": "registration",
+              "eventActor": "foo",
+              "eventDate": "1998-01-01T00:00:00.000Z"
+            }
+          ],
           "objectClassName": "nameserver"
         }
       ],
@@ -375,16 +454,23 @@
           "status": [
             "active"
           ],
-          "handle": "3-ROID",
+          "handle": "4-ROID",
           "roles": [
             "administrative"
           ],
           "links": [
             {
-              "href": "https://example.com/rdap/entity/3-ROID",
+              "href": "https://example.com/rdap/entity/4-ROID",
               "type": "application/rdap+json",
               "rel": "self",
-              "value": "https://example.com/rdap/entity/3-ROID"
+              "value": "https://example.com/rdap/entity/4-ROID"
+            }
+          ],
+          "events": [
+            {
+              "eventAction": "registration",
+              "eventActor": "foo",
+              "eventDate": "1998-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",
@@ -456,16 +542,23 @@
           "status": [
             "active"
           ],
-          "handle": "4-ROID",
+          "handle": "6-ROID",
           "roles": [
             "technical"
           ],
           "links": [
             {
-              "href": "https://example.com/rdap/entity/4-ROID",
+              "href": "https://example.com/rdap/entity/6-ROID",
               "type": "application/rdap+json",
               "rel": "self",
-              "value": "https://example.com/rdap/entity/4-ROID"
+              "value": "https://example.com/rdap/entity/6-ROID"
+            }
+          ],
+          "events": [
+            {
+              "eventAction": "registration",
+              "eventActor": "foo",
+              "eventDate": "1997-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",
@@ -547,6 +640,13 @@
               "type": "application/rdap+json",
               "rel": "self",
               "value": "https://example.com/rdap/entity/2-ROID"
+            }
+          ],
+          "events": [
+            {
+              "eventAction": "registration",
+              "eventActor": "foo",
+              "eventDate": "1999-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",

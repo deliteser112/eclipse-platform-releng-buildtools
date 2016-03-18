@@ -19,6 +19,13 @@
       "identifier" : "1"
     }
   ],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventActor": "%NAME%",
+      "eventDate": "2000-01-01T00:00:00.000Z"
+    },
+  ],
   "vcardArray" :
   [
     "vcard",

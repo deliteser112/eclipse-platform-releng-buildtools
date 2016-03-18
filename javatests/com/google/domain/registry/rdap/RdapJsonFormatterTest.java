@@ -18,9 +18,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.domain.registry.testing.DatastoreHelper.createTld;
 import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
 import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
-import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
+import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
+import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
-import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
+import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static com.google.domain.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -32,13 +33,19 @@ import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.model.contact.ContactResource;
 import com.google.domain.registry.model.domain.DesignatedContact;
 import com.google.domain.registry.model.domain.DomainResource;
+import com.google.domain.registry.model.domain.Period;
 import com.google.domain.registry.model.host.HostResource;
+import com.google.domain.registry.model.ofy.Ofy;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.model.registrar.RegistrarContact;
 import com.google.domain.registry.model.registry.Registry.TldState;
+import com.google.domain.registry.model.reporting.HistoryEntry;
 import com.google.domain.registry.rdap.RdapJsonFormatter.MakeRdapJsonNoticeParameters;
 import com.google.domain.registry.testing.AppEngineRule;
+import com.google.domain.registry.testing.FakeClock;
+import com.google.domain.registry.testing.InjectRule;
 
+import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,6 +61,9 @@ public class RdapJsonFormatterTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
+  @Rule public final InjectRule inject = new InjectRule();
+
+  private final FakeClock clock = new FakeClock(DateTime.parse("1999-01-01T00:00:00Z"));
 
   private Registrar registrar;
   private DomainResource domainResourceFull;
@@ -74,33 +84,43 @@ public class RdapJsonFormatterTest {
 
   @Before
   public void setUp() throws Exception {
+    inject.setStaticField(Ofy.class, "clock", clock);
+
+    // Create the registrar in 1999, then update it in 2000.
+    clock.setTo(DateTime.parse("1999-01-01T00:00:00Z"));
     createTld("xn--q9jyb4c", TldState.GENERAL_AVAILABILITY);
     registrar = persistResource(makeRegistrar("unicoderegistrar", "みんな", Registrar.State.ACTIVE));
+    clock.setTo(DateTime.parse("2000-01-01T00:00:00Z"));
+    registrar = persistResource(registrar);
+
     persistSimpleGlobalResources(makeMoreRegistrarContacts(registrar));
-    contactResourceRegistrant = persistResource(
-        makeContactResource(
-            "8372808-ERL",
-            "(◕‿◕)",
-            "lol@cat.みんな",
-            null));
-    contactResourceAdmin = persistResource(
-        makeContactResource(
-            "8372808-IRL",
-            "Santa Claus",
-            null,
-            ImmutableList.of("Santa Claus Tower", "41st floor", "Suite みんな")));
-    contactResourceTech = persistResource(
-        makeContactResource(
-            "8372808-TRL",
-            "The Raven",
-            "bog@cat.みんな",
-            ImmutableList.of("Chamber Door", "upper level")));
-    hostResourceIpv4 = persistResource(makeHostResource("ns1.cat.みんな", "1.2.3.4"));
-    hostResourceIpv6 =
-        persistResource(makeHostResource("ns2.cat.みんな", "bad:f00d:cafe:0:0:0:15:beef"));
-    hostResourceBoth =
-        persistResource(makeHostResource("ns3.cat.みんな", "1.2.3.4", "bad:f00d:cafe:0:0:0:15:beef"));
-    hostResourceNoAddresses = persistResource(makeHostResource("ns4.cat.みんな", null));
+
+    contactResourceRegistrant = makeAndPersistContactResource(
+        "8372808-ERL",
+        "(◕‿◕)",
+        "lol@cat.みんな",
+        null,
+        clock.nowUtc().minusYears(1));
+    contactResourceAdmin = makeAndPersistContactResource(
+        "8372808-IRL",
+        "Santa Claus",
+        null,
+        ImmutableList.of("Santa Claus Tower", "41st floor", "Suite みんな"),
+        clock.nowUtc().minusYears(2));
+    contactResourceTech = makeAndPersistContactResource(
+        "8372808-TRL",
+        "The Raven",
+        "bog@cat.みんな",
+        ImmutableList.of("Chamber Door", "upper level"),
+        clock.nowUtc().minusYears(3));
+    hostResourceIpv4 = makeAndPersistHostResource(
+        "ns1.cat.みんな", "1.2.3.4", clock.nowUtc().minusYears(1));
+    hostResourceIpv6 = makeAndPersistHostResource(
+        "ns2.cat.みんな", "bad:f00d:cafe:0:0:0:15:beef", clock.nowUtc().minusYears(2));
+    hostResourceBoth = makeAndPersistHostResource(
+        "ns3.cat.みんな", "1.2.3.4", "bad:f00d:cafe:0:0:0:15:beef", clock.nowUtc().minusYears(3));
+    hostResourceNoAddresses = makeAndPersistHostResource(
+        "ns4.cat.みんな", null, clock.nowUtc().minusYears(4));
     domainResourceFull = persistResource(
         makeDomainResource(
             "cat.みんな",
@@ -137,6 +157,36 @@ public class RdapJsonFormatterTest {
             null,
             null,
             registrar));
+
+    // history entries
+    persistResource(
+        makeHistoryEntry(
+            domainResourceFull,
+            HistoryEntry.Type.DOMAIN_CREATE,
+            Period.create(1, Period.Unit.YEARS),
+            "created",
+            clock.nowUtc()));
+    persistResource(
+        makeHistoryEntry(
+            domainResourceNoRegistrant,
+            HistoryEntry.Type.DOMAIN_CREATE,
+            Period.create(1, Period.Unit.YEARS),
+            "created",
+            clock.nowUtc()));
+    persistResource(
+        makeHistoryEntry(
+            domainResourceNoContacts,
+            HistoryEntry.Type.DOMAIN_CREATE,
+            Period.create(1, Period.Unit.YEARS),
+            "created",
+            clock.nowUtc()));
+    persistResource(
+        makeHistoryEntry(
+            domainResourceNoNameservers,
+            HistoryEntry.Type.DOMAIN_CREATE,
+            Period.create(1, Period.Unit.YEARS),
+            "created",
+            clock.nowUtc()));
   }
 
   public static ImmutableList<RegistrarContact> makeMoreRegistrarContacts(Registrar registrar) {

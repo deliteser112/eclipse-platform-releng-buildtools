@@ -1,6 +1,6 @@
 {
   "objectClassName" : "nameserver",
-  "handle" : "8-ROID",
+  "handle" : "E-ROID",
   "ldhName" : "ns4.cat.xn--q9jyb4c",
   "unicodeName" : "ns4.cat.みんな",
   "status" : ["active"],
@@ -12,6 +12,13 @@
       "href" : "http://myserver.google.com/nameserver/ns4.cat.xn--q9jyb4c",
       "type" : "application/rdap+json"
     }
+  ],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventActor": "foo",
+      "eventDate": "1996-01-01T00:00:00.000Z"
+    },
   ],
   "port43": "whois.google.com"
 }

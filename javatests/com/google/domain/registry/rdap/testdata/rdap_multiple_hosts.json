@@ -3,7 +3,7 @@
   [
     {
       "objectClassName" : "nameserver",
-      "handle" : "3-ROID",
+      "handle" : "4-ROID",
       "status" : ["active"],
       "ldhName" : "ns2.cat.lol",
       "links" :
@@ -19,11 +19,18 @@
       {
         "v6" : ["bad:f00d:cafe::15:beef"]
       },
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "1999-01-01T00:00:00.000Z"
+        }
+      ],
       "port43": "whois.example.tld"
     },
     {
       "objectClassName" : "nameserver",
-      "handle" : "4-ROID",
+      "handle" : "6-ROID",
       "status" : ["active"],
       "ldhName" : "ns1.cat2.lol",
       "links" :
@@ -40,6 +47,13 @@
         "v4" : ["1.2.3.3"]
         "v6" : ["bad:f00d:cafe::15:beef"]
       },
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "1999-01-01T00:00:00.000Z"
+        }
+      ],
       "port43": "whois.example.tld"
     }
   ],

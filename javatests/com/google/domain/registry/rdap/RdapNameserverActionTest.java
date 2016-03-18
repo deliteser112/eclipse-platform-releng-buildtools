@@ -16,8 +16,7 @@ package com.google.domain.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
+import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
 import static com.google.domain.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 
 import com.google.appengine.api.NamespaceManager;
@@ -61,16 +60,16 @@ public class RdapNameserverActionTest {
     inject.setStaticField(Ofy.class, "clock", clock);
     // normal
     createTld("lol");
-    persistResource(
-        makeHostResource("ns1.cat.lol", "1.2.3.4"));
+    makeAndPersistHostResource(
+        "ns1.cat.lol", "1.2.3.4", clock.nowUtc().minusYears(1));
     // idn
     createTld("xn--q9jyb4c");
-    persistResource(
-        makeHostResource("ns1.cat.xn--q9jyb4c", "bad:f00d:cafe:0:0:0:15:beef"));
+    makeAndPersistHostResource(
+        "ns1.cat.xn--q9jyb4c", "bad:f00d:cafe:0:0:0:15:beef", clock.nowUtc().minusYears(1));
     // multilevel
     createTld("1.tld");
-    persistResource(
-        makeHostResource("ns1.domain.1.tld", "5.6.7.8"));
+    makeAndPersistHostResource(
+        "ns1.domain.1.tld", "5.6.7.8", clock.nowUtc().minusYears(1));
     NamespaceManager.set(null);
   }
 
@@ -191,7 +190,7 @@ public class RdapNameserverActionTest {
             "ns1.cat.みんな",
             ImmutableMap.of(
                 "PUNYCODENAME", "ns1.cat.xn--q9jyb4c",
-                "HANDLE", "4-ROID",
+                "HANDLE", "5-ROID",
                 "ADDRESSTYPE", "v6",
                 "ADDRESS", "bad:f00d:cafe::15:beef"),
             "rdap_host_unicode.json"));
@@ -205,7 +204,7 @@ public class RdapNameserverActionTest {
             "ns1.cat.みんな",
             ImmutableMap.of(
                 "PUNYCODENAME", "ns1.cat.xn--q9jyb4c",
-                "HANDLE", "4-ROID",
+                "HANDLE", "5-ROID",
                 "ADDRESSTYPE", "v6",
                 "ADDRESS", "bad:f00d:cafe::15:beef"),
             "rdap_host_unicode.json"));
@@ -217,7 +216,7 @@ public class RdapNameserverActionTest {
     assertThat(generateActualJson("ns1.domain.1.tld"))
         .isEqualTo(generateExpectedJsonWithTopLevelEntries(
             "ns1.domain.1.tld",
-            ImmutableMap.of("HANDLE", "6-ROID", "ADDRESSTYPE", "v4", "ADDRESS", "5.6.7.8"),
+            ImmutableMap.of("HANDLE", "8-ROID", "ADDRESSTYPE", "v4", "ADDRESS", "5.6.7.8"),
             "rdap_host.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }

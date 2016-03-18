@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.domain.registry.testing.DatastoreHelper.createTld;
 import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
 import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
@@ -78,21 +79,24 @@ public class RdapEntityActionTest {
     registrarLol = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
     persistSimpleGlobalResources(makeRegistrarContacts(registrarLol));
-    registrant = persistResource(makeContactResource(
+    registrant = makeAndPersistContactResource(
         "8372808-ERL",
         "(◕‿◕)",
         "lol@cat.みんな",
-        ImmutableList.of("1 Smiley Row", "Suite みんな")));
-    adminContact = persistResource(makeContactResource(
+        ImmutableList.of("1 Smiley Row", "Suite みんな"),
+        clock.nowUtc());
+    adminContact = makeAndPersistContactResource(
         "8372808-ERL",
         "(◕‿◕)",
         "lol@cat.みんな",
-        ImmutableList.of("1 Smiley Row", "Suite みんな")));
-    techContact = persistResource(makeContactResource(
+        ImmutableList.of("1 Smiley Row", "Suite みんな"),
+        clock.nowUtc());
+    techContact = makeAndPersistContactResource(
         "8372808-ERL",
         "(◕‿◕)",
         "lol@cat.みんな",
-        ImmutableList.of("1 Smiley Row", "Suite みんな")));
+        ImmutableList.of("1 Smiley Row", "Suite みんな"),
+        clock.nowUtc());
     HostResource host1 =
         persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     HostResource host2 =
@@ -127,13 +131,13 @@ public class RdapEntityActionTest {
         host1,
         host2,
         registrar1tld));
-    disconnectedContact = persistResource(makeContactResource(
+    disconnectedContact = makeAndPersistContactResource(
         "8372808-ERL",
         "(◕‿◕)",
         "lol@cat.みんな",
-        ImmutableList.of("1 Smiley Row", "Suite みんな")));
-    deletedContact = persistResource(
-        makeContactResource(
+        ImmutableList.of("1 Smiley Row", "Suite みんな"),
+        clock.nowUtc());
+    deletedContact = persistResource(makeContactResource(
             "8372808-ERL",
             "(◕‿◕)",
             "lol@cat.みんな",

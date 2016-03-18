@@ -1,6 +1,6 @@
 {
   "objectClassName" : "domain",
-  "handle" : "A-Q9JYB4C",
+  "handle" : "11-Q9JYB4C",
   "ldhName" : "dog.xn--q9jyb4c",
   "unicodeName" : "dog.みんな",
   "status" :
@@ -19,11 +19,26 @@
       "type" : "application/rdap+json"
     }
   ],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventActor": "foo",
+      "eventDate": "2000-01-01T00:00:00.000Z"
+    },
+    {
+      "eventAction": "expiration",
+      "eventDate": "2110-10-08T00:44:59.000Z"
+    },
+    {
+      "eventAction": "last changed",
+      "eventDate": "2009-05-29T20:13:00.000Z"
+    }
+  ],
   "nameservers" :
   [
     {
       "objectClassName" : "nameserver",
-      "handle" : "7-ROID",
+      "handle" : "C-ROID",
       "ldhName" : "ns3.cat.xn--q9jyb4c",
       "unicodeName" : "ns3.cat.みんな",
       "status" : ["active"],
@@ -36,6 +51,13 @@
           "type" : "application/rdap+json"
         }
       ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "1997-01-01T00:00:00.000Z"
+        }
+      ],
       "ipAddresses" :
       {
         "v4" : ["1.2.3.4"]
@@ -44,10 +66,17 @@
     },
     {
       "objectClassName" : "nameserver",
-      "handle" : "8-ROID",
+      "handle" : "E-ROID",
       "ldhName" : "ns4.cat.xn--q9jyb4c",
       "unicodeName" : "ns4.cat.みんな",
       "status" : ["active"],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "1996-01-01T00:00:00.000Z"
+        }
+      ],
       "links" :
       [
         {
@@ -63,16 +92,23 @@
   [
     {
       "objectClassName" : "entity",
-      "handle" : "3-ROID",
+      "handle" : "4-ROID",
       "status" : ["active"],
       "roles" : ["administrative"],
       "links" :
       [
         {
-          "value" : "http://myserver.google.com/entity/3-ROID",
+          "value" : "http://myserver.google.com/entity/4-ROID",
           "rel" : "self",
-          "href" : "http://myserver.google.com/entity/3-ROID",
+          "href" : "http://myserver.google.com/entity/4-ROID",
           "type" : "application/rdap+json"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "1998-01-01T00:00:00.000Z"
         }
       ],
       "vcardArray" :
@@ -101,16 +137,23 @@
     },
     {
       "objectClassName" : "entity",
-      "handle" : "4-ROID",
+      "handle" : "6-ROID",
       "status" : ["active"],
       "roles" : ["technical"],
       "links" :
       [
         {
-          "value" : "http://myserver.google.com/entity/4-ROID",
+          "value" : "http://myserver.google.com/entity/6-ROID",
           "rel" : "self",
-          "href" : "http://myserver.google.com/entity/4-ROID",
+          "href" : "http://myserver.google.com/entity/6-ROID",
           "type" : "application/rdap+json"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "1997-01-01T00:00:00.000Z"
         }
       ],
       "vcardArray" :

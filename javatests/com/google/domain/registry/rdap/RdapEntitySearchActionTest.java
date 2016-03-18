@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.domain.registry.testing.DatastoreHelper.createTld;
 import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
 import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
@@ -49,11 +50,10 @@ import javax.annotation.Nullable;
 public class RdapEntitySearchActionTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
   @Rule public final InjectRule inject = new InjectRule();
 
   private final FakeResponse response = new FakeResponse();
-  private final FakeClock clock = new FakeClock(DateTime.parse("2009-06-29T20:13:00Z"));
+  private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
 
   private final RdapEntitySearchAction action = new RdapEntitySearchAction();
 
@@ -76,14 +76,16 @@ public class RdapEntitySearchActionTest {
 
   @Before
   public void setUp() throws Exception {
+    inject.setStaticField(Ofy.class, "clock", clock);
+
     createTld("tld");
 
-    contact = persistResource(
-        makeContactResource(
-            "blinky",
-            "Blinky (赤ベイ)",
-            "blinky@b.tld",
-            ImmutableList.of("123 Blinky St", "Blinkyland")));
+    contact = makeAndPersistContactResource(
+        "blinky",
+        "Blinky (赤ベイ)",
+        "blinky@b.tld",
+        ImmutableList.of("123 Blinky St", "Blinkyland"),
+        clock.nowUtc());
 
     // deleted
     persistResource(
@@ -110,7 +112,6 @@ public class RdapEntitySearchActionTest {
                 .build());
     persistSimpleGlobalResources(makeRegistrarContacts(registrarTest));
 
-    inject.setStaticField(Ofy.class, "clock", clock);
     action.clock = clock;
     action.requestPath = RdapEntitySearchAction.PATH;
     action.response = response;

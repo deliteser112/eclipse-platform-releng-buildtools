@@ -14,6 +14,13 @@
           "type" : "application/rdap+json"
         }
       ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
       "vcardArray" :
       [
         "vcard",
@@ -51,6 +58,13 @@
           "rel" : "self",
           "href": "https://example.com/rdap/entity/2-Registrar",
           "type" : "application/rdap+json"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "2-Registrar",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "publicIds" :

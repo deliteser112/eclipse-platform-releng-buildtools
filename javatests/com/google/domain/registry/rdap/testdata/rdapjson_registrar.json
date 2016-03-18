@@ -12,6 +12,17 @@
       "type" : "application/rdap+json"
     }
   ],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventActor": "unicoderegistrar",
+      "eventDate": "1999-01-01T00:00:00.000Z"
+    },
+    {
+      "eventAction": "last changed",
+      "eventDate": "2000-01-01T00:00:00.000Z"
+    },
+  ],
   "publicIds" :
   [
     {

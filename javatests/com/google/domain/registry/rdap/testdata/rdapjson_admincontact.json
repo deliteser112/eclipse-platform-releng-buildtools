@@ -1,16 +1,23 @@
 {
   "objectClassName" : "entity",
-  "handle" : "3-ROID",
+  "handle" : "4-ROID",
   "status" : ["active"],
   "roles" : ["administrative"],
   "links" :
   [
     {
-      "value" : "http://myserver.google.com/entity/3-ROID",
+      "value" : "http://myserver.google.com/entity/4-ROID",
       "rel" : "self",
-      "href" : "http://myserver.google.com/entity/3-ROID",
+      "href" : "http://myserver.google.com/entity/4-ROID",
       "type" : "application/rdap+json"
     }
+  ],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventActor": "foo",
+      "eventDate": "1998-01-01T00:00:00.000Z"
+    },
   ],
   "vcardArray" :
   [

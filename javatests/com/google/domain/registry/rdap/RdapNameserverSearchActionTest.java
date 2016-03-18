@@ -18,9 +18,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.domain.registry.testing.DatastoreHelper.createTld;
 import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
 import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
-import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static com.google.domain.registry.testing.TestDataHelper.loadFileWithSubstitutions;
@@ -58,7 +58,7 @@ public class RdapNameserverSearchActionTest {
   @Rule public final InjectRule inject = new InjectRule();
 
   private final FakeResponse response = new FakeResponse();
-  private final FakeClock clock = new FakeClock(DateTime.parse("2009-06-29T20:13:00Z"));
+  private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
 
   private final RdapNameserverSearchAction action = new RdapNameserverSearchAction();
 
@@ -86,23 +86,25 @@ public class RdapNameserverSearchActionTest {
         persistResource(
             makeRegistrar("evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
     persistSimpleGlobalResources(makeRegistrarContacts(registrar));
-    hostNs1CatLol = persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
-    hostNs2CatLol = persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef"));
-    hostNs1Cat2Lol =
-        persistResource(makeHostResource("ns1.cat2.lol", "1.2.3.3", "bad:f00d:cafe::15:beef"));
-    persistResource(makeHostResource("ns1.cat.external", null));
+    hostNs1CatLol = makeAndPersistHostResource(
+        "ns1.cat.lol", "1.2.3.4", clock.nowUtc().minusYears(1));
+    hostNs2CatLol = makeAndPersistHostResource(
+        "ns2.cat.lol", "bad:f00d:cafe::15:beef", clock.nowUtc().minusYears(1));
+    hostNs1Cat2Lol = makeAndPersistHostResource(
+        "ns1.cat2.lol", "1.2.3.3", "bad:f00d:cafe::15:beef", clock.nowUtc().minusYears(1));
+    makeAndPersistHostResource("ns1.cat.external", null, null, clock.nowUtc().minusYears(1));
 
     // cat.みんな
     createTld("xn--q9jyb4c");
     registrar = persistResource(makeRegistrar("unicoderegistrar", "みんな", Registrar.State.ACTIVE));
     persistSimpleGlobalResources(makeRegistrarContacts(registrar));
-    persistResource(makeHostResource("ns1.cat.みんな", "1.2.3.5"));
+    makeAndPersistHostResource("ns1.cat.みんな", "1.2.3.5", clock.nowUtc().minusYears(1));
 
     // cat.1.test
     createTld("1.test");
     registrar = persistResource(makeRegistrar("multiregistrar", "1.test", Registrar.State.ACTIVE));
     persistSimpleGlobalResources(makeRegistrarContacts(registrar));
-    persistResource(makeHostResource("ns1.cat.1.test", "1.2.3.6"));
+    makeAndPersistHostResource("ns1.cat.1.test", "1.2.3.6", clock.nowUtc().minusYears(1));
 
     // create a domain so that we can use it as a test nameserver search string suffix
     DomainResource domainCatLol =
@@ -249,7 +251,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithName("ns2.cat.lol"))
         .isEqualTo(
             generateExpectedJsonForNameserver(
-                "ns2.cat.lol", null, "3-ROID", "v6", "bad:f00d:cafe::15:beef", "rdap_host.json"));
+                "ns2.cat.lol", null, "4-ROID", "v6", "bad:f00d:cafe::15:beef", "rdap_host.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -265,7 +267,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithName("ns1.cat.external"))
         .isEqualTo(
             generateExpectedJsonForNameserver(
-                "ns1.cat.external", null, "5-ROID", null, null, "rdap_host_external.json"));
+                "ns1.cat.external", null, "8-ROID", null, null, "rdap_host_external.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -279,12 +281,14 @@ public class RdapNameserverSearchActionTest {
   @Test
   public void testNameMatch_ns1_cat_idn_punycode_found() throws Exception {
     assertThat(generateActualJsonWithName("ns1.cat.xn--q9jyb4c"))
-        .isEqualTo(generateExpectedJsonForNameserver(
-            "ns1.cat.みんな", "ns1.cat.xn--q9jyb4c",
-            "7-ROID",
-            "v4",
-            "1.2.3.5",
-            "rdap_host_unicode.json"));
+        .isEqualTo(
+            generateExpectedJsonForNameserver(
+                "ns1.cat.みんな",
+                "ns1.cat.xn--q9jyb4c",
+                "B-ROID",
+                "v4",
+                "1.2.3.5",
+                "rdap_host_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -293,7 +297,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithName("ns1.cat.1.test"))
         .isEqualTo(
             generateExpectedJsonForNameserver(
-                "ns1.cat.1.test", null, "9-ROID", "v4", "1.2.3.6", "rdap_host.json"));
+                "ns1.cat.1.test", null, "E-ROID", "v4", "1.2.3.6", "rdap_host.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -380,7 +384,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithIp("bad:f00d:cafe::15:beef"))
         .isEqualTo(
             generateExpectedJsonForNameserver(
-                "ns2.cat.lol", null, "3-ROID", "v6", "bad:f00d:cafe::15:beef", "rdap_host.json"));
+                "ns2.cat.lol", null, "4-ROID", "v6", "bad:f00d:cafe::15:beef", "rdap_host.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 }

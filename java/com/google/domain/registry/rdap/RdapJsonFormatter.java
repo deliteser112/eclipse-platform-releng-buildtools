@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.net.InetAddresses;
+import com.google.domain.registry.model.EppResource;
 import com.google.domain.registry.model.contact.ContactPhoneNumber;
 import com.google.domain.registry.model.contact.ContactResource;
 import com.google.domain.registry.model.contact.PostalInfo;
@@ -41,10 +42,13 @@ import com.google.domain.registry.model.host.HostResource;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.model.registrar.RegistrarAddress;
 import com.google.domain.registry.model.registrar.RegistrarContact;
+import com.google.domain.registry.model.reporting.HistoryEntry;
 import com.google.domain.registry.util.Idn;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+
+import org.joda.time.DateTime;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -87,7 +91,7 @@ public class RdapJsonFormatter {
   static final String NOTICES = "notices";
   private static final String REMARKS = "remarks";
 
-  /** Status values specified in RFC 7483 10.2.2. */
+  /** Status values specified in RFC 7483 § 10.2.2. */
   private enum RdapStatus {
     VALIDATED("validated"),
     RENEW_PROHIBITED("renew prohibited"),
@@ -144,7 +148,7 @@ public class RdapJsonFormatter {
               .put(StatusValue.SERVER_UPDATE_PROHIBITED, RdapStatus.UPDATE_PROHIBITED)
               .build());
 
-  /** Role values specified in RFC 7483 10.2.4. */
+  /** Role values specified in RFC 7483 § 10.2.4. */
   private enum RdapEntityRole {
     REGISTRANT("registrant"),
     TECH("technical"),
@@ -165,6 +169,50 @@ public class RdapJsonFormatter {
       this.rfc7483String = rfc7483String;
     }
   }
+
+  /** Status values specified in RFC 7483 § 10.2.2. */
+  private enum RdapEventAction {
+    REGISTRATION("registration"),
+    REREGISTRATION("reregistration"),
+    LAST_CHANGED("last changed"),
+    EXPIRATION("expiration"),
+    DELETION("deletion"),
+    REINSTANTIATION("reinstantiation"),
+    TRANSFER("transfer"),
+    LOCKED("locked"),
+    UNLOCKED("unlocked");
+
+    /** Value as it appears in RDAP messages. */
+    private final String rfc7483String;
+
+    private RdapEventAction(String rfc7483String) {
+      this.rfc7483String = rfc7483String;
+    }
+
+    @Override
+    public String toString() {
+      return rfc7483String;
+    }
+  }
+
+  /** Map of EPP status values to the RDAP equivalents. */
+  private static final ImmutableMap<HistoryEntry.Type, RdapEventAction>
+      historyEntryTypeToRdapEventActionMap =
+          Maps.immutableEnumMap(
+              new ImmutableMap.Builder<HistoryEntry.Type, RdapEventAction>()
+                  .put(HistoryEntry.Type.CONTACT_CREATE, RdapEventAction.REGISTRATION)
+                  .put(HistoryEntry.Type.CONTACT_DELETE, RdapEventAction.DELETION)
+                  .put(HistoryEntry.Type.CONTACT_TRANSFER_APPROVE, RdapEventAction.TRANSFER)
+                  .put(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE, RdapEventAction.REGISTRATION)
+                  .put(HistoryEntry.Type.DOMAIN_APPLICATION_DELETE, RdapEventAction.DELETION)
+                  .put(HistoryEntry.Type.DOMAIN_CREATE, RdapEventAction.REGISTRATION)
+                  .put(HistoryEntry.Type.DOMAIN_DELETE, RdapEventAction.DELETION)
+                  .put(HistoryEntry.Type.DOMAIN_RENEW, RdapEventAction.REREGISTRATION)
+                  .put(HistoryEntry.Type.DOMAIN_RESTORE, RdapEventAction.REINSTANTIATION)
+                  .put(HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE, RdapEventAction.TRANSFER)
+                  .put(HistoryEntry.Type.HOST_CREATE, RdapEventAction.REGISTRATION)
+                  .put(HistoryEntry.Type.HOST_DELETE, RdapEventAction.DELETION)
+                  .build());
 
   private static final ImmutableList<String> CONFORMANCE_LIST =
       ImmutableList.of(RDAP_CONFORMANCE_LEVEL);
@@ -262,7 +310,7 @@ public class RdapJsonFormatter {
   }
 
   /**
-   * Creates a JSON object containing a notice or remark object, as defined by RFC 7483 section 4.3.
+   * Creates a JSON object containing a notice or remark object, as defined by RFC 7483 § 4.3.
    * The object should then be inserted into a notices or remarks array. The builder fields are:
    *
    * <p>title: the title of the notice; if null, the notice will have no title
@@ -270,7 +318,7 @@ public class RdapJsonFormatter {
    * <p>description: objects which will be converted to strings to form the description of the
    * notice (this is the only required field; all others are optional)
    *
-   * <p>typeString: the notice or remark type as defined in section 10.2.1; if null, no type
+   * <p>typeString: the notice or remark type as defined in § 10.2.1; if null, no type
    *
    * <p>linkValueSuffix: the path at the end of the URL used in the value field of the link,
    * without any initial slash (e.g. a suffix of help/toc equates to a URL of
@@ -365,7 +413,11 @@ public class RdapJsonFormatter {
     builder.put("status", makeStatusValueList(domainResource.getStatusValues()));
     builder.put("links", ImmutableList.of(
         makeLink("domain", domainResource.getFullyQualifiedDomainName(), linkBase)));
-    // nameservers
+    ImmutableList<Object> events = makeEvents(domainResource);
+    if (!events.isEmpty()) {
+      builder.put("events", events);
+    }
+    // Nameservers
     ImmutableList.Builder<Object> nsBuilder = new ImmutableList.Builder<>();
     for (HostResource hostResource
         : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
@@ -375,7 +427,7 @@ public class RdapJsonFormatter {
     if (!ns.isEmpty()) {
       builder.put("nameservers", ns);
     }
-    // contacts
+    // Contacts
     ImmutableList.Builder<Object> entitiesBuilder = new ImmutableList.Builder<>();
     for (DesignatedContact designatedContact
         : DESIGNATED_CONTACT_ORDERING.immutableSortedCopy(allContacts)) {
@@ -421,6 +473,10 @@ public class RdapJsonFormatter {
     builder.put("status", makeStatusValueList(hostResource.getStatusValues()));
     builder.put("links", ImmutableList.of(
         makeLink("nameserver", hostResource.getFullyQualifiedHostName(), linkBase)));
+    ImmutableList<Object> events = makeEvents(hostResource);
+    if (!events.isEmpty()) {
+      builder.put("events", events);
+    }
     ImmutableSet<InetAddress> inetAddresses = hostResource.getInetAddresses();
     if (!inetAddresses.isEmpty()) {
       ImmutableList.Builder<String> v4AddressesBuilder = new ImmutableList.Builder<>();
@@ -512,6 +568,10 @@ public class RdapJsonFormatter {
       vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
     }
     builder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
+    ImmutableList<Object> events = makeEvents(contactResource);
+    if (!events.isEmpty()) {
+      builder.put("events", events);
+    }
     if (whoisServer != null) {
       builder.put("port43", whoisServer);
     }
@@ -576,6 +636,10 @@ public class RdapJsonFormatter {
       vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
     }
     builder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
+    ImmutableList<Object> events = makeEvents(registrar);
+    if (!events.isEmpty()) {
+      builder.put("events", events);
+    }
     // include the registrar contacts as subentities
     ImmutableList.Builder<Map<String, Object>> registrarContactsBuilder =
         new ImmutableList.Builder<>();
@@ -674,6 +738,69 @@ public class RdapJsonFormatter {
   private static boolean isVisible(RegistrarContact registrarContact) {
     return registrarContact.getVisibleInWhoisAsAdmin()
         || registrarContact.getVisibleInWhoisAsTech();
+  }
+
+  /**
+   * Creates an event list for a domain, host or contact resource.
+   */
+  private static ImmutableList<Object> makeEvents(EppResource resource) {
+    ImmutableList.Builder<Object> eventsBuilder = new ImmutableList.Builder<>();
+    for (HistoryEntry historyEntry : ofy().load()
+        .type(HistoryEntry.class)
+        .ancestor(resource)
+        .order("modificationTime")) {
+      // Only create an event if this is a type we care about.
+      if (!historyEntryTypeToRdapEventActionMap.containsKey(historyEntry.getType())) {
+        continue;
+      }
+      RdapEventAction eventAction =
+          historyEntryTypeToRdapEventActionMap.get(historyEntry.getType());
+      eventsBuilder.add(makeEvent(
+          eventAction, historyEntry.getClientId(), historyEntry.getModificationTime()));
+    }
+    if (resource instanceof DomainResource) {
+      DateTime expirationTime = ((DomainResource) resource).getRegistrationExpirationTime();
+      if (expirationTime != null) {
+        eventsBuilder.add(makeEvent(RdapEventAction.EXPIRATION, null, expirationTime));
+      }
+    }
+    if ((resource.getLastEppUpdateTime() != null)
+        && resource.getLastEppUpdateTime().isAfter(resource.getCreationTime())) {
+      eventsBuilder.add(makeEvent(
+          RdapEventAction.LAST_CHANGED, null, resource.getLastEppUpdateTime()));
+    }
+    return eventsBuilder.build();
+  }
+
+  /**
+   * Creates an event list for a {@link Registrar}.
+   */
+  private static ImmutableList<Object> makeEvents(Registrar registrar) {
+    ImmutableList.Builder<Object> eventsBuilder = new ImmutableList.Builder<>();
+    eventsBuilder.add(makeEvent(
+        RdapEventAction.REGISTRATION,
+        registrar.getClientIdentifier(),
+        registrar.getCreationTime()));
+    if ((registrar.getLastUpdateTime() != null)
+        && registrar.getLastUpdateTime().isAfter(registrar.getCreationTime())) {
+      eventsBuilder.add(makeEvent(
+          RdapEventAction.LAST_CHANGED, null, registrar.getLastUpdateTime()));
+    }
+    return eventsBuilder.build();
+  }
+
+  /**
+   * Creates an RDAP event object as defined by RFC 7483.
+   */
+  private static ImmutableMap<String, Object> makeEvent(
+      RdapEventAction eventAction, @Nullable String eventActor, DateTime eventDate) {
+    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+    builder.put("eventAction", eventAction.toString());
+    if (eventActor != null) {
+      builder.put("eventActor", eventActor);
+    }
+    builder.put("eventDate", eventDate.toString());
+    return builder.build();
   }
 
   /**

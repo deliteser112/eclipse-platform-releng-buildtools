@@ -17,23 +17,29 @@ package com.google.domain.registry.testing;
 import static com.google.domain.registry.model.domain.DomainUtils.getTldFromDomainName;
 import static com.google.domain.registry.testing.DatastoreHelper.generateNewContactHostRoid;
 import static com.google.domain.registry.testing.DatastoreHelper.generateNewDomainRoid;
+import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
+import com.google.domain.registry.model.EppResource;
 import com.google.domain.registry.model.contact.ContactAddress;
 import com.google.domain.registry.model.contact.ContactPhoneNumber;
 import com.google.domain.registry.model.contact.ContactResource;
 import com.google.domain.registry.model.contact.PostalInfo;
 import com.google.domain.registry.model.domain.DesignatedContact;
 import com.google.domain.registry.model.domain.DomainResource;
+import com.google.domain.registry.model.domain.Period;
 import com.google.domain.registry.model.domain.ReferenceUnion;
 import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
 import com.google.domain.registry.model.eppcommon.StatusValue;
+import com.google.domain.registry.model.eppcommon.Trid;
 import com.google.domain.registry.model.host.HostResource;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.model.registrar.RegistrarAddress;
 import com.google.domain.registry.model.registrar.RegistrarContact;
+import com.google.domain.registry.model.reporting.HistoryEntry;
 import com.google.domain.registry.util.Idn;
 
 import org.joda.time.DateTime;
@@ -128,6 +134,21 @@ public final class FullFieldsTestEntityHelper {
     return builder.build();
   }
 
+  public static HostResource makeAndPersistHostResource(
+      String fqhn, @Nullable String ip, @Nullable DateTime creationTime) {
+    return makeAndPersistHostResource(fqhn, ip, null, creationTime);
+  }
+
+  public static HostResource makeAndPersistHostResource(
+      String fqhn, @Nullable String ip1, @Nullable String ip2, @Nullable DateTime creationTime) {
+    HostResource hostResource = persistResource(makeHostResource(fqhn, ip1, ip2));
+    if (creationTime != null) {
+      persistResource(makeHistoryEntry(
+          hostResource, HistoryEntry.Type.HOST_CREATE, null, "created", creationTime));
+    }
+    return hostResource;
+  }
+
   public static ContactResource makeContactResource(
       String id, String name, @Nullable String email) {
     return makeContactResource(
@@ -166,6 +187,26 @@ public final class FullFieldsTestEntityHelper {
       builder.setEmailAddress(email);
     }
     return builder.build();
+  }
+
+  public static ContactResource makeAndPersistContactResource(
+      String id, String name, @Nullable String email, @Nullable DateTime creationTime) {
+    return makeAndPersistContactResource(
+        id, name, email, ImmutableList.of("123 Example Boulevard <script>"), creationTime);
+  }
+
+  public static ContactResource makeAndPersistContactResource(
+      String id,
+      String name,
+      @Nullable String email,
+      @Nullable List<String> street,
+      @Nullable DateTime creationTime) {
+    ContactResource contactResource = persistResource(makeContactResource(id, name, email, street));
+    if (creationTime != null) {
+      persistResource(makeHistoryEntry(
+          contactResource, HistoryEntry.Type.CONTACT_CREATE, null, "created", creationTime));
+    }
+    return contactResource;
   }
 
   public static DomainResource makeDomainResource(
@@ -214,6 +255,26 @@ public final class FullFieldsTestEntityHelper {
       }
       builder.setNameservers(nsBuilder.build());
     }
+    return builder.build();
+  }
+
+  public static HistoryEntry makeHistoryEntry(
+      EppResource resource,
+      HistoryEntry.Type type,
+      Period period,
+      String reason,
+      DateTime modificationTime) {
+    HistoryEntry.Builder builder = new HistoryEntry.Builder()
+        .setParent(resource)
+        .setType(type)
+        .setPeriod(period)
+        .setXmlBytes("<xml></xml>".getBytes(UTF_8))
+        .setModificationTime(modificationTime)
+        .setClientId("foo")
+        .setTrid(Trid.create("ABC-123"))
+        .setBySuperuser(false)
+        .setReason(reason)
+        .setRequestedByRegistrar(false);
     return builder.build();
   }
 }
