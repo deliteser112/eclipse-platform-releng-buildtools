@@ -17,6 +17,7 @@ package com.google.domain.registry.tools;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.domain.registry.model.registrar.Registrar.loadByClientId;
 import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
 import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
@@ -414,6 +415,15 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     runCommand("--whois=whois.goth.black", "--force", "NewRegistrar");
     assertThat(Registrar.loadByClientId("NewRegistrar").getWhoisServer())
         .isEqualTo("whois.goth.black");
+  }
+
+  @Test
+  public void testSuccess_triggerGroupSyncing_works() throws Exception {
+    persistResource(
+        loadByClientId("NewRegistrar").asBuilder().setContactsRequireSyncing(false).build());
+    assertThat(loadByClientId("NewRegistrar").getContactsRequireSyncing()).isFalse();
+    runCommand("--sync_groups=true", "--force", "NewRegistrar");
+    assertThat(loadByClientId("NewRegistrar").getContactsRequireSyncing()).isTrue();
   }
 
   @Test

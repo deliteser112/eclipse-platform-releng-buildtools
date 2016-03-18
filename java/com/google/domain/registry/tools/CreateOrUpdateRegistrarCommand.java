@@ -219,6 +219,13 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
 
   @Nullable
   @Parameter(
+      names = "--sync_groups",
+      description = "Whether this registrar's groups should be updated at the next scheduled sync",
+      arity = 1)
+  private Boolean contactsRequireSyncing;
+
+  @Nullable
+  @Parameter(
       names = "--drive_id",
       description = "Id of this registrar's folder in Drive",
       converter = OptionalStringParameter.class,
@@ -360,6 +367,9 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       }
       if (blockPremiumNames != null) {
         builder.setBlockPremiumNames(blockPremiumNames);
+      }
+      if (contactsRequireSyncing != null) {
+        builder.setContactsRequireSyncing(contactsRequireSyncing);
       }
       // When creating a new REAL registrar or changing the type to REAL, a passcode is required.
       // Leave existing REAL registrars alone.
