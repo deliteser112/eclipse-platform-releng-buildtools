@@ -77,12 +77,16 @@ import javax.annotation.Nullable;
 public class RdapJsonFormatter {
 
   /**
-   * What type of boilerplate notices are required for the RDAP JSON messages? The ICANN RDAP
-   * Profile specifies that, for instance, domain name responses should include a remark about
-   * domain status codes. So we need to know when to include such boilerplate.
+   * Indication of what type of boilerplate notices are required for the RDAP JSON messages. The
+   * ICANN RDAP Profile specifies that, for instance, domain name responses should include a remark
+   * about domain status codes. So we need to know when to include such boilerplate. On the other
+   * hand, remarks are not allowed except in domain, nameserver and entity objects, so we need to
+   * suppress them for other types of responses (e.g. help).
    */
   public enum BoilerplateType {
     DOMAIN,
+    NAMESERVER,
+    ENTITY,
     OTHER
   }
 
@@ -279,9 +283,17 @@ public class RdapJsonFormatter {
       noticesBuilder.add(tosNotice);
     }
     builder.put(NOTICES, noticesBuilder.build());
-    builder.put(REMARKS, (boilerplateType == BoilerplateType.DOMAIN)
-        ? RdapIcannStandardInformation.domainBoilerplateRemarks
-        : RdapIcannStandardInformation.nonDomainBoilerplateRemarks);
+    switch (boilerplateType) {
+      case DOMAIN:
+        builder.put(REMARKS, RdapIcannStandardInformation.domainBoilerplateRemarks);
+        break;
+      case NAMESERVER:
+      case ENTITY:
+        builder.put(REMARKS, RdapIcannStandardInformation.nameserverAndEntityBoilerplateRemarks);
+        break;
+      default: // things other than domains, nameservers and entities cannot contain remarks
+        break;
+    }
   }
 
   /** AutoValue class to build parameters to {@link #makeRdapJsonNotice}. */
@@ -507,7 +519,7 @@ public class RdapJsonFormatter {
       builder.put("port43", whoisServer);
     }
     if (isTopLevel) {
-      addTopLevelEntries(builder, BoilerplateType.OTHER, null, linkBase);
+      addTopLevelEntries(builder, BoilerplateType.NAMESERVER, null, linkBase);
     }
     return builder.build();
   }
@@ -576,7 +588,7 @@ public class RdapJsonFormatter {
       builder.put("port43", whoisServer);
     }
     if (isTopLevel) {
-      addTopLevelEntries(builder, BoilerplateType.OTHER, null, linkBase);
+      addTopLevelEntries(builder, BoilerplateType.ENTITY, null, linkBase);
     }
     return builder.build();
   }
@@ -656,7 +668,7 @@ public class RdapJsonFormatter {
       builder.put("port43", whoisServer);
     }
     if (isTopLevel) {
-      addTopLevelEntries(builder, BoilerplateType.OTHER, null, linkBase);
+      addTopLevelEntries(builder, BoilerplateType.ENTITY, null, linkBase);
     }
     return builder.build();
   }

@@ -31,14 +31,5 @@
         }
       ]
     }
-  ],
-  "remarks" :
-  [
-    {
-      "description" :
-      [
-        "This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"
-      ]
-    }
   ]
 }

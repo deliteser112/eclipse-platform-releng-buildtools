@@ -68,7 +68,7 @@ public class RdapIcannStandardInformation {
       ImmutableList.of(
           CONFORMANCE_REMARK, DOMAIN_STATUS_CODES_REMARK, INACCURACY_COMPLAINT_FORM_REMARK);
 
-  /** Boilerplate remarks required by non-domain responses. */
-  static final ImmutableList<ImmutableMap<String, Object>> nonDomainBoilerplateRemarks =
+  /** Boilerplate remarks required by nameserver and entity responses. */
+  static final ImmutableList<ImmutableMap<String, Object>> nameserverAndEntityBoilerplateRemarks =
       ImmutableList.of(CONFORMANCE_REMARK);
 }

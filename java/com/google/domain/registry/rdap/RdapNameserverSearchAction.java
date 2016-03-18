@@ -107,7 +107,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     }
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("nameserverSearchResults", results);
-    RdapJsonFormatter.addTopLevelEntries(builder, BoilerplateType.OTHER, null, rdapLinkBase);
+    RdapJsonFormatter.addTopLevelEntries(builder, BoilerplateType.NAMESERVER, null, rdapLinkBase);
     return builder.build();
   }
 

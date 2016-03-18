@@ -137,7 +137,7 @@ public class RdapActionBaseTest {
   @Test
   public void testValidName_works() throws Exception {
     assertThat(generateActualJson("no.thing")).isEqualTo(JSONValue.parse(
-    loadFileWithSubstitutions(this.getClass(), "rdapjson_toplevel.json", null)));
+        loadFileWithSubstitutions(this.getClass(), "rdapjson_toplevel.json", null)));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
