@@ -20,7 +20,6 @@
     and streaming it to cloud storage. Requests are sent here by App Engine after
     `RdeCreateCronServlet` enqueues a task specifying a URL that points to this servlet.
   -->
-  </servlet>
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/rdeStaging</url-pattern>
