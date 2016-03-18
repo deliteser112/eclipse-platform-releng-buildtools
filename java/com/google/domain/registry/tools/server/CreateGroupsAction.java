@@ -50,6 +50,7 @@ public class CreateGroupsAction implements Runnable {
   public static final String CLIENT_ID_PARAM = "clientId";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final int NUM_SIMULTANEOUS_CONNECTIONS = 5;
 
   @Inject GroupsConnection groupsConnection;
   @Inject Response response;
@@ -66,7 +67,9 @@ public class CreateGroupsAction implements Runnable {
     List<RegistrarContact.Type> types = asList(RegistrarContact.Type.values());
     // Concurrently create the groups for each RegistrarContact.Type, collecting the results from
     // each call (which are either an Exception if it failed, or absent() if it succeeded).
-    List<Optional<Exception>> results = Concurrent.transform(types,
+    List<Optional<Exception>> results = Concurrent.transform(
+        types,
+        NUM_SIMULTANEOUS_CONNECTIONS,
         new Function<RegistrarContact.Type, Optional<Exception>>() {
           @Override
           public Optional<Exception> apply(Type type) {
