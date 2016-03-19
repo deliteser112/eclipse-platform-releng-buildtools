@@ -14,8 +14,6 @@
 
 package com.google.domain.registry.util;
 
-import com.google.common.base.Throwables;
-
 import javax.xml.bind.annotation.XmlEnumValue;
 
 /** Utility methods related to xml enums. */
@@ -25,7 +23,7 @@ public class XmlEnumUtils {
     try {
       return input.getClass().getField(input.name()).getAnnotation(XmlEnumValue.class).value();
     } catch (NoSuchFieldException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 }

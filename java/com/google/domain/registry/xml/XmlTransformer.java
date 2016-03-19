@@ -20,7 +20,6 @@ import static com.google.domain.registry.xml.ValidationMode.STRICT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closer;
@@ -91,7 +90,7 @@ public class XmlTransformer {
       this.jaxbContext = JAXBContext.newInstance(recognizedClasses);
       this.schema = loadXmlSchemas(schemaFilenames);
     } catch (JAXBException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -108,7 +107,7 @@ public class XmlTransformer {
       this.jaxbContext = initJaxbContext(pakkage, schemaNamesToFilenames.keySet());
       this.schema = loadXmlSchemas(ImmutableList.copyOf(schemaNamesToFilenames.values()));
     } catch (JAXBException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
