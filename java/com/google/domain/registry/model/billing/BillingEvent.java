@@ -57,6 +57,7 @@ public abstract class BillingEvent extends ImmutableObject
     CREATE,
     TRANSFER,
     RENEW,
+    // TODO(b/27777398): Drop Reason.AUTO_RENEW after migration to Flag.AUTO_RENEW.
     AUTO_RENEW,
     RESTORE,
     SERVER_STATUS,
@@ -67,6 +68,7 @@ public abstract class BillingEvent extends ImmutableObject
   public enum Flag {
     ALLOCATION,
     ANCHOR_TENANT,
+    AUTO_RENEW,
     LANDRUSH,
     SUNRISE
   }

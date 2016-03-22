@@ -23,6 +23,7 @@ class com.google.domain.registry.model.billing.BillingEvent$Cancellation {
 enum com.google.domain.registry.model.billing.BillingEvent$Flag {
   ALLOCATION;
   ANCHOR_TENANT;
+  AUTO_RENEW;
   LANDRUSH;
   SUNRISE;
 }
