@@ -150,11 +150,6 @@ public class TestRegistryConfig implements RegistryConfig {
   }
 
   @Override
-  public boolean isRegistrarConsoleEnabled() {
-    return true;
-  }
-
-  @Override
   public String getDocumentationProjectTitle() {
     return "Domain Registry";
   }

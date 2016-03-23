@@ -46,11 +46,10 @@ function setUp() {
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
   var testElt = goog.dom.getElement('test');
   goog.soy.renderElement(testElt, registry.soy.registrar.console.main, {
-    user: {
-      id: 'pmy@google.com',
-      actionHref: 'blah'
-    },
     xsrfToken: test.testXsrfToken,
+    username: 'blah',
+    logoutUrl: 'omg',
+    isAdmin: true,
     clientId: test.testClientId
   });
   registry.registrar.ConsoleTestUtil.setup(test);

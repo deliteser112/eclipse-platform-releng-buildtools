@@ -395,6 +395,12 @@ public final class ConfigModule {
     }
   }
 
+  @Provides
+  @Config("registrarConsoleEnabled")
+  public static boolean provideRegistrarConsoleEnabled() {
+    return true;
+  }
+
   /** Maximum amount of time for syncing a spreadsheet, before killing. */
   @Provides
   @Config("sheetLockTimeout")

@@ -7,9 +7,11 @@
  * and other templates within it.
  */
 {template .main}
-  {@param user: map<string, ?>} /** Passed to googlebar. */
   {@param xsrfToken: string} /** Security token. */
-  {@param clientId: string} /** App Engine user ID. */
+  {@param clientId: string} /** Registrar client identifier. */
+  {@param username: string} /** Arbitrary username to display. */
+  {@param isAdmin: bool} /** Is this user an App Engine account admin? */
+  {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Registrar Console' /}
@@ -27,7 +29,7 @@
   </div>
   {switch DEBUG}
     {case com.google.domain.registry.ui.ConsoleDebug.PRODUCTION}
-      {if $user['isAdmin']}
+      {if $isAdmin}
         <script src="/assets/js/registrar_bin_map.js"></script>
       {else}
         <script src="/assets/js/registrar_bin.js"></script>
@@ -92,11 +94,13 @@
   </div>
 {/template}
 
+
 /**
  * Who goes thar?!
  */
 {template .whoareyou}
-  {@param user: map<string, string>}
+  {@param username: string} /** Arbitrary username to display. */
+  {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Please Login' /}
@@ -110,13 +114,12 @@
       The account you are logged in as is not associated with Google
       Registry. Please contact your customer service representative or
       switch to an account associated with Google Registry.
-    {if isNonnull($user['name'])}
-      <p>You are signed in as <strong>{$user['name']}</strong>.
-    {/if}
+    <p>
+      You are signed in as <strong>{$username}</strong>.
     <div>
-      <a href="{$user['actionHref']}"
+      <a href="{$logoutUrl}"
          class="{css kd-button} {css kd-button-submit}"
-         tabindex="-1">{$user['actionName']}</a>
+         tabindex="-1">Logout and switch to another account</a>
     </div>
   </div>
 {/template}

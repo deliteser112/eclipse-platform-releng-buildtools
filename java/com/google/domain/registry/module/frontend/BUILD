@@ -38,6 +38,6 @@ java_binary(
         ":frontend",
         "//java/com/google/domain/registry/monitoring/whitebox",  # MetricsTaskServlet
         "//java/com/google/domain/registry/ui/server/api",  # CheckApiServlet
-        "//java/com/google/domain/registry/ui/server/registrar",  # ConsoleUiServlet, etc.
+        "//java/com/google/domain/registry/ui/server/registrar",  # ResourceServlet
     ],
 )

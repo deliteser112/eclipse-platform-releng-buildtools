@@ -54,7 +54,8 @@
  * Happy little googley bar.
  */
 {template .googlebar}
-  {@param user: map<string, ?>}
+  {@param username: string}
+  {@param logoutUrl: string}
   <div id="kd-googlebar" role="banner">
     <a class="{css logo}" href="/registrar">
       <img src="/assets/images/glogo_black.png" alt="Google">Registry
@@ -79,16 +80,10 @@
       </p>
     </div>
     <div id="kd-social" class="{css kd-buttonbar} {css right}">
-      {if isNonnull($user['id'])}
-        <span class="{css kd-name} {css mobile-hide} {css x-crush-hide}">
-          {$user['name']}{sp}
-          <a href="{$user['actionHref']}" tabindex="-1">{$user['actionName']}</a>
-        </span>
-      {else}
-        <a href="{$user['actionHref']}"
-           class="{css kd-button} {css kd-button-submit}"
-           tabindex="-1">{$user['actionName']}</a>
-      {/if}
+      <span class="{css kd-name} {css mobile-hide} {css x-crush-hide}">
+        {$username}{sp}
+        <a href="{$logoutUrl}" tabindex="-1">Sign out</a>
+      </span>
     </div>
   </div>
 {/template}

@@ -50,11 +50,9 @@ function setUp() {
   registry.testing.addToDocument('<div id="test"/>');
   registry.testing.addToDocument('<div class="kd-butterbar"/>');
   goog.soy.renderElement($('test'), registry.soy.registrar.console.main, {
-    user: {
-      id: 'test@acme.com',
-      actionHref: 'blah',
-      actionName: 'omg'
-    },
+    username: 'jart',
+    logoutUrl: 'https://example.com',
+    isAdmin: true,
     xsrfToken: test.testXsrfToken,
     clientId: test.testClientId
   });

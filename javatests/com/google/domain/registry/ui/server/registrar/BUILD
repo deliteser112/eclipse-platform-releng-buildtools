@@ -11,6 +11,7 @@ java_library(
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
+        "//java/com/google/common/net",
         "//java/com/google/common/testing",
         "//java/com/google/domain/registry/config",
         "//java/com/google/domain/registry/export/sheet",
@@ -31,8 +32,6 @@ java_library(
         "//third_party/java/objectify:objectify-v4_1",
         "//third_party/java/servlet/servlet_api",
         "//third_party/java/truth",
-
-        "//third_party/closure/templates",
     ],
 )
 

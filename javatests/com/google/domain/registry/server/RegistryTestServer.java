@@ -69,8 +69,7 @@ public final class RegistryTestServer {
           com.google.domain.registry.module.backend.BackendServlet.class),
 
       // Registrar Console
-      route("/registrar",
-          com.google.domain.registry.ui.server.registrar.ConsoleUiServlet.class),
+      route("/registrar", com.google.domain.registry.module.frontend.FrontendServlet.class),
       route("/registrar-settings",
           com.google.domain.registry.ui.server.registrar.RegistrarServlet.class),
       route("/registrar-payment",

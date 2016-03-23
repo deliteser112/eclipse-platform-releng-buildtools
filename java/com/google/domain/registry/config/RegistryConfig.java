@@ -202,11 +202,6 @@ public interface RegistryConfig {
   public URL getRegistrarDefaultReferralUrl();
 
   /**
-   * Returns whether the registrar console is enabled.
-   */
-  public boolean isRegistrarConsoleEnabled();
-
-  /**
    * Returns the title of the project used in generating documentation.
    */
   public String getDocumentationProjectTitle();

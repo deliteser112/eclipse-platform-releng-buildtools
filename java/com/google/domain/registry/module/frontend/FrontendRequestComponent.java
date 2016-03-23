@@ -26,6 +26,7 @@ import com.google.domain.registry.rdap.RdapNameserverAction;
 import com.google.domain.registry.rdap.RdapNameserverSearchAction;
 import com.google.domain.registry.request.RequestModule;
 import com.google.domain.registry.request.RequestScope;
+import com.google.domain.registry.ui.server.registrar.ConsoleUiAction;
 import com.google.domain.registry.ui.server.registrar.RegistrarPaymentAction;
 import com.google.domain.registry.ui.server.registrar.RegistrarPaymentSetupAction;
 import com.google.domain.registry.ui.server.registrar.RegistrarUserModule;
@@ -45,6 +46,7 @@ import dagger.Subcomponent;
         WhoisModule.class,
     })
 interface FrontendRequestComponent {
+  ConsoleUiAction consoleUiAction();
   RdapAutnumAction rdapAutnumAction();
   RegistrarPaymentAction registrarPaymentAction();
   RegistrarPaymentSetupAction registrarPaymentSetupAction();

@@ -43,12 +43,10 @@ function setUp() {
   registry.testing.addToDocument('<div class="kd-butterbar"/>');
   goog.soy.renderElement($('test'), registry.soy.registrar.console.main, {
     xsrfToken: 'ignore',
-    clientId: 'ignore',
-    user: {
-      id: 'test2.ui@example.com',
-      actionHref: 'https://example.com',
-      actionName: 'gtfo'
-    }
+    username: 'jart',
+    logoutUrl: 'https://example.com',
+    isAdmin: true,
+    clientId: 'ignore'
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
 

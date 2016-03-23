@@ -19,21 +19,6 @@
     <url-pattern>/_dr/epp</url-pattern>
   </servlet-mapping>
 
-  <!-- Registrar Console -->
-  <servlet>
-    <description>
-      Registrar Console UI servlet.
-    </description>
-    <display-name>Registrar Console UI</display-name>
-    <servlet-name>registrar-ui</servlet-name>
-    <servlet-class>com.google.domain.registry.ui.server.registrar.ConsoleUiServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>registrar-ui</servlet-name>
-    <url-pattern>/registrar</url-pattern>
-  </servlet-mapping>
-
   <servlet>
     <description>
       Registrar Console XHR servlet.  Accepts EPP XHRs from GAE GAIA-authenticated frontend sessions.
@@ -66,6 +51,12 @@
     <servlet-class>com.google.domain.registry.module.frontend.FrontendServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
+
+  <!-- Registrar Console. -->
+  <servlet-mapping>
+    <servlet-name>frontend-servlet</servlet-name>
+    <url-pattern>/registrar</url-pattern>
+  </servlet-mapping>
 
   <!-- Registrar Braintree payment form setup. -->
   <servlet-mapping>
