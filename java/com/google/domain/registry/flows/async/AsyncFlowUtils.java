@@ -18,11 +18,13 @@ import static com.google.domain.registry.request.Actions.getPathForAction;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.RetryOptions;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.google.domain.registry.config.RegistryEnvironment;
 import com.google.domain.registry.mapreduce.MapreduceAction;
 import com.google.domain.registry.util.FormattingLogger;
 
@@ -48,8 +50,12 @@ public final class AsyncFlowUtils {
     Queue queue = QueueFactory.getQueue(ASYNC_FLOW_QUEUE_NAME);
     String path = getPathForAction(action);
     logger.infofmt("Enqueueing async mapreduce action with path %s and params %s", path, params);
+    // Aggressively back off if the task fails, to minimize flooding the logs.
+    RetryOptions retryOptions = RetryOptions.Builder.withMinBackoffSeconds(
+        RegistryEnvironment.get().config().getAsyncDeleteFlowFailureBackoff().getStandardSeconds());
     TaskOptions options = TaskOptions.Builder
         .withUrl(path)
+        .retryOptions(retryOptions)
         .countdownMillis(executionDelay.getMillis())
         .method(Method.GET);
     for (Entry<String, String> entry : params.entrySet()) {
