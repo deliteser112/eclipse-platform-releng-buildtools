@@ -50,7 +50,8 @@ function setUp() {
     username: 'blah',
     logoutUrl: 'omg',
     isAdmin: true,
-    clientId: test.testClientId
+    clientId: test.testClientId,
+    showPaymentLink: false
   });
   registry.registrar.ConsoleTestUtil.setup(test);
   var regNavlist = $('reg-navlist');

@@ -124,3 +124,15 @@
       login to the production Registrar Console.
   </div>
 {/template}
+
+
+/** Page indicating customer is not on credit card billing terms. */
+{template .notUsingCcBilling}
+  <div class="{css reg-payment}">
+    <h1>Payment Page Disabled</h1>
+    <p>
+      Your customer account is not on credit card billing terms. Please{sp}
+      <a href="/registrar#contact-us">contact support</a> to have your account
+      switched over.
+  </div>
+{/template}

@@ -12,6 +12,7 @@
   {@param username: string} /** Arbitrary username to display. */
   {@param isAdmin: bool} /** Is this user an App Engine account admin? */
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
+  {@param showPaymentLink: bool}
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Registrar Console' /}
@@ -19,7 +20,7 @@
   {call registry.soy.console.googlebar data="all" /}
   <div id="reg-app">
     <div id="reg-appbar" class="{css kd-appbar}"></div>
-    {call .navbar_ /}
+    {call .navbar_ data="all" /}
     <div id="reg-content-and-footer">
       <div id="reg-content">
         // Dynamic content goes here.
@@ -50,12 +51,17 @@
 
 /** Sidebar nav. Ids on each elt for testing only. */
 {template .navbar_ private="true"}
+  {@param showPaymentLink: bool}
   <div id="reg-nav" class="{css kd-content-sidebar}">
     <ul id="reg-navlist">
       <li>
         <a href="/registrar#">Home</a>
       <li>
         <a href="/registrar#resources">Resources &amp; billing</a>
+      {if $showPaymentLink}
+        <li>
+          <a href="/registrar#payment">Pay invoice</a>
+      {/if}
       <li>
         <ul>
           <span class="{css reg-navlist-sub}">Settings</span>

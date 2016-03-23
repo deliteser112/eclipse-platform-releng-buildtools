@@ -140,6 +140,7 @@ public enum Fixture {
       persistResource(
           Registrar.loadByClientId("TheRegistrar").asBuilder()
               .setAllowedTlds(ImmutableSet.of("example", "xn--q9jyb4c"))
+              .setBillingMethod(Registrar.BillingMethod.BRAINTREE)
               .build());
     }
   };

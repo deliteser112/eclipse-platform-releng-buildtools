@@ -189,9 +189,13 @@ registry.registrar.Payment.prototype.bindToDom = function(id) {
  */
 registry.registrar.Payment.prototype.onSetup_ = function(response) {
   if (response.status != 'SUCCESS') {
-    if (response.message == 'sandbox') {  // XXX: Hard-coded from backend.
+    // Check for hard-coded error message codes from backend.
+    if (response.message == 'sandbox') {
       goog.soy.renderElement(this.content_,
                              registry.soy.registrar.payment.sandbox);
+    } else if (response.message == 'not-using-cc-billing') {
+      goog.soy.renderElement(this.content_,
+                             registry.soy.registrar.payment.notUsingCcBilling);
     } else {
       registry.forms.displayError(response.message);
     }

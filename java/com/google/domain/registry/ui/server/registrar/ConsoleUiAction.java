@@ -96,6 +96,7 @@ public final class ConsoleUiAction implements Runnable {
     data.put("username", userService.getCurrentUser().getNickname());
     data.put("isAdmin", userService.isUserAdmin());
     data.put("logoutUrl", userService.createLogoutURL(PATH));
+    data.put("showPaymentLink", registrar.getBillingMethod() == Registrar.BillingMethod.BRAINTREE);
     response.setPayload(
         TOFU_SUPPLIER.get()
             .newRenderer(ConsoleSoyInfo.MAIN)

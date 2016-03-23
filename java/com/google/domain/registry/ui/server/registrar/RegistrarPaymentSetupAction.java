@@ -23,6 +23,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.domain.registry.config.ConfigModule.Config;
 import com.google.domain.registry.config.RegistryEnvironment;
+import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.request.Action;
 import com.google.domain.registry.request.JsonActionRunner;
 import com.google.domain.registry.request.JsonActionRunner.JsonAction;
@@ -76,6 +77,7 @@ public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
 
   @Inject BraintreeGateway braintreeGateway;
   @Inject JsonActionRunner jsonActionRunner;
+  @Inject Registrar registrar;
   @Inject RegistryEnvironment environment;
   @Inject @Config("brainframe") String brainframe;
   @Inject @Config("braintreeMerchantAccountIds") ImmutableMap<CurrencyUnit, String> accountIds;
@@ -91,11 +93,14 @@ public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
     if (!json.isEmpty()) {
       return JsonResponseHelper.create(ERROR, "JSON request object must be empty");
     }
-    // Prevent registrar customers from accidentally remitting payment via OT&E environment.
+    // payment.js is hard-coded to display a specific SOY error template when encountering the
+    // following error messages.
     if (environment == RegistryEnvironment.SANDBOX) {
-      // XXX: payment.js is hard-coded to display a specific SOY error template when encountering
-      //      an error message with this specific value.
+      // Prevent registrar customers from accidentally remitting payment via OT&E environment.
       return JsonResponseHelper.create(ERROR, "sandbox");
+    } else if (registrar.getBillingMethod() != Registrar.BillingMethod.BRAINTREE) {
+      // Registrar needs to contact support to have their billing bit flipped.
+      return JsonResponseHelper.create(ERROR, "not-using-cc-billing");
     }
     return JsonResponseHelper
         .create(SUCCESS, "Success", asList(

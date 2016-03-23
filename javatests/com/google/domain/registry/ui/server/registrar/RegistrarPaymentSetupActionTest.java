@@ -20,12 +20,15 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.domain.registry.config.RegistryEnvironment;
+import com.google.domain.registry.model.registrar.Registrar;
+import com.google.domain.registry.testing.AppEngineRule;
 
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.ClientTokenGateway;
 
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -34,6 +37,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 /** Tests for {@link RegistrarPaymentSetupAction}. */
 @RunWith(MockitoJUnitRunner.class)
 public class RegistrarPaymentSetupActionTest {
+
+  @Rule
+  public final AppEngineRule appEngine = AppEngineRule.builder()
+      .withDatastore()
+      .build();
 
   @Mock
   private BraintreeGateway braintreeGateway;
@@ -46,6 +54,10 @@ public class RegistrarPaymentSetupActionTest {
   @Before
   public void before() throws Exception {
     action.braintreeGateway = braintreeGateway;
+    action.registrar =
+        Registrar.loadByClientId("TheRegistrar").asBuilder()
+            .setBillingMethod(Registrar.BillingMethod.BRAINTREE)
+            .build();
     when(braintreeGateway.clientToken()).thenReturn(clientTokenGateway);
   }
 
@@ -85,6 +97,19 @@ public class RegistrarPaymentSetupActionTest {
         .containsExactly(
             "status", "ERROR",
             "message", "sandbox",
+            "results", asList());
+  }
+
+  @Test
+  public void testNotOnCreditCardBillingTerms_showsErrorPage() throws Exception {
+    action.registrar =
+        Registrar.loadByClientId("TheRegistrar").asBuilder()
+            .setBillingMethod(Registrar.BillingMethod.EXTERNAL)
+            .build();
+    assertThat(action.handleJsonRequest(ImmutableMap.<String, Object>of()))
+        .containsExactly(
+            "status", "ERROR",
+            "message", "not-using-cc-billing",
             "results", asList());
   }
 }

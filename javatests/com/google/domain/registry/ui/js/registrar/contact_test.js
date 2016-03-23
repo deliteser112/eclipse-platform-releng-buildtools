@@ -40,7 +40,8 @@ function setUp() {
     username: 'blah',
     logoutUrl: 'omg',
     isAdmin: true,
-    clientId: 'daddy'
+    clientId: 'daddy',
+    showPaymentLink: false
   });
   registry.registrar.ConsoleTestUtil.setup(test);
 }

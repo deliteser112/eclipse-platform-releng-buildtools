@@ -48,7 +48,8 @@ function setUp() {
     username: 'blah',
     logoutUrl: 'omg',
     isAdmin: true,
-    clientId: test.testClientId
+    clientId: test.testClientId,
+    showPaymentLink: false
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
   registry.registrar.ConsoleTestUtil.setup(test);

@@ -46,7 +46,8 @@ function setUp() {
     username: 'jart',
     logoutUrl: 'https://example.com',
     isAdmin: true,
-    clientId: 'ignore'
+    clientId: 'ignore',
+    showPaymentLink: false
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
 

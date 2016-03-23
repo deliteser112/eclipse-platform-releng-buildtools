@@ -54,7 +54,8 @@ function setUp() {
     logoutUrl: 'https://example.com',
     isAdmin: true,
     xsrfToken: test.testXsrfToken,
-    clientId: test.testClientId
+    clientId: test.testClientId,
+    showPaymentLink: false
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
   registry.registrar.ConsoleTestUtil.setup(test);
