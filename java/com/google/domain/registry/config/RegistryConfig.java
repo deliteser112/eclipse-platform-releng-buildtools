@@ -253,10 +253,10 @@ public interface RegistryConfig {
   public Duration getAsyncDeleteFlowMapreduceDelay();
 
   /**
-   * Returns the amount of time to back off following an async delete flow task failure.
+   * Returns the amount of time to back off following an async flow task failure.
    *
    * This should be ~orders of magnitude larger than the rate on the queue, in order to prevent
    * the logs from filling up with unnecessarily failures.
    */
-  public Duration getAsyncDeleteFlowFailureBackoff();
+  public Duration getAsyncFlowFailureBackoff();
 }

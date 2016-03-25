@@ -52,7 +52,7 @@ public final class AsyncFlowUtils {
     logger.infofmt("Enqueueing async mapreduce action with path %s and params %s", path, params);
     // Aggressively back off if the task fails, to minimize flooding the logs.
     RetryOptions retryOptions = RetryOptions.Builder.withMinBackoffSeconds(
-        RegistryEnvironment.get().config().getAsyncDeleteFlowFailureBackoff().getStandardSeconds());
+        RegistryEnvironment.get().config().getAsyncFlowFailureBackoff().getStandardSeconds());
     TaskOptions options = TaskOptions.Builder
         .withUrl(path)
         .retryOptions(retryOptions)

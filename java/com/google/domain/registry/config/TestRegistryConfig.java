@@ -190,7 +190,7 @@ public class TestRegistryConfig implements RegistryConfig {
   }
 
   @Override
-  public Duration getAsyncDeleteFlowFailureBackoff() {
+  public Duration getAsyncFlowFailureBackoff() {
     return Duration.standardMinutes(10);
   }
 }
