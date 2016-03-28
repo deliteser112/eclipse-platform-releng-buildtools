@@ -43,6 +43,30 @@ class UpdateTldCommand extends CreateOrUpdateTldCommand {
       description = "A comma-separated list of reserved list names to be removed from the TLD")
   List<String> reservedListsRemove;
 
+  @Nullable
+  @Parameter(
+      names = "--add_allowed_registrants",
+      description = "A comma-separated list of allowed registrants to be added to the TLD")
+  List<String> allowedRegistrantsAdd;
+
+  @Nullable
+  @Parameter(
+      names = "--remove_allowed_registrants",
+      description = "A comma-separated list of allowed registrants to be removed from the TLD")
+  List<String> allowedRegistrantsRemove;
+
+  @Nullable
+  @Parameter(
+      names = "--add_allowed_nameservers",
+      description = "A comma-separated list of allowed nameservers to be added to the TLD")
+  List<String> allowedNameserversAdd;
+
+  @Nullable
+  @Parameter(
+      names = "--remove_allowed_nameservers",
+      description = "A comma-separated list of allowed nameservers to be removed from the TLD")
+  List<String> allowedNameserversRemove;
+
   @Override
   Registry getOldRegistry(String tld) {
     return Registry.get(assertTldExists(tld));
@@ -50,11 +74,26 @@ class UpdateTldCommand extends CreateOrUpdateTldCommand {
 
   @Override
   protected void initTldCommand() throws Exception {
-    checkArgument(reservedListsAdd == null || reservedListNames == null,
-        "Don't pass both --reserved_lists and --add_reserved_lists");
+    checkConflicts("reserved_lists", reservedListNames, reservedListsAdd, reservedListsRemove);
+    checkConflicts(
+        "allowed_registrants", allowedRegistrants, allowedRegistrantsAdd, allowedRegistrantsRemove);
+    checkConflicts(
+        "allowed_nameservers", allowedNameservers, allowedNameserversAdd, allowedNameserversRemove);
     reservedListNamesToAdd = ImmutableSet.copyOf(nullToEmpty(reservedListsAdd));
-    checkArgument(reservedListsRemove == null || reservedListNames == null,
-        "Don't pass both --reserved_lists and --remove_reserved_lists");
     reservedListNamesToRemove = ImmutableSet.copyOf(nullToEmpty(reservedListsRemove));
+    allowedRegistrantsToAdd = ImmutableSet.copyOf(nullToEmpty(allowedRegistrantsAdd));
+    allowedRegistrantsToRemove = ImmutableSet.copyOf(nullToEmpty(allowedRegistrantsRemove));
+    allowedNameserversToAdd = ImmutableSet.copyOf(nullToEmpty(allowedNameserversAdd));
+    allowedNameserversToRemove = ImmutableSet.copyOf(nullToEmpty(allowedNameserversRemove));
+  }
+
+  private void checkConflicts(
+      String baseFlagName, Object overwriteValue, Object addValue, Object removeValue) {
+    checkNotBoth(baseFlagName, overwriteValue, "add_" + baseFlagName, addValue);
+    checkNotBoth(baseFlagName, overwriteValue, "remove_" + baseFlagName, removeValue);
+  }
+
+  private void checkNotBoth(String nameA, Object valueA, String nameB, Object valueB) {
+    checkArgument(valueA == null || valueB == null, "Don't pass both --%s and --%s", nameA, nameB);
   }
 }

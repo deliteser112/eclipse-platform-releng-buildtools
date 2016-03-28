@@ -78,9 +78,11 @@ import com.google.domain.registry.flows.domain.DomainFlowUtils.LaunchPhaseMismat
 import com.google.domain.registry.flows.domain.DomainFlowUtils.LeadingDashException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.LinkedResourceDoesNotExistException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.NameserverNotAllowedException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.NoMarksFoundMatchingDomainException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.SignedMarkCertificateExpiredException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.SignedMarkCertificateInvalidException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.SignedMarkCertificateNotYetValidException;
@@ -1168,6 +1170,41 @@ public class DomainApplicationCreateFlowTest
       assertThat(e.isFailfast()).isTrue();
       throw e;
     }
+  }
+
+  @Test
+  public void testFailure_registrantNotWhitelisted() throws Exception {
+    persistActiveContact("someone");
+    persistContactsAndHosts();
+    persistResource(Registry.get("tld").asBuilder()
+        .setAllowedRegistrantContactIds(ImmutableSet.of("someone"))
+        .build());
+    thrown.expect(RegistrantNotAllowedException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_nameserverNotWhitelisted() throws Exception {
+    persistActiveHost("ns1.example.com");
+    persistContactsAndHosts();
+    persistResource(Registry.get("tld").asBuilder()
+        .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.someone.tld"))
+        .build());
+    thrown.expect(NameserverNotAllowedException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_nameserverAndRegistrantWhitelisted() throws Exception {
+    persistResource(Registry.get("tld").asBuilder()
+        .setAllowedRegistrantContactIds(ImmutableSet.of("jd1234"))
+        .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.net", "ns2.example.net"))
+        .build());
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    doSuccessfulTest("domain_create_sunrise_encoded_signed_mark_response.xml", true);
+    assertAboutApplications().that(getOnlyGlobalResource(DomainApplication.class))
+        .hasApplicationStatus(ApplicationStatus.VALIDATED);
   }
 
   /**

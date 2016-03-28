@@ -343,6 +343,12 @@ public class Registry extends BackupGroupRoot implements Buildable {
   /** The end of the claims period (at or after this time, claims no longer applies). */
   DateTime claimsPeriodEnd = END_OF_TIME;
 
+  /** A whitelist of clients allowed to be used on domains on this TLD (ignored if empty). */
+  Set<String> allowedRegistrantContactIds;
+
+  /** A whitelist of hosts allowed to be used on domains on this TLD (ignored if empty). */
+  Set<String> allowedFullyQualifiedHostNames;
+
   public String getTldStr() {
     return tldStr;
   }
@@ -519,6 +525,14 @@ public class Registry extends BackupGroupRoot implements Buildable {
 
   public DateTime getClaimsPeriodEnd() {
     return claimsPeriodEnd;
+  }
+
+  public ImmutableSet<String> getAllowedRegistrantContactIds() {
+    return nullToEmptyImmutableCopy(allowedRegistrantContactIds);
+  }
+
+  public ImmutableSet<String> getAllowedFullyQualifiedHostNames() {
+    return nullToEmptyImmutableCopy(allowedFullyQualifiedHostNames);
   }
 
   @Override
@@ -731,6 +745,18 @@ public class Registry extends BackupGroupRoot implements Buildable {
 
     public Builder setClaimsPeriodEnd(DateTime claimsPeriodEnd) {
       getInstance().claimsPeriodEnd = checkArgumentNotNull(claimsPeriodEnd);
+      return this;
+    }
+
+    public Builder setAllowedRegistrantContactIds(
+        ImmutableSet<String> allowedRegistrantContactIds) {
+      getInstance().allowedRegistrantContactIds = allowedRegistrantContactIds;
+      return this;
+    }
+
+    public Builder setAllowedFullyQualifiedHostNames(
+        ImmutableSet<String> allowedFullyQualifiedHostNames) {
+      getInstance().allowedFullyQualifiedHostNames = allowedFullyQualifiedHostNames;
       return this;
     }
 

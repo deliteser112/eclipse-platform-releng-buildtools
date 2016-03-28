@@ -58,7 +58,9 @@ import com.google.domain.registry.flows.domain.DomainFlowUtils.LinkedResourceInP
 import com.google.domain.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.NameserverNotAllowedException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.TooManyNameserversException;
 import com.google.domain.registry.model.billing.BillingEvent;
@@ -1067,5 +1069,44 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
           .build());
     clock.advanceOneMilli();
     runFlow();
+  }
+
+  @Test
+  public void testFailure_newRegistrantNotWhitelisted() throws Exception {
+    setEppInput("domain_update_registrant_to_tech.xml");
+    persistReferencedEntities();
+    persistDomain();
+    persistResource(
+        Registry.get("tld").asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("sha8013"))
+            .build());
+    clock.advanceOneMilli();
+    thrown.expect(RegistrantNotAllowedException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_newNameserverNotWhitelisted() throws Exception {
+    persistReferencedEntities();
+    persistDomain();
+    persistResource(
+        Registry.get("tld").asBuilder()
+            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
+            .build());
+    clock.advanceOneMilli();
+    thrown.expect(NameserverNotAllowedException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_nameserverAndRegistrantWhitelisted() throws Exception {
+    persistReferencedEntities();
+    persistDomain();
+    persistResource(
+        Registry.get("tld").asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("sh8013"))
+            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.foo"))
+            .build());
+    doSuccessfulTest();
   }
 }

@@ -49,7 +49,9 @@ import com.google.domain.registry.flows.domain.DomainFlowUtils.LinkedResourceDoe
 import com.google.domain.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.NameserverNotAllowedException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
+import com.google.domain.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.TooManyNameserversException;
 import com.google.domain.registry.model.contact.ContactResource;
@@ -63,6 +65,7 @@ import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
 import com.google.domain.registry.model.eppcommon.StatusValue;
 import com.google.domain.registry.model.host.HostResource;
 import com.google.domain.registry.model.registrar.Registrar;
+import com.google.domain.registry.model.registry.Registry;
 import com.google.domain.registry.model.registry.Registry.TldState;
 import com.google.domain.registry.model.reporting.HistoryEntry;
 
@@ -621,5 +624,44 @@ public class DomainApplicationUpdateFlowTest
             DesignatedContact.create(Type.TECH, ReferenceUnion.create(sh8013Contact))))
         .build());
     runFlow();
+  }
+
+  @Test
+  public void testFailure_newRegistrantNotWhitelisted() throws Exception {
+    setEppInput("domain_update_sunrise_registrant_to_tech.xml");
+    persistReferencedEntities();
+    persistApplication();
+    persistResource(
+        Registry.get("tld").asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("sha8013"))
+            .build());
+    clock.advanceOneMilli();
+    thrown.expect(RegistrantNotAllowedException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_newNameserverNotWhitelisted() throws Exception {
+    persistReferencedEntities();
+    persistApplication();
+    persistResource(
+        Registry.get("tld").asBuilder()
+            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
+            .build());
+    clock.advanceOneMilli();
+    thrown.expect(NameserverNotAllowedException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_nameserverAndRegistrantWhitelisted() throws Exception {
+    persistResource(
+        Registry.get("tld").asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("sh8013"))
+            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.tld"))
+            .build());
+    persistReferencedEntities();
+    persistApplication();
+    doSuccessfulTest();
   }
 }

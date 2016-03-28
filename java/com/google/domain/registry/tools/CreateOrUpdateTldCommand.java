@@ -15,18 +15,22 @@
 package com.google.domain.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Sets.difference;
+import static com.google.common.collect.Sets.intersection;
+import static com.google.common.collect.Sets.union;
 import static com.google.domain.registry.model.RoidSuffixes.isRoidSuffixUsed;
 import static com.google.domain.registry.util.CollectionUtils.findDuplicates;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
 import static com.google.domain.registry.util.DomainNameUtils.canonicalizeDomainName;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Sets;
 import com.google.domain.registry.model.registry.Registries;
 import com.google.domain.registry.model.registry.Registry;
 import com.google.domain.registry.model.registry.Registry.TldState;
@@ -44,7 +48,6 @@ import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -180,6 +183,18 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
       description = "A comma-separated list of reserved list names to be applied to the TLD")
   List<String> reservedListNames;
 
+  @Nullable
+  @Parameter(
+      names = "--allowed_registrants",
+      description = "A comma-separated list of allowed registrants for the TLD")
+  List<String> allowedRegistrants;
+
+  @Nullable
+  @Parameter(
+      names = "--allowed_nameservers",
+      description = "A comma-separated list of allowed nameservers for the TLD")
+  List<String> allowedNameservers;
+
   @Parameter(
       names = {"-o", "--override_reserved_list_rules"},
       description = "Override restrictions on reserved list naming")
@@ -196,6 +211,18 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
   @Nullable
   Set<String> reservedListNamesToRemove;
+
+  @Nullable
+  Set<String> allowedRegistrantsToAdd;
+
+  @Nullable
+  Set<String> allowedRegistrantsToRemove;
+
+  @Nullable
+  Set<String> allowedNameserversToAdd;
+
+  @Nullable
+  Set<String> allowedNameserversToRemove;
 
   /** Returns the existing registry (for update) or null (for creates). */
   @Nullable
@@ -309,54 +336,6 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
         builder.setClaimsPeriodEnd(claimsPeriodEnd);
       }
 
-      if (reservedListNames != null
-          || reservedListNamesToAdd != null
-          || reservedListNamesToRemove != null) {
-        Set<String> listsToApply = new HashSet<>();
-        if (reservedListNames != null) {
-          listsToApply = ImmutableSet.copyOf(reservedListNames);
-          checkReservedListValidityForTld(tld, listsToApply);
-        } else {
-          checkArgument(
-              Sets
-                  .intersection(
-                      nullToEmpty(reservedListNamesToAdd),
-                      nullToEmpty(reservedListNamesToRemove))
-                  .isEmpty(),
-              "Adding and removing the same reserved list simultaneously doesn't make sense");
-
-          for (Key<ReservedList> key : oldRegistry.getReservedLists()) {
-            listsToApply.add(key.getName());
-          }
-
-          Set<String> duplicateNames =
-              Sets.intersection(listsToApply, nullToEmpty(reservedListNamesToAdd));
-          checkArgument(
-              duplicateNames.isEmpty(),
-              "Cannot add reserved list(s) %s to TLD %s because they're already on it",
-              Joiner.on(", ").join(duplicateNames),
-              tld);
-
-          if (reservedListNamesToAdd != null) {
-            checkReservedListValidityForTld(tld, reservedListNamesToAdd);
-            listsToApply.addAll(reservedListNamesToAdd);
-          }
-
-          if (reservedListNamesToRemove != null) {
-            for (String name : reservedListNamesToRemove) {
-              checkArgument(
-                  listsToApply.contains(name),
-                  "Cannot remove reserved list %s from TLD %s because it isn't on it",
-                  name,
-                  tld);
-              listsToApply.remove(name);
-            }
-          }
-        }
-
-        builder.setReservedListsByName(listsToApply);
-      }
-
       if (premiumListName != null) {
         if (premiumListName.isPresent()) {
           Optional<PremiumList> premiumList = PremiumList.get(premiumListName.get());
@@ -368,10 +347,76 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
         }
       }
 
+      ImmutableSet<String> newReservedListNames =
+          formUpdatedList(
+              "reserved lists",
+              oldRegistry == null ? ImmutableSet.<String>of() : FluentIterable
+                  .from(oldRegistry.getReservedLists())
+                  .transform(
+                      new Function<Key<ReservedList>, String>() {
+                        @Override
+                        public String apply(Key<ReservedList> key) {
+                          return key.getName();
+                        }})
+                  .toSet(),
+              reservedListNames,
+              reservedListNamesToAdd,
+              reservedListNamesToRemove);
+      checkReservedListValidityForTld(tld, newReservedListNames);
+      builder.setReservedListsByName(newReservedListNames);
+
+      builder.setAllowedRegistrantContactIds(
+          formUpdatedList(
+              "allowed registrants",
+              oldRegistry == null
+                  ? ImmutableSet.<String>of()
+                  : oldRegistry.getAllowedRegistrantContactIds(),
+              allowedRegistrants,
+              allowedRegistrantsToAdd,
+              allowedRegistrantsToRemove));
+
+      builder.setAllowedFullyQualifiedHostNames(
+          formUpdatedList(
+              "allowed nameservers",
+              oldRegistry == null
+                  ? ImmutableSet.<String>of()
+                  : oldRegistry.getAllowedFullyQualifiedHostNames(),
+              allowedNameservers,
+              allowedNameserversToAdd,
+              allowedNameserversToRemove));
+
       // Update the Registry object.
       setCommandSpecificProperties(builder);
       stageEntityChange(oldRegistry, builder.build());
     }
+  }
+
+  private ImmutableSet<String> formUpdatedList(
+      String description,
+      ImmutableSet<String> originals,
+      List<String> toReplace,
+      Set<String> toAdd,
+      Set<String> toRemove) {
+    if (toReplace != null) {
+      return ImmutableSet.copyOf(toReplace);
+    }
+    toAdd = nullToEmpty(toAdd);
+    toRemove = nullToEmpty(toRemove);
+    checkIsEmpty(
+        intersection(toAdd, toRemove),
+        String.format(
+            "Adding and removing the same %s simultaneously doesn't make sense", description));
+    checkIsEmpty(
+        intersection(originals, toAdd),
+        String.format("Cannot add %s that were previously present", description));
+    checkIsEmpty(
+        difference(toRemove, originals),
+        String.format("Cannot remove %s that were not previously present", description));
+    return ImmutableSet.copyOf(difference(union(originals, toAdd), toRemove));
+  }
+
+  private void checkIsEmpty(Set<String> set, String errorString) {
+    checkArgument(set.isEmpty(), String.format("%s: %s", errorString, set));
   }
 
   @Override

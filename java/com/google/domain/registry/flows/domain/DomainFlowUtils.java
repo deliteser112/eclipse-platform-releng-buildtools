@@ -259,6 +259,7 @@ public class DomainFlowUtils {
 
   private static void verifyNotInPendingDelete(
       ReferenceUnion<? extends EppResource> resourceRef) throws EppException {
+
     EppResource resource = resourceRef.getLinked().get();
     if (resource.getStatusValues().contains(StatusValue.PENDING_DELETE)) {
       throw new LinkedResourceInPendingDeleteProhibitsOperationException(resource.getForeignKey());
@@ -274,11 +275,25 @@ public class DomainFlowUtils {
     }
   }
 
-  static void validateNameservers(Set<ReferenceUnion<HostResource>> nameservers)
+  /** Return a foreign key for a {@link ReferenceUnion} from memory or datastore as needed. */
+  private static String resolveForeignKey(ReferenceUnion<?> ref) {
+    return Optional.fromNullable(ref.getForeignKey()).or(ref.getLinked().get().getForeignKey());
+  }
+
+  static void validateNameservers(String tld, Set<ReferenceUnion<HostResource>> nameservers)
       throws EppException {
     if (nameservers != null && nameservers.size() > MAX_NAMESERVERS_PER_DOMAIN) {
         throw new TooManyNameserversException(String.format(
             "Only %d nameservers are allowed per domain", MAX_NAMESERVERS_PER_DOMAIN));
+    }
+    ImmutableSet<String> whitelist = Registry.get(tld).getAllowedFullyQualifiedHostNames();
+    if (!whitelist.isEmpty()) {  // Empty whitelists are ignored.
+      for (ReferenceUnion<HostResource> nameserver : nameservers) {
+        String foreignKey = resolveForeignKey(nameserver);
+        if (!whitelist.contains(foreignKey)) {
+          throw new NameserverNotAllowedException(foreignKey);
+        }
+      }
     }
   }
 
@@ -308,6 +323,15 @@ public class DomainFlowUtils {
     }
     if (!roles.contains(Type.TECH)) {
       throw new MissingTechnicalContactException();
+    }
+  }
+
+  static void validateRegistrantAllowedOnTld(String tld, ReferenceUnion<ContactResource> registrant)
+      throws RegistrantNotAllowedException {
+    ImmutableSet<String> whitelist = Registry.get(tld).getAllowedRegistrantContactIds();
+    // Empty whitelists are ignored.
+    if (!whitelist.isEmpty() && !whitelist.contains(resolveForeignKey(registrant))) {
+      throw new RegistrantNotAllowedException(registrant.toString());
     }
   }
 
@@ -961,6 +985,20 @@ public class DomainFlowUtils {
   public static class NotAuthorizedForTldException extends AuthorizationErrorException {
     public NotAuthorizedForTldException(String tld) {
       super("Registrar is not authorized to access the TLD " + tld);
+    }
+  }
+
+  /** Registrant is not whitelisted for this TLD. */
+  public static class RegistrantNotAllowedException extends StatusProhibitsOperationException {
+    public RegistrantNotAllowedException(String contactId) {
+      super(String.format("Registrant with id %s is not whitelisted for this TLD", contactId));
+    }
+  }
+
+  /** Nameserver is not whitelisted for this TLD. */
+  public static class NameserverNotAllowedException extends StatusProhibitsOperationException {
+    public NameserverNotAllowedException(String fullyQualifiedHostName) {
+      super(String.format("Nameserver %s is not whitelisted for this TLD", fullyQualifiedHostName));
     }
   }
 }

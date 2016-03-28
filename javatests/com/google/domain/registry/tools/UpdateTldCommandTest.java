@@ -271,43 +271,144 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   }
 
   @Test
-  public void testSuccess_setReservedListsOverwritesCorrectly() throws Exception {
-    Registry registry = addTwoReservedListsToRegistry();
+  public void testSuccess_setReservedListsOverwrites() throws Exception {
+    persistResource(Registry.get("xn--q9jyb4c").asBuilder()
+        .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1", "xn--q9jyb4c_r2"))
+        .build());
     runCommandForced("--reserved_lists=xn--q9jyb4c_r2", "xn--q9jyb4c");
-    registry = Registry.get("xn--q9jyb4c");
-    assertThat(registry.getReservedLists()).hasSize(1);
-    assertThat(registry.getReservedLists().asList().get(0).getName()).isEqualTo("xn--q9jyb4c_r2");
+    assertThat(transform(Registry.get("xn--q9jyb4c").getReservedLists(), GET_NAME_FUNCTION))
+        .containsExactly("xn--q9jyb4c_r2");
   }
 
   @Test
-  public void testSuccess_addReservedListsWorksCorrectly() throws Exception {
-    runCommandForced("--add_reserved_lists=xn--q9jyb4c_r1,xn--q9jyb4c_r2", "xn--q9jyb4c");
+  public void testSuccess_addReservedLists() throws Exception {
+    persistResource(Registry.get("xn--q9jyb4c").asBuilder()
+        .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1"))
+        .build());
+    runCommandForced("--add_reserved_lists=xn--q9jyb4c_r2", "xn--q9jyb4c");
     assertThat(transform(Registry.get("xn--q9jyb4c").getReservedLists(), GET_NAME_FUNCTION))
         .containsExactly("xn--q9jyb4c_r1", "xn--q9jyb4c_r2");
   }
 
   @Test
-  public void testSuccess_removeAllReservedListsWorksCorrectly() throws Exception {
-    addTwoReservedListsToRegistry();
+  public void testSuccess_removeAllReservedLists() throws Exception {
+    persistResource(Registry.get("xn--q9jyb4c").asBuilder()
+        .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1", "xn--q9jyb4c_r2"))
+        .build());
     runCommandForced("--remove_reserved_lists=xn--q9jyb4c_r1,xn--q9jyb4c_r2", "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getReservedLists()).isEmpty();
   }
 
   @Test
-  public void testSuccess_removeSomeReservedListsWorksCorrectly() throws Exception {
-    addTwoReservedListsToRegistry();
+  public void testSuccess_removeSomeReservedLists() throws Exception {
+    persistResource(Registry.get("xn--q9jyb4c").asBuilder()
+        .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1", "xn--q9jyb4c_r2"))
+        .build());
     runCommandForced("--remove_reserved_lists=xn--q9jyb4c_r1", "xn--q9jyb4c");
     assertThat(transform(Registry.get("xn--q9jyb4c").getReservedLists(), GET_NAME_FUNCTION))
         .containsExactly("xn--q9jyb4c_r2");
   }
 
-  private Registry addTwoReservedListsToRegistry() throws Exception {
+  @Test
+  public void testSuccess_setAllowedRegistrants() throws Exception {
+    runCommandForced("--allowed_registrants=alice,bob", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedRegistrantContactIds())
+        .containsExactly("alice", "bob");
+  }
+
+  @Test
+  public void testSuccess_setAllowedRegistrantsOverwrites() throws Exception {
     persistResource(
-        Registry.get("xn--q9jyb4c")
-            .asBuilder()
-            .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1", "xn--q9jyb4c_r2"))
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("jane", "john"))
             .build());
-    return Registry.get("xn--q9jyb4c");
+    runCommandForced("--allowed_registrants=alice,bob", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedRegistrantContactIds())
+        .containsExactly("alice", "bob");
+  }
+
+  @Test
+  public void testSuccess_addAllowedRegistrants() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("alice"))
+            .build());
+    runCommandForced("--add_allowed_registrants=bob", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedRegistrantContactIds())
+        .containsExactly("alice", "bob");
+  }
+
+  @Test
+  public void testSuccess_removeAllAllowedRegistrants() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("alice", "bob"))
+            .build());
+    runCommandForced("--remove_allowed_registrants=alice,bob", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedRegistrantContactIds()).isEmpty();
+  }
+
+  @Test
+  public void testSuccess_removeSomeAllowedRegistrants() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("alice", "bob"))
+            .build());
+    runCommandForced("--remove_allowed_registrants=alice", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedRegistrantContactIds()).containsExactly("bob");
+  }
+
+  @Test
+  public void testSuccess_setAllowedNameservers() throws Exception {
+    runCommandForced("--allowed_nameservers=ns1.example.com,ns2.example.com", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedFullyQualifiedHostNames())
+        .containsExactly("ns1.example.com", "ns2.example.com");
+  }
+
+  @Test
+  public void testSuccess_setAllowedNameserversOverwrites() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.tld", "ns2.example.tld"))
+            .build());
+    runCommandForced("--allowed_nameservers=ns1.example.com,ns2.example.com", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedFullyQualifiedHostNames())
+        .containsExactly("ns1.example.com", "ns2.example.com");
+  }
+
+  @Test
+  public void testSuccess_addAllowedNameservers() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.com"))
+            .build());
+    runCommandForced("--add_allowed_nameservers=ns2.example.com", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedFullyQualifiedHostNames())
+        .containsExactly("ns1.example.com", "ns2.example.com");
+  }
+
+  @Test
+  public void testSuccess_removeAllAllowedNameservers() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.com", "ns2.example.com"))
+            .build());
+    runCommandForced("--remove_allowed_nameservers=ns1.example.com,ns2.example.com", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedFullyQualifiedHostNames()).isEmpty();
+  }
+
+  @Test
+  public void testSuccess_removeSomeAllowedNameservers() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.com", "ns2.example.com"))
+            .build());
+    runCommandForced("--remove_allowed_nameservers=ns1.example.com", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedFullyQualifiedHostNames())
+        .containsExactly("ns2.example.com");
   }
 
   @Test
@@ -445,31 +546,88 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testFailure_cantAddDuplicateReservedList() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Cannot add reserved list(s) xn--q9jyb4c_r1 to TLD xn--q9jyb4c "
-        + "because they're already on it");
-    addTwoReservedListsToRegistry();
+    persistResource(Registry.get("xn--q9jyb4c").asBuilder()
+        .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1", "xn--q9jyb4c_r2"))
+        .build());
+    thrown.expect(IllegalArgumentException.class, "xn--q9jyb4c_r1");
     runCommandForced("--add_reserved_lists=xn--q9jyb4c_r1", "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_cantRemoveReservedListThatIsntPresent() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Cannot remove reserved list xn--q9jyb4c_Z from TLD xn--q9jyb4c because it isn't on it");
-    addTwoReservedListsToRegistry();
+    persistResource(Registry.get("xn--q9jyb4c").asBuilder()
+        .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1", "xn--q9jyb4c_r2"))
+        .build());
+    thrown.expect(IllegalArgumentException.class, "xn--q9jyb4c_Z");
     runCommandForced("--remove_reserved_lists=xn--q9jyb4c_Z", "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_cantAddAndRemoveSameReservedListSimultaneously() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Adding and removing the same reserved list simultaneously doesn't make sense");
+    thrown.expect(IllegalArgumentException.class, "xn--q9jyb4c_r1");
     runCommandForced(
         "--add_reserved_lists=xn--q9jyb4c_r1",
         "--remove_reserved_lists=xn--q9jyb4c_r1",
+        "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_cantAddDuplicateAllowedRegistrants() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+        .setAllowedRegistrantContactIds(ImmutableSet.of("alice", "bob"))
+        .build());
+    thrown.expect(IllegalArgumentException.class, "alice");
+    runCommandForced("--add_allowed_registrants=alice", "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_cantRemoveAllowedRegistrantThatIsntPresent() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+        .setAllowedRegistrantContactIds(ImmutableSet.of("alice"))
+        .build());
+    thrown.expect(IllegalArgumentException.class, "bob");
+    runCommandForced("--remove_allowed_registrants=bob", "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_cantAddAndRemoveSameAllowedRegistrantsSimultaneously() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "alice");
+    runCommandForced(
+        "--add_allowed_registrants=alice",
+        "--remove_allowed_registrants=alice",
+        "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_cantAddDuplicateAllowedNameservers() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.com", "ns2.example.com"))
+            .build());
+    thrown.expect(IllegalArgumentException.class, "ns1.example.com");
+    runCommandForced("--add_allowed_nameservers=ns1.example.com", "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_cantRemoveAllowedNameserverThatIsntPresent() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.com"))
+            .build());
+    thrown.expect(IllegalArgumentException.class, "ns2.example.com");
+    runCommandForced("--remove_allowed_nameservers=ns2.example.com", "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_cantAddAndRemoveSameAllowedNameserversSimultaneously() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "ns1.example.com");
+    runCommandForced(
+        "--add_allowed_nameservers=ns1.example.com",
+        "--remove_allowed_nameservers=ns1.example.com",
         "xn--q9jyb4c");
   }
 

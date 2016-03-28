@@ -256,6 +256,23 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
+  public void testSuccess_setAllowedRegistrants() throws Exception {
+    runCommandForced("--allowed_registrants=alice,bob", "--roid_suffix=Q9JYB4C", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedRegistrantContactIds())
+        .containsExactly("alice", "bob");
+  }
+
+  @Test
+  public void testSuccess_setAllowedNameservers() throws Exception {
+    runCommandForced(
+        "--allowed_nameservers=ns1.example.com,ns2.example.com",
+        "--roid_suffix=Q9JYB4C",
+        "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getAllowedFullyQualifiedHostNames())
+        .containsExactly("ns1.example.com", "ns2.example.com");
+  }
+
+  @Test
   public void testSuccess_setCommonReservedListOnTld() throws Exception {
     runSuccessfulReservedListsTest("common_abuse");
   }

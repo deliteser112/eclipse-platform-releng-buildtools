@@ -22,6 +22,7 @@ import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateDo
 import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateDsData;
 import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateNameservers;
 import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
+import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateRegistrantAllowedOnTld;
 import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
 import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyLaunchPhase;
 import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
@@ -207,9 +208,10 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
         command.getRegistrant(),
         command.getNameservers());
     validateContactsHaveTypes(command.getContacts());
+    validateRegistrantAllowedOnTld(tld, command.getRegistrant());
     validateNoDuplicateContacts(command.getContacts());
     validateRequiredContactsPresent(command.getRegistrant(), command.getContacts());
-    validateNameservers(command.getNameservers());
+    validateNameservers(tld, command.getNameservers());
     validateLaunchCreateExtension();
     // If a signed mark was provided, then it must match the desired domain label.
     // We do this after validating the launch create extension so that flows which don't allow any
