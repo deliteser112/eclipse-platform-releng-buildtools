@@ -86,8 +86,16 @@ public final class Registries {
   }
 
   /**
-   * Returns the TLD which the domain name or hostname falls under, no matter how many levels of
-   * subdomains there are.
+   * Returns TLD which the domain name or hostname falls under, no matter how many levels of
+   * sublabels there are.
+   *
+   * <p><b>Note:</b> This routine will only work on names under TLDs for which this registry is
+   * authoritative. To extract TLDs from domains (not hosts) that other registries control, use
+   * {@link com.google.domain.registry.model.domain.DomainUtils#getTldFromDomainName(String)
+   * DomainUtils#getTldFromDomainName}.
+   *
+   * @param domainName domain name or host name (but not TLD) under an authoritative TLD
+   * @return TLD or absent if {@code domainName} has no labels under an authoritative TLD
    */
   public static Optional<InternetDomainName> findTldForName(InternetDomainName domainName) {
     ImmutableSet<String> tlds = getTlds();

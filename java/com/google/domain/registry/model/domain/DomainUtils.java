@@ -20,16 +20,21 @@ import com.google.common.base.Strings;
 import com.google.common.net.InternetDomainName;
 
 /**
- * Contains static utility methods for dealing with domains.
+ * Utility class for dealing with domains.
  */
-public class DomainUtils {
+public final class DomainUtils {
 
   /**
    * Returns the canonicalized TLD part of a valid domain name (just an SLD, no subdomains) by
    * stripping off the leftmost part.
    *
-   * <p>This function is compatible with multi-part tlds.
+   * <p>This function is compatible with multi-part tlds, e.g. {@code co.uk}. This function will
+   * also work on domains for which the registry is not authoritative. If you are certain that the
+   * input will be under a TLD this registry controls, then it is preferable to use
+   * {@link com.google.domain.registry.model.registry.Registries#findTldForName(InternetDomainName)
+   * Registries#findTldForName}, which will work on hostnames in addition to domains.
    *
+   * @param fullyQualifiedDomainName must be a punycode SLD (not a host or unicode)
    * @throws IllegalArgumentException if there is no TLD
    */
   public static String getTldFromDomainName(String fullyQualifiedDomainName) {
@@ -40,4 +45,6 @@ public class DomainUtils {
     checkArgument(domainName.hasParent(), "fullyQualifiedDomainName does not have a TLD");
     return domainName.parent().toString();
   }
+
+  private DomainUtils() {}
 }
