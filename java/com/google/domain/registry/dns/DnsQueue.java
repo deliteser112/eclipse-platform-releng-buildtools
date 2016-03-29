@@ -19,9 +19,9 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.domain.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
 import static com.google.domain.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
 import static com.google.domain.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
-import static com.google.domain.registry.model.domain.DomainUtils.getTldFromDomainName;
 import static com.google.domain.registry.model.registry.Registries.assertTldExists;
 import static com.google.domain.registry.request.RequestParameters.PARAM_TLD;
+import static com.google.domain.registry.util.DomainNameUtils.getTldFromDomainName;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.appengine.api.taskqueue.Queue;

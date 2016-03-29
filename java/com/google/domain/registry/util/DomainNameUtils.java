@@ -14,7 +14,10 @@
 
 package com.google.domain.registry.util;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.base.Ascii;
+import com.google.common.base.Strings;
 import com.google.common.net.InternetDomainName;
 
 /** Utility methods related to domain names. */
@@ -36,6 +39,28 @@ public final class DomainNameUtils {
   /** Canonicalizes a domain name by lowercasing and converting unicode to punycode. */
   public static String canonicalizeDomainName(String label) {
     return Idn.toASCII(Ascii.toLowerCase(label));
+  }
+
+  /**
+   * Returns the canonicalized TLD part of a valid domain name (just an SLD, no subdomains) by
+   * stripping off the leftmost part.
+   *
+   * <p>This function is compatible with multi-part tlds, e.g. {@code co.uk}. This function will
+   * also work on domains for which the registry is not authoritative. If you are certain that the
+   * input will be under a TLD this registry controls, then it is preferable to use
+   * {@link com.google.domain.registry.model.registry.Registries#findTldForName(InternetDomainName)
+   * Registries#findTldForName}, which will work on hostnames in addition to domains.
+   *
+   * @param fullyQualifiedDomainName must be a punycode SLD (not a host or unicode)
+   * @throws IllegalArgumentException if there is no TLD
+   */
+  public static String getTldFromDomainName(String fullyQualifiedDomainName) {
+    checkArgument(
+        !Strings.isNullOrEmpty(fullyQualifiedDomainName),
+        "fullyQualifiedDomainName cannot be null or empty");
+    InternetDomainName domainName = InternetDomainName.from(fullyQualifiedDomainName);
+    checkArgument(domainName.hasParent(), "fullyQualifiedDomainName does not have a TLD");
+    return domainName.parent().toString();
   }
 
   private DomainNameUtils() {}

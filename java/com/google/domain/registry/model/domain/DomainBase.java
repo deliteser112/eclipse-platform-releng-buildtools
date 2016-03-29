@@ -13,15 +13,16 @@
 // limitations under the License.
 
 package com.google.domain.registry.model.domain;
+
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static com.google.domain.registry.model.domain.DesignatedContact.Type.REGISTRANT;
-import static com.google.domain.registry.model.domain.DomainUtils.getTldFromDomainName;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
 import static com.google.domain.registry.util.CollectionUtils.union;
+import static com.google.domain.registry.util.DomainNameUtils.getTldFromDomainName;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;

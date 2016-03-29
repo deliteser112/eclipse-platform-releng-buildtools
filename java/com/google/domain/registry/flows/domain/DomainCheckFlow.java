@@ -17,9 +17,9 @@ package com.google.domain.registry.flows.domain;
 import static com.google.domain.registry.flows.domain.DomainFlowUtils.getReservationType;
 import static com.google.domain.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 import static com.google.domain.registry.model.EppResourceUtils.checkResourcesExist;
-import static com.google.domain.registry.model.domain.DomainUtils.getTldFromDomainName;
 import static com.google.domain.registry.model.registry.label.ReservationType.UNRESERVED;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
+import static com.google.domain.registry.util.DomainNameUtils.getTldFromDomainName;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;

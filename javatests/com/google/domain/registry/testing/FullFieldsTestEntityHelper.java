@@ -14,10 +14,10 @@
 
 package com.google.domain.registry.testing;
 
-import static com.google.domain.registry.model.domain.DomainUtils.getTldFromDomainName;
 import static com.google.domain.registry.testing.DatastoreHelper.generateNewContactHostRoid;
 import static com.google.domain.registry.testing.DatastoreHelper.generateNewDomainRoid;
 import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static com.google.domain.registry.util.DomainNameUtils.getTldFromDomainName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;

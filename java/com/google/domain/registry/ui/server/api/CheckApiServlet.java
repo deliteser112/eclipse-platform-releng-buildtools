@@ -17,10 +17,10 @@ package com.google.domain.registry.ui.server.api;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static com.google.domain.registry.model.domain.DomainUtils.getTldFromDomainName;
 import static com.google.domain.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_6;
 import static com.google.domain.registry.ui.server.SoyTemplateUtils.createTofuSupplier;
 import static com.google.domain.registry.util.DomainNameUtils.canonicalizeDomainName;
+import static com.google.domain.registry.util.DomainNameUtils.getTldFromDomainName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.json.simple.JSONValue.toJSONString;
 
