@@ -16,9 +16,12 @@ package com.google.domain.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.domain.registry.braintree.BraintreeRegistrarSyncer;
 import com.google.domain.registry.config.RegistryEnvironment;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.testing.AppEngineRule;
@@ -49,11 +52,15 @@ public class RegistrarPaymentSetupActionTest {
   @Mock
   private ClientTokenGateway clientTokenGateway;
 
+  @Mock
+  private BraintreeRegistrarSyncer customerSyncer;
+
   private final RegistrarPaymentSetupAction action = new RegistrarPaymentSetupAction();
 
   @Before
   public void before() throws Exception {
     action.braintreeGateway = braintreeGateway;
+    action.customerSyncer = customerSyncer;
     action.registrar =
         Registrar.loadByClientId("TheRegistrar").asBuilder()
             .setBillingMethod(Registrar.BillingMethod.BRAINTREE)
@@ -79,6 +86,7 @@ public class RegistrarPaymentSetupActionTest {
                     "token", blanketsOfSadness,
                     "currencies", asList("USD", "JPY"),
                     "brainframe", "/doodle")));
+    verify(customerSyncer).sync(eq(action.registrar));
   }
 
   @Test

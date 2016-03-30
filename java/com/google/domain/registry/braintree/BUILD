@@ -6,8 +6,10 @@ java_library(
     srcs = glob(["*.java"]),
     visibility = ["//visibility:public"],
     deps = [
+        "//java/com/google/common/base",
         "//java/com/google/domain/registry/config",
         "//java/com/google/domain/registry/keyring/api",
+        "//java/com/google/domain/registry/model",
         "//third_party/java/braintree",
         "//third_party/java/dagger",
         "//third_party/java/jsr305_annotations",

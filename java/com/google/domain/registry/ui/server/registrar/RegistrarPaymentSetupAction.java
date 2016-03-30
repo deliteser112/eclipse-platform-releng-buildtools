@@ -21,6 +21,7 @@ import static java.util.Arrays.asList;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
+import com.google.domain.registry.braintree.BraintreeRegistrarSyncer;
 import com.google.domain.registry.config.ConfigModule.Config;
 import com.google.domain.registry.config.RegistryEnvironment;
 import com.google.domain.registry.model.registrar.Registrar;
@@ -76,6 +77,7 @@ import javax.inject.Inject;
 public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
 
   @Inject BraintreeGateway braintreeGateway;
+  @Inject BraintreeRegistrarSyncer customerSyncer;
   @Inject JsonActionRunner jsonActionRunner;
   @Inject Registrar registrar;
   @Inject RegistryEnvironment environment;
@@ -93,6 +95,7 @@ public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
     if (!json.isEmpty()) {
       return JsonResponseHelper.create(ERROR, "JSON request object must be empty");
     }
+
     // payment.js is hard-coded to display a specific SOY error template when encountering the
     // following error messages.
     if (environment == RegistryEnvironment.SANDBOX) {
@@ -102,6 +105,10 @@ public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
       // Registrar needs to contact support to have their billing bit flipped.
       return JsonResponseHelper.create(ERROR, "not-using-cc-billing");
     }
+
+    // In order to set the customerId field on the payment, the customer must exist.
+    customerSyncer.sync(registrar);
+
     return JsonResponseHelper
         .create(SUCCESS, "Success", asList(
             ImmutableMap.of(

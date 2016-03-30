@@ -14,8 +14,8 @@
 
 package com.google.domain.registry.ui.server.registrar;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.domain.registry.testing.ReflectiveFieldExtractor.extractField;
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
@@ -45,7 +45,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 
 /** Tests for {@link RegistrarPaymentAction}. */
@@ -443,15 +442,5 @@ public class RegistrarPaymentActionTest {
             "message", "Gimmeh moar moneys",
             "field", "amount",
             "results", asList());
-  }
-
-  @SuppressWarnings("unchecked")
-  private static <T> T extractField(Class<T> returnType, Object object, String fieldName)
-      throws NoSuchFieldException, SecurityException, IllegalAccessException {
-    Field field = object.getClass().getDeclaredField(fieldName);
-    field.setAccessible(true);
-    Object value = field.get(object);
-    checkArgument(returnType.isInstance(value));
-    return (T) value;
   }
 }

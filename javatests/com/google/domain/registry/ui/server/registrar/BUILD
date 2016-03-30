@@ -13,6 +13,7 @@ java_library(
         "//java/com/google/common/io",
         "//java/com/google/common/net",
         "//java/com/google/common/testing",
+        "//java/com/google/domain/registry/braintree",
         "//java/com/google/domain/registry/config",
         "//java/com/google/domain/registry/export/sheet",
         "//java/com/google/domain/registry/model",
