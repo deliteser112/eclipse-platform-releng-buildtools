@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.mapreduce;
+package com.google.domain.registry.tools.server;
 
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.domain.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
