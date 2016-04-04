@@ -37,4 +37,5 @@ java_library(
 
         "//third_party/closure/templates",
     ],
+    visibility = ["//visibility:public"],
 )
