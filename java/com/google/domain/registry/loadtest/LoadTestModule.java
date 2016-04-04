@@ -14,13 +14,15 @@
 
 package com.google.domain.registry.loadtest;
 
-import static com.google.domain.registry.request.RequestParameters.extractIntParameter;
+import static com.google.domain.registry.request.RequestParameters.extractOptionalIntParameter;
 import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.domain.registry.request.Parameter;
 
 import dagger.Module;
 import dagger.Provides;
+
+import org.joda.time.Minutes;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -43,72 +45,74 @@ public final class LoadTestModule {
   @Provides
   @Parameter("delaySeconds")
   static int provideDelaySeconds(HttpServletRequest req) {
-    return extractIntParameter(req, "delaySeconds");
+    return extractOptionalIntParameter(req, "delaySeconds")
+        .or(Minutes.ONE.toStandardSeconds().getSeconds());
   }
 
   @Provides
   @Parameter("runSeconds")
   static int provideRunSeconds(HttpServletRequest req) {
-    return extractIntParameter(req, "runSeconds");
+    return extractOptionalIntParameter(req, "runSeconds")
+        .or(Minutes.ONE.toStandardSeconds().getSeconds());
   }
 
   @Provides
   @Parameter("successfulDomainCreates")
   static int provideSuccessfulDomainCreates(HttpServletRequest req) {
-    return extractIntParameter(req, "successfulDomainCreates");
+    return extractOptionalIntParameter(req, "successfulDomainCreates").or(0);
   }
 
   @Provides
   @Parameter("failedDomainCreates")
   static int provideFailedDomainCreates(HttpServletRequest req) {
-    return extractIntParameter(req, "failedDomainCreates");
+    return extractOptionalIntParameter(req, "failedDomainCreates").or(0);
   }
 
   @Provides
   @Parameter("domainInfos")
   static int provideDomainInfos(HttpServletRequest req) {
-    return extractIntParameter(req, "domainInfos");
+    return extractOptionalIntParameter(req, "domainInfos").or(0);
   }
 
   @Provides
   @Parameter("domainChecks")
   static int provideDomainChecks(HttpServletRequest req) {
-    return extractIntParameter(req, "domainChecks");
+    return extractOptionalIntParameter(req, "domainChecks").or(0);
   }
 
   @Provides
   @Parameter("successfulContactCreates")
   static int provideSuccessfulContactCreates(HttpServletRequest req) {
-    return extractIntParameter(req, "successfulContactCreates");
+    return extractOptionalIntParameter(req, "successfulContactCreates").or(0);
   }
 
   @Provides
   @Parameter("failedContactCreates")
   static int provideFailedContactCreates(HttpServletRequest req) {
-    return extractIntParameter(req, "failedContactCreates");
+    return extractOptionalIntParameter(req, "failedContactCreates").or(0);
   }
 
   @Provides
   @Parameter("contactInfos")
   static int provideContactInfos(HttpServletRequest req) {
-    return extractIntParameter(req, "contactInfos");
+    return extractOptionalIntParameter(req, "contactInfos").or(0);
   }
 
   @Provides
   @Parameter("successfulHostCreates")
   static int provideSuccessfulHostCreates(HttpServletRequest req) {
-    return extractIntParameter(req, "successfulHostCreates");
+    return extractOptionalIntParameter(req, "successfulHostCreates").or(0);
   }
 
   @Provides
   @Parameter("failedHostCreates")
   static int provideFailedHostCreates(HttpServletRequest req) {
-    return extractIntParameter(req, "failedHostCreates");
+    return extractOptionalIntParameter(req, "failedHostCreates").or(0);
   }
 
   @Provides
   @Parameter("hostInfos")
   static int provideHostInfos(HttpServletRequest req) {
-    return extractIntParameter(req, "hostInfos");
+    return extractOptionalIntParameter(req, "hostInfos").or(0);
   }
 }

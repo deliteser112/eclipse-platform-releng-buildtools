@@ -61,22 +61,111 @@ public class LoadTestAction implements Runnable {
 
   private static final Random random = new Random();
 
-  @Inject @Parameter("loadtestClientId") String clientId;
-  @Inject @Parameter("tld") String tld;
-  @Inject @Parameter("delaySeconds") int delaySeconds;
-  @Inject @Parameter("runSeconds") int runSeconds;
-  @Inject @Parameter("successfulDomainCreates") int successfulDomainCreates;
-  @Inject @Parameter("failedDomainCreates") int failedDomainCreates;
-  @Inject @Parameter("domainInfos") int domainInfos;
-  @Inject @Parameter("domainChecks") int domainChecks;
-  @Inject @Parameter("successfulContactCreates") int successfulContactCreates;
-  @Inject @Parameter("failedContactCreates") int failedContactCreates;
-  @Inject @Parameter("contactInfos") int contactInfos;
-  @Inject @Parameter("successfulHostCreates") int successfulHostCreates;
-  @Inject @Parameter("failedHostCreates") int failedHostCreates;
-  @Inject @Parameter("hostInfos") int hostInfos;
-  @Inject TaskEnqueuer taskEnqueuer;
-  @Inject LoadTestAction() {}
+  /** The client identifier of the registrar to use for load testing. */
+  @Inject
+  @Parameter("loadtestClientId")
+  String clientId;
+
+  /**
+   * The number of seconds to delay the execution of the first load testing tasks by. Preparatory
+   * work of creating independent contacts and hosts that will be used for later domain creation
+   * testing occurs during this period, so make sure that it is long enough.
+   */
+  @Inject
+  @Parameter("delaySeconds")
+  int delaySeconds;
+
+  /**
+   * The number of seconds that tasks will be enqueued for. Note that if system QPS cannot handle
+   * the given load then it will take longer than this number of seconds for the test to complete.
+   */
+  @Inject
+  @Parameter("runSeconds")
+  int runSeconds;
+
+  /** The number of successful domain creates to enqueue per second over the length of the test. */
+  @Inject
+  @Parameter("successfulDomainCreates")
+  int successfulDomainCreatesPerSecond;
+
+  /** The number of failed domain creates to enqueue per second over the length of the test. */
+  @Inject
+  @Parameter("failedDomainCreates")
+  int failedDomainCreatesPerSecond;
+
+  /** The number of successful domain infos to enqueue per second over the length of the test. */
+  @Inject
+  @Parameter("domainInfos")
+  int domainInfosPerSecond;
+
+  /** The number of successful domain checks to enqueue per second over the length of the test. */
+  @Inject
+  @Parameter("domainChecks")
+  int domainChecksPerSecond;
+
+  /** The number of successful contact creates to enqueue per second over the length of the test. */
+  @Inject
+  @Parameter("successfulContactCreates")
+  int successfulContactCreatesPerSecond;
+
+  /** The number of failed contact creates to enqueue per second over the length of the test. */
+  @Inject
+  @Parameter("failedContactCreates")
+  int failedContactCreatesPerSecond;
+
+  /** The number of successful contact infos to enqueue per second over the length of the test. */
+  @Inject
+  @Parameter("contactInfos")
+  int contactInfosPerSecond;
+
+  /** The number of successful host creates to enqueue per second over the length of the test. */
+  @Inject
+  @Parameter("successfulHostCreates")
+  int successfulHostCreatesPerSecond;
+
+  /** The number of failed host creates to enqueue per second over the length of the test. */
+  @Inject
+  @Parameter("failedHostCreates")
+  int failedHostCreatesPerSecond;
+
+  /** The number of successful host infos to enqueue per second over the length of the test. */
+  @Inject
+  @Parameter("hostInfos")
+  int hostInfosPerSecond;
+
+  @Inject
+  TaskEnqueuer taskEnqueuer;
+
+  private final String xmlContactCreateTmpl;
+  private final String xmlContactCreateFail;
+  private final String xmlContactInfo;
+  private final String xmlDomainCheck;
+  private final String xmlDomainCreateTmpl;
+  private final String xmlDomainCreateFail;
+  private final String xmlDomainInfo;
+  private final String xmlHostCreateTmpl;
+  private final String xmlHostCreateFail;
+  private final String xmlHostInfo;
+
+  @Inject
+  LoadTestAction(@Parameter("tld") String tld) {
+    xmlContactCreateTmpl = loadXml("contact_create");
+    xmlContactCreateFail = xmlContactCreateTmpl.replace("%contact%", EXISTING_CONTACT);
+    xmlContactInfo = loadXml("contact_info").replace("%contact%", EXISTING_CONTACT);
+    xmlDomainCheck =
+        loadXml("domain_check").replace("%tld%", tld).replace("%domain%", EXISTING_DOMAIN);
+    xmlDomainCreateTmpl = loadXml("domain_create").replace("%tld%", tld);
+    xmlDomainCreateFail =
+        xmlDomainCreateTmpl
+            .replace("%domain%", EXISTING_DOMAIN)
+            .replace("%contact%", EXISTING_CONTACT)
+            .replace("%host%", EXISTING_HOST);
+    xmlDomainInfo =
+        loadXml("domain_info").replace("%tld%", tld).replace("%domain%", EXISTING_DOMAIN);
+    xmlHostCreateTmpl = loadXml("host_create");
+    xmlHostCreateFail = xmlHostCreateTmpl.replace("%host%", EXISTING_HOST);
+    xmlHostInfo = loadXml("host_info").replace("%host%", EXISTING_HOST);
+  }
 
   @Override
   public void run() {
@@ -88,14 +177,14 @@ public class LoadTestAction implements Runnable {
     ImmutableList.Builder<String> preTaskXmls = new ImmutableList.Builder<>();
     ImmutableList.Builder<String> contactNamesBuilder = new ImmutableList.Builder<>();
     ImmutableList.Builder<String> hostPrefixesBuilder = new ImmutableList.Builder<>();
-    for (int i = 0; i < successfulDomainCreates; i++) {
+    for (int i = 0; i < successfulDomainCreatesPerSecond; i++) {
       String contactName = getRandomLabel(MAX_CONTACT_LENGTH);
       String hostPrefix = getRandomLabel(ARBITRARY_VALID_HOST_LENGTH);
       contactNamesBuilder.add(contactName);
       hostPrefixesBuilder.add(hostPrefix);
       preTaskXmls.add(
-          loadXml("contact_create").replace("%contact%", contactName),
-          loadXml("host_create").replace("%host%", hostPrefix));
+          xmlContactCreateTmpl.replace("%contact%", contactName),
+          xmlHostCreateTmpl.replace("%host%", hostPrefix));
     }
     enqueue(createTasks(preTaskXmls.build(), DateTime.now(UTC)));
     ImmutableList<String> contactNames = contactNamesBuilder.build();
@@ -106,72 +195,44 @@ public class LoadTestAction implements Runnable {
       DateTime startSecond = initialStartSecond.plusSeconds(offsetSeconds);
       // The first "failed" creates might actually succeed if the object doesn't already exist, but
       // that shouldn't affect the load numbers.
-      tasks.addAll(createTasks(
-          createNumCopies(
-              loadXml("contact_create").replace("%contact%", EXISTING_CONTACT),
-              failedContactCreates),
-          startSecond));
-      tasks.addAll(createTasks(
-          createNumCopies(
-            loadXml("host_create").replace("%host%", EXISTING_HOST),
-            failedHostCreates),
-          startSecond));
-      tasks.addAll(createTasks(
-          createNumCopies(
-            loadXml("domain_create")
-                .replace("%tld%", tld)
-                .replace("%domain%", EXISTING_DOMAIN)
-                .replace("%contact%", EXISTING_CONTACT)
-                .replace("%host%", EXISTING_HOST),
-            failedDomainCreates),
-          startSecond));
+      tasks.addAll(
+          createTasks(
+              createNumCopies(xmlContactCreateFail, failedContactCreatesPerSecond), startSecond));
+      tasks.addAll(
+          createTasks(createNumCopies(xmlHostCreateFail, failedHostCreatesPerSecond), startSecond));
+      tasks.addAll(
+          createTasks(
+              createNumCopies(xmlDomainCreateFail, failedDomainCreatesPerSecond), startSecond));
       // We can do infos on the known existing objects.
-      tasks.addAll(createTasks(
-          createNumCopies(
-            loadXml("contact_info").replace("%contact%", EXISTING_CONTACT),
-            contactInfos),
-          startSecond));
-      tasks.addAll(createTasks(
-          createNumCopies(
-            loadXml("host_info").replace("%host%", EXISTING_HOST),
-            hostInfos),
-          startSecond));
-      tasks.addAll(createTasks(
-          createNumCopies(
-            loadXml("domain_info")
-                .replace("%tld%", tld)
-                .replace("%domain%", EXISTING_DOMAIN),
-            domainInfos),
-          startSecond));
+      tasks.addAll(
+          createTasks(createNumCopies(xmlContactInfo, contactInfosPerSecond), startSecond));
+      tasks.addAll(createTasks(createNumCopies(xmlHostInfo, hostInfosPerSecond), startSecond));
+      tasks.addAll(createTasks(createNumCopies(xmlDomainInfo, domainInfosPerSecond), startSecond));
       // The domain check template uses "example.TLD" which won't exist, and one existing domain.
-      tasks.addAll(createTasks(
-          createNumCopies(
-            loadXml("domain_check")
-                .replace("%tld%", tld)
-                .replace("%domain%", EXISTING_DOMAIN),
-            domainChecks),
-          startSecond));
+      tasks.addAll(
+          createTasks(createNumCopies(xmlDomainCheck, domainChecksPerSecond), startSecond));
       // Do successful creates on random names
-      tasks.addAll(createTasks(
-          transform(
-              createNumCopies(loadXml("contact_create"), successfulContactCreates),
-              randomNameReplacer("%contact%", MAX_CONTACT_LENGTH)),
-          startSecond));
-      tasks.addAll(createTasks(
-          transform(
-              createNumCopies(loadXml("host_create"), successfulHostCreates),
-              randomNameReplacer("%host%", ARBITRARY_VALID_HOST_LENGTH)),
-          startSecond));
-      tasks.addAll(createTasks(
-          FluentIterable
-              .from(createNumCopies(
-                  loadXml("domain_create").replace("%tld%", tld),
-                  successfulDomainCreates))
-              .transform(randomNameReplacer("%domain%", MAX_DOMAIN_LABEL_LENGTH))
-              .transform(listNameReplacer("%contact%", contactNames))
-              .transform(listNameReplacer("%host%", hostPrefixes))
-              .toList(),
-          startSecond));
+      tasks.addAll(
+          createTasks(
+              transform(
+                  createNumCopies(xmlContactCreateTmpl, successfulContactCreatesPerSecond),
+                  randomNameReplacer("%contact%", MAX_CONTACT_LENGTH)),
+              startSecond));
+      tasks.addAll(
+          createTasks(
+              transform(
+                  createNumCopies(xmlHostCreateTmpl, successfulHostCreatesPerSecond),
+                  randomNameReplacer("%host%", ARBITRARY_VALID_HOST_LENGTH)),
+              startSecond));
+      tasks.addAll(
+          createTasks(
+              FluentIterable.from(
+                      createNumCopies(xmlDomainCreateTmpl, successfulDomainCreatesPerSecond))
+                  .transform(randomNameReplacer("%domain%", MAX_DOMAIN_LABEL_LENGTH))
+                  .transform(listNameReplacer("%contact%", contactNames))
+                  .transform(listNameReplacer("%host%", hostPrefixes))
+                  .toList(),
+              startSecond));
     }
     enqueue(tasks.build());
   }
