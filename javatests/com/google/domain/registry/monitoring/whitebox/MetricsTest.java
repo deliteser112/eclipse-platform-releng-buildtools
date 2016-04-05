@@ -27,10 +27,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link Metrics}. */
-@RunWith(JUnit4.class)
+@RunWith(MockitoJUnitRunner.class)
 public class MetricsTest {
 
   @Rule
@@ -39,6 +39,7 @@ public class MetricsTest {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
+      .withLocalModules()
       .withTaskQueue()
       .build();
 
@@ -60,6 +61,7 @@ public class MetricsTest {
     assertTasksEnqueued("bigquery-streaming-metrics",
         new TaskMatcher()
             .url("/_dr/task/metrics")
+            .header("Host", "1.backend.test.localhost")
             .param("tableId", "test")
             .param("startTime", "472176000.000000")
             .param("endTime", "472176000.001000")

@@ -18,6 +18,8 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.domain.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
 
+import com.google.appengine.api.modules.ModulesService;
+import com.google.appengine.api.modules.ModulesServiceFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.base.Supplier;
@@ -33,11 +35,14 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /** A collector of metric information. */
-abstract class Metrics {
+public abstract class Metrics {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   public static final String QUEUE = "bigquery-streaming-metrics";
+
+  @NonFinalForTesting
+  private static ModulesService modulesService = ModulesServiceFactory.getModulesService();
 
   @NonFinalForTesting
   private static Clock clock = new SystemClock();
@@ -60,7 +65,9 @@ abstract class Metrics {
 
   public void export() {
     try {
-      TaskOptions opts = withUrl("/_dr/task/metrics")
+      String hostname = modulesService.getVersionHostname("backend", null);
+      TaskOptions opts = withUrl(MetricsTaskServlet.PATH)
+          .header("Host", hostname)
           .param("insertId", idGenerator.get())
           .param("startTime", toBigqueryTimestamp(startTimeMillis, TimeUnit.MILLISECONDS))
           .param("endTime", toBigqueryTimestamp(clock.nowUtc().getMillis(), TimeUnit.MILLISECONDS));

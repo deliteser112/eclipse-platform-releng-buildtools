@@ -51,6 +51,8 @@ import javax.servlet.http.HttpServletResponse;
 /** Servlet for exporting metrics to BigQuery. */
 public class MetricsTaskServlet extends HttpServlet {
 
+  public static final String PATH = "/_dr/task/metrics";
+
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
   private static final String DATASET_ID = "metrics";
   private static final String PROJECT_ID = RegistryEnvironment.get().config().getProjectId();
@@ -81,7 +83,7 @@ public class MetricsTaskServlet extends HttpServlet {
     ImmutableMap.Builder<String, Object> b = new ImmutableMap.Builder<>();
 
     @SuppressWarnings({"cast", "unchecked"})  // Return type is always a Set<String>.
-    Set<String> parameterKeys = (Set<String>) req.getParameterMap().keySet();
+    Set<String> parameterKeys = req.getParameterMap().keySet();
 
     for (String key : Sets.difference(parameterKeys, filter)) {
       b.put(key, req.getParameter(key));

@@ -31,6 +31,7 @@ java_library(
         "//java/com/google/domain/registry/flows",
         "//java/com/google/domain/registry/mapreduce",
         "//java/com/google/domain/registry/model",
+        "//java/com/google/domain/registry/monitoring/whitebox",
         "//java/com/google/domain/registry/request",
         "//java/com/google/domain/registry/security",
         "//java/com/google/domain/registry/security:servlets",

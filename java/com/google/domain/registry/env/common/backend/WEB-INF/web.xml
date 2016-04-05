@@ -13,6 +13,16 @@
     <load-on-startup>1</load-on-startup>
   </servlet>
 
+  <!-- Whitebox Metrics servlet. -->
+  <servlet>
+    <servlet-name>metrics</servlet-name>
+    <servlet-class>com.google.domain.registry.monitoring.whitebox.MetricsTaskServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>metrics</servlet-name>
+    <url-pattern>/_dr/task/metrics</url-pattern>
+  </servlet-mapping>
+
   <!-- RDE -->
 
   <!--

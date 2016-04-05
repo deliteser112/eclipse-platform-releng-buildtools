@@ -28,12 +28,14 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.appengine.api.modules.ModulesService;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.model.ofy.Ofy;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
+import com.google.domain.registry.monitoring.whitebox.Metrics;
 import com.google.domain.registry.security.XsrfProtectedServlet;
 import com.google.domain.registry.testing.FakeClock;
 import com.google.domain.registry.testing.FakeServletInputStream;
@@ -74,6 +76,9 @@ public abstract class EppServletTestCase<S extends HttpServlet> {
   @Mock
   HttpServletResponse rsp;
 
+  @Mock
+  ModulesService modulesService;
+
   HttpSession session;
 
   FakeClock clock = new FakeClock();
@@ -96,6 +101,8 @@ public abstract class EppServletTestCase<S extends HttpServlet> {
   public final void init() throws Exception {
     inject.setStaticField(Ofy.class, "clock", clock);  // For transactional flows.
     inject.setStaticField(FlowRunner.class, "clock", clock);  // For non-transactional flows.
+    inject.setStaticField(Metrics.class, "modulesService", modulesService);
+    when(modulesService.getVersionHostname("backend", null)).thenReturn("backend.hostname");
 
     // Create RegistryData for all TLDs used in these tests.
     // We want to create all of these even for tests that don't use them to make sure that
