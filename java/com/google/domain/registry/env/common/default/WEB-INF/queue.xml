@@ -285,4 +285,34 @@
     <bucket-size>500</bucket-size>
   </queue>
 
+  <queue>
+    <name>load5</name>
+    <rate>500/s</rate>
+    <bucket-size>500</bucket-size>
+  </queue>
+
+  <queue>
+    <name>load6</name>
+    <rate>500/s</rate>
+    <bucket-size>500</bucket-size>
+  </queue>
+
+  <queue>
+    <name>load7</name>
+    <rate>500/s</rate>
+    <bucket-size>500</bucket-size>
+  </queue>
+
+  <queue>
+    <name>load8</name>
+    <rate>500/s</rate>
+    <bucket-size>500</bucket-size>
+  </queue>
+
+  <queue>
+    <name>load9</name>
+    <rate>500/s</rate>
+    <bucket-size>500</bucket-size>
+  </queue>
+
 </queue-entries>

@@ -50,7 +50,7 @@ import javax.inject.Inject;
     automaticallyPrintOk = true)
 public class LoadTestAction implements Runnable {
 
-  private static final int NUM_QUEUES = 5;
+  private static final int NUM_QUEUES = 10;
   private static final int ARBITRARY_VALID_HOST_LENGTH = 40;
   private static final int MAX_CONTACT_LENGTH = 13;
   private static final int MAX_DOMAIN_LABEL_LENGTH = 63;
