@@ -119,6 +119,12 @@
     <url-pattern>/_dr/dnsRefresh</url-pattern>
   </servlet-mapping>
 
+  <!-- Verifies integrity of database invariants. -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/verifyEntityIntegrity</url-pattern>
+  </servlet-mapping>
+
   <servlet>
     <description>Exports a datastore backup snapshot to GCS.</description>
     <display-name>Export snapshot to GCS</display-name>

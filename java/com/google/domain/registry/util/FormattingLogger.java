@@ -19,6 +19,7 @@ import static java.util.Arrays.asList;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -101,5 +102,13 @@ public class FormattingLogger {
 
   public void severefmt(Throwable cause, String fmt, Object... args) {
     log(Level.SEVERE, cause, String.format(fmt, args));
+  }
+
+  public void addHandler(Handler handler) {
+    logger.addHandler(handler);
+  }
+
+  public void removeHandler(Handler handler) {
+    logger.removeHandler(handler);
   }
 }

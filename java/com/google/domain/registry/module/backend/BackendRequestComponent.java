@@ -39,6 +39,7 @@ import com.google.domain.registry.flows.async.DeleteContactResourceAction;
 import com.google.domain.registry.flows.async.DeleteHostResourceAction;
 import com.google.domain.registry.flows.async.DnsRefreshForHostRenameAction;
 import com.google.domain.registry.mapreduce.MapreduceModule;
+import com.google.domain.registry.monitoring.whitebox.VerifyEntityIntegrityAction;
 import com.google.domain.registry.rde.BrdaCopyAction;
 import com.google.domain.registry.rde.RdeModule;
 import com.google.domain.registry.rde.RdeReportAction;
@@ -101,4 +102,5 @@ interface BackendRequestComponent {
   TmchDnlAction tmchDnlAction();
   TmchSmdrlAction tmchSmdrlAction();
   WriteDnsAction writeDnsAction();
+  VerifyEntityIntegrityAction verifyEntityIntegrityAction();
 }

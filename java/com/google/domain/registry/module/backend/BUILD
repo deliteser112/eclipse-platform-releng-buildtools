@@ -25,6 +25,7 @@ java_library(
         "//java/com/google/domain/registry/keyring/api",
         "//java/com/google/domain/registry/mapreduce",
         "//java/com/google/domain/registry/model",
+        "//java/com/google/domain/registry/monitoring/whitebox",
         "//java/com/google/domain/registry/rde",
         "//java/com/google/domain/registry/request",
         "//java/com/google/domain/registry/request:modules",

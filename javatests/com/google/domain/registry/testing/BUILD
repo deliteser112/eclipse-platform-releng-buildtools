@@ -24,6 +24,7 @@ java_library(
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
         "//java/com/google/common/net",
+        "//java/com/google/common/testing",
         "//java/com/google/common/util/concurrent",
         "//java/com/google/domain/registry/config",
         "//java/com/google/domain/registry/dns:constants",
