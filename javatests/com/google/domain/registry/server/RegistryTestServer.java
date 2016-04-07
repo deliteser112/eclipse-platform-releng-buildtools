@@ -68,6 +68,10 @@ public final class RegistryTestServer {
       route("/_dr/task/nordnVerify",
           com.google.domain.registry.module.backend.BackendServlet.class),
 
+      // Process DNS pull queue
+      route("/_dr/task/writeDns",
+          com.google.domain.registry.module.backend.BackendServlet.class),
+
       // Registrar Console
       route("/registrar", com.google.domain.registry.module.frontend.FrontendServlet.class),
       route("/registrar-settings",

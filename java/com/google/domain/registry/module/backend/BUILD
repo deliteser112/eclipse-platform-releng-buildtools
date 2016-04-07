@@ -16,6 +16,7 @@ java_library(
         "//java/com/google/domain/registry/cron",
         "//java/com/google/domain/registry/dns",
         "//java/com/google/domain/registry/dns/writer/api",
+        "//java/com/google/domain/registry/dns/writer/dnsupdate",
         "//java/com/google/domain/registry/export",
         "//java/com/google/domain/registry/export/sheet",
         "//java/com/google/domain/registry/flows",

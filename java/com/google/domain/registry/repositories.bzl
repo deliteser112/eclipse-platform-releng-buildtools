@@ -207,6 +207,12 @@ def domain_registry_repositories():
   )
 
   native.maven_jar(
+      name = "dnsjava",
+      artifact = "dnsjava:dnsjava:2.1.7",
+      sha1 = "0a1ed0a251d22bf528cebfafb94c55e6f3f339cf",
+  )
+
+  native.maven_jar(
       name = "eclipse_jdt_core",
       artifact = "org.eclipse.jdt:org.eclipse.jdt.core:3.10.0",
       sha1 = "647e19b28c106a63a14401c0f5956289792adf2f",

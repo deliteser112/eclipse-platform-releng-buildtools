@@ -30,15 +30,22 @@ public interface DnsWriter extends AutoCloseable {
 
   /**
    * Loads {@code domainName} from datastore and publishes its NS/DS records to the DNS server.
+   * Replaces existing records for the exact name supplied with an NS record for each name server
+   * and a DS record for each delegation signer stored in the registry for the supplied domain name.
+   * If the domain is deleted or is in a "non-publish" state then any existing records are deleted.
    *
-   * @param domainName the fully qualified domain name
+   * @param domainName the fully qualified domain name, with no trailing dot
    */
   void publishDomain(String domainName);
 
   /**
    * Loads {@code hostName} from datastore and publishes its A/AAAA glue records to the DNS server.
+   * Replaces existing records for the exact name supplied, with an A or AAAA record (as
+   * appropriate) for each address stored in the registry, for the supplied host name. If the host is
+   * deleted then the existing records are deleted. Assumes that this method will only be called for
+   * in-bailiwick hosts. The registry does not have addresses for other hosts.
    *
-   * @param hostName the fully qualified host name
+   * @param hostName the fully qualified host name, with no trailing dot
    */
   void publishHost(String hostName);
 
