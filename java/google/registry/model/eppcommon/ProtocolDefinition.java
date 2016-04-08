@@ -64,8 +64,8 @@ public class ProtocolDefinition {
 
     private final Class<? extends CommandExtension> commandExtensionClass;
     private final Class<? extends ResponseExtension> responseExtensionClass;
-    private String uri;
-    private boolean visible;
+    private final String uri;
+    private final boolean visible;
 
     ServiceExtension(
         Class<? extends CommandExtension> commandExtensionClass,
