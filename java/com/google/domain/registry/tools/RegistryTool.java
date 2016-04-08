@@ -62,6 +62,7 @@ public final class RegistryTool {
           .put("load_snapshot", LoadSnapshotCommand.class)
           .put("make_billing_tables", MakeBillingTablesCommand.class)
           .put("pending_escrow", PendingEscrowCommand.class)
+          .put("resave_environment_entities", ResaveEnvironmentEntitiesCommand.class)
           .put("send_escrow_report_to_icann", SendEscrowReportToIcannCommand.class)
           .put("update_application_status", UpdateApplicationStatusCommand.class)
           .put("update_claims_notice", UpdateClaimsNoticeCommand.class)

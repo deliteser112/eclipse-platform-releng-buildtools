@@ -16,6 +16,7 @@ package com.google.domain.registry.model.ofy;
 
 import static com.google.appengine.api.datastore.EntityTranslator.convertToPb;
 import static com.google.appengine.api.datastore.EntityTranslator.createFromPbBytes;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.datastore.KeyFactory;
@@ -79,7 +80,7 @@ public class CommitLogMutation extends ImmutableObject {
       Key<CommitLogManifest> parent,
       com.google.appengine.api.datastore.Entity rawEntity) {
     CommitLogMutation instance = new CommitLogMutation();
-    instance.parent = parent;
+    instance.parent = checkNotNull(parent);
     // Creates a web-safe key string.
     instance.entityKey = KeyFactory.keyToString(rawEntity.getKey());
     instance.entityProtoBytes = convertToPb(rawEntity).toByteArray();
