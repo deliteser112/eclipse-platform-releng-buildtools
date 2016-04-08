@@ -14,20 +14,154 @@
 
 package com.google.domain.registry.bigquery;
 
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.domain.registry.bigquery.BigquerySchemas.knownTableSchemas;
+
+import com.google.api.client.extensions.appengine.http.UrlFetchTransport;
+import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.bigquery.Bigquery;
+import com.google.api.services.bigquery.BigqueryScopes;
+import com.google.api.services.bigquery.model.Dataset;
+import com.google.api.services.bigquery.model.DatasetReference;
+import com.google.api.services.bigquery.model.Table;
+import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.api.services.bigquery.model.TableReference;
+import com.google.api.services.bigquery.model.TableSchema;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
+import com.google.domain.registry.util.FormattingLogger;
+import com.google.domain.registry.util.NonFinalForTesting;
 
-/** Factory for returning {@link Bigquery} instances. */
+import java.io.IOException;
+import java.util.Set;
+
+/** Factory for creating {@link Bigquery} connections. */
 public class BigqueryFactory {
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+
+  // Cross-request caches to avoid unnecessary RPCs.
+  @NonFinalForTesting
+  private Set<String> knownTables = Sets.newConcurrentHashSet();
+
+  @NonFinalForTesting
+  private Set<String> datasets = Sets.newConcurrentHashSet();
+
+  @NonFinalForTesting
+  @VisibleForTesting
+  Subfactory subfactory = new Subfactory();
+
+  /** This class is broken out solely so that it can be mocked inside of tests. */
+  static class Subfactory {
+
+    public Bigquery create(
+        String applicationName,
+        HttpTransport transport,
+        JsonFactory jsonFactory,
+        HttpRequestInitializer httpRequestInitializer) {
+      return new Bigquery.Builder(transport, jsonFactory, httpRequestInitializer)
+          .setApplicationName(applicationName)
+          .build();
+    }
+  }
+
+  /** Returns a new connection to BigQuery. */
   public Bigquery create(
       String applicationName,
       HttpTransport transport,
       JsonFactory jsonFactory,
       HttpRequestInitializer httpRequestInitializer) {
-    return new Bigquery.Builder(transport, jsonFactory, httpRequestInitializer)
-        .setApplicationName(applicationName)
-        .build();
+    return subfactory.create(applicationName, transport, jsonFactory, httpRequestInitializer);
+  }
+
+  /**
+   * Returns a new connection to Bigquery, first ensuring that the given dataset exists in the
+   * project with the given id, creating it if required.
+   */
+  public Bigquery create(String projectId, String datasetId) throws IOException {
+    Bigquery bigquery = create(
+        getClass().getSimpleName(),
+        new UrlFetchTransport(),
+        new JacksonFactory(),
+        new AppIdentityCredential(BigqueryScopes.all()));
+
+    // Note: it's safe for multiple threads to call this as the dataset will only be created once.
+    if (!datasets.contains(datasetId)) {
+      ensureDataset(bigquery, projectId, datasetId);
+      datasets.add(datasetId);
+    }
+
+    return bigquery;
+  }
+
+  /**
+   * Returns a new connection to Bigquery, first ensuring that the given dataset and table exist in
+   * project with the given id, creating them if required.
+   */
+  public Bigquery create(String projectId, String datasetId, String tableId)
+      throws IOException {
+    Bigquery bigquery = create(projectId, datasetId);
+    checkArgument(knownTableSchemas.containsKey(tableId), "Unknown table ID: %s", tableId);
+
+    if (!knownTables.contains(tableId)) {
+      ensureTable(
+          bigquery,
+          new TableReference()
+              .setDatasetId(datasetId)
+              .setProjectId(projectId)
+              .setTableId(tableId),
+          knownTableSchemas.get(tableId));
+      knownTables.add(tableId);
+    }
+
+    return bigquery;
+  }
+
+  /**
+   * Ensures the dataset exists by trying to create it. Note that it's not appreciably cheaper
+   * to check for dataset existence than it is to try to create it and check for exceptions.
+   */
+  // Note that these are not static so they can be mocked for testing.
+  private void ensureDataset(Bigquery bigquery, String projectId, String datasetId)
+      throws IOException {
+    try {
+      bigquery.datasets()
+          .insert(projectId,
+              new Dataset().setDatasetReference(
+                  new DatasetReference()
+                      .setProjectId(projectId)
+                      .setDatasetId(datasetId)))
+          .execute();
+    } catch (IOException e) {
+      // Swallow errors about a duplicate dataset, and throw any other ones.
+      if (!BigqueryJobFailureException.create(e).getReason().equals("duplicate")) {
+        throw e;
+      }
+    }
+  }
+
+  /** Ensures the table exists in Bigquery. */
+  private void ensureTable(
+      Bigquery bigquery, TableReference table, ImmutableList<TableFieldSchema> schema)
+      throws IOException {
+    try {
+      bigquery.tables().insert(table.getProjectId(), table.getDatasetId(), new Table()
+          .setSchema(new TableSchema().setFields(schema))
+          .setTableReference(table))
+          .execute();
+      logger.infofmt("Created BigQuery table %s:%s.%s", table.getProjectId(), table.getDatasetId(),
+          table.getTableId());
+    } catch (IOException e) {
+      // Swallow errors about a table that exists, and throw any other ones.
+      if (!BigqueryJobFailureException.create(e).getReason().equals("duplicate")) {
+        throw e;
+      }
+    }
   }
 }

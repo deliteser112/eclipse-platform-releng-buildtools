@@ -15,7 +15,6 @@
 package com.google.domain.registry.monitoring.whitebox;
 
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,12 +27,9 @@ import com.google.api.services.bigquery.Bigquery.Tabledata.InsertAll;
 import com.google.api.services.bigquery.model.TableDataInsertAllRequest;
 import com.google.api.services.bigquery.model.TableDataInsertAllResponse;
 import com.google.api.services.bigquery.model.TableDataInsertAllResponse.InsertErrors;
-import com.google.api.services.bigquery.model.TableFieldSchema;
-import com.google.api.services.bigquery.model.TableReference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.bigquery.BigqueryHelper;
 import com.google.domain.registry.testing.AppEngineRule;
 import com.google.domain.registry.testing.InjectRule;
 
@@ -72,9 +68,6 @@ public class MetricsTaskServletTest {
 
   @Mock
   BigqueryFactory bigqueryFactory;
-
-  @Mock
-  BigqueryHelper bigqueryHelper;
 
   @Mock
   Bigquery bigquery;
@@ -119,20 +112,14 @@ public class MetricsTaskServletTest {
     when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
 
     inject.setStaticField(MetricsTaskServlet.class, "bigqueryFactory", bigqueryFactory);
+    when(bigqueryFactory.create(anyString(), anyString(), anyString()))
+        .thenReturn(bigquery);
     when(bigqueryFactory.create(
         anyString(),
         Matchers.any(HttpTransport.class),
         Matchers.any(JsonFactory.class),
         Matchers.any(HttpRequestInitializer.class)))
             .thenReturn(bigquery);
-
-    inject.setStaticField(MetricsTaskServlet.class, "bigqueryHelper", bigqueryHelper);
-    doNothing().when(bigqueryHelper).ensureDataset(Matchers.any(Bigquery.class), anyString(),
-        anyString());
-    doNothing().when(bigqueryHelper).ensureTable(
-        Matchers.any(Bigquery.class),
-        Matchers.any(TableReference.class),
-        Matchers.<ImmutableList<TableFieldSchema>>any());
 
     when(bigquery.tabledata()).thenReturn(tabledata);
     when(tabledata.insertAll(

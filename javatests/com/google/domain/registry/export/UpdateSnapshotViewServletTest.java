@@ -25,9 +25,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Dataset;
 import com.google.api.services.bigquery.model.Table;
@@ -107,16 +104,10 @@ public class UpdateSnapshotViewServletTest {
   @Before
   public void before() throws Exception {
     inject.setStaticField(UpdateSnapshotViewServlet.class, "bigqueryFactory", bigqueryFactory);
+    when(bigqueryFactory.create(anyString(), anyString())).thenReturn(bigquery);
 
     when(req.getMethod()).thenReturn("POST");
     when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
-
-    when(bigqueryFactory.create(
-        anyString(),
-        any(HttpTransport.class),
-        any(JsonFactory.class),
-        any(HttpRequestInitializer.class)))
-            .thenReturn(bigquery);
 
     when(bigquery.datasets()).thenReturn(bigqueryDatasets);
     when(bigqueryDatasets.insert(eq("Project-Id"), any(Dataset.class)))
@@ -153,15 +144,6 @@ public class UpdateSnapshotViewServletTest {
         .thenReturn("fookind");
 
     servlet.service(req, rsp);
-
-    // Check that we attempted to create the latest_snapshot dataset.
-    ArgumentCaptor<Dataset> datasetArgument = ArgumentCaptor.forClass(Dataset.class);
-    verify(bigqueryDatasets).insert(eq("Project-Id"), datasetArgument.capture());
-    assertThat(datasetArgument.getValue().getDatasetReference().getProjectId())
-        .isEqualTo("Project-Id");
-    assertThat(datasetArgument.getValue().getDatasetReference().getDatasetId())
-        .isEqualTo("testdataset");
-    verify(bigqueryDatasetsInsert).execute();
 
     // Check that we updated the view.
     ArgumentCaptor<Table> tableArg = ArgumentCaptor.forClass(Table.class);

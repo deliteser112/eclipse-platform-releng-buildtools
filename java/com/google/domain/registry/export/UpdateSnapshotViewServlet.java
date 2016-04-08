@@ -21,12 +21,8 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.api.client.extensions.appengine.http.UrlFetchTransport;
-import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.bigquery.Bigquery;
-import com.google.api.services.bigquery.BigqueryScopes;
 import com.google.api.services.bigquery.model.Table;
 import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.ViewDefinition;
@@ -34,7 +30,6 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.net.MediaType;
 import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.bigquery.BigqueryHelper;
 import com.google.domain.registry.config.RegistryEnvironment;
 import com.google.domain.registry.util.FormattingLogger;
 import com.google.domain.registry.util.NonFinalForTesting;
@@ -61,8 +56,6 @@ public class UpdateSnapshotViewServlet extends HttpServlet {
   static final String PATH = "/_dr/task/updateSnapshotView";  // See web.xml.
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
-
-  private static final BigqueryHelper bigqueryHelper = new BigqueryHelper();
 
   @NonFinalForTesting
   private static BigqueryFactory bigqueryFactory = new BigqueryFactory();
@@ -99,15 +92,9 @@ public class UpdateSnapshotViewServlet extends HttpServlet {
 
   private String updateSnapshotView(String datasetId, String tableId, String kindName)
       throws IOException {
-    Bigquery bigquery = bigqueryFactory.create(
-        getClass().getSimpleName(),
-        new UrlFetchTransport(),
-        new JacksonFactory(),
-        new AppIdentityCredential(BigqueryScopes.all()));
     String projectId = ENVIRONMENT.config().getProjectId();
-
-    bigqueryHelper.ensureDataset(
-        bigquery, projectId, ENVIRONMENT.config().getLatestSnapshotDataset());
+    Bigquery bigquery =
+        bigqueryFactory.create(projectId, ENVIRONMENT.config().getLatestSnapshotDataset());
 
     updateTable(bigquery, new Table()
         .setTableReference(new TableReference()

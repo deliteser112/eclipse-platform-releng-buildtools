@@ -16,6 +16,7 @@ java_library(
         "//java/com/google/api/client/http",
         "//java/com/google/api/client/json",
         "//java/com/google/api/client/json/jackson2",
+        "//java/com/google/common/annotations",
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
         "//java/com/google/common/io",

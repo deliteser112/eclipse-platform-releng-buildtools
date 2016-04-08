@@ -11,12 +11,16 @@ java_library(
     resources = glob(["testdata/*"]),
     deps = [
         "//apiserving/discoverydata/bigquery:bigqueryv2",
+        "//java/com/google/api/client/http",
+        "//java/com/google/api/client/json",
+        "//java/com/google/common/collect",
         "//java/com/google/domain/registry/bigquery",
         "//java/com/google/domain/registry/util",
         "//javatests/com/google/domain/registry/testing",
         "//third_party/java/joda_time",
         "//third_party/java/jsr305_annotations",
         "//third_party/java/junit",
+        "//third_party/java/mockito",
         "//third_party/java/truth",
     ],
 )
