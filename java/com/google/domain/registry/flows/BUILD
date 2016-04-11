@@ -45,4 +45,5 @@ java_library(
         "//third_party/java/objectify:objectify-v4_1",
         "//third_party/java/servlet/servlet_api",
     ],
+    visibility = ["//visibility:public"],
 )
