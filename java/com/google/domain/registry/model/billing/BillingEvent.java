@@ -70,7 +70,12 @@ public abstract class BillingEvent extends ImmutableObject
     ANCHOR_TENANT,
     AUTO_RENEW,
     LANDRUSH,
-    SUNRISE
+    SUNRISE,
+    /**
+     * This flag will be added to any {@link OneTime} events that are created via, e.g., an
+     * automated process to expand {@link Recurring} events.
+     */
+    SYNTHETIC
   }
 
   /** Entity id. */

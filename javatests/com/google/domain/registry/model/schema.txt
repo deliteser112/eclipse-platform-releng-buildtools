@@ -26,6 +26,7 @@ enum com.google.domain.registry.model.billing.BillingEvent$Flag {
   AUTO_RENEW;
   LANDRUSH;
   SUNRISE;
+  SYNTHETIC;
 }
 class com.google.domain.registry.model.billing.BillingEvent$Modification {
   @Id long id;
