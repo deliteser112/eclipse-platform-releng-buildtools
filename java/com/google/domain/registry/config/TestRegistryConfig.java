@@ -135,11 +135,6 @@ public class TestRegistryConfig implements RegistryConfig {
   }
 
   @Override
-  public String getAdminServletPathPrefix() {
-    return "/_dr/admin";
-  }
-
-  @Override
   public String getRegistrarDefaultWhoisServer() {
     return "whois.nic.fakewhois.example";
   }

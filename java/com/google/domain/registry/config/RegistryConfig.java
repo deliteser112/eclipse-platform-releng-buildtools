@@ -184,11 +184,6 @@ public interface RegistryConfig {
   public ImmutableList<String> getRegistrarChangesNotificationEmailAddresses();
 
   /**
-   * Returns the relativeURL path to the admin servlet, e.g. "/_dr/admin".
-   */
-  public String getAdminServletPathPrefix();
-
-  /**
    * Returns default WHOIS server to use when {@code Registrar#getWhoisServer()} is {@code null}.
    *
    * @see "com.google.domain.registry.whois.DomainWhoisResponse"
