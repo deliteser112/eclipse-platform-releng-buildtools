@@ -48,5 +48,6 @@ java_binary(
     create_executable = 0,
     runtime_deps = [
         ":backend",
+        "//java/com/google/domain/registry/monitoring/whitebox",  # MetricsTaskServlet
     ],
 )
