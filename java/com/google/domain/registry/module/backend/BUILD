@@ -46,6 +46,7 @@ java_library(
 java_binary(
     name = "backend_jar",
     create_executable = 0,
+    launcher = "//third_party/java/jdk:jdk_launcher",
     runtime_deps = [
         ":backend",
         "//java/com/google/domain/registry/monitoring/whitebox",  # MetricsTaskServlet

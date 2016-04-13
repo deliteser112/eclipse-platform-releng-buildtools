@@ -35,6 +35,7 @@ java_library(
 java_binary(
     name = "tools_jar",
     create_executable = 0,
+    launcher = "//third_party/java/jdk:jdk_launcher",
     runtime_deps = [
         ":tools",
     ],
