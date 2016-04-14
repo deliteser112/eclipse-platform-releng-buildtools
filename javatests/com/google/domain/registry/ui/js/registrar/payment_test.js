@@ -53,20 +53,6 @@ function tearDown() {
 }
 
 
-function testSandbox_showsDisabled() {
-  registry.testing.assertReqMockRsp(
-      '?',
-      '/registrar-payment-setup',
-      {},
-      {
-        status: 'ERROR',
-        message: 'sandbox'
-      });
-  assertContains('Payment Page Disabled',
-                 goog.dom.getTextContent($$('reg-payment')));
-}
-
-
 function testRenderForm() {
   registry.testing.assertReqMockRsp(
       '?',
