@@ -15,11 +15,13 @@
 package com.google.domain.registry.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.domain.registry.util.CollectionUtils.difference;
 import static java.lang.reflect.Modifier.isFinal;
 import static java.lang.reflect.Modifier.isStatic;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 
 import java.lang.annotation.Annotation;
@@ -87,5 +89,17 @@ public class TypeUtils {
           return clazz.isAnnotationPresent(annotation);
         }
       };
+  }
+
+  public static void checkNoInheritanceRelationships(ImmutableSet<Class<?>> resourceClasses) {
+    for (Class<?> resourceClass : resourceClasses) {
+      for (Class<?> potentialSuperclass : difference(resourceClasses, resourceClass)) {
+        checkArgument(
+            !potentialSuperclass.isAssignableFrom(resourceClass),
+            "Cannot specify resource classes with inheritance relationship: %s extends %s",
+            resourceClass,
+            potentialSuperclass);
+      }
+    }
   }
 }

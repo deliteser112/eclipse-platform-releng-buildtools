@@ -14,14 +14,9 @@
 
 package com.google.domain.registry.mapreduce.inputs;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.util.CollectionUtils.difference;
-
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EppResource;
 import com.google.domain.registry.model.index.EppResourceIndex;
 import com.google.domain.registry.model.index.EppResourceIndexBucket;
 
@@ -45,18 +40,5 @@ abstract class EppResourceBaseInput<I> extends Input<I> {
 
   /** Creates a reader that returns the resources under a bucket. */
   protected abstract InputReader<I> bucketToReader(Key<EppResourceIndexBucket> bucketKey);
-
-  static <R extends EppResource> void checkResourceClassesForInheritance(
-      ImmutableSet<Class<? extends R>> resourceClasses) {
-    for (Class<? extends R> resourceClass : resourceClasses) {
-      for (Class<? extends R> potentialSuperclass : difference(resourceClasses, resourceClass)) {
-        checkArgument(
-            !potentialSuperclass.isAssignableFrom(resourceClass),
-            "Cannot specify resource classes with inheritance relationship: %s extends %s",
-            resourceClass,
-            potentialSuperclass);
-      }
-    }
-  }
 }
 

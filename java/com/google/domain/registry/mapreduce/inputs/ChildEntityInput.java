@@ -20,24 +20,34 @@ import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.model.EppResource;
+import com.google.domain.registry.model.ImmutableObject;
 import com.google.domain.registry.model.index.EppResourceIndexBucket;
 
 import com.googlecode.objectify.Key;
 
-/** A MapReduce {@link Input} that loads all {@link EppResource} objects of a given type. */
-class EppResourceEntityInput<R extends EppResource> extends EppResourceBaseInput<R> {
+/**
+ * A MapReduce {@link Input} that loads all child objects of a given set of types, that are children
+ * of given {@link EppResource} types.
+ */
+class ChildEntityInput<R extends EppResource, I extends ImmutableObject>
+    extends EppResourceBaseInput<I> {
 
-  private static final long serialVersionUID = 8162607479124406226L;
+  private static final long serialVersionUID = -3888034213150865008L;
 
   private final ImmutableSet<Class<? extends R>> resourceClasses;
+  private final ImmutableSet<Class<? extends I>> childResourceClasses;
 
-  public EppResourceEntityInput(ImmutableSet<Class<? extends R>> resourceClasses) {
+  public ChildEntityInput(
+      ImmutableSet<Class<? extends R>> resourceClasses,
+      ImmutableSet<Class<? extends I>> childResourceClasses) {
     this.resourceClasses = resourceClasses;
+    this.childResourceClasses = childResourceClasses;
     checkNoInheritanceRelationships(ImmutableSet.<Class<?>>copyOf(resourceClasses));
+    checkNoInheritanceRelationships(ImmutableSet.<Class<?>>copyOf(childResourceClasses));
   }
 
   @Override
-  protected InputReader<R> bucketToReader(Key<EppResourceIndexBucket> bucketKey) {
-    return new EppResourceEntityReader<R>(bucketKey, resourceClasses);
+  protected InputReader<I> bucketToReader(Key<EppResourceIndexBucket> bucketKey) {
+    return new ChildEntityReader<>(bucketKey, resourceClasses, childResourceClasses);
   }
 }

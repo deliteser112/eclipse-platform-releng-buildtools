@@ -23,6 +23,7 @@ import static com.google.domain.registry.util.TypeUtils.hasAnnotation;
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.model.EppResource;
+import com.google.domain.registry.model.ImmutableObject;
 import com.google.domain.registry.model.index.EppResourceIndex;
 
 import com.googlecode.objectify.Key;
@@ -57,6 +58,24 @@ public final class EppResourceInputs {
       Class<? extends R>... moreResourceClasses) {
     return new EppResourceEntityInput<R>(
         ImmutableSet.copyOf(asList(resourceClass, moreResourceClasses)));
+  }
+
+
+  /**
+   * Returns a MapReduce {@link Input} that loads all {@link ImmutableObject} objects of a given
+   * type, including deleted resources, that are child entities of all {@link EppResource} objects
+   * of a given type.
+   *
+   * <p>Note: Do not concatenate multiple EntityInputs together (this is inefficient as it iterates
+   * through all buckets multiple times). Specify the types in a single input, or load all types by
+   * specifying {@link EppResource} and/or {@link ImmutableObject} as the class.
+   */
+  public static <R extends EppResource, I extends ImmutableObject> Input<I> createChildEntityInput(
+      ImmutableSet<Class<? extends R>> parentClasses,
+      ImmutableSet<Class<? extends I>> childClasses) {
+    checkArgument(!parentClasses.isEmpty(), "Must provide at least one parent type.");
+    checkArgument(!childClasses.isEmpty(), "Must provide at least one child type.");
+    return new ChildEntityInput<>(parentClasses, childClasses);
   }
 
   /**

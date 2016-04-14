@@ -14,6 +14,8 @@
 
 package com.google.domain.registry.mapreduce.inputs;
 
+import static com.google.domain.registry.util.TypeUtils.checkNoInheritanceRelationships;
+
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableSet;
@@ -35,7 +37,7 @@ class EppResourceKeyInput<R extends EppResource> extends EppResourceBaseInput<Ke
 
   public EppResourceKeyInput(ImmutableSet<Class<? extends R>> resourceClasses) {
     this.resourceClasses = resourceClasses;
-    checkResourceClassesForInheritance(resourceClasses);
+    checkNoInheritanceRelationships(ImmutableSet.<Class<?>>copyOf(resourceClasses));
   }
 
   @Override

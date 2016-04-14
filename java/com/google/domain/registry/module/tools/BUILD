@@ -19,6 +19,7 @@ java_library(
         "//java/com/google/domain/registry/request",
         "//java/com/google/domain/registry/request:modules",
         "//java/com/google/domain/registry/tools/server",
+        "//java/com/google/domain/registry/tools/server/javascrap",
         "//java/com/google/domain/registry/util",
         "//third_party/java/bouncycastle",
         "//third_party/java/dagger",

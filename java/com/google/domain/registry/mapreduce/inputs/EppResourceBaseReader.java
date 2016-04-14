@@ -61,8 +61,7 @@ abstract class EppResourceBaseReader<T> extends InputReader<T> {
   private transient QueryResultIterator<EppResourceIndex> queryIterator;
 
   EppResourceBaseReader(
-      Key<EppResourceIndexBucket>
-      bucketKey,
+      Key<EppResourceIndexBucket> bucketKey,
       long memoryEstimate,
       ImmutableSet<String> filterKinds) {
     this.bucketKey = bucketKey;
