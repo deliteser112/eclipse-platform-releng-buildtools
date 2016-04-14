@@ -31,6 +31,7 @@ import com.google.domain.registry.flows.Flow;
 import com.google.domain.registry.flows.ResourceFlowTestCase;
 import com.google.domain.registry.model.EppResource;
 import com.google.domain.registry.model.billing.BillingEvent;
+import com.google.domain.registry.model.billing.BillingEvent.Flag;
 import com.google.domain.registry.model.billing.BillingEvent.Reason;
 import com.google.domain.registry.model.contact.ContactResource;
 import com.google.domain.registry.model.domain.DesignatedContact;
@@ -144,7 +145,8 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
             .build());
     BillingEvent.Recurring autorenewEvent = persistResource(
         new BillingEvent.Recurring.Builder()
-            .setReason(Reason.AUTO_RENEW)
+            .setReason(Reason.RENEW)
+            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
             .setTargetId(label + "." + tld)
             .setClientId("TheRegistrar")
             .setEventTime(REGISTRATION_EXPIRATION_TIME)
@@ -190,7 +192,8 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
   /** Get the autorenew event that the losing client will have after a SERVER_APPROVED transfer. */
   protected BillingEvent.Recurring getLosingClientAutorenewEvent() {
     return new BillingEvent.Recurring.Builder()
-        .setReason(Reason.AUTO_RENEW)
+        .setReason(Reason.RENEW)
+        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
         .setTargetId(domain.getFullyQualifiedDomainName())
         .setClientId("TheRegistrar")
         .setEventTime(REGISTRATION_EXPIRATION_TIME)
@@ -202,7 +205,8 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
   /** Get the autorenew event that the gaining client will have after a SERVER_APPROVED transfer. */
   protected BillingEvent.Recurring getGainingClientAutorenewEvent() {
     return new BillingEvent.Recurring.Builder()
-        .setReason(Reason.AUTO_RENEW)
+        .setReason(Reason.RENEW)
+        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
         .setTargetId(domain.getFullyQualifiedDomainName())
         .setClientId("NewRegistrar")
         .setEventTime(EXTENDED_REGISTRATION_EXPIRATION_TIME)

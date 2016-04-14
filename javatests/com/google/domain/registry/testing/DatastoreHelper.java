@@ -50,6 +50,7 @@ import com.google.domain.registry.model.EppResource;
 import com.google.domain.registry.model.EppResource.ForeignKeyedEppResource;
 import com.google.domain.registry.model.ImmutableObject;
 import com.google.domain.registry.model.billing.BillingEvent;
+import com.google.domain.registry.model.billing.BillingEvent.Flag;
 import com.google.domain.registry.model.billing.BillingEvent.Reason;
 import com.google.domain.registry.model.contact.ContactAuthInfo;
 import com.google.domain.registry.model.contact.ContactResource;
@@ -501,7 +502,8 @@ public class DatastoreHelper {
             extendedRegistrationYears));
     BillingEvent.Recurring gainingClientAutorenewEvent = persistResource(
         new BillingEvent.Recurring.Builder()
-            .setReason(Reason.AUTO_RENEW)
+            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
+            .setReason(Reason.RENEW)
             .setTargetId(domain.getFullyQualifiedDomainName())
             .setClientId("NewRegistrar")
             .setEventTime(extendedRegistrationExpirationTime)

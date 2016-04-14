@@ -19,9 +19,11 @@ import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
 import static com.google.domain.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.dns.DnsQueue;
 import com.google.domain.registry.flows.EppException;
 import com.google.domain.registry.model.billing.BillingEvent;
+import com.google.domain.registry.model.billing.BillingEvent.Flag;
 import com.google.domain.registry.model.billing.BillingEvent.Reason;
 import com.google.domain.registry.model.domain.DomainResource;
 import com.google.domain.registry.model.domain.DomainResource.Builder;
@@ -59,7 +61,8 @@ public abstract class DomainCreateOrAllocateFlow
     DateTime registrationExpirationTime = leapSafeAddYears(now, command.getPeriod().getValue());
     // Create a new autorenew billing event and poll message starting at the expiration time.
     BillingEvent.Recurring autorenewEvent = new BillingEvent.Recurring.Builder()
-        .setReason(Reason.AUTO_RENEW)
+        .setReason(Reason.RENEW)
+        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
         .setTargetId(targetId)
         .setClientId(getClientId())
         .setEventTime(registrationExpirationTime)

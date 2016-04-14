@@ -97,6 +97,7 @@ import com.google.domain.registry.flows.domain.DomainFlowUtils.TooManyNameserver
 import com.google.domain.registry.flows.domain.DomainFlowUtils.TrailingDashException;
 import com.google.domain.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeException;
 import com.google.domain.registry.model.billing.BillingEvent;
+import com.google.domain.registry.model.billing.BillingEvent.Flag;
 import com.google.domain.registry.model.billing.BillingEvent.Reason;
 import com.google.domain.registry.model.domain.DomainResource;
 import com.google.domain.registry.model.domain.GracePeriod;
@@ -189,7 +190,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     assertBillingEvents(
         createBillingEvent,
         new BillingEvent.Recurring.Builder()
-            .setReason(Reason.AUTO_RENEW)
+            .setReason(Reason.RENEW)
+            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
             .setTargetId(getUniqueIdFromCommand())
             .setClientId("TheRegistrar")
             .setEventTime(domain.getRegistrationExpirationTime())

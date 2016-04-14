@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static com.google.domain.registry.util.CollectionUtils.union;
 import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
@@ -39,6 +40,7 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.condition.IfNull;
 
@@ -282,6 +284,15 @@ public abstract class BillingEvent extends ImmutableObject
   @Entity
   public static class Recurring extends BillingEvent {
 
+    // TODO(b/27777398): Remove after migration is complete and Reason.AUTO_RENEW is removed.
+    @OnLoad
+    void setAutorenewFlag() {
+      if (Reason.AUTO_RENEW.equals(reason)) {
+        reason = Reason.RENEW;
+        flags = union(getFlags(), Flag.AUTO_RENEW);
+      }
+    }
+
     /**
      * The billing event recurs every year between {@link #eventTime} and this time on the
      * [month, day, time] specified in {@link #recurrenceTimeOfYear}.
@@ -378,7 +389,7 @@ public abstract class BillingEvent extends ImmutableObject
     static final ImmutableMap<GracePeriodStatus, Reason> GRACE_PERIOD_TO_REASON =
         ImmutableMap.of(
             GracePeriodStatus.ADD, Reason.CREATE,
-            GracePeriodStatus.AUTO_RENEW, Reason.AUTO_RENEW,
+            GracePeriodStatus.AUTO_RENEW, Reason.RENEW,
             GracePeriodStatus.RENEW, Reason.RENEW,
             GracePeriodStatus.TRANSFER, Reason.TRANSFER);
 

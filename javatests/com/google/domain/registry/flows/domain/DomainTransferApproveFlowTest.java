@@ -367,7 +367,7 @@ public class DomainTransferApproveFlowTest
         2,
         // Expect the grace period for autorenew to be cancelled.
         new BillingEvent.Cancellation.Builder()
-            .setReason(Reason.AUTO_RENEW)
+            .setReason(Reason.RENEW)
             .setTargetId("example.tld")
             .setClientId("TheRegistrar")
             .setEventTime(clock.nowUtc())  // The cancellation happens at the moment of transfer.

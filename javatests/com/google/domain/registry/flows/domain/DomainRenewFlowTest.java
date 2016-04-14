@@ -49,6 +49,7 @@ import com.google.domain.registry.flows.domain.DomainRenewFlow.DomainHasPendingT
 import com.google.domain.registry.flows.domain.DomainRenewFlow.ExceedsMaxRegistrationYearsException;
 import com.google.domain.registry.flows.domain.DomainRenewFlow.IncorrectCurrentExpirationDateException;
 import com.google.domain.registry.model.billing.BillingEvent;
+import com.google.domain.registry.model.billing.BillingEvent.Flag;
 import com.google.domain.registry.model.billing.BillingEvent.Reason;
 import com.google.domain.registry.model.domain.DomainResource;
 import com.google.domain.registry.model.domain.GracePeriod;
@@ -91,7 +92,8 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .build());
     BillingEvent.Recurring autorenewEvent = persistResource(
         new BillingEvent.Recurring.Builder()
-            .setReason(Reason.AUTO_RENEW)
+            .setReason(Reason.RENEW)
+            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
             .setTargetId(getUniqueIdFromCommand())
             .setClientId("TheRegistrar")
             .setEventTime(expirationTime)
@@ -145,7 +147,8 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     assertBillingEvents(
         renewBillingEvent,
         new BillingEvent.Recurring.Builder()
-            .setReason(Reason.AUTO_RENEW)
+            .setReason(Reason.RENEW)
+            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
             .setTargetId(getUniqueIdFromCommand())
             .setClientId("TheRegistrar")
             .setEventTime(expirationTime)
@@ -153,7 +156,8 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setParent(getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_CREATE))
             .build(),
         new BillingEvent.Recurring.Builder()
-            .setReason(Reason.AUTO_RENEW)
+            .setReason(Reason.RENEW)
+            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
             .setTargetId(getUniqueIdFromCommand())
             .setClientId("TheRegistrar")
             .setEventTime(domain.getRegistrationExpirationTime())

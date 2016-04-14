@@ -49,6 +49,7 @@ import com.google.domain.registry.flows.EppException.StatusProhibitsOperationExc
 import com.google.domain.registry.flows.EppException.UnimplementedOptionException;
 import com.google.domain.registry.model.EppResource;
 import com.google.domain.registry.model.billing.BillingEvent;
+import com.google.domain.registry.model.billing.BillingEvent.Flag;
 import com.google.domain.registry.model.billing.BillingEvent.Reason;
 import com.google.domain.registry.model.contact.ContactResource;
 import com.google.domain.registry.model.domain.DesignatedContact;
@@ -412,7 +413,8 @@ public class DomainFlowUtils {
    */
   static BillingEvent.Recurring.Builder newAutorenewBillingEvent(DomainResource domain) {
     return new BillingEvent.Recurring.Builder()
-        .setReason(Reason.AUTO_RENEW)
+        .setReason(Reason.RENEW)
+        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
         .setTargetId(domain.getFullyQualifiedDomainName())
         .setClientId(domain.getCurrentSponsorClientId())
         .setEventTime(domain.getRegistrationExpirationTime());

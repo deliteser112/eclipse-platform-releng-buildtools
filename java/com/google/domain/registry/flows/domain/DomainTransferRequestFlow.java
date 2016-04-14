@@ -25,9 +25,11 @@ import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.flows.EppException;
 import com.google.domain.registry.flows.ResourceTransferRequestFlow;
 import com.google.domain.registry.model.billing.BillingEvent;
+import com.google.domain.registry.model.billing.BillingEvent.Flag;
 import com.google.domain.registry.model.billing.BillingEvent.Reason;
 import com.google.domain.registry.model.domain.DomainCommand.Transfer;
 import com.google.domain.registry.model.domain.DomainResource;
@@ -126,7 +128,8 @@ public class DomainTransferRequestFlow
         existingResource.getRegistrationExpirationTime(),
         command.getPeriod().getValue());
     gainingClientAutorenewEvent = new BillingEvent.Recurring.Builder()
-        .setReason(Reason.AUTO_RENEW)
+        .setReason(Reason.RENEW)
+        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
         .setTargetId(targetId)
         .setClientId(gainingClient.getId())
         .setEventTime(newExpirationTime)
@@ -196,7 +199,8 @@ public class DomainTransferRequestFlow
     if (automaticTransferTime.isAfter(expirationTime) && automaticTransferTime.isBefore(
         expirationTime.plus(registry.getAutoRenewGracePeriodLength()))) {
       BillingEvent.Cancellation autorenewCancellation = new BillingEvent.Cancellation.Builder()
-          .setReason(Reason.AUTO_RENEW)
+          .setReason(Reason.RENEW)
+          .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
           .setTargetId(targetId)
           .setClientId(existingResource.getCurrentSponsorClientId())
           .setEventTime(automaticTransferTime)

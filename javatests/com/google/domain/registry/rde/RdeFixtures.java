@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 import com.google.domain.registry.model.billing.BillingEvent;
+import com.google.domain.registry.model.billing.BillingEvent.Flag;
 import com.google.domain.registry.model.billing.BillingEvent.Reason;
 import com.google.domain.registry.model.contact.ContactAddress;
 import com.google.domain.registry.model.contact.ContactPhoneNumber;
@@ -133,7 +134,8 @@ final class RdeFixtures {
         .setAutorenewBillingEvent(
             Ref.create(persistResource(
                 new BillingEvent.Recurring.Builder()
-                    .setReason(Reason.AUTO_RENEW)
+                    .setReason(Reason.RENEW)
+                    .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
                     .setTargetId(tld)
                     .setClientId("TheRegistrar")
                     .setEventTime(END_OF_TIME)
@@ -159,13 +161,14 @@ final class RdeFixtures {
             .setServerApproveAutorenewEvent(
                 Ref.create(persistResource(
                     new BillingEvent.Recurring.Builder()
-                        .setReason(Reason.AUTO_RENEW)
+                        .setReason(Reason.RENEW)
+                        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
                         .setTargetId("example." + tld)
-                               .setClientId("TheRegistrar")
-                               .setEventTime(END_OF_TIME)
-                               .setRecurrenceEndTime(END_OF_TIME)
-                               .setParent(historyEntry)
-                               .build())))
+                        .setClientId("TheRegistrar")
+                        .setEventTime(END_OF_TIME)
+                        .setRecurrenceEndTime(END_OF_TIME)
+                        .setParent(historyEntry)
+                        .build())))
             .setServerApproveAutorenewPollMessage(Ref.create(persistResource(
                 new Autorenew.Builder()
                     .setTargetId("example." + tld)

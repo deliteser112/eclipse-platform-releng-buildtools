@@ -56,6 +56,7 @@ import com.google.domain.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAtt
 import com.google.domain.registry.model.EppResource;
 import com.google.domain.registry.model.billing.BillingEvent;
 import com.google.domain.registry.model.billing.BillingEvent.Cancellation.Builder;
+import com.google.domain.registry.model.billing.BillingEvent.Flag;
 import com.google.domain.registry.model.billing.BillingEvent.Reason;
 import com.google.domain.registry.model.contact.ContactAuthInfo;
 import com.google.domain.registry.model.domain.DomainAuthInfo;
@@ -399,7 +400,8 @@ public class DomainTransferRequestFlowTest
         "domain_transfer_request_response_2_years.xml",
         clock.nowUtc().plusDays(1).plusYears(2),
         new BillingEvent.Cancellation.Builder()
-            .setReason(Reason.AUTO_RENEW)
+            .setReason(Reason.RENEW)
+            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
             .setTargetId("example.tld")
             .setClientId("TheRegistrar")
             // The cancellation happens at the moment of transfer.

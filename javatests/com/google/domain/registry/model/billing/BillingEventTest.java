@@ -25,6 +25,7 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.domain.registry.model.EntityTestCase;
+import com.google.domain.registry.model.billing.BillingEvent.Flag;
 import com.google.domain.registry.model.billing.BillingEvent.Reason;
 import com.google.domain.registry.model.domain.DomainResource;
 import com.google.domain.registry.model.domain.GracePeriod;
@@ -85,7 +86,8 @@ public class BillingEventTest extends EntityTestCase {
     recurring = persistResource(commonInit(
         new BillingEvent.Recurring.Builder()
             .setParent(historyEntry)
-            .setReason(Reason.AUTO_RENEW)
+            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
+            .setReason(Reason.RENEW)
             .setEventTime(now.plusYears(1))
             .setRecurrenceEndTime(END_OF_TIME)));
     cancellationOneTime = persistResource(commonInit(
@@ -98,7 +100,7 @@ public class BillingEventTest extends EntityTestCase {
     cancellationRecurring = persistResource(commonInit(
         new BillingEvent.Cancellation.Builder()
             .setParent(historyEntry2)
-            .setReason(Reason.AUTO_RENEW)
+            .setReason(Reason.RENEW)
             .setEventTime(now.plusDays(1))
             .setBillingTime(now.plusYears(1).plusDays(45))
             .setRecurringEventRef(Ref.create(recurring))));

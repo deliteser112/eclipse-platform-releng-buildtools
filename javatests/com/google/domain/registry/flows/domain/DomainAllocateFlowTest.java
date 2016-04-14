@@ -197,7 +197,8 @@ public class DomainAllocateFlowTest
     assertBillingEvents(
         createBillingEvent,
         new BillingEvent.Recurring.Builder()
-            .setReason(Reason.AUTO_RENEW)
+            .setReason(Reason.RENEW)
+            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
             .setTargetId(domainName)
             .setClientId(CLIENT_ID)
             .setEventTime(domain.getRegistrationExpirationTime())
