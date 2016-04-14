@@ -34,7 +34,6 @@ java_library(
 java_binary(
     name = "frontend_jar",
     create_executable = 0,
-    launcher = "//third_party/java/jdk:jdk_launcher",
     runtime_deps = [
         ":frontend",
         "//java/com/google/domain/registry/ui/server/api",  # CheckApiServlet
