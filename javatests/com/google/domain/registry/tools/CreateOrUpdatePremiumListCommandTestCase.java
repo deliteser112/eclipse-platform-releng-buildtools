@@ -14,34 +14,51 @@
 
 package com.google.domain.registry.tools;
 
+import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import com.google.common.net.MediaType;
+import com.google.domain.registry.testing.UriParameters;
 import com.google.domain.registry.tools.ServerSideCommand.Connection;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Base class for common testing setup for create and update commands for Premium Lists.
  */
-public final class CreateOrUpdatePremiumListCommandTestCase {
+public abstract class CreateOrUpdatePremiumListCommandTestCase<
+        T extends CreateOrUpdatePremiumListCommand> extends CommandTestCase<T> {
+
+  @Captor
+  ArgumentCaptor<ImmutableMap<String, String>> urlParamCaptor;
+
+  @Captor
+  ArgumentCaptor<byte[]> requestBodyCaptor;
 
   static String generateInputData(String premiumTermsPath) throws Exception {
-    Path inputFile = Paths.get(premiumTermsPath);
-    String data = new String(java.nio.file.Files.readAllBytes(inputFile));
-    return data;
+    return Files.toString(new File(premiumTermsPath), StandardCharsets.UTF_8);
   }
 
-  static void verifySentParams(
+  void verifySentParams(
       Connection connection, String path, ImmutableMap<String, String> parameterMap)
           throws Exception {
     verify(connection).send(
         eq(path),
-        eq(parameterMap),
-        eq(MediaType.PLAIN_TEXT_UTF_8),
-        eq(new byte[0]));
+        urlParamCaptor.capture(),
+        eq(MediaType.FORM_DATA),
+        requestBodyCaptor.capture());
+    assertThat(new ImmutableMap.Builder<String, String>()
+        .putAll(urlParamCaptor.getValue())
+        .putAll(UriParameters.parse(new String(requestBodyCaptor.getValue(), UTF_8)).entries())
+        .build())
+            .containsExactlyEntriesIn(parameterMap);
   }
 }

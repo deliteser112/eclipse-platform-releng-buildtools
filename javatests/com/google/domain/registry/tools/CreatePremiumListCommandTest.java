@@ -15,8 +15,6 @@
 package com.google.domain.registry.tools;
 
 import static com.google.domain.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
-import static com.google.domain.registry.tools.CreateOrUpdatePremiumListCommandTestCase.generateInputData;
-import static com.google.domain.registry.tools.CreateOrUpdatePremiumListCommandTestCase.verifySentParams;
 import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyMapOf;
@@ -38,7 +36,7 @@ import org.mockito.Mock;
 
 /** Unit tests for {@link CreatePremiumListCommand}. */
 public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
-    extends CommandTestCase<C> {
+    extends CreateOrUpdatePremiumListCommandTestCase<C> {
 
   @Mock
   Connection connection;
@@ -50,25 +48,39 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
   @Before
   public void init() throws Exception {
     command.setConnection(connection);
-    premiumTermsPath = writeToTmpFile(readResourceUtf8(
-        CreatePremiumListCommandTest.class,
-        "testdata/example_premium_terms.csv"));
+    premiumTermsPath = writeToNamedTmpFile(
+        "example_premium_terms.csv",
+        readResourceUtf8(
+            CreatePremiumListCommandTest.class,
+            "testdata/example_premium_terms.csv"));
     servletPath = "/_dr/admin/createPremiumList";
     when(connection.send(
         eq(CreatePremiumListAction.PATH),
         anyMapOf(String.class, String.class),
-        eq(MediaType.PLAIN_TEXT_UTF_8),
+        any(MediaType.class),
         any(byte[].class)))
-        .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"success\",\"lines\":[]}");
+            .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"success\",\"lines\":[]}");
   }
 
   @Test
   public void testRun() throws Exception {
-    ImmutableMap<String, String> params =
-        ImmutableMap.of("name", "foo", "inputData", generateInputData(premiumTermsPath));
     runCommandForced("-i=" + premiumTermsPath, "-n=foo");
     assertInStdout("Successfully");
-    verifySentParams(connection, servletPath, params);
+    verifySentParams(
+        connection,
+        servletPath,
+        ImmutableMap.of("name", "foo", "inputData", generateInputData(premiumTermsPath)));
+  }
+
+  @Test
+  public void testRun_noProvidedName_usesBasenameOfInputFile() throws Exception {
+    runCommandForced("-i=" + premiumTermsPath);
+    assertInStdout("Successfully");
+    verifySentParams(
+        connection,
+        servletPath,
+        ImmutableMap.of(
+            "name", "example_premium_terms", "inputData", generateInputData(premiumTermsPath)));
   }
 
   @Test
@@ -78,9 +90,10 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
     when(connection.send(
         eq(CreatePremiumListAction.PATH),
         anyMapOf(String.class, String.class),
-        eq(MediaType.PLAIN_TEXT_UTF_8),
+        any(MediaType.class),
         any(byte[].class)))
-        .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"error\",\"error\":\"foo already exists\"}");
+            .thenReturn(
+                JSON_SAFETY_PREFIX + "{\"status\":\"error\",\"error\":\"foo already exists\"}");
     thrown.expect(VerifyException.class, "Server error:");
     runCommandForced("-i=" + premiumTermsPath, "-n=foo");
   }

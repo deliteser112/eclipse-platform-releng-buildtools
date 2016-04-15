@@ -21,6 +21,7 @@ import static com.google.domain.registry.tools.server.CreateOrUpdatePremiumListA
 import static com.google.domain.registry.util.ListNamingUtils.convertFilePathToName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
@@ -31,6 +32,7 @@ import com.beust.jcommander.Parameter;
 
 import org.json.simple.JSONValue;
 
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -75,7 +77,9 @@ abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
 
   @Override
   protected void init() throws Exception {
+    name = isNullOrEmpty(name) ? convertFilePathToName(inputFile) : name;
     List<String> lines = Files.readAllLines(inputFile, UTF_8);
+    // Try constructing the premium list locally to check up front for validation errors.
     new PremiumList.Builder()
         .setName(name)
         .setPremiumListMapFromLines(lines)
@@ -91,10 +95,12 @@ abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
 
   @Override
   public String execute() throws Exception {
-    name = isNullOrEmpty(name) ? convertFilePathToName(inputFile) : name;
     ImmutableMap.Builder<String, Object> params = new ImmutableMap.Builder<>();
     params.put(NAME_PARAM, name);
-    params.put(INPUT_PARAM, new String(Files.readAllBytes(inputFile), UTF_8));
+    String inputFileContents = new String(Files.readAllBytes(inputFile), UTF_8);
+    String requestBody =
+        Joiner.on('&').withKeyValueSeparator("=").join(
+            ImmutableMap.of(INPUT_PARAM, URLEncoder.encode(inputFileContents, UTF_8.toString())));
 
     ImmutableMap<String, ?> extraParams = getParameterMap();
     if (extraParams != null) {
@@ -105,8 +111,8 @@ abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
     String response = connection.send(
         getCommandPath(),
         params.build(),
-        MediaType.PLAIN_TEXT_UTF_8,
-        new byte[0]);
+        MediaType.FORM_DATA,
+        requestBody.getBytes());
 
     return extractServerResponse(response);
   }
