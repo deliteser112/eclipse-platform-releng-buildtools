@@ -41,6 +41,8 @@ import com.google.domain.registry.util.NonFinalForTesting;
 import java.io.IOException;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 /** Factory for creating {@link Bigquery} connections. */
 public class BigqueryFactory {
 
@@ -56,6 +58,8 @@ public class BigqueryFactory {
   @NonFinalForTesting
   @VisibleForTesting
   Subfactory subfactory = new Subfactory();
+
+  @Inject public BigqueryFactory() {}
 
   /** This class is broken out solely so that it can be mocked inside of tests. */
   static class Subfactory {

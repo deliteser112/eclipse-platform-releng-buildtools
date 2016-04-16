@@ -46,6 +46,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.domain.registry.config.RegistryEnvironment;
+import com.google.domain.registry.model.Buildable;
 import com.google.domain.registry.model.EppResource;
 import com.google.domain.registry.model.EppResource.ForeignKeyedEppResource;
 import com.google.domain.registry.model.ImmutableObject;
@@ -710,6 +711,9 @@ public class DatastoreHelper {
   }
 
   private static <R> R persistResource(final R resource, final boolean wantBackup) {
+    assertWithMessage("Attempting to persist a Builder is almost certainly an error in test code")
+        .that(resource)
+        .isNotInstanceOf(Buildable.Builder.class);
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {

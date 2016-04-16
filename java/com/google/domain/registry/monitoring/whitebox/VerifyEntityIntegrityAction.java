@@ -22,7 +22,6 @@ import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
 import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
 import static com.google.domain.registry.util.DateTimeUtils.earliestOf;
 import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
-import static com.google.domain.registry.util.DateTimeUtils.latestOf;
 import static com.google.domain.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static com.google.domain.registry.util.PipelineUtils.createJobPath;
 import static com.googlecode.objectify.Key.getKind;
@@ -59,6 +58,7 @@ import com.google.domain.registry.model.transfer.TransferData.TransferServerAppr
 import com.google.domain.registry.request.Action;
 import com.google.domain.registry.request.Response;
 import com.google.domain.registry.util.FormattingLogger;
+import com.google.domain.registry.util.NonFinalForTesting;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
@@ -67,9 +67,9 @@ import org.joda.time.DateTime;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -96,9 +96,11 @@ import javax.inject.Inject;
 @Action(path = "/_dr/task/verifyEntityIntegrity")
 public class VerifyEntityIntegrityAction implements Runnable {
 
-  @VisibleForTesting
-  static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FormattingLogger logger = getLoggerForCallerClass();
   private static final int NUM_SHARDS = 200;
+  @NonFinalForTesting
+  @VisibleForTesting
+  static WhiteboxComponent component = DaggerWhiteboxComponent.create();
   private static final ImmutableSet<Class<?>> RESOURCE_CLASSES =
       ImmutableSet.<Class<?>>of(
           ForeignKeyDomainIndex.class,
@@ -124,13 +126,14 @@ public class VerifyEntityIntegrityAction implements Runnable {
 
   @Override
   public void run() {
+    DateTime scanTime = DateTime.now(UTC);
     response.sendJavaScriptRedirect(createJobPath(mrRunner
         .setJobName("Verify entity integrity")
         .setModuleName("backend")
         .setDefaultReduceShards(NUM_SHARDS)
         .runMapreduce(
-            new VerifyEntityIntegrityMapper(),
-            new VerifyEntityIntegrityReducer(),
+            new VerifyEntityIntegrityMapper(scanTime),
+            new VerifyEntityIntegrityReducer(scanTime),
             getInputs())));
   }
 
@@ -144,24 +147,38 @@ public class VerifyEntityIntegrityAction implements Runnable {
     return builder.build();
   }
 
+  /**
+   * The mapreduce key that the mapper outputs.  Each {@link EppResource} has two different
+   * mapreduce keys that are output for it: one for its specific type (domain, application, host, or
+   * contact), which is used to check {@link ForeignKeyIndex} constraints, and one that is common
+   * for all EppResources, to check {@link EppResourceIndex} constraints.
+   */
   private static enum EntityKind {
     DOMAIN,
     APPLICATION,
     CONTACT,
-    HOST
+    HOST,
+    /**
+     * Used to verify 1-to-1 constraints between all types of EPP resources and their indexes.
+     */
+    EPP_RESOURCE
   }
 
-  private static class FkAndKind implements Serializable {
+  private static class MapperKey implements Serializable {
 
-    private static final long serialVersionUID = -8466899721968889534L;
+    private static final long serialVersionUID = 3222302549441420932L;
 
-    public String foreignKey;
+    /**
+     * The relevant id for this mapper key, which is either the foreign key of the EppResource (for
+     * verifying foreign key indexes) or its repoId (for verifying EppResourceIndexes).
+     */
+    public String id;
     public EntityKind kind;
 
-    public static FkAndKind create(EntityKind kind, String foreignKey) {
-      FkAndKind instance = new FkAndKind();
+    public static MapperKey create(EntityKind kind, String id) {
+      MapperKey instance = new MapperKey();
       instance.kind = kind;
-      instance.foreignKey = foreignKey;
+      instance.id = id;
       return instance;
     }
   }
@@ -171,11 +188,26 @@ public class VerifyEntityIntegrityAction implements Runnable {
    * check integrity of foreign key entities.
    */
   public static class VerifyEntityIntegrityMapper
-      extends Mapper<Object, FkAndKind, Key<? extends ImmutableObject>> {
+      extends Mapper<Object, MapperKey, Key<? extends ImmutableObject>> {
 
-    private static final long serialVersionUID = -8881987421971102016L;
+    private static final long serialVersionUID = -5413882340475018051L;
+    private final DateTime scanTime;
 
-    public VerifyEntityIntegrityMapper() {}
+    private transient VerifyEntityIntegrityStreamer integrityStreamer;
+
+    // The integrityStreamer field must be marked as transient so that instances of the Mapper class
+    // can be serialized by the MapReduce framework.  Thus, every time is used, lazily construct it
+    // if it doesn't exist yet.
+    private VerifyEntityIntegrityStreamer integrity() {
+      if (integrityStreamer == null) {
+        integrityStreamer = component.verifyEntityIntegrityStreamerFactory().create(scanTime);
+      }
+      return integrityStreamer;
+    }
+
+    public VerifyEntityIntegrityMapper(DateTime scanTime) {
+      this.scanTime = scanTime;
+    }
 
     @Override
     public final void map(Object keyOrEntity) {
@@ -187,9 +219,9 @@ public class VerifyEntityIntegrityAction implements Runnable {
           keyOrEntity = ofy().load().key(key).now();
         }
         mapEntity(keyOrEntity);
-      } catch (Exception e) {
+      } catch (Throwable e) {
         // Log and swallow so that the mapreduce doesn't abort on first error.
-        logger.severefmt(e, "Integrity error found while parsing entity: %s", keyOrEntity);
+        logger.severefmt(e, "Exception while checking integrity of entity: %s", keyOrEntity);
       }
     }
 
@@ -203,11 +235,13 @@ public class VerifyEntityIntegrityAction implements Runnable {
       } else if (entity instanceof EppResourceIndex) {
         mapEppResourceIndex((EppResourceIndex) entity);
       } else {
-        throw new IllegalStateException(String.format("Unknown entity in mapper: %s", entity));
+        throw new IllegalStateException(
+            String.format("Unknown entity in integrity mapper: %s", entity));
       }
     }
 
     private void mapEppResource(EppResource resource) {
+      emit(MapperKey.create(EntityKind.EPP_RESOURCE, resource.getRepoId()), Key.create(resource));
       if (resource instanceof DomainBase) {
         DomainBase domainBase = (DomainBase) resource;
         Key<?> key = Key.create(domainBase);
@@ -232,7 +266,7 @@ public class VerifyEntityIntegrityAction implements Runnable {
           getContext().incrementCounter("domain applications");
           DomainApplication application = (DomainApplication) domainBase;
           emit(
-              FkAndKind.create(EntityKind.APPLICATION, application.getFullyQualifiedDomainName()),
+              MapperKey.create(EntityKind.APPLICATION, application.getFullyQualifiedDomainName()),
               Key.create(application));
         } else if (domainBase instanceof DomainResource) {
           getContext().incrementCounter("domain resources");
@@ -245,98 +279,97 @@ public class VerifyEntityIntegrityAction implements Runnable {
             verifyExistence(key, gracePeriod.getRecurringBillingEvent());
           }
           emit(
-              FkAndKind.create(EntityKind.DOMAIN, domain.getFullyQualifiedDomainName()),
+              MapperKey.create(EntityKind.DOMAIN, domain.getFullyQualifiedDomainName()),
               Key.create(domain));
         }
       } else if (resource instanceof ContactResource) {
         getContext().incrementCounter("contact resources");
         ContactResource contact = (ContactResource) resource;
         emit(
-            FkAndKind.create(EntityKind.CONTACT, contact.getContactId()),
+            MapperKey.create(EntityKind.CONTACT, contact.getContactId()),
             Key.create(contact));
       } else if (resource instanceof HostResource) {
         getContext().incrementCounter("host resources");
         HostResource host = (HostResource) resource;
         verifyExistence(Key.create(host), host.getSuperordinateDomain());
         emit(
-            FkAndKind.create(EntityKind.HOST, host.getFullyQualifiedHostName()),
+            MapperKey.create(EntityKind.HOST, host.getFullyQualifiedHostName()),
             Key.create(host));
       } else {
         throw new IllegalStateException(
-            String.format("EppResource with unknown type: %s", resource));
+            String.format("EppResource with unknown type in integrity mapper: %s", resource));
       }
     }
 
     private void mapForeignKeyIndex(ForeignKeyIndex<?> fki) {
+      Key<ForeignKeyIndex<?>> fkiKey = Key.<ForeignKeyIndex<?>>create(fki);
       @SuppressWarnings("cast")
-      EppResource resource = verifyExistence(Key.create(fki), fki.getReference());
-      checkState(
-          fki.getForeignKey().equals(resource.getForeignKey()),
-          "Foreign key index %s points to EppResource with different foreign key: %s",
-          fki,
-          resource);
-      if (resource instanceof DomainResource) {
+      EppResource resource = verifyExistence(fkiKey, fki.getReference());
+      if (resource != null) {
+        integrity().check(
+            fki.getForeignKey().equals(resource.getForeignKey()),
+            fkiKey,
+            Key.create(resource),
+            "Foreign key index points to EppResource with different foreign key");
+      }
+      if (fki instanceof ForeignKeyDomainIndex) {
         getContext().incrementCounter("domain foreign key indexes");
-        emit(FkAndKind.create(EntityKind.DOMAIN, resource.getForeignKey()), Key.create(fki));
-      } else if (resource instanceof ContactResource) {
+        emit(MapperKey.create(EntityKind.DOMAIN, fki.getForeignKey()), fkiKey);
+      } else if (fki instanceof ForeignKeyContactIndex) {
         getContext().incrementCounter("contact foreign key indexes");
-        emit(FkAndKind.create(EntityKind.CONTACT, resource.getForeignKey()), Key.create(fki));
-      } else if (resource instanceof HostResource) {
+        emit(MapperKey.create(EntityKind.CONTACT, fki.getForeignKey()), fkiKey);
+      } else if (fki instanceof ForeignKeyHostIndex) {
         getContext().incrementCounter("host foreign key indexes");
-        emit(FkAndKind.create(EntityKind.HOST, resource.getForeignKey()), Key.create(fki));
+        emit(MapperKey.create(EntityKind.HOST, fki.getForeignKey()), fkiKey);
       } else {
         throw new IllegalStateException(
-            String.format(
-                "Foreign key index %s points to EppResource of unknown type: %s", fki, resource));
+            String.format("Foreign key index is of unknown type: %s", fki));
       }
     }
 
     private void mapDomainApplicationIndex(DomainApplicationIndex dai) {
       getContext().incrementCounter("domain application indexes");
+      Key<DomainApplicationIndex> daiKey = Key.create(dai);
       for (Ref<DomainApplication> ref : dai.getReferences()) {
-        DomainApplication application = verifyExistence(Key.create(dai), ref);
-        checkState(
-            dai.getFullyQualifiedDomainName().equals(application.getFullyQualifiedDomainName()),
-            "Domain application index %s points to application with different domain name: %s",
-            dai,
-            application);
+        DomainApplication application = verifyExistence(daiKey, ref);
+        if (application != null) {
+          integrity().check(
+              dai.getFullyQualifiedDomainName().equals(application.getFullyQualifiedDomainName()),
+              daiKey,
+              Key.create(application),
+              "Domain application index points to application with different domain name");
+        }
         emit(
-            FkAndKind.create(EntityKind.APPLICATION, application.getFullyQualifiedDomainName()),
-            Key.create(application));
+            MapperKey.create(EntityKind.APPLICATION, dai.getFullyQualifiedDomainName()),
+            daiKey);
       }
     }
 
     private void mapEppResourceIndex(EppResourceIndex eri) {
-      @SuppressWarnings("cast")
-      EppResource resource = verifyExistence(Key.create(eri), eri.getReference());
-      if (resource instanceof DomainResource) {
-        getContext().incrementCounter("domain EPP resource indexes");
-        emit(FkAndKind.create(EntityKind.DOMAIN, resource.getForeignKey()), Key.create(eri));
-      } else if (resource instanceof ContactResource) {
-        getContext().incrementCounter("contact EPP resource indexes");
-        emit(
-            FkAndKind.create(EntityKind.CONTACT, resource.getForeignKey()), Key.create(eri));
-      } else if (resource instanceof HostResource) {
-        getContext().incrementCounter("host EPP resource indexes");
-        emit(FkAndKind.create(EntityKind.HOST, resource.getForeignKey()), Key.create(eri));
-      } else {
-        throw new IllegalStateException(
-            String.format(
-                "EPP resource index %s points to resource of unknown type: %s", eri, resource));
-      }
+      Key<EppResourceIndex> eriKey = Key.create(eri);
+      String eriRepoId = Key.create(eri.getId()).getName();
+      integrity().check(
+          eriRepoId.equals(eri.getReference().getKey().getName()),
+          eriKey,
+          eri.getReference().getKey(),
+          "EPP resource index id does not match repoId of reference");
+      verifyExistence(eriKey, eri.getReference());
+      emit(MapperKey.create(EntityKind.EPP_RESOURCE, eriRepoId), eriKey);
+      getContext().incrementCounter("EPP resource indexes to " + eri.getKind());
     }
 
-    private static <E> void verifyExistence(Key<?> source, Set<Key<E>> keys) {
-      Set<Key<E>> missingEntityKeys = Sets.difference(keys, ofy().load().<E>keys(keys).keySet());
-      checkState(
+    private <E> void verifyExistence(Key<?> source, Set<Key<E>> targets) {
+      Set<Key<E>> missingEntityKeys =
+          Sets.difference(targets, ofy().load().<E>keys(targets).keySet());
+      integrity().checkOneToMany(
           missingEntityKeys.isEmpty(),
-          "Existing entity %s referenced entities that do not exist: %s",
           source,
-          missingEntityKeys);
+          targets,
+          "Target entity does not exist");
     }
 
     @Nullable
-    private static <E> E verifyExistence(Key<?> source, @Nullable Ref<E> target) {
+    private <E> E verifyExistence(Key<?> source, @Nullable Ref<E> target) {
       if (target == null) {
         return null;
       }
@@ -344,15 +377,12 @@ public class VerifyEntityIntegrityAction implements Runnable {
     }
 
     @Nullable
-    private static <E> E verifyExistence(Key<?> source, @Nullable Key<E> target) {
+    private <E> E verifyExistence(Key<?> source, @Nullable Key<E> target) {
       if (target == null) {
         return null;
       }
       E entity = ofy().load().key(target).now();
-      checkState(entity != null,
-          "Existing entity %s referenced entity that does not exist: %s",
-          source,
-          target);
+      integrity().check(entity != null, source, target, "Target entity does not exist");
       return entity;
     }
 
@@ -371,50 +401,108 @@ public class VerifyEntityIntegrityAction implements Runnable {
 
   /** Reducer that checks integrity of foreign key entities. */
   public static class VerifyEntityIntegrityReducer
-      extends Reducer<FkAndKind, Key<? extends ImmutableObject>, Void> {
+      extends Reducer<MapperKey, Key<? extends ImmutableObject>, Void> {
 
-    private static final long serialVersionUID = -8531280188397051521L;
+    private static final long serialVersionUID = -151271247606894783L;
+
+    private final DateTime scanTime;
+
+    private transient VerifyEntityIntegrityStreamer integrityStreamer;
+
+    // The integrityStreamer field must be marked as transient so that instances of the Reducer
+    // class can be serialized by the MapReduce framework.  Thus, every time is used, lazily
+    // construct it if it doesn't exist yet.
+    private VerifyEntityIntegrityStreamer integrity() {
+      if (integrityStreamer == null) {
+        integrityStreamer = component.verifyEntityIntegrityStreamerFactory().create(scanTime);
+      }
+      return integrityStreamer;
+    }
+
+    public VerifyEntityIntegrityReducer(DateTime scanTime) {
+      this.scanTime = scanTime;
+    }
 
     @SuppressWarnings("unchecked")
     @Override
-    public void reduce(FkAndKind fkAndKind, ReducerInput<Key<? extends ImmutableObject>> keys) {
+    public void reduce(MapperKey mapperKey, ReducerInput<Key<? extends ImmutableObject>> keys) {
       try {
-        reduceKeys(fkAndKind, keys);
-      } catch (Exception e) {
+        reduceKeys(mapperKey, keys);
+      } catch (Throwable e) {
         // Log and swallow so that the mapreduce doesn't abort on first error.
         logger.severefmt(
-            e, "Integrity error found while checking foreign key contraints for: %s", fkAndKind);
+            e, "Exception while checking foreign key integrity constraints for: %s", mapperKey);
       }
     }
 
     private void reduceKeys(
-        FkAndKind fkAndKind, ReducerInput<Key<? extends ImmutableObject>> keys) {
-      switch (fkAndKind.kind) {
+        MapperKey mapperKey, ReducerInput<Key<? extends ImmutableObject>> keys) {
+      getContext().incrementCounter("reduced resources " + mapperKey.kind);
+      switch (mapperKey.kind) {
+        case EPP_RESOURCE:
+          checkEppResourceIndexes(keys, mapperKey.id);
+          break;
         case APPLICATION:
-          getContext().incrementCounter("domain applications");
           checkIndexes(
               keys,
-              fkAndKind.foreignKey,
+              mapperKey.id,
               KIND_DOMAIN_BASE_RESOURCE,
               KIND_DOMAIN_APPLICATION_INDEX,
               false);
           break;
         case CONTACT:
-          getContext().incrementCounter("contact resources");
-          checkIndexes(keys, fkAndKind.foreignKey, KIND_CONTACT_RESOURCE, KIND_CONTACT_INDEX, true);
+          checkIndexes(keys, mapperKey.id, KIND_CONTACT_RESOURCE, KIND_CONTACT_INDEX, true);
           break;
         case DOMAIN:
-          getContext().incrementCounter("domain resources");
           checkIndexes(
-              keys, fkAndKind.foreignKey, KIND_DOMAIN_BASE_RESOURCE, KIND_DOMAIN_INDEX, true);
+              keys, mapperKey.id, KIND_DOMAIN_BASE_RESOURCE, KIND_DOMAIN_INDEX, true);
           break;
         case HOST:
-          getContext().incrementCounter("host resources");
-          checkIndexes(keys, fkAndKind.foreignKey, KIND_HOST_RESOURCE, KIND_HOST_INDEX, true);
+          checkIndexes(keys, mapperKey.id, KIND_HOST_RESOURCE, KIND_HOST_INDEX, true);
           break;
         default:
           throw new IllegalStateException(
-              String.format("Unknown type of foreign key %s", fkAndKind.kind));
+              String.format("Unknown type of foreign key %s", mapperKey.kind));
+      }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void checkEppResourceIndexes(
+        Iterator<Key<? extends ImmutableObject>> keys, String repoId) {
+      List<Key<EppResource>> resources = new ArrayList<>();
+      List<Key<EppResourceIndex>> eppResourceIndexes = new ArrayList<>();
+      while (keys.hasNext()) {
+        Key<?> key = keys.next();
+        String kind = key.getKind();
+        if (kind.equals(KIND_EPPRESOURCE_INDEX)) {
+          eppResourceIndexes.add((Key<EppResourceIndex>) key);
+        } else if (kind.equals(KIND_DOMAIN_BASE_RESOURCE)
+            || kind.equals(KIND_CONTACT_RESOURCE)
+            || kind.equals(KIND_HOST_RESOURCE)) {
+          resources.add((Key<EppResource>) key);
+        } else {
+          throw new IllegalStateException(
+              String.format(
+                  "While verifying EppResourceIndexes for repoId %s, found key of unknown type: %s",
+                  repoId,
+                  key));
+        }
+      }
+      // This is a checkState and not an integrity check because the Datastore schema ensures that
+      // there can't be multiple EppResources with the same repoId.
+      checkState(
+          resources.size() == 1,
+          String.format("Found more than one EppResource for repoId %s: %s", repoId, resources));
+      if (integrity().check(
+          !eppResourceIndexes.isEmpty(),
+          null,
+          getOnlyElement(resources),
+          "Missing EPP resource index for EPP resource")) {
+        integrity().checkManyToOne(
+            eppResourceIndexes.size() == 1,
+            eppResourceIndexes,
+            getOnlyElement(resources),
+            "Duplicate EPP resource indexes pointing to same resource");
       }
     }
 
@@ -427,15 +515,12 @@ public class VerifyEntityIntegrityAction implements Runnable {
         boolean thereCanBeOnlyOne) {
       List<Key<R>> resources = new ArrayList<>();
       List<Key<I>> foreignKeyIndexes = new ArrayList<>();
-      List<Key<EppResourceIndex>> eppResourceIndexes = new ArrayList<>();
       while (keys.hasNext()) {
         Key<?> key = keys.next();
         if (key.getKind().equals(resourceKind)) {
           resources.add((Key<R>) key);
         } else if (key.getKind().equals(foreignKeyIndexKind)) {
           foreignKeyIndexes.add((Key<I>) key);
-        } else if (key.getKind().equals(KIND_EPPRESOURCE_INDEX)) {
-          eppResourceIndexes.add((Key<EppResourceIndex>) key);
         } else {
           throw new IllegalStateException(
               String.format(
@@ -445,67 +530,65 @@ public class VerifyEntityIntegrityAction implements Runnable {
                   key));
         }
       }
+      // This is a checkState and not an integrity check because it should truly be impossible to
+      // have multiple foreign key indexes for the same foreign key because of the Datastore schema.
       checkState(
-          foreignKeyIndexes.size() == 1,
+          foreignKeyIndexes.size() <= 1,
           String.format(
-              "Should have found exactly 1 foreign key index for %s, instead found %d: %s",
-              foreignKey,
-              foreignKeyIndexes.size(),
-              foreignKeyIndexes));
-      checkState(
-          !resources.isEmpty(),
-          "Foreign key index %s exists, but no matching EPP resources found",
-          getOnlyElement(foreignKeyIndexes));
-      checkState(eppResourceIndexes.size() == 1,
-          "Should have found exactly 1 EPP resource index for %s, instead found: %s",
+              "Found more than one foreign key index for %s: %s", foreignKey, foreignKeyIndexes));
+      integrity().check(
+          !foreignKeyIndexes.isEmpty(),
           foreignKey,
-          eppResourceIndexes);
+          resourceKind,
+          "Missing foreign key index for EppResource");
       if (thereCanBeOnlyOne) {
-        verifyOnlyOneActiveResource(foreignKey, resources, foreignKeyIndexes);
+        verifyOnlyOneActiveResource(resources, getOnlyElement(foreignKeyIndexes));
       }
     }
 
     private <R extends EppResource, I> void verifyOnlyOneActiveResource(
-        String foreignKey, List<Key<R>> resources, List<Key<I>> foreignKeyIndexes) {
-      DateTime now = DateTime.now(UTC);
+        List<Key<R>> resources, Key<I> fkiKey) {
       DateTime oldestActive = END_OF_TIME;
       DateTime mostRecentInactive = START_OF_TIME;
-      List<R> activeResources = new ArrayList<R>();
-      Collection<R> allResources = ofy().load().keys(resources).values();
-      ForeignKeyIndex<?> fki =
-          (ForeignKeyIndex<?>) ofy().load().key(getOnlyElement(foreignKeyIndexes)).now();
-      for (R resource : allResources) {
-        if (isActive(resource, now)) {
-          activeResources.add(resource);
+      Key<R> mostRecentInactiveKey = null;
+      List<Key<R>> activeResources = new ArrayList<>();
+      Map<Key<R>, R> allResources = ofy().load().keys(resources);
+      ForeignKeyIndex<?> fki = (ForeignKeyIndex<?>) ofy().load().key(fkiKey).now();
+      for (Map.Entry<Key<R>, R> entry : allResources.entrySet()) {
+        R resource = entry.getValue();
+        if (isActive(resource, scanTime)) {
+          activeResources.add(entry.getKey());
           oldestActive = earliestOf(oldestActive, resource.getCreationTime());
         } else {
-          mostRecentInactive = latestOf(mostRecentInactive, resource.getDeletionTime());
+          if (resource.getDeletionTime().isAfter(mostRecentInactive)) {
+            mostRecentInactive = resource.getDeletionTime();
+            mostRecentInactiveKey = entry.getKey();
+          }
         }
       }
       if (activeResources.isEmpty()) {
-        checkState(
+        integrity().check(
             fki.getDeletionTime().isEqual(mostRecentInactive),
-            "Deletion time on foreign key index %s doesn't match"
-                + " most recently deleted resource from: %s",
-            fki,
-            allResources);
+            fkiKey,
+            mostRecentInactiveKey,
+            "Foreign key index deletion time not equal to that of most recently deleted resource");
       } else {
-        checkState(
-            activeResources.size() <= 1,
-            "Found multiple active resources with foreign key %s: %s",
-            foreignKey,
-            activeResources);
-        checkState(
+        integrity().checkOneToMany(
+            activeResources.size() == 1,
+            fkiKey,
+            activeResources,
+            "Multiple active EppResources with same foreign key");
+        integrity().check(
             fki.getDeletionTime().isEqual(END_OF_TIME),
-            "Deletion time on foreign key index %s doesn't match active resource: %s",
-            fki,
-            getOnlyElement(activeResources));
-        checkState(
+            fkiKey,
+            null,
+            "Foreign key index has deletion time but active resource exists");
+        integrity().check(
             isBeforeOrAt(mostRecentInactive, oldestActive),
-            "Found inactive resource that is more recent than active resource in: %s",
-            allResources);
+            fkiKey,
+            mostRecentInactiveKey,
+            "Found inactive resource deleted more recently than when active resource was created");
       }
-
     }
   }
 }

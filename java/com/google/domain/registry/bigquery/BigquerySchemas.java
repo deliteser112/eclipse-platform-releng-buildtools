@@ -25,6 +25,13 @@ import java.util.Map;
 /** Schemas for BigQuery tables. */
 public final class BigquerySchemas {
 
+  public static final String EPPMETRICS_TABLE_ID = "eppMetrics";
+  public static final String ENTITY_INTEGRITY_ALERTS_TABLE_ID = "alerts";
+  public static final String ENTITY_INTEGRITY_ALERTS_FIELD_SCANTIME = "scanTime";
+  public static final String ENTITY_INTEGRITY_ALERTS_FIELD_SOURCE = "source";
+  public static final String ENTITY_INTEGRITY_ALERTS_FIELD_TARGET = "target";
+  public static final String ENTITY_INTEGRITY_ALERTS_FIELD_MESSAGE = "message";
+
   static final ImmutableList<TableFieldSchema> EPPMETRICS_SCHEMA_FIELDS =
       ImmutableList.<TableFieldSchema>of(
           new TableFieldSchema().setName("requestId").setType(FieldType.STRING.name()),
@@ -37,11 +44,27 @@ public final class BigquerySchemas {
           new TableFieldSchema().setName("eppStatus").setType(FieldType.INTEGER.name()),
           new TableFieldSchema().setName("attempts").setType(FieldType.INTEGER.name()));
 
-  public static final String EPPMETRICS_TABLE_ID = "eppMetrics";
+  static final ImmutableList<TableFieldSchema> ENTITY_INTEGRITY_ALERTS_SCHEMA_FIELDS =
+      ImmutableList.<TableFieldSchema>of(
+          new TableFieldSchema()
+              .setName(ENTITY_INTEGRITY_ALERTS_FIELD_SCANTIME)
+              .setType(FieldType.TIMESTAMP.name()),
+          new TableFieldSchema()
+              .setName(ENTITY_INTEGRITY_ALERTS_FIELD_SOURCE)
+              .setType(FieldType.STRING.name()),
+          new TableFieldSchema()
+              .setName(ENTITY_INTEGRITY_ALERTS_FIELD_TARGET)
+              .setType(FieldType.STRING.name()),
+          new TableFieldSchema()
+              .setName(ENTITY_INTEGRITY_ALERTS_FIELD_MESSAGE)
+              .setType(FieldType.STRING.name()));
 
   @NonFinalForTesting
   static Map<String, ImmutableList<TableFieldSchema>> knownTableSchemas =
-      ImmutableMap.of(EPPMETRICS_TABLE_ID, EPPMETRICS_SCHEMA_FIELDS);
+      new ImmutableMap.Builder<String, ImmutableList<TableFieldSchema>>()
+          .put(EPPMETRICS_TABLE_ID, EPPMETRICS_SCHEMA_FIELDS)
+          .put(ENTITY_INTEGRITY_ALERTS_TABLE_ID, ENTITY_INTEGRITY_ALERTS_SCHEMA_FIELDS)
+          .build();
 
   private BigquerySchemas() {}
 }

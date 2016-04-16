@@ -42,6 +42,14 @@ public class EppResourceIndex extends BackupGroupRoot {
   @Index
   String kind;
 
+  public String getId() {
+    return id;
+  }
+
+  public String getKind() {
+    return kind;
+  }
+
   public Ref<? extends EppResource> getReference() {
     return reference;
   }
