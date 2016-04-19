@@ -231,20 +231,20 @@ public class LoadSnapshotServletTest {
         new JobReference()
             .setProjectId("Project-Id")
             .setJobId("load-snapshot-id12345-one-1391096117045"),
-        UpdateSnapshotViewServlet.createViewUpdateTask("testdataset", "id12345_one", "one"),
-        QueueFactory.getQueue(UpdateSnapshotViewServlet.QUEUE));
+        UpdateSnapshotViewAction.createViewUpdateTask("testdataset", "id12345_one", "one"),
+        QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
     verify(bigqueryPollEnqueuer).enqueuePollTask(
         new JobReference()
             .setProjectId("Project-Id")
             .setJobId("load-snapshot-id12345-two-1391096117045"),
-        UpdateSnapshotViewServlet.createViewUpdateTask("testdataset", "id12345_two", "two"),
-        QueueFactory.getQueue(UpdateSnapshotViewServlet.QUEUE));
+        UpdateSnapshotViewAction.createViewUpdateTask("testdataset", "id12345_two", "two"),
+        QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
     verify(bigqueryPollEnqueuer).enqueuePollTask(
         new JobReference()
             .setProjectId("Project-Id")
             .setJobId("load-snapshot-id12345-three-1391096117045"),
-        UpdateSnapshotViewServlet.createViewUpdateTask("testdataset", "id12345_three", "three"),
-        QueueFactory.getQueue(UpdateSnapshotViewServlet.QUEUE));
+        UpdateSnapshotViewAction.createViewUpdateTask("testdataset", "id12345_three", "three"),
+        QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
 
     verify(rsp).setStatus(SC_OK);
   }

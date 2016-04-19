@@ -155,9 +155,9 @@ public class LoadSnapshotServlet extends HttpServlet {
       // well-known view in BigQuery to point at the newly loaded snapshot table for this kind.
       bigqueryPollEnqueuer.enqueuePollTask(
           jobRef,
-          UpdateSnapshotViewServlet.createViewUpdateTask(
+          UpdateSnapshotViewAction.createViewUpdateTask(
               ENVIRONMENT.config().getSnapshotsDataset(), tableId, kindName),
-          QueueFactory.getQueue(UpdateSnapshotViewServlet.QUEUE));
+          QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
 
       builder.append(String.format(" - %s:%s\n", projectId, jobId));
       logger.infofmt("Submitted load job %s:%s", projectId, jobId);

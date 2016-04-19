@@ -13,13 +13,7 @@
 // limitations under the License.
 
 package com.google.domain.registry.export;
-
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.common.html.HtmlEscapers.htmlEscaper;
-import static com.google.domain.registry.util.HttpServletUtils.getRequiredParameterValue;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static com.google.domain.registry.request.Action.Method.POST;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.bigquery.Bigquery;
@@ -28,21 +22,20 @@ import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.ViewDefinition;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.common.net.MediaType;
 import com.google.domain.registry.bigquery.BigqueryFactory;
 import com.google.domain.registry.config.RegistryEnvironment;
+import com.google.domain.registry.request.Action;
+import com.google.domain.registry.request.Parameter;
 import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
 import com.google.domain.registry.util.SqlTemplate;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.inject.Inject;
 
 /** Update a well-known view to point at a certain datastore snapshot table in BigQuery. */
-public class UpdateSnapshotViewServlet extends HttpServlet {
+@Action(path = UpdateSnapshotViewAction.PATH, method = POST)
+public class UpdateSnapshotViewAction implements Runnable {
 
   private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
 
@@ -57,8 +50,11 @@ public class UpdateSnapshotViewServlet extends HttpServlet {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @NonFinalForTesting
-  private static BigqueryFactory bigqueryFactory = new BigqueryFactory();
+  @Inject @Parameter(SNAPSHOT_DATASET_ID_PARAM) String datasetId;
+  @Inject @Parameter(SNAPSHOT_TABLE_ID_PARAM) String tableId;
+  @Inject @Parameter(SNAPSHOT_KIND_PARAM) String kindName;
+  @Inject BigqueryFactory bigqueryFactory;
+  @Inject UpdateSnapshotViewAction() {}
 
   /** Create a task for updating a snapshot view.  */
   public static TaskOptions createViewUpdateTask(
@@ -71,26 +67,15 @@ public class UpdateSnapshotViewServlet extends HttpServlet {
   }
 
   @Override
-  public void doPost(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+  public void run() {
     try {
-      String datasetId = getRequiredParameterValue(req, SNAPSHOT_DATASET_ID_PARAM);
-      String tableId = getRequiredParameterValue(req, SNAPSHOT_TABLE_ID_PARAM);
-      String kindName = getRequiredParameterValue(req, SNAPSHOT_KIND_PARAM);
-
-      String message = updateSnapshotView(datasetId, tableId, kindName);
-
-      rsp.setStatus(SC_OK);
-      rsp.setContentType(MediaType.PLAIN_TEXT_UTF_8.toString());
-      rsp.getWriter().write("OK\n\n" + message);
+      updateSnapshotView(datasetId, tableId, kindName);
     } catch (Throwable e) {
-      logger.severe(e, e.toString());
-      rsp.sendError(
-          e instanceof IllegalArgumentException ? SC_BAD_REQUEST : SC_INTERNAL_SERVER_ERROR,
-          htmlEscaper().escape(firstNonNull(e.getMessage(), e.toString())));
+      throw new RuntimeException("Error in update snapshot view action.", e);
     }
   }
 
-  private String updateSnapshotView(String datasetId, String tableId, String kindName)
+  private void updateSnapshotView(String datasetId, String tableId, String kindName)
       throws IOException {
     String projectId = ENVIRONMENT.config().getProjectId();
     Bigquery bigquery =
@@ -111,7 +96,6 @@ public class UpdateSnapshotViewServlet extends HttpServlet {
         "Updated view %s:%s to point at snapshot table %s:%s.",
         ENVIRONMENT.config().getLatestSnapshotDataset(), kindName, datasetId, tableId);
     logger.info(message);
-    return message;
   }
 
   private static void updateTable(Bigquery bigquery, Table table) throws IOException {

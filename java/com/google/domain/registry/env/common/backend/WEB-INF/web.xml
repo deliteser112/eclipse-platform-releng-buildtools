@@ -158,14 +158,9 @@
     <url-pattern>/_dr/task/loadSnapshot</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <description>Updates a view to point at a certain snapshot in BigQuery.</description>
-    <display-name>Update snapshot view in BigQuery</display-name>
-    <servlet-name>updateSnapshotView</servlet-name>
-    <servlet-class>com.google.domain.registry.export.UpdateSnapshotViewServlet</servlet-class>
-  </servlet>
+  <!-- Updates a view to point at a certain snapshot in BigQuery. -->
   <servlet-mapping>
-    <servlet-name>updateSnapshotView</servlet-name>
+    <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/updateSnapshotView</url-pattern>
   </servlet-mapping>
 

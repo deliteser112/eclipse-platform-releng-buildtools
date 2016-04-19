@@ -32,6 +32,7 @@ import com.google.domain.registry.export.ExportDomainListsAction;
 import com.google.domain.registry.export.ExportRequestModule;
 import com.google.domain.registry.export.ExportReservedTermsAction;
 import com.google.domain.registry.export.SyncGroupMembersAction;
+import com.google.domain.registry.export.UpdateSnapshotViewAction;
 import com.google.domain.registry.export.sheet.SheetModule;
 import com.google.domain.registry.export.sheet.SyncRegistrarsSheetAction;
 import com.google.domain.registry.flows.async.AsyncFlowsModule;
@@ -101,6 +102,7 @@ interface BackendRequestComponent {
   TmchCrlAction tmchCrlAction();
   TmchDnlAction tmchDnlAction();
   TmchSmdrlAction tmchSmdrlAction();
+  UpdateSnapshotViewAction updateSnapshotViewAction();
   WriteDnsAction writeDnsAction();
   VerifyEntityIntegrityAction verifyEntityIntegrityAction();
 }

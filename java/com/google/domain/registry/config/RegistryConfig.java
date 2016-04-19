@@ -61,7 +61,7 @@ public interface RegistryConfig {
   /**
    * Returns the BigQuery dataset for storing views pointing to the latest datastore snapshot.
    *
-   * @see com.google.domain.registry.export.UpdateSnapshotViewServlet
+   * @see com.google.domain.registry.export.UpdateSnapshotViewAction
    */
   public String getLatestSnapshotDataset();
 

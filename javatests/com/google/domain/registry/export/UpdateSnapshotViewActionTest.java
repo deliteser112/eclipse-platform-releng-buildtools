@@ -15,13 +15,13 @@
 package com.google.domain.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.domain.registry.export.UpdateSnapshotViewAction.SNAPSHOT_DATASET_ID_PARAM;
+import static com.google.domain.registry.export.UpdateSnapshotViewAction.SNAPSHOT_KIND_PARAM;
+import static com.google.domain.registry.export.UpdateSnapshotViewAction.SNAPSHOT_TABLE_ID_PARAM;
 import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,7 +32,6 @@ import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.domain.registry.bigquery.BigqueryFactory;
 import com.google.domain.registry.config.TestRegistryConfig;
 import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.InjectRule;
 import com.google.domain.registry.testing.RegistryConfigRule;
 import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
 
@@ -44,19 +43,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-/** Unit tests for {@link UpdateSnapshotViewServlet}. */
+/** Unit tests for {@link UpdateSnapshotViewAction}. */
 @RunWith(MockitoJUnitRunner.class)
-public class UpdateSnapshotViewServletTest {
-
-  @Rule
-  public final InjectRule inject = new InjectRule();
+public class UpdateSnapshotViewActionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -73,12 +62,6 @@ public class UpdateSnapshotViewServletTest {
       return "testdataset";
     }
   });
-
-  @Mock
-  private HttpServletRequest req;
-
-  @Mock
-  private HttpServletResponse rsp;
 
   @Mock
   private BigqueryFactory bigqueryFactory;
@@ -98,52 +81,42 @@ public class UpdateSnapshotViewServletTest {
   @Mock
   private Bigquery.Tables.Update bigqueryTablesUpdate;
 
-  private final StringWriter httpOutput = new StringWriter();
-  private final UpdateSnapshotViewServlet servlet = new UpdateSnapshotViewServlet();
+  private UpdateSnapshotViewAction action;
 
   @Before
   public void before() throws Exception {
-    inject.setStaticField(UpdateSnapshotViewServlet.class, "bigqueryFactory", bigqueryFactory);
     when(bigqueryFactory.create(anyString(), anyString())).thenReturn(bigquery);
-
-    when(req.getMethod()).thenReturn("POST");
-    when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
-
     when(bigquery.datasets()).thenReturn(bigqueryDatasets);
     when(bigqueryDatasets.insert(eq("Project-Id"), any(Dataset.class)))
         .thenReturn(bigqueryDatasetsInsert);
-
     when(bigquery.tables()).thenReturn(bigqueryTables);
     when(bigqueryTables.update(
             eq("Project-Id"), any(String.class), any(String.class), any(Table.class)))
         .thenReturn(bigqueryTablesUpdate);
 
-    servlet.init(mock(ServletConfig.class));
+    action = new UpdateSnapshotViewAction();
+    action.bigqueryFactory = bigqueryFactory;
+    action.datasetId = "some_dataset";
+    action.tableId = "12345_fookind";
+    action.kindName = "fookind";
   }
 
   @Test
   public void testSuccess_createViewUpdateTask() throws Exception {
     QueueFactory.getDefaultQueue().add(
-        UpdateSnapshotViewServlet.createViewUpdateTask("some_dataset", "12345_fookind", "fookind"));
+        UpdateSnapshotViewAction.createViewUpdateTask("some_dataset", "12345_fookind", "fookind"));
     assertTasksEnqueued("default",
         new TaskMatcher()
-            .url(UpdateSnapshotViewServlet.PATH)
+            .url(UpdateSnapshotViewAction.PATH)
             .method("POST")
-            .param(UpdateSnapshotViewServlet.SNAPSHOT_DATASET_ID_PARAM, "some_dataset")
-            .param(UpdateSnapshotViewServlet.SNAPSHOT_TABLE_ID_PARAM, "12345_fookind")
-            .param(UpdateSnapshotViewServlet.SNAPSHOT_KIND_PARAM, "fookind"));
+            .param(SNAPSHOT_DATASET_ID_PARAM, "some_dataset")
+            .param(SNAPSHOT_TABLE_ID_PARAM, "12345_fookind")
+            .param(SNAPSHOT_KIND_PARAM, "fookind"));
   }
 
   @Test
   public void testSuccess_doPost() throws Exception {
-    when(req.getParameter(UpdateSnapshotViewServlet.SNAPSHOT_DATASET_ID_PARAM))
-        .thenReturn("some_dataset");
-    when(req.getParameter(UpdateSnapshotViewServlet.SNAPSHOT_TABLE_ID_PARAM))
-        .thenReturn("12345_fookind");
-    when(req.getParameter(UpdateSnapshotViewServlet.SNAPSHOT_KIND_PARAM))
-        .thenReturn("fookind");
-
-    servlet.service(req, rsp);
+    action.run();
 
     // Check that we updated the view.
     ArgumentCaptor<Table> tableArg = ArgumentCaptor.forClass(Table.class);
@@ -151,35 +124,5 @@ public class UpdateSnapshotViewServletTest {
         eq("Project-Id"), eq("testdataset"), eq("fookind"), tableArg.capture());
     assertThat(tableArg.getValue().getView().getQuery())
         .isEqualTo("SELECT * FROM [some_dataset.12345_fookind]");
-
-    verify(rsp).setStatus(SC_OK);
-  }
-
-  @Test
-  public void testFailure_doPost_missingDatasetIdHeader() throws Exception {
-    when(req.getParameter(UpdateSnapshotViewServlet.SNAPSHOT_TABLE_ID_PARAM))
-        .thenReturn("12345_fookind");
-    when(req.getParameter(UpdateSnapshotViewServlet.SNAPSHOT_KIND_PARAM)).thenReturn("fookind");
-    servlet.service(req, rsp);
-    verify(rsp).sendError(SC_BAD_REQUEST, "Missing required parameter: dataset");
-  }
-
-  @Test
-  public void testFailure_doPost_missingTableIdHeader() throws Exception {
-    when(req.getParameter(UpdateSnapshotViewServlet.SNAPSHOT_DATASET_ID_PARAM))
-        .thenReturn("some_dataset");
-    when(req.getParameter(UpdateSnapshotViewServlet.SNAPSHOT_KIND_PARAM)).thenReturn("fookind");
-    servlet.service(req, rsp);
-    verify(rsp).sendError(SC_BAD_REQUEST, "Missing required parameter: table");
-  }
-
-  @Test
-  public void testFailure_doPost_missingKindHeader() throws Exception {
-    when(req.getParameter(UpdateSnapshotViewServlet.SNAPSHOT_DATASET_ID_PARAM))
-        .thenReturn("some_dataset");
-    when(req.getParameter(UpdateSnapshotViewServlet.SNAPSHOT_TABLE_ID_PARAM))
-        .thenReturn("12345_fookind");
-    servlet.service(req, rsp);
-    verify(rsp).sendError(SC_BAD_REQUEST, "Missing required parameter: kind");
   }
 }
