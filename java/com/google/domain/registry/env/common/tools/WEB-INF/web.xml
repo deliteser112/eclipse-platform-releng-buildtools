@@ -94,6 +94,12 @@
     <url-pattern>/_dr/task/countRecurringBillingEvents</url-pattern>
   </servlet-mapping>
 
+  <!--  Mapreduce to backfill new autorenew flag on recurring billing events. -->
+  <servlet-mapping>
+    <servlet-name>tools-servlet</servlet-name>
+    <url-pattern>/_dr/task/backfillAutorenewBillingFlag</url-pattern>
+  </servlet-mapping>
+
   <!-- This path serves up the App Engine results page for mapreduce runs. -->
   <servlet>
     <servlet-name>mapreduce</servlet-name>

@@ -37,6 +37,7 @@ import com.google.domain.registry.tools.server.ResaveAllEppResourcesAction;
 import com.google.domain.registry.tools.server.ToolsServerModule;
 import com.google.domain.registry.tools.server.UpdatePremiumListAction;
 import com.google.domain.registry.tools.server.VerifyOteAction;
+import com.google.domain.registry.tools.server.javascrap.BackfillAutorenewBillingFlagAction;
 import com.google.domain.registry.tools.server.javascrap.CountRecurringBillingEventsAction;
 
 import dagger.Subcomponent;
@@ -51,6 +52,7 @@ import dagger.Subcomponent;
         ToolsServerModule.class,
     })
 interface ToolsRequestComponent {
+  BackfillAutorenewBillingFlagAction backfillAutorenewBillingFlagAction();
   CountRecurringBillingEventsAction countRecurringBillingEventsAction();
   CreateGroupsAction createGroupsAction();
   CreatePremiumListAction createPremiumListAction();
