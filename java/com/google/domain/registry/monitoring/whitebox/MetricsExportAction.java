@@ -14,7 +14,11 @@
 
 package com.google.domain.registry.monitoring.whitebox;
 
-import static com.google.domain.registry.util.HttpServletUtils.getRequiredParameterValue;
+import static com.google.common.base.Predicates.in;
+import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.Multimaps.filterKeys;
+import static com.google.domain.registry.request.Action.Method.POST;
+import static com.google.domain.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.TableDataInsertAllRequest;
@@ -24,69 +28,58 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.config.RegistryEnvironment;
+import com.google.domain.registry.config.ConfigModule.Config;
+import com.google.domain.registry.request.Action;
+import com.google.domain.registry.request.Parameter;
+import com.google.domain.registry.request.ParameterMap;
 import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.inject.Inject;
 
-/** Servlet for exporting metrics to BigQuery. */
-public class MetricsTaskServlet extends HttpServlet {
+/** Action for exporting metrics to BigQuery. */
+@Action(path = MetricsExportAction.PATH, method = POST)
+public class MetricsExportAction implements Runnable {
 
   public static final String PATH = "/_dr/task/metrics";
-
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FormattingLogger logger = getLoggerForCallerClass();
   private static final String DATASET_ID = "metrics";
-  private static final String PROJECT_ID = RegistryEnvironment.get().config().getProjectId();
-
   private static final Set<String> SPECIAL_PARAMS = ImmutableSet.of("tableId", "insertId");
 
-  @NonFinalForTesting
-  private static BigqueryFactory bigqueryFactory = new BigqueryFactory();
-
-  /** Returns a filtered {@link ImmutableMap} from an {@link HttpServletRequest} */
-  private static ImmutableMap<String, Object> getFilteredMapFromRequest(
-      HttpServletRequest req,
-      Set<String> filter) {
-    ImmutableMap.Builder<String, Object> b = new ImmutableMap.Builder<>();
-
-    @SuppressWarnings({"cast", "unchecked"})  // Return type is always a Set<String>.
-    Set<String> parameterKeys = req.getParameterMap().keySet();
-
-    for (String key : Sets.difference(parameterKeys, filter)) {
-      b.put(key, req.getParameter(key));
-    }
-
-    return b.build();
-  }
+  @Inject @Parameter("tableId") String tableId;
+  @Inject @Parameter("insertId") String insertId;
+  @Inject @Config("projectId") String projectId;
+  @Inject BigqueryFactory bigqueryFactory;
+  @Inject @ParameterMap ImmutableListMultimap<String, String> parameters;
+  @Inject MetricsExportAction() {}
 
   /** Exports metrics to BigQuery. */
   @Override
-  public void doPost(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+  public void run() {
     try {
-      final String tableId = getRequiredParameterValue(req, "tableId");
-      ImmutableMap<String, Object> fields = getFilteredMapFromRequest(req, SPECIAL_PARAMS);
-      Bigquery bigquery = bigqueryFactory.create(PROJECT_ID, DATASET_ID, tableId);
-
+      Bigquery bigquery = bigqueryFactory.create(projectId, DATASET_ID, tableId);
+      // Filter out the special parameters that the Action is called with.  Everything that's left
+      // is returned in a Map that is suitable to pass to Bigquery as row data.
+      Map<String, Object> jsonRows =
+          ImmutableMap.<String, Object>copyOf(
+              filterKeys(parameters, not(in(SPECIAL_PARAMS))).entries());
       TableDataInsertAllResponse response = bigquery.tabledata()
           .insertAll(
-              PROJECT_ID,
+              projectId,
               DATASET_ID,
               tableId,
               new TableDataInsertAllRequest()
                   .setRows(
                       ImmutableList.of(new TableDataInsertAllRequest.Rows()
-                          .setInsertId(req.getParameter("insertId"))
-                          .setJson(fields))))
+                          .setInsertId(insertId)
+                          .setJson(jsonRows))))
           .execute();
 
       if (response.getInsertErrors() != null && !response.getInsertErrors().isEmpty()) {

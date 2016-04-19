@@ -17,6 +17,7 @@ package com.google.domain.registry.monitoring.whitebox;
 import com.google.domain.registry.bigquery.BigqueryModule;
 import com.google.domain.registry.config.ConfigModule;
 import com.google.domain.registry.request.Modules.DatastoreServiceModule;
+import com.google.domain.registry.util.SystemSleeper.SystemSleeperModule;
 
 import dagger.Component;
 
@@ -29,6 +30,7 @@ import javax.inject.Singleton;
         BigqueryModule.class,
         ConfigModule.class,
         DatastoreServiceModule.class,
+        SystemSleeperModule.class,
         WhiteboxModule.class
     })
 interface WhiteboxComponent {

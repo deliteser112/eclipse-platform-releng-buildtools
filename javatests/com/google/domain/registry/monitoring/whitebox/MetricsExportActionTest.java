@@ -14,6 +14,7 @@
 
 package com.google.domain.registry.monitoring.whitebox;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,10 +29,9 @@ import com.google.api.services.bigquery.model.TableDataInsertAllRequest;
 import com.google.api.services.bigquery.model.TableDataInsertAllResponse;
 import com.google.api.services.bigquery.model.TableDataInsertAllResponse.InsertErrors;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.domain.registry.bigquery.BigqueryFactory;
 import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.InjectRule;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,17 +42,9 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-/** Unit tests for {@link MetricsTaskServlet}. */
+/** Unit tests for {@link MetricsExportAction}. */
 @RunWith(MockitoJUnitRunner.class)
-public class MetricsTaskServletTest {
+public class MetricsExportActionTest {
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -62,9 +54,6 @@ public class MetricsTaskServletTest {
       .withDatastore()
       .withTaskQueue()
       .build();
-
-  @Rule
-  public final InjectRule inject = new InjectRule();
 
   @Mock
   BigqueryFactory bigqueryFactory;
@@ -78,42 +67,23 @@ public class MetricsTaskServletTest {
   @Mock
   InsertAll insertAll;
 
-  @Mock
-  private HttpServletRequest req;
+  private TableDataInsertAllResponse response = new TableDataInsertAllResponse();
+  private long currentTimeMillis = 1000000000000L;
 
-  @Mock
-  private HttpServletResponse rsp;
+  private ImmutableListMultimap<String, String> parameters =
+      new ImmutableListMultimap.Builder<String, String>()
+          .put("startTime", String.valueOf(MILLISECONDS.toSeconds(currentTimeMillis - 100)))
+          .put("endTime", String.valueOf(MILLISECONDS.toSeconds(currentTimeMillis)))
+          .put("jobname", "test job")
+          .put("status", "success")
+          .put("tld", "test")
+          .build();
 
-  private final StringWriter httpOutput = new StringWriter();
-
-  TableDataInsertAllResponse response = new TableDataInsertAllResponse();
-  long currentTimeMillis = 1000000000000L;
-
-  Map<String, Object> params = new ImmutableMap.Builder<String, Object>()
-      .put("tableId", "eppMetrics")
-      .put("insertId", "insert id")
-      .put("startTime", String.valueOf(TimeUnit.MILLISECONDS.toSeconds(currentTimeMillis - 100)))
-      .put("endTime", String.valueOf(TimeUnit.MILLISECONDS.toSeconds(currentTimeMillis)))
-      .put("jobname", "test job")
-      .put("status", "success")
-      .put("tld",  "test").build();
-
-  MetricsTaskServlet servlet;
+  MetricsExportAction action;
 
   @Before
   public void setup() throws Exception {
-    when(req.getMethod()).thenReturn("POST");
-    when(req.getParameterMap()).thenReturn(params);
-
-    for (String key : params.keySet()) {
-      when(req.getParameter(key)).thenReturn((String) params.get(key));
-    }
-
-    when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
-
-    inject.setStaticField(MetricsTaskServlet.class, "bigqueryFactory", bigqueryFactory);
-    when(bigqueryFactory.create(anyString(), anyString(), anyString()))
-        .thenReturn(bigquery);
+    when(bigqueryFactory.create(anyString(), anyString(), anyString())).thenReturn(bigquery);
     when(bigqueryFactory.create(
         anyString(),
         Matchers.any(HttpTransport.class),
@@ -127,14 +97,19 @@ public class MetricsTaskServletTest {
         anyString(),
         anyString(),
         Matchers.any(TableDataInsertAllRequest.class))).thenReturn(insertAll);
-    servlet = new MetricsTaskServlet();
+    action = new MetricsExportAction();
+    action.bigqueryFactory = bigqueryFactory;
+    action.insertId = "insert id";
+    action.parameters = parameters;
+    action.projectId = "project id";
+    action.tableId = "eppMetrics";
   }
 
   @Test
   public void testSuccess_nullErrors() throws Exception {
     when(insertAll.execute()).thenReturn(response);
     response.setInsertErrors(null);
-    servlet.service(req, rsp);
+    action.run();
     verify(insertAll).execute();
   }
 
@@ -142,7 +117,7 @@ public class MetricsTaskServletTest {
   public void testSuccess_emptyErrors() throws Exception {
     when(insertAll.execute()).thenReturn(response);
     response.setInsertErrors(ImmutableList.<InsertErrors>of());
-    servlet.service(req, rsp);
+    action.run();
     verify(insertAll).execute();
   }
 
@@ -150,6 +125,6 @@ public class MetricsTaskServletTest {
   public void testFailure_errors() throws Exception {
     when(insertAll.execute()).thenReturn(response);
     response.setInsertErrors(ImmutableList.of(new InsertErrors()));
-    servlet.service(req, rsp);
+    action.run();
   }
 }

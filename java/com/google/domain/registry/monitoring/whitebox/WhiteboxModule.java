@@ -14,20 +14,35 @@
 
 package com.google.domain.registry.monitoring.whitebox;
 
+import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
+
 import com.google.common.base.Supplier;
-import com.google.domain.registry.util.Sleeper;
-import com.google.domain.registry.util.SystemSleeper;
+import com.google.domain.registry.request.Parameter;
 
 import dagger.Module;
 import dagger.Provides;
 
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * Dagger module for injecting common settings for Whitebox tasks.
  */
 @Module
 public class WhiteboxModule {
+
+  @Provides
+  @Parameter("tableId")
+  static String provideTableId(HttpServletRequest req) {
+    return extractRequiredParameter(req, "tableId");
+  }
+
+  @Provides
+  @Parameter("insertId")
+  static String provideInsertId(HttpServletRequest req) {
+    return extractRequiredParameter(req, "insertId");
+  }
 
   @Provides
   static Supplier<String> provideIdGenerator() {
@@ -37,10 +52,5 @@ public class WhiteboxModule {
         return UUID.randomUUID().toString();
       }
     };
-  }
-
-  @Provides
-  static Sleeper provideSleeper(SystemSleeper systemSleeper) {
-    return systemSleeper;
   }
 }

@@ -40,7 +40,9 @@ import com.google.domain.registry.flows.async.DeleteContactResourceAction;
 import com.google.domain.registry.flows.async.DeleteHostResourceAction;
 import com.google.domain.registry.flows.async.DnsRefreshForHostRenameAction;
 import com.google.domain.registry.mapreduce.MapreduceModule;
+import com.google.domain.registry.monitoring.whitebox.MetricsExportAction;
 import com.google.domain.registry.monitoring.whitebox.VerifyEntityIntegrityAction;
+import com.google.domain.registry.monitoring.whitebox.WhiteboxModule;
 import com.google.domain.registry.rde.BrdaCopyAction;
 import com.google.domain.registry.rde.RdeModule;
 import com.google.domain.registry.rde.RdeReportAction;
@@ -73,6 +75,7 @@ import dagger.Subcomponent;
         RequestModule.class,
         SheetModule.class,
         TmchModule.class,
+        WhiteboxModule.class,
     })
 interface BackendRequestComponent {
   BigqueryPollJobAction bigqueryPollJobAction();
@@ -86,6 +89,7 @@ interface BackendRequestComponent {
   ExportCommitLogDiffAction exportCommitLogDiffAction();
   ExportDomainListsAction exportDomainListsAction();
   ExportReservedTermsAction exportReservedTermsAction();
+  MetricsExportAction metricsExportAction();
   NordnUploadAction nordnUploadAction();
   NordnVerifyAction nordnVerifyAction();
   PublishDnsUpdatesAction publishDnsUpdatesAction();

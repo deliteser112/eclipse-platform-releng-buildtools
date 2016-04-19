@@ -29,7 +29,10 @@ public final class HttpServletUtils {
   /**
    * Returns the value of the given request's first {@code name} parameter, or throws
    * {@code IllegalArgumentException} if the parameter is not present.
+   *
+   * @deprecated in favor of <code>RequestParameters.extractRequiredParameter</code>
    */
+  @Deprecated
   public static String getRequiredParameterValue(HttpServletRequest req, String name) {
     return checkArgumentNotNull(req.getParameter(name), "Missing required parameter: %s", name);
   }

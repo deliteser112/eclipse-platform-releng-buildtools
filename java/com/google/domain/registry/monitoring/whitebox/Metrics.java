@@ -66,7 +66,7 @@ public abstract class Metrics {
   public void export() {
     try {
       String hostname = modulesService.getVersionHostname("backend", null);
-      TaskOptions opts = withUrl(MetricsTaskServlet.PATH)
+      TaskOptions opts = withUrl(MetricsExportAction.PATH)
           .header("Host", hostname)
           .param("insertId", idGenerator.get())
           .param("startTime", toBigqueryTimestamp(startTimeMillis, TimeUnit.MILLISECONDS))
