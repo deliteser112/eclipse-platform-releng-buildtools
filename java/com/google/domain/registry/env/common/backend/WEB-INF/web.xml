@@ -197,12 +197,6 @@
     <url-pattern>/_dr/task/exportCommitLogDiff</url-pattern>
   </servlet-mapping>
 
-  <!-- Deletes EppResources, children, and indices. -->
-  <servlet-mapping>
-    <servlet-name>backend-servlet</servlet-name>
-    <url-pattern>/_dr/task/killAllEppResources</url-pattern>
-  </servlet-mapping>
-
   <!-- Restores commit logs. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>

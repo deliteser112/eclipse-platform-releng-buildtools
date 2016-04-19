@@ -100,6 +100,18 @@
     <url-pattern>/_dr/task/backfillAutorenewBillingFlag</url-pattern>
   </servlet-mapping>
 
+  <!-- Mapreduce to delete EppResources, children, and indices. -->
+  <servlet-mapping>
+    <servlet-name>tools-servlet</servlet-name>
+    <url-pattern>/_dr/task/killAllEppResources</url-pattern>
+  </servlet-mapping>
+
+  <!-- Mapreduce to delete all commit logs. -->
+  <servlet-mapping>
+    <servlet-name>tools-servlet</servlet-name>
+    <url-pattern>/_dr/task/killAllCommitLogs</url-pattern>
+  </servlet-mapping>
+
   <!-- This path serves up the App Engine results page for mapreduce runs. -->
   <servlet>
     <servlet-name>mapreduce</servlet-name>

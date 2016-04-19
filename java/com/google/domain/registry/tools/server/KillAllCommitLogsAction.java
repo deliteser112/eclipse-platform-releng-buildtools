@@ -15,7 +15,6 @@
 package com.google.domain.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Iterables.partition;
 import static com.google.common.collect.Lists.partition;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import static com.google.domain.registry.request.Action.Method.POST;
@@ -33,25 +32,12 @@ import com.google.domain.registry.request.Action;
 import com.google.domain.registry.request.Response;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
-
-import java.util.List;
 
 import javax.inject.Inject;
 
-/**
- * Deletes all commit logs in datastore.
- *
- * <p>Before running this, use the datastore admin page to delete all {@code CommitLogManifest} and
- * {@code CommitLogMutation} entities. That will take care of most (likely all) commit log entities
- * (except perhaps for very recently created entities that are missed by the eventually consistent
- * query driving that deletion) and it will be much faster than this mapreduce. After that, run this
- * to get a guarantee that everything was deleted.
- */
+/** Deletes all commit logs in datastore. */
 @Action(path = "/_dr/task/killAllCommitLogs", method = POST)
 public class KillAllCommitLogsAction implements MapreduceAction {
-
-  private static final int BATCH_SIZE = 100;
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
@@ -60,16 +46,19 @@ public class KillAllCommitLogsAction implements MapreduceAction {
   @Override
   public void run() {
     checkArgument( // safety
-        RegistryEnvironment.get() == RegistryEnvironment.ALPHA
+        RegistryEnvironment.get() == RegistryEnvironment.CRASH
             || RegistryEnvironment.get() == RegistryEnvironment.UNITTEST,
-        "DO NOT RUN ANYWHERE ELSE EXCEPT ALPHA OR TESTS.");
+        "DO NOT RUN ANYWHERE ELSE EXCEPT CRASH OR TESTS.");
     // Create a in-memory input, assigning each bucket to its own shard for maximum parallelization.
     Input<Key<CommitLogBucket>> input =
         new InMemoryInput<>(partition(CommitLogBucket.getAllBucketKeys().asList(), 1));
     response.sendJavaScriptRedirect(createJobPath(mrRunner
         .setJobName("Delete all commit logs")
         .setModuleName("tools")
-        .runMapOnly(new KillAllCommitLogsMapper(), ImmutableList.of(input))));
+        .runMapreduce(
+            new KillAllCommitLogsMapper(),
+            new KillAllEntitiesReducer(),
+            ImmutableList.of(input))));
   }
 
   /**
@@ -82,24 +71,17 @@ public class KillAllCommitLogsAction implements MapreduceAction {
    *   <li>{@code CommitLogMutation}
    * </ul>
    */
-  static class KillAllCommitLogsMapper extends Mapper<Key<CommitLogBucket>, Void, Void> {
+  static class KillAllCommitLogsMapper extends Mapper<Key<CommitLogBucket>, Key<?>, Key<?>> {
 
     private static final long serialVersionUID = 1504266335352952033L;
 
     @Override
     public void map(Key<CommitLogBucket> bucket) {
-      // The query on the bucket could time out, but we are not worried about that because of the
-      // procedure outlined above.
-      for (final List<Key<Object>> batch
-          : partition(ofy().load().ancestor(bucket).keys(), BATCH_SIZE)) {
-        ofy().transact(new VoidWork() {
-          @Override
-          public void vrun() {
-            ofy().deleteWithoutBackup().entities(batch);
-          }});
-        getContext().incrementCounter("deleted entities", batch.size());
-      }
-      getContext().incrementCounter("completed buckets");
+      for (Key<Object> key : ofy().load().ancestor(bucket).keys()) {
+        emit(bucket, key);
+        getContext().incrementCounter("entities emitted");
+        getContext().incrementCounter(String.format("%s emitted", key.getKind()));
+     }
     }
   }
 }

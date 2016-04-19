@@ -15,7 +15,6 @@
 package com.google.domain.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Iterables.partition;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import static com.google.domain.registry.request.Action.Method.POST;
 import static com.google.domain.registry.util.PipelineUtils.createJobPath;
@@ -35,17 +34,13 @@ import com.google.domain.registry.request.Action;
 import com.google.domain.registry.request.Response;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
-
-import java.util.List;
+import com.googlecode.objectify.Work;
 
 import javax.inject.Inject;
 
 /** Deletes all {@link EppResource} objects in datastore, including indices and descendants. */
 @Action(path = "/_dr/task/killAllEppResources", method = POST)
 public class KillAllEppResourcesAction implements MapreduceAction {
-
-  private static final int BATCH_SIZE = 100;
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
@@ -54,20 +49,21 @@ public class KillAllEppResourcesAction implements MapreduceAction {
   @Override
   public void run() {
     checkArgument( // safety
-        RegistryEnvironment.get() == RegistryEnvironment.ALPHA
+        RegistryEnvironment.get() == RegistryEnvironment.CRASH
             || RegistryEnvironment.get() == RegistryEnvironment.UNITTEST,
-        "DO NOT RUN ANYWHERE ELSE EXCEPT ALPHA OR TESTS.");
+        "DO NOT RUN ANYWHERE ELSE EXCEPT CRASH OR TESTS.");
     response.sendJavaScriptRedirect(createJobPath(mrRunner
         .setJobName("Delete all EppResources, children, and indices")
         .setModuleName("tools")
-        .runMapOnly(
+        .runMapreduce(
             new KillAllEppResourcesMapper(),
+            new KillAllEntitiesReducer(),
             ImmutableList.of(EppResourceInputs.createIndexInput()))));
   }
 
-  static class KillAllEppResourcesMapper extends Mapper<EppResourceIndex, Void, Void> {
+  static class KillAllEppResourcesMapper extends Mapper<EppResourceIndex, Key<?>, Key<?>> {
 
-    private static final long serialVersionUID = 103826288518612669L;
+    private static final long serialVersionUID = 8205309000002507407L;
 
     /**
      * Delete an {@link EppResourceIndex}, its referent, all descendants of each referent, and the
@@ -86,25 +82,31 @@ public class KillAllEppResourcesAction implements MapreduceAction {
      */
     @Override
     public void map(final EppResourceIndex eri) {
-      EppResource resource = eri.getReference().get();
-      for (final List<Key<Object>> batch
-          : partition(ofy().load().ancestor(resource).keys(), BATCH_SIZE)) {
-        ofy().transact(new VoidWork() {
-          @Override
-          public void vrun() {
-            ofy().deleteWithoutBackup().entities(batch);
-          }});
-        getContext().incrementCounter("deleted descendants", batch.size());
+      Key<EppResourceIndex> eriKey = Key.create(eri);
+      emitAndIncrementCounter(eriKey, eriKey);
+      Key<?> resourceKey = eri.getReference().getKey();
+      for (Key<Object> key : ofy().load().ancestor(resourceKey).keys()) {
+        emitAndIncrementCounter(resourceKey, key);
       }
-      final Key<?> foreignKey = resource instanceof DomainApplication
+      // Load in a transaction to make sure we don't get stale data (in case of host renames).
+      // TODO(b/27424173): A transaction is overkill. When we have memcache-skipping, use that.
+      EppResource resource = ofy().transactNewReadOnly(
+          new Work<EppResource>() {
+            @Override
+            public EppResource run() {
+              return eri.getReference().get();
+            }});
+      // TODO(b/28247733): What about FKI's for renamed hosts?
+      Key<?> indexKey = resource instanceof DomainApplication
           ? DomainApplicationIndex.createKey((DomainApplication) resource)
           : ForeignKeyIndex.createKey(resource);
-      ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          ofy().deleteWithoutBackup().keys(Key.create(eri), foreignKey).now();
-        }});
-      getContext().incrementCounter("deleted eris");
+      emitAndIncrementCounter(indexKey, indexKey);
+    }
+
+    private void emitAndIncrementCounter(Key<?> ancestor, Key<?> child) {
+      emit(ancestor, child);
+      getContext().incrementCounter("entities emitted");
+      getContext().incrementCounter(String.format("%s emitted", child.getKind()));
     }
   }
 }
