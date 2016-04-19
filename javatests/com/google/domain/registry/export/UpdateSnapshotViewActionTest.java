@@ -31,7 +31,9 @@ import com.google.api.services.bigquery.model.Table;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.domain.registry.bigquery.BigqueryFactory;
 import com.google.domain.registry.config.TestRegistryConfig;
+import com.google.domain.registry.request.HttpException.InternalServerErrorException;
 import com.google.domain.registry.testing.AppEngineRule;
+import com.google.domain.registry.testing.ExceptionRule;
 import com.google.domain.registry.testing.RegistryConfigRule;
 import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
 
@@ -43,6 +45,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.io.IOException;
+
 /** Unit tests for {@link UpdateSnapshotViewAction}. */
 @RunWith(MockitoJUnitRunner.class)
 public class UpdateSnapshotViewActionTest {
@@ -51,6 +55,9 @@ public class UpdateSnapshotViewActionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withTaskQueue()
       .build();
+
+  @Rule
+  public final ExceptionRule thrown = new ExceptionRule();
 
   @Rule
   public final RegistryConfigRule configRule = new RegistryConfigRule(new TestRegistryConfig() {
@@ -91,7 +98,7 @@ public class UpdateSnapshotViewActionTest {
         .thenReturn(bigqueryDatasetsInsert);
     when(bigquery.tables()).thenReturn(bigqueryTables);
     when(bigqueryTables.update(
-            eq("Project-Id"), any(String.class), any(String.class), any(Table.class)))
+            eq("Project-Id"), anyString(), anyString(), any(Table.class)))
         .thenReturn(bigqueryTablesUpdate);
 
     action = new UpdateSnapshotViewAction();
@@ -124,5 +131,13 @@ public class UpdateSnapshotViewActionTest {
         eq("Project-Id"), eq("testdataset"), eq("fookind"), tableArg.capture());
     assertThat(tableArg.getValue().getView().getQuery())
         .isEqualTo("SELECT * FROM [some_dataset.12345_fookind]");
+  }
+
+  @Test
+  public void testFailure_bigqueryConnectionThrowsError() throws Exception {
+    when(bigqueryTables.update(anyString(), anyString(), anyString(), any(Table.class)))
+        .thenThrow(new IOException("I'm sorry Dave, I can't let you do that"));
+    thrown.expect(InternalServerErrorException.class, "Error in update snapshot view action");
+    action.run();
   }
 }

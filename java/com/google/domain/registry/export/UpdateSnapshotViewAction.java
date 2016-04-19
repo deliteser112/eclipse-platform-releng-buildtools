@@ -25,6 +25,7 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.domain.registry.bigquery.BigqueryFactory;
 import com.google.domain.registry.config.RegistryEnvironment;
 import com.google.domain.registry.request.Action;
+import com.google.domain.registry.request.HttpException.InternalServerErrorException;
 import com.google.domain.registry.request.Parameter;
 import com.google.domain.registry.util.FormattingLogger;
 import com.google.domain.registry.util.SqlTemplate;
@@ -71,7 +72,8 @@ public class UpdateSnapshotViewAction implements Runnable {
     try {
       updateSnapshotView(datasetId, tableId, kindName);
     } catch (Throwable e) {
-      throw new RuntimeException("Error in update snapshot view action.", e);
+      logger.severefmt(e, "Could not update snapshot view for table %s", tableId);
+      throw new InternalServerErrorException("Error in update snapshot view action");
     }
   }
 
