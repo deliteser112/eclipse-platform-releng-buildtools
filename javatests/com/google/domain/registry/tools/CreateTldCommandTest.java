@@ -165,6 +165,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--create_billing_cost=\"JPY 12345\"",
         "--restore_billing_cost=\"JPY 67890\"",
         "--initial_renew_billing_cost=\"JPY 101112\"",
+        "--server_status_change_cost=\"JPY 97865\"",
         "--roid_suffix=Q9JYB4C",
         "xn--q9jyb4c");
     Registry registry = Registry.get("xn--q9jyb4c");

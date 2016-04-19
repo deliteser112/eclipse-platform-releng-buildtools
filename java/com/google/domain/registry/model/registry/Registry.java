@@ -657,7 +657,7 @@ public class Registry extends BackupGroupRoot implements Buildable {
     }
 
     public Builder setCreateBillingCost(Money amount) {
-      checkArgument(amount.isPositiveOrZero(), "billing costs must be non-negative");
+      checkArgument(amount.isPositiveOrZero(), "create billing cost cannot be negative");
       getInstance().createBillingCost = amount;
       return this;
     }
@@ -698,7 +698,7 @@ public class Registry extends BackupGroupRoot implements Buildable {
     }
 
     public Builder setRestoreBillingCost(Money amount) {
-      checkArgument(amount.isPositiveOrZero(), "billing costs must be non-negative");
+      checkArgument(amount.isPositiveOrZero(), "restore billing cost cannot be negative");
       getInstance().restoreBillingCost = amount;
       return this;
     }
@@ -713,7 +713,7 @@ public class Registry extends BackupGroupRoot implements Buildable {
      */
     public Builder setRenewBillingCostTransitions(
         ImmutableSortedMap<DateTime, Money> renewCostsMap) {
-      checkNotNull(renewCostsMap, "Renew billing costs map cannot be null");
+      checkNotNull(renewCostsMap, "renew billing costs map cannot be null");
       checkArgument(Iterables.all(
           renewCostsMap.values(),
           new Predicate<Money>() {
@@ -721,7 +721,7 @@ public class Registry extends BackupGroupRoot implements Buildable {
             public boolean apply(Money amount) {
               return amount.isPositiveOrZero();
             }}),
-          "Renew billing costs cannot be negative");
+          "renew billing cost cannot be negative");
       getInstance().renewBillingCostTransitions =
           TimedTransitionProperty.fromValueMap(renewCostsMap, BillingCostTransition.class);
       return this;
@@ -733,7 +733,8 @@ public class Registry extends BackupGroupRoot implements Buildable {
     }
 
     public Builder setServerStatusChangeBillingCost(Money amount) {
-      checkArgument(amount.isPositiveOrZero(), "billing costs must be non-negative");
+      checkArgument(
+          amount.isPositiveOrZero(), "server status change billing cost cannot be negative");
       getInstance().serverStatusChangeBillingCost = amount;
       return this;
     }
@@ -786,6 +787,9 @@ public class Registry extends BackupGroupRoot implements Buildable {
           instance.getStandardRestoreCost().getCurrencyUnit().equals(instance.currency),
           "Restore cost must be in the registry's currency");
       checkArgument(
+          instance.getServerStatusChangeCost().getCurrencyUnit().equals(instance.currency),
+          "Server status change cost must be in the registry's currency");
+      checkArgument(
           Iterables.all(
               instance.getRenewBillingCostTransitions().values(),
               new Predicate<Money>(){
@@ -793,7 +797,7 @@ public class Registry extends BackupGroupRoot implements Buildable {
                 public boolean apply(Money money) {
                   return money.getCurrencyUnit().equals(instance.currency);
                 }}),
-          "Renew costs must be in the registry's currency");
+          "Renew cost must be in the registry's currency");
       instance.tldStrId = tldName;
       instance.tldUnicode = Idn.toUnicode(tldName);
       return super.build();

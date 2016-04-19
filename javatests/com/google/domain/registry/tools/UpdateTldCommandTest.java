@@ -215,11 +215,13 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
             .setRestoreBillingCost(Money.ofMajor(JPY, 1))
             .setRenewBillingCostTransitions(
                 ImmutableSortedMap.of(START_OF_TIME, Money.ofMajor(JPY, 1)))
+            .setServerStatusChangeBillingCost(Money.ofMajor(JPY, 1))
             .build());
     runCommandForced(
         "--create_billing_cost=\"JPY 12345\"",
         "--restore_billing_cost=\"JPY 67890\"",
         "--renew_billing_cost_transitions=\"0=JPY 101112\"",
+        "--server_status_change_cost=\"JPY 97865\"",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getStandardCreateCost())
         .isEqualTo(Money.ofMajor(JPY, 12345));

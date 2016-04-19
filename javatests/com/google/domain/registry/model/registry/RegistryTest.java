@@ -25,6 +25,7 @@ import static com.google.domain.registry.testing.DatastoreHelper.persistPremiumL
 import static com.google.domain.registry.testing.DatastoreHelper.persistReservedList;
 import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
 import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableSet;
@@ -399,23 +400,54 @@ public class RegistryTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_badRenewBillingCostTransitionValue() {
-    thrown.expect(IllegalArgumentException.class);
+  public void testFailure_negativeRenewBillingCostTransitionValue() {
+    thrown.expect(IllegalArgumentException.class, "billing cost cannot be negative");
     Registry.get("tld").asBuilder()
-        .setRenewBillingCostTransitions(ImmutableSortedMap.of(clock.nowUtc(), Money.of(USD, -42)))
+        .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, -42)));
+  }
+
+  @Test
+  public void testFailure_negativeCreateBillingCost() {
+    thrown.expect(IllegalArgumentException.class, "billing cost cannot be negative");
+    Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, -42));
+  }
+
+  @Test
+  public void testFailure_negativeRestoreBillingCost() {
+    thrown.expect(IllegalArgumentException.class, "billing cost cannot be negative");
+    Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, -42));
+  }
+
+  @Test
+  public void testFailure_negativeServerStatusChangeBillingCost() {
+    thrown.expect(IllegalArgumentException.class, "billing cost cannot be negative");
+    Registry.get("tld").asBuilder().setServerStatusChangeBillingCost(Money.of(USD, -42));
+  }
+
+  @Test
+  public void testFailure_renewBillingCostTransitionValue_wrongCurrency() {
+    thrown.expect(IllegalArgumentException.class, "cost must be in the registry's currency");
+    Registry.get("tld").asBuilder()
+        .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(EUR, 42)))
         .build();
   }
 
   @Test
-  public void testFailure_badCreateBillingCost() {
-    thrown.expect(IllegalArgumentException.class);
-    Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, -42)).build();
+  public void testFailure_createBillingCost_wrongCurrency() {
+    thrown.expect(IllegalArgumentException.class, "cost must be in the registry's currency");
+    Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(EUR, 42)).build();
   }
 
   @Test
-  public void testFailure_badRestoreBillingCost() {
-    thrown.expect(IllegalArgumentException.class);
-    Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, -42)).build();
+  public void testFailure_restoreBillingCost_wrongCurrency() {
+    thrown.expect(IllegalArgumentException.class, "cost must be in the registry's currency");
+    Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(EUR, 42)).build();
+  }
+
+  @Test
+  public void testFailure_serverStatusChangeBillingCost_wrongCurrency() {
+    thrown.expect(IllegalArgumentException.class, "cost must be in the registry's currency");
+    Registry.get("tld").asBuilder().setServerStatusChangeBillingCost(Money.of(EUR, 42)).build();
   }
 
   @Test
