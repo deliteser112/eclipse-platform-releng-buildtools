@@ -72,8 +72,7 @@ public class DatastoreBackupService {
         .param("name", name + "_")  // Add underscore since the name will be used as a prefix.
         .param("filesystem", "gs")
         .param("gs_bucket_name", gcsBucket)
-        .param("queue", queue)
-        .param("run_as_a_service", String.valueOf(true));
+        .param("queue", queue);
     for (String kind : kinds) {
       options.param("kind", kind);
     }

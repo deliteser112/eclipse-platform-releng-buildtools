@@ -96,7 +96,6 @@ public class DatastoreBackupServiceTest {
             .param("filesystem", "gs")
             .param("gs_bucket_name", "somebucket")
             .param("queue", "default")
-            .param("run_as_a_service", "true")
             .param("kind", "foo")
             .param("kind", "bar"));
   }
