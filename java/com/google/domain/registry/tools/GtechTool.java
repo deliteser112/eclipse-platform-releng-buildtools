@@ -54,6 +54,7 @@ public final class GtechTool {
           .put("get_host", GetHostCommand.class)
           .put("get_registrar", GetRegistrarCommand.class)
           .put("get_schema", GetSchemaCommand.class)
+          .put("get_schema_tree", GetSchemaTreeCommand.class)
           .put("get_tld", GetTldCommand.class)
           .put("hash_certificate", HashCertificateCommand.class)
           .put("list_credits", ListCreditsCommand.class)
