@@ -34,6 +34,8 @@ public final class GtechTool {
           .put("convert_idn", ConvertIdnCommand.class)
           .put("create_anchor_tenant", CreateAnchorTenantCommand.class)
           .put("create_contact", CreateContactCommand.class)
+          .put("create_credit", CreateCreditCommand.class)
+          .put("create_credit_balance", CreateCreditBalanceCommand.class)
           .put("create_registrar_groups", CreateRegistrarGroupsCommand.class)
           .put("create_registrar", CreateRegistrarCommand.class)
           .put("create_sandbox_tld", CreateSandboxTldCommand.class)

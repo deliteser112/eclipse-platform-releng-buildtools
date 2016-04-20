@@ -35,8 +35,6 @@ public final class RegistryTool {
           .put("allocate_domain", AllocateDomainCommand.class)
           .put("check_snapshot", CheckSnapshotCommand.class)
           .put("create_auction_credits", CreateAuctionCreditsCommand.class)
-          .put("create_credit", CreateCreditCommand.class)
-          .put("create_credit_balance", CreateCreditBalanceCommand.class)
           .put("create_premium_list", CreatePremiumListCommand.class)
           .put("create_reserved_list", CreateReservedListCommand.class)
           .put("create_tld", CreateTldCommand.class)

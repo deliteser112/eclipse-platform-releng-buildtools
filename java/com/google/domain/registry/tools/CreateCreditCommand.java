@@ -21,6 +21,7 @@ import com.google.domain.registry.model.billing.RegistrarCredit;
 import com.google.domain.registry.model.billing.RegistrarCredit.CreditType;
 import com.google.domain.registry.model.billing.RegistrarCreditBalance;
 import com.google.domain.registry.model.registrar.Registrar;
+import com.google.domain.registry.tools.Command.GtechCommand;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -32,7 +33,7 @@ import javax.annotation.Nullable;
 
 /** Command for creating a registrar credit object with an initial balance. */
 @Parameters(separators = " =", commandDescription = "Create a new registrar credit")
-final class CreateCreditCommand extends MutatingCommand {
+final class CreateCreditCommand extends MutatingCommand implements GtechCommand {
 
   @Parameter(
       names = "--registrar",

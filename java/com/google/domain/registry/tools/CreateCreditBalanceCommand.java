@@ -20,6 +20,7 @@ import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import com.google.domain.registry.model.billing.RegistrarCredit;
 import com.google.domain.registry.model.billing.RegistrarCreditBalance;
 import com.google.domain.registry.model.registrar.Registrar;
+import com.google.domain.registry.tools.Command.GtechCommand;
 import com.google.domain.registry.util.SystemClock;
 
 import com.beust.jcommander.Parameter;
@@ -30,7 +31,7 @@ import org.joda.time.DateTime;
 
 /** Command for creating a new balance for a registrar credit. */
 @Parameters(separators = " =", commandDescription = "Create a new registrar credit balance")
-final class CreateCreditBalanceCommand extends MutatingCommand {
+final class CreateCreditBalanceCommand extends MutatingCommand implements GtechCommand {
 
   @Parameter(
       names = "--registrar",
