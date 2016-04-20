@@ -1,17 +1,17 @@
 Domain Name: cat.xn--q9jyb4c
-Registry Domain ID: 9-Q9JYB4C
-Registrar WHOIS Server: whois.example.com
-Registrar URL: http://www.example.com
+Domain ID: 9-Q9JYB4C
+WHOIS Server: whois.example.com
+Referral URL: http://www.example.com
 Updated Date: 2009-05-29T20:13:00Z
 Creation Date: 2000-10-08T00:45:00Z
-Registrar Registration Expiration Date: 2110-10-08T00:44:59Z
-Registrar: Yes Virginia &lt;script&gt;
+Registry Expiry Date: 2110-10-08T00:44:59Z
+Sponsoring Registrar: Yes Virginia &lt;script&gt;
 Sponsoring Registrar IANA ID: 1
-Domain Status: clientDeleteProhibited https://www.icann.org/epp#clientDeleteProhibited
-Domain Status: clientRenewProhibited https://www.icann.org/epp#clientRenewProhibited
-Domain Status: clientTransferProhibited https://www.icann.org/epp#clientTransferProhibited
-Domain Status: serverUpdateProhibited https://www.icann.org/epp#serverUpdateProhibited
-Registry Registrant ID: 5372808-ERL
+Domain Status: clientDeleteProhibited https://icann.org/epp#clientDeleteProhibited
+Domain Status: clientRenewProhibited https://icann.org/epp#clientRenewProhibited
+Domain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited
+Domain Status: serverUpdateProhibited https://icann.org/epp#serverUpdateProhibited
+Registrant ID: 5372808-ERL
 Registrant Name: (◕‿◕)
 Registrant Organization: GOOGLE INCORPORATED &lt;script&gt;
 Registrant Street: 123 Example Boulevard &lt;script&gt;
@@ -24,7 +24,7 @@ Registrant Phone Ext:
 Registrant Fax: +1.2126660420
 Registrant Fax Ext:
 Registrant Email: lol@cat.みんな
-Registry Admin ID: 5372808-IRL
+Admin ID: 5372808-IRL
 Admin Name: Santa Claus
 Admin Organization: GOOGLE INCORPORATED &lt;script&gt;
 Admin Street: 123 Example Boulevard &lt;script&gt;
@@ -37,7 +37,7 @@ Admin Phone Ext:
 Admin Fax: +1.2126660420
 Admin Fax Ext:
 Admin Email: BOFH@cat.みんな
-Registry Tech ID: 5372808-TRL
+Tech ID: 5372808-TRL
 Tech Name: The Raven
 Tech Organization: GOOGLE INCORPORATED &lt;script&gt;
 Tech Street: 123 Example Boulevard &lt;script&gt;
@@ -53,6 +53,22 @@ Tech Email: bog@cat.みんな
 Name Server: ns1.cat.xn--q9jyb4c
 Name Server: ns2.cat.xn--q9jyb4c
 DNSSEC: signedDelegation
-For more information on Whois status codes, please visit https://icann.org/epp
-URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
 >>> Last update of WHOIS database: 2009-06-29T20:13:00Z <<<
+
+For more information on Whois status codes, please visit https://icann.org/epp
+
+URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
+
+WHOIS information is provided by Charleston Road Registry Inc. (CRR) solely for
+query-based, informational purposes. By querying our WHOIS database, you are
+agreeing to comply with these terms
+(http://www.registry.google/about/whois-disclaimer.html) so please read them
+carefully.  Any information provided is "as is" without any guarantee of
+accuracy. You may not use such information to (a) allow, enable, or otherwise
+support the transmission of mass unsolicited, commercial advertising or
+solicitations; (b) enable high volume, automated, electronic processes that
+access the systems of CRR or any ICANN-Accredited Registrar, except as
+reasonably necessary to register domain names or modify existing registrations;
+or (c) engage in or support unlawful behavior. CRR reserves the right to
+restrict or deny your access to the Whois database, and may modify these terms
+at any time.

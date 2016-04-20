@@ -58,11 +58,12 @@ class RegistrarWhoisResponse extends WhoisResponseImpl {
             registrar.getPhoneNumber(),
             registrar.getFaxNumber(),
             registrar.getEmailAddress())
-        .emitField("Registrar WHOIS Server", registrar.getWhoisServer())
-        .emitField("Registrar URL", registrar.getReferralUrl())
+        .emitField("WHOIS Server", registrar.getWhoisServer())
+        .emitField("Referral URL", registrar.getReferralUrl())
         .emitRegistrarContacts("Admin", contacts, AdminOrTech.ADMIN)
         .emitRegistrarContacts("Technical", contacts,  AdminOrTech.TECH)
-        .emitFooter(getTimestamp())
+        .emitLastUpdated(getTimestamp())
+        .emitFooter()
         .toString();
   }
 

@@ -49,11 +49,11 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   /** Prefix for status value URLs. */
-  private static final String ICANN_STATUS_URL_PREFIX = "https://www.icann.org/epp#";
+  private static final String ICANN_STATUS_URL_PREFIX = "https://icann.org/epp#";
 
   /** Message required to be appended to all domain WHOIS responses. */
   private static final String ICANN_AWIP_INFO_MESSAGE =
-      "For more information on Whois status codes, please visit https://icann.org/epp";
+      "For more information on Whois status codes, please visit https://icann.org/epp\r\n";
 
   /** Domain which was the target of this WHOIS command. */
   private final DomainResource domain;
@@ -70,14 +70,14 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
     return new DomainEmitter()
       .emitField("Domain Name",
           maybeFormatHostname(domain.getFullyQualifiedDomainName(), preferUnicode))
-      .emitField("Registry Domain ID", domain.getRepoId())
-      .emitField("Registrar WHOIS Server", registrar.getWhoisServer())
-      .emitField("Registrar URL", registrar.getReferralUrl())
+      .emitField("Domain ID", domain.getRepoId())
+      .emitField("WHOIS Server", registrar.getWhoisServer())
+      .emitField("Referral URL", registrar.getReferralUrl())
       .emitField("Updated Date", getFormattedString(domain.getLastEppUpdateTime()))
       .emitField("Creation Date", getFormattedString(domain.getCreationTime()))
-      .emitField("Registrar Registration Expiration Date",
+      .emitField("Registry Expiry Date",
           getFormattedString(domain.getRegistrationExpirationTime()))
-      .emitField("Registrar", registrar.getRegistrarName())
+      .emitField("Sponsoring Registrar", registrar.getRegistrarName())
       .emitField("Sponsoring Registrar IANA ID",
           registrar.getIanaIdentifier() == null ? null : registrar.getIanaIdentifier().toString())
       .emitStatusValues(domain.getStatusValues(), domain.getGracePeriods())
@@ -94,8 +94,9 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
               return maybeFormatHostname(host.getFullyQualifiedHostName(), preferUnicode);
             }})
       .emitField("DNSSEC", isNullOrEmpty(domain.getDsData()) ? "unsigned" : "signedDelegation")
+      .emitLastUpdated(getTimestamp())
       .emitAwipMessage()
-      .emitFooter(getTimestamp())
+      .emitFooter()
       .toString();
   }
 
@@ -138,7 +139,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
             domain.getFullyQualifiedDomainName(), contact.getLinked());
         return this;
       }
-      emitField("Registry " + contactType, "ID", contactResource.getContactId());
+      emitField(contactType, "ID", contactResource.getContactId());
       PostalInfo postalInfo = chooseByUnicodePreference(
           preferUnicode,
           contactResource.getLocalizedPostalInfo(),

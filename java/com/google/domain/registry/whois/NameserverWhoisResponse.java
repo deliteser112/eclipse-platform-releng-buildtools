@@ -46,7 +46,8 @@ final class NameserverWhoisResponse extends WhoisResponseImpl {
   @Override
   public String getPlainTextOutput(boolean preferUnicode) {
     BasicEmitter emitter = new BasicEmitter();
-    for (HostResource host : hosts) {
+    for (int i = 0; i < hosts.size(); i++) {
+      HostResource host = hosts.get(i);
       Registrar registrar = getRegistrar(host.getCurrentSponsorClientId());
       emitter
           .emitField("Server Name", maybeFormatHostname(
@@ -58,10 +59,12 @@ final class NameserverWhoisResponse extends WhoisResponseImpl {
                   return InetAddresses.toAddrString(addr);
                 }})
           .emitField("Registrar", registrar.getRegistrarName())
-          .emitField("Registrar WHOIS Server", registrar.getWhoisServer())
-          .emitField("Registrar URL", registrar.getReferralUrl())
-          .emitNewline();
+          .emitField("WHOIS Server", registrar.getWhoisServer())
+          .emitField("Referral URL", registrar.getReferralUrl());
+      if (i < hosts.size() - 1) {
+        emitter.emitNewline();
+      }
     }
-    return emitter.emitFooter(getTimestamp()).toString();
+    return emitter.emitLastUpdated(getTimestamp()).emitFooter().toString();
   }
 }

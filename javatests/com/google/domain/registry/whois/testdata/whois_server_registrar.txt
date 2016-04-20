@@ -7,8 +7,8 @@ Country: US
 Phone Number: +1.2125551212
 Fax Number: +1.2125551213
 Email: contact-us@example.com
-Registrar WHOIS Server: whois.example.com
-Registrar URL: http://www.example.com
+WHOIS Server: whois.example.com
+Referral URL: http://www.example.com
 Admin Contact: Jane Doe
 Phone Number: +1.2125551215
 Fax Number: +1.2125551216
@@ -17,5 +17,20 @@ Technical Contact: John Doe
 Phone Number: +1.2125551213
 Fax Number: +1.2125551213
 Email: johndoe@example.com
-URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
 >>> Last update of WHOIS database: 2009-06-29T20:13:00Z <<<
+
+URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
+
+WHOIS information is provided by Charleston Road Registry Inc. (CRR) solely for
+query-based, informational purposes. By querying our WHOIS database, you are
+agreeing to comply with these terms
+(http://www.registry.google/about/whois-disclaimer.html) so please read them
+carefully.  Any information provided is "as is" without any guarantee of
+accuracy. You may not use such information to (a) allow, enable, or otherwise
+support the transmission of mass unsolicited, commercial advertising or
+solicitations; (b) enable high volume, automated, electronic processes that
+access the systems of CRR or any ICANN-Accredited Registrar, except as
+reasonably necessary to register domain names or modify existing registrations;
+or (c) engage in or support unlawful behavior. CRR reserves the right to
+restrict or deny your access to the Whois database, and may modify these terms
+at any time.

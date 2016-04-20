@@ -159,14 +159,20 @@ abstract class WhoisResponseImpl implements WhoisResponse {
     }
 
     /** Returns raw text that should be appended to the end of ALL WHOIS responses. */
-    E emitFooter(DateTime timestamp) {
-      emitField(ICANN_REPORTING_URL_FIELD, ICANN_REPORTING_URL);
+    E emitLastUpdated(DateTime timestamp) {
       // We are assuming that our WHOIS database is always completely up to date, since it's
       // querying the live backend datastore.
-      stringBuilder.append(String.format(
-          ">>> Last update of WHOIS database: %s <<<\r\n\r\n%s\r\n",
-          UtcDateTimeAdapter.getFormattedString(timestamp),
-          DISCLAIMER));
+      stringBuilder
+          .append(">>> Last update of WHOIS database: ")
+          .append(UtcDateTimeAdapter.getFormattedString(timestamp))
+          .append(" <<<\r\n\r\n");
+      return thisCastToDerived();
+    }
+
+    /** Returns raw text that should be appended to the end of ALL WHOIS responses. */
+    E emitFooter() {
+      emitField(ICANN_REPORTING_URL_FIELD, ICANN_REPORTING_URL);
+      stringBuilder.append("\r\n").append(DISCLAIMER).append("\r\n");
       return thisCastToDerived();
     }
 

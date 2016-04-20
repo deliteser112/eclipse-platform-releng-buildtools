@@ -62,10 +62,10 @@ public final class WhoisException extends Exception implements WhoisResponse {
 
   @Override
   public String getPlainTextOutput(boolean preferUnicode) {
-    String footer = new WhoisResponseImpl.BasicEmitter()
-        .emitNewline()
-        .emitFooter(getTimestamp())
+    return new WhoisResponseImpl.BasicEmitter()
+        .emitRawLine(getMessage())
+        .emitLastUpdated(getTimestamp())
+        .emitFooter()
         .toString();
-    return getMessage() + footer;
   }
 }

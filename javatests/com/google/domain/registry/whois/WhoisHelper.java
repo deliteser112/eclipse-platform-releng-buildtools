@@ -21,13 +21,10 @@ final class WhoisHelper {
 
   /**
    * Loads test data from file in {@code testdata/} directory, "fixing" newlines to have the ending
-   * that WHOIS requires and appending the disclaimer text.
+   * that WHOIS requires.
    */
   static String loadWhoisTestFile(String filename) {
-    return new StringBuilder(readResourceUtf8(WhoisHelper.class, "testdata/" + filename))
-        .append('\n')
-        .append(readResourceUtf8(WhoisServer.class, "disclaimer.txt"))
-        .toString()
+    return readResourceUtf8(WhoisHelper.class, "testdata/" + filename)
         .replaceAll("\r?\n", "\r\n");
   }
 }

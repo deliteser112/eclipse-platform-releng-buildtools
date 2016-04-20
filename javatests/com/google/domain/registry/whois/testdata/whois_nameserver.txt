@@ -2,8 +2,22 @@ Server Name: NS1.EXAMPLE.tld
 IP Address: 192.0.2.123
 IP Address: 2001:db8::1
 Registrar: Example Registrar, Inc.
-Registrar WHOIS Server: whois.nic.fakewhois.example
-Registrar URL: http://www.referral.example/path
+WHOIS Server: whois.nic.fakewhois.example
+Referral URL: http://www.referral.example/path
+>>> Last update of WHOIS database: 2009-05-29T20:15:00Z <<<
 
 URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
->>> Last update of WHOIS database: 2009-05-29T20:15:00Z <<<
+
+WHOIS information is provided by Charleston Road Registry Inc. (CRR) solely for
+query-based, informational purposes. By querying our WHOIS database, you are
+agreeing to comply with these terms
+(http://www.registry.google/about/whois-disclaimer.html) so please read them
+carefully.  Any information provided is "as is" without any guarantee of
+accuracy. You may not use such information to (a) allow, enable, or otherwise
+support the transmission of mass unsolicited, commercial advertising or
+solicitations; (b) enable high volume, automated, electronic processes that
+access the systems of CRR or any ICANN-Accredited Registrar, except as
+reasonably necessary to register domain names or modify existing registrations;
+or (c) engage in or support unlawful behavior. CRR reserves the right to
+restrict or deny your access to the Whois database, and may modify these terms
+at any time.
