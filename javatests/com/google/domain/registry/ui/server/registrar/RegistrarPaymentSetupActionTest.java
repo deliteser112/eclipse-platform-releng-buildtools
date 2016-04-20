@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.domain.registry.braintree.BraintreeRegistrarSyncer;
-import com.google.domain.registry.config.RegistryEnvironment;
 import com.google.domain.registry.model.registrar.Registrar;
 import com.google.domain.registry.testing.AppEngineRule;
 
@@ -95,16 +94,6 @@ public class RegistrarPaymentSetupActionTest {
         .containsExactly(
             "status", "ERROR",
             "message", "JSON request object must be empty",
-            "results", asList());
-  }
-
-  @Test
-  public void testSandboxEnvironment_returnsError() throws Exception {
-    action.environment = RegistryEnvironment.SANDBOX;
-    assertThat(action.handleJsonRequest(ImmutableMap.<String, Object>of()))
-        .containsExactly(
-            "status", "ERROR",
-            "message", "sandbox",
             "results", asList());
   }
 
