@@ -18,12 +18,8 @@ import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 import static com.google.common.base.Strings.nullToEmpty;
 
-import com.google.common.base.Converter;
-import com.google.domain.registry.model.ImmutableObject;
 import com.google.domain.registry.model.translators.EnumToAttributeAdapter.EppEnum;
 import com.google.domain.registry.model.translators.StatusValueAdapter;
-
-import com.googlecode.objectify.annotation.Embed;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -79,28 +75,4 @@ public enum StatusValue implements EppEnum {
   public static StatusValue fromXmlName(String xmlName) {
     return StatusValue.valueOf(LOWER_CAMEL.to(UPPER_UNDERSCORE, nullToEmpty(xmlName)));
   }
-
-  /** Stripped down version of the legacy format of status values for migration purposes. */
-  // TODO(b/25442343): Remove this.
-  @Embed
-  public static class LegacyStatusValue extends ImmutableObject {
-    String xmlStatusValue;
-  }
-
-  /** Converter between the old and new formats. */
-  // TODO(b/25442343): Remove this.
-  public static final Converter<StatusValue, LegacyStatusValue> LEGACY_CONVERTER =
-      new Converter<StatusValue, LegacyStatusValue>() {
-        @Override
-        protected LegacyStatusValue doForward(StatusValue status) {
-          LegacyStatusValue legacyStatus = new LegacyStatusValue();
-          legacyStatus.xmlStatusValue = status.xmlName;
-          return legacyStatus;
-        }
-
-        @Override
-        protected StatusValue doBackward(LegacyStatusValue legacyStatus) {
-          return StatusValue.fromXmlName(legacyStatus.xmlStatusValue);
-        }
-      };
 }
