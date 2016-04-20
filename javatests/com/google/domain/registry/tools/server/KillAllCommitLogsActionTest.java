@@ -21,7 +21,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import static com.google.domain.registry.testing.DatastoreHelper.createTld;
 import static com.google.domain.registry.testing.DatastoreHelper.newContactResource;
+import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
 import static com.google.domain.registry.testing.DatastoreHelper.persistResourceWithCommitLog;
+import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
 
 import com.google.appengine.api.datastore.Entity;
@@ -29,9 +31,12 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.domain.registry.mapreduce.MapreduceRunner;
 import com.google.domain.registry.model.ImmutableObject;
 import com.google.domain.registry.model.ofy.CommitLogBucket;
+import com.google.domain.registry.model.ofy.CommitLogCheckpoint;
+import com.google.domain.registry.model.ofy.CommitLogCheckpointRoot;
 import com.google.domain.registry.model.ofy.CommitLogManifest;
 import com.google.domain.registry.model.ofy.CommitLogMutation;
 import com.google.domain.registry.testing.FakeResponse;
@@ -49,6 +54,8 @@ public class KillAllCommitLogsActionTest extends MapreduceTestCase<KillAllCommit
 
   static final List<Class<? extends ImmutableObject>> AFFECTED_TYPES = ImmutableList.of(
       CommitLogBucket.class,
+      CommitLogCheckpoint.class,
+      CommitLogCheckpointRoot.class,
       CommitLogMutation.class,
       CommitLogManifest.class);
 
@@ -68,6 +75,11 @@ public class KillAllCommitLogsActionTest extends MapreduceTestCase<KillAllCommit
       persistResourceWithCommitLog(
           newContactResource(String.format("abc%d", nextContactId++)));
     }
+    persistResource(CommitLogCheckpointRoot.create(START_OF_TIME.plusDays(1)));
+    persistResource(
+        CommitLogCheckpoint.create(
+            START_OF_TIME.plusDays(1),
+            ImmutableMap.of(1, START_OF_TIME.plusDays(2))));
     for (Class<?> clazz : AFFECTED_TYPES) {
       assertThat(ofy().load().type(clazz)).named("entities of type " + clazz).isNotEmpty();
     }

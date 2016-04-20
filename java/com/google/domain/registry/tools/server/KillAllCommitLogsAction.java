@@ -15,7 +15,6 @@
 package com.google.domain.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Lists.partition;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import static com.google.domain.registry.request.Action.Method.POST;
 import static com.google.domain.registry.util.PipelineUtils.createJobPath;
@@ -23,15 +22,20 @@ import static com.google.domain.registry.util.PipelineUtils.createJobPath;
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.inputs.InMemoryInput;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.domain.registry.config.RegistryEnvironment;
 import com.google.domain.registry.mapreduce.MapreduceAction;
 import com.google.domain.registry.mapreduce.MapreduceRunner;
 import com.google.domain.registry.model.ofy.CommitLogBucket;
+import com.google.domain.registry.model.ofy.CommitLogCheckpointRoot;
 import com.google.domain.registry.request.Action;
 import com.google.domain.registry.request.Response;
 
 import com.googlecode.objectify.Key;
+
+import java.util.Arrays;
 
 import javax.inject.Inject;
 
@@ -49,9 +53,15 @@ public class KillAllCommitLogsAction implements MapreduceAction {
         RegistryEnvironment.get() == RegistryEnvironment.CRASH
             || RegistryEnvironment.get() == RegistryEnvironment.UNITTEST,
         "DO NOT RUN ANYWHERE ELSE EXCEPT CRASH OR TESTS.");
-    // Create a in-memory input, assigning each bucket to its own shard for maximum parallelization.
-    Input<Key<CommitLogBucket>> input =
-        new InMemoryInput<>(partition(CommitLogBucket.getAllBucketKeys().asList(), 1));
+    // Create a in-memory input, assigning each bucket to its own shard for maximum parallelization,
+    // with one extra shard for the CommitLogCheckpointRoot.
+    Input<Key<?>> input = new InMemoryInput<>(
+        Lists.partition(
+            FluentIterable
+                .from(Arrays.<Key<?>>asList(CommitLogCheckpointRoot.getKey()))
+                .append(CommitLogBucket.getAllBucketKeys())
+                .toList(),
+            1));
     response.sendJavaScriptRedirect(createJobPath(mrRunner
         .setJobName("Delete all commit logs")
         .setModuleName("tools")
@@ -62,23 +72,26 @@ public class KillAllCommitLogsAction implements MapreduceAction {
   }
 
   /**
-   * Mapper to delete a {@link CommitLogBucket} and any commit logs in the bucket.
+   * Mapper to delete a {@link CommitLogBucket} or {@link CommitLogCheckpointRoot} and any commit
+   * logs or checkpoints that descend from it.
    *
    * <p>This will delete:
    * <ul>
    *   <li>{@link CommitLogBucket}
+   *   <li>{@code CommitLogCheckpoint}
+   *   <li>{@link CommitLogCheckpointRoot}
    *   <li>{@code CommitLogManifest}
    *   <li>{@code CommitLogMutation}
    * </ul>
    */
-  static class KillAllCommitLogsMapper extends Mapper<Key<CommitLogBucket>, Key<?>, Key<?>> {
+  static class KillAllCommitLogsMapper extends Mapper<Key<?>, Key<?>, Key<?>> {
 
     private static final long serialVersionUID = 1504266335352952033L;
 
     @Override
-    public void map(Key<CommitLogBucket> bucket) {
-      for (Key<Object> key : ofy().load().ancestor(bucket).keys()) {
-        emit(bucket, key);
+    public void map(Key<?> bucketOrRoot) {
+      for (Key<Object> key : ofy().load().ancestor(bucketOrRoot).keys()) {
+        emit(bucketOrRoot, key);
         getContext().incrementCounter("entities emitted");
         getContext().incrementCounter(String.format("%s emitted", key.getKind()));
      }
