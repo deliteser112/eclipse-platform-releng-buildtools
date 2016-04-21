@@ -23,6 +23,7 @@ import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.collect.Sets.immutableEnumSet;
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
@@ -179,13 +180,13 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
   /**
    * The types for which a {@link Registrar} should be included in WHOIS and RDAP output. We exclude
-   * PDT and TEST. We considered excluding INTERNAL as well, but decided that troubleshooting would
-   * be easier with INTERNAL registrars visible.
+   * registrars of type TEST. We considered excluding INTERNAL as well, but decided that
+   * troubleshooting would be easier with INTERNAL registrars visible.
    */
   //TODO(b/27274151): Expand documentation of this field.
   private static final ImmutableSet<Type> PUBLICLY_VISIBLE_TYPES =
-      Sets.immutableEnumSet(
-          Type.REAL, Type.OTE, Type.EXTERNAL_MONITORING, Type.MONITORING, Type.INTERNAL);
+      immutableEnumSet(
+          Type.REAL, Type.PDT, Type.OTE, Type.EXTERNAL_MONITORING, Type.MONITORING, Type.INTERNAL);
 
   @Parent
   Key<EntityGroupRoot> parent = getCrossTldKey();

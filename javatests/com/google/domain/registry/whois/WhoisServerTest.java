@@ -15,6 +15,8 @@
 package com.google.domain.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.domain.registry.model.registrar.Registrar.State.ACTIVE;
+import static com.google.domain.registry.model.registrar.Registrar.Type.PDT;
 import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
 import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
 import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
@@ -85,7 +87,7 @@ public class WhoisServerTest {
   @Test
   public void testRun_domainQuery_works() throws Exception {
     Registrar registrar = persistResource(makeRegistrar(
-        "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
+        "evilregistrar", "Yes Virginia <script>", ACTIVE));
     persistResource(makeDomainResource(
         "cat.lol",
         persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
@@ -103,7 +105,7 @@ public class WhoisServerTest {
   @Test
   public void testRun_idnDomain_works() throws Exception {
     Registrar registrar = persistResource(makeRegistrar(
-        "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
+        "evilregistrar", "Yes Virginia <script>", ACTIVE));
     persistResource(makeDomainResource(
         "cat.みんな",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),
@@ -121,7 +123,7 @@ public class WhoisServerTest {
   @Test
   public void testRun_punycodeDomain_works() throws Exception {
     Registrar registrar = persistResource(makeRegistrar(
-        "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
+        "evilregistrar", "Yes Virginia <script>", ACTIVE));
     persistResource(makeDomainResource(
         "cat.みんな",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),
@@ -150,7 +152,7 @@ public class WhoisServerTest {
   public void testRun_domainInTestTld_isConsideredNotFound() throws Exception {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
     Registrar registrar = persistResource(makeRegistrar(
-        "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
+        "evilregistrar", "Yes Virginia <script>", ACTIVE));
     persistResource(makeDomainResource(
         "cat.lol",
         persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
@@ -179,7 +181,7 @@ public class WhoisServerTest {
         persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4")),
         persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
         persistResource(
-            (registrar = makeRegistrar("example", "Example Registrar", Registrar.State.ACTIVE))))
+            (registrar = makeRegistrar("example", "Example Registrar", ACTIVE))))
                 .asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     persistSimpleGlobalResources(makeRegistrarContacts(registrar));
     newWhoisServer("domain cat.lol\r\n").run();
@@ -205,7 +207,7 @@ public class WhoisServerTest {
         persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4")),
         persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
         persistResource(
-            makeRegistrar("example", "Example Registrar", Registrar.State.ACTIVE))).asBuilder()
+            makeRegistrar("example", "Example Registrar", ACTIVE))).asBuilder()
                 .setCreationTimeForTest(DateTime.now().minusDays(2))
                 .setDeletionTime(DateTime.now().minusDays(1)).build());
     DomainResource domain2 = persistResource(makeDomainResource("cat.lol",
@@ -219,7 +221,7 @@ public class WhoisServerTest {
         persistResource(makeHostResource("ns1.google.lol", "9.9.9.9")),
         persistResource(makeHostResource("ns2.google.lol", "4311::f143")),
         persistResource((registrar = makeRegistrar(
-            "example", "Example Registrar", Registrar.State.ACTIVE)))).asBuilder()
+            "example", "Example Registrar", ACTIVE)))).asBuilder()
             .setCreationTimeForTest(DateTime.now()).build());
     persistSimpleGlobalResources(makeRegistrarContacts(registrar));
     assertThat(domain1.getRepoId()).isNotEqualTo(domain2.getRepoId());
@@ -366,7 +368,23 @@ public class WhoisServerTest {
   @Test
   public void testRun_registrarLookup_works() throws Exception {
     Registrar registrar = persistResource(
-        makeRegistrar("example", "Example Registrar, Inc.", Registrar.State.ACTIVE));
+        makeRegistrar("example", "Example Registrar, Inc.", ACTIVE));
+    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    // Notice the partial search without "inc".
+    newWhoisServer("registrar example registrar").run();
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_registrar.txt"));
+  }
+
+  @Test
+  public void testRun_pdtRegistrarLookup_works() throws Exception {
+    Registrar registrar =
+        persistResource(
+            makeRegistrar("example", "Example Registrar, Inc.", ACTIVE)
+                .asBuilder()
+                .setIanaIdentifier(9995L)
+                .setType(PDT)
+                .build());
     persistSimpleGlobalResources(makeRegistrarContacts(registrar));
     // Notice the partial search without "inc".
     newWhoisServer("registrar example registrar").run();
@@ -388,7 +406,7 @@ public class WhoisServerTest {
   @Test
   public void testRun_registrarLookupWithTestType_returnsNotFound() throws Exception {
     Registrar registrar = persistResource(
-        makeRegistrar("example", "Example Registrar, Inc.", Registrar.State.ACTIVE)
+        makeRegistrar("example", "Example Registrar, Inc.", ACTIVE)
             .asBuilder()
             .setIanaIdentifier(null)
             .setType(Registrar.Type.TEST)
@@ -403,7 +421,7 @@ public class WhoisServerTest {
   @Test
   public void testRun_multilevelDomain_isNotConsideredAHostname() throws Exception {
     Registrar registrar =
-        persistResource(makeRegistrar("example", "Example Registrar", Registrar.State.ACTIVE));
+        persistResource(makeRegistrar("example", "Example Registrar", ACTIVE));
     persistResource(makeDomainResource("cat.1.test",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.1.test")),
         persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.1.test")),
