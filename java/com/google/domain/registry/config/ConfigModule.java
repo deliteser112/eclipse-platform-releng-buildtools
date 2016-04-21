@@ -542,7 +542,7 @@ public final class ConfigModule {
   public static String provideBraintreeMerchantId(RegistryEnvironment environment) {
     switch (environment) {
       case PRODUCTION:
-        return "TODO(b/25619518): Add production Braintree API credentials";
+        return "6gm2mm48k9ty4zmx";
       default:
         // Valentine: Domain Registry Braintree Sandbox
         return "vqgn8khkq2cs6y9s";
