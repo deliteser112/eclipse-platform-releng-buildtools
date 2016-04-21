@@ -41,9 +41,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.net.InternetDomainName;
 import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.BackupGroupRoot;
 import com.google.domain.registry.model.Buildable;
 import com.google.domain.registry.model.CreateAutoTimestamp;
+import com.google.domain.registry.model.ImmutableObject;
 import com.google.domain.registry.model.common.EntityGroupRoot;
 import com.google.domain.registry.model.common.TimedTransitionProperty;
 import com.google.domain.registry.model.common.TimedTransitionProperty.TimedTransition;
@@ -71,7 +71,7 @@ import java.util.Set;
 /** Persisted per-TLD configuration data. */
 @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @Entity
-public class Registry extends BackupGroupRoot implements Buildable {
+public class Registry extends ImmutableObject implements Buildable {
 
   @Parent
   Key<EntityGroupRoot> parent = getCrossTldKey();

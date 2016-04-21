@@ -30,7 +30,6 @@ import static org.joda.time.Duration.standardMinutes;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Range;
 import com.google.domain.registry.model.registry.Registry;
 import com.google.domain.registry.model.registry.Registry.TldState;
 import com.google.domain.registry.model.registry.label.PremiumList;
@@ -61,22 +60,6 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
     persistReservedList("xn--q9jyb4c_r1", "foo,FULLY_BLOCKED");
     persistReservedList("xn--q9jyb4c_r2", "moop,FULLY_BLOCKED");
     createTld("xn--q9jyb4c");
-  }
-
-  @Test
-  public void testSuccess_updateAutoTimestamp() throws Exception {
-    Registry registry = Registry.get("xn--q9jyb4c");
-    DateTime creationTime = registry.getCreationTime();
-    assertThat(creationTime).isNotNull();
-    assertThat(registry.getUpdateAutoTimestamp().getTimestamp()).isEqualTo(creationTime);
-
-    DateTime before = DateTime.now(UTC);
-    runCommandForced("xn--q9jyb4c");
-    DateTime after = DateTime.now(UTC);
-
-    registry = Registry.get("xn--q9jyb4c");
-    assertThat(registry.getCreationTime()).isEqualTo(creationTime);
-    assertThat(registry.getUpdateAutoTimestamp().getTimestamp()).isIn(Range.closed(before, after));
   }
 
   @Test

@@ -663,7 +663,6 @@ class com.google.domain.registry.model.registry.Registry {
   boolean escrowEnabled;
   boolean premiumPriceAckRequired;
   com.google.domain.registry.model.CreateAutoTimestamp creationTime;
-  com.google.domain.registry.model.UpdateAutoTimestamp updateTimestamp;
   com.google.domain.registry.model.common.TimedTransitionProperty<com.google.domain.registry.model.registry.Registry$TldState, com.google.domain.registry.model.registry.Registry$TldStateTransition> tldStateTransitions;
   com.google.domain.registry.model.common.TimedTransitionProperty<org.joda.money.Money, com.google.domain.registry.model.registry.Registry$BillingCostTransition> renewBillingCostTransitions;
   com.google.domain.registry.model.registry.Registry$TldType tldType;

@@ -66,8 +66,6 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         .isEqualTo(Registry.DEFAULT_REDEMPTION_GRACE_PERIOD);
     assertThat(registry.getPendingDeleteLength()).isEqualTo(Registry.DEFAULT_PENDING_DELETE_LENGTH);
     assertThat(registry.getCreationTime()).isIn(Range.closed(before, after));
-    assertThat(registry.getUpdateAutoTimestamp().getTimestamp())
-        .isEqualTo(registry.getCreationTime());
   }
 
   @Test
