@@ -16,21 +16,20 @@ package com.google.domain.registry.export;
 
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_FILE_PARAM;
+import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_ID_PARAM;
+import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARAM;
+import static com.google.domain.registry.export.LoadSnapshotAction.PATH;
+import static com.google.domain.registry.export.LoadSnapshotAction.QUEUE;
+import static com.google.domain.registry.export.LoadSnapshotAction.enqueueLoadSnapshotTask;
 import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Dataset;
 import com.google.api.services.bigquery.model.Job;
@@ -41,12 +40,12 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.config.TestRegistryConfig;
 import com.google.domain.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
+import com.google.domain.registry.request.HttpException.BadRequestException;
+import com.google.domain.registry.request.HttpException.InternalServerErrorException;
 import com.google.domain.registry.testing.AppEngineRule;
+import com.google.domain.registry.testing.ExceptionRule;
 import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.RegistryConfigRule;
 import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
 
 import org.joda.time.DateTime;
@@ -58,20 +57,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-/** Unit tests for {@link LoadSnapshotServlet}. */
+/** Unit tests for {@link LoadSnapshotAction}. */
 @RunWith(MockitoJUnitRunner.class)
-public class LoadSnapshotServletTest {
-
-  @Rule
-  public final InjectRule inject = new InjectRule();
+public class LoadSnapshotActionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -79,21 +70,7 @@ public class LoadSnapshotServletTest {
       .build();
 
   @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule(new TestRegistryConfig() {
-    @Override public String getProjectId() {
-      return "Project-Id";
-    }
-
-    @Override public String getSnapshotsDataset() {
-      return "testdataset";
-    }
-  });
-
-  @Mock
-  private HttpServletRequest req;
-
-  @Mock
-  private HttpServletResponse rsp;
+  public final ExceptionRule thrown = new ExceptionRule();
 
   @Mock
   private BigqueryFactory bigqueryFactory;
@@ -116,70 +93,48 @@ public class LoadSnapshotServletTest {
   @Mock
   private BigqueryPollJobEnqueuer bigqueryPollEnqueuer;
 
-  private static final DateTime NOW = new DateTime(1391096117045L, UTC);
-
-  private FakeClock clock = new FakeClock();
-  private final StringWriter httpOutput = new StringWriter();
-  private final LoadSnapshotServlet servlet = new LoadSnapshotServlet();
+  private FakeClock clock = new FakeClock(new DateTime(1391096117045L, UTC));
+  private LoadSnapshotAction action;
 
   @Before
   public void before() throws Exception {
-    clock.setTo(NOW);
-    inject.setStaticField(LoadSnapshotServlet.class, "clock", clock);
-    inject.setStaticField(LoadSnapshotServlet.class, "bigqueryFactory", bigqueryFactory);
-    inject.setStaticField(LoadSnapshotServlet.class, "bigqueryPollEnqueuer", bigqueryPollEnqueuer);
-
-    when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
-
-    when(bigqueryFactory.create(
-        anyString(),
-        any(HttpTransport.class),
-        any(JsonFactory.class),
-        any(HttpRequestInitializer.class)))
-            .thenReturn(bigquery);
-
+    when(bigqueryFactory.create("Project-Id", "snapshots")).thenReturn(bigquery);
     when(bigquery.jobs()).thenReturn(bigqueryJobs);
     when(bigqueryJobs.insert(eq("Project-Id"), any(Job.class))).thenReturn(bigqueryJobsInsert);
-
     when(bigquery.datasets()).thenReturn(bigqueryDatasets);
     when(bigqueryDatasets.insert(eq("Project-Id"), any(Dataset.class)))
         .thenReturn(bigqueryDatasetsInsert);
-
-    servlet.init(mock(ServletConfig.class));
-    when(req.getMethod()).thenReturn("POST");
+    action = new LoadSnapshotAction();
+    action.bigqueryFactory = bigqueryFactory;
+    action.bigqueryPollEnqueuer = bigqueryPollEnqueuer;
+    action.clock = clock;
+    action.projectId = "Project-Id";
+    action.snapshotFile = "gs://bucket/snapshot.backup_info";
+    action.snapshotId = "id12345";
+    action.snapshotKinds = "one,two,three";
   }
 
   @Test
   public void testSuccess_enqueueLoadTask() throws Exception {
-    servlet.enqueueLoadTask(
+    enqueueLoadSnapshotTask(
         "id12345", "gs://bucket/snapshot.backup_info", ImmutableSet.of("one", "two", "three"));
-    assertTasksEnqueued(LoadSnapshotServlet.QUEUE,
+    assertTasksEnqueued(
+        QUEUE,
         new TaskMatcher()
-            .url(LoadSnapshotServlet.PATH)
+            .url(PATH)
             .method("POST")
-            .param(LoadSnapshotServlet.SNAPSHOT_ID_PARAM, "id12345")
-            .param(LoadSnapshotServlet.SNAPSHOT_FILE_PARAM, "gs://bucket/snapshot.backup_info")
-            .param(LoadSnapshotServlet.SNAPSHOT_KINDS_PARAM, "one,two,three"));
+            .param(LOAD_SNAPSHOT_ID_PARAM, "id12345")
+            .param(LOAD_SNAPSHOT_FILE_PARAM, "gs://bucket/snapshot.backup_info")
+            .param(LOAD_SNAPSHOT_KINDS_PARAM, "one,two,three"));
   }
 
   @Test
   public void testSuccess_doPost() throws Exception {
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_ID_PARAM)).thenReturn("id12345");
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_FILE_PARAM))
-        .thenReturn("gs://bucket/snapshot.backup_info");
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_KINDS_PARAM))
-        .thenReturn("one,two,three");
+    action.run();
 
-    servlet.service(req, rsp);
-
-    // Check that we attempted to create the snapshots dataset.
-    ArgumentCaptor<Dataset> datasetArgument = ArgumentCaptor.forClass(Dataset.class);
-    verify(bigqueryDatasets).insert(eq("Project-Id"), datasetArgument.capture());
-    assertThat(datasetArgument.getValue().getDatasetReference().getProjectId())
-        .isEqualTo("Project-Id");
-    assertThat(datasetArgument.getValue().getDatasetReference().getDatasetId())
-        .isEqualTo("testdataset");
-    verify(bigqueryDatasetsInsert).execute();
+    // Verify that bigqueryFactory was called in a way that would create the dataset if it didn't
+    // already exist.
+    verify(bigqueryFactory).create("Project-Id", "snapshots");
 
     // Capture the load jobs we inserted to do additional checking on them.
     ArgumentCaptor<Job> jobArgument = ArgumentCaptor.forClass(Job.class);
@@ -193,7 +148,7 @@ public class LoadSnapshotServletTest {
       JobConfigurationLoad config = job.getConfiguration().getLoad();
       assertThat(config.getSourceFormat()).isEqualTo("DATASTORE_BACKUP");
       assertThat(config.getDestinationTable().getProjectId()).isEqualTo("Project-Id");
-      assertThat(config.getDestinationTable().getDatasetId()).isEqualTo("testdataset");
+      assertThat(config.getDestinationTable().getDatasetId()).isEqualTo("snapshots");
     }
 
     // Check the job IDs for each load job.
@@ -231,64 +186,37 @@ public class LoadSnapshotServletTest {
         new JobReference()
             .setProjectId("Project-Id")
             .setJobId("load-snapshot-id12345-one-1391096117045"),
-        UpdateSnapshotViewAction.createViewUpdateTask("testdataset", "id12345_one", "one"),
+        UpdateSnapshotViewAction.createViewUpdateTask("snapshots", "id12345_one", "one"),
         QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
     verify(bigqueryPollEnqueuer).enqueuePollTask(
         new JobReference()
             .setProjectId("Project-Id")
             .setJobId("load-snapshot-id12345-two-1391096117045"),
-        UpdateSnapshotViewAction.createViewUpdateTask("testdataset", "id12345_two", "two"),
+        UpdateSnapshotViewAction.createViewUpdateTask("snapshots", "id12345_two", "two"),
         QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
     verify(bigqueryPollEnqueuer).enqueuePollTask(
         new JobReference()
             .setProjectId("Project-Id")
             .setJobId("load-snapshot-id12345-three-1391096117045"),
-        UpdateSnapshotViewAction.createViewUpdateTask("testdataset", "id12345_three", "three"),
+        UpdateSnapshotViewAction.createViewUpdateTask("snapshots", "id12345_three", "three"),
         QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
-
-    verify(rsp).setStatus(SC_OK);
-  }
-
-  @Test
-  public void testFailure_doPost_missingIdHeader() throws Exception {
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_FILE_PARAM))
-        .thenReturn("gs://bucket/snapshot.backup_info");
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_KINDS_PARAM))
-        .thenReturn("one,two,three");
-
-    servlet.service(req, rsp);
-    verify(rsp).sendError(SC_BAD_REQUEST, "Missing required parameter: id");
-  }
-
-  @Test
-  public void testFailure_doPost_missingFileHeader() throws Exception {
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_ID_PARAM)).thenReturn("id12345");
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_KINDS_PARAM))
-        .thenReturn("one,two,three");
-
-    servlet.service(req, rsp);
-    verify(rsp).sendError(SC_BAD_REQUEST, "Missing required parameter: file");
-  }
-
-  @Test
-  public void testFailure_doPost_missingKindHeader() throws Exception {
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_ID_PARAM)).thenReturn("id12345");
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_FILE_PARAM))
-        .thenReturn("gs://bucket/snapshot.backup_info");
-
-    servlet.service(req, rsp);
-    verify(rsp).sendError(SC_BAD_REQUEST, "Missing required parameter: kinds");
   }
 
   @Test
   public void testFailure_doPost_badGcsFilename() throws Exception {
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_ID_PARAM)).thenReturn("id12345");
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_FILE_PARAM))
-        .thenReturn("gs://bucket/snapshot");
-    when(req.getParameter(LoadSnapshotServlet.SNAPSHOT_KINDS_PARAM))
-        .thenReturn("one,two,three");
+    action.snapshotFile = "gs://bucket/snapshot";
+    thrown.expect(
+        BadRequestException.class,
+        "Error calling load snapshot: backup info file extension missing");
+    action.run();
+  }
 
-    servlet.service(req, rsp);
-    verify(rsp).sendError(SC_BAD_REQUEST, "backup info file extension missing");
+  @Test
+  public void testFailure_doPost_bigqueryThrowsException() throws Exception {
+    when(bigqueryJobsInsert.execute()).thenThrow(new IOException("The Internet has gone missing"));
+    thrown.expect(
+        InternalServerErrorException.class,
+        "Error loading snapshot: The Internet has gone missing");
+    action.run();
   }
 }

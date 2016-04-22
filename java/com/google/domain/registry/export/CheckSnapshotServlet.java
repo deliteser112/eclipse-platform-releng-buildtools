@@ -15,8 +15,11 @@
 package com.google.domain.registry.export;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.collect.Sets.intersection;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
-import static com.google.domain.registry.util.HttpServletUtils.getRequiredParameterValue;
+import static com.google.domain.registry.export.LoadSnapshotAction.enqueueLoadSnapshotTask;
+import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
+import static com.google.domain.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -28,12 +31,12 @@ import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.MediaType;
 import com.google.domain.registry.export.DatastoreBackupInfo.BackupStatus;
+import com.google.domain.registry.request.HttpException.BadRequestException;
 import com.google.domain.registry.util.FormattingLogger;
 import com.google.domain.registry.util.NonFinalForTesting;
 
@@ -42,6 +45,7 @@ import org.joda.time.PeriodType;
 import org.joda.time.format.PeriodFormat;
 
 import java.io.IOException;
+import java.util.Set;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -62,13 +66,10 @@ public class CheckSnapshotServlet extends HttpServlet {
   /** The maximum amount of time we allow a backup to run before abandoning it. */
   static final Duration MAXIMUM_BACKUP_RUNNING_TIME = Duration.standardHours(20);
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FormattingLogger logger = getLoggerForCallerClass();
 
   @NonFinalForTesting
   private static DatastoreBackupService backupService = DatastoreBackupService.get();
-
-  @NonFinalForTesting
-  private static LoadSnapshotServlet loadSnapshotServlet = new LoadSnapshotServlet();
 
   @Override
   public void service(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
@@ -87,18 +88,27 @@ public class CheckSnapshotServlet extends HttpServlet {
 
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-    String snapshotName = getRequiredParameterValue(req, SNAPSHOT_NAME_PARAM);
-    rsp.getWriter().write(backupService.findByName(snapshotName).getInformation());
+    // TODO(b/28266757): Remove this try/catch/rethrow block once this servlet is Daggerized.
+    try {
+      String snapshotName = extractRequiredParameter(req, SNAPSHOT_NAME_PARAM);
+      rsp.getWriter().write(backupService.findByName(snapshotName).getInformation());
+    } catch (BadRequestException e) {
+      throw new IllegalArgumentException(e.getMessage());
+    }
   }
 
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-    String snapshotName = getRequiredParameterValue(req, SNAPSHOT_NAME_PARAM);
-    // TODO(b/19237926): make this non-optional once all new tasks will have this parameter.
-    String kindsToLoadParam = req.getParameter(SNAPSHOT_KINDS_TO_LOAD_PARAM);
-    Optional<ImmutableSet<String>> kindsToLoad = Optional.fromNullable(
-        kindsToLoadParam == null ? null
-            : ImmutableSet.copyOf(Splitter.on(',').split(kindsToLoadParam)));
+    String snapshotName;
+    String kindsToLoadParam;
+    // TODO(b/28266757): Remove this try/catch/rethrow block once this servlet is Daggerized.
+    try {
+      snapshotName = extractRequiredParameter(req, SNAPSHOT_NAME_PARAM);
+      kindsToLoadParam = extractRequiredParameter(req, SNAPSHOT_KINDS_TO_LOAD_PARAM);
+    } catch (BadRequestException e) {
+      throw new IllegalArgumentException(e.getMessage());
+    }
+    Set<String> kindsToLoad = ImmutableSet.copyOf(Splitter.on(',').split(kindsToLoadParam));
 
     // Look up the backup by the provided name, stopping if we can't find it.
     DatastoreBackupInfo backup;
@@ -137,21 +147,20 @@ public class CheckSnapshotServlet extends HttpServlet {
     String snapshotId = snapshotName.startsWith(ExportSnapshotServlet.SNAPSHOT_PREFIX)
         ? snapshotName.substring(ExportSnapshotServlet.SNAPSHOT_PREFIX.length())
         : backup.getStartTime().toString("YYYYMMdd_HHmmss");
-    // Log a warning if kindsToLoad is specified and not a subset of the exported snapshot kinds.
-    if (kindsToLoad.isPresent() && !backup.getKinds().containsAll(kindsToLoad.get())) {
-      logger.warningfmt("Kinds to load included non-exported kinds: %s",
-          Sets.difference(kindsToLoad.get(), backup.getKinds()));
+    // Log a warning if kindsToLoad is not a subset of the exported snapshot kinds.
+    if (!backup.getKinds().containsAll(kindsToLoad)) {
+      logger.warningfmt(
+          "Kinds to load included non-exported kinds: %s",
+          Sets.difference(kindsToLoad, backup.getKinds()));
     }
     // Load kinds from the snapshot, limited to those also in kindsToLoad (if it's present).
-    ImmutableSet<String> exportedKindsToLoad = ImmutableSet.copyOf(kindsToLoad.isPresent()
-        ? Sets.intersection(backup.getKinds(), kindsToLoad.get())
-        : backup.getKinds());
+    ImmutableSet<String> exportedKindsToLoad =
+        ImmutableSet.copyOf(intersection(backup.getKinds(), kindsToLoad));
     String message = String.format("Datastore backup %s complete - ", snapshotName);
     if (exportedKindsToLoad.isEmpty()) {
       message += "no kinds to load into BigQuery";
     } else {
-      loadSnapshotServlet.enqueueLoadTask(
-          snapshotId, backup.getGcsFilename().get(), exportedKindsToLoad);
+      enqueueLoadSnapshotTask(snapshotId, backup.getGcsFilename().get(), exportedKindsToLoad);
       message += "BigQuery load task enqueued";
     }
     logger.info(message);

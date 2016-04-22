@@ -17,9 +17,12 @@ package com.google.domain.registry.export;
 import static com.google.domain.registry.export.BigqueryPollJobAction.CHAINED_TASK_QUEUE_HEADER;
 import static com.google.domain.registry.export.BigqueryPollJobAction.JOB_ID_HEADER;
 import static com.google.domain.registry.export.BigqueryPollJobAction.PROJECT_ID_HEADER;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.SNAPSHOT_DATASET_ID_PARAM;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.SNAPSHOT_KIND_PARAM;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.SNAPSHOT_TABLE_ID_PARAM;
+import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_FILE_PARAM;
+import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_ID_PARAM;
+import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARAM;
+import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DATASET_ID_PARAM;
+import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
+import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
 import static com.google.domain.registry.request.RequestParameters.extractRequiredHeader;
 
 import com.google.domain.registry.request.Header;
@@ -35,21 +38,39 @@ import javax.servlet.http.HttpServletRequest;
 public final class ExportRequestModule {
 
   @Provides
-  @Parameter(SNAPSHOT_DATASET_ID_PARAM)
-  static String provideDatasetId(HttpServletRequest req) {
-    return extractRequiredHeader(req, SNAPSHOT_DATASET_ID_PARAM);
+  @Parameter(UPDATE_SNAPSHOT_DATASET_ID_PARAM)
+  static String provideUpdateSnapshotDatasetId(HttpServletRequest req) {
+    return extractRequiredHeader(req, UPDATE_SNAPSHOT_DATASET_ID_PARAM);
   }
 
   @Provides
-  @Parameter(SNAPSHOT_TABLE_ID_PARAM)
-  static String provideTableId(HttpServletRequest req) {
-    return extractRequiredHeader(req, SNAPSHOT_TABLE_ID_PARAM);
+  @Parameter(UPDATE_SNAPSHOT_TABLE_ID_PARAM)
+  static String provideUpdateSnapshotTableId(HttpServletRequest req) {
+    return extractRequiredHeader(req, UPDATE_SNAPSHOT_TABLE_ID_PARAM);
   }
 
   @Provides
-  @Parameter(SNAPSHOT_KIND_PARAM)
-  static String provideKind(HttpServletRequest req) {
-    return extractRequiredHeader(req, SNAPSHOT_KIND_PARAM);
+  @Parameter(UPDATE_SNAPSHOT_KIND_PARAM)
+  static String provideUpdateSnapshotKind(HttpServletRequest req) {
+    return extractRequiredHeader(req, UPDATE_SNAPSHOT_KIND_PARAM);
+  }
+
+  @Provides
+  @Parameter(LOAD_SNAPSHOT_FILE_PARAM)
+  static String provideLoadSnapshotFile(HttpServletRequest req) {
+    return extractRequiredHeader(req, LOAD_SNAPSHOT_FILE_PARAM);
+  }
+
+  @Provides
+  @Parameter(LOAD_SNAPSHOT_ID_PARAM)
+  static String provideLoadSnapshotId(HttpServletRequest req) {
+    return extractRequiredHeader(req, LOAD_SNAPSHOT_ID_PARAM);
+  }
+
+  @Provides
+  @Parameter(LOAD_SNAPSHOT_KINDS_PARAM)
+  static String provideLoadSnapshotKinds(HttpServletRequest req) {
+    return extractRequiredHeader(req, LOAD_SNAPSHOT_KINDS_PARAM);
   }
 
   @Provides

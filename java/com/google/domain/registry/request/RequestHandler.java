@@ -17,9 +17,9 @@ package com.google.domain.registry.request;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.net.HttpHeaders.LOCATION;
+import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.domain.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 import static com.google.domain.registry.security.XsrfTokenManager.validateToken;
-import static com.google.domain.registry.util.HttpServletUtils.sendOk;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
@@ -149,7 +149,8 @@ public final class RequestHandler<C> {
     try {
       route.get().instantiator().apply(component).run();
       if (route.get().action().automaticallyPrintOk()) {
-        sendOk(rsp);
+        rsp.setContentType(PLAIN_TEXT_UTF_8.toString());
+        rsp.getWriter().write("OK\n");
       }
     } catch (HttpException e) {
       e.send(rsp);

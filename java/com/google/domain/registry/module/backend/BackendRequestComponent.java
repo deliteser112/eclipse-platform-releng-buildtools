@@ -31,6 +31,7 @@ import com.google.domain.registry.export.BigqueryPollJobAction;
 import com.google.domain.registry.export.ExportDomainListsAction;
 import com.google.domain.registry.export.ExportRequestModule;
 import com.google.domain.registry.export.ExportReservedTermsAction;
+import com.google.domain.registry.export.LoadSnapshotAction;
 import com.google.domain.registry.export.SyncGroupMembersAction;
 import com.google.domain.registry.export.UpdateSnapshotViewAction;
 import com.google.domain.registry.export.sheet.SheetModule;
@@ -89,6 +90,7 @@ interface BackendRequestComponent {
   ExportCommitLogDiffAction exportCommitLogDiffAction();
   ExportDomainListsAction exportDomainListsAction();
   ExportReservedTermsAction exportReservedTermsAction();
+  LoadSnapshotAction loadSnapshotAction();
   MetricsExportAction metricsExportAction();
   NordnUploadAction nordnUploadAction();
   NordnVerifyAction nordnVerifyAction();

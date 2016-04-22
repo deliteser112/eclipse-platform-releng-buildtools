@@ -15,6 +15,9 @@
 package com.google.domain.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.domain.registry.export.CheckSnapshotServlet.SNAPSHOT_KINDS_TO_LOAD_PARAM;
+import static com.google.domain.registry.export.CheckSnapshotServlet.SNAPSHOT_NAME_PARAM;
+import static com.google.domain.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -22,7 +25,6 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Joiner;
@@ -76,9 +78,6 @@ public class CheckSnapshotServletTest {
   @Mock
   private DatastoreBackupService backupService;
 
-  @Mock
-  private LoadSnapshotServlet loadSnapshotServlet;
-
   private final FakeClock clock = new FakeClock(COMPLETE_TIME.plusMillis(1000));
   private final StringWriter httpOutput = new StringWriter();
   private final CheckSnapshotServlet servlet = new CheckSnapshotServlet();
@@ -86,7 +85,6 @@ public class CheckSnapshotServletTest {
   @Before
   public void before() throws Exception {
     inject.setStaticField(CheckSnapshotServlet.class, "backupService", backupService);
-    inject.setStaticField(CheckSnapshotServlet.class, "loadSnapshotServlet", loadSnapshotServlet);
     inject.setStaticField(DatastoreBackupInfo.class, "clock", clock);
 
     when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
@@ -111,21 +109,34 @@ public class CheckSnapshotServletTest {
         backupInfo.getGcsFilename());
   }
 
+  private static void assertLoadTaskEnqueued(String id, String file, String kinds)
+      throws Exception {
+    assertTasksEnqueued(
+        "export-snapshot",
+        new TaskMatcher()
+            .url("/_dr/task/loadSnapshot")
+            .method("POST")
+            .param("id", id)
+            .param("file", file)
+            .param("kinds", kinds));
+  }
+
   @Test
   public void testSuccess_enqueuePollTask() throws Exception {
     servlet.enqueuePollTask("some_snapshot_name", ImmutableSet.of("one", "two", "three"));
     assertTasksEnqueued(CheckSnapshotServlet.QUEUE,
         new TaskMatcher()
             .url(CheckSnapshotServlet.PATH)
-            .param(CheckSnapshotServlet.SNAPSHOT_NAME_PARAM, "some_snapshot_name")
-            .param(CheckSnapshotServlet.SNAPSHOT_KINDS_TO_LOAD_PARAM, "one,two,three")
+            .param(SNAPSHOT_NAME_PARAM, "some_snapshot_name")
+            .param(SNAPSHOT_KINDS_TO_LOAD_PARAM, "one,two,three")
             .method("POST"));
   }
 
   @Test
   public void testPost_forPendingBackup_returnsNotModified() throws Exception {
     setPendingBackup();
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
+    when(req.getParameter(SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
+    when(req.getParameter(SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("one,two");
     when(backupService.findByName("some_backup")).thenReturn(backupInfo);
 
     servlet.service(req, rsp);
@@ -135,7 +146,8 @@ public class CheckSnapshotServletTest {
   @Test
   public void testPost_forStalePendingBackupBackup_returnsAccepted() throws Exception {
     setPendingBackup();
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
+    when(req.getParameter(SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
+    when(req.getParameter(SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("one,two");
     when(backupService.findByName("some_backup")).thenReturn(backupInfo);
     clock.setTo(START_TIME
         .plus(Duration.standardHours(20))
@@ -150,76 +162,57 @@ public class CheckSnapshotServletTest {
 
   @Test
   public void testPost_forCompleteBackup_enqueuesLoadTask() throws Exception {
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("one,two");
+    when(req.getParameter(SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
+    when(req.getParameter(SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("one,two");
     when(backupService.findByName("some_backup")).thenReturn(backupInfo);
 
     servlet.service(req, rsp);
     verify(rsp).setStatus(SC_OK);
-    verify(loadSnapshotServlet).enqueueLoadTask(
-        "20140801_010203",
-        "gs://somebucket/some_backup_20140801.backup_info",
-        ImmutableSet.of("one", "two"));
+    assertLoadTaskEnqueued(
+        "20140801_010203", "gs://somebucket/some_backup_20140801.backup_info", "one,two");
   }
 
   @Test
   public void testPost_forCompleteAutoBackup_enqueuesLoadTask_usingBackupName() throws Exception {
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_NAME_PARAM))
-        .thenReturn("auto_snapshot_somestring");
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("one,two");
+    when(req.getParameter(SNAPSHOT_NAME_PARAM)).thenReturn("auto_snapshot_somestring");
+    when(req.getParameter(SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("one,two");
     when(backupService.findByName("auto_snapshot_somestring")).thenReturn(backupInfo);
 
     servlet.service(req, rsp);
     verify(rsp).setStatus(SC_OK);
-    verify(loadSnapshotServlet).enqueueLoadTask(
-        "somestring",
-        "gs://somebucket/some_backup_20140801.backup_info",
-        ImmutableSet.of("one", "two"));
-  }
-
-  @Test
-  public void testPost_forCompleteBackup_missingKindsToLoad_enqueuesLoadTask() throws Exception {
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
-    when(backupService.findByName("some_backup")).thenReturn(backupInfo);
-
-    servlet.service(req, rsp);
-    verify(rsp).setStatus(SC_OK);
-    verify(loadSnapshotServlet).enqueueLoadTask(
-        "20140801_010203",
-        "gs://somebucket/some_backup_20140801.backup_info",
-        ImmutableSet.of("one", "two", "three"));
+    assertLoadTaskEnqueued(
+        "somestring", "gs://somebucket/some_backup_20140801.backup_info", "one,two");
   }
 
   @Test
   public void testPost_forCompleteBackup_withExtraKindsToLoad_enqueuesLoadTask() throws Exception {
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("one,foo");
+    when(req.getParameter(SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
+    when(req.getParameter(SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("one,foo");
     when(backupService.findByName("some_backup")).thenReturn(backupInfo);
 
     servlet.service(req, rsp);
     verify(rsp).setStatus(SC_OK);
-    verify(loadSnapshotServlet).enqueueLoadTask(
-        "20140801_010203",
-        "gs://somebucket/some_backup_20140801.backup_info",
-        ImmutableSet.of("one"));
+    assertLoadTaskEnqueued(
+        "20140801_010203", "gs://somebucket/some_backup_20140801.backup_info", "one");
   }
 
 @Test
   public void testPost_forCompleteBackup_withEmptyKindsToLoad_skipsLoadTask() throws Exception {
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("");
+    when(req.getParameter(SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
+    when(req.getParameter(SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("");
     when(backupService.findByName("some_backup")).thenReturn(backupInfo);
 
     servlet.service(req, rsp);
     verify(rsp).setStatus(SC_OK);
-    verifyZeroInteractions(loadSnapshotServlet);
+    assertNoTasksEnqueued("export-snapshot");
   }
 
   @Test
   public void testPost_forBadBackup_returnsBadRequest() throws Exception {
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
-    when(backupService.findByName("some_backup")).thenThrow(
-        new IllegalArgumentException("No backup found"));
+    when(req.getParameter(SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
+    when(req.getParameter(SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("one,two");
+    when(backupService.findByName("some_backup"))
+        .thenThrow(new IllegalArgumentException("No backup found"));
 
     servlet.service(req, rsp);
     verify(rsp).sendError(SC_BAD_REQUEST, "Bad backup name some_backup: No backup found");
@@ -228,14 +221,16 @@ public class CheckSnapshotServletTest {
   @Test
   public void testPost_noBackupSpecified_returnsError() throws Exception {
     when(req.getMethod()).thenReturn("POST");
+    when(req.getParameter(SNAPSHOT_NAME_PARAM)).thenReturn(null);
+    when(req.getParameter(SNAPSHOT_KINDS_TO_LOAD_PARAM)).thenReturn("one,two");
     servlet.service(req, rsp);
-    verify(rsp).sendError(SC_BAD_REQUEST, "Missing required parameter: name");
+    verify(rsp).sendError(SC_BAD_REQUEST, "Missing parameter: name");
   }
 
   @Test
   public void testGet_returnsInformation() throws Exception {
     when(req.getMethod()).thenReturn("GET");
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
+    when(req.getParameter(SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
     when(backupService.findByName("some_backup")).thenReturn(backupInfo);
 
     servlet.service(req, rsp);
@@ -254,7 +249,7 @@ public class CheckSnapshotServletTest {
   @Test
   public void testGet_forBadBackup_returnsError() throws Exception {
     when(req.getMethod()).thenReturn("GET");
-    when(req.getParameter(CheckSnapshotServlet.SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
+    when(req.getParameter(SNAPSHOT_NAME_PARAM)).thenReturn("some_backup");
     when(backupService.findByName("some_backup")).thenThrow(
         new IllegalArgumentException("No backup found"));
 
@@ -266,6 +261,6 @@ public class CheckSnapshotServletTest {
   public void testGet_noBackupSpecified_returnsError() throws Exception {
     when(req.getMethod()).thenReturn("GET");
     servlet.service(req, rsp);
-    verify(rsp).sendError(SC_BAD_REQUEST, "Missing required parameter: name");
+    verify(rsp).sendError(SC_BAD_REQUEST, "Missing parameter: name");
   }
 }

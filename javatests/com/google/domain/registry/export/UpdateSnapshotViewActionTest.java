@@ -15,9 +15,9 @@
 package com.google.domain.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.SNAPSHOT_DATASET_ID_PARAM;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.SNAPSHOT_KIND_PARAM;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.SNAPSHOT_TABLE_ID_PARAM;
+import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DATASET_ID_PARAM;
+import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
+import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
 import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -30,11 +30,9 @@ import com.google.api.services.bigquery.model.Dataset;
 import com.google.api.services.bigquery.model.Table;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.config.TestRegistryConfig;
 import com.google.domain.registry.request.HttpException.InternalServerErrorException;
 import com.google.domain.registry.testing.AppEngineRule;
 import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.RegistryConfigRule;
 import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
 
 import org.junit.Before;
@@ -58,17 +56,6 @@ public class UpdateSnapshotViewActionTest {
 
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
-
-  @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule(new TestRegistryConfig() {
-    @Override public String getProjectId() {
-      return "Project-Id";
-    }
-
-    @Override public String getLatestSnapshotDataset() {
-      return "testdataset";
-    }
-  });
 
   @Mock
   private BigqueryFactory bigqueryFactory;
@@ -104,8 +91,9 @@ public class UpdateSnapshotViewActionTest {
     action = new UpdateSnapshotViewAction();
     action.bigqueryFactory = bigqueryFactory;
     action.datasetId = "some_dataset";
-    action.tableId = "12345_fookind";
     action.kindName = "fookind";
+    action.projectId = "Project-Id";
+    action.tableId = "12345_fookind";
   }
 
   @Test
@@ -116,9 +104,9 @@ public class UpdateSnapshotViewActionTest {
         new TaskMatcher()
             .url(UpdateSnapshotViewAction.PATH)
             .method("POST")
-            .param(SNAPSHOT_DATASET_ID_PARAM, "some_dataset")
-            .param(SNAPSHOT_TABLE_ID_PARAM, "12345_fookind")
-            .param(SNAPSHOT_KIND_PARAM, "fookind"));
+            .param(UPDATE_SNAPSHOT_DATASET_ID_PARAM, "some_dataset")
+            .param(UPDATE_SNAPSHOT_TABLE_ID_PARAM, "12345_fookind")
+            .param(UPDATE_SNAPSHOT_KIND_PARAM, "fookind"));
   }
 
   @Test
@@ -128,7 +116,7 @@ public class UpdateSnapshotViewActionTest {
     // Check that we updated the view.
     ArgumentCaptor<Table> tableArg = ArgumentCaptor.forClass(Table.class);
     verify(bigqueryTables).update(
-        eq("Project-Id"), eq("testdataset"), eq("fookind"), tableArg.capture());
+        eq("Project-Id"), eq("latest_snapshot"), eq("fookind"), tableArg.capture());
     assertThat(tableArg.getValue().getView().getQuery())
         .isEqualTo("SELECT * FROM [some_dataset.12345_fookind]");
   }

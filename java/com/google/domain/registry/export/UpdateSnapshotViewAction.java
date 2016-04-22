@@ -23,7 +23,7 @@ import com.google.api.services.bigquery.model.ViewDefinition;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.config.RegistryEnvironment;
+import com.google.domain.registry.config.ConfigModule.Config;
 import com.google.domain.registry.request.Action;
 import com.google.domain.registry.request.HttpException.InternalServerErrorException;
 import com.google.domain.registry.request.Parameter;
@@ -38,12 +38,12 @@ import javax.inject.Inject;
 @Action(path = UpdateSnapshotViewAction.PATH, method = POST)
 public class UpdateSnapshotViewAction implements Runnable {
 
-  private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
-
   /** Headers for passing parameters into the servlet. */
-  static final String SNAPSHOT_DATASET_ID_PARAM = "dataset";
-  static final String SNAPSHOT_TABLE_ID_PARAM = "table";
-  static final String SNAPSHOT_KIND_PARAM = "kind";
+  static final String UPDATE_SNAPSHOT_DATASET_ID_PARAM = "dataset";
+  static final String UPDATE_SNAPSHOT_TABLE_ID_PARAM = "table";
+  static final String UPDATE_SNAPSHOT_KIND_PARAM = "kind";
+
+  static final String LATEST_SNAPSHOT_DATASET = "latest_snapshot";
 
   /** Servlet-specific details needed for enqueuing tasks against itself. */
   static final String QUEUE = "export-snapshot-update-view";  // See queue.xml.
@@ -51,9 +51,10 @@ public class UpdateSnapshotViewAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject @Parameter(SNAPSHOT_DATASET_ID_PARAM) String datasetId;
-  @Inject @Parameter(SNAPSHOT_TABLE_ID_PARAM) String tableId;
-  @Inject @Parameter(SNAPSHOT_KIND_PARAM) String kindName;
+  @Inject @Parameter(UPDATE_SNAPSHOT_DATASET_ID_PARAM) String datasetId;
+  @Inject @Parameter(UPDATE_SNAPSHOT_TABLE_ID_PARAM) String tableId;
+  @Inject @Parameter(UPDATE_SNAPSHOT_KIND_PARAM) String kindName;
+  @Inject @Config("projectId") String projectId;
   @Inject BigqueryFactory bigqueryFactory;
   @Inject UpdateSnapshotViewAction() {}
 
@@ -62,9 +63,9 @@ public class UpdateSnapshotViewAction implements Runnable {
       String datasetId, String tableId, String kindName) {
     return TaskOptions.Builder.withUrl(PATH)
         .method(Method.POST)
-        .param(SNAPSHOT_DATASET_ID_PARAM, datasetId)
-        .param(SNAPSHOT_TABLE_ID_PARAM, tableId)
-        .param(SNAPSHOT_KIND_PARAM, kindName);
+        .param(UPDATE_SNAPSHOT_DATASET_ID_PARAM, datasetId)
+        .param(UPDATE_SNAPSHOT_TABLE_ID_PARAM, tableId)
+        .param(UPDATE_SNAPSHOT_KIND_PARAM, kindName);
   }
 
   @Override
@@ -79,14 +80,12 @@ public class UpdateSnapshotViewAction implements Runnable {
 
   private void updateSnapshotView(String datasetId, String tableId, String kindName)
       throws IOException {
-    String projectId = ENVIRONMENT.config().getProjectId();
-    Bigquery bigquery =
-        bigqueryFactory.create(projectId, ENVIRONMENT.config().getLatestSnapshotDataset());
+    Bigquery bigquery = bigqueryFactory.create(projectId, LATEST_SNAPSHOT_DATASET);
 
     updateTable(bigquery, new Table()
         .setTableReference(new TableReference()
             .setProjectId(projectId)
-            .setDatasetId(ENVIRONMENT.config().getLatestSnapshotDataset())
+            .setDatasetId(LATEST_SNAPSHOT_DATASET)
             .setTableId(kindName))
         .setView(new ViewDefinition().setQuery(
             SqlTemplate.create("SELECT * FROM [%DATASET%.%TABLE%]")
@@ -94,10 +93,12 @@ public class UpdateSnapshotViewAction implements Runnable {
                 .put("TABLE", tableId)
                 .build())));
 
-    String message = String.format(
+    logger.infofmt(
         "Updated view %s:%s to point at snapshot table %s:%s.",
-        ENVIRONMENT.config().getLatestSnapshotDataset(), kindName, datasetId, tableId);
-    logger.info(message);
+        LATEST_SNAPSHOT_DATASET,
+        kindName,
+        datasetId,
+        tableId);
   }
 
   private static void updateTable(Bigquery bigquery, Table table) throws IOException {

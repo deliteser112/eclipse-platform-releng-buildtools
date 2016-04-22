@@ -52,20 +52,6 @@ public interface RegistryConfig {
   public String getDomainListsBucket();
 
   /**
-   * Returns the BigQuery dataset for storing directly imported datastore snapshots.
-   *
-   * @see com.google.domain.registry.export.LoadSnapshotServlet
-   */
-  public String getSnapshotsDataset();
-
-  /**
-   * Returns the BigQuery dataset for storing views pointing to the latest datastore snapshot.
-   *
-   * @see com.google.domain.registry.export.UpdateSnapshotViewAction
-   */
-  public String getLatestSnapshotDataset();
-
-  /**
    * Number of sharded commit log buckets.
    *
    * <p>This number is crucial for determining how much transactional throughput the system can

@@ -58,16 +58,6 @@ public class TestRegistryConfig implements RegistryConfig {
   }
 
   @Override
-  public String getSnapshotsDataset() {
-    return "snapshots";
-  }
-
-  @Override
-  public String getLatestSnapshotDataset() {
-    return "latest_snapshot";
-  }
-
-  @Override
   public String getCommitsBucket() {
     return getProjectId() + "-commits";
   }

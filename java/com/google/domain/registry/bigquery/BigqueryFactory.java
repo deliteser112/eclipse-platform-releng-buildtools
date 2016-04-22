@@ -59,7 +59,7 @@ public class BigqueryFactory {
   @VisibleForTesting
   Subfactory subfactory = new Subfactory();
 
-  @Inject public BigqueryFactory() {}
+  @Inject BigqueryFactory() {}
 
   /** This class is broken out solely so that it can be mocked inside of tests. */
   static class Subfactory {
