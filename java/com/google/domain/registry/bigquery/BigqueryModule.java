@@ -21,12 +21,16 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.BigqueryScopes;
+import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.common.collect.ImmutableList;
 import com.google.domain.registry.config.ConfigModule.Config;
 import com.google.domain.registry.request.OAuthScopes;
 
 import dagger.Module;
+import dagger.Multibindings;
 import dagger.Provides;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -40,6 +44,13 @@ import java.util.Set;
  */
 @Module
 public final class BigqueryModule {
+
+  @Multibindings
+  interface BigQueryMultibindings {
+
+    /** Provides a map of BigQuery table names to field names. */
+    Map<String, ImmutableList<TableFieldSchema>> bigquerySchemas();
+  }
 
   /** Provides OAuth2 scopes for the Bigquery service needed by Domain Registry. */
   @Provides(type = SET_VALUES)

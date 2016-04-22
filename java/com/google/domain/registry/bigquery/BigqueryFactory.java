@@ -16,7 +16,8 @@ package com.google.domain.registry.bigquery;
 
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.bigquery.BigquerySchemas.knownTableSchemas;
+import static com.google.common.collect.Sets.newConcurrentHashSet;
+import static com.google.domain.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.api.client.extensions.appengine.http.UrlFetchTransport;
 import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
@@ -32,13 +33,12 @@ import com.google.api.services.bigquery.model.Table;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.TableSchema;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -46,23 +46,20 @@ import javax.inject.Inject;
 /** Factory for creating {@link Bigquery} connections. */
 public class BigqueryFactory {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FormattingLogger logger = getLoggerForCallerClass();
 
   // Cross-request caches to avoid unnecessary RPCs.
-  @NonFinalForTesting
-  private Set<String> knownTables = Sets.newConcurrentHashSet();
+  private static Set<String> knownExistingDatasets = newConcurrentHashSet();
+  private static Set<String> knownExistingTables = newConcurrentHashSet();
 
-  @NonFinalForTesting
-  private Set<String> datasets = Sets.newConcurrentHashSet();
-
-  @NonFinalForTesting
-  @VisibleForTesting
-  Subfactory subfactory = new Subfactory();
-
+  @Inject Map<String, ImmutableList<TableFieldSchema>> bigquerySchemas;
+  @Inject Subfactory subfactory;
   @Inject BigqueryFactory() {}
 
   /** This class is broken out solely so that it can be mocked inside of tests. */
   static class Subfactory {
+
+    @Inject Subfactory() {}
 
     public Bigquery create(
         String applicationName,
@@ -96,9 +93,9 @@ public class BigqueryFactory {
         new AppIdentityCredential(BigqueryScopes.all()));
 
     // Note: it's safe for multiple threads to call this as the dataset will only be created once.
-    if (!datasets.contains(datasetId)) {
+    if (!knownExistingDatasets.contains(datasetId)) {
       ensureDataset(bigquery, projectId, datasetId);
-      datasets.add(datasetId);
+      knownExistingDatasets.add(datasetId);
     }
 
     return bigquery;
@@ -111,17 +108,17 @@ public class BigqueryFactory {
   public Bigquery create(String projectId, String datasetId, String tableId)
       throws IOException {
     Bigquery bigquery = create(projectId, datasetId);
-    checkArgument(knownTableSchemas.containsKey(tableId), "Unknown table ID: %s", tableId);
+    checkArgument(bigquerySchemas.containsKey(tableId), "Unknown table ID: %s", tableId);
 
-    if (!knownTables.contains(tableId)) {
+    if (!knownExistingTables.contains(tableId)) {
       ensureTable(
           bigquery,
           new TableReference()
               .setDatasetId(datasetId)
               .setProjectId(projectId)
               .setTableId(tableId),
-          knownTableSchemas.get(tableId));
-      knownTables.add(tableId);
+            bigquerySchemas.get(tableId));
+      knownExistingTables.add(tableId);
     }
 
     return bigquery;
@@ -151,8 +148,7 @@ public class BigqueryFactory {
   }
 
   /** Ensures the table exists in Bigquery. */
-  private void ensureTable(
-      Bigquery bigquery, TableReference table, ImmutableList<TableFieldSchema> schema)
+  private void ensureTable(Bigquery bigquery, TableReference table, List<TableFieldSchema> schema)
       throws IOException {
     try {
       bigquery.tables().insert(table.getProjectId(), table.getDatasetId(), new Table()

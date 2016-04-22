@@ -14,14 +14,30 @@
 
 package com.google.domain.registry.monitoring.whitebox;
 
-import com.google.domain.registry.bigquery.BigquerySchemas;
+import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.common.collect.ImmutableList;
+import com.google.domain.registry.bigquery.BigqueryUtils.FieldType;
 import com.google.domain.registry.model.eppoutput.Result.Code;
 
 /** The EPP Metrics collector. See {@link Metrics}. */
 public class EppMetrics extends Metrics {
 
+  static final String EPPMETRICS_TABLE_ID = "eppMetrics";
+
+  static final ImmutableList<TableFieldSchema> EPPMETRICS_SCHEMA_FIELDS =
+      ImmutableList.of(
+          new TableFieldSchema().setName("requestId").setType(FieldType.STRING.name()),
+          new TableFieldSchema().setName("startTime").setType(FieldType.TIMESTAMP.name()),
+          new TableFieldSchema().setName("endTime").setType(FieldType.TIMESTAMP.name()),
+          new TableFieldSchema().setName("commandName").setType(FieldType.STRING.name()),
+          new TableFieldSchema().setName("clientId").setType(FieldType.STRING.name()),
+          new TableFieldSchema().setName("privilegeLevel").setType(FieldType.STRING.name()),
+          new TableFieldSchema().setName("eppTarget").setType(FieldType.STRING.name()),
+          new TableFieldSchema().setName("eppStatus").setType(FieldType.INTEGER.name()),
+          new TableFieldSchema().setName("attempts").setType(FieldType.INTEGER.name()));
+
   public EppMetrics() {
-    setTableId(BigquerySchemas.EPPMETRICS_TABLE_ID);
+    setTableId(EPPMETRICS_TABLE_ID);
     fields.put("attempts", 0);
   }
 

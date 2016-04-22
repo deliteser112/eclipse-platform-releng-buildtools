@@ -113,6 +113,10 @@ public class UpdateSnapshotViewActionTest {
   public void testSuccess_doPost() throws Exception {
     action.run();
 
+    // Check that the BigQuery factory was called in such a way that the dataset would be created
+    // if it didn't already exist.
+    verify(bigqueryFactory).create("Project-Id", "latest_snapshot");
+
     // Check that we updated the view.
     ArgumentCaptor<Table> tableArg = ArgumentCaptor.forClass(Table.class);
     verify(bigqueryTables).update(

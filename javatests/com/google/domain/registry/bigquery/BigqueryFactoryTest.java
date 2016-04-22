@@ -32,10 +32,8 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableReference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.testing.InjectRule;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -45,9 +43,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 /** Unit tests for {@link BigqueryFactory}. */
 @RunWith(MockitoJUnitRunner.class)
 public class BigqueryFactoryTest {
-
-  @Rule
-  public final InjectRule inject = new InjectRule();
 
   @Mock
   private BigqueryFactory.Subfactory subfactory;
@@ -67,6 +62,8 @@ public class BigqueryFactoryTest {
   @Mock
   private Bigquery.Tables.Insert bigqueryTablesInsert;
 
+  private BigqueryFactory factory;
+
   @Before
   public void before() throws Exception {
     when(subfactory.create(
@@ -81,16 +78,21 @@ public class BigqueryFactoryTest {
     when(bigquery.tables()).thenReturn(bigqueryTables);
     when(bigqueryTables.insert(eq("Project-Id"), any(String.class), any(Table.class)))
         .thenReturn(bigqueryTablesInsert);
-    BigquerySchemas.knownTableSchemas =
-        ImmutableMap.of(
-            "Table-Id",
-            ImmutableList.of(new TableFieldSchema().setName("column1").setType(STRING.name())));
+    factory = new BigqueryFactory();
+    factory.subfactory = subfactory;
+    factory.bigquerySchemas =
+        new ImmutableMap.Builder<String, ImmutableList<TableFieldSchema>>()
+            .put(
+                "Table-Id",
+                ImmutableList.of(new TableFieldSchema().setName("column1").setType(STRING.name())))
+            .put(
+                "Table2",
+                ImmutableList.of(new TableFieldSchema().setName("column1").setType(STRING.name())))
+            .build();
   }
 
   @Test
   public void testSuccess_datastoreCreation() throws Exception {
-    BigqueryFactory factory = new BigqueryFactory();
-    factory.subfactory = subfactory;
     factory.create("Project-Id", "Dataset-Id");
 
     ArgumentCaptor<Dataset> datasetArg = ArgumentCaptor.forClass(Dataset.class);
@@ -104,24 +106,22 @@ public class BigqueryFactoryTest {
 
   @Test
   public void testSuccess_datastoreAndTableCreation() throws Exception {
-    BigqueryFactory factory = new BigqueryFactory();
-    factory.subfactory = subfactory;
-    factory.create("Project-Id", "Dataset-Id", "Table-Id");
+    factory.create("Project-Id", "Dataset2", "Table2");
 
     ArgumentCaptor<Dataset> datasetArg = ArgumentCaptor.forClass(Dataset.class);
     verify(bigqueryDatasets).insert(eq("Project-Id"), datasetArg.capture());
     assertThat(datasetArg.getValue().getDatasetReference().getProjectId())
         .isEqualTo("Project-Id");
     assertThat(datasetArg.getValue().getDatasetReference().getDatasetId())
-        .isEqualTo("Dataset-Id");
+        .isEqualTo("Dataset2");
     verify(bigqueryDatasetsInsert).execute();
 
     ArgumentCaptor<Table> tableArg = ArgumentCaptor.forClass(Table.class);
-    verify(bigqueryTables).insert(eq("Project-Id"), eq("Dataset-Id"), tableArg.capture());
+    verify(bigqueryTables).insert(eq("Project-Id"), eq("Dataset2"), tableArg.capture());
     TableReference ref = tableArg.getValue().getTableReference();
     assertThat(ref.getProjectId()).isEqualTo("Project-Id");
-    assertThat(ref.getDatasetId()).isEqualTo("Dataset-Id");
-    assertThat(ref.getTableId()).isEqualTo("Table-Id");
+    assertThat(ref.getDatasetId()).isEqualTo("Dataset2");
+    assertThat(ref.getTableId()).isEqualTo("Table2");
     assertThat(tableArg.getValue().getSchema().getFields())
         .containsExactly(new TableFieldSchema().setName("column1").setType(STRING.name()));
     verify(bigqueryTablesInsert).execute();

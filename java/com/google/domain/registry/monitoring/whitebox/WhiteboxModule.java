@@ -14,13 +14,21 @@
 
 package com.google.domain.registry.monitoring.whitebox;
 
+import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.ENTITY_INTEGRITY_ALERTS_SCHEMA_FIELDS;
+import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.TABLE_ID;
+import static com.google.domain.registry.monitoring.whitebox.EppMetrics.EPPMETRICS_SCHEMA_FIELDS;
+import static com.google.domain.registry.monitoring.whitebox.EppMetrics.EPPMETRICS_TABLE_ID;
 import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
+import static dagger.Provides.Type.MAP;
 
+import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import com.google.domain.registry.request.Parameter;
 
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.StringKey;
 
 import java.util.UUID;
 
@@ -31,6 +39,18 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Module
 public class WhiteboxModule {
+
+  @Provides(type = MAP)
+  @StringKey(EPPMETRICS_TABLE_ID)
+  static ImmutableList<TableFieldSchema> provideEppMetricsSchema() {
+    return EPPMETRICS_SCHEMA_FIELDS;
+  }
+
+  @Provides(type = MAP)
+  @StringKey(TABLE_ID)
+  static ImmutableList<TableFieldSchema> provideEntityIntegrityAlertsSchema() {
+    return ENTITY_INTEGRITY_ALERTS_SCHEMA_FIELDS;
+  }
 
   @Provides
   @Parameter("tableId")

@@ -15,11 +15,12 @@
 package com.google.domain.registry.monitoring.whitebox;
 
 import static com.google.api.client.util.Data.NULL_STRING;
-import static com.google.domain.registry.bigquery.BigquerySchemas.ENTITY_INTEGRITY_ALERTS_FIELD_MESSAGE;
-import static com.google.domain.registry.bigquery.BigquerySchemas.ENTITY_INTEGRITY_ALERTS_FIELD_SCANTIME;
-import static com.google.domain.registry.bigquery.BigquerySchemas.ENTITY_INTEGRITY_ALERTS_FIELD_SOURCE;
-import static com.google.domain.registry.bigquery.BigquerySchemas.ENTITY_INTEGRITY_ALERTS_FIELD_TARGET;
-import static com.google.domain.registry.bigquery.BigquerySchemas.ENTITY_INTEGRITY_ALERTS_TABLE_ID;
+import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.DATASET;
+import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_MESSAGE;
+import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_SCANTIME;
+import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_SOURCE;
+import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_TARGET;
+import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.TABLE_ID;
 
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.Bigquery.Tabledata.InsertAll;
@@ -54,8 +55,6 @@ import javax.annotation.Nullable;
 @AutoFactory(allowSubclasses = true)
 public class VerifyEntityIntegrityStreamer {
 
-  private static final String DATASET = "entity_integrity";
-
   private final DateTime scanTime;
   private Bigquery bigquery;
 
@@ -84,7 +83,7 @@ public class VerifyEntityIntegrityStreamer {
     if (bigquery == null) {
       bigquery =
           bigqueryFactory.create(
-              environment.config().getProjectId(), DATASET, ENTITY_INTEGRITY_ALERTS_TABLE_ID);
+              environment.config().getProjectId(), DATASET, TABLE_ID);
     }
     return bigquery;
   }
@@ -157,16 +156,16 @@ public class VerifyEntityIntegrityStreamer {
         Map<String, Object> rowData =
             new ImmutableMap.Builder<String, Object>()
                 .put(
-                    ENTITY_INTEGRITY_ALERTS_FIELD_SCANTIME,
+                    FIELD_SCANTIME,
                     new com.google.api.client.util.DateTime(scanTime.toDate()))
                 .put(
-                    ENTITY_INTEGRITY_ALERTS_FIELD_SOURCE,
+                    FIELD_SOURCE,
                     source.toString())
                 .put(
-                    ENTITY_INTEGRITY_ALERTS_FIELD_TARGET,
+                    FIELD_TARGET,
                     target.toString())
                 .put(
-                    ENTITY_INTEGRITY_ALERTS_FIELD_MESSAGE,
+                    FIELD_MESSAGE,
                     (message == null) ? NULL_STRING : message)
                 .build();
         rows.add(
@@ -185,7 +184,7 @@ public class VerifyEntityIntegrityStreamer {
               .insertAll(
                   environment.config().getProjectId(),
                   DATASET,
-                  ENTITY_INTEGRITY_ALERTS_TABLE_ID,
+                  TABLE_ID,
                   new TableDataInsertAllRequest().setRows(rows));
 
       Callable<Void> callable =
