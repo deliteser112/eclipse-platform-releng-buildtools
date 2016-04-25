@@ -142,14 +142,9 @@
     <url-pattern>/_dr/task/checkSnapshot</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <description>Loads a datastore backup snapshot into BigQuery.</description>
-    <display-name>Load snapshot into BigQuery</display-name>
-    <servlet-name>loadSnapshot</servlet-name>
-    <servlet-class>com.google.domain.registry.export.LoadSnapshotServlet</servlet-class>
-  </servlet>
+  <!-- Loads a datastore backup snapshot into BigQuery. -->
   <servlet-mapping>
-    <servlet-name>loadSnapshot</servlet-name>
+    <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/loadSnapshot</url-pattern>
   </servlet-mapping>
 
