@@ -24,6 +24,7 @@ import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_
 import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
 import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
 import static com.google.domain.registry.request.RequestParameters.extractRequiredHeader;
+import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.domain.registry.request.Header;
 import com.google.domain.registry.request.Parameter;
@@ -40,37 +41,37 @@ public final class ExportRequestModule {
   @Provides
   @Parameter(UPDATE_SNAPSHOT_DATASET_ID_PARAM)
   static String provideUpdateSnapshotDatasetId(HttpServletRequest req) {
-    return extractRequiredHeader(req, UPDATE_SNAPSHOT_DATASET_ID_PARAM);
+    return extractRequiredParameter(req, UPDATE_SNAPSHOT_DATASET_ID_PARAM);
   }
 
   @Provides
   @Parameter(UPDATE_SNAPSHOT_TABLE_ID_PARAM)
   static String provideUpdateSnapshotTableId(HttpServletRequest req) {
-    return extractRequiredHeader(req, UPDATE_SNAPSHOT_TABLE_ID_PARAM);
+    return extractRequiredParameter(req, UPDATE_SNAPSHOT_TABLE_ID_PARAM);
   }
 
   @Provides
   @Parameter(UPDATE_SNAPSHOT_KIND_PARAM)
   static String provideUpdateSnapshotKind(HttpServletRequest req) {
-    return extractRequiredHeader(req, UPDATE_SNAPSHOT_KIND_PARAM);
+    return extractRequiredParameter(req, UPDATE_SNAPSHOT_KIND_PARAM);
   }
 
   @Provides
   @Parameter(LOAD_SNAPSHOT_FILE_PARAM)
   static String provideLoadSnapshotFile(HttpServletRequest req) {
-    return extractRequiredHeader(req, LOAD_SNAPSHOT_FILE_PARAM);
+    return extractRequiredParameter(req, LOAD_SNAPSHOT_FILE_PARAM);
   }
 
   @Provides
   @Parameter(LOAD_SNAPSHOT_ID_PARAM)
   static String provideLoadSnapshotId(HttpServletRequest req) {
-    return extractRequiredHeader(req, LOAD_SNAPSHOT_ID_PARAM);
+    return extractRequiredParameter(req, LOAD_SNAPSHOT_ID_PARAM);
   }
 
   @Provides
   @Parameter(LOAD_SNAPSHOT_KINDS_PARAM)
   static String provideLoadSnapshotKinds(HttpServletRequest req) {
-    return extractRequiredHeader(req, LOAD_SNAPSHOT_KINDS_PARAM);
+    return extractRequiredParameter(req, LOAD_SNAPSHOT_KINDS_PARAM);
   }
 
   @Provides
