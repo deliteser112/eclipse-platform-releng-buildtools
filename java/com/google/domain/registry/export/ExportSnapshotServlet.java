@@ -33,7 +33,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Trigger a backup-as-a-service job that writes a snapshot to Google Cloud Storage. */
+/**
+ * Trigger a backup-as-a-service job that writes a snapshot to Google Cloud Storage.
+ *
+ * <p>This is the first step of a four step workflow for exporting snapshots, with each step calling
+ * the next upon successful completion:<ol>
+ *   <li>The snapshot is exported to Google Cloud Storage (this servlet).
+ *   <li>The {@link CheckSnapshotServlet} polls until the export is completed.
+ *   <li>The {@link LoadSnapshotAction} imports the data from GCS to BigQuery.
+ *   <li>The {@link UpdateSnapshotViewAction} updates the view in latest_snapshot.
+ * </ol>
+ */
 public class ExportSnapshotServlet extends HttpServlet {
 
   private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
