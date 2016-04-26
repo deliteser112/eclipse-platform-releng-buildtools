@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.appengine.api.ThreadManager.currentRequestThreadFactory;
 
@@ -22,7 +22,6 @@ import com.google.common.util.concurrent.TimeLimiter;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.TimeUnit;
-
 
 /**
  * A factory for {@link TimeLimiter} instances that use request threads, which carry the namespace

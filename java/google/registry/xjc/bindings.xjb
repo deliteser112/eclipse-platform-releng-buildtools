@@ -9,15 +9,15 @@
           version="2.1">
   <globalBindings generateElementClass="true">
     <xjc:simple/>
-    <xjc:superClass name="com.google.domain.registry.xjc.XjcObject"/>
+    <xjc:superClass name="google.registry.xjc.XjcObject"/>
     <xjc:javaType name="org.joda.time.DateTime" xmlType="xsd:dateTime"
-                  adapter="com.google.domain.registry.xml.UtcDateTimeAdapter"/>
+                  adapter="google.registry.xml.UtcDateTimeAdapter"/>
     <xjc:javaType name="org.joda.time.LocalDate" xmlType="xsd:date"
-                  adapter="com.google.domain.registry.xml.DateAdapter"/>
+                  adapter="google.registry.xml.DateAdapter"/>
   </globalBindings>
   <bindings schemaLocation="epp.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.epp"/>
+      <package name="google.registry.xjc.epp"/>
       <nameXmlTransform>
         <elementName prefix="XjcEpp"/>
         <typeName prefix="XjcEpp"/>
@@ -35,7 +35,7 @@
   </bindings>
   <bindings schemaLocation="eppcom.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.eppcom"/>
+      <package name="google.registry.xjc.eppcom"/>
       <nameXmlTransform>
         <elementName prefix="XjcEppcom"/>
         <typeName prefix="XjcEppcom"/>
@@ -44,7 +44,7 @@
   </bindings>
   <bindings schemaLocation="domain.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.domain"/>
+      <package name="google.registry.xjc.domain"/>
       <nameXmlTransform>
         <elementName prefix="XjcDomain"/>
         <typeName prefix="XjcDomain"/>
@@ -53,7 +53,7 @@
   </bindings>
   <bindings schemaLocation="host.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.host"/>
+      <package name="google.registry.xjc.host"/>
       <nameXmlTransform>
         <elementName prefix="XjcHost"/>
         <typeName prefix="XjcHost"/>
@@ -62,7 +62,7 @@
   </bindings>
   <bindings schemaLocation="contact.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.contact"/>
+      <package name="google.registry.xjc.contact"/>
       <nameXmlTransform>
         <elementName prefix="XjcContact"/>
         <typeName prefix="XjcContact"/>
@@ -71,7 +71,7 @@
   </bindings>
   <bindings schemaLocation="rgp.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rgp"/>
+      <package name="google.registry.xjc.rgp"/>
       <nameXmlTransform>
         <elementName prefix="XjcRgp"/>
         <typeName prefix="XjcRgp"/>
@@ -83,7 +83,7 @@
   </bindings>
   <bindings schemaLocation="mark.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.mark"/>
+      <package name="google.registry.xjc.mark"/>
       <nameXmlTransform>
         <elementName prefix="XjcMark"/>
         <typeName prefix="XjcMark"/>
@@ -92,7 +92,7 @@
   </bindings>
   <bindings schemaLocation="smd.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.smd"/>
+      <package name="google.registry.xjc.smd"/>
       <nameXmlTransform>
         <elementName prefix="XjcSmd"/>
         <typeName prefix="XjcSmd"/>
@@ -130,7 +130,7 @@
   </bindings>
   <bindings schemaLocation="dsig.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.dsig"/>
+      <package name="google.registry.xjc.dsig"/>
       <nameXmlTransform>
         <elementName prefix="XjcDsig"/>
         <typeName prefix="XjcDsig"/>
@@ -139,7 +139,7 @@
   </bindings>
   <bindings schemaLocation="launch.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.launch"/>
+      <package name="google.registry.xjc.launch"/>
       <nameXmlTransform>
         <elementName prefix="XjcLaunch"/>
         <typeName prefix="XjcLaunch"/>
@@ -148,7 +148,7 @@
   </bindings>
   <bindings schemaLocation="secdns.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.secdns"/>
+      <package name="google.registry.xjc.secdns"/>
       <nameXmlTransform>
         <elementName prefix="XjcSecdns"/>
         <typeName prefix="XjcSecdns"/>
@@ -157,7 +157,7 @@
   </bindings>
   <bindings schemaLocation="rde.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rde"/>
+      <package name="google.registry.xjc.rde"/>
       <nameXmlTransform>
         <elementName prefix="XjcRde"/>
         <typeName prefix="XjcRde"/>
@@ -169,7 +169,7 @@
   </bindings>
   <bindings schemaLocation="rde-contact.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rdecontact"/>
+      <package name="google.registry.xjc.rdecontact"/>
       <nameXmlTransform>
         <elementName prefix="XjcRdeContact"/>
         <typeName prefix="XjcRdeContact"/>
@@ -187,7 +187,7 @@
   </bindings>
   <bindings schemaLocation="rde-domain.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rdedomain"/>
+      <package name="google.registry.xjc.rdedomain"/>
       <nameXmlTransform>
         <elementName prefix="XjcRdeDomain"/>
         <typeName prefix="XjcRdeDomain"/>
@@ -205,7 +205,7 @@
   </bindings>
   <bindings schemaLocation="rde-eppparams.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rdeeppparams"/>
+      <package name="google.registry.xjc.rdeeppparams"/>
       <nameXmlTransform>
         <elementName prefix="XjcRdeEppParams"/>
         <typeName prefix="XjcRdeEppParams"/>
@@ -223,7 +223,7 @@
   </bindings>
   <bindings schemaLocation="rde-header.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rdeheader"/>
+      <package name="google.registry.xjc.rdeheader"/>
       <nameXmlTransform>
         <elementName prefix="XjcRdeHeader"/>
         <typeName prefix="XjcRdeHeader"/>
@@ -241,7 +241,7 @@
   </bindings>
   <bindings schemaLocation="rde-host.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rdehost"/>
+      <package name="google.registry.xjc.rdehost"/>
       <nameXmlTransform>
         <elementName prefix="XjcRdeHost"/>
         <typeName prefix="XjcRdeHost"/>
@@ -256,7 +256,7 @@
   </bindings>
   <bindings schemaLocation="rde-idn.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rdeidn"/>
+      <package name="google.registry.xjc.rdeidn"/>
       <nameXmlTransform>
         <elementName prefix="XjcRdeIdn"/>
         <typeName prefix="XjcRdeIdn"/>
@@ -271,7 +271,7 @@
   </bindings>
   <bindings schemaLocation="rde-nndn.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rdenndn"/>
+      <package name="google.registry.xjc.rdenndn"/>
       <nameXmlTransform>
         <elementName prefix="XjcRdeNndn"/>
         <typeName prefix="XjcRdeNndn"/>
@@ -289,7 +289,7 @@
   </bindings>
   <bindings schemaLocation="rde-notification.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rdenotification"/>
+      <package name="google.registry.xjc.rdenotification"/>
       <nameXmlTransform>
         <elementName prefix="XjcRdeNotification"/>
         <typeName prefix="XjcRdeNotification"/>
@@ -307,7 +307,7 @@
   </bindings>
   <bindings schemaLocation="rde-policy.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rdepolicy"/>
+      <package name="google.registry.xjc.rdepolicy"/>
       <nameXmlTransform>
         <elementName prefix="XjcRdePolicy"/>
         <typeName prefix="XjcRdePolicy"/>
@@ -323,7 +323,7 @@
   </bindings>
   <bindings schemaLocation="rde-registrar.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rderegistrar"/>
+      <package name="google.registry.xjc.rderegistrar"/>
       <nameXmlTransform>
         <elementName prefix="XjcRdeRegistrar"/>
         <typeName prefix="XjcRdeRegistrar"/>
@@ -341,7 +341,7 @@
   </bindings>
   <bindings schemaLocation="rde-report.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.rdereport"/>
+      <package name="google.registry.xjc.rdereport"/>
       <nameXmlTransform>
         <elementName prefix="XjcRdeReport"/>
         <typeName prefix="XjcRdeReport"/>
@@ -353,7 +353,7 @@
   </bindings>
   <bindings schemaLocation="iirdea.xsd" node="/xsd:schema">
     <schemaBindings>
-      <package name="com.google.domain.registry.xjc.iirdea"/>
+      <package name="google.registry.xjc.iirdea"/>
       <nameXmlTransform>
         <elementName prefix="XjcIirdea"/>
         <typeName prefix="XjcIirdea"/>

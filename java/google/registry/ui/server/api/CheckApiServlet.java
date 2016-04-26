@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.api;
+package google.registry.ui.server.api;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static com.google.domain.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_6;
-import static com.google.domain.registry.ui.server.SoyTemplateUtils.createTofuSupplier;
-import static com.google.domain.registry.util.DomainNameUtils.canonicalizeDomainName;
-import static com.google.domain.registry.util.DomainNameUtils.getTldFromDomainName;
+import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_6;
+import static google.registry.ui.server.SoyTemplateUtils.createTofuSupplier;
+import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
+import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.json.simple.JSONValue.toJSONString;
 
@@ -28,24 +28,25 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppXmlTransformer;
-import com.google.domain.registry.flows.FlowRunner;
-import com.google.domain.registry.flows.FlowRunner.CommitMode;
-import com.google.domain.registry.flows.FlowRunner.UserPrivileges;
-import com.google.domain.registry.flows.SessionMetadata.SessionSource;
-import com.google.domain.registry.flows.StatelessRequestSessionMetadata;
-import com.google.domain.registry.flows.domain.DomainCheckFlow;
-import com.google.domain.registry.model.domain.fee.FeeCheckResponseExtension;
-import com.google.domain.registry.model.domain.fee.FeeCheckResponseExtension.FeeCheck;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.eppinput.EppInput;
-import com.google.domain.registry.model.eppoutput.CheckData.DomainCheck;
-import com.google.domain.registry.model.eppoutput.CheckData.DomainCheckData;
-import com.google.domain.registry.model.eppoutput.Response;
-import com.google.domain.registry.ui.soy.api.DomainCheckFeeEppSoyInfo;
 import com.google.template.soy.tofu.SoyTofu;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.flows.EppException;
+import google.registry.flows.EppXmlTransformer;
+import google.registry.flows.FlowRunner;
+import google.registry.flows.FlowRunner.CommitMode;
+import google.registry.flows.FlowRunner.UserPrivileges;
+import google.registry.flows.SessionMetadata.SessionSource;
+import google.registry.flows.StatelessRequestSessionMetadata;
+import google.registry.flows.domain.DomainCheckFlow;
+import google.registry.model.domain.fee.FeeCheckResponseExtension;
+import google.registry.model.domain.fee.FeeCheckResponseExtension.FeeCheck;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppoutput.CheckData.DomainCheck;
+import google.registry.model.eppoutput.CheckData.DomainCheckData;
+import google.registry.model.eppoutput.Response;
+import google.registry.ui.soy.api.DomainCheckFeeEppSoyInfo;
 
 import java.io.IOException;
 import java.util.Map;

@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.request.Action.Method.POST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.request.Action;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.request.Action;
 
 import java.io.IOException;
 import java.net.URL;

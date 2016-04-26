@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
@@ -21,11 +21,11 @@ import static com.google.appengine.api.urlfetch.HTTPMethod.POST;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.MediaType.CSV_UTF_8;
-import static com.google.domain.registry.tmch.LordnTask.COLUMNS_CLAIMS;
-import static com.google.domain.registry.tmch.LordnTask.COLUMNS_SUNRISE;
-import static com.google.domain.registry.tmch.LordnTask.convertTasksToCsv;
-import static com.google.domain.registry.util.UrlFetchUtils.getHeaderFirst;
-import static com.google.domain.registry.util.UrlFetchUtils.setPayloadMultipart;
+import static google.registry.tmch.LordnTask.COLUMNS_CLAIMS;
+import static google.registry.tmch.LordnTask.COLUMNS_SUNRISE;
+import static google.registry.tmch.LordnTask.convertTasksToCsv;
+import static google.registry.util.UrlFetchUtils.getHeaderFirst;
+import static google.registry.util.UrlFetchUtils.setPayloadMultipart;
 import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
 
 import com.google.appengine.api.taskqueue.Queue;
@@ -35,13 +35,14 @@ import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.base.Optional;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.UrlFetchException;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
+import google.registry.util.UrlFetchException;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
-import static com.google.domain.registry.whois.WhoisHelper.loadWhoisTestFile;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarAddress;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarAddress;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
 
 import org.joda.time.DateTime;
 import org.junit.Rule;

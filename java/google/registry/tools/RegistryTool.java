@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.domain.registry.tools.javascrap.LoadAndResaveCommand;
+
+import google.registry.tools.javascrap.LoadAndResaveCommand;
 
 /** Container class to create and run remote commands against a datastore instance. */
 public final class RegistryTool {

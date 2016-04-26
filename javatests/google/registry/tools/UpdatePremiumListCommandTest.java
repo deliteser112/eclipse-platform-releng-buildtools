@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.eq;
@@ -23,8 +23,9 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.tools.ServerSideCommand.Connection;
-import com.google.domain.registry.tools.server.UpdatePremiumListAction;
+
+import google.registry.tools.ServerSideCommand.Connection;
+import google.registry.tools.server.UpdatePremiumListAction;
 
 import org.junit.Before;
 import org.junit.Test;

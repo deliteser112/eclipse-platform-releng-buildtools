@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -31,9 +31,10 @@ import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.request.JsonResponse;
-import com.google.domain.registry.request.Parameter;
+
+import google.registry.model.ImmutableObject;
+import google.registry.request.JsonResponse;
+import google.registry.request.Parameter;
 
 import java.util.ArrayList;
 import java.util.HashMap;

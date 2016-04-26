@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
-
-import com.google.domain.registry.tools.params.PathParameter;
+package google.registry.tools;
 
 import com.beust.jcommander.Parameter;
+
+import google.registry.tools.params.PathParameter;
 
 import java.nio.file.Path;
 

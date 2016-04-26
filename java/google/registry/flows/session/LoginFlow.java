@@ -12,32 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.session;
+package google.registry.flows.session;
 
 import static com.google.common.collect.Sets.difference;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.AuthenticationErrorClosingConnectionException;
-import com.google.domain.registry.flows.EppException.AuthenticationErrorException;
-import com.google.domain.registry.flows.EppException.AuthorizationErrorException;
-import com.google.domain.registry.flows.EppException.CommandUseErrorException;
-import com.google.domain.registry.flows.EppException.ParameterValuePolicyErrorException;
-import com.google.domain.registry.flows.EppException.UnimplementedExtensionException;
-import com.google.domain.registry.flows.EppException.UnimplementedObjectServiceException;
-import com.google.domain.registry.flows.EppException.UnimplementedOptionException;
-import com.google.domain.registry.flows.Flow;
-import com.google.domain.registry.flows.TransportCredentials;
-import com.google.domain.registry.model.eppcommon.ProtocolDefinition;
-import com.google.domain.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
-import com.google.domain.registry.model.eppinput.EppInput.Login;
-import com.google.domain.registry.model.eppinput.EppInput.Options;
-import com.google.domain.registry.model.eppinput.EppInput.Services;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.eppoutput.Result.Code;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.AuthenticationErrorClosingConnectionException;
+import google.registry.flows.EppException.AuthenticationErrorException;
+import google.registry.flows.EppException.AuthorizationErrorException;
+import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.flows.EppException.ParameterValuePolicyErrorException;
+import google.registry.flows.EppException.UnimplementedExtensionException;
+import google.registry.flows.EppException.UnimplementedObjectServiceException;
+import google.registry.flows.EppException.UnimplementedOptionException;
+import google.registry.flows.Flow;
+import google.registry.flows.TransportCredentials;
+import google.registry.model.eppcommon.ProtocolDefinition;
+import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
+import google.registry.model.eppinput.EppInput.Login;
+import google.registry.model.eppinput.EppInput.Options;
+import google.registry.model.eppinput.EppInput.Services;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.Result.Code;
+import google.registry.model.registrar.Registrar;
+import google.registry.util.FormattingLogger;
 
 import java.util.Objects;
 import java.util.Set;
@@ -45,15 +46,15 @@ import java.util.Set;
 /**
  * An EPP flow for login.
  *
- * @error {@link com.google.domain.registry.flows.EppConsoleServlet.GaeUserCredentials.BadGaeUserIdException}
- * @error {@link com.google.domain.registry.flows.EppConsoleServlet.GaeUserCredentials.UserNotLoggedInException}
- * @error {@link com.google.domain.registry.flows.EppException.UnimplementedExtensionException}
- * @error {@link com.google.domain.registry.flows.EppException.UnimplementedObjectServiceException}
- * @error {@link com.google.domain.registry.flows.EppException.UnimplementedProtocolVersionException}
- * @error {@link com.google.domain.registry.flows.TlsCredentials.BadRegistrarCertificateException}
- * @error {@link com.google.domain.registry.flows.TlsCredentials.BadRegistrarIpAddressException}
- * @error {@link com.google.domain.registry.flows.TlsCredentials.MissingRegistrarCertificateException}
- * @error {@link com.google.domain.registry.flows.TlsCredentials.NoSniException}
+ * @error {@link google.registry.flows.EppConsoleServlet.GaeUserCredentials.BadGaeUserIdException}
+ * @error {@link google.registry.flows.EppConsoleServlet.GaeUserCredentials.UserNotLoggedInException}
+ * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
+ * @error {@link google.registry.flows.EppException.UnimplementedObjectServiceException}
+ * @error {@link google.registry.flows.EppException.UnimplementedProtocolVersionException}
+ * @error {@link google.registry.flows.TlsCredentials.BadRegistrarCertificateException}
+ * @error {@link google.registry.flows.TlsCredentials.BadRegistrarIpAddressException}
+ * @error {@link google.registry.flows.TlsCredentials.MissingRegistrarCertificateException}
+ * @error {@link google.registry.flows.TlsCredentials.NoSniException}
  * @error {@link LoginFlow.AlreadyLoggedInException}
  * @error {@link LoginFlow.BadRegistrarClientIdException}
  * @error {@link LoginFlow.BadRegistrarPasswordException}

@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DomainApplicationSubject.assertAboutApplications;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainApplication;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.launch.LaunchNotice;
-import com.google.domain.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.smd.EncodedSignedMark;
+
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.launch.LaunchNotice;
+import google.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.smd.EncodedSignedMark;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

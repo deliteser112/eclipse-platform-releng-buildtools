@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain;
+package google.registry.model.domain;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
-
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.domain.rgp.GracePeriodStatus;
 
 import org.joda.time.DateTime;
 

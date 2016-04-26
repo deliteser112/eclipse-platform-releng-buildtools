@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.billing;
+package google.registry.model.billing;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registries.assertTldExists;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -25,15 +25,16 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registry.Registry;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
+
+import google.registry.model.Buildable;
+import google.registry.model.ImmutableObject;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registry.Registry;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;

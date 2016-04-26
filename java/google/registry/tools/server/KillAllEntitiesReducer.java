@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.common.collect.Iterators.partition;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;

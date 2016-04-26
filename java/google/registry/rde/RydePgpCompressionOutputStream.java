@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static org.bouncycastle.bcpg.CompressionAlgorithmTags.ZIP;
 
 import com.google.auto.factory.AutoFactory;
 import com.google.auto.factory.Provided;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.util.ImprovedOutputStream;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.util.ImprovedOutputStream;
 
 import org.bouncycastle.openpgp.PGPCompressedDataGenerator;
 import org.bouncycastle.openpgp.PGPException;

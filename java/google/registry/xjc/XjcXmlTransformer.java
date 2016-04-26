@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.xjc;
+package google.registry.xjc;
 
-import static com.google.domain.registry.xml.ValidationMode.LENIENT;
-import static com.google.domain.registry.xml.ValidationMode.STRICT;
+import static google.registry.xml.ValidationMode.LENIENT;
+import static google.registry.xml.ValidationMode.STRICT;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.xml.XmlException;
-import com.google.domain.registry.xml.XmlTransformer;
+
+import google.registry.xml.XmlException;
+import google.registry.xml.XmlTransformer;
 
 import java.io.InputStream;
 import java.io.OutputStream;

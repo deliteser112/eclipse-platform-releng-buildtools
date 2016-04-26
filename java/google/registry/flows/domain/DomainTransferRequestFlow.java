@@ -12,40 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
-import static com.google.domain.registry.model.domain.DomainResource.extendRegistrationWithCap;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
+import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
+import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
+import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
+import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
+import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.ResourceTransferRequestFlow;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.BillingEvent.Flag;
-import com.google.domain.registry.model.billing.BillingEvent.Reason;
-import com.google.domain.registry.model.domain.DomainCommand.Transfer;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.Period;
-import com.google.domain.registry.model.domain.fee.Fee;
-import com.google.domain.registry.model.domain.fee.FeeTransferExtension;
-import com.google.domain.registry.model.domain.fee.FeeTransferResponseExtension;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferData.TransferServerApproveEntity;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+
+import google.registry.flows.EppException;
+import google.registry.flows.ResourceTransferRequestFlow;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Flag;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainCommand.Transfer;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.Period;
+import google.registry.model.domain.fee.Fee;
+import google.registry.model.domain.fee.FeeTransferExtension;
+import google.registry.model.domain.fee.FeeTransferResponseExtension;
+import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.registry.Registry;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -57,13 +58,13 @@ import java.util.Set;
 /**
  * An EPP flow that requests a transfer on a {@link DomainResource}.
  *
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.ResourceTransferRequestFlow.AlreadyPendingTransferException}
- * @error {@link com.google.domain.registry.flows.ResourceTransferRequestFlow.MissingTransferRequestAuthInfoException}
- * @error {@link com.google.domain.registry.flows.ResourceTransferRequestFlow.ObjectAlreadySponsoredException}
- * @error {@link com.google.domain.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceTransferRequestFlow.AlreadyPendingTransferException}
+ * @error {@link google.registry.flows.ResourceTransferRequestFlow.MissingTransferRequestAuthInfoException}
+ * @error {@link google.registry.flows.ResourceTransferRequestFlow.ObjectAlreadySponsoredException}
+ * @error {@link google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}

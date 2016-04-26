@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import com.google.common.base.Splitter;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.util.FormattingLogger;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.Duration;
 

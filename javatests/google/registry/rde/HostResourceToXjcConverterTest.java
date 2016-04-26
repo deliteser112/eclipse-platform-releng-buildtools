@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.xjc.XjcXmlTransformer.marshalStrict;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.xjc.XjcXmlTransformer.marshalStrict;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.xjc.host.XjcHostStatusValueType;
-import com.google.domain.registry.xjc.rdehost.XjcRdeHost;
-import com.google.domain.registry.xjc.rdehost.XjcRdeHostElement;
+
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.xjc.host.XjcHostStatusValueType;
+import google.registry.xjc.rdehost.XjcRdeHost;
+import google.registry.xjc.rdehost.XjcRdeHostElement;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

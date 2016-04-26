@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.translators;
+package google.registry.model.translators;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
 import static com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector.erase;
 import static com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector.getTypeParameter;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;

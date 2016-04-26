@@ -12,34 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.model.domain.launch.LaunchPhase.CLAIMS;
-import static com.google.domain.registry.util.DateTimeUtils.isAtOrAfter;
+import static google.registry.model.domain.launch.LaunchPhase.CLAIMS;
+import static google.registry.util.DateTimeUtils.isAtOrAfter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.model.domain.launch.LaunchCheckExtension;
-import com.google.domain.registry.model.domain.launch.LaunchCheckResponseExtension;
-import com.google.domain.registry.model.domain.launch.LaunchCheckResponseExtension.LaunchCheck;
-import com.google.domain.registry.model.domain.launch.LaunchCheckResponseExtension.LaunchCheckName;
-import com.google.domain.registry.model.eppoutput.CheckData;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.model.tmch.ClaimsListShard;
+
+import google.registry.flows.EppException;
+import google.registry.model.domain.launch.LaunchCheckExtension;
+import google.registry.model.domain.launch.LaunchCheckResponseExtension;
+import google.registry.model.domain.launch.LaunchCheckResponseExtension.LaunchCheck;
+import google.registry.model.domain.launch.LaunchCheckResponseExtension.LaunchCheckName;
+import google.registry.model.eppoutput.CheckData;
+import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.model.tmch.ClaimsListShard;
 
 import java.util.Map.Entry;
 
 /**
  * An EPP flow that checks whether strings are trademarked.
  *
- * @error {@link com.google.domain.registry.flows.ResourceCheckFlow.TooManyResourceChecksException}
- * @error {@link com.google.domain.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException}
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException}
+ * @error {@link google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
  */
 public class ClaimsCheckFlow extends BaseDomainCheckFlow {

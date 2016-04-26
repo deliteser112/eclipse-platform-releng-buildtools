@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.async;
+package google.registry.flows.async;
 
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainResource;
-import static com.google.domain.registry.testing.DatastoreHelper.newHostResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainApplication;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newHostResource;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -28,17 +28,18 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.dns.DnsQueue;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeResponse;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.mapreduce.MapreduceTestCase;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.dns.DnsQueue;
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.host.HostResource;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeResponse;
+import google.registry.testing.InjectRule;
+import google.registry.testing.mapreduce.MapreduceTestCase;
 
 import org.junit.Before;
 import org.junit.Rule;

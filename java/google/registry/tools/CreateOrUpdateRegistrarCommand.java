@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.isNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.domain.registry.util.DomainNameUtils.canonicalizeDomainName;
-import static com.google.domain.registry.util.RegistrarUtils.normalizeRegistrarName;
+import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
+import static google.registry.util.RegistrarUtils.normalizeRegistrarName;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -27,17 +27,18 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.model.billing.RegistrarBillingUtils;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.Registrar.BillingMethod;
-import com.google.domain.registry.model.registrar.RegistrarAddress;
-import com.google.domain.registry.tools.params.OptionalLongParameter;
-import com.google.domain.registry.tools.params.OptionalPhoneNumberParameter;
-import com.google.domain.registry.tools.params.OptionalStringParameter;
-import com.google.domain.registry.tools.params.PathParameter;
-import com.google.domain.registry.util.CidrAddressBlock;
 
 import com.beust.jcommander.Parameter;
+
+import google.registry.model.billing.RegistrarBillingUtils;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.BillingMethod;
+import google.registry.model.registrar.RegistrarAddress;
+import google.registry.tools.params.OptionalLongParameter;
+import google.registry.tools.params.OptionalPhoneNumberParameter;
+import google.registry.tools.params.OptionalStringParameter;
+import google.registry.tools.params.PathParameter;
+import google.registry.util.CidrAddressBlock;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;

@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rdap;
+package google.registry.rdap;
 
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.request.Action.Method.GET;
-import static com.google.domain.registry.request.Action.Method.HEAD;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.request.Action.Method.GET;
+import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException;
-import com.google.domain.registry.request.HttpException.NotFoundException;
-import com.google.domain.registry.util.Clock;
+
+import google.registry.model.domain.DomainResource;
+import google.registry.request.Action;
+import google.registry.request.HttpException;
+import google.registry.request.HttpException.NotFoundException;
+import google.registry.util.Clock;
 
 import javax.inject.Inject;
 

@@ -1,6 +1,8 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 
 java_library(
@@ -14,14 +16,6 @@ java_library(
         "//java/com/google/common/cache",
         "//java/com/google/common/collect",
         "//java/com/google/common/net",
-        "//java/com/google/domain/registry/bigquery",
-        "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/mapreduce",
-        "//java/com/google/domain/registry/mapreduce/inputs",
-        "//java/com/google/domain/registry/model",
-        "//java/com/google/domain/registry/request",
-        "//java/com/google/domain/registry/request:modules",
-        "//java/com/google/domain/registry/util",
         "//third_party/java/appengine:appengine-api",
         "//third_party/java/appengine_mapreduce2:appengine_mapreduce",
         "//third_party/java/auto:auto_factory",
@@ -31,5 +25,13 @@ java_library(
         "//third_party/java/jsr330_inject",
         "//third_party/java/objectify:objectify-v4_1",
         "//third_party/java/servlet/servlet_api",
+        "//java/google/registry/bigquery",
+        "//java/google/registry/config",
+        "//java/google/registry/mapreduce",
+        "//java/google/registry/mapreduce/inputs",
+        "//java/google/registry/model",
+        "//java/google/registry/request",
+        "//java/google/registry/request:modules",
+        "//java/google/registry/util",
     ],
 )

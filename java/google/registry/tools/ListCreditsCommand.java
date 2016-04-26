@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.billing.RegistrarCredit;
-import com.google.domain.registry.model.billing.RegistrarCreditBalance.BalanceMap;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Work;
+
+import google.registry.model.billing.RegistrarCredit;
+import google.registry.model.billing.RegistrarCreditBalance.BalanceMap;
+import google.registry.model.registrar.Registrar;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.Command.RemoteApiCommand;
 
 import org.joda.money.Money;
 

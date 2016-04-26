@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server;
+package google.registry.ui.server;
 
 import com.google.common.collect.ImmutableBiMap;
 

@@ -12,38 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.flows.FlowRegistry.getFlowClass;
-import static com.google.domain.registry.model.EppResourceUtils.loadAtPointInTime;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newHostResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResourceWithCommitLog;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.flows.FlowRegistry.getFlowClass;
+import static google.registry.model.EppResourceUtils.loadAtPointInTime;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newHostResource;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistResourceWithCommitLog;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardDays;
 
-import com.google.domain.registry.flows.FlowRunner;
-import com.google.domain.registry.flows.FlowRunner.CommitMode;
-import com.google.domain.registry.flows.FlowRunner.UserPrivileges;
-import com.google.domain.registry.flows.SessionMetadata;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.EppLoader;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.TestSessionMetadata;
-
 import com.googlecode.objectify.Key;
+
+import google.registry.flows.FlowRunner;
+import google.registry.flows.FlowRunner.CommitMode;
+import google.registry.flows.FlowRunner.UserPrivileges;
+import google.registry.flows.SessionMetadata;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.host.HostResource;
+import google.registry.model.ofy.Ofy;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.EppLoader;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import google.registry.testing.TestSessionMetadata;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain;
+package google.registry.model.domain;
 
-import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.annotations.ExternalMessagingName;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.model.domain.launch.LaunchPhase;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.smd.EncodedSignedMark;
 
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.EntitySubclass;
+
+import google.registry.model.annotations.ExternalMessagingName;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.domain.launch.LaunchPhase;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.smd.EncodedSignedMark;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

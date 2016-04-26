@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.taskqueue.LeaseOptions;
 import com.google.appengine.api.taskqueue.Queue;
@@ -29,9 +29,10 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.util.NonFinalForTesting;
+
+import google.registry.model.domain.DomainResource;
+import google.registry.model.registrar.Registrar;
+import google.registry.util.NonFinalForTesting;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

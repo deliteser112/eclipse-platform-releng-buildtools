@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppcommon;
+package google.registry.model.eppcommon;
 
 import static com.google.common.collect.Maps.uniqueIndex;
 
@@ -21,13 +21,14 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.domain.allocate.AllocateCreateExtension;
-import com.google.domain.registry.model.domain.fee.FeeCheckExtension;
-import com.google.domain.registry.model.domain.launch.LaunchCreateExtension;
-import com.google.domain.registry.model.domain.metadata.MetadataExtension;
-import com.google.domain.registry.model.domain.rgp.RgpUpdateExtension;
-import com.google.domain.registry.model.domain.secdns.SecDnsCreateExtension;
-import com.google.domain.registry.model.eppinput.EppInput.CommandExtension;
+
+import google.registry.model.domain.allocate.AllocateCreateExtension;
+import google.registry.model.domain.fee.FeeCheckExtension;
+import google.registry.model.domain.launch.LaunchCreateExtension;
+import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.domain.rgp.RgpUpdateExtension;
+import google.registry.model.domain.secdns.SecDnsCreateExtension;
+import google.registry.model.eppinput.EppInput.CommandExtension;
 
 import java.util.EnumSet;
 import java.util.Set;

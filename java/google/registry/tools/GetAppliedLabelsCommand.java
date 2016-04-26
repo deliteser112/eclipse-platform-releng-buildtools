@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.model.domain.launch.ApplicationStatus.REJECTED;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
-import static com.google.domain.registry.util.DateTimeUtils.isAtOrAfter;
+import static google.registry.model.domain.launch.ApplicationStatus.REJECTED;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static java.nio.charset.StandardCharsets.UTF_8;
-
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.tools.params.PathParameter;
-import com.google.domain.registry.util.Idn;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.internal.Sets;
 import com.googlecode.objectify.Work;
+
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.PathParameter;
+import google.registry.util.Idn;
 
 import org.joda.time.DateTime;
 

@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.common.io.Resources.asByteSource;
 import static com.google.common.io.Resources.getResource;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredHeader;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
-
-import com.google.domain.registry.keyring.api.KeyModule.Key;
-import com.google.domain.registry.request.Header;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.Parameter;
+import static google.registry.request.RequestParameters.extractRequiredHeader;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.keyring.api.KeyModule.Key;
+import google.registry.request.Header;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.Parameter;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
 

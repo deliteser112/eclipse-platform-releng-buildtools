@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.util.CollectionUtils.difference;
+import static google.registry.util.CollectionUtils.difference;
 import static java.lang.reflect.Modifier.isFinal;
 import static java.lang.reflect.Modifier.isStatic;
 

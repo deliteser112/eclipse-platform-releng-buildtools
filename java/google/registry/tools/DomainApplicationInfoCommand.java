@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.google.domain.registry.model.domain.launch.LaunchPhase;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.soy.DomainApplicationInfoSoyInfo;
 import com.google.template.soy.data.SoyMapData;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.domain.launch.LaunchPhase;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.soy.DomainApplicationInfoSoyInfo;
 
 /** A command to execute a domain application info EPP command. */
 @Parameters(separators = " =", commandDescription = "Get domain application EPP info")

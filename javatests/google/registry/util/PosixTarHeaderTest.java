@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.common.truth.Truth.assertThat;
@@ -20,7 +20,8 @@ import static com.google.common.truth.Truth.assertWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.testing.EqualsTester;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.testing.ExceptionRule;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;

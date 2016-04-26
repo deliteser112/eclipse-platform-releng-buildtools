@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.registrar.Registrar;
+
+import google.registry.model.registrar.Registrar;
 
 import org.junit.Before;
 import org.junit.Test;

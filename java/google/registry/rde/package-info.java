@@ -16,8 +16,8 @@
  * Registry Data Escrow
  *
  * <p>This is a cron job that puts our database in a giant XML file and uploads it to a third party.
- * Read the {@link com.google.domain.registry.rde.RdeStagingAction RdeStagingAction} javadoc to
+ * Read the {@link google.registry.rde.RdeStagingAction RdeStagingAction} javadoc to
  * learn more.
  */
 @javax.annotation.ParametersAreNonnullByDefault
-package com.google.domain.registry.rde;
+package google.registry.rde;

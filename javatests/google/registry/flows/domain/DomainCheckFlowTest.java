@@ -12,44 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.model.eppoutput.CheckData.DomainCheck.create;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistPremiumList;
-import static com.google.domain.registry.testing.DatastoreHelper.persistReservedList;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.eppoutput.CheckData.DomainCheck.create;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
+import static google.registry.testing.DatastoreHelper.persistPremiumList;
+import static google.registry.testing.DatastoreHelper.persistReservedList;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
-import com.google.domain.registry.flows.ResourceCheckFlowTestCase;
-import com.google.domain.registry.flows.domain.DomainCheckFlow.OnlyCheckedNamesCanBeFeeCheckedException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.BadDomainNameCharacterException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.BadDomainNamePartsCountException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.DashesInThirdAndFourthException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.DomainLabelTooLongException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.EmptyDomainNamePartException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.FeeChecksDontSupportPhasesException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.InvalidIdnDomainLabelException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.InvalidPunycodeException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.LeadingDashException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.RestoresAreAlwaysForOneYearException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.TrailingDashException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.UnknownFeeCommandException;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.model.registry.label.ReservedList;
-import com.google.domain.registry.testing.DatastoreHelper;
+
+import google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
+import google.registry.flows.ResourceCheckFlowTestCase;
+import google.registry.flows.domain.DomainCheckFlow.OnlyCheckedNamesCanBeFeeCheckedException;
+import google.registry.flows.domain.DomainFlowUtils.BadDomainNameCharacterException;
+import google.registry.flows.domain.DomainFlowUtils.BadDomainNamePartsCountException;
+import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
+import google.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchException;
+import google.registry.flows.domain.DomainFlowUtils.DashesInThirdAndFourthException;
+import google.registry.flows.domain.DomainFlowUtils.DomainLabelTooLongException;
+import google.registry.flows.domain.DomainFlowUtils.EmptyDomainNamePartException;
+import google.registry.flows.domain.DomainFlowUtils.FeeChecksDontSupportPhasesException;
+import google.registry.flows.domain.DomainFlowUtils.InvalidIdnDomainLabelException;
+import google.registry.flows.domain.DomainFlowUtils.InvalidPunycodeException;
+import google.registry.flows.domain.DomainFlowUtils.LeadingDashException;
+import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
+import google.registry.flows.domain.DomainFlowUtils.RestoresAreAlwaysForOneYearException;
+import google.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
+import google.registry.flows.domain.DomainFlowUtils.TrailingDashException;
+import google.registry.flows.domain.DomainFlowUtils.UnknownFeeCommandException;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.model.registry.label.ReservedList;
+import google.registry.testing.DatastoreHelper;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;

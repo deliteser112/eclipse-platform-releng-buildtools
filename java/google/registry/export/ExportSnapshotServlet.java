@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
@@ -21,11 +21,12 @@ import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.net.MediaType;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
-import com.google.domain.registry.util.SystemClock;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.SystemClock;
 
 import java.io.IOException;
 

@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppoutput;
+package google.registry.model.eppoutput;
 
-import static com.google.domain.registry.util.XmlEnumUtils.enumToXml;
+import static google.registry.util.XmlEnumUtils.enumToXml;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.domain.registry.model.ImmutableObject;
+
+import google.registry.model.ImmutableObject;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlEnumValue;

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.security;
+package google.registry.security;
 
 import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.domain.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
-import static com.google.domain.registry.security.XsrfTokenManager.validateToken;
+import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
+import static google.registry.security.XsrfTokenManager.validateToken;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 import com.google.appengine.api.users.UserService;

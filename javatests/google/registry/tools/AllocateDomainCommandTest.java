@@ -12,27 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.toByteArray;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.flows.EppServletUtils.APPLICATION_EPP_XML_UTF8;
-import static com.google.domain.registry.flows.FlowRegistry.getFlowClass;
-import static com.google.domain.registry.model.domain.DesignatedContact.Type.ADMIN;
-import static com.google.domain.registry.model.domain.DesignatedContact.Type.BILLING;
-import static com.google.domain.registry.model.domain.DesignatedContact.Type.TECH;
-import static com.google.domain.registry.model.domain.launch.ApplicationStatus.VALIDATED;
-import static com.google.domain.registry.model.registry.Registry.TldState.QUIET_PERIOD;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
-import static com.google.domain.registry.xml.XmlTestUtils.assertXmlEquals;
+import static google.registry.flows.EppServletUtils.APPLICATION_EPP_XML_UTF8;
+import static google.registry.flows.FlowRegistry.getFlowClass;
+import static google.registry.model.domain.DesignatedContact.Type.ADMIN;
+import static google.registry.model.domain.DesignatedContact.Type.BILLING;
+import static google.registry.model.domain.DesignatedContact.Type.TECH;
+import static google.registry.model.domain.launch.ApplicationStatus.VALIDATED;
+import static google.registry.model.registry.Registry.TldState.QUIET_PERIOD;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainApplication;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -40,19 +40,20 @@ import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppXmlTransformer;
-import com.google.domain.registry.flows.domain.DomainAllocateFlow;
-import com.google.domain.registry.model.domain.DesignatedContact;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.domain.launch.LaunchNotice;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.eppinput.EppInput;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.tools.ServerSideCommand.Connection;
 
 import com.beust.jcommander.ParameterException;
+
+import google.registry.flows.EppXmlTransformer;
+import google.registry.flows.domain.DomainAllocateFlow;
+import google.registry.model.domain.DesignatedContact;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.domain.launch.LaunchNotice;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppinput.EppInput;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.tools.ServerSideCommand.Connection;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.tools.Injector.injectReflectively;
+import static google.registry.tools.Injector.injectReflectively;
 
 import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
 import com.google.appengine.tools.remoteapi.RemoteApiOptions;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.ofy.ObjectifyService;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.tools.params.ParameterFactory;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
+
+import google.registry.model.ofy.ObjectifyService;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.ParameterFactory;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 

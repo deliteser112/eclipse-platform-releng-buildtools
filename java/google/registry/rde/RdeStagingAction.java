@@ -12,31 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
-import static com.google.domain.registry.util.PipelineUtils.createJobPath;
+import static google.registry.util.PipelineUtils.createJobPath;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimaps;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.mapreduce.inputs.EppResourceInputs;
-import com.google.domain.registry.mapreduce.inputs.NullInput;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.rde.RdeMode;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registry.RegistryCursor;
-import com.google.domain.registry.model.registry.RegistryCursor.CursorType;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.mapreduce.inputs.EppResourceInputs;
+import google.registry.mapreduce.inputs.NullInput;
+import google.registry.model.EppResource;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.host.HostResource;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.rde.RdeMode;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registry.RegistryCursor;
+import google.registry.model.registry.RegistryCursor.CursorType;
+import google.registry.request.Action;
+import google.registry.request.Response;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.Duration;
 

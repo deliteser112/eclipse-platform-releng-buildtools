@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tldconfig.idn;
+package google.registry.tldconfig.idn;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
+import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.testing.InjectRule;
 
 import org.junit.Rule;
 import org.junit.Test;

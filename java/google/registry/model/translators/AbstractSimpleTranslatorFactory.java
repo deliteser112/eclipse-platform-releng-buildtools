@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.translators;
-
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
+package google.registry.model.translators;
 
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
@@ -23,6 +21,8 @@ import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
+
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 import java.lang.reflect.Type;
 

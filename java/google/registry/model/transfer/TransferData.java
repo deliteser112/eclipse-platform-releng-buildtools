@@ -12,16 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.transfer;
+package google.registry.model.transfer;
 
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.poll.PollMessage;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
@@ -29,6 +24,12 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.IfNull;
+
+import google.registry.model.Buildable;
+import google.registry.model.EppResource;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.poll.PollMessage;
 
 import java.util.Set;
 

@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import com.google.common.net.MediaType;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
+
+import google.registry.tools.Command.RemoteApiCommand;
 
 import java.io.IOException;
 import java.util.Map;

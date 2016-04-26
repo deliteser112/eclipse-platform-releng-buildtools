@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppoutput;
+package google.registry.model.eppoutput;
 
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.eppcommon.PresenceMarker;
-import com.google.domain.registry.model.eppcommon.ProtocolDefinition;
-import com.google.domain.registry.model.eppoutput.EppOutput.ResponseOrGreeting;
+import google.registry.model.ImmutableObject;
+import google.registry.model.eppcommon.PresenceMarker;
+import google.registry.model.eppcommon.ProtocolDefinition;
+import google.registry.model.eppoutput.EppOutput.ResponseOrGreeting;
 
 import org.joda.time.DateTime;
 

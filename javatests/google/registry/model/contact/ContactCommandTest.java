@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.contact;
+package google.registry.model.contact;
 
-import static com.google.domain.registry.flows.EppXmlTransformer.marshalInput;
-import static com.google.domain.registry.flows.EppXmlTransformer.validateInput;
-import static com.google.domain.registry.testing.ContactResourceSubject.assertAboutContacts;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.xml.ValidationMode.LENIENT;
-import static com.google.domain.registry.xml.XmlTestUtils.assertXmlEquals;
+import static google.registry.flows.EppXmlTransformer.marshalInput;
+import static google.registry.flows.EppXmlTransformer.validateInput;
+import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.xml.ValidationMode.LENIENT;
+import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.contact.PostalInfo.Type;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.EppLoader;
+
+import google.registry.model.contact.PostalInfo.Type;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.EppLoader;
 
 import org.junit.Rule;
 import org.junit.Test;

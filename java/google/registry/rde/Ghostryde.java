@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -24,10 +24,11 @@ import static org.bouncycastle.openpgp.PGPLiteralData.BINARY;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.io.ByteStreams;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.ImprovedInputStream;
-import com.google.domain.registry.util.ImprovedOutputStream;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.util.FormattingLogger;
+import google.registry.util.ImprovedInputStream;
+import google.registry.util.ImprovedOutputStream;
 
 import org.bouncycastle.openpgp.PGPCompressedData;
 import org.bouncycastle.openpgp.PGPCompressedDataGenerator;

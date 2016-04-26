@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.tools.server.ListDomainsAction;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
-/** Command to list all second-level domains associated with a TLD. */
+import google.registry.tools.server.ListDomainsAction;
 
+/** Command to list all second-level domains associated with a TLD. */
 @Parameters(separators = " =", commandDescription = "List domains associated with a TLD.")
 final class ListDomainsCommand extends ListObjectsCommand {
 

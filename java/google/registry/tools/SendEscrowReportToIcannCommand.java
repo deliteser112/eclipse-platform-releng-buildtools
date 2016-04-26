@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
-
-import com.google.domain.registry.rde.RdeReporter;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.tools.params.PathParameter;
+package google.registry.tools;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.rde.RdeReporter;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.PathParameter;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

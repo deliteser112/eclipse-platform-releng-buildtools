@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.config;
+package google.registry.config;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -40,14 +40,14 @@ public interface RegistryConfig {
   /**
    * Returns the Google Cloud Storage bucket for storing backup snapshots.
    *
-   * @see com.google.domain.registry.export.ExportSnapshotServlet
+   * @see google.registry.export.ExportSnapshotServlet
    */
   public String getSnapshotsBucket();
 
   /**
    * Returns the Google Cloud Storage bucket for storing exported domain lists.
    *
-   * @see com.google.domain.registry.export.ExportDomainListsAction
+   * @see google.registry.export.ExportDomainListsAction
    */
   public String getDomainListsBucket();
 
@@ -62,7 +62,7 @@ public interface RegistryConfig {
    *
    * <p><b>Warning:</b> This can be raised but never lowered.
    *
-   * @see com.google.domain.registry.model.ofy.CommitLogBucket
+   * @see google.registry.model.ofy.CommitLogBucket
    */
   public int getCommitLogBucketCount();
 
@@ -72,29 +72,29 @@ public interface RegistryConfig {
    * <p>The only reason you'll want to retain this commit logs in datastore is for performing
    * point-in-time restoration queries for subsystems like RDE.
    *
-   * @see com.google.domain.registry.backup.DeleteOldCommitLogsAction
-   * @see com.google.domain.registry.model.translators.CommitLogRevisionsTranslatorFactory
+   * @see google.registry.backup.DeleteOldCommitLogsAction
+   * @see google.registry.model.translators.CommitLogRevisionsTranslatorFactory
    */
   public Duration getCommitLogDatastoreRetention();
 
   /**
    * Returns the Google Cloud Storage bucket for storing commit logs.
    *
-   * @see com.google.domain.registry.backup.ExportCommitLogDiffAction
+   * @see google.registry.backup.ExportCommitLogDiffAction
    */
   public String getCommitsBucket();
 
   /**
    * Returns the Google Cloud Storage bucket for storing zone files.
    *
-   * @see com.google.domain.registry.backup.ExportCommitLogDiffAction
+   * @see google.registry.backup.ExportCommitLogDiffAction
    */
   public String getZoneFilesBucket();
 
   /**
    * Returns {@code true} if TMCH certificate authority should be in testing mode.
    *
-   * @see com.google.domain.registry.tmch.TmchCertificateAuthority
+   * @see google.registry.tmch.TmchCertificateAuthority
    */
   public boolean getTmchCaTestingMode();
 
@@ -103,8 +103,8 @@ public interface RegistryConfig {
    *
    * <p>This URL is used for DNL, SMDRL, and LORDN.
    *
-   * @see com.google.domain.registry.tmch.Marksdb
-   * @see com.google.domain.registry.tmch.NordnUploadAction
+   * @see google.registry.tmch.Marksdb
+   * @see google.registry.tmch.NordnUploadAction
    */
   public String getTmchMarksdbUrl();
 
@@ -123,8 +123,8 @@ public interface RegistryConfig {
   /**
    * Returns the amount of time a domain label list should be cached in memory before expiring.
    *
-   * @see com.google.domain.registry.model.registry.label.ReservedList
-   * @see com.google.domain.registry.model.registry.label.PremiumList
+   * @see google.registry.model.registry.label.ReservedList
+   * @see google.registry.model.registry.label.PremiumList
    */
   public Duration getDomainLabelListCacheDuration();
 
@@ -134,21 +134,21 @@ public interface RegistryConfig {
   /**
    * Returns the header text at the top of the reserved terms exported list.
    *
-   * @see com.google.domain.registry.export.ExportUtils#exportReservedTerms
+   * @see google.registry.export.ExportUtils#exportReservedTerms
    */
   public String getReservedTermsExportDisclaimer();
 
   /**
    * Returns a display name that is used on outgoing emails sent by Domain Registry.
    *
-   * @see com.google.domain.registry.util.SendEmailUtils
+   * @see google.registry.util.SendEmailUtils
    */
   public String getGoogleAppsAdminEmailDisplayName();
 
   /**
    * Returns the email address that outgoing emails from the app are sent from.
    *
-   * @see com.google.domain.registry.util.SendEmailUtils
+   * @see google.registry.util.SendEmailUtils
    */
   public String getGoogleAppsSendFromEmailAddress();
 
@@ -165,15 +165,15 @@ public interface RegistryConfig {
    * Returns the email address(es) that notifications of registrar and/or registrar contact updates
    * should be sent to, or the empty list if updates should not be sent.
    *
-   * @see com.google.domain.registry.ui.server.registrar.RegistrarServlet
+   * @see google.registry.ui.server.registrar.RegistrarServlet
    */
   public ImmutableList<String> getRegistrarChangesNotificationEmailAddresses();
 
   /**
    * Returns default WHOIS server to use when {@code Registrar#getWhoisServer()} is {@code null}.
    *
-   * @see "com.google.domain.registry.whois.DomainWhoisResponse"
-   * @see "com.google.domain.registry.whois.RegistrarWhoisResponse"
+   * @see "google.registry.whois.DomainWhoisResponse"
+   * @see "google.registry.whois.RegistrarWhoisResponse"
    */
   public String getRegistrarDefaultWhoisServer();
 

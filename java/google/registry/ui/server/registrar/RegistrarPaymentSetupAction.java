@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.base.Functions.toStringFunction;
-import static com.google.domain.registry.security.JsonResponseHelper.Status.ERROR;
-import static com.google.domain.registry.security.JsonResponseHelper.Status.SUCCESS;
+import static google.registry.security.JsonResponseHelper.Status.ERROR;
+import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 import static java.util.Arrays.asList;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.braintree.BraintreeRegistrarSyncer;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.JsonActionRunner;
-import com.google.domain.registry.request.JsonActionRunner.JsonAction;
-import com.google.domain.registry.security.JsonResponseHelper;
 
 import com.braintreegateway.BraintreeGateway;
+
+import google.registry.braintree.BraintreeRegistrarSyncer;
+import google.registry.config.ConfigModule.Config;
+import google.registry.model.registrar.Registrar;
+import google.registry.request.Action;
+import google.registry.request.JsonActionRunner;
+import google.registry.request.JsonActionRunner.JsonAction;
+import google.registry.security.JsonResponseHelper;
 
 import org.joda.money.CurrencyUnit;
 

@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
-import static com.google.domain.registry.model.EppResourceUtils.queryNotDeleted;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
-import static com.google.domain.registry.request.Action.Method.GET;
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.model.EppResourceUtils.queryNotDeleted;
+import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.request.Action.Method.GET;
+import static google.registry.request.Action.Method.POST;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.util.Clock;
+
+import google.registry.model.domain.DomainResource;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.util.Clock;
 
 import java.util.Comparator;
 

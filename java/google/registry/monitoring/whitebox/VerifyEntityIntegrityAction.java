@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.monitoring.whitebox;
+package google.registry.monitoring.whitebox;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.google.domain.registry.model.EppResourceUtils.isActive;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.earliestOf;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
-import static com.google.domain.registry.util.FormattingLogger.getLoggerForCallerClass;
-import static com.google.domain.registry.util.PipelineUtils.createJobPath;
 import static com.googlecode.objectify.Key.getKind;
+import static google.registry.model.EppResourceUtils.isActive;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.DateTimeUtils.earliestOf;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
+import static google.registry.util.PipelineUtils.createJobPath;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.tools.mapreduce.Input;
@@ -37,31 +37,32 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.mapreduce.inputs.EppResourceInputs;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.index.DomainApplicationIndex;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex.ForeignKeyContactIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
-import com.google.domain.registry.model.transfer.TransferData.TransferServerApproveEntity;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.mapreduce.inputs.EppResourceInputs;
+import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.host.HostResource;
+import google.registry.model.index.DomainApplicationIndex;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.index.ForeignKeyIndex;
+import google.registry.model.index.ForeignKeyIndex.ForeignKeyContactIndex;
+import google.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
+import google.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
+import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
+import google.registry.request.Action;
+import google.registry.request.Response;
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
 
 import org.joda.time.DateTime;
 

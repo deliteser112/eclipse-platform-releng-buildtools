@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.registry.label.ReservedList;
+
+import google.registry.model.registry.label.ReservedList;
 
 import org.junit.Test;
 

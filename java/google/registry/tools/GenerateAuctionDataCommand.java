@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.domain.registry.model.domain.launch.ApplicationStatus.REJECTED;
-import static com.google.domain.registry.model.domain.launch.ApplicationStatus.VALIDATED;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
-import static com.google.domain.registry.util.DateTimeUtils.isAtOrAfter;
+import static google.registry.model.domain.launch.ApplicationStatus.REJECTED;
+import static google.registry.model.domain.launch.ApplicationStatus.VALIDATED;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -33,21 +33,22 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultimap;
-import com.google.domain.registry.model.contact.ContactAddress;
-import com.google.domain.registry.model.contact.ContactPhoneNumber;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.PostalInfo;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarAddress;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.tools.params.PathParameter;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.contact.ContactAddress;
+import google.registry.model.contact.ContactPhoneNumber;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.PostalInfo;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarAddress;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.PathParameter;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;

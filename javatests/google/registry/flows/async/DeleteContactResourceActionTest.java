@@ -12,42 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.async;
+package google.registry.flows.async;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.ContactResourceSubject.assertAboutContacts;
-import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
-import static com.google.domain.registry.testing.DatastoreHelper.getPollMessages;
-import static com.google.domain.registry.testing.DatastoreHelper.newContactResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistContactWithPendingTransfer;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
+import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
+import static google.registry.testing.DatastoreHelper.getPollMessages;
+import static google.registry.testing.DatastoreHelper.newContactResource;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistContactWithPendingTransfer;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.model.contact.ContactAddress;
-import com.google.domain.registry.model.contact.ContactPhoneNumber;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.PostalInfo;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferResponse;
-import com.google.domain.registry.model.transfer.TransferStatus;
-import com.google.domain.registry.request.HttpException.BadRequestException;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+
+import google.registry.model.contact.ContactAddress;
+import google.registry.model.contact.ContactPhoneNumber;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.PostalInfo;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.poll.PendingActionNotificationResponse;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferResponse;
+import google.registry.model.transfer.TransferStatus;
+import google.registry.request.HttpException.BadRequestException;
 
 import org.junit.Before;
 import org.junit.Test;

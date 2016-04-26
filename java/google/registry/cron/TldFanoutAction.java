@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.cron;
+package google.registry.cron;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
@@ -23,9 +23,9 @@ import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Multimaps.filterKeys;
 import static com.google.common.collect.Sets.difference;
-import static com.google.domain.registry.model.registry.Registries.getTldsOfType;
-import static com.google.domain.registry.model.registry.Registry.TldType.REAL;
-import static com.google.domain.registry.model.registry.Registry.TldType.TEST;
+import static google.registry.model.registry.Registries.getTldsOfType;
+import static google.registry.model.registry.Registry.TldType.REAL;
+import static google.registry.model.registry.Registry.TldType.TEST;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.appengine.api.taskqueue.Queue;
@@ -34,11 +34,12 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.ParameterMap;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.util.TaskEnqueuer;
+
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.request.ParameterMap;
+import google.registry.request.RequestParameters;
+import google.registry.util.TaskEnqueuer;
 
 import java.util.Random;
 import java.util.Set;

@@ -12,33 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.module.backend;
-
-import com.google.domain.registry.bigquery.BigqueryModule;
-import com.google.domain.registry.config.ConfigModule;
-import com.google.domain.registry.dns.writer.api.VoidDnsWriterModule;
-import com.google.domain.registry.export.DriveModule;
-import com.google.domain.registry.export.sheet.SpreadsheetServiceModule;
-import com.google.domain.registry.gcs.GcsServiceModule;
-import com.google.domain.registry.groups.DirectoryModule;
-import com.google.domain.registry.groups.GroupsModule;
-import com.google.domain.registry.groups.GroupssettingsModule;
-import com.google.domain.registry.keyring.api.KeyModule;
-import com.google.domain.registry.keyring.api.VoidKeyringModule;
-import com.google.domain.registry.rde.JSchModule;
-import com.google.domain.registry.request.Modules.AppIdentityCredentialModule;
-import com.google.domain.registry.request.Modules.DatastoreServiceModule;
-import com.google.domain.registry.request.Modules.GoogleCredentialModule;
-import com.google.domain.registry.request.Modules.Jackson2Module;
-import com.google.domain.registry.request.Modules.ModulesServiceModule;
-import com.google.domain.registry.request.Modules.URLFetchServiceModule;
-import com.google.domain.registry.request.Modules.UrlFetchTransportModule;
-import com.google.domain.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
-import com.google.domain.registry.request.RequestModule;
-import com.google.domain.registry.util.SystemClock.SystemClockModule;
-import com.google.domain.registry.util.SystemSleeper.SystemSleeperModule;
+package google.registry.module.backend;
 
 import dagger.Component;
+
+import google.registry.bigquery.BigqueryModule;
+import google.registry.config.ConfigModule;
+import google.registry.dns.writer.api.VoidDnsWriterModule;
+import google.registry.export.DriveModule;
+import google.registry.export.sheet.SpreadsheetServiceModule;
+import google.registry.gcs.GcsServiceModule;
+import google.registry.groups.DirectoryModule;
+import google.registry.groups.GroupsModule;
+import google.registry.groups.GroupssettingsModule;
+import google.registry.keyring.api.KeyModule;
+import google.registry.keyring.api.VoidKeyringModule;
+import google.registry.rde.JSchModule;
+import google.registry.request.Modules.AppIdentityCredentialModule;
+import google.registry.request.Modules.DatastoreServiceModule;
+import google.registry.request.Modules.GoogleCredentialModule;
+import google.registry.request.Modules.Jackson2Module;
+import google.registry.request.Modules.ModulesServiceModule;
+import google.registry.request.Modules.URLFetchServiceModule;
+import google.registry.request.Modules.UrlFetchTransportModule;
+import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
+import google.registry.request.RequestModule;
+import google.registry.util.SystemClock.SystemClockModule;
+import google.registry.util.SystemSleeper.SystemSleeperModule;
 
 import javax.inject.Singleton;
 

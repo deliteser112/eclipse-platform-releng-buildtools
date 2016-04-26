@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.billing;
+package google.registry.model.billing;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
 import static org.joda.money.CurrencyUnit.JPY;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.model.ofy.Ofy;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registry.Registry;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;

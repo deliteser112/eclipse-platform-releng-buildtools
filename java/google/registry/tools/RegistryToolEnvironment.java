@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.config.RegistryEnvironment;
+
+import google.registry.config.RegistryEnvironment;
 
 /** Enum of production environments, used for the {@code --environment} flag. */
 enum RegistryToolEnvironment {
@@ -31,7 +32,7 @@ enum RegistryToolEnvironment {
   LOCALHOST(RegistryEnvironment.LOCAL),
   UNITTEST(RegistryEnvironment.UNITTEST),
   PDT(RegistryEnvironment.PRODUCTION, ImmutableMap.of(
-      "com.google.domain.registry.rde.key.receiver",
+      "google.registry.rde.key.receiver",
           "pdt-escrow-test@icann.org"));
 
   private static final ImmutableList<String> FLAGS = ImmutableList.of("-e", "--environment");

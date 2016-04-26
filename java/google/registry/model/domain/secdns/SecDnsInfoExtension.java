@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.secdns;
+package google.registry.model.domain.secdns;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.eppoutput.Response.ResponseExtension;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

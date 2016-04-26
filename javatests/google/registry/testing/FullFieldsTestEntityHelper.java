@@ -12,35 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
-import static com.google.domain.registry.testing.DatastoreHelper.generateNewContactHostRoid;
-import static com.google.domain.registry.testing.DatastoreHelper.generateNewDomainRoid;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DomainNameUtils.getTldFromDomainName;
+import static google.registry.testing.DatastoreHelper.generateNewContactHostRoid;
+import static google.registry.testing.DatastoreHelper.generateNewDomainRoid;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.contact.ContactAddress;
-import com.google.domain.registry.model.contact.ContactPhoneNumber;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.PostalInfo;
-import com.google.domain.registry.model.domain.DesignatedContact;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.Period;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarAddress;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.util.Idn;
+
+import google.registry.model.EppResource;
+import google.registry.model.contact.ContactAddress;
+import google.registry.model.contact.ContactPhoneNumber;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.PostalInfo;
+import google.registry.model.domain.DesignatedContact;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.Period;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.host.HostResource;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarAddress;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.util.Idn;
 
 import org.joda.time.DateTime;
 

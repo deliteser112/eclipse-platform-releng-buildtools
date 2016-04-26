@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.billing;
+package google.registry.model.billing;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.billing.RegistrarCredit.CreditType;
-import com.google.domain.registry.model.billing.RegistrarCreditBalance.BalanceMap;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.model.EntityTestCase;
+import google.registry.model.billing.RegistrarCredit.CreditType;
+import google.registry.model.billing.RegistrarCreditBalance.BalanceMap;
+import google.registry.model.registrar.Registrar;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;

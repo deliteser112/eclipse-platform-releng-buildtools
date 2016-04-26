@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.model.registrar.Registrar.State.ACTIVE;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.registrar.Registrar.State.ACTIVE;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.testing.CertificateSamples;
-import com.google.domain.registry.util.CidrAddressBlock;
 
 import com.beust.jcommander.ParameterException;
+
+import google.registry.flows.EppException;
+import google.registry.model.registrar.Registrar;
+import google.registry.testing.CertificateSamples;
+import google.registry.util.CidrAddressBlock;
 
 import org.junit.Before;
 import org.junit.Test;

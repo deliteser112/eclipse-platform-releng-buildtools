@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.common.base.CharMatcher.whitespace;
 
 import com.google.common.io.ByteSource;
-import com.google.domain.registry.model.smd.EncodedSignedMark;
+
+import google.registry.model.smd.EncodedSignedMark;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPUtil;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tldconfig.idn;
+package google.registry.tldconfig.idn;
 
 import static com.google.common.io.Resources.readLines;
 import static java.nio.charset.StandardCharsets.UTF_8;

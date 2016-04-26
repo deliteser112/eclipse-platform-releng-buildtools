@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
-
-import com.google.domain.registry.tools.server.ListHostsAction;
+package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.server.ListHostsAction;
 
 /** Command to list all HostResource entities associated with a TLD. */
 @Parameters(separators = " =", commandDescription = "List hosts associated with a TLD.")

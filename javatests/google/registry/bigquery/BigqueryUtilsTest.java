@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.bigquery;
+package google.registry.bigquery;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.bigquery.BigqueryUtils.fromBigqueryTimestampString;
-import static com.google.domain.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
-import static com.google.domain.registry.bigquery.BigqueryUtils.toBigqueryTimestampString;
-import static com.google.domain.registry.bigquery.BigqueryUtils.toJobReferenceString;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.bigquery.BigqueryUtils.fromBigqueryTimestampString;
+import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
+import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestampString;
+import static google.registry.bigquery.BigqueryUtils.toJobReferenceString;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.api.services.bigquery.model.JobReference;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.testing.ExceptionRule;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;

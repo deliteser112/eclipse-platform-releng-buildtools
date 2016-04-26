@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.launch;
+package google.registry.model.domain.launch;
 
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.eppinput.EppInput.CommandExtension;
-import com.google.domain.registry.model.smd.AbstractSignedMark;
-import com.google.domain.registry.model.smd.EncodedSignedMark;
-import com.google.domain.registry.model.smd.SignedMark;
+
+import google.registry.model.eppinput.EppInput.CommandExtension;
+import google.registry.model.smd.AbstractSignedMark;
+import google.registry.model.smd.EncodedSignedMark;
+import google.registry.model.smd.SignedMark;
 
 import java.util.List;
 

@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.request.Action.Method.POST;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
+
+import google.registry.model.registry.label.PremiumList;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
 
 import java.util.List;
 

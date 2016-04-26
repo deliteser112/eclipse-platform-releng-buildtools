@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.request;
+package google.registry.request;
 
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
-import com.google.domain.registry.util.FormattingLogger;
+import google.registry.util.FormattingLogger;
 
 import java.io.IOException;
 

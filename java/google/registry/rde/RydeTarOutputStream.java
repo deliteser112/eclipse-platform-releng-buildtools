@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.auto.factory.AutoFactory;
-import com.google.domain.registry.util.ImprovedOutputStream;
-import com.google.domain.registry.util.PosixTarHeader;
+
+import google.registry.util.ImprovedOutputStream;
+import google.registry.util.PosixTarHeader;
 
 import org.joda.time.DateTime;
 

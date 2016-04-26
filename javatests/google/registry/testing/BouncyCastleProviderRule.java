@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.rules.ExternalResource;

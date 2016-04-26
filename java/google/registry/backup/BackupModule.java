@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
 import static com.google.appengine.api.ThreadManager.currentRequestThreadFactory;
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
-import static com.google.domain.registry.backup.ExportCommitLogDiffAction.LOWER_CHECKPOINT_TIME_PARAM;
-import static com.google.domain.registry.backup.ExportCommitLogDiffAction.UPPER_CHECKPOINT_TIME_PARAM;
-import static com.google.domain.registry.backup.RestoreCommitLogsAction.FROM_TIME_PARAM;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredDatetimeParameter;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
+import static google.registry.backup.ExportCommitLogDiffAction.LOWER_CHECKPOINT_TIME_PARAM;
+import static google.registry.backup.ExportCommitLogDiffAction.UPPER_CHECKPOINT_TIME_PARAM;
+import static google.registry.backup.RestoreCommitLogsAction.FROM_TIME_PARAM;
+import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
 import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.domain.registry.cron.CommitLogFanoutAction;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.Parameter;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.cron.CommitLogFanoutAction;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.Parameter;
 
 import org.joda.time.DateTime;
 
@@ -42,7 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Dagger module for backup package.
  *
- * @see "com.google.domain.registry.module.backend.BackendComponent"
+ * @see "google.registry.module.backend.BackendComponent"
  */
 @Module
 public final class BackupModule {

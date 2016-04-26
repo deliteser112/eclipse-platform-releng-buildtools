@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppcommon;
+package google.registry.model.eppcommon;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.BaseEncoding;
-import com.google.domain.registry.model.ImmutableObject;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.ImmutableObject;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;

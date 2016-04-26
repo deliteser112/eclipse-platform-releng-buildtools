@@ -12,40 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTld;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.contact.ContactAddress;
-import com.google.domain.registry.model.contact.ContactAuthInfo;
-import com.google.domain.registry.model.contact.ContactPhoneNumber;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.Disclose;
-import com.google.domain.registry.model.contact.PostalInfo;
-import com.google.domain.registry.model.eppcommon.AuthInfo.PasswordAuth;
-import com.google.domain.registry.model.eppcommon.PresenceMarker;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferStatus;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.xjc.contact.XjcContactPostalInfoEnumType;
-import com.google.domain.registry.xjc.contact.XjcContactPostalInfoType;
-import com.google.domain.registry.xjc.contact.XjcContactStatusType;
-import com.google.domain.registry.xjc.contact.XjcContactStatusValueType;
-import com.google.domain.registry.xjc.eppcom.XjcEppcomTrStatusType;
-import com.google.domain.registry.xjc.rde.XjcRdeContentsType;
-import com.google.domain.registry.xjc.rde.XjcRdeDeposit;
-import com.google.domain.registry.xjc.rde.XjcRdeDepositTypeType;
-import com.google.domain.registry.xjc.rde.XjcRdeMenuType;
-import com.google.domain.registry.xjc.rdecontact.XjcRdeContact;
-import com.google.domain.registry.xjc.rdecontact.XjcRdeContactElement;
+
+import google.registry.model.contact.ContactAddress;
+import google.registry.model.contact.ContactAuthInfo;
+import google.registry.model.contact.ContactPhoneNumber;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.Disclose;
+import google.registry.model.contact.PostalInfo;
+import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import google.registry.model.eppcommon.PresenceMarker;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
+import google.registry.testing.AppEngineRule;
+import google.registry.xjc.contact.XjcContactPostalInfoEnumType;
+import google.registry.xjc.contact.XjcContactPostalInfoType;
+import google.registry.xjc.contact.XjcContactStatusType;
+import google.registry.xjc.contact.XjcContactStatusValueType;
+import google.registry.xjc.eppcom.XjcEppcomTrStatusType;
+import google.registry.xjc.rde.XjcRdeContentsType;
+import google.registry.xjc.rde.XjcRdeDeposit;
+import google.registry.xjc.rde.XjcRdeDepositTypeType;
+import google.registry.xjc.rde.XjcRdeMenuType;
+import google.registry.xjc.rdecontact.XjcRdeContact;
+import google.registry.xjc.rdecontact.XjcRdeContactElement;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

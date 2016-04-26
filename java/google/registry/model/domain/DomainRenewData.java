@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain;
+package google.registry.model.domain;
 
-import com.google.domain.registry.model.eppoutput.Response.ResponseData;
+import google.registry.model.eppoutput.Response.ResponseData;
 
 import org.joda.time.DateTime;
 

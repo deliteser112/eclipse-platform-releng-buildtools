@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistPremiumList;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistPremiumList;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.model.registry.label.PremiumList.PremiumListEntry;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.PremiumList;
+import google.registry.model.registry.label.PremiumList.PremiumListEntry;
 
 import org.junit.Test;
 

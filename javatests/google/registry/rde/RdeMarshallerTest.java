@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.xml.XmlTestUtils;
+import google.registry.model.registrar.Registrar;
+import google.registry.testing.AppEngineRule;
+import google.registry.xml.XmlTestUtils;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;

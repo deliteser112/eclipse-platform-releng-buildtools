@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.domain.registry.model.registry.Registries.findTldForName;
-import static com.google.domain.registry.util.DomainNameUtils.canonicalizeDomainName;
+import static google.registry.model.registry.Registries.findTldForName;
+import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.common.base.Joiner;

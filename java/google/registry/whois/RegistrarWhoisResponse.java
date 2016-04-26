@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
 
 import org.joda.time.DateTime;
 

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.billing;
+package google.registry.model.billing;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -26,8 +26,6 @@ import com.google.common.collect.ForwardingNavigableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.ImmutableObject;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
@@ -35,6 +33,9 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.ref.DeadRef;
+
+import google.registry.model.Buildable;
+import google.registry.model.ImmutableObject;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

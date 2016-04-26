@@ -12,32 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.base.Verify.verify;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.rde.RdeMode;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.tldconfig.idn.IdnTable;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.xjc.XjcXmlTransformer;
-import com.google.domain.registry.xjc.rde.XjcRdeContentsType;
-import com.google.domain.registry.xjc.rde.XjcRdeDeposit;
-import com.google.domain.registry.xjc.rde.XjcRdeDepositTypeType;
-import com.google.domain.registry.xjc.rde.XjcRdeMenuType;
-import com.google.domain.registry.xjc.rdeidn.XjcRdeIdn;
-import com.google.domain.registry.xjc.rdeidn.XjcRdeIdnElement;
-import com.google.domain.registry.xjc.rdepolicy.XjcRdePolicy;
-import com.google.domain.registry.xjc.rdepolicy.XjcRdePolicyElement;
-import com.google.domain.registry.xml.XmlException;
-import com.google.domain.registry.xml.XmlFragmentMarshaller;
-
 import com.googlecode.objectify.Key;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.host.HostResource;
+import google.registry.model.rde.RdeMode;
+import google.registry.model.registrar.Registrar;
+import google.registry.tldconfig.idn.IdnTable;
+import google.registry.util.FormattingLogger;
+import google.registry.xjc.XjcXmlTransformer;
+import google.registry.xjc.rde.XjcRdeContentsType;
+import google.registry.xjc.rde.XjcRdeDeposit;
+import google.registry.xjc.rde.XjcRdeDepositTypeType;
+import google.registry.xjc.rde.XjcRdeMenuType;
+import google.registry.xjc.rdeidn.XjcRdeIdn;
+import google.registry.xjc.rdeidn.XjcRdeIdnElement;
+import google.registry.xjc.rdepolicy.XjcRdePolicy;
+import google.registry.xjc.rdepolicy.XjcRdePolicyElement;
+import google.registry.xml.XmlException;
+import google.registry.xml.XmlFragmentMarshaller;
 
 import org.joda.time.DateTime;
 

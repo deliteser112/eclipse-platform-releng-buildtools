@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns;
-
-import com.google.domain.registry.config.ConfigModule;
-import com.google.domain.registry.dns.writer.api.VoidDnsWriterModule;
-import com.google.domain.registry.module.backend.BackendModule;
-import com.google.domain.registry.request.RequestModule;
-import com.google.domain.registry.util.SystemClock.SystemClockModule;
+package google.registry.dns;
 
 import dagger.Component;
+
+import google.registry.config.ConfigModule;
+import google.registry.dns.writer.api.VoidDnsWriterModule;
+import google.registry.module.backend.BackendModule;
+import google.registry.request.RequestModule;
+import google.registry.util.SystemClock.SystemClockModule;
 
 @Component(modules = {
     SystemClockModule.class,

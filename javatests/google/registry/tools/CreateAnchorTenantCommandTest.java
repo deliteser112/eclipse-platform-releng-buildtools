@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistPremiumList;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-
-import com.google.domain.registry.model.registry.Registry;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistPremiumList;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.beust.jcommander.ParameterException;
+
+import google.registry.model.registry.Registry;
 
 import org.junit.Test;
 

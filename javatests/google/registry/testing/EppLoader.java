@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
-import static com.google.domain.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.flows.EppXmlTransformer;
-import com.google.domain.registry.model.eppinput.EppInput;
+
+import google.registry.flows.EppXmlTransformer;
+import google.registry.model.eppinput.EppInput;
 
 import java.util.Map;
 

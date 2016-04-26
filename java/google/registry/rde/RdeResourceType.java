@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
-import static com.google.domain.registry.model.rde.RdeMode.FULL;
-import static com.google.domain.registry.model.rde.RdeMode.THIN;
+import static google.registry.model.rde.RdeMode.FULL;
+import static google.registry.model.rde.RdeMode.THIN;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.model.rde.RdeMode;
+
+import google.registry.model.rde.RdeMode;
 
 import java.util.Collections;
 import java.util.EnumSet;

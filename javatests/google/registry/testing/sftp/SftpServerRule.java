@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing.sftp;
+package google.registry.testing.sftp;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.domain.registry.util.NetworkUtils;
+import google.registry.util.NetworkUtils;
 
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.ftplet.FtpException;

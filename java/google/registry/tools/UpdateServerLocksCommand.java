@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -21,13 +21,14 @@ import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.union;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.soy.UpdateServerLocksSoyInfo;
 import com.google.template.soy.data.SoyMapData;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.soy.UpdateServerLocksSoyInfo;
 
 import java.util.ArrayList;
 import java.util.List;

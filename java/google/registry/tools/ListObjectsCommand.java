@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
-import static com.google.domain.registry.tools.server.ListObjectsAction.FIELDS_PARAM;
-import static com.google.domain.registry.tools.server.ListObjectsAction.FULL_FIELD_NAMES_PARAM;
-import static com.google.domain.registry.tools.server.ListObjectsAction.PRINT_HEADER_ROW_PARAM;
+import static google.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
+import static google.registry.tools.server.ListObjectsAction.FIELDS_PARAM;
+import static google.registry.tools.server.ListObjectsAction.FULL_FIELD_NAMES_PARAM;
+import static google.registry.tools.server.ListObjectsAction.PRINT_HEADER_ROW_PARAM;
 
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
 
 import com.beust.jcommander.Parameter;
+
+import google.registry.tools.Command.RemoteApiCommand;
 
 import org.json.simple.JSONValue;
 

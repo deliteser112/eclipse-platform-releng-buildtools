@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.appengine.api.urlfetch.FetchOptions.Builder.validateCertificate;
 import static com.google.appengine.api.urlfetch.HTTPMethod.GET;
@@ -25,15 +25,16 @@ import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteSource;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Header;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.ConflictException;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.UrlFetchException;
+
+import google.registry.request.Action;
+import google.registry.request.Header;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.ConflictException;
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
+import google.registry.request.Response;
+import google.registry.util.FormattingLogger;
+import google.registry.util.UrlFetchException;
 
 import java.io.IOException;
 import java.net.URL;

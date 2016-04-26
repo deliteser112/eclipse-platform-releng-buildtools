@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.common.base.Verify.verifyNotNull;
-import static com.google.domain.registry.util.UrlFetchUtils.setAuthorizationHeader;
+import static google.registry.util.UrlFetchUtils.setAuthorizationHeader;
 
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.common.base.Optional;
-import com.google.domain.registry.keyring.api.KeyModule.Key;
-import com.google.domain.registry.model.registry.Registry;
+
+import google.registry.keyring.api.KeyModule.Key;
+import google.registry.model.registry.Registry;
 
 import javax.inject.Inject;
 

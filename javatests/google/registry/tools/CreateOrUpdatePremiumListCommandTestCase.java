@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -22,8 +22,9 @@ import static org.mockito.Mockito.verify;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.testing.UriParameters;
-import com.google.domain.registry.tools.ServerSideCommand.Connection;
+
+import google.registry.testing.UriParameters;
+import google.registry.tools.ServerSideCommand.Connection;
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;

@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.Command.RemoteApiCommand;
 
 import java.util.List;
 

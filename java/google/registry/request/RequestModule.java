@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.request;
+package google.registry.request;
 
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -22,11 +22,12 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.UnsupportedMediaTypeException;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.UnsupportedMediaTypeException;
 
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;

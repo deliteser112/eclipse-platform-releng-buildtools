@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -21,21 +21,22 @@ import static com.google.common.collect.Sets.difference;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.keyring.api.Keyring;
-import com.google.domain.registry.rde.Ghostryde;
-import com.google.domain.registry.tools.params.PathParameter;
-import com.google.domain.registry.xjc.XjcXmlTransformer;
-import com.google.domain.registry.xjc.domain.XjcDomainContactType;
-import com.google.domain.registry.xjc.domain.XjcDomainHostAttrType;
-import com.google.domain.registry.xjc.rde.XjcRdeDeposit;
-import com.google.domain.registry.xjc.rdecontact.XjcRdeContact;
-import com.google.domain.registry.xjc.rdedomain.XjcRdeDomain;
-import com.google.domain.registry.xjc.rdehost.XjcRdeHost;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrar;
-import com.google.domain.registry.xml.XmlException;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.keyring.api.Keyring;
+import google.registry.rde.Ghostryde;
+import google.registry.tools.params.PathParameter;
+import google.registry.xjc.XjcXmlTransformer;
+import google.registry.xjc.domain.XjcDomainContactType;
+import google.registry.xjc.domain.XjcDomainHostAttrType;
+import google.registry.xjc.rde.XjcRdeDeposit;
+import google.registry.xjc.rdecontact.XjcRdeContact;
+import google.registry.xjc.rdedomain.XjcRdeDomain;
+import google.registry.xjc.rdehost.XjcRdeHost;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
+import google.registry.xml.XmlException;
 
 import java.io.InputStream;
 import java.nio.file.Files;

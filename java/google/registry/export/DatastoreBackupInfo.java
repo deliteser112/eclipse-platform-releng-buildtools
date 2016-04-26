@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -24,9 +24,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.NonFinalForTesting;
-import com.google.domain.registry.util.SystemClock;
+
+import google.registry.util.Clock;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.SystemClock;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

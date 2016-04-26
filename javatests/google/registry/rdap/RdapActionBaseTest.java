@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rdap;
+package google.registry.rdap;
 
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.request.Action.Method.GET;
-import static com.google.domain.registry.request.Action.Method.HEAD;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.request.Action.Method.GET;
+import static google.registry.request.Action.Method.HEAD;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.rdap.RdapJsonFormatter.BoilerplateType;
-import com.google.domain.registry.request.HttpException;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.FakeResponse;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.model.ofy.Ofy;
+import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
+import google.registry.request.HttpException;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeResponse;
+import google.registry.testing.InjectRule;
 
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;

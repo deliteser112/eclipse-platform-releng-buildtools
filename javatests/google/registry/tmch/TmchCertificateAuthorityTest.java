@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
-import static com.google.domain.registry.tmch.TmchTestData.loadString;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
-import static com.google.domain.registry.util.X509Utils.loadCertificate;
+import static google.registry.tmch.TmchTestData.loadString;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.util.X509Utils.loadCertificate;
 
-import com.google.domain.registry.model.tmch.TmchCrl;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.RegistryConfigRule;
+import google.registry.model.tmch.TmchCrl;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import google.registry.testing.RegistryConfigRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

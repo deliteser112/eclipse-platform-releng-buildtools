@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.export.SyncGroupMembersAction.getGroupEmailAddressForContactType;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.ADMIN;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.MARKETING;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.TECH;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.export.SyncGroupMembersAction.getGroupEmailAddressForContactType;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registrar.RegistrarContact.Type.ADMIN;
+import static google.registry.model.registrar.RegistrarContact.Type.MARKETING;
+import static google.registry.model.registrar.RegistrarContact.Type.TECH;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Mockito.verify;
@@ -29,14 +29,15 @@ import static org.mockito.Mockito.when;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.groups.DirectoryGroupsConnection;
-import com.google.domain.registry.groups.GroupsConnection.Role;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.groups.DirectoryGroupsConnection;
+import google.registry.groups.GroupsConnection.Role;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.request.Response;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.InjectRule;
 
 import org.junit.Rule;
 import org.junit.Test;

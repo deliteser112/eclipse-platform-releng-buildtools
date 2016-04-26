@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -20,7 +20,8 @@ import static java.nio.file.Files.readAllLines;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.tmch.ClaimsListShard;
+
+import google.registry.model.tmch.ClaimsListShard;
 
 import org.joda.time.DateTime;
 import org.junit.Test;

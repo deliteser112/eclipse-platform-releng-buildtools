@@ -12,35 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.poll;
+package google.registry.model.poll;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.util.CollectionUtils.forceEmptyToNull;
-import static com.google.domain.registry.util.CollectionUtils.isNullOrEmpty;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
+import static google.registry.util.CollectionUtils.isNullOrEmpty;
+import static google.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Converter;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.annotations.ExternalMessagingName;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.DomainRenewData;
-import com.google.domain.registry.model.domain.launch.LaunchInfoResponseExtension;
-import com.google.domain.registry.model.eppoutput.Response.ResponseData;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferData.TransferServerApproveEntity;
-import com.google.domain.registry.model.transfer.TransferResponse.ContactTransferResponse;
-import com.google.domain.registry.model.transfer.TransferResponse.DomainTransferResponse;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
@@ -48,6 +32,23 @@ import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
+
+import google.registry.model.Buildable;
+import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
+import google.registry.model.annotations.ExternalMessagingName;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.DomainRenewData;
+import google.registry.model.domain.launch.LaunchInfoResponseExtension;
+import google.registry.model.eppoutput.Response.ResponseData;
+import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
+import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
+import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
+import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 
 import org.joda.time.DateTime;
 

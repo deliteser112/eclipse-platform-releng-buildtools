@@ -12,35 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DesignatedContact;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.rde.RdeMode;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferStatus;
-import com.google.domain.registry.util.Idn;
-import com.google.domain.registry.xjc.domain.XjcDomainContactAttrType;
-import com.google.domain.registry.xjc.domain.XjcDomainContactType;
-import com.google.domain.registry.xjc.domain.XjcDomainNsType;
-import com.google.domain.registry.xjc.domain.XjcDomainStatusType;
-import com.google.domain.registry.xjc.domain.XjcDomainStatusValueType;
-import com.google.domain.registry.xjc.eppcom.XjcEppcomTrStatusType;
-import com.google.domain.registry.xjc.rdedomain.XjcRdeDomain;
-import com.google.domain.registry.xjc.rdedomain.XjcRdeDomainElement;
-import com.google.domain.registry.xjc.rdedomain.XjcRdeDomainTransferDataType;
-import com.google.domain.registry.xjc.rgp.XjcRgpStatusType;
-import com.google.domain.registry.xjc.rgp.XjcRgpStatusValueType;
-import com.google.domain.registry.xjc.secdns.XjcSecdnsDsDataType;
-import com.google.domain.registry.xjc.secdns.XjcSecdnsDsOrKeyType;
+
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DesignatedContact;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.model.rde.RdeMode;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
+import google.registry.util.Idn;
+import google.registry.xjc.domain.XjcDomainContactAttrType;
+import google.registry.xjc.domain.XjcDomainContactType;
+import google.registry.xjc.domain.XjcDomainNsType;
+import google.registry.xjc.domain.XjcDomainStatusType;
+import google.registry.xjc.domain.XjcDomainStatusValueType;
+import google.registry.xjc.eppcom.XjcEppcomTrStatusType;
+import google.registry.xjc.rdedomain.XjcRdeDomain;
+import google.registry.xjc.rdedomain.XjcRdeDomainElement;
+import google.registry.xjc.rdedomain.XjcRdeDomainTransferDataType;
+import google.registry.xjc.rgp.XjcRgpStatusType;
+import google.registry.xjc.rgp.XjcRgpStatusValueType;
+import google.registry.xjc.secdns.XjcSecdnsDsDataType;
+import google.registry.xjc.secdns.XjcSecdnsDsOrKeyType;
 
 import org.joda.time.DateTime;
 

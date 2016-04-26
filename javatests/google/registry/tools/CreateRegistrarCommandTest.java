@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -29,11 +29,12 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.testing.CertificateSamples;
-import com.google.domain.registry.tools.ServerSideCommand.Connection;
 
 import com.beust.jcommander.ParameterException;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.testing.CertificateSamples;
+import google.registry.tools.ServerSideCommand.Connection;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

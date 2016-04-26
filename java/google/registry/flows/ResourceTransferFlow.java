@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.EppResource;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 
 /**
  * An EPP flow that involves a transfer on a resource.

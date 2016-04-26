@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Iterators.filter;
 import static com.google.common.io.BaseEncoding.base16;
-import static com.google.domain.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
-import static com.google.domain.registry.model.EppResourceUtils.loadAtPointInTime;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.request.Action.Method.POST;
-import static com.google.domain.registry.util.PipelineUtils.createJobPath;
+import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
+import static google.registry.model.EppResourceUtils.loadAtPointInTime;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.request.Action.Method.POST;
+import static google.registry.util.PipelineUtils.createJobPath;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -37,21 +37,22 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.gcs.GcsUtils;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.mapreduce.inputs.NullInput;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.JsonActionRunner;
-import com.google.domain.registry.util.Clock;
 
 import com.googlecode.objectify.Ref;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.gcs.GcsUtils;
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.mapreduce.inputs.NullInput;
+import google.registry.model.EppResource;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.host.HostResource;
+import google.registry.request.Action;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.JsonActionRunner;
+import google.registry.util.Clock;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

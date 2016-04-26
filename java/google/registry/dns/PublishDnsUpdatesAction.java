@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns;
+package google.registry.dns;
 
-import static com.google.domain.registry.model.server.Lock.executeWithLocks;
-import static com.google.domain.registry.request.Action.Method.POST;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.model.server.Lock.executeWithLocks;
+import static google.registry.request.Action.Method.POST;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.dns.writer.api.DnsWriter;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException.ServiceUnavailableException;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.util.DomainNameUtils;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.dns.writer.api.DnsWriter;
+import google.registry.request.Action;
+import google.registry.request.HttpException.ServiceUnavailableException;
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
+import google.registry.util.DomainNameUtils;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.Duration;
 

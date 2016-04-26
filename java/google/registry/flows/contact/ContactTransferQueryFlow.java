@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import com.google.domain.registry.flows.ResourceTransferQueryFlow;
-import com.google.domain.registry.model.contact.ContactCommand.Transfer;
-import com.google.domain.registry.model.contact.ContactResource;
+import google.registry.flows.ResourceTransferQueryFlow;
+import google.registry.model.contact.ContactCommand.Transfer;
+import google.registry.model.contact.ContactResource;
 
 /**
  * An EPP flow that queries a pending transfer on a {@link ContactResource}.
  *
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException}
- * @error {@link com.google.domain.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException}
+ * @error {@link google.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException}
  */
 public class ContactTransferQueryFlow extends ResourceTransferQueryFlow<ContactResource, Transfer> {
 }

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.createViewUpdateTask;
-import static com.google.domain.registry.request.Action.Method.POST;
-import static com.google.domain.registry.util.FormattingLogger.getLoggerForCallerClass;
+import static google.registry.export.UpdateSnapshotViewAction.createViewUpdateTask;
+import static google.registry.request.Action.Method.POST;
+import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Job;
@@ -34,17 +34,18 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.bigquery.BigqueryUtils.SourceFormat;
-import com.google.domain.registry.bigquery.BigqueryUtils.WriteDisposition;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.InternalServerErrorException;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.bigquery.BigqueryFactory;
+import google.registry.bigquery.BigqueryUtils.SourceFormat;
+import google.registry.bigquery.BigqueryUtils.WriteDisposition;
+import google.registry.config.ConfigModule.Config;
+import google.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
+import google.registry.request.Action;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.request.Parameter;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 

@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.util.CollectionUtils.forceEmptyToNull;
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.ResourceInfoFlow;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.DomainBase.Builder;
-import com.google.domain.registry.model.domain.DomainCommand;
-import com.google.domain.registry.model.domain.secdns.SecDnsInfoExtension;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
+
+import google.registry.flows.EppException;
+import google.registry.flows.ResourceInfoFlow;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.DomainBase.Builder;
+import google.registry.model.domain.DomainCommand;
+import google.registry.model.domain.secdns.SecDnsInfoExtension;
+import google.registry.model.eppoutput.Response.ResponseExtension;
 
 /**
  * An EPP flow that reads a domain resource or application.

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
@@ -21,10 +21,11 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.model.smd.EncodedSignedMark;
-import com.google.domain.registry.testing.TruthChainer.And;
+
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.smd.EncodedSignedMark;
+import google.registry.testing.TruthChainer.And;
 
 import java.util.Objects;
 

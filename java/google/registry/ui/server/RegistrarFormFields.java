@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server;
+package google.registry.ui.server;
 
 import static com.google.common.collect.Range.atLeast;
 import static com.google.common.collect.Range.atMost;
 import static com.google.common.collect.Range.closed;
-import static com.google.domain.registry.util.DomainNameUtils.canonicalizeDomainName;
+import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarAddress;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.ui.forms.FormField;
-import com.google.domain.registry.ui.forms.FormFieldException;
-import com.google.domain.registry.ui.forms.FormFields;
-import com.google.domain.registry.util.CidrAddressBlock;
-import com.google.domain.registry.util.X509Utils;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarAddress;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.ui.forms.FormField;
+import google.registry.ui.forms.FormFieldException;
+import google.registry.ui.forms.FormFields;
+import google.registry.util.CidrAddressBlock;
+import google.registry.util.X509Utils;
 
 import java.security.cert.CertificateParsingException;
 import java.util.List;

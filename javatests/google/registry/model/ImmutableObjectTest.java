@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ImmutableObject.cloneEmptyToNull;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.ImmutableObject.cloneEmptyToNull;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.util.CidrAddressBlock;
+
+import google.registry.util.CidrAddressBlock;
 
 import org.joda.time.DateTime;
 import org.junit.Test;

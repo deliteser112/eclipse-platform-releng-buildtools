@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.request;
+package google.registry.request;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
-import static com.google.domain.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
-import static com.google.domain.registry.security.XsrfTokenManager.validateToken;
+import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
+import static google.registry.security.XsrfTokenManager.validateToken;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
@@ -28,8 +28,9 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.base.Optional;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
+
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
 
 import org.joda.time.Duration;
 

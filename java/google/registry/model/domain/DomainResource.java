@@ -12,30 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain;
+package google.registry.model.domain;
 
 import static com.google.common.collect.Sets.intersection;
-import static com.google.domain.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
-import static com.google.domain.registry.model.EppResourceUtils.setAutomaticTransferSuccessProperties;
-import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
-import static com.google.domain.registry.util.CollectionUtils.difference;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
-import static com.google.domain.registry.util.CollectionUtils.union;
-import static com.google.domain.registry.util.DateTimeUtils.earliestOf;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
-import static com.google.domain.registry.util.DateTimeUtils.leapSafeAddYears;
+import static google.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
+import static google.registry.model.EppResourceUtils.setAutomaticTransferSuccessProperties;
+import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
+import static google.registry.util.CollectionUtils.difference;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.union;
+import static google.registry.util.DateTimeUtils.earliestOf;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EppResource.ForeignKeyedEppResource;
-import com.google.domain.registry.model.annotations.ExternalMessagingName;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferStatus;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
@@ -43,6 +34,16 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfNull;
+
+import google.registry.model.EppResource.ForeignKeyedEppResource;
+import google.registry.model.annotations.ExternalMessagingName;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.registry.Registry;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
 
 import org.joda.time.DateTime;
 import org.joda.time.Interval;

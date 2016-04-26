@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.rde;
+package google.registry.model.rde;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.rde.RdeMode.FULL;
-import static com.google.domain.registry.model.rde.RdeRevision.getNextRevision;
-import static com.google.domain.registry.model.rde.RdeRevision.saveRevision;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.rde.RdeMode.FULL;
+import static google.registry.model.rde.RdeRevision.getNextRevision;
+import static google.registry.model.rde.RdeRevision.saveRevision;
 
 import com.google.common.base.VerifyException;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
 
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.time.DateTime;
 import org.junit.Rule;

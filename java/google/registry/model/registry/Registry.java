@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registry;
+package google.registry.model.registry;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
-import static com.google.domain.registry.model.registry.label.PremiumList.getPremiumPrice;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
-import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
+import static google.registry.model.registry.label.PremiumList.getPremiumPrice;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -40,16 +40,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.CreateAutoTimestamp;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.common.EntityGroupRoot;
-import com.google.domain.registry.model.common.TimedTransitionProperty;
-import com.google.domain.registry.model.common.TimedTransitionProperty.TimedTransition;
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.model.registry.label.ReservedList;
-import com.google.domain.registry.util.Idn;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
@@ -60,6 +50,17 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.Buildable;
+import google.registry.model.CreateAutoTimestamp;
+import google.registry.model.ImmutableObject;
+import google.registry.model.common.EntityGroupRoot;
+import google.registry.model.common.TimedTransitionProperty;
+import google.registry.model.common.TimedTransitionProperty.TimedTransition;
+import google.registry.model.registry.label.PremiumList;
+import google.registry.model.registry.label.ReservedList;
+import google.registry.util.Idn;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;

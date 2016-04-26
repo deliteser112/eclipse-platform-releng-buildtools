@@ -12,26 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.session;
+package google.registry.flows.session;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.deleteResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.deleteResource;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.domain.registry.flows.EppException.UnimplementedExtensionException;
-import com.google.domain.registry.flows.EppException.UnimplementedObjectServiceException;
-import com.google.domain.registry.flows.EppException.UnimplementedProtocolVersionException;
-import com.google.domain.registry.flows.FlowTestCase;
-import com.google.domain.registry.flows.session.LoginFlow.AlreadyLoggedInException;
-import com.google.domain.registry.flows.session.LoginFlow.BadRegistrarClientIdException;
-import com.google.domain.registry.flows.session.LoginFlow.BadRegistrarPasswordException;
-import com.google.domain.registry.flows.session.LoginFlow.PasswordChangesNotSupportedException;
-import com.google.domain.registry.flows.session.LoginFlow.RegistrarAccountNotActiveException;
-import com.google.domain.registry.flows.session.LoginFlow.TooManyFailedLoginsException;
-import com.google.domain.registry.flows.session.LoginFlow.UnsupportedLanguageException;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.Registrar.State;
-import com.google.domain.registry.testing.ExceptionRule;
+import google.registry.flows.EppException.UnimplementedExtensionException;
+import google.registry.flows.EppException.UnimplementedObjectServiceException;
+import google.registry.flows.EppException.UnimplementedProtocolVersionException;
+import google.registry.flows.FlowTestCase;
+import google.registry.flows.session.LoginFlow.AlreadyLoggedInException;
+import google.registry.flows.session.LoginFlow.BadRegistrarClientIdException;
+import google.registry.flows.session.LoginFlow.BadRegistrarPasswordException;
+import google.registry.flows.session.LoginFlow.PasswordChangesNotSupportedException;
+import google.registry.flows.session.LoginFlow.RegistrarAccountNotActiveException;
+import google.registry.flows.session.LoginFlow.TooManyFailedLoginsException;
+import google.registry.flows.session.LoginFlow.UnsupportedLanguageException;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
+import google.registry.testing.ExceptionRule;
 
 import org.junit.Before;
 import org.junit.Rule;

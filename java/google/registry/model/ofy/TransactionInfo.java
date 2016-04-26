@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
 import static com.google.common.base.Functions.constant;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Maps.filterValues;
 import static com.google.common.collect.Maps.toMap;
-import static com.google.domain.registry.model.ofy.CommitLogBucket.getArbitraryBucketId;
 import static com.googlecode.objectify.ObjectifyService.ofy;
+import static google.registry.model.ofy.CommitLogBucket.getArbitraryBucketId;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;

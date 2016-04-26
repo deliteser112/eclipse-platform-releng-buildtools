@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
-import static com.google.domain.registry.xjc.XjcXmlTransformer.marshalStrict;
+import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
+import static google.registry.xjc.XjcXmlTransformer.marshalStrict;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarAddress;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrar;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrarAddrType;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrarPostalInfoEnumType;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrarPostalInfoType;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrarStatusType;
+
+import google.registry.model.ofy.Ofy;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarAddress;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrarAddrType;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrarPostalInfoEnumType;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrarPostalInfoType;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrarStatusType;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

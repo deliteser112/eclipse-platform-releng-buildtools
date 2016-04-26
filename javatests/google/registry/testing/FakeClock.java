@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.millis;
 
-import com.google.domain.registry.util.Clock;
+import google.registry.util.Clock;
 
 import org.joda.time.DateTime;
 import org.joda.time.ReadableDuration;

@@ -12,28 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
 import static com.google.appengine.api.memcache.ErrorHandlers.getConsistentLogAndContinue;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.not;
-import static com.google.domain.registry.util.TypeUtils.hasAnnotation;
 import static com.googlecode.objectify.ObjectifyService.factory;
+import static google.registry.util.TypeUtils.hasAnnotation;
 
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.EntityClasses;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.translators.CidrAddressBlockTranslatorFactory;
-import com.google.domain.registry.model.translators.CommitLogRevisionsTranslatorFactory;
-import com.google.domain.registry.model.translators.CreateAutoTimestampTranslatorFactory;
-import com.google.domain.registry.model.translators.CurrencyUnitTranslatorFactory;
-import com.google.domain.registry.model.translators.DurationTranslatorFactory;
-import com.google.domain.registry.model.translators.InetAddressTranslatorFactory;
-import com.google.domain.registry.model.translators.ReadableInstantUtcTranslatorFactory;
-import com.google.domain.registry.model.translators.UpdateAutoTimestampTranslatorFactory;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
@@ -42,6 +31,18 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.impl.translate.TranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.joda.MoneyStringTranslatorFactory;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.EntityClasses;
+import google.registry.model.ImmutableObject;
+import google.registry.model.translators.CidrAddressBlockTranslatorFactory;
+import google.registry.model.translators.CommitLogRevisionsTranslatorFactory;
+import google.registry.model.translators.CreateAutoTimestampTranslatorFactory;
+import google.registry.model.translators.CurrencyUnitTranslatorFactory;
+import google.registry.model.translators.DurationTranslatorFactory;
+import google.registry.model.translators.InetAddressTranslatorFactory;
+import google.registry.model.translators.ReadableInstantUtcTranslatorFactory;
+import google.registry.model.translators.UpdateAutoTimestampTranslatorFactory;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;

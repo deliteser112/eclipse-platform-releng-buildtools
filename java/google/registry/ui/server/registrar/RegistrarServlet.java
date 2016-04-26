@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.difference;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.security.JsonResponseHelper.Status.SUCCESS;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -27,20 +27,21 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.domain.registry.config.RegistryConfig;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.export.sheet.SyncRegistrarsSheetAction;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.security.JsonResponseHelper;
-import com.google.domain.registry.ui.forms.FormException;
-import com.google.domain.registry.ui.server.RegistrarFormFields;
-import com.google.domain.registry.util.CidrAddressBlock;
-import com.google.domain.registry.util.CollectionUtils;
-import com.google.domain.registry.util.DiffUtils;
-import com.google.domain.registry.util.SendEmailUtils;
 
 import com.googlecode.objectify.Work;
+
+import google.registry.config.RegistryConfig;
+import google.registry.config.RegistryEnvironment;
+import google.registry.export.sheet.SyncRegistrarsSheetAction;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.security.JsonResponseHelper;
+import google.registry.ui.forms.FormException;
+import google.registry.ui.server.RegistrarFormFields;
+import google.registry.util.CidrAddressBlock;
+import google.registry.util.CollectionUtils;
+import google.registry.util.DiffUtils;
+import google.registry.util.SendEmailUtils;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;

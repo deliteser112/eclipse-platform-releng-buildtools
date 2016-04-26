@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.billing;
+package google.registry.model.billing;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.testing.ExceptionRule;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.model.EntityTestCase;
+import google.registry.model.registrar.Registrar;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.money.CurrencyMismatchException;
 import org.joda.money.Money;

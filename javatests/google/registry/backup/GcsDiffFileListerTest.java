@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
-import static com.google.domain.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
-import static com.google.domain.registry.backup.ExportCommitLogDiffAction.DIFF_FILE_PREFIX;
+import static google.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
+import static google.registry.backup.ExportCommitLogDiffAction.DIFF_FILE_PREFIX;
 import static java.lang.reflect.Proxy.newProxyInstance;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -31,10 +31,11 @@ import com.google.appengine.tools.cloudstorage.ListItem;
 import com.google.appengine.tools.cloudstorage.ListResult;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.TestObject;
 
 import com.googlecode.objectify.ObjectifyService;
+
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.TestObject;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

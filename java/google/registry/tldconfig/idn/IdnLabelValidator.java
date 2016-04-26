@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tldconfig.idn;
+package google.registry.tldconfig.idn;
 
-import static com.google.domain.registry.tldconfig.idn.IdnTableEnum.EXTENDED_LATIN;
-import static com.google.domain.registry.tldconfig.idn.IdnTableEnum.JA;
+import static google.registry.tldconfig.idn.IdnTableEnum.EXTENDED_LATIN;
+import static google.registry.tldconfig.idn.IdnTableEnum.JA;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.util.Idn;
-import com.google.domain.registry.util.NonFinalForTesting;
+
+import google.registry.util.Idn;
+import google.registry.util.NonFinalForTesting;
 
 /** Validates whether a given IDN label can be provisioned for a particular TLD. */
 public final class IdnLabelValidator {

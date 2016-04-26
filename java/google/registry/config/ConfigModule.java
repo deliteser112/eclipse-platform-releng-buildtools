@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.config;
+package google.registry.config;
 
-import static com.google.domain.registry.config.ConfigUtils.makeUrl;
+import static google.registry.config.ConfigUtils.makeUrl;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
@@ -101,7 +101,7 @@ public final class ConfigModule {
    * since each query would have about 500ms to complete, which is an order a magnitude more time
    * than we need. However this does not apply, since the subqueries are performed asynchronously.
    *
-   * @see com.google.domain.registry.backup.DeleteOldCommitLogsAction
+   * @see google.registry.backup.DeleteOldCommitLogsAction
    */
   @Provides
   @Config("commitLogMaxDeletes")
@@ -113,7 +113,7 @@ public final class ConfigModule {
    * Batch size for the number of transactions' worth of commit log data to process at once when
    * exporting a commit log diff.
    *
-   * @see com.google.domain.registry.backup.ExportCommitLogDiffAction
+   * @see google.registry.backup.ExportCommitLogDiffAction
    */
   @Provides
   @Config("commitLogDiffExportBatchSize")
@@ -124,7 +124,7 @@ public final class ConfigModule {
   /**
    * Returns the Google Cloud Storage bucket for staging BRDA escrow deposits.
    *
-   * @see com.google.domain.registry.rde.PendingDepositChecker
+   * @see google.registry.rde.PendingDepositChecker
    */
   @Provides
   @Config("brdaBucket")
@@ -132,7 +132,7 @@ public final class ConfigModule {
     return projectId + "-icann-brda";
   }
 
-  /** @see com.google.domain.registry.rde.BrdaCopyAction */
+  /** @see google.registry.rde.BrdaCopyAction */
   @Provides
   @Config("brdaDayOfWeek")
   public static int provideBrdaDayOfWeek() {
@@ -200,7 +200,7 @@ public final class ConfigModule {
    *
    * <p><b>Warning:</b> This number may increase but never decrease.
    *
-   * @see com.google.domain.registry.model.index.EppResourceIndex
+   * @see google.registry.model.index.EppResourceIndex
    */
   @Provides
   @Config("eppResourceIndexBucketCount")
@@ -211,7 +211,7 @@ public final class ConfigModule {
   /**
    * Returns size of Google Cloud Storage client connection buffer in bytes.
    *
-   * @see com.google.domain.registry.gcs.GcsUtils
+   * @see google.registry.gcs.GcsUtils
    */
   @Provides
   @Config("gcsBufferSize")
@@ -222,7 +222,7 @@ public final class ConfigModule {
   /**
    * Gets the email address of the admin account for the Google App.
    *
-   * @see com.google.domain.registry.groups.DirectoryGroupsConnection
+   * @see google.registry.groups.DirectoryGroupsConnection
    */
   @Provides
   @Config("googleAppsAdminEmailAddress")
@@ -238,8 +238,8 @@ public final class ConfigModule {
   /**
    * Returns the publicly accessible domain name for the running Google Apps instance.
    *
-   * @see com.google.domain.registry.export.SyncGroupMembersAction
-   * @see com.google.domain.registry.tools.server.CreateGroupsAction
+   * @see google.registry.export.SyncGroupMembersAction
+   * @see google.registry.tools.server.CreateGroupsAction
    */
   @Provides
   @Config("publicDomainName")
@@ -264,7 +264,7 @@ public final class ConfigModule {
    * <p>This file needs to be downloaded at least once a day and verified to make sure it was
    * signed by {@code icann-tmch.crt}.
    *
-   * @see com.google.domain.registry.tmch.TmchCrlAction
+   * @see google.registry.tmch.TmchCrlAction
    * @see "http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-5.2.3.2"
    */
   @Provides
@@ -287,7 +287,7 @@ public final class ConfigModule {
   /**
    * Returns the Google Cloud Storage bucket for staging escrow deposits pending upload.
    *
-   * @see com.google.domain.registry.rde.RdeStagingAction
+   * @see google.registry.rde.RdeStagingAction
    */
   @Provides
   @Config("rdeBucket")
@@ -298,7 +298,7 @@ public final class ConfigModule {
   /**
    * Size of Ghostryde buffer in bytes for each layer in the pipeline.
    *
-   * @see com.google.domain.registry.rde.Ghostryde
+   * @see google.registry.rde.Ghostryde
    */
   @Provides
   @Config("rdeGhostrydeBufferSize")
@@ -325,7 +325,7 @@ public final class ConfigModule {
    *
    * <p>You must append {@code "/TLD/ID"} to this URL.
    *
-   * @see com.google.domain.registry.rde.RdeReportAction
+   * @see google.registry.rde.RdeReportAction
    */
   @Provides
   @Config("rdeReportUrlPrefix")
@@ -341,10 +341,10 @@ public final class ConfigModule {
   /**
    * Size of RYDE generator buffer in bytes for each of the five layers.
    *
-   * @see com.google.domain.registry.rde.RydePgpCompressionOutputStream
-   * @see com.google.domain.registry.rde.RydePgpFileOutputStream
-   * @see com.google.domain.registry.rde.RydePgpSigningOutputStream
-   * @see com.google.domain.registry.rde.RydeTarOutputStream
+   * @see google.registry.rde.RydePgpCompressionOutputStream
+   * @see google.registry.rde.RydePgpFileOutputStream
+   * @see google.registry.rde.RydePgpSigningOutputStream
+   * @see google.registry.rde.RydeTarOutputStream
    */
   @Provides
   @Config("rdeRydeBufferSize")
@@ -382,7 +382,7 @@ public final class ConfigModule {
    * which cloud storage files are uploaded. The password should not be included, as it's better to
    * use public key authentication.
    *
-   * @see com.google.domain.registry.rde.RdeUploadAction
+   * @see google.registry.rde.RdeUploadAction
    */
   @Provides
   @Config("rdeUploadUrl")
@@ -413,7 +413,7 @@ public final class ConfigModule {
    *
    * <p>This ID, as you'd expect, comes from the URL of the spreadsheet.
    *
-   * @see com.google.domain.registry.export.sheet.SyncRegistrarsSheetAction
+   * @see google.registry.export.sheet.SyncRegistrarsSheetAction
    */
   @Provides
   @Config("sheetRegistrarId")
@@ -443,7 +443,7 @@ public final class ConfigModule {
   /**
    * Returns SSH client connection and read timeout.
    *
-   * @see com.google.domain.registry.rde.RdeUploadAction
+   * @see google.registry.rde.RdeUploadAction
    */
   @Provides
   @Config("sshTimeout")
@@ -463,7 +463,7 @@ public final class ConfigModule {
    *
    * <p>The number of milliseconds it'll sleep before giving up is {@code 2^n - 2}.
    *
-   * @see com.google.domain.registry.util.TaskEnqueuer
+   * @see google.registry.util.TaskEnqueuer
    */
   @Provides
   @Config("transientFailureRetries")
@@ -474,7 +474,7 @@ public final class ConfigModule {
   /**
    * Amount of time public HTTP proxies are permitted to cache our WHOIS responses.
    *
-   * @see com.google.domain.registry.whois.WhoisHttpServer
+   * @see google.registry.whois.WhoisHttpServer
    */
   @Provides
   @Config("whoisHttpExpires")
@@ -485,7 +485,7 @@ public final class ConfigModule {
   /**
    * Maximum number of results to return for an RDAP search query
    *
-   * @see com.google.domain.registry.rdap.RdapActionBase
+   * @see google.registry.rdap.RdapActionBase
    */
   @Provides
   @Config("rdapResultSetMaxSize")
@@ -496,7 +496,7 @@ public final class ConfigModule {
   /**
    * Base for RDAP link paths.
    *
-   * @see com.google.domain.registry.rdap.RdapActionBase
+   * @see google.registry.rdap.RdapActionBase
    */
   @Provides
   @Config("rdapLinkBase")
@@ -507,7 +507,7 @@ public final class ConfigModule {
   /**
    * WHOIS server displayed in RDAP query responses.
    *
-   * @see com.google.domain.registry.rdap.RdapActionBase
+   * @see google.registry.rdap.RdapActionBase
    */
   @Provides
   @Config("rdapWhoisServer")
@@ -554,7 +554,7 @@ public final class ConfigModule {
    *
    * <p>This is a base32 value copied from the Braintree website.
    *
-   * @see com.google.domain.registry.keyring.api.Keyring#getBraintreePrivateKey()
+   * @see google.registry.keyring.api.Keyring#getBraintreePrivateKey()
    */
   @Provides
   @Config("braintreePublicKey")

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
 import static com.google.common.base.Functions.constant;
@@ -20,12 +20,12 @@ import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.toMap;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
-import static com.google.domain.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
-import static com.google.domain.registry.backup.BackupUtils.serializeEntity;
-import static com.google.domain.registry.backup.ExportCommitLogDiffAction.DIFF_FILE_PREFIX;
-import static com.google.domain.registry.model.ofy.CommitLogBucket.getBucketIds;
-import static com.google.domain.registry.model.ofy.CommitLogBucket.getBucketKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
+import static google.registry.backup.BackupUtils.serializeEntity;
+import static google.registry.backup.ExportCommitLogDiffAction.DIFF_FILE_PREFIX;
+import static google.registry.model.ofy.CommitLogBucket.getBucketIds;
+import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static java.util.Arrays.asList;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -38,22 +38,23 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
-import com.google.domain.registry.config.TestRegistryConfig;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.ofy.CommitLogBucket;
-import com.google.domain.registry.model.ofy.CommitLogCheckpoint;
-import com.google.domain.registry.model.ofy.CommitLogCheckpointRoot;
-import com.google.domain.registry.model.ofy.CommitLogManifest;
-import com.google.domain.registry.model.ofy.CommitLogMutation;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.FakeSleeper;
-import com.google.domain.registry.testing.RegistryConfigRule;
-import com.google.domain.registry.testing.TestObject;
-import com.google.domain.registry.util.Retrier;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
+
+import google.registry.config.TestRegistryConfig;
+import google.registry.model.ImmutableObject;
+import google.registry.model.ofy.CommitLogBucket;
+import google.registry.model.ofy.CommitLogCheckpoint;
+import google.registry.model.ofy.CommitLogCheckpointRoot;
+import google.registry.model.ofy.CommitLogManifest;
+import google.registry.model.ofy.CommitLogMutation;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeSleeper;
+import google.registry.testing.RegistryConfigRule;
+import google.registry.testing.TestObject;
+import google.registry.util.Retrier;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

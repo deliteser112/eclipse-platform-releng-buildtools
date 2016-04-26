@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.fee;
+package google.registry.model.domain.fee;
 
-import static com.google.domain.registry.util.CollectionUtils.forceEmptyToNull;
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.Buildable.GenericBuilder;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.domain.Period;
+
+import google.registry.model.Buildable.GenericBuilder;
+import google.registry.model.ImmutableObject;
+import google.registry.model.domain.Period;
 
 import org.joda.money.CurrencyUnit;
 

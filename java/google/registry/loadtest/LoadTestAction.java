@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.loadtest;
+package google.registry.loadtest;
 
 import static com.google.appengine.api.taskqueue.QueueConstants.maxTasksPerAdd;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
@@ -20,7 +20,7 @@ import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withPayload
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.partition;
 import static com.google.common.collect.Lists.transform;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.Arrays.asList;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -29,10 +29,11 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.util.TaskEnqueuer;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.util.TaskEnqueuer;
 
 import org.joda.time.DateTime;
 

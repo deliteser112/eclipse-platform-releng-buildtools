@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.security;
+package google.registry.security;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.security.XsrfTokenManager.generateToken;
-import static com.google.domain.registry.security.XsrfTokenManager.validateToken;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.security.XsrfTokenManager.generateToken;
+import static google.registry.security.XsrfTokenManager.validateToken;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Splitter;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.UserInfo;
+
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import google.registry.testing.UserInfo;
 
 import org.joda.time.Duration;
 import org.junit.Before;

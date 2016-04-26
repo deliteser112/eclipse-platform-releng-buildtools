@@ -1,4 +1,6 @@
-package(default_visibility = ["//java/com/google/domain/registry:registry_project"])
+package(default_visibility = ["//java/google/registry:registry_project"])
+
+licenses(["notice"])  # Apache 2.0
 
 load("//third_party/closure/compiler:closure_js_binary.bzl", "closure_js_binary")
 load("//third_party/closure/compiler:closure_js_deps.bzl", "closure_js_deps")
@@ -14,11 +16,11 @@ filegroup(
 filegroup(
     name = "js_files_recursive",
     srcs = [
-        "//java/com/google/domain/registry/ui/js:js_files",
-        "//java/com/google/domain/registry/ui/js/registrar:js_files",
-        "//java/com/google/domain/registry/ui/soy:js_files",
-        "//java/com/google/domain/registry/ui/soy/api:js_files",
-        "//java/com/google/domain/registry/ui/soy/registrar:js_files",
+        "//java/google/registry/ui/js:js_files",
+        "//java/google/registry/ui/js/registrar:js_files",
+        "//java/google/registry/ui/soy:js_files",
+        "//java/google/registry/ui/soy/api:js_files",
+        "//java/google/registry/ui/soy/registrar:js_files",
     ],
 )
 
@@ -30,11 +32,11 @@ filegroup(
         "registrar_bin.js",
         "registrar_bin_map.js",
         ":assets_recursive",
-        "//java/com/google/domain/registry/ui:deps-runfiles.js",
-        "//java/com/google/domain/registry/ui/css:registrar_bin.css",
-        "//java/com/google/domain/registry/ui/html:html_files",
         "//javascript/closure:js_files_recursive",
         "//javascript/template/soy:soy_usegoog_js_files",
+        "//java/google/registry/ui:deps-runfiles.js",
+        "//java/google/registry/ui/css:registrar_bin.css",
+        "//java/google/registry/ui/html:html_files",
     ],
 )
 
@@ -44,9 +46,9 @@ filegroup(
         "deps-runfiles.js",
         ":js_files_recursive",
         ":runfiles",
-        "//java/com/google/domain/registry/ui/css:css_files",
         "//javascript/closure:js_files_recursive",
         "//javascript/template/soy:soy_usegoog_js_files",
+        "//java/google/registry/ui/css:css_files",
         "//third_party/javascript/closure:js_files_recursive",
     ],
 )
@@ -56,10 +58,10 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//java/com/google/common/base",
-        "//java/com/google/domain/registry/config",
         "//third_party/java/appengine:appengine-api",
         "//third_party/java/dagger",
         "//third_party/java/jsr305_annotations",
+        "//java/google/registry/config",
     ],
 )
 
@@ -67,8 +69,8 @@ java_library(
 closure_js_deps(
     name = "deps",
     srcs = [
-        "//java/com/google/domain/registry/ui/js",
-        "//java/com/google/domain/registry/ui/js/registrar",
+        "//java/google/registry/ui/js",
+        "//java/google/registry/ui/js/registrar",
     ],
 )
 
@@ -89,11 +91,11 @@ SOURCEMAP_SCRUB = ("  -e 's@b....-out/[^/]*/bin/@@g'" +
 # non-union minified equivalents.
 closure_js_binary(
     name = "registrar_bin",
-    externs_list = ["//java/com/google/domain/registry/ui/externs"],
+    externs_list = ["//java/google/registry/ui/externs"],
     main = "registry.registrar.main",
     deps = [
-        "//java/com/google/domain/registry/ui/css:registrar_bin",
-        "//java/com/google/domain/registry/ui/js/registrar",
+        "//java/google/registry/ui/css:registrar_bin",
+        "//java/google/registry/ui/js/registrar",
     ],
 )
 
@@ -124,12 +126,12 @@ genrule(
 closure_js_binary(
     name = "registrar_dbg",
     debug = 1,
-    externs_list = ["//java/com/google/domain/registry/ui/externs"],
+    externs_list = ["//java/google/registry/ui/externs"],
     formatting = "PRETTY_PRINT",
     main = "registry.registrar.main",
     deps = [
-        "//java/com/google/domain/registry/ui/css:registrar_dbg",
-        "//java/com/google/domain/registry/ui/js/registrar",
+        "//java/google/registry/ui/css:registrar_dbg",
+        "//java/google/registry/ui/js/registrar",
     ],
 )
 
@@ -138,9 +140,9 @@ closure_js_binary(
 
 closure_js_binary(
     name = "brain_bin",
-    externs_list = ["//java/com/google/domain/registry/ui/externs"],
+    externs_list = ["//java/google/registry/ui/externs"],
     main = "registry.registrar.BrainFrame.main",
-    deps = ["//java/com/google/domain/registry/ui/js/registrar"],
+    deps = ["//java/google/registry/ui/js/registrar"],
 )
 
 genrule(

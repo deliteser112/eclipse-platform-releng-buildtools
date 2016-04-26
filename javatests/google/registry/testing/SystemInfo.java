@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.util.FormattingLogger;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;

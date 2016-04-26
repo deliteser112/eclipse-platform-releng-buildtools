@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Matchers.any;
@@ -21,12 +21,13 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.BouncyCastleProviderRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.RegistryConfigRule;
+
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import google.registry.testing.RegistryConfigRule;
 
 import org.junit.Before;
 import org.junit.Rule;

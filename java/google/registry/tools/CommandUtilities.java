@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
+import static google.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Strings;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.FlowRunner;
-import com.google.domain.registry.flows.FlowRunner.CommitMode;
-import com.google.domain.registry.flows.FlowRunner.UserPrivileges;
+
+import google.registry.flows.EppException;
+import google.registry.flows.FlowRunner;
+import google.registry.flows.FlowRunner.CommitMode;
+import google.registry.flows.FlowRunner.UserPrivileges;
 
 /** Container class for static utility methods. */
 class CommandUtilities {

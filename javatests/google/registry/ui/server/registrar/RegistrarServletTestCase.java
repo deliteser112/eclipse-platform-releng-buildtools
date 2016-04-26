@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
-import static com.google.domain.registry.security.JsonHttpTestUtils.createJsonPayload;
-import static com.google.domain.registry.security.JsonHttpTestUtils.createJsonResponseSupplier;
-import static com.google.domain.registry.security.XsrfTokenManager.generateToken;
+import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
+import static google.registry.security.JsonHttpTestUtils.createJsonResponseSupplier;
+import static google.registry.security.XsrfTokenManager.generateToken;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.modules.ModulesService;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.export.sheet.SyncRegistrarsSheetAction;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.util.SendEmailService;
-import com.google.domain.registry.util.SendEmailUtils;
+
+import google.registry.export.sheet.SyncRegistrarsSheetAction;
+import google.registry.model.ofy.Ofy;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import google.registry.util.SendEmailService;
+import google.registry.util.SendEmailUtils;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

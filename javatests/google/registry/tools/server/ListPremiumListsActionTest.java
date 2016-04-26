@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
-import static com.google.domain.registry.testing.DatastoreHelper.persistPremiumList;
+import static google.registry.testing.DatastoreHelper.persistPremiumList;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.model.registry.label.PremiumList;
+
+import google.registry.model.registry.label.PremiumList;
 
 import org.junit.Before;
 import org.junit.Test;

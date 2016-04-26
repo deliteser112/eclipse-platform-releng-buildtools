@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
-
-import com.google.domain.registry.bigquery.BigqueryConnection;
+package google.registry.tools;
 
 import com.beust.jcommander.ParametersDelegate;
+
+import google.registry.bigquery.BigqueryConnection;
 
 /** A {@link Command} that uses the bigquery client API. */
 abstract class BigqueryCommand implements Command {

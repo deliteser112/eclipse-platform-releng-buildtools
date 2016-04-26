@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.util.DiffUtils.prettyPrintSetDiff;
+import static google.registry.util.DiffUtils.prettyPrintSetDiff;
 
 import com.google.common.collect.ImmutableSet;
 

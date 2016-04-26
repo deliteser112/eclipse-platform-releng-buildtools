@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.transfer;
-
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.eppoutput.Response.ResponseData;
+package google.registry.model.transfer;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.EppResource;
+import google.registry.model.eppoutput.Response.ResponseData;
 
 import org.joda.time.DateTime;
 

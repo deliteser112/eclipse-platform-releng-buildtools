@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeJsonResponse;
+import google.registry.model.registry.label.PremiumList;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeJsonResponse;
 
 import org.joda.money.Money;
 import org.junit.Before;

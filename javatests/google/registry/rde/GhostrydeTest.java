@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.keyring.api.PgpHelper.KeyRequirement.ENCRYPT;
+import static google.registry.keyring.api.PgpHelper.KeyRequirement.ENCRYPT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
@@ -24,10 +24,11 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assume.assumeThat;
 
 import com.google.common.io.ByteStreams;
-import com.google.domain.registry.keyring.api.Keyring;
-import com.google.domain.registry.rde.Ghostryde.DecodeResult;
-import com.google.domain.registry.testing.BouncyCastleProviderRule;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.keyring.api.Keyring;
+import google.registry.rde.Ghostryde.DecodeResult;
+import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.ExceptionRule;
 
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;

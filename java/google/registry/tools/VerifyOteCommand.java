@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Verify.verifyNotNull;
-import static com.google.domain.registry.model.registrar.Registrar.loadByClientId;
+import static google.registry.model.registrar.Registrar.loadByClientId;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.server.VerifyOteAction;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.registrar.Registrar;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.server.VerifyOteAction;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.common.base.Suppliers.memoizeWithExpiration;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.time.Duration.ZERO;
 
 import com.google.common.base.Supplier;
-import com.google.domain.registry.config.RegistryEnvironment;
+
+import google.registry.config.RegistryEnvironment;
 
 import org.joda.time.Duration;
 

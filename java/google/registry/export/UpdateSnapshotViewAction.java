@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
-import static com.google.domain.registry.request.Action.Method.POST;
+package google.registry.export;
+import static google.registry.request.Action.Method.POST;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.bigquery.Bigquery;
@@ -22,13 +22,14 @@ import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.ViewDefinition;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException.InternalServerErrorException;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.SqlTemplate;
+
+import google.registry.bigquery.BigqueryFactory;
+import google.registry.config.ConfigModule.Config;
+import google.registry.request.Action;
+import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.request.Parameter;
+import google.registry.util.FormattingLogger;
+import google.registry.util.SqlTemplate;
 
 import java.io.IOException;
 

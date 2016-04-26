@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
 import static com.google.appengine.api.datastore.EntityTranslator.convertToPb;
 import static com.google.appengine.api.datastore.EntityTranslator.createFromPbBytes;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.annotations.NotBackedUp;
-import com.google.domain.registry.model.annotations.NotBackedUp.Reason;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.annotations.NotBackedUp;
+import google.registry.model.annotations.NotBackedUp.Reason;
 
 /** Representation of a saved entity in a {@link CommitLogManifest} (not deletes). */
 @Entity

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.monitoring.whitebox;
+package google.registry.monitoring.whitebox;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.mockito.Matchers.anyString;
@@ -30,8 +30,9 @@ import com.google.api.services.bigquery.model.TableDataInsertAllResponse;
 import com.google.api.services.bigquery.model.TableDataInsertAllResponse.InsertErrors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.testing.AppEngineRule;
+
+import google.registry.bigquery.BigqueryFactory;
+import google.registry.testing.AppEngineRule;
 
 import org.junit.Before;
 import org.junit.Rule;

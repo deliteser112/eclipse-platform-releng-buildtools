@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import org.joda.time.ReadableDuration;
 
@@ -22,7 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * An object which accepts requests to put the current thread to sleep.
  *
  * @see SystemSleeper
- * @see com.google.domain.registry.testing.FakeSleeper
+ * @see google.registry.testing.FakeSleeper
  */
 @ThreadSafe
 public interface Sleeper {

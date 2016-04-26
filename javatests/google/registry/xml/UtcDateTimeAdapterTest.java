@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.xml;
+package google.registry.xml;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.joda.time.DateTimeZone.UTC;

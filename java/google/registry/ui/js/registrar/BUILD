@@ -1,4 +1,6 @@
-package(default_visibility = ["//java/com/google/domain/registry:registry_project"])
+package(default_visibility = ["//java/google/registry:registry_project"])
+
+licenses(["notice"])  # Apache 2.0
 
 load("//third_party/closure/compiler:closure_js_library.bzl", "closure_js_library")
 
@@ -12,20 +14,20 @@ closure_js_library(
     name = "registrar",
     srcs = [":js_files"],
     deps = [
-        "//java/com/google/domain/registry/ui/js",
-        "//java/com/google/domain/registry/ui/soy:Forms",
-        "//java/com/google/domain/registry/ui/soy/registrar:Console",
-        "//java/com/google/domain/registry/ui/soy/registrar:Contact",
-        "//java/com/google/domain/registry/ui/soy/registrar:ContactEpp",
-        "//java/com/google/domain/registry/ui/soy/registrar:ContactSettings",
-        "//java/com/google/domain/registry/ui/soy/registrar:Domain",
-        "//java/com/google/domain/registry/ui/soy/registrar:DomainEpp",
-        "//java/com/google/domain/registry/ui/soy/registrar:Epp",
-        "//java/com/google/domain/registry/ui/soy/registrar:Host",
-        "//java/com/google/domain/registry/ui/soy/registrar:HostEpp",
-        "//java/com/google/domain/registry/ui/soy/registrar:Payment",
-        "//java/com/google/domain/registry/ui/soy/registrar:SecuritySettings",
-        "//java/com/google/domain/registry/ui/soy/registrar:WhoisSettings",
         "//javascript/closure",
+        "//java/google/registry/ui/js",
+        "//java/google/registry/ui/soy:Forms",
+        "//java/google/registry/ui/soy/registrar:Console",
+        "//java/google/registry/ui/soy/registrar:Contact",
+        "//java/google/registry/ui/soy/registrar:ContactEpp",
+        "//java/google/registry/ui/soy/registrar:ContactSettings",
+        "//java/google/registry/ui/soy/registrar:Domain",
+        "//java/google/registry/ui/soy/registrar:DomainEpp",
+        "//java/google/registry/ui/soy/registrar:Epp",
+        "//java/google/registry/ui/soy/registrar:Host",
+        "//java/google/registry/ui/soy/registrar:HostEpp",
+        "//java/google/registry/ui/soy/registrar:Payment",
+        "//java/google/registry/ui/soy/registrar:SecuritySettings",
+        "//java/google/registry/ui/soy/registrar:WhoisSettings",
     ],
 )

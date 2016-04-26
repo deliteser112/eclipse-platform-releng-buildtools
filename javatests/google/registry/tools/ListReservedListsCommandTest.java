@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import com.google.domain.registry.tools.server.ListReservedListsAction;
+import google.registry.tools.server.ListReservedListsAction;
 
 /**
  * Unit tests for {@link ListReservedListsCommand}.

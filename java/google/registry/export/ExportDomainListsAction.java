@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
-import static com.google.domain.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
-import static com.google.domain.registry.model.EppResourceUtils.isActive;
-import static com.google.domain.registry.model.registry.Registries.getTldsOfType;
-import static com.google.domain.registry.util.PipelineUtils.createJobPath;
+import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
+import static google.registry.model.EppResourceUtils.isActive;
+import static google.registry.model.registry.Registries.getTldsOfType;
+import static google.registry.util.PipelineUtils.createJobPath;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -29,15 +29,16 @@ import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.gcs.GcsUtils;
-import com.google.domain.registry.mapreduce.MapreduceAction;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.registry.Registry.TldType;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.gcs.GcsUtils;
+import google.registry.mapreduce.MapreduceAction;
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.registry.Registry.TldType;
+import google.registry.request.Action;
+import google.registry.request.Response;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 

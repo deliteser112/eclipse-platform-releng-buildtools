@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.common;
+package google.registry.model.common;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.allocateId;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.allocateId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.users.User;
 import com.google.common.base.Splitter;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.annotations.NotBackedUp;
-import com.google.domain.registry.model.annotations.NotBackedUp.Reason;
 
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.annotations.NotBackedUp;
+import google.registry.model.annotations.NotBackedUp.Reason;
 
 /**
  * A helper class to convert email addresses to GAE user ids. It does so by persisting a User

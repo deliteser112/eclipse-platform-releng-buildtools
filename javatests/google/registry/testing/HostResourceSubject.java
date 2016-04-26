@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
-import com.google.domain.registry.model.host.HostResource;
+
+import google.registry.model.host.HostResource;
 
 /** Truth subject for asserting things about {@link HostResource} instances. */
 public final class HostResourceSubject

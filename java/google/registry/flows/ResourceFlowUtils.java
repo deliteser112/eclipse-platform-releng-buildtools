@@ -12,37 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.model.domain.DomainResource.extendRegistrationWithCap;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.domain.registry.flows.EppException.AuthorizationErrorException;
-import com.google.domain.registry.flows.EppException.InvalidAuthorizationInformationErrorException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.Builder;
-import com.google.domain.registry.model.EppResource.ForeignKeyedEppResource;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.eppcommon.AuthInfo;
-import com.google.domain.registry.model.eppcommon.AuthInfo.BadAuthInfoException;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferResponse;
-import com.google.domain.registry.model.transfer.TransferResponse.ContactTransferResponse;
-import com.google.domain.registry.model.transfer.TransferResponse.DomainTransferResponse;
-import com.google.domain.registry.model.transfer.TransferStatus;
+
+import google.registry.flows.EppException.AuthorizationErrorException;
+import google.registry.flows.EppException.InvalidAuthorizationInformationErrorException;
+import google.registry.model.EppResource;
+import google.registry.model.EppResource.Builder;
+import google.registry.model.EppResource.ForeignKeyedEppResource;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppcommon.AuthInfo.BadAuthInfoException;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.index.ForeignKeyIndex;
+import google.registry.model.poll.PendingActionNotificationResponse;
+import google.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
+import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferResponse;
+import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
+import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
+import google.registry.model.transfer.TransferStatus;
 
 import org.joda.time.DateTime;
 

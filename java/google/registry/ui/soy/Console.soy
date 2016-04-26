@@ -31,17 +31,17 @@
   <title>Domain Registry {if isNonnull($subtitle)} - {$subtitle}{/if}</title>
   <link rel="icon" href="/assets/images/ribbon_certified-64.png">
   {switch DEBUG}
-    {case com.google.domain.registry.ui.ConsoleDebug.PRODUCTION}
+    {case google.registry.ui.ConsoleDebug.PRODUCTION}
       <link rel="stylesheet" href="/assets/css/{$app}_bin.css">
-    {case com.google.domain.registry.ui.ConsoleDebug.DEBUG}
+    {case google.registry.ui.ConsoleDebug.DEBUG}
       <link rel="stylesheet" href="/assets/css/{$app}_dbg.css">
-    {case com.google.domain.registry.ui.ConsoleDebug.RAW}
+    {case google.registry.ui.ConsoleDebug.RAW}
       {if $app == 'admin'}
         <link rel="stylesheet"
-              href="/assets/sources/java/com/google/domain/registry/ui/css/admin_imports_raw.css">
+              href="/assets/sources/java/google/registry/ui/css/admin_imports_raw.css">
       {else}
         <link rel="stylesheet"
-              href="/assets/sources/java/com/google/domain/registry/ui/css/registrar_imports_raw.css">
+              href="/assets/sources/java/google/registry/ui/css/registrar_imports_raw.css">
       {/if}
     {default}
       <!-- No DEBUG option set. -->

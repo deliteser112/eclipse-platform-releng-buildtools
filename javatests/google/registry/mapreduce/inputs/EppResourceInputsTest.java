@@ -12,37 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.mapreduce.inputs;
+package google.registry.mapreduce.inputs;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
-import static com.google.domain.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
-import static com.google.domain.registry.mapreduce.inputs.EppResourceInputs.createKeyInput;
-import static com.google.domain.registry.model.index.EppResourceIndexBucket.getBucketKey;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
+import static google.registry.mapreduce.inputs.EppResourceInputs.createKeyInput;
+import static google.registry.model.index.EppResourceIndexBucket.getBucketKey;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainApplication;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 
 import com.google.appengine.tools.mapreduce.InputReader;
-import com.google.domain.registry.config.TestRegistryConfig;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.RegistryConfigRule;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.config.TestRegistryConfig;
+import google.registry.model.EppResource;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.host.HostResource;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.RegistryConfigRule;
 
 import org.junit.Rule;
 import org.junit.Test;

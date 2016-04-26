@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.truth.Truth.assert_;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.google.common.base.Joiner;
-import com.google.domain.registry.testing.AppEngineRule;
+
+import google.registry.testing.AppEngineRule;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,8 +37,8 @@ public class SchemaVersionTest {
   private static final String GOLDEN_SCHEMA_FILE = "schema.txt";
 
   private static final String UPDATE_COMMAND =
-      "com.google.domain.registry.tools.RegistryTool -e localhost "
-      + ">javatests/com/google/domain/registry/model/schema.txt";
+      "google.registry.tools.RegistryTool -e localhost "
+      + ">javatests/google/registry/model/schema.txt";
 
   private static final String UPDATE_INSTRUCTIONS = Joiner.on('\n').join(
       "",

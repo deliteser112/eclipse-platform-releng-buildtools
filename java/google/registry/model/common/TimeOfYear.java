@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.common;
+package google.registry.model.common;
 
-import static com.google.domain.registry.util.DateTimeUtils.isAtOrAfter;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.util.DateTimeUtils.isAtOrAfter;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.base.Splitter;
-import com.google.domain.registry.model.ImmutableObject;
 
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
+
+import google.registry.model.ImmutableObject;
 
 import org.joda.time.DateTime;
 

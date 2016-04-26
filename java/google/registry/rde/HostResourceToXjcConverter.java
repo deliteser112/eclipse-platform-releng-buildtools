@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import com.google.common.net.InetAddresses;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.xjc.host.XjcHostAddrType;
-import com.google.domain.registry.xjc.host.XjcHostIpType;
-import com.google.domain.registry.xjc.host.XjcHostStatusType;
-import com.google.domain.registry.xjc.host.XjcHostStatusValueType;
-import com.google.domain.registry.xjc.rdehost.XjcRdeHost;
-import com.google.domain.registry.xjc.rdehost.XjcRdeHostElement;
+
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.xjc.host.XjcHostAddrType;
+import google.registry.xjc.host.XjcHostIpType;
+import google.registry.xjc.host.XjcHostStatusType;
+import google.registry.xjc.host.XjcHostStatusValueType;
+import google.registry.xjc.rdehost.XjcRdeHost;
+import google.registry.xjc.rdehost.XjcRdeHostElement;
 
 import java.net.Inet6Address;
 import java.net.InetAddress;

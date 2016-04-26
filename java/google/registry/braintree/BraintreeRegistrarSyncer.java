@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.braintree;
+package google.registry.braintree;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
 
 import com.google.common.base.Optional;
 import com.google.common.base.VerifyException;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
 
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.Customer;
 import com.braintreegateway.CustomerRequest;
 import com.braintreegateway.Result;
 import com.braintreegateway.exceptions.NotFoundException;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
 
 import javax.inject.Inject;
 

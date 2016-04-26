@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DATASET_ID_PARAM;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DATASET_ID_PARAM;
+import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
+import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -29,11 +29,12 @@ import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Dataset;
 import com.google.api.services.bigquery.model.Table;
 import com.google.appengine.api.taskqueue.QueueFactory;
-import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.request.HttpException.InternalServerErrorException;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
+
+import google.registry.bigquery.BigqueryFactory;
+import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 
 import org.junit.Before;
 import org.junit.Rule;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.base.Predicates.assignableFrom;
 import static com.google.common.base.Predicates.or;

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static com.google.common.io.ByteStreams.toByteArray;
-import static com.google.domain.registry.flows.EppServletUtils.handleEppCommandAndWriteResponse;
+import static google.registry.flows.EppServletUtils.handleEppCommandAndWriteResponse;
 
-import com.google.domain.registry.util.FormattingLogger;
+import google.registry.util.FormattingLogger;
 
 import java.io.IOException;
 

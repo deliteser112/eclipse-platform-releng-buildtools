@@ -1,6 +1,9 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_testonly = 1,
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 
@@ -12,15 +15,6 @@ java_library(
     deps = [
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
-        "//java/com/google/domain/registry/groups",
-        "//java/com/google/domain/registry/mapreduce",
-        "//java/com/google/domain/registry/model",
-        "//java/com/google/domain/registry/request",
-        "//java/com/google/domain/registry/tools/server",
-        "//java/com/google/domain/registry/util",
-        "//javatests/com/google/domain/registry/model",
-        "//javatests/com/google/domain/registry/testing",
-        "//javatests/com/google/domain/registry/testing/mapreduce",
         "//third_party/java/appengine:appengine-api-testonly",
         "//third_party/java/appengine_gcs_client",
         "//third_party/java/appengine_mapreduce2:appengine_mapreduce",
@@ -31,6 +25,15 @@ java_library(
         "//third_party/java/objectify:objectify-v4_1",
         "//third_party/java/servlet/servlet_api",
         "//third_party/java/truth",
+        "//java/google/registry/groups",
+        "//java/google/registry/mapreduce",
+        "//java/google/registry/model",
+        "//java/google/registry/request",
+        "//java/google/registry/tools/server",
+        "//java/google/registry/util",
+        "//javatests/google/registry/model",
+        "//javatests/google/registry/testing",
+        "//javatests/google/registry/testing/mapreduce",
     ],
 )
 

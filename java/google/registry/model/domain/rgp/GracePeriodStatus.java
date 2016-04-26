@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.rgp;
+package google.registry.model.domain.rgp;
 
-import com.google.domain.registry.model.translators.EnumToAttributeAdapter;
-import com.google.domain.registry.model.translators.EnumToAttributeAdapter.EppEnum;
+import google.registry.model.translators.EnumToAttributeAdapter;
+import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;

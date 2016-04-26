@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registry;
+package google.registry.model.registry;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Maps.filterValues;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.CacheUtils.memoizeWithShortExpiration;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CacheUtils.memoizeWithShortExpiration;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.model.registry.Registry.TldType;
 
 import com.googlecode.objectify.Work;
+
+import google.registry.model.registry.Registry.TldType;
 
 /** Utilities for finding and listing {@link Registry} entities. */
 public final class Registries {
@@ -91,7 +92,7 @@ public final class Registries {
    *
    * <p><b>Note:</b> This routine will only work on names under TLDs for which this registry is
    * authoritative. To extract TLDs from domains (not hosts) that other registries control, use
-   * {@link com.google.domain.registry.util.DomainNameUtils#getTldFromDomainName(String)
+   * {@link google.registry.util.DomainNameUtils#getTldFromDomainName(String)
    * DomainNameUtils#getTldFromDomainName}.
    *
    * @param domainName domain name or host name (but not TLD) under an authoritative TLD

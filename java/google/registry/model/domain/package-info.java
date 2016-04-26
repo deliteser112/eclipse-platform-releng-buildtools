@@ -22,12 +22,12 @@
     @XmlJavaTypeAdapter(ContactReferenceUnionAdapter.class),
     @XmlJavaTypeAdapter(HostReferenceUnionAdapter.class),
     @XmlJavaTypeAdapter(DateAdapter.class)})
-package com.google.domain.registry.model.domain;
+package google.registry.model.domain;
 
-import com.google.domain.registry.model.domain.ReferenceUnion.ContactReferenceUnionAdapter;
-import com.google.domain.registry.model.domain.ReferenceUnion.HostReferenceUnionAdapter;
-import com.google.domain.registry.xml.DateAdapter;
-import com.google.domain.registry.xml.UtcDateTimeAdapter;
+import google.registry.model.domain.ReferenceUnion.ContactReferenceUnionAdapter;
+import google.registry.model.domain.ReferenceUnion.HostReferenceUnionAdapter;
+import google.registry.xml.DateAdapter;
+import google.registry.xml.UtcDateTimeAdapter;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

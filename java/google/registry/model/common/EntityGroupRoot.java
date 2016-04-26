@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.common;
-
-import com.google.domain.registry.model.BackupGroupRoot;
+package google.registry.model.common;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+
+import google.registry.model.BackupGroupRoot;
 
 /**
  * The root key for the entity group which is known as the cross-tld entity group for historical

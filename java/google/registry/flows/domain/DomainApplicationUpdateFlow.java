@@ -12,34 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS;
+import static google.registry.flows.domain.DomainFlowUtils.DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.StatusProhibitsOperationException;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainApplication.Builder;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.model.domain.launch.LaunchUpdateExtension;
-import com.google.domain.registry.model.domain.secdns.SecDnsUpdateExtension;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.model.reporting.HistoryEntry;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainApplication.Builder;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.domain.launch.LaunchUpdateExtension;
+import google.registry.model.domain.secdns.SecDnsUpdateExtension;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.model.reporting.HistoryEntry;
 
 /**
  * An EPP flow that updates a domain resource.
  *
- * @error {@link com.google.domain.registry.flows.EppException.UnimplementedExtensionException}
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.ResourceUpdateFlow.AddRemoveSameValueEppException}
- * @error {@link com.google.domain.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException}
- * @error {@link com.google.domain.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException}
- * @error {@link com.google.domain.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
+ * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceUpdateFlow.AddRemoveSameValueEppException}
+ * @error {@link google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException}
+ * @error {@link google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException}
+ * @error {@link google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
  * @error {@link BaseDomainUpdateFlow.EmptySecDnsUpdateException}
  * @error {@link BaseDomainUpdateFlow.MaxSigLifeChangeNotSupportedException}
  * @error {@link BaseDomainUpdateFlow.SecDnsAllUsageException}

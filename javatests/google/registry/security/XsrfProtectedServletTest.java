@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.security;
+package google.registry.security;
 
-import static com.google.domain.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
-import static com.google.domain.registry.security.XsrfTokenManager.generateToken;
+import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
+import static google.registry.security.XsrfTokenManager.generateToken;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Matchers.anyString;
@@ -23,8 +23,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.UserInfo;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.UserInfo;
 
 import org.junit.Before;
 import org.junit.Rule;

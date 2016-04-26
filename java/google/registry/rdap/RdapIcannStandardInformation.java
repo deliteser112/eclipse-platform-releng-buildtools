@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rdap;
+package google.registry.rdap;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

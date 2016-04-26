@@ -12,29 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.model.domain.launch.ApplicationStatus.ALLOCATED;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.domain.launch.ApplicationStatus.ALLOCATED;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.model.domain.launch.LaunchInfoResponseExtension;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.reporting.HistoryEntry;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.domain.launch.LaunchInfoResponseExtension;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.reporting.HistoryEntry;
 
 import org.joda.time.DateTime;
 

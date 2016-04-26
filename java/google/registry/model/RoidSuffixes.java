@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.CacheUtils.memoizeWithShortExpiration;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CacheUtils.memoizeWithShortExpiration;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.HashBiMap;
-import com.google.domain.registry.model.registry.Registry;
 
 import com.googlecode.objectify.Work;
+
+import google.registry.model.registry.Registry;
 
 /** Utility class for dealing with EPP ROID suffixes. */
 public final class RoidSuffixes {

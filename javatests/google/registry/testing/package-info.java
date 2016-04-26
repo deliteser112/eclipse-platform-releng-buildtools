@@ -15,4 +15,4 @@
 // TODO(b/19014308): Move the SRE testing package under java/ somewhere else so we
 //             don't need this package-info.java file under javatests/
 @javax.annotation.ParametersAreNonnullByDefault
-package com.google.domain.registry.testing;
+package google.registry.testing;

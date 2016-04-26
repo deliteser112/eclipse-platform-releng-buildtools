@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain;
+package google.registry.model.domain;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.BillingEvent.Reason;
-import com.google.domain.registry.model.billing.BillingEvent.Recurring;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.billing.BillingEvent.Recurring;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;

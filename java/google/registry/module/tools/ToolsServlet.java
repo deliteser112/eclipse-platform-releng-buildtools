@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.module.tools;
+package google.registry.module.tools;
 
 import static java.util.Arrays.asList;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
-import com.google.domain.registry.request.RequestHandler;
-import com.google.domain.registry.request.RequestModule;
+
+import google.registry.request.RequestHandler;
+import google.registry.request.RequestModule;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 

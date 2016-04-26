@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.groups;
+package google.registry.groups;
 
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
@@ -29,8 +29,9 @@ import com.google.api.services.groupssettings.model.Groups;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.util.FormattingLogger;
 
 import java.io.IOException;
 import java.util.Set;

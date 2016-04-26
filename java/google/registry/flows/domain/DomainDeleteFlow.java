@@ -12,43 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
-import static com.google.domain.registry.model.eppoutput.Result.Code.Success;
-import static com.google.domain.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
+import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
+import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.dns.DnsQueue;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.AssociationProhibitsOperationException;
-import com.google.domain.registry.flows.ResourceSyncDeleteFlow;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.common.TimeOfYear;
-import com.google.domain.registry.model.domain.DomainCommand.Delete;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.DomainResource.Builder;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.domain.fee.Credit;
-import com.google.domain.registry.model.domain.fee.FeeDeleteResponseExtension;
-import com.google.domain.registry.model.domain.metadata.MetadataExtension;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.domain.secdns.SecDnsUpdateExtension;
-import com.google.domain.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
-import com.google.domain.registry.model.eppoutput.Result.Code;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.reporting.HistoryEntry;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.dns.DnsQueue;
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.AssociationProhibitsOperationException;
+import google.registry.flows.ResourceSyncDeleteFlow;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.common.TimeOfYear;
+import google.registry.model.domain.DomainCommand.Delete;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainResource.Builder;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.fee.Credit;
+import google.registry.model.domain.fee.FeeDeleteResponseExtension;
+import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.domain.secdns.SecDnsUpdateExtension;
+import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.Result.Code;
+import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.registry.Registry;
+import google.registry.model.reporting.HistoryEntry;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -57,11 +58,11 @@ import org.joda.time.DateTime;
 /**
  * An EPP flow that deletes a domain resource.
  *
- * @error {@link com.google.domain.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException}
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
+ * @error {@link google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
  * @error {@link DomainDeleteFlow.DomainToDeleteHasHostsException}
  */
 public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Builder, Delete> {

@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui;
+package google.registry.ui;
 
 import com.google.appengine.api.users.UserService;
-import com.google.domain.registry.config.ConfigModule.Config;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.config.ConfigModule.Config;
 
 /** Dagger module for UI configuration. */
 @Module

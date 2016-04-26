@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.flows.ResourceFlowUtils.createTransferResponse;
-import static com.google.domain.registry.model.eppoutput.Result.Code.Success;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
+import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.domain.registry.flows.EppException.ObjectNotPendingTransferException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.Builder;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferStatus;
+import google.registry.flows.EppException.ObjectNotPendingTransferException;
+import google.registry.model.EppResource;
+import google.registry.model.EppResource.Builder;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
 
 /**
  * An EPP flow that acts on a resource with a pending transfer on it.

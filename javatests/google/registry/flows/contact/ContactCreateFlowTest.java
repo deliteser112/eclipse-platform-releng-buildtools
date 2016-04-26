@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import static com.google.domain.registry.testing.ContactResourceSubject.assertAboutContacts;
-import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedContact;
+import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
+import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 
-import com.google.domain.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
-import com.google.domain.registry.flows.ResourceFlowTestCase;
-import com.google.domain.registry.flows.contact.ContactFlowUtils.BadInternationalizedPostalInfoException;
-import com.google.domain.registry.flows.contact.ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException;
-import com.google.domain.registry.model.contact.ContactResource;
+import google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
+import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.contact.ContactFlowUtils.BadInternationalizedPostalInfoException;
+import google.registry.flows.contact.ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException;
+import google.registry.model.contact.ContactResource;
 
 import org.joda.time.DateTime;
 import org.junit.Test;

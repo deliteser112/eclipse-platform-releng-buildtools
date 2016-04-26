@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.mapreduce.inputs;
+package google.registry.mapreduce.inputs;
 
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.index.EppResourceIndexBucket;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.index.EppResourceIndexBucket;
 
 import java.util.List;
 

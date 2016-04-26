@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.host;
+package google.registry.flows.host;
 
-import static com.google.domain.registry.model.EppResourceUtils.isActive;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.model.registry.Registries.findTldForName;
+import static google.registry.model.EppResourceUtils.isActive;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.registry.Registries.findTldForName;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.AuthorizationErrorException;
-import com.google.domain.registry.flows.EppException.ObjectDoesNotExistException;
-import com.google.domain.registry.flows.EppException.ParameterValuePolicyErrorException;
-import com.google.domain.registry.flows.EppException.ParameterValueRangeErrorException;
-import com.google.domain.registry.flows.EppException.ParameterValueSyntaxErrorException;
-import com.google.domain.registry.model.domain.DomainResource;
 
 import com.googlecode.objectify.Ref;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.AuthorizationErrorException;
+import google.registry.flows.EppException.ObjectDoesNotExistException;
+import google.registry.flows.EppException.ParameterValuePolicyErrorException;
+import google.registry.flows.EppException.ParameterValueRangeErrorException;
+import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
+import google.registry.model.domain.DomainResource;
 
 import org.joda.time.DateTime;
 

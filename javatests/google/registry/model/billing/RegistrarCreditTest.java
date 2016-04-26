@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.billing;
+package google.registry.model.billing;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.money.CurrencyUnit.JPY;
 import static org.joda.money.CurrencyUnit.USD;
 
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.billing.RegistrarCredit.CreditType;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.testing.ExceptionRule;
+import google.registry.model.EntityTestCase;
+import google.registry.model.billing.RegistrarCredit.CreditType;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registry.Registry;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;

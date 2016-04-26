@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
-import static com.google.domain.registry.backup.ExportCommitLogDiffAction.DIFF_FILE_PREFIX;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
-import static com.google.domain.registry.util.DateTimeUtils.latestOf;
+import static google.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
+import static google.registry.backup.ExportCommitLogDiffAction.DIFF_FILE_PREFIX;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.util.DateTimeUtils.latestOf;
 
 import com.google.appengine.tools.cloudstorage.GcsFileMetadata;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
@@ -30,9 +30,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.domain.registry.backup.BackupModule.Backups;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.backup.BackupModule.Backups;
+import google.registry.config.ConfigModule.Config;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 

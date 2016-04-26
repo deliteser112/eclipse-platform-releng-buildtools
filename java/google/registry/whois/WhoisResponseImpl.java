@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -27,10 +27,11 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.io.Resources;
-import com.google.domain.registry.model.eppcommon.Address;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.util.Idn;
-import com.google.domain.registry.xml.UtcDateTimeAdapter;
+
+import google.registry.model.eppcommon.Address;
+import google.registry.model.registrar.Registrar;
+import google.registry.util.Idn;
+import google.registry.xml.UtcDateTimeAdapter;
 
 import org.joda.time.DateTime;
 
@@ -41,7 +42,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-
 
 /** Base class for responses to WHOIS queries. */
 abstract class WhoisResponseImpl implements WhoisResponse {

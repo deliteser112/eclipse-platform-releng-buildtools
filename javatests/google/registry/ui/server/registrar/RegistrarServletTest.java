@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.security.JsonHttpTestUtils.createJsonPayload;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
+import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.Arrays.asList;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Matchers.eq;
@@ -26,9 +26,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.export.sheet.SyncRegistrarsSheetAction;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
+
+import google.registry.export.sheet.SyncRegistrarsSheetAction;
+import google.registry.model.registrar.Registrar;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

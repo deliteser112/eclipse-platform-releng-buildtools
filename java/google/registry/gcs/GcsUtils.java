@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.gcs;
+package google.registry.gcs;
 
 import static com.google.common.collect.Iterables.getLast;
 
@@ -24,8 +24,9 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.util.FormattingLogger;
 
 import java.io.IOException;
 import java.io.InputStream;

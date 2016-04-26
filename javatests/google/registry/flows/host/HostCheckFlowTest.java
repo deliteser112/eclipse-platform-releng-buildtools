@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.host;
+package google.registry.flows.host;
 
-import static com.google.domain.registry.model.eppoutput.CheckData.HostCheck.create;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedHost;
+import static google.registry.model.eppoutput.CheckData.HostCheck.create;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 
-import com.google.domain.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
-import com.google.domain.registry.flows.ResourceCheckFlowTestCase;
-import com.google.domain.registry.model.host.HostResource;
+import google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
+import google.registry.flows.ResourceCheckFlowTestCase;
+import google.registry.model.host.HostResource;
 
 import org.junit.Test;
 

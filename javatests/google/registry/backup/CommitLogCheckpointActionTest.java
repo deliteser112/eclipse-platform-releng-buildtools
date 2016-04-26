@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.CommitLogCheckpointRoot.loadRoot;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.ofy.CommitLogCheckpointRoot.loadRoot;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.ofy.CommitLogCheckpoint;
-import com.google.domain.registry.model.ofy.CommitLogCheckpointRoot;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
-import com.google.domain.registry.util.Retrier;
-import com.google.domain.registry.util.TaskEnqueuer;
+
+import google.registry.model.ofy.CommitLogCheckpoint;
+import google.registry.model.ofy.CommitLogCheckpointRoot;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.Retrier;
+import google.registry.util.TaskEnqueuer;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

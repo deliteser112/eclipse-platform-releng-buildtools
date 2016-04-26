@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.monitoring.whitebox;
-
-import com.google.domain.registry.bigquery.BigqueryModule;
-import com.google.domain.registry.config.ConfigModule;
-import com.google.domain.registry.request.Modules.DatastoreServiceModule;
-import com.google.domain.registry.util.SystemSleeper.SystemSleeperModule;
+package google.registry.monitoring.whitebox;
 
 import dagger.Component;
+
+import google.registry.bigquery.BigqueryModule;
+import google.registry.config.ConfigModule;
+import google.registry.request.Modules.DatastoreServiceModule;
+import google.registry.util.SystemSleeper.SystemSleeperModule;
 
 import javax.inject.Singleton;
 

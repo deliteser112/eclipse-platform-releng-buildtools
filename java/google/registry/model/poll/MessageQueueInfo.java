@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.poll;
+package google.registry.model.poll;
 
-import com.google.domain.registry.model.ImmutableObject;
+import google.registry.model.ImmutableObject;
 
 import org.joda.time.DateTime;
 

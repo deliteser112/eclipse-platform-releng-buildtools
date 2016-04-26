@@ -12,29 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
 import static com.google.appengine.api.datastore.EntityTranslator.convertToPb;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.CommitLogBucket.getBucketKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import static com.googlecode.objectify.ObjectifyService.register;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.BackupGroupRoot;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.common.EntityGroupRoot;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
+
+import google.registry.model.BackupGroupRoot;
+import google.registry.model.ImmutableObject;
+import google.registry.model.common.EntityGroupRoot;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

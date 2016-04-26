@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.testing.FakeResponse;
-import com.google.domain.registry.testing.mapreduce.MapreduceTestCase;
+
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.model.contact.ContactResource;
+import google.registry.testing.FakeResponse;
+import google.registry.testing.mapreduce.MapreduceTestCase;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

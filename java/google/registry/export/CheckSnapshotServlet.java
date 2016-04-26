@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
-import static com.google.domain.registry.export.LoadSnapshotAction.enqueueLoadSnapshotTask;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
-import static com.google.domain.registry.util.FormattingLogger.getLoggerForCallerClass;
+import static google.registry.export.LoadSnapshotAction.enqueueLoadSnapshotTask;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
+import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -35,10 +35,11 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.export.DatastoreBackupInfo.BackupStatus;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
+
+import google.registry.export.DatastoreBackupInfo.BackupStatus;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
 
 import org.joda.time.Duration;
 import org.joda.time.PeriodType;

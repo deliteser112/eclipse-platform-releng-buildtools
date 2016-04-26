@@ -12,23 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.money.CurrencyUnit.USD;
-
-import com.google.domain.registry.model.billing.RegistrarCredit;
-import com.google.domain.registry.model.billing.RegistrarCredit.CreditType;
-import com.google.domain.registry.model.billing.RegistrarCreditBalance;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registry.Registry;
 
 import com.beust.jcommander.ParameterException;
 import com.googlecode.objectify.Key;
+
+import google.registry.model.billing.RegistrarCredit;
+import google.registry.model.billing.RegistrarCredit.CreditType;
+import google.registry.model.billing.RegistrarCreditBalance;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registry.Registry;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

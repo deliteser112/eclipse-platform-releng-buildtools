@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppcommon;
-
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.ImmutableObject;
+package google.registry.model.eppcommon;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlTransient;

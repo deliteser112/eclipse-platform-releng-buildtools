@@ -9,7 +9,7 @@
   <servlet>
     <display-name>BackendServlet</display-name>
     <servlet-name>backend-servlet</servlet-name>
-    <servlet-class>com.google.domain.registry.module.backend.BackendServlet</servlet-class>
+    <servlet-class>google.registry.module.backend.BackendServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
 
@@ -124,7 +124,7 @@
     <description>Exports a datastore backup snapshot to GCS.</description>
     <display-name>Export snapshot to GCS</display-name>
     <servlet-name>exportSnapshot</servlet-name>
-    <servlet-class>com.google.domain.registry.export.ExportSnapshotServlet</servlet-class>
+    <servlet-class>google.registry.export.ExportSnapshotServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>exportSnapshot</servlet-name>
@@ -135,7 +135,7 @@
     <description>Checks the completion of a datastore backup snapshot.</description>
     <display-name>Check on snapshot status</display-name>
     <servlet-name>checkSnapshot</servlet-name>
-    <servlet-class>com.google.domain.registry.export.CheckSnapshotServlet</servlet-class>
+    <servlet-class>google.registry.export.CheckSnapshotServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>checkSnapshot</servlet-name>
@@ -345,7 +345,7 @@
   <!-- Register types with Objectify. -->
   <filter>
     <filter-name>OfyFilter</filter-name>
-    <filter-class>com.google.domain.registry.model.ofy.OfyFilter</filter-class>
+    <filter-class>google.registry.model.ofy.OfyFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>OfyFilter</filter-name>

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
-
-import com.google.domain.registry.tools.server.ListPremiumListsAction;
+package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.server.ListPremiumListsAction;
 
 /** Command to list all premium lists. */
 @Parameters(separators = " =", commandDescription = "List all premium lists.")

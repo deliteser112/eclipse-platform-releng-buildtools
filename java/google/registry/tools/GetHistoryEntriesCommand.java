@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
-
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.xml.XmlTransformer;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.xml.XmlTransformer;
 
 import org.joda.time.DateTime;
 

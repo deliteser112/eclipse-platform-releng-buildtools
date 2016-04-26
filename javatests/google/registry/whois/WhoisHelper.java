@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 /** Test helper methods for the whois package. */
 final class WhoisHelper {

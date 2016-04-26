@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.fee;
+package google.registry.model.domain.fee;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.eppoutput.Response.ResponseExtension;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;

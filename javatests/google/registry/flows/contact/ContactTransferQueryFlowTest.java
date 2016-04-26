@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import static com.google.domain.registry.testing.ContactResourceSubject.assertAboutContacts;
-import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.deleteResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
+import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.deleteResource;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
-import com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
-import com.google.domain.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException;
-import com.google.domain.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException;
-import com.google.domain.registry.model.contact.ContactAuthInfo;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.eppcommon.AuthInfo.PasswordAuth;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferStatus;
+import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
+import google.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException;
+import google.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException;
+import google.registry.model.contact.ContactAuthInfo;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferStatus;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

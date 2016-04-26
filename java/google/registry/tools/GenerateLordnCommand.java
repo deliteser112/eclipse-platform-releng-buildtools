@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.tmch.LordnTask;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.tools.params.PathParameter;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.domain.DomainResource;
+import google.registry.tmch.LordnTask;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.PathParameter;
 
 import org.joda.time.DateTime;
 

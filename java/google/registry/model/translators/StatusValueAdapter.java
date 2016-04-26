@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.translators;
+package google.registry.model.translators;
 
-import com.google.domain.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.StatusValue;
 
 /** Adapter for {@link StatusValue}. */
 public class StatusValueAdapter extends EnumToAttributeAdapter<StatusValue> {

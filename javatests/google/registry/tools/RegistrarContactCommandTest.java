@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.ABUSE;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.ADMIN;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.WHOIS;
-import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.model.registrar.RegistrarContact.Type.ABUSE;
+import static google.registry.model.registrar.RegistrarContact.Type.ADMIN;
+import static google.registry.model.registrar.RegistrarContact.Type.WHOIS;
+import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
-import static com.google.domain.registry.model.registry.Registries.getTlds;
-import static com.google.domain.registry.request.Action.Method.GET;
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.model.registry.Registries.getTlds;
+import static google.registry.request.Action.Method.GET;
+import static google.registry.request.Action.Method.POST;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.util.Clock;
+
+import google.registry.model.registry.Registry;
+import google.registry.request.Action;
+import google.registry.util.Clock;
 
 import org.joda.time.DateTime;
 
 import javax.inject.Inject;
-
 
 /** An action that lists top-level domains, for use by the registry_tool list_tlds command. */
 @Action(path = ListTldsAction.PATH, method = {GET, POST})

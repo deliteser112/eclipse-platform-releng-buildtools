@@ -12,31 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.contact;
+package google.registry.model.contact;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.testing.ContactResourceSubject.assertAboutContacts;
-import static com.google.domain.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
+import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.contact.Disclose.PostalInfoChoice;
-import com.google.domain.registry.model.contact.PostalInfo.Type;
-import com.google.domain.registry.model.eppcommon.AuthInfo.PasswordAuth;
-import com.google.domain.registry.model.eppcommon.PresenceMarker;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferData.TransferServerApproveEntity;
-import com.google.domain.registry.model.transfer.TransferStatus;
-import com.google.domain.registry.testing.ExceptionRule;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.model.EntityTestCase;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.contact.Disclose.PostalInfoChoice;
+import google.registry.model.contact.PostalInfo.Type;
+import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import google.registry.model.eppcommon.PresenceMarker;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
+import google.registry.model.transfer.TransferStatus;
+import google.registry.testing.ExceptionRule;
 
 import org.junit.Before;
 import org.junit.Rule;

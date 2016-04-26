@@ -1,6 +1,8 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 FIELD_EXPOSERS = [
     "FieldExposer.java",
@@ -80,9 +82,6 @@ java_library(
         "//java/com/google/common/primitives",
         "//java/com/google/common/reflect",
         "//java/com/google/common/util/concurrent",
-        "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/util",
-        "//java/com/google/domain/registry/xml",
         "//third_party/java/appengine:appengine-api",
         "//third_party/java/dagger",
         "//third_party/java/joda_money",
@@ -91,5 +90,8 @@ java_library(
         "//third_party/java/jsr330_inject",
         "//third_party/java/objectify:objectify-v4_1",
         "//third_party/java/servlet/servlet_api",
+        "//java/google/registry/config",
+        "//java/google/registry/util",
+        "//java/google/registry/xml",
     ],
 )

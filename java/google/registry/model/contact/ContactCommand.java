@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.contact;
+package google.registry.model.contact;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.contact.ContactResource.Builder;
-import com.google.domain.registry.model.contact.PostalInfo.Type;
-import com.google.domain.registry.model.eppinput.ResourceCommand.AbstractSingleResourceCommand;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceCheck;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceCreateOrChange;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceUpdate;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.contact.ContactResource.Builder;
+import google.registry.model.contact.PostalInfo.Type;
+import google.registry.model.eppinput.ResourceCommand.AbstractSingleResourceCommand;
+import google.registry.model.eppinput.ResourceCommand.ResourceCheck;
+import google.registry.model.eppinput.ResourceCommand.ResourceCreateOrChange;
+import google.registry.model.eppinput.ResourceCommand.ResourceUpdate;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 
 import java.util.List;
 import java.util.Map;

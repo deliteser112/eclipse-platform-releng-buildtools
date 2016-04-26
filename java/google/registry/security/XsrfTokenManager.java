@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.security;
+package google.registry.security;
 
 import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 import static com.google.common.io.BaseEncoding.base64Url;
-import static com.google.domain.registry.model.server.ServerSecret.getServerSecret;
+import static google.registry.model.server.ServerSecret.getServerSecret;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.api.users.UserService;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.hash.Hashing;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
-import com.google.domain.registry.util.SystemClock;
+
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.SystemClock;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

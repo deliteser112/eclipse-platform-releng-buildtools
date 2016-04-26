@@ -12,35 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleResource;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.BillingEvent.Reason;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldType;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeResponse;
-import com.google.domain.registry.testing.mapreduce.MapreduceTestCase;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.model.ImmutableObject;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.index.ForeignKeyIndex;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldType;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeResponse;
+import google.registry.testing.mapreduce.MapreduceTestCase;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

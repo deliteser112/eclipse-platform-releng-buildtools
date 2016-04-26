@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.domain.registry.config.TestRegistryConfig;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.RegistryConfigRule;
+import google.registry.config.TestRegistryConfig;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import google.registry.testing.RegistryConfigRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

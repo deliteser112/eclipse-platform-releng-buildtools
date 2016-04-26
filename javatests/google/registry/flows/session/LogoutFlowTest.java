@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.session;
+package google.registry.flows.session;
 
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTld;
 
-import com.google.domain.registry.flows.FlowTestCase;
-import com.google.domain.registry.flows.LoggedInFlow.NotLoggedInException;
-import com.google.domain.registry.testing.ExceptionRule;
+import google.registry.flows.FlowTestCase;
+import google.registry.flows.LoggedInFlow.NotLoggedInException;
+import google.registry.testing.ExceptionRule;
 
 import org.junit.Before;
 import org.junit.Rule;

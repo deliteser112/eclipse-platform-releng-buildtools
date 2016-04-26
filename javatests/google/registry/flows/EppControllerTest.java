@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.flows.EppController.getErrorResponse;
-import static com.google.domain.registry.flows.EppXmlTransformer.marshal;
+import static google.registry.flows.EppController.getErrorResponse;
+import static google.registry.flows.EppXmlTransformer.marshal;
 
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.eppoutput.Result;
-import com.google.domain.registry.model.eppoutput.Result.Code;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.xml.ValidationMode;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppoutput.Result;
+import google.registry.model.eppoutput.Result.Code;
+import google.registry.testing.AppEngineRule;
+import google.registry.xml.ValidationMode;
 
 import org.junit.Rule;
 import org.junit.Test;

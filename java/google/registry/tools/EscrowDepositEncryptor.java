@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.model.rde.RdeMode.FULL;
+import static google.registry.model.rde.RdeMode.FULL;
 
 import com.google.common.io.ByteStreams;
-import com.google.domain.registry.keyring.api.KeyModule.Key;
-import com.google.domain.registry.model.rde.RdeNamingUtils;
-import com.google.domain.registry.rde.RdeUtil;
-import com.google.domain.registry.rde.RydePgpCompressionOutputStream;
-import com.google.domain.registry.rde.RydePgpCompressionOutputStreamFactory;
-import com.google.domain.registry.rde.RydePgpEncryptionOutputStream;
-import com.google.domain.registry.rde.RydePgpEncryptionOutputStreamFactory;
-import com.google.domain.registry.rde.RydePgpFileOutputStream;
-import com.google.domain.registry.rde.RydePgpFileOutputStreamFactory;
-import com.google.domain.registry.rde.RydePgpSigningOutputStream;
-import com.google.domain.registry.rde.RydePgpSigningOutputStreamFactory;
-import com.google.domain.registry.rde.RydeTarOutputStream;
-import com.google.domain.registry.rde.RydeTarOutputStreamFactory;
-import com.google.domain.registry.xml.XmlException;
+
+import google.registry.keyring.api.KeyModule.Key;
+import google.registry.model.rde.RdeNamingUtils;
+import google.registry.rde.RdeUtil;
+import google.registry.rde.RydePgpCompressionOutputStream;
+import google.registry.rde.RydePgpCompressionOutputStreamFactory;
+import google.registry.rde.RydePgpEncryptionOutputStream;
+import google.registry.rde.RydePgpEncryptionOutputStreamFactory;
+import google.registry.rde.RydePgpFileOutputStream;
+import google.registry.rde.RydePgpFileOutputStreamFactory;
+import google.registry.rde.RydePgpSigningOutputStream;
+import google.registry.rde.RydePgpSigningOutputStreamFactory;
+import google.registry.rde.RydeTarOutputStream;
+import google.registry.rde.RydeTarOutputStreamFactory;
+import google.registry.xml.XmlException;
 
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.openpgp.PGPException;

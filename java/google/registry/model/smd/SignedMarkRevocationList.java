@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.smd;
+package google.registry.model.smd;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.isEmpty;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.allocateId;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.CacheUtils.memoizeWithShortExpiration;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.ObjectifyService.allocateId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CacheUtils.memoizeWithShortExpiration;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -30,11 +30,6 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.annotations.NotBackedUp;
-import com.google.domain.registry.model.annotations.NotBackedUp.Reason;
-import com.google.domain.registry.model.common.EntityGroupRoot;
-import com.google.domain.registry.util.CollectionUtils;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
@@ -45,6 +40,12 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.annotations.NotBackedUp;
+import google.registry.model.annotations.NotBackedUp.Reason;
+import google.registry.model.common.EntityGroupRoot;
+import google.registry.util.CollectionUtils;
 
 import org.joda.time.DateTime;
 
@@ -61,7 +62,7 @@ import java.util.Map;
  * to avoid exceeding the one megabyte max entity size limit, we'll also be sharding that entity
  * into multiple entities, each entity containing {@value #SHARD_SIZE} rows.
  *
- * @see com.google.domain.registry.tmch.SmdrlCsvParser
+ * @see google.registry.tmch.SmdrlCsvParser
  * @see "http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.2"
  */
 @Entity

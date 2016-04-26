@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.request;
+package google.registry.request;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -22,7 +22,8 @@ import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.google.domain.registry.request.HttpException.BadRequestException;
+
+import google.registry.request.HttpException.BadRequestException;
 
 import org.joda.time.DateTime;
 

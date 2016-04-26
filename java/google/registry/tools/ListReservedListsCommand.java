@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
-
-import com.google.domain.registry.tools.server.ListReservedListsAction;
+package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.server.ListReservedListsAction;
 
 /** Command to list all reserved lists. */
 @Parameters(separators = " =", commandDescription = "List all reserved lists.")

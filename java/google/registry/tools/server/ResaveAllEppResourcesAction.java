@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
-import static com.google.domain.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.PipelineUtils.createJobPath;
+import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.mapreduce.MapreduceAction;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Response;
 
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.mapreduce.MapreduceAction;
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.model.EppResource;
+import google.registry.request.Action;
+import google.registry.request.Response;
 
 import javax.inject.Inject;
 

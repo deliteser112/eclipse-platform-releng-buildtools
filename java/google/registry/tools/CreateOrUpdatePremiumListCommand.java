@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.domain.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
-import static com.google.domain.registry.tools.server.CreateOrUpdatePremiumListAction.INPUT_PARAM;
-import static com.google.domain.registry.tools.server.CreateOrUpdatePremiumListAction.NAME_PARAM;
-import static com.google.domain.registry.util.ListNamingUtils.convertFilePathToName;
+import static google.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
+import static google.registry.tools.server.CreateOrUpdatePremiumListAction.INPUT_PARAM;
+import static google.registry.tools.server.CreateOrUpdatePremiumListAction.NAME_PARAM;
+import static google.registry.util.ListNamingUtils.convertFilePathToName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.tools.params.PathParameter;
 
 import com.beust.jcommander.Parameter;
+
+import google.registry.model.registry.label.PremiumList;
+import google.registry.tools.params.PathParameter;
 
 import org.json.simple.JSONValue;
 

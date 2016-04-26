@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.translators;
+package google.registry.model.translators;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.domain.registry.model.UpdateAutoTimestamp;
+import google.registry.model.UpdateAutoTimestamp;
 
 import org.joda.time.DateTime;
 

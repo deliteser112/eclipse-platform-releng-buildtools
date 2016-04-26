@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.domain.registry.request.RequestModule;
-import com.google.domain.registry.testing.AppEngineRule;
+import google.registry.request.RequestModule;
+import google.registry.testing.AppEngineRule;
 
 import org.junit.Before;
 import org.junit.Rule;

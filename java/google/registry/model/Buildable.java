@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.model.ofy.ObjectifyService;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
+
+import google.registry.model.ofy.ObjectifyService;
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 import java.lang.reflect.Field;
 

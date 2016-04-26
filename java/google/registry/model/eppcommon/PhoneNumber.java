@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppcommon;
+package google.registry.model.eppcommon;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.ImmutableObject;
+
+import google.registry.model.Buildable;
+import google.registry.model.ImmutableObject;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlTransient;
@@ -40,8 +41,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * number. An optional "x" attribute is provided to note telephone extension information."
  * </blockquote>
  *
- * @see com.google.domain.registry.model.contact.ContactPhoneNumber
- * @see com.google.domain.registry.model.mark.MarkPhoneNumber
+ * @see google.registry.model.contact.ContactPhoneNumber
+ * @see google.registry.model.mark.MarkPhoneNumber
  */
 @XmlTransient
 public class PhoneNumber extends ImmutableObject {

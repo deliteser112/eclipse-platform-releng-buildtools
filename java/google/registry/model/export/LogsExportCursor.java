@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.export;
+package google.registry.model.export;
 
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.common.CrossTldSingleton;
-import com.google.domain.registry.model.common.PersistedRangeLong;
 
 import com.googlecode.objectify.annotation.Entity;
+
+import google.registry.model.Buildable;
+import google.registry.model.common.CrossTldSingleton;
+import google.registry.model.common.PersistedRangeLong;
 
 import java.util.List;
 import java.util.Set;

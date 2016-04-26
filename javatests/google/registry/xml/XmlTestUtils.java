@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.xml;
+package google.registry.xml;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assert_;
-import static com.google.domain.registry.util.DiffUtils.prettyPrintDeepDiff;
+import static google.registry.util.DiffUtils.prettyPrintDeepDiff;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableSet;

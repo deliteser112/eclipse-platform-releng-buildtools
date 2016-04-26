@@ -12,27 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns;
+package google.registry.dns;
 
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
-import static com.google.domain.registry.testing.TaskQueueHelper.clearTaskQueue;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.clearTaskQueue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
 import com.google.appengine.api.taskqueue.QueueFactory;
-import com.google.domain.registry.dns.writer.api.DnsWriter;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.dns.writer.api.DnsWriter;
+import google.registry.model.ofy.Ofy;
+import google.registry.model.registry.Registry;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

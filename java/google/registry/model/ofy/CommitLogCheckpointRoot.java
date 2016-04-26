@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
 import static com.googlecode.objectify.ObjectifyService.ofy;
-
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.annotations.NotBackedUp;
-import com.google.domain.registry.model.annotations.NotBackedUp.Reason;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.annotations.NotBackedUp;
+import google.registry.model.annotations.NotBackedUp.Reason;
 
 import org.joda.time.DateTime;
 

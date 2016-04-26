@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.params;
+package google.registry.tools.params;
 
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.host.HostResource;
+import google.registry.model.EppResource;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.host.HostResource;
 
 /** Enum to make it easy for a command to accept a flag that specifies an EppResource subclass. */
 public enum EppResourceTypeParameter {

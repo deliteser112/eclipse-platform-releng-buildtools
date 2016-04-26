@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistReservedList;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistReservedList;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.label.ReservedList;
-import com.google.domain.registry.testing.AppEngineRule;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.ReservedList;
+import google.registry.testing.AppEngineRule;
 
 import org.junit.Rule;
 import org.junit.Test;

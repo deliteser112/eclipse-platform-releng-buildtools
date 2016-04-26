@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export.sheet;
+package google.registry.export.sheet;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
@@ -28,14 +28,15 @@ import com.google.appengine.api.modules.ModulesServiceFactory;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Optional;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.model.server.Lock;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
 import com.google.gdata.util.ServiceException;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.model.server.Lock;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.request.Response;
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
 
 import org.joda.time.Duration;
 

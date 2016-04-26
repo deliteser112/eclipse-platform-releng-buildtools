@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.security;
+package google.registry.security;
 
 import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
 import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
@@ -26,9 +26,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.request.HttpException;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.request.HttpException;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
 
 import org.junit.Rule;
 import org.junit.Test;

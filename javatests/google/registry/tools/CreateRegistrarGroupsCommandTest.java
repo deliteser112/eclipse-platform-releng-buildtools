@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.tools.ServerSideCommand.Connection;
+
+import google.registry.tools.ServerSideCommand.Connection;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
 
 /** Unit tests for {@link CreateRegistrarGroupsCommand}. */
 public class CreateRegistrarGroupsCommandTest extends

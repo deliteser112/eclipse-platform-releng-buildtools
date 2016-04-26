@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.poll;
+package google.registry.flows.poll;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.LoggedInFlow;
-import com.google.domain.registry.model.eppinput.EppInput.Poll;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.eppoutput.Response;
-import com.google.domain.registry.model.eppoutput.Response.ResponseData;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
-import com.google.domain.registry.model.eppoutput.Result;
-import com.google.domain.registry.model.poll.MessageQueueInfo;
-import com.google.domain.registry.model.poll.PollMessage;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Query;
+
+import google.registry.flows.EppException;
+import google.registry.flows.LoggedInFlow;
+import google.registry.model.eppinput.EppInput.Poll;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.Response;
+import google.registry.model.eppoutput.Response.ResponseData;
+import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.Result;
+import google.registry.model.poll.MessageQueueInfo;
+import google.registry.model.poll.PollMessage;
 
 import java.util.List;
 

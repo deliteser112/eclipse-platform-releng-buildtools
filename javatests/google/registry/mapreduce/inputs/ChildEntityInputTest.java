@@ -12,37 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.mapreduce.inputs;
+package google.registry.mapreduce.inputs;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
-import static com.google.domain.registry.mapreduce.inputs.EppResourceInputs.createChildEntityInput;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.model.index.EppResourceIndexBucket.getBucketKey;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleResource;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.mapreduce.inputs.EppResourceInputs.createChildEntityInput;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.index.EppResourceIndexBucket.getBucketKey;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.config.TestRegistryConfig;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.BillingEvent.Reason;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.RegistryConfigRule;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.config.TestRegistryConfig;
+import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.RegistryConfigRule;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

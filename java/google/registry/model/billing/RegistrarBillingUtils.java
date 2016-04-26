@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.billing;
+package google.registry.model.billing;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
@@ -24,12 +24,13 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Maps.EntryTransformer;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registry.Registries;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.util.CacheUtils;
 
 import com.googlecode.objectify.cmd.Query;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registry.Registries;
+import google.registry.model.registry.Registry;
+import google.registry.util.CacheUtils;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;

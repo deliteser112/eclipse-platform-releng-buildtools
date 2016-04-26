@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.tools.BigqueryCommandUtilities.handleTableCreation;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.tools.BigqueryCommandUtilities.handleTableCreation;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.domain.registry.bigquery.BigqueryUtils.TableType;
-import com.google.domain.registry.tools.BigqueryCommandUtilities.TableCreationException;
-import com.google.domain.registry.util.SqlTemplate;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.bigquery.BigqueryUtils.TableType;
+import google.registry.tools.BigqueryCommandUtilities.TableCreationException;
+import google.registry.util.SqlTemplate;
 
 import java.util.List;
 

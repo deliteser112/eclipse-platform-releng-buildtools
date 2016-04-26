@@ -12,29 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newContactResourceWithRoid;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.newSunriseApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newContactResourceWithRoid;
+import static google.registry.testing.DatastoreHelper.newDomainApplication;
+import static google.registry.testing.DatastoreHelper.newSunriseApplication;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.contact.ContactAddress;
-import com.google.domain.registry.model.contact.ContactPhoneNumber;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.PostalInfo;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
 
 import com.beust.jcommander.ParameterException;
+
+import google.registry.model.contact.ContactAddress;
+import google.registry.model.contact.ContactPhoneNumber;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.PostalInfo;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.ofy.Ofy;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.Registries.findTldForName;
+import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registries.findTldForName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Function;
@@ -30,15 +30,16 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.tools.params.PathParameter;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Work;
+
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainApplication;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.PathParameter;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

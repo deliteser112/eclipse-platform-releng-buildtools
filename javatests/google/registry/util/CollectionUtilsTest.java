@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
-import static com.google.domain.registry.util.CollectionUtils.partitionMap;
+import static google.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.CollectionUtils.partitionMap;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.testing.ExceptionRule;
 
 import org.junit.Rule;
 import org.junit.Test;

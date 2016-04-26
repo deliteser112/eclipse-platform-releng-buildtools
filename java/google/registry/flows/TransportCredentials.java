@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import com.google.domain.registry.flows.EppException.AuthenticationErrorException;
-import com.google.domain.registry.model.registrar.Registrar;
+import google.registry.flows.EppException.AuthenticationErrorException;
+import google.registry.model.registrar.Registrar;
 
 /**
  * A marker interface for objects containing registrar credentials provided via an EPP transport.
@@ -31,7 +31,7 @@ public interface TransportCredentials {
   boolean performsLoginCheck();
 
   /**
-   * Called by {@link com.google.domain.registry.flows.session.LoginFlow LoginFlow}
+   * Called by {@link google.registry.flows.session.LoginFlow LoginFlow}
    * to check the transport credentials against the stored registrar's credentials.
    * If they do not match, throw an AuthenticationErrorException.
    */

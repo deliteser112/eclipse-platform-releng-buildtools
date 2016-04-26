@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
-import static com.google.domain.registry.util.CacheUtils.memoizeWithLongExpiration;
-import static com.google.domain.registry.util.CacheUtils.memoizeWithShortExpiration;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
-import static com.google.domain.registry.util.X509Utils.loadCrl;
+import static google.registry.util.CacheUtils.memoizeWithLongExpiration;
+import static google.registry.util.CacheUtils.memoizeWithShortExpiration;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.util.X509Utils.loadCrl;
 
 import com.google.common.base.Supplier;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.tmch.TmchCrl;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.NonFinalForTesting;
-import com.google.domain.registry.util.SystemClock;
-import com.google.domain.registry.util.X509Utils;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.tmch.TmchCrl;
+import google.registry.util.Clock;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.SystemClock;
+import google.registry.util.X509Utils;
 
 import java.security.GeneralSecurityException;
 import java.security.cert.X509CRL;

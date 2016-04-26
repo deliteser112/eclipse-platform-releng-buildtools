@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import static com.google.domain.registry.model.contact.PostalInfo.Type.INTERNATIONALIZED;
+import static google.registry.model.contact.PostalInfo.Type.INTERNATIONALIZED;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.ParameterValuePolicyErrorException;
-import com.google.domain.registry.flows.EppException.ParameterValueSyntaxErrorException;
-import com.google.domain.registry.model.contact.ContactAddress;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.PostalInfo;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.ParameterValuePolicyErrorException;
+import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
+import google.registry.model.contact.ContactAddress;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.PostalInfo;
 
 import java.util.Set;
 

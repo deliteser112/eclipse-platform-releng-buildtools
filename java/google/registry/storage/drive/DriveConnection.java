@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.storage.drive;
+package google.registry.storage.drive;
 
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.services.drive.Drive;

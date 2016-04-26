@@ -19,4 +19,4 @@
  * such, no default namespace is declared in this package, and all objects in this package should be
  * declared XmlTransient.
  */
-package com.google.domain.registry.model.eppcommon;
+package google.registry.model.eppcommon;

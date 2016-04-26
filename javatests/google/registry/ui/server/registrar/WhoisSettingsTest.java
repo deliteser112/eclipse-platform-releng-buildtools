@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.security.JsonHttpTestUtils.createJsonPayload;
+import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarAddress;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarAddress;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

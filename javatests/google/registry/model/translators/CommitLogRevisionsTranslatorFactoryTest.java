@@ -12,30 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.translators;
+package google.registry.model.translators;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardHours;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.domain.registry.config.TestRegistryConfig;
-import com.google.domain.registry.model.common.CrossTldSingleton;
-import com.google.domain.registry.model.ofy.CommitLogManifest;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.RegistryConfigRule;
 
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
+
+import google.registry.config.TestRegistryConfig;
+import google.registry.model.common.CrossTldSingleton;
+import google.registry.model.ofy.CommitLogManifest;
+import google.registry.model.ofy.Ofy;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import google.registry.testing.RegistryConfigRule;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

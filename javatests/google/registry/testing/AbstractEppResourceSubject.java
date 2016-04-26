@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.EppResourceUtils.isActive;
-import static com.google.domain.registry.testing.DatastoreHelper.getHistoryEntriesOfType;
-import static com.google.domain.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
+import static google.registry.model.EppResourceUtils.isActive;
+import static google.registry.testing.DatastoreHelper.getHistoryEntriesOfType;
+import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferStatus;
-import com.google.domain.registry.testing.TruthChainer.And;
-import com.google.domain.registry.testing.TruthChainer.Which;
+
+import google.registry.model.EppResource;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferStatus;
+import google.registry.testing.TruthChainer.And;
+import google.registry.testing.TruthChainer.Which;
 
 import org.joda.time.DateTime;
 

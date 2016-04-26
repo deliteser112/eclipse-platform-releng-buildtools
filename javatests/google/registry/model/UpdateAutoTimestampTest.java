@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
-
-import com.google.domain.registry.model.common.CrossTldSingleton;
-import com.google.domain.registry.testing.AppEngineRule;
 
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
+
+import google.registry.model.common.CrossTldSingleton;
+import google.registry.testing.AppEngineRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

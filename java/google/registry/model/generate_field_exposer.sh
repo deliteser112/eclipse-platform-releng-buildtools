@@ -16,10 +16,10 @@
 
 # Generate a FieldExposer for a given package
 
-printf "package com.google.domain.registry.model"\
+printf "package google.registry.model"\
 `echo $1 | sed -e 's/.*\/model\(.*\).FieldExposer\.java/\1/' -e 's/\//./g'`";\
 \n\n\
-import com.google.domain.registry.model.AbstractFieldExposer;\n\n\
+import google.registry.model.AbstractFieldExposer;\n\n\
 import java.lang.reflect.Field;\n\n\
 /** A helper that exposes package-private fields in this package for reflective lookup. */\n\
 public class FieldExposer extends AbstractFieldExposer {\n\

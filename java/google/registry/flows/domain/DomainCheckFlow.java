@@ -12,38 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.getReservationType;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
-import static com.google.domain.registry.model.EppResourceUtils.checkResourcesExist;
-import static com.google.domain.registry.model.registry.label.ReservationType.UNRESERVED;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
-import static com.google.domain.registry.util.DomainNameUtils.getTldFromDomainName;
+import static google.registry.flows.domain.DomainFlowUtils.getReservationType;
+import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
+import static google.registry.model.EppResourceUtils.checkResourcesExist;
+import static google.registry.model.registry.label.ReservationType.UNRESERVED;
+import static google.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.ParameterValuePolicyErrorException;
-import com.google.domain.registry.model.domain.fee.FeeCheckExtension;
-import com.google.domain.registry.model.domain.fee.FeeCheckResponseExtension;
-import com.google.domain.registry.model.domain.fee.FeeCheckResponseExtension.FeeCheck;
-import com.google.domain.registry.model.domain.launch.LaunchCheckExtension;
-import com.google.domain.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
-import com.google.domain.registry.model.eppoutput.CheckData;
-import com.google.domain.registry.model.eppoutput.CheckData.DomainCheck;
-import com.google.domain.registry.model.eppoutput.CheckData.DomainCheckData;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.label.ReservationType;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.ParameterValuePolicyErrorException;
+import google.registry.model.domain.fee.FeeCheckExtension;
+import google.registry.model.domain.fee.FeeCheckResponseExtension;
+import google.registry.model.domain.fee.FeeCheckResponseExtension.FeeCheck;
+import google.registry.model.domain.launch.LaunchCheckExtension;
+import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
+import google.registry.model.eppoutput.CheckData;
+import google.registry.model.eppoutput.CheckData.DomainCheck;
+import google.registry.model.eppoutput.CheckData.DomainCheckData;
+import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.ReservationType;
 
 import java.util.Set;
 
 /**
  * An EPP flow that checks whether a domain can be provisioned.
  *
- * @error {@link com.google.domain.registry.flows.ResourceCheckFlow.TooManyResourceChecksException}
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.BadDomainNameCharacterException}
  * @error {@link DomainFlowUtils.BadDomainNamePartsCountException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}

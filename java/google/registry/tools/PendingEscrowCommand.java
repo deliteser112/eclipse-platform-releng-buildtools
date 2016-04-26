@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.rde.PendingDeposit;
-import com.google.domain.registry.rde.PendingDepositChecker;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
 
 import com.beust.jcommander.Parameters;
+
+import google.registry.rde.PendingDeposit;
+import google.registry.rde.PendingDepositChecker;
+import google.registry.tools.Command.RemoteApiCommand;
 
 import javax.inject.Inject;
 

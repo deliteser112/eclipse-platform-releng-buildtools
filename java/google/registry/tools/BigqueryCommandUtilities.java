@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.domain.registry.bigquery.BigqueryConnection.DestinationTable;
+
+import google.registry.bigquery.BigqueryConnection.DestinationTable;
 
 import java.util.concurrent.ExecutionException;
 

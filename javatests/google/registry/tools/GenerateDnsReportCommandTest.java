@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainResource;
-import static com.google.domain.registry.testing.DatastoreHelper.newHostResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newHostResource;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -29,15 +29,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.testing.FakeClock;
 
 import com.beust.jcommander.ParameterException;
 import com.googlecode.objectify.Ref;
+
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.testing.FakeClock;
 
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;

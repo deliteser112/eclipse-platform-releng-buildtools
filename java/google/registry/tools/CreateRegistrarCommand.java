@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -21,21 +21,22 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.domain.registry.model.registrar.Registrar.State.ACTIVE;
-import static com.google.domain.registry.tools.RegistryToolEnvironment.PRODUCTION;
-import static com.google.domain.registry.tools.RegistryToolEnvironment.SANDBOX;
-import static com.google.domain.registry.tools.RegistryToolEnvironment.UNITTEST;
-import static com.google.domain.registry.util.RegistrarUtils.normalizeClientId;
+import static google.registry.model.registrar.Registrar.State.ACTIVE;
+import static google.registry.tools.RegistryToolEnvironment.PRODUCTION;
+import static google.registry.tools.RegistryToolEnvironment.SANDBOX;
+import static google.registry.tools.RegistryToolEnvironment.UNITTEST;
+import static google.registry.util.RegistrarUtils.normalizeClientId;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.tools.Command.GtechCommand;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.tools.Command.GtechCommand;
 
 import java.util.List;
 

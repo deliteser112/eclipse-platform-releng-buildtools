@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rdap;
+package google.registry.rdap;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
 
 import java.net.InetAddress;
 

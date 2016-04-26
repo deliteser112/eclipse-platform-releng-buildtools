@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.RegistryCursor;
-import com.google.domain.registry.model.registry.RegistryCursor.CursorType;
-import com.google.domain.registry.model.server.Lock;
-import com.google.domain.registry.request.HttpException.NoContentException;
-import com.google.domain.registry.request.HttpException.ServiceUnavailableException;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.RegistryCursor;
+import google.registry.model.registry.RegistryCursor.CursorType;
+import google.registry.model.server.Lock;
+import google.registry.request.HttpException.NoContentException;
+import google.registry.request.HttpException.ServiceUnavailableException;
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

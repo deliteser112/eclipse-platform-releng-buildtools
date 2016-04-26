@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registry.label;
+package google.registry.model.registry.label;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.registry.Registries.getTlds;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.registry.Registries.getTlds;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
@@ -28,15 +28,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.common.EntityGroupRoot;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.label.ReservedList.ReservedListEntry;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
+
+import google.registry.model.Buildable;
+import google.registry.model.ImmutableObject;
+import google.registry.model.common.EntityGroupRoot;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.ReservedList.ReservedListEntry;
 
 import org.joda.time.DateTime;
 

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.model.EppResourceUtils.queryNotDeleted;
+import static google.registry.model.EppResourceUtils.queryNotDeleted;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -23,8 +23,9 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.registry.Registries;
+
+import google.registry.model.host.HostResource;
+import google.registry.model.registry.Registries;
 
 import org.joda.time.DateTime;
 

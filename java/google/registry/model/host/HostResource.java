@@ -12,24 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.host;
+package google.registry.model.host;
 
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
-import static com.google.domain.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
-import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
+import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.ForeignKeyedEppResource;
-import com.google.domain.registry.model.annotations.ExternalMessagingName;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferStatus;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
@@ -37,6 +30,14 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.condition.IfNull;
+
+import google.registry.model.EppResource;
+import google.registry.model.EppResource.ForeignKeyedEppResource;
+import google.registry.model.annotations.ExternalMessagingName;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
 
 import org.joda.time.DateTime;
 

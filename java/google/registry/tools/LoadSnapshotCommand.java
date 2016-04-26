@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Predicates.notNull;
 
@@ -22,11 +22,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.domain.registry.bigquery.BigqueryUtils.SourceFormat;
-import com.google.domain.registry.export.ExportConstants;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.bigquery.BigqueryUtils.SourceFormat;
+import google.registry.export.ExportConstants;
 
 import java.util.ArrayList;
 import java.util.List;

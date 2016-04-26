@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.javascrap;
+package google.registry.tools.javascrap;
 
 import static com.google.common.collect.Maps.uniqueIndex;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Function;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.tools.MutatingCommand;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.EppResource;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.host.HostResource;
+import google.registry.tools.MutatingCommand;
 
 import org.joda.time.DateTime;
 

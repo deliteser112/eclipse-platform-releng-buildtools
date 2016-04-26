@@ -12,38 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain;
+package google.registry.model.domain;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainApplication;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.model.domain.launch.LaunchNotice;
-import com.google.domain.registry.model.domain.launch.LaunchPhase;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.eppcommon.AuthInfo.PasswordAuth;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.smd.EncodedSignedMark;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferData.TransferServerApproveEntity;
-import com.google.domain.registry.model.transfer.TransferStatus;
-import com.google.domain.registry.testing.ExceptionRule;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.model.EntityTestCase;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.domain.launch.LaunchNotice;
+import google.registry.model.domain.launch.LaunchPhase;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.host.HostResource;
+import google.registry.model.smd.EncodedSignedMark;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
+import google.registry.model.transfer.TransferStatus;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.money.Money;
 import org.junit.Before;

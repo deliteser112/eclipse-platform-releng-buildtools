@@ -12,26 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
-import static com.google.domain.registry.model.registry.Registries.getTlds;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.model.registry.Registries.getTlds;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppException.CommandUseErrorException;
-import com.google.domain.registry.flows.EppException.SyntaxErrorException;
-import com.google.domain.registry.flows.EppException.UnimplementedExtensionException;
-import com.google.domain.registry.model.eppcommon.ProtocolDefinition;
-import com.google.domain.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
-import com.google.domain.registry.model.eppinput.EppInput.CommandExtension;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.flows.EppException.SyntaxErrorException;
+import google.registry.flows.EppException.UnimplementedExtensionException;
+import google.registry.model.eppcommon.ProtocolDefinition;
+import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
+import google.registry.model.eppinput.EppInput.CommandExtension;
+import google.registry.model.registrar.Registrar;
+import google.registry.util.FormattingLogger;
 
 import java.util.Set;
 

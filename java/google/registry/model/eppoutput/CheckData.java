@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppoutput;
+package google.registry.model.eppoutput;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.eppoutput.Response.ResponseData;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.eppoutput.Response.ResponseData;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;

@@ -12,26 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import static com.google.domain.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
-import static com.google.domain.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
+import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
+import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
 
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.ResourceUpdateFlow;
-import com.google.domain.registry.model.contact.ContactCommand.Update;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.ContactResource.Builder;
-import com.google.domain.registry.model.reporting.HistoryEntry;
+import google.registry.flows.EppException;
+import google.registry.flows.ResourceUpdateFlow;
+import google.registry.model.contact.ContactCommand.Update;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.ContactResource.Builder;
+import google.registry.model.reporting.HistoryEntry;
 
 /**
  * An EPP flow that updates a contact resource.
  *
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException}
- * @error {@link com.google.domain.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException}
- * @error {@link com.google.domain.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException}
+ * @error {@link google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException}
+ * @error {@link google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
  * @error {@link ContactFlowUtils.BadInternationalizedPostalInfoException}
  * @error {@link ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException}
  */

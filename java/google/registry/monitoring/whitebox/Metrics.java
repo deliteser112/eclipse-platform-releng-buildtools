@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.monitoring.whitebox;
+package google.registry.monitoring.whitebox;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
-import static com.google.domain.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
+import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
 
 import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.modules.ModulesServiceFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.base.Supplier;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
-import com.google.domain.registry.util.SystemClock;
+
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.SystemClock;
 
 import java.util.HashMap;
 import java.util.Map;

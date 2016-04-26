@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.config;
+package google.registry.config;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -86,5 +86,5 @@ public enum RegistryEnvironment {
   private final RegistryConfig config = new TestRegistryConfig();
 
   /** System property for configuring which environment we should use. */
-  public static final String PROPERTY = "com.google.domain.registry.environment";
+  public static final String PROPERTY = "google.registry.environment";
 }

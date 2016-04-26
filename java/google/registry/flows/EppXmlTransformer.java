@@ -12,32 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.xml.ValidationMode.LENIENT;
-import static com.google.domain.registry.xml.ValidationMode.STRICT;
+import static google.registry.xml.ValidationMode.LENIENT;
+import static google.registry.xml.ValidationMode.STRICT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.flows.EppException.ParameterValueRangeErrorException;
-import com.google.domain.registry.flows.EppException.ParameterValueSyntaxErrorException;
-import com.google.domain.registry.flows.EppException.SyntaxErrorException;
-import com.google.domain.registry.flows.EppException.UnimplementedProtocolVersionException;
-import com.google.domain.registry.model.EppResourceUtils.InvalidRepoIdException;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.eppinput.EppInput;
-import com.google.domain.registry.model.eppinput.EppInput.WrongProtocolVersionException;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.host.InetAddressAdapter.IpVersionMismatchException;
-import com.google.domain.registry.model.translators.CurrencyUnitAdapter.UnknownCurrencyException;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.xml.ValidationMode;
-import com.google.domain.registry.xml.XmlException;
-import com.google.domain.registry.xml.XmlTransformer;
+
+import google.registry.flows.EppException.ParameterValueRangeErrorException;
+import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
+import google.registry.flows.EppException.SyntaxErrorException;
+import google.registry.flows.EppException.UnimplementedProtocolVersionException;
+import google.registry.model.EppResourceUtils.InvalidRepoIdException;
+import google.registry.model.ImmutableObject;
+import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppinput.EppInput.WrongProtocolVersionException;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.host.InetAddressAdapter.IpVersionMismatchException;
+import google.registry.model.translators.CurrencyUnitAdapter.UnknownCurrencyException;
+import google.registry.util.FormattingLogger;
+import google.registry.xml.ValidationMode;
+import google.registry.xml.XmlException;
+import google.registry.xml.XmlTransformer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

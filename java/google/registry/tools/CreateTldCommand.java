@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.model.registry.Registries.getTlds;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.registry.Registries.getTlds;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldState;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
 
 import org.joda.money.Money;
 

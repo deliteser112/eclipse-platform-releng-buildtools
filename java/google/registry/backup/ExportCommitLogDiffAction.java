@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Lists.partition;
-import static com.google.domain.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
-import static com.google.domain.registry.backup.BackupUtils.GcsMetadataKeys.NUM_TRANSACTIONS;
-import static com.google.domain.registry.backup.BackupUtils.GcsMetadataKeys.UPPER_BOUND_CHECKPOINT;
-import static com.google.domain.registry.backup.BackupUtils.serializeEntity;
-import static com.google.domain.registry.model.ofy.CommitLogBucket.getBucketKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.isAtOrAfter;
-import static com.google.domain.registry.util.FormattingLogger.getLoggerForCallerClass;
+import static google.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
+import static google.registry.backup.BackupUtils.GcsMetadataKeys.NUM_TRANSACTIONS;
+import static google.registry.backup.BackupUtils.GcsMetadataKeys.UPPER_BOUND_CHECKPOINT;
+import static google.registry.backup.BackupUtils.serializeEntity;
+import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.DateTimeUtils.isAtOrAfter;
+import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static java.nio.channels.Channels.newOutputStream;
 import static java.util.Arrays.asList;
 
@@ -38,17 +38,18 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.ofy.CommitLogBucket;
-import com.google.domain.registry.model.ofy.CommitLogCheckpoint;
-import com.google.domain.registry.model.ofy.CommitLogManifest;
-import com.google.domain.registry.model.ofy.CommitLogMutation;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.util.FormattingLogger;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.model.ImmutableObject;
+import google.registry.model.ofy.CommitLogBucket;
+import google.registry.model.ofy.CommitLogCheckpoint;
+import google.registry.model.ofy.CommitLogManifest;
+import google.registry.model.ofy.CommitLogMutation;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 

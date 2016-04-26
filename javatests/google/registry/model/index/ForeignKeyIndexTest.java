@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.index;
+package google.registry.model.index;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
-import com.google.domain.registry.testing.ExceptionRule;
 
 import com.googlecode.objectify.Ref;
+
+import google.registry.model.EntityTestCase;
+import google.registry.model.host.HostResource;
+import google.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
+import google.registry.testing.ExceptionRule;
 
 import org.junit.Before;
 import org.junit.Rule;

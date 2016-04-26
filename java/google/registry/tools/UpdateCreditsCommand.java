@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.bigquery.BigqueryUtils.fromBigqueryTimestampString;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.bigquery.BigqueryUtils.fromBigqueryTimestampString;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
-import com.google.domain.registry.model.billing.RegistrarCredit;
-import com.google.domain.registry.model.billing.RegistrarCreditBalance;
-import com.google.domain.registry.model.billing.RegistrarCreditBalance.BalanceMap;
-import com.google.domain.registry.model.registrar.Registrar;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.billing.RegistrarCredit;
+import google.registry.model.billing.RegistrarCreditBalance;
+import google.registry.model.billing.RegistrarCreditBalance.BalanceMap;
+import google.registry.model.registrar.Registrar;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

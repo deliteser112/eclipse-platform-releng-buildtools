@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.registry.Registries.assertTldExists;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardMinutes;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.tools.params.DateTimeParameter;
-import com.google.domain.registry.tools.server.GenerateZoneFilesAction;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.params.DateTimeParameter;
+import google.registry.tools.server.GenerateZoneFilesAction;
 
 import org.joda.time.DateTime;
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * <p>When this annotation is used on methods, it means that you should not override the method
  * and it's only non-{@code final} so it can be mocked.
  *
- * @see com.google.domain.registry.testing.InjectRule
+ * @see google.registry.testing.InjectRule
  */
 @Documented
 @Retention(SOURCE)

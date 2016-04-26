@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
-
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.server.ListRegistrarsAction;
+package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.server.ListRegistrarsAction;
 
 /** Command to list all registrars. */
 @Parameters(separators = " =", commandDescription = "List all registrars.")

@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.mapreduce.inputs;
+package google.registry.mapreduce.inputs;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.all;
 import static com.google.common.collect.Lists.asList;
-import static com.google.domain.registry.util.TypeUtils.hasAnnotation;
+import static google.registry.util.TypeUtils.hasAnnotation;
 
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.index.EppResourceIndex;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.EntitySubclass;
+
+import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
+import google.registry.model.index.EppResourceIndex;
 
 /**
  * Mapreduce helpers for {@link EppResource} keys and objects.

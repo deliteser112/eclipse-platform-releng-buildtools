@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.DiscreteDomain.integers;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
 import static com.googlecode.objectify.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
@@ -26,16 +26,17 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Range;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.annotations.NotBackedUp;
-import com.google.domain.registry.model.annotations.NotBackedUp.Reason;
-import com.google.domain.registry.util.NonFinalForTesting;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.Buildable;
+import google.registry.model.ImmutableObject;
+import google.registry.model.annotations.NotBackedUp;
+import google.registry.model.annotations.NotBackedUp.Reason;
+import google.registry.util.NonFinalForTesting;
 
 import org.joda.time.DateTime;
 
@@ -45,7 +46,7 @@ import java.util.Random;
  * Root for a random commit log bucket.
  *
  * <p>This is used to shard {@link CommitLogManifest} objects into
- * {@link com.google.domain.registry.config.RegistryConfig#getCommitLogBucketCount() N} entity
+ * {@link google.registry.config.RegistryConfig#getCommitLogBucketCount() N} entity
  * groups. This increases transaction throughput, while maintaining the ability to perform
  * strongly-consistent ancestor queries.
  *

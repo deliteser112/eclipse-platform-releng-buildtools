@@ -12,28 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
-import static com.google.domain.registry.flows.EppXmlTransformer.unmarshal;
-import static com.google.domain.registry.flows.FlowRegistry.getFlowClass;
+import static google.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
+import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.flows.FlowRegistry.getFlowClass;
 
 import com.google.apphosting.api.ApiProxy;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.flows.FlowRunner.CommitMode;
-import com.google.domain.registry.flows.FlowRunner.UserPrivileges;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.eppinput.EppInput;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.eppoutput.Response;
-import com.google.domain.registry.model.eppoutput.Result;
-import com.google.domain.registry.model.eppoutput.Result.Code;
-import com.google.domain.registry.monitoring.whitebox.EppMetrics;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.SystemClock;
+
+import google.registry.flows.FlowRunner.CommitMode;
+import google.registry.flows.FlowRunner.UserPrivileges;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.Response;
+import google.registry.model.eppoutput.Result;
+import google.registry.model.eppoutput.Result.Code;
+import google.registry.monitoring.whitebox.EppMetrics;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
+import google.registry.util.SystemClock;
 
 /**
  * The EppController class, which implements the state machine for the EPP command/response

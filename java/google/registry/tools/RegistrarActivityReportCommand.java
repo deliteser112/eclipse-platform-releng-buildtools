@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.google.api.services.bigquery.model.Job;
 import com.google.api.services.bigquery.model.JobConfiguration;
 import com.google.api.services.bigquery.model.JobConfigurationExtract;
 import com.google.api.services.bigquery.model.JobConfigurationQuery;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.bigquery.BigqueryConnection;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.util.SqlTemplate;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
+
+import google.registry.bigquery.BigqueryConnection;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.util.SqlTemplate;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;

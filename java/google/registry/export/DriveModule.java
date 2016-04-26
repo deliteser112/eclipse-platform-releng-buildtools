@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static dagger.Provides.Type.SET_VALUES;
 
@@ -21,22 +21,23 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.request.OAuthScopes;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.request.OAuthScopes;
 
 import java.util.Set;
 
 /**
  * Dagger module for Google {@link Drive} service connection objects.
  *
- * @see com.google.domain.registry.config.ConfigModule
- * @see com.google.domain.registry.request.Modules.UrlFetchTransportModule
- * @see com.google.domain.registry.request.Modules.Jackson2Module
- * @see com.google.domain.registry.request.Modules.AppIdentityCredentialModule
- * @see com.google.domain.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule
+ * @see google.registry.config.ConfigModule
+ * @see google.registry.request.Modules.UrlFetchTransportModule
+ * @see google.registry.request.Modules.Jackson2Module
+ * @see google.registry.request.Modules.AppIdentityCredentialModule
+ * @see google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule
  */
 @Module
 public final class DriveModule {

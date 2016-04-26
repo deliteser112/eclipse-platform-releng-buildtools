@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.request.Action.Method.POST;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
-import static com.google.domain.registry.util.RegistrarUtils.normalizeClientId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.request.Action.Method.POST;
+import static google.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.RegistrarUtils.normalizeClientId;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
@@ -27,17 +27,18 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.groups.GroupsConnection;
-import com.google.domain.registry.groups.GroupsConnection.Role;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.Concurrent;
-import com.google.domain.registry.util.FormattingLogger;
 
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.groups.GroupsConnection;
+import google.registry.groups.GroupsConnection.Role;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.request.Action;
+import google.registry.request.Response;
+import google.registry.util.Concurrent;
+import google.registry.util.FormattingLogger;
 
 import java.io.IOException;
 import java.util.ArrayList;

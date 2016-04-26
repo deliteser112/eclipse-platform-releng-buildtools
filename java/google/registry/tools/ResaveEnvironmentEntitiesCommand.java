@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.collect.Iterables.concat;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.model.registry.Registry;
+import google.registry.tools.Command.RemoteApiCommand;
 
 /**
  * Command to re-save all environment entities to ensure that they have valid commit logs.

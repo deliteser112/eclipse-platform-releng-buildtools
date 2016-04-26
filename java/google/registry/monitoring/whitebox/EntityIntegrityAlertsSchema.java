@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.monitoring.whitebox;
+package google.registry.monitoring.whitebox;
 
-import static com.google.domain.registry.bigquery.BigqueryUtils.FieldType.STRING;
-import static com.google.domain.registry.bigquery.BigqueryUtils.FieldType.TIMESTAMP;
+import static google.registry.bigquery.BigqueryUtils.FieldType.STRING;
+import static google.registry.bigquery.BigqueryUtils.FieldType.TIMESTAMP;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.collect.ImmutableList;

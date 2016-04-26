@@ -12,26 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
-import static com.google.domain.registry.util.CollectionUtils.difference;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.CollectionUtils.difference;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppoutput.Response.ResponseData;
-import com.google.domain.registry.model.ofy.CommitLogManifest;
-import com.google.domain.registry.model.transfer.TransferData;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppoutput.Response.ResponseData;
+import google.registry.model.ofy.CommitLogManifest;
+import google.registry.model.transfer.TransferData;
 
 import org.joda.time.DateTime;
 
@@ -129,7 +130,7 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
    * <p><b>Note:</b> Only the last revision on a given date is stored. The key is the transaction
    * timestamp, not midnight.
    *
-   * @see com.google.domain.registry.model.translators.CommitLogRevisionsTranslatorFactory
+   * @see google.registry.model.translators.CommitLogRevisionsTranslatorFactory
    */
   @XmlTransient
   ImmutableSortedMap<DateTime, Ref<CommitLogManifest>> revisions = ImmutableSortedMap.of();

@@ -17,7 +17,7 @@
     xmlns = @XmlNs(prefix = "rgp", namespaceURI = "urn:ietf:params:xml:ns:rgp-1.0"),
     elementFormDefault = XmlNsForm.QUALIFIED)
 @XmlAccessorType(XmlAccessType.FIELD)
-package com.google.domain.registry.model.domain.rgp;
+package google.registry.model.domain.rgp;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

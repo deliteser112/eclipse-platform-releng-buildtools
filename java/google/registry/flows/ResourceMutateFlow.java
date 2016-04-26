@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
 
-import com.google.domain.registry.flows.EppException.ObjectDoesNotExistException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
+import google.registry.flows.EppException.ObjectDoesNotExistException;
+import google.registry.model.EppResource;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 /**
  * An EPP flow that mutates a single stored resource.

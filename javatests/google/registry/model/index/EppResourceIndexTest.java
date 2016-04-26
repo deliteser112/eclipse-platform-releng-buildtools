@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.index;
+package google.registry.model.index;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.contact.ContactResource;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.EntityTestCase;
+import google.registry.model.contact.ContactResource;
 
 import org.junit.Before;
 import org.junit.Test;

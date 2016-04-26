@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static org.joda.time.DateTimeZone.UTC;
-
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
+
+import google.registry.model.EppResource;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 import org.joda.time.DateTime;
 

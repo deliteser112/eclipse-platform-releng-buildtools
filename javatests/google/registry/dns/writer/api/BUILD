@@ -1,4 +1,7 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_testonly = 1,
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 

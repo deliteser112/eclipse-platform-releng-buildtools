@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.in;
@@ -20,21 +20,22 @@ import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Maps.filterKeys;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
-import static com.google.domain.registry.model.ofy.CommitLogBucket.loadBucket;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
 import static com.googlecode.objectify.ObjectifyService.ofy;
+import static google.registry.model.ofy.CommitLogBucket.loadBucket;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.BackupGroupRoot;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.util.Clock;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
+
+import google.registry.model.BackupGroupRoot;
+import google.registry.model.ImmutableObject;
+import google.registry.util.Clock;
 
 import org.joda.time.DateTime;
 

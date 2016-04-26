@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppcommon;
+package google.registry.model.eppcommon;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.JsonMapBuilder;
-import com.google.domain.registry.model.Jsonifiable;
+
+import google.registry.model.Buildable;
+import google.registry.model.ImmutableObject;
+import google.registry.model.JsonMapBuilder;
+import google.registry.model.Jsonifiable;
 
 import java.util.List;
 import java.util.Map;
@@ -39,9 +40,9 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * This is the "addrType" type from {@link "http://tools.ietf.org/html/rfc5733"}. It also matches
  * the "addrType" type from {@link "http://tools.ietf.org/html/draft-lozano-tmch-smd"}.
  *
- * @see com.google.domain.registry.model.contact.ContactAddress
- * @see com.google.domain.registry.model.mark.MarkAddress
- * @see com.google.domain.registry.model.registrar.RegistrarAddress
+ * @see google.registry.model.contact.ContactAddress
+ * @see google.registry.model.mark.MarkAddress
+ * @see google.registry.model.registrar.RegistrarAddress
  */
 @XmlTransient
 public class Address extends ImmutableObject implements Jsonifiable {

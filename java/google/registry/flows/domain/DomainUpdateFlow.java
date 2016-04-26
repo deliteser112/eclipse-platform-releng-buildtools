@@ -12,27 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 import static com.google.common.collect.Sets.symmetricDifference;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.earliestOf;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.earliestOf;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.dns.DnsQueue;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.BillingEvent.Reason;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.DomainResource.Builder;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.domain.metadata.MetadataExtension;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.domain.secdns.SecDnsUpdateExtension;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.reporting.HistoryEntry;
+
+import google.registry.dns.DnsQueue;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainResource.Builder;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.domain.secdns.SecDnsUpdateExtension;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.registry.Registry;
+import google.registry.model.reporting.HistoryEntry;
 
 import org.joda.time.DateTime;
 
@@ -41,15 +42,15 @@ import java.util.Set;
 /**
  * An EPP flow that updates a domain resource.
  *
- * @error {@link com.google.domain.registry.flows.EppException.UnimplementedExtensionException}
- * @error {@link com.google.domain.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException}
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.ResourceUpdateFlow.AddRemoveSameValueEppException}
- * @error {@link com.google.domain.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException}
- * @error {@link com.google.domain.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException}
- * @error {@link com.google.domain.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
+ * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
+ * @error {@link google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceUpdateFlow.AddRemoveSameValueEppException}
+ * @error {@link google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException}
+ * @error {@link google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException}
+ * @error {@link google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
  * @error {@link BaseDomainUpdateFlow.EmptySecDnsUpdateException}
  * @error {@link BaseDomainUpdateFlow.MaxSigLifeChangeNotSupportedException}
  * @error {@link BaseDomainUpdateFlow.SecDnsAllUsageException}

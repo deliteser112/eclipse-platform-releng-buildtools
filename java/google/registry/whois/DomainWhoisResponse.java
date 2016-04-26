@@ -12,30 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.tryFind;
-import static com.google.domain.registry.util.CollectionUtils.isNullOrEmpty;
-import static com.google.domain.registry.xml.UtcDateTimeAdapter.getFormattedString;
+import static google.registry.util.CollectionUtils.isNullOrEmpty;
+import static google.registry.xml.UtcDateTimeAdapter.getFormattedString;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.contact.ContactPhoneNumber;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.PostalInfo;
-import com.google.domain.registry.model.domain.DesignatedContact;
-import com.google.domain.registry.model.domain.DesignatedContact.Type;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.translators.EnumToAttributeAdapter.EppEnum;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.model.contact.ContactPhoneNumber;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.PostalInfo;
+import google.registry.model.domain.DesignatedContact;
+import google.registry.model.domain.DesignatedContact.Type;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 

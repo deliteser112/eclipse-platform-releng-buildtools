@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.CommitLogBucket.getBucketKey;
-import static com.google.domain.registry.model.ofy.CommitLogBucket.loadAllBuckets;
-import static com.google.domain.registry.model.ofy.CommitLogBucket.loadBucket;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
+import static google.registry.model.ofy.CommitLogBucket.loadAllBuckets;
+import static google.registry.model.ofy.CommitLogBucket.loadBucket;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.config.TestRegistryConfig;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.RegistryConfigRule;
 
 import com.googlecode.objectify.annotation.Cache;
+
+import google.registry.config.TestRegistryConfig;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.InjectRule;
+import google.registry.testing.RegistryConfigRule;
 
 import org.junit.Before;
 import org.junit.Rule;

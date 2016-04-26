@@ -12,49 +12,50 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.RegistrarBillingEntry;
-import com.google.domain.registry.model.billing.RegistrarCredit;
-import com.google.domain.registry.model.billing.RegistrarCreditBalance;
-import com.google.domain.registry.model.common.EntityGroupRoot;
-import com.google.domain.registry.model.common.GaeUserIdConverter;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.export.LogsExportCursor;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.index.DomainApplicationIndex;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.index.EppResourceIndexBucket;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
-import com.google.domain.registry.model.ofy.CommitLogBucket;
-import com.google.domain.registry.model.ofy.CommitLogCheckpoint;
-import com.google.domain.registry.model.ofy.CommitLogCheckpointRoot;
-import com.google.domain.registry.model.ofy.CommitLogManifest;
-import com.google.domain.registry.model.ofy.CommitLogMutation;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.rde.RdeRevision;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.RegistryCursor;
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.model.registry.label.ReservedList;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.server.Lock;
-import com.google.domain.registry.model.server.ServerSecret;
-import com.google.domain.registry.model.smd.SignedMarkRevocationList;
-import com.google.domain.registry.model.tmch.ClaimsListShard;
-import com.google.domain.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
-import com.google.domain.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
-import com.google.domain.registry.model.tmch.TmchCrl;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.RegistrarBillingEntry;
+import google.registry.model.billing.RegistrarCredit;
+import google.registry.model.billing.RegistrarCreditBalance;
+import google.registry.model.common.EntityGroupRoot;
+import google.registry.model.common.GaeUserIdConverter;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.export.LogsExportCursor;
+import google.registry.model.host.HostResource;
+import google.registry.model.index.DomainApplicationIndex;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.index.EppResourceIndexBucket;
+import google.registry.model.index.ForeignKeyIndex;
+import google.registry.model.ofy.CommitLogBucket;
+import google.registry.model.ofy.CommitLogCheckpoint;
+import google.registry.model.ofy.CommitLogCheckpointRoot;
+import google.registry.model.ofy.CommitLogManifest;
+import google.registry.model.ofy.CommitLogMutation;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.rde.RdeRevision;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.RegistryCursor;
+import google.registry.model.registry.label.PremiumList;
+import google.registry.model.registry.label.ReservedList;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.server.Lock;
+import google.registry.model.server.ServerSecret;
+import google.registry.model.smd.SignedMarkRevocationList;
+import google.registry.model.tmch.ClaimsListShard;
+import google.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
+import google.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
+import google.registry.model.tmch.TmchCrl;
 
 /** Sets of classes of the Objectify-registered entities in use throughout the model. */
 public final class EntityClasses {

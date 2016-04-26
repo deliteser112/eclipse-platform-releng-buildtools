@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.mapreduce.inputs;
+package google.registry.mapreduce.inputs;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.tools.mapreduce.Input;

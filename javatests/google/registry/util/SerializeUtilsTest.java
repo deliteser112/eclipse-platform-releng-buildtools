@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.util.SerializeUtils.deserialize;
-import static com.google.domain.registry.util.SerializeUtils.serialize;
+import static google.registry.util.SerializeUtils.deserialize;
+import static google.registry.util.SerializeUtils.serialize;
 
-import com.google.domain.registry.testing.ExceptionRule;
+import google.registry.testing.ExceptionRule;
 
 import org.junit.Rule;
 import org.junit.Test;

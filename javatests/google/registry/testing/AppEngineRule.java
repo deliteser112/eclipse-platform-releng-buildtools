@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import static com.google.common.truth.Truth.assert_;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.json.XML.toJSONObject;
 
@@ -32,14 +32,15 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import com.google.domain.registry.model.ofy.ObjectifyService;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.Registrar.State;
-import com.google.domain.registry.model.registrar.RegistrarAddress;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.util.Clock;
 
 import com.googlecode.objectify.ObjectifyFilter;
+
+import google.registry.model.ofy.ObjectifyService;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
+import google.registry.model.registrar.RegistrarAddress;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.util.Clock;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -82,12 +83,12 @@ public final class AppEngineRule extends ExternalResource {
    * in here and write it to a temporary file later.
    */
   private static final String QUEUE_XML =
-      readResourceUtf8("com/google/domain/registry/env/common/default/WEB-INF/queue.xml");
+      readResourceUtf8("google/registry/env/common/default/WEB-INF/queue.xml");
 
   /** A parsed version of the indexes used in the prod code. */
   private static final Set<String> MANUAL_INDEXES = getIndexXmlStrings(
       readResourceUtf8(
-          "com/google/domain/registry/env/common/default/WEB-INF/datastore-indexes.xml"));
+          "google/registry/env/common/default/WEB-INF/datastore-indexes.xml"));
 
   private static final String LOGGING_PROPERTIES =
       readResourceUtf8(AppEngineRule.class, "logging.properties");

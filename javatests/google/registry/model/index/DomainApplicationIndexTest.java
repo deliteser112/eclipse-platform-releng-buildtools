@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.index;
+package google.registry.model.index;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.index.DomainApplicationIndex.createUpdatedInstance;
-import static com.google.domain.registry.model.index.DomainApplicationIndex.createWithSpecifiedReferences;
-import static com.google.domain.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleGlobalResource;
+import static google.registry.model.index.DomainApplicationIndex.createUpdatedInstance;
+import static google.registry.model.index.DomainApplicationIndex.createWithSpecifiedReferences;
+import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainApplication;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResource;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.testing.ExceptionRule;
 
 import com.googlecode.objectify.Ref;
+
+import google.registry.model.EntityTestCase;
+import google.registry.model.domain.DomainApplication;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

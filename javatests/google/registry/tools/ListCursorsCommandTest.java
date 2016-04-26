@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.RegistryCursor;
-import com.google.domain.registry.model.registry.RegistryCursor.CursorType;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.beust.jcommander.ParameterException;
+
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.RegistryCursor;
+import google.registry.model.registry.RegistryCursor.CursorType;
 
 import org.joda.time.DateTime;
 import org.junit.Test;

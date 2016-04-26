@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
-import static com.google.domain.registry.bigquery.BigqueryUtils.toJobReferenceString;
+import static google.registry.bigquery.BigqueryUtils.toJobReferenceString;
 
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Job;
@@ -25,15 +25,16 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Header;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.NotModifiedException;
-import com.google.domain.registry.request.Payload;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.TaskEnqueuer;
 
 import dagger.Lazy;
+
+import google.registry.request.Action;
+import google.registry.request.Header;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.NotModifiedException;
+import google.registry.request.Payload;
+import google.registry.util.FormattingLogger;
+import google.registry.util.TaskEnqueuer;
 
 import org.joda.time.Duration;
 

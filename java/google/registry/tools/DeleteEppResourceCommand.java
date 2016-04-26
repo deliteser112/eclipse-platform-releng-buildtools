@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.tools.params.EppResourceTypeParameter;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
+
+import google.registry.model.EppResource;
+import google.registry.model.index.ForeignKeyIndex;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.tools.params.EppResourceTypeParameter;
 
 import org.joda.time.DateTime;
 

@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarAddress;
-import com.google.domain.registry.xjc.contact.XjcContactE164Type;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrar;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrarAddrType;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrarElement;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrarPostalInfoEnumType;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrarPostalInfoType;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrarStatusType;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrarWhoisInfoType;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarAddress;
+import google.registry.xjc.contact.XjcContactE164Type;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrarAddrType;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrarElement;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrarPostalInfoEnumType;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrarPostalInfoType;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrarStatusType;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrarWhoisInfoType;
 
 import java.math.BigInteger;
 

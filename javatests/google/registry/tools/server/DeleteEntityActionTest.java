@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.appengine.api.datastore.DatastoreServiceFactory.getDatastoreService;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import static com.googlecode.objectify.Key.create;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.domain.registry.model.registry.label.ReservedList;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeResponse;
+
+import google.registry.model.registry.label.ReservedList;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeResponse;
 
 import org.junit.Before;
 import org.junit.Rule;

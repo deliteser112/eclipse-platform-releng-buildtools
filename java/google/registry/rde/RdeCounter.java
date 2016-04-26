@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.filter;
 
-import com.google.domain.registry.model.rde.RdeMode;
-import com.google.domain.registry.xjc.rde.XjcRdeDepositTypeType;
-import com.google.domain.registry.xjc.rdeheader.XjcRdeHeader;
-import com.google.domain.registry.xjc.rdeheader.XjcRdeHeaderCount;
-import com.google.domain.registry.xjc.rdeheader.XjcRdeHeaderElement;
-import com.google.domain.registry.xjc.rdereport.XjcRdeReport;
+import google.registry.model.rde.RdeMode;
+import google.registry.xjc.rde.XjcRdeDepositTypeType;
+import google.registry.xjc.rdeheader.XjcRdeHeader;
+import google.registry.xjc.rdeheader.XjcRdeHeaderCount;
+import google.registry.xjc.rdeheader.XjcRdeHeaderElement;
+import google.registry.xjc.rdereport.XjcRdeReport;
 
 import org.joda.time.DateTime;
 

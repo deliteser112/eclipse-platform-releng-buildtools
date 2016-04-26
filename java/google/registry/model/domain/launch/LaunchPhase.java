@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.launch;
+package google.registry.model.domain.launch;
 
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
-import static com.google.domain.registry.util.TypeUtils.getTypesafeEnumMapping;
+import static google.registry.util.TypeUtils.getTypesafeEnumMapping;
 import static java.util.Objects.hash;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.ImmutableObject;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.ImmutableObject;
 
 import java.util.Map;
 import java.util.Map.Entry;

@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.google.common.base.Preconditions;
-import com.google.domain.registry.model.annotations.ExternalMessagingName;
-import com.google.domain.registry.model.eppinput.EppInput.InnerCommand;
-import com.google.domain.registry.model.eppinput.ResourceCommand;
-import com.google.domain.registry.model.eppoutput.Result;
-import com.google.domain.registry.model.eppoutput.Result.Code;
+
+import google.registry.model.annotations.ExternalMessagingName;
+import google.registry.model.eppinput.EppInput.InnerCommand;
+import google.registry.model.eppinput.ResourceCommand;
+import google.registry.model.eppoutput.Result;
+import google.registry.model.eppoutput.Result.Code;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;

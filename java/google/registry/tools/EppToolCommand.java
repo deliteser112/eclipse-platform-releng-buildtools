@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -20,11 +20,11 @@ import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Maps.filterValues;
 import static com.google.common.io.Resources.getResource;
-import static com.google.domain.registry.flows.EppServletUtils.APPLICATION_EPP_XML_UTF8;
-import static com.google.domain.registry.model.registry.Registries.findTldForNameOrThrow;
-import static com.google.domain.registry.tools.CommandUtilities.addHeader;
-import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
-import static com.google.domain.registry.xml.XmlTransformer.prettyPrint;
+import static google.registry.flows.EppServletUtils.APPLICATION_EPP_XML_UTF8;
+import static google.registry.model.registry.Registries.findTldForNameOrThrow;
+import static google.registry.tools.CommandUtilities.addHeader;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.xml.XmlTransformer.prettyPrint;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Joiner;
@@ -32,13 +32,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.model.registrar.Registrar;
 import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.data.SoyRecord;
 import com.google.template.soy.parseinfo.SoyFileInfo;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
 
 import com.beust.jcommander.Parameter;
+
+import google.registry.model.registrar.Registrar;
 
 import java.io.IOException;
 import java.util.ArrayList;

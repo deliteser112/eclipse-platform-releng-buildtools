@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.security.JsonHttpTestUtils.createJsonPayload;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT2;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT2_HASH;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT2;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT2_HASH;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.registrar.Registrar;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.registrar.Registrar;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

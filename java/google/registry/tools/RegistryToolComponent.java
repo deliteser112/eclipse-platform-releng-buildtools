@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
-
-import com.google.domain.registry.config.ConfigModule;
-import com.google.domain.registry.keyring.api.KeyModule;
-import com.google.domain.registry.keyring.api.VoidKeyringModule;
-import com.google.domain.registry.request.Modules.DatastoreServiceModule;
-import com.google.domain.registry.request.Modules.Jackson2Module;
-import com.google.domain.registry.request.Modules.URLFetchServiceModule;
-import com.google.domain.registry.util.SystemClock.SystemClockModule;
+package google.registry.tools;
 
 import dagger.Component;
+
+import google.registry.config.ConfigModule;
+import google.registry.keyring.api.KeyModule;
+import google.registry.keyring.api.VoidKeyringModule;
+import google.registry.request.Modules.DatastoreServiceModule;
+import google.registry.request.Modules.Jackson2Module;
+import google.registry.request.Modules.URLFetchServiceModule;
+import google.registry.util.SystemClock.SystemClockModule;
 
 /**
  * Dagger component for Registry Tool.

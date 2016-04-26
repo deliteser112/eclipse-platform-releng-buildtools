@@ -12,42 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
-import static com.google.domain.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
+import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.CommandUseErrorException;
-import com.google.domain.registry.flows.EppException.StatusProhibitsOperationException;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.BillingEvent.Reason;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainResource.Builder;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.domain.fee.FeeCreateExtension;
-import com.google.domain.registry.model.domain.launch.LaunchCreateExtension;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.tmch.LordnTask;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainResource.Builder;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.fee.FeeCreateExtension;
+import google.registry.model.domain.launch.LaunchCreateExtension;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.tmch.LordnTask;
 
 import java.util.Set;
 
 /**
  * An EPP flow that creates a new domain resource.
  *
- * @error {@link com.google.domain.registry.flows.EppException.UnimplementedExtensionException}
- * @error {@link com.google.domain.registry.flows.LoggedInFlow.UndeclaredServiceExtensionException}
- * @error {@link com.google.domain.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException}
- * @error {@link com.google.domain.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException}
- * @error {@link com.google.domain.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException}
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
+ * @error {@link google.registry.flows.LoggedInFlow.UndeclaredServiceExtensionException}
+ * @error {@link google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException}
+ * @error {@link google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException}
+ * @error {@link google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link BaseDomainCreateFlow.AcceptedTooLongAgoException}
  * @error {@link BaseDomainCreateFlow.ClaimsPeriodEndedException}
  * @error {@link BaseDomainCreateFlow.ExpiredClaimException}

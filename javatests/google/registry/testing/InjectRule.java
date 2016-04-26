@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -37,7 +37,7 @@ import javax.annotation.Nullable;
  * update the injection site.
  *
  * <p>We encourage you to consider using
- * {@link com.google.domain.registry.util.NonFinalForTesting &#064;NonFinalForTesting}
+ * {@link google.registry.util.NonFinalForTesting &#064;NonFinalForTesting}
  * to document your injected fields.
  *
  * <p>This class is a horrible evil hack, but it alleviates you of the toil of
@@ -88,7 +88,7 @@ import javax.annotation.Nullable;
  * }
  * </pre>
  *
- * @see com.google.domain.registry.util.NonFinalForTesting
+ * @see google.registry.util.NonFinalForTesting
  * @see org.junit.rules.ExternalResource
  */
 public class InjectRule extends ExternalResource {

@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.request.Action.Method.GET;
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.request.Action.Method.GET;
+import static google.registry.request.Action.Method.POST;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.request.Action;
+
+import google.registry.model.registry.label.PremiumList;
+import google.registry.request.Action;
 
 import javax.inject.Inject;
 

@@ -12,26 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Verify.verify;
-import static com.google.domain.registry.security.JsonResponseHelper.Status.ERROR;
-import static com.google.domain.registry.security.JsonResponseHelper.Status.SUCCESS;
+import static google.registry.security.JsonResponseHelper.Status.ERROR;
+import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 import static java.util.Arrays.asList;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.JsonActionRunner;
-import com.google.domain.registry.request.JsonActionRunner.JsonAction;
-import com.google.domain.registry.security.JsonResponseHelper;
-import com.google.domain.registry.ui.forms.FormField;
-import com.google.domain.registry.ui.forms.FormFieldException;
-import com.google.domain.registry.util.FormattingLogger;
 
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.Result;
@@ -39,6 +30,16 @@ import com.braintreegateway.Transaction;
 import com.braintreegateway.TransactionRequest;
 import com.braintreegateway.ValidationError;
 import com.braintreegateway.ValidationErrors;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.model.registrar.Registrar;
+import google.registry.request.Action;
+import google.registry.request.JsonActionRunner;
+import google.registry.request.JsonActionRunner.JsonAction;
+import google.registry.security.JsonResponseHelper;
+import google.registry.ui.forms.FormField;
+import google.registry.ui.forms.FormFieldException;
+import google.registry.util.FormattingLogger;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.IllegalCurrencyException;

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.common;
+package google.registry.model.common;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-
-import com.google.domain.registry.testing.AppEngineRule;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.testing.AppEngineRule;
 
 import org.junit.After;
 import org.junit.Rule;

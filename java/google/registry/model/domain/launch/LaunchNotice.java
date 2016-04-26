@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.launch;
+package google.registry.model.domain.launch;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.hash.Hashing.crc32;
@@ -23,11 +23,12 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import com.google.common.primitives.Ints;
-import com.google.domain.registry.model.ImmutableObject;
 
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfNull;
+
+import google.registry.model.ImmutableObject;
 
 import org.joda.time.DateTime;
 

@@ -12,36 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import static com.google.domain.registry.model.EppResourceUtils.queryDomainsUsingResource;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.EppResourceUtils.queryDomainsUsingResource;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.ResourceAsyncDeleteFlow;
-import com.google.domain.registry.flows.async.AsyncFlowUtils;
-import com.google.domain.registry.flows.async.DeleteContactResourceAction;
-import com.google.domain.registry.flows.async.DeleteEppResourceAction;
-import com.google.domain.registry.model.contact.ContactCommand.Delete;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.ContactResource.Builder;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.reporting.HistoryEntry;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.flows.EppException;
+import google.registry.flows.ResourceAsyncDeleteFlow;
+import google.registry.flows.async.AsyncFlowUtils;
+import google.registry.flows.async.DeleteContactResourceAction;
+import google.registry.flows.async.DeleteEppResourceAction;
+import google.registry.model.contact.ContactCommand.Delete;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.ContactResource.Builder;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.reporting.HistoryEntry;
 
 /**
  * An EPP flow that deletes a contact resource.
  *
- * @error {@link com.google.domain.registry.flows.ResourceAsyncDeleteFlow.ResourceToDeleteIsReferencedException}
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
+ * @error {@link google.registry.flows.ResourceAsyncDeleteFlow.ResourceToDeleteIsReferencedException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
  */
 public class ContactDeleteFlow extends ResourceAsyncDeleteFlow<ContactResource, Builder, Delete> {
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
 import dagger.Module;
 import dagger.Provides;
@@ -28,10 +28,10 @@ import javax.servlet.http.HttpServletRequest;
  * <h3>Dependencies</h3>
  *
  * <ul>
- * <li>{@link com.google.domain.registry.request.RequestModule RequestModule}
+ * <li>{@link google.registry.request.RequestModule RequestModule}
  * </ul>
  *
- * @see "com.google.domain.registry.module.frontend.FrontendComponent"
+ * @see "google.registry.module.frontend.FrontendComponent"
  */
 @Module
 public final class WhoisModule {

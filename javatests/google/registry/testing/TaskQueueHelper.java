@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import static com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig.getLocalTaskQueue;
 import static com.google.common.base.Preconditions.checkState;
@@ -23,7 +23,7 @@ import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Multisets.containsOccurrences;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
-import static com.google.domain.registry.util.DiffUtils.prettyPrintDeepDiff;
+import static google.registry.util.DiffUtils.prettyPrintDeepDiff;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
@@ -42,7 +42,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.dns.DnsConstants;
+
+import google.registry.dns.DnsConstants;
 
 import org.joda.time.Duration;
 

@@ -12,27 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import static com.google.domain.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
-import static com.google.domain.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
-import static com.google.domain.registry.model.EppResourceUtils.createContactHostRoid;
-import static com.google.domain.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
+import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
+import static google.registry.model.EppResourceUtils.createContactHostRoid;
+import static google.registry.model.eppoutput.Result.Code.Success;
 
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.ResourceCreateFlow;
-import com.google.domain.registry.model.contact.ContactCommand.Create;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.ContactResource.Builder;
-import com.google.domain.registry.model.eppoutput.CreateData.ContactCreateData;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.ofy.ObjectifyService;
-import com.google.domain.registry.model.reporting.HistoryEntry;
+import google.registry.flows.EppException;
+import google.registry.flows.ResourceCreateFlow;
+import google.registry.model.contact.ContactCommand.Create;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.ContactResource.Builder;
+import google.registry.model.eppoutput.CreateData.ContactCreateData;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.ofy.ObjectifyService;
+import google.registry.model.reporting.HistoryEntry;
 
 /**
  * An EPP flow that creates a new contact resource.
  *
- * @error {@link com.google.domain.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException}
+ * @error {@link google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException}
  * @error {@link ContactFlowUtils.BadInternationalizedPostalInfoException}
  * @error {@link ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException}
  */

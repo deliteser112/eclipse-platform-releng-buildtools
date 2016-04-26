@@ -12,27 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Lists.partition;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.request.Action.Method.POST;
-import static com.google.domain.registry.util.PipelineUtils.createJobPath;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.request.Action.Method.POST;
+import static google.registry.util.PipelineUtils.createJobPath;
 
+import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.inputs.InMemoryInput;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.mapreduce.MapreduceAction;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.model.ofy.CommitLogBucket;
-import com.google.domain.registry.model.ofy.CommitLogCheckpointRoot;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Response;
+import com.google.common.collect.Lists;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.mapreduce.MapreduceAction;
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.model.ofy.CommitLogBucket;
+import google.registry.model.ofy.CommitLogCheckpointRoot;
+import google.registry.request.Action;
+import google.registry.request.Response;
 
 import java.util.Arrays;
 
@@ -47,27 +49,27 @@ public class KillAllCommitLogsAction implements MapreduceAction {
   @Inject KillAllCommitLogsAction() {}
 
   @Override
-  public final void run() {
+  public void run() {
     checkArgument( // safety
         RegistryEnvironment.get() == RegistryEnvironment.CRASH
             || RegistryEnvironment.get() == RegistryEnvironment.UNITTEST,
         "DO NOT RUN ANYWHERE ELSE EXCEPT CRASH OR TESTS.");
+    // Create a in-memory input, assigning each bucket to its own shard for maximum parallelization,
+    // with one extra shard for the CommitLogCheckpointRoot.
+    Input<Key<?>> input = new InMemoryInput<>(
+        Lists.partition(
+            FluentIterable
+                .from(Arrays.<Key<?>>asList(CommitLogCheckpointRoot.getKey()))
+                .append(CommitLogBucket.getAllBucketKeys())
+                .toList(),
+            1));
     response.sendJavaScriptRedirect(createJobPath(mrRunner
-        .setJobName("Delete all commit logs and checkpoints")
+        .setJobName("Delete all commit logs")
         .setModuleName("tools")
         .runMapreduce(
             new KillAllCommitLogsMapper(),
             new KillAllEntitiesReducer(),
-            // Create a in-memory input, assigning each bucket to its own shard for maximum
-            // parallelization, with one extra shard for the CommitLogCheckpointRoot.
-            ImmutableList.of(
-                new InMemoryInput<>(
-                    partition(
-                        FluentIterable
-                            .from(Arrays.<Key<?>>asList(CommitLogCheckpointRoot.getKey()))
-                            .append(CommitLogBucket.getAllBucketKeys())
-                            .toList(),
-                    1))))));
+            ImmutableList.of(input))));
   }
 
   /**

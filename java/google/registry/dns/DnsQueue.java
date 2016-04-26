@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns;
+package google.registry.dns;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.domain.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
-import static com.google.domain.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
-import static com.google.domain.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
-import static com.google.domain.registry.request.RequestParameters.PARAM_TLD;
-import static com.google.domain.registry.util.DomainNameUtils.getTldFromDomainName;
+import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
+import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
+import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
+import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.request.RequestParameters.PARAM_TLD;
+import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.appengine.api.taskqueue.Queue;
@@ -35,10 +35,11 @@ import com.google.apphosting.api.DeadlineExceededException;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.dns.DnsConstants.TargetType;
-import com.google.domain.registry.model.registry.Registries;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.dns.DnsConstants.TargetType;
+import google.registry.model.registry.Registries;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.Duration;
 

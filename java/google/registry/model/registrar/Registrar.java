@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registrar;
+package google.registry.model.registrar;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -25,14 +25,14 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Sets.immutableEnumSet;
 import static com.google.common.io.BaseEncoding.base64;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
-import static com.google.domain.registry.util.X509Utils.getCertificateHash;
-import static com.google.domain.registry.util.X509Utils.loadCertificate;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
+import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
+import static google.registry.util.X509Utils.getCertificateHash;
+import static google.registry.util.X509Utils.loadCertificate;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Predicate;
@@ -43,16 +43,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.CreateAutoTimestamp;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.JsonMapBuilder;
-import com.google.domain.registry.model.Jsonifiable;
-import com.google.domain.registry.model.UpdateAutoTimestamp;
-import com.google.domain.registry.model.common.EntityGroupRoot;
-import com.google.domain.registry.util.CidrAddressBlock;
-import com.google.domain.registry.util.NonFinalForTesting;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
@@ -63,6 +53,17 @@ import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.condition.IfNull;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.Buildable;
+import google.registry.model.CreateAutoTimestamp;
+import google.registry.model.ImmutableObject;
+import google.registry.model.JsonMapBuilder;
+import google.registry.model.Jsonifiable;
+import google.registry.model.UpdateAutoTimestamp;
+import google.registry.model.common.EntityGroupRoot;
+import google.registry.util.CidrAddressBlock;
+import google.registry.util.NonFinalForTesting;
 
 import org.joda.time.DateTime;
 

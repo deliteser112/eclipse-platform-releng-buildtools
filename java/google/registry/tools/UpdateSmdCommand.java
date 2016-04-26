@@ -12,27 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyEncodedSignedMark;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.tmch.TmchData.readEncodedSignedMark;
+import static google.registry.flows.domain.DomainFlowUtils.verifyEncodedSignedMark;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.tmch.TmchData.readEncodedSignedMark;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.smd.EncodedSignedMark;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.tools.params.PathParameter;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.flows.EppException;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.smd.EncodedSignedMark;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.PathParameter;
 
 import org.joda.time.DateTime;
 

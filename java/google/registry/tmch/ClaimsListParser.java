@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.tmch.ClaimsListShard;
+
+import google.registry.model.tmch.ClaimsListShard;
 
 import org.joda.time.DateTime;
 

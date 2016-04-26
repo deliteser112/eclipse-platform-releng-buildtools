@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.domain.registry.tools.Command.GtechCommand;
+
+import google.registry.tools.Command.GtechCommand;
 
 /** Command line interface with a subset of commands that are safe for tech support to run. */
 public final class GtechTool {

@@ -1,4 +1,4 @@
-# converted from extension //java/com/google/domain/registry/xjc:generated_files
+# converted from extension //java/google/registry/xjc:generated_files
 #
 #      .'``'.      ...
 #     :o  o `....'`  ;
@@ -14,8 +14,8 @@
 # When you make changes to the XML schemas (*.xsd) or the JAXB bindings file
 # (bindings.xjb), you must regenerate this file with the following commands:
 #
-#   bazel run java/com/google/domain/registry/xjc:list_generated_files | tee /tmp/lol
-#   mv /tmp/lol java/com/google/domain/registry/xjc/generated_files
+#   bazel run third_party/java_src/gtld/java/google/registry/xjc:list_generated_files | tee /tmp/lol
+#   mv /tmp/lol third_party/java_src/gtld/java/google/registry/xjc/generated_files
 #
 
 pkginfo_generated_files = [

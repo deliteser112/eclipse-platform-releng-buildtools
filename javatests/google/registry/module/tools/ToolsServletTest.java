@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.module.tools;
+package google.registry.module.tools;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

@@ -12,24 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
-import static com.google.domain.registry.backup.ExportCommitLogDiffAction.LOWER_CHECKPOINT_TIME_PARAM;
-import static com.google.domain.registry.backup.ExportCommitLogDiffAction.UPPER_CHECKPOINT_TIME_PARAM;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
-import static com.google.domain.registry.util.FormattingLogger.getLoggerForCallerClass;
-
-import com.google.domain.registry.model.ofy.CommitLogCheckpoint;
-import com.google.domain.registry.model.ofy.CommitLogCheckpointRoot;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.TaskEnqueuer;
+import static google.registry.backup.ExportCommitLogDiffAction.LOWER_CHECKPOINT_TIME_PARAM;
+import static google.registry.backup.ExportCommitLogDiffAction.UPPER_CHECKPOINT_TIME_PARAM;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.model.ofy.CommitLogCheckpoint;
+import google.registry.model.ofy.CommitLogCheckpointRoot;
+import google.registry.request.Action;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
+import google.registry.util.TaskEnqueuer;
 
 import org.joda.time.DateTime;
 

@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.flows.EppXmlTransformer.marshal;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.BILLING_EVENT_ID_STRIPPER;
-import static com.google.domain.registry.testing.DatastoreHelper.getPollMessages;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
-import static com.google.domain.registry.xml.XmlTestUtils.assertXmlEquals;
+import static google.registry.flows.EppXmlTransformer.marshal;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.BILLING_EVENT_ID_STRIPPER;
+import static google.registry.testing.DatastoreHelper.getPollMessages;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static org.joda.time.DateTimeZone.UTC;
@@ -33,27 +33,28 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.domain.registry.flows.FlowRunner.CommitMode;
-import com.google.domain.registry.flows.FlowRunner.UserPrivileges;
-import com.google.domain.registry.flows.SessionMetadata.SessionSource;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.eppcommon.ProtocolDefinition;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.eppinput.EppInput;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.EppLoader;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.TestSessionMetadata;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
-import com.google.domain.registry.xml.ValidationMode;
+
+import google.registry.flows.FlowRunner.CommitMode;
+import google.registry.flows.FlowRunner.UserPrivileges;
+import google.registry.flows.SessionMetadata.SessionSource;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.eppcommon.ProtocolDefinition;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.ofy.Ofy;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.EppLoader;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import google.registry.testing.TestSessionMetadata;
+import google.registry.util.TypeUtils.TypeInstantiator;
+import google.registry.xml.ValidationMode;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.monitoring.whitebox;
+package google.registry.monitoring.whitebox;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.bigquery.BigqueryUtils.FieldType;
-import com.google.domain.registry.model.eppoutput.Result.Code;
+
+import google.registry.bigquery.BigqueryUtils.FieldType;
+import google.registry.model.eppoutput.Result.Code;
 
 /** The EPP Metrics collector. See {@link Metrics}. */
 public class EppMetrics extends Metrics {

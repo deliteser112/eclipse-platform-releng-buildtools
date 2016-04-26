@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.times;
@@ -20,7 +20,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.model.tmch.ClaimsListShard;
+
+import google.registry.model.tmch.ClaimsListShard;
 
 import org.joda.time.DateTime;
 import org.junit.Test;

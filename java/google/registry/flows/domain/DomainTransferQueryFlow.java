@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import com.google.domain.registry.flows.ResourceTransferQueryFlow;
-import com.google.domain.registry.model.domain.DomainCommand.Transfer;
-import com.google.domain.registry.model.domain.DomainResource;
+import google.registry.flows.ResourceTransferQueryFlow;
+import google.registry.model.domain.DomainCommand.Transfer;
+import google.registry.model.domain.DomainResource;
 
 /**
  * An EPP flow that queries a pending transfer on a {@link DomainResource}.
  *
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException}
- * @error {@link com.google.domain.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException}
+ * @error {@link google.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException}
  */
 public class DomainTransferQueryFlow extends ResourceTransferQueryFlow<DomainResource, Transfer> {}

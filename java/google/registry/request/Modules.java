@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.request;
+package google.registry.request;
 
 import static com.google.appengine.api.datastore.DatastoreServiceFactory.getDatastoreService;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -31,11 +31,12 @@ import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.keyring.api.KeyModule.Key;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.keyring.api.KeyModule.Key;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -158,7 +159,7 @@ public final class Modules {
    * <li>Spreadsheet service (which can't use {@link AppIdentityCredential} due to an old library)
    * </ol>
    *
-   * @see com.google.domain.registry.keyring.api.Keyring#getJsonCredential()
+   * @see google.registry.keyring.api.Keyring#getJsonCredential()
    */
   @Module
   public static final class GoogleCredentialModule {

@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.params;
+package google.registry.tools.params;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
+
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 /**
  * Class for parameters that can handle special string "null" or empty values to

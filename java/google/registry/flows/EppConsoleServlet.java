@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.domain.registry.flows.EppServletUtils.handleEppCommandAndWriteResponse;
+import static google.registry.flows.EppServletUtils.handleEppCommandAndWriteResponse;
 import static java.lang.System.identityHashCode;
 
 import com.google.appengine.api.users.User;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteStreams;
-import com.google.domain.registry.flows.EppException.AuthenticationErrorException;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.security.XsrfProtectedServlet;
+
+import google.registry.flows.EppException.AuthenticationErrorException;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.security.XsrfProtectedServlet;
 
 import org.joda.time.Duration;
 

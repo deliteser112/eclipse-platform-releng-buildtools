@@ -20,9 +20,9 @@
 @XmlJavaTypeAdapters({
     @XmlJavaTypeAdapter(UtcDateTimeAdapter.class),
     @XmlJavaTypeAdapter(InetAddressAdapter.class)})
-package com.google.domain.registry.model.host;
+package google.registry.model.host;
 
-import com.google.domain.registry.xml.UtcDateTimeAdapter;
+import google.registry.xml.UtcDateTimeAdapter;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

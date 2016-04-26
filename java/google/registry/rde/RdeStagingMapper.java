@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.auto.value.AutoValue;
@@ -26,15 +26,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResourceUtils;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.rde.RdeMode;
-import com.google.domain.registry.model.registrar.Registrar;
 
 import com.googlecode.objectify.Result;
+
+import google.registry.model.EppResource;
+import google.registry.model.EppResourceUtils;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.host.HostResource;
+import google.registry.model.rde.RdeMode;
+import google.registry.model.registrar.Registrar;
 
 import org.joda.time.DateTime;
 

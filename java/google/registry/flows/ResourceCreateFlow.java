@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.domain.registry.flows.EppException.ObjectAlreadyExistsException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.Builder;
-import com.google.domain.registry.model.EppResource.ForeignKeyedEppResource;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceCreateOrChange;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.model.index.DomainApplicationIndex;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.flows.EppException.ObjectAlreadyExistsException;
+import google.registry.model.EppResource;
+import google.registry.model.EppResource.Builder;
+import google.registry.model.EppResource.ForeignKeyedEppResource;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.eppinput.ResourceCommand.ResourceCreateOrChange;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.index.DomainApplicationIndex;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.index.ForeignKeyIndex;
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 import javax.annotation.Nullable;
 

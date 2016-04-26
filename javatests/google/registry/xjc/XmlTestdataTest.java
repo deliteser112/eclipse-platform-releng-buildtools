@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.xjc;
+package google.registry.xjc;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
-import static com.google.domain.registry.xjc.XjcXmlTransformer.unmarshal;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.xjc.XjcXmlTransformer.unmarshal;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.domain.registry.xjc.epp.XjcEpp;
-import com.google.domain.registry.xjc.rde.XjcRdeDeposit;
+import google.registry.xjc.epp.XjcEpp;
+import google.registry.xjc.rde.XjcRdeDeposit;
 
 import org.junit.Rule;
 import org.junit.experimental.theories.DataPoints;

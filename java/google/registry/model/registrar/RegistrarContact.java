@@ -12,26 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registrar;
+package google.registry.model.registrar;
 
 import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Sets.difference;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
-import static com.google.domain.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
+import static google.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.JsonMapBuilder;
-import com.google.domain.registry.model.Jsonifiable;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
@@ -40,6 +36,11 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
+
+import google.registry.model.Buildable;
+import google.registry.model.ImmutableObject;
+import google.registry.model.JsonMapBuilder;
+import google.registry.model.Jsonifiable;
 
 import java.util.Arrays;
 import java.util.Map;

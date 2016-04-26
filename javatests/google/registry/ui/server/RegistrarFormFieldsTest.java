@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server;
+package google.registry.ui.server;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-import com.google.domain.registry.testing.CertificateSamples;
-import com.google.domain.registry.ui.forms.FormFieldException;
+import google.registry.testing.CertificateSamples;
+import google.registry.ui.forms.FormFieldException;
 
 import org.junit.Rule;
 import org.junit.Test;

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.AppEngineRule.THE_REGISTRAR_GAE_USER_ID;
+import static google.registry.testing.AppEngineRule.THE_REGISTRAR_GAE_USER_ID;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -25,11 +25,12 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.common.testing.NullPointerTester;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.InjectRule;
 
 import org.junit.Before;
 import org.junit.Rule;

@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.loadtest;
+package google.registry.loadtest;
 
 import static com.google.cloud.sql.jdbc.internal.Charsets.UTF_8;
-import static com.google.domain.registry.flows.EppController.handleEppCommand;
+import static google.registry.flows.EppController.handleEppCommand;
 
 import com.google.appengine.api.taskqueue.DeferredTask;
-import com.google.domain.registry.flows.SessionMetadata.SessionSource;
-import com.google.domain.registry.flows.StatelessRequestSessionMetadata;
-import com.google.domain.registry.model.eppcommon.ProtocolDefinition;
+
+import google.registry.flows.SessionMetadata.SessionSource;
+import google.registry.flows.StatelessRequestSessionMetadata;
+import google.registry.model.eppcommon.ProtocolDefinition;
 
 /** A task that executes a single EPP command. */
 public class LoadTask implements DeferredTask {

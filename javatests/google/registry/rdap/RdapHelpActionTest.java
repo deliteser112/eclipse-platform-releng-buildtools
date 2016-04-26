@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rdap;
+package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.FakeResponse;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.model.ofy.Ofy;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeResponse;
+import google.registry.testing.InjectRule;
 
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;

@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
-import static com.google.domain.registry.testing.DatastoreHelper.persistReservedList;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.tools.CreateReservedListCommand.INVALID_FORMAT_ERROR_MESSAGE;
+import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.persistReservedList;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.tools.CreateReservedListCommand.INVALID_FORMAT_ERROR_MESSAGE;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.label.ReservedList;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.ReservedList;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

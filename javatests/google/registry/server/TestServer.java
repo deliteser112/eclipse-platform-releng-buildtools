@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.server;
+package google.registry.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.util.NetworkUtils.getCanonicalHostName;
+import static google.registry.util.NetworkUtils.getCanonicalHostName;
 
 import com.google.common.base.Throwables;
 import com.google.common.net.HostAndPort;

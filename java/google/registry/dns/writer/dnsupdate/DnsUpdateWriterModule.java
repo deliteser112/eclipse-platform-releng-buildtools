@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns.writer.dnsupdate;
-
-import com.google.domain.registry.dns.writer.api.DnsWriter;
-
-import javax.net.SocketFactory;
+package google.registry.dns.writer.dnsupdate;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.dns.writer.api.DnsWriter;
+
+import javax.net.SocketFactory;
 
 /** Dagger module that provides a DnsUpdateWriter. */
 @Module

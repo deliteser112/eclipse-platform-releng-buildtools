@@ -13,4 +13,4 @@
 // limitations under the License.
 
 @javax.annotation.ParametersAreNonnullByDefault
-package com.google.domain.registry.tools.params;
+package google.registry.tools.params;

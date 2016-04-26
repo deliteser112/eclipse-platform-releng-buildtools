@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.cron;
+package google.registry.cron;
 
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Lists.transform;
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static java.util.Arrays.asList;
 
 import com.google.common.base.Function;
@@ -28,13 +28,14 @@ import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldType;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
-import com.google.domain.registry.util.Retrier;
-import com.google.domain.registry.util.TaskEnqueuer;
+
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldType;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.Retrier;
+import google.registry.util.TaskEnqueuer;
 
 import org.junit.Before;
 import org.junit.Rule;

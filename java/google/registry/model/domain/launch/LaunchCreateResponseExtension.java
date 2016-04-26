@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.launch;
+package google.registry.model.domain.launch;
 
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.Response.ResponseExtension;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;

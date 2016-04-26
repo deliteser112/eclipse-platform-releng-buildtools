@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.gcs.GcsUtils;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.InternalServerErrorException;
-import com.google.domain.registry.request.JsonActionRunner;
-import com.google.domain.registry.request.JsonActionRunner.JsonAction;
-import com.google.domain.registry.storage.drive.DriveConnection;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.gcs.GcsUtils;
+import google.registry.model.registrar.Registrar;
+import google.registry.request.Action;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.request.JsonActionRunner;
+import google.registry.request.JsonActionRunner.JsonAction;
+import google.registry.storage.drive.DriveConnection;
+import google.registry.util.FormattingLogger;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;

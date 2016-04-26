@@ -16,8 +16,8 @@
 
 # Generate a FieldExposer for a given package
 
-printf "package com.google.domain.registry.model;\n\n\
-import com.google.domain.registry.model.AbstractFieldExposer;\n\n\
+printf "package google.registry.model;\n\n\
+import google.registry.model.AbstractFieldExposer;\n\n\
 import com.google.common.collect.ImmutableList;\n\n\
 /** A registry of all {@link AbstractFieldExposer} impls. */\n\
 class FieldExposerRegistry {\n\
@@ -25,7 +25,7 @@ class FieldExposerRegistry {\n\
     return ImmutableList.of(\n"
 for FILE in $@; do
   echo $FILE | sed \
-      -e 's/\(.*\).java/        new com.google.domain.registry.model.\1()/' \
+      -e 's/\(.*\).java/        new google.registry.model.\1()/' \
       -e 's/\//./g'
 done
 printf "  }\n}\n"

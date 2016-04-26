@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.session;
+package google.registry.flows.session;
 
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
-import com.google.domain.registry.flows.TlsCredentials;
-import com.google.domain.registry.flows.TlsCredentials.BadRegistrarCertificateException;
-import com.google.domain.registry.flows.TlsCredentials.BadRegistrarIpAddressException;
-import com.google.domain.registry.flows.TlsCredentials.MissingRegistrarCertificateException;
-import com.google.domain.registry.flows.TlsCredentials.NoSniException;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.testing.CertificateSamples;
-import com.google.domain.registry.util.CidrAddressBlock;
+
+import google.registry.flows.TlsCredentials;
+import google.registry.flows.TlsCredentials.BadRegistrarCertificateException;
+import google.registry.flows.TlsCredentials.BadRegistrarIpAddressException;
+import google.registry.flows.TlsCredentials.MissingRegistrarCertificateException;
+import google.registry.flows.TlsCredentials.NoSniException;
+import google.registry.model.registrar.Registrar;
+import google.registry.testing.CertificateSamples;
+import google.registry.util.CidrAddressBlock;
 
 import org.junit.Test;
 

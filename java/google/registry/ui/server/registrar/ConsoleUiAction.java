@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.net.HttpHeaders.X_FRAME_OPTIONS;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
@@ -23,17 +23,18 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.io.Resources;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.flows.EppConsoleServlet;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.security.XsrfTokenManager;
-import com.google.domain.registry.ui.server.SoyTemplateUtils;
-import com.google.domain.registry.ui.soy.registrar.ConsoleSoyInfo;
 import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.shared.SoyCssRenamingMap;
 import com.google.template.soy.tofu.SoyTofu;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.flows.EppConsoleServlet;
+import google.registry.model.registrar.Registrar;
+import google.registry.request.Action;
+import google.registry.request.Response;
+import google.registry.security.XsrfTokenManager;
+import google.registry.ui.server.SoyTemplateUtils;
+import google.registry.ui.soy.registrar.ConsoleSoyInfo;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -46,14 +47,14 @@ public final class ConsoleUiAction implements Runnable {
 
   private static final Supplier<SoyTofu> TOFU_SUPPLIER =
       SoyTemplateUtils.createTofuSupplier(
-          com.google.domain.registry.ui.soy.ConsoleSoyInfo.getInstance(),
-          com.google.domain.registry.ui.soy.registrar.ConsoleSoyInfo.getInstance());
+          google.registry.ui.soy.ConsoleSoyInfo.getInstance(),
+          google.registry.ui.soy.registrar.ConsoleSoyInfo.getInstance());
 
   @VisibleForTesting  // webdriver and screenshot tests need this
   public static final Supplier<SoyCssRenamingMap> CSS_RENAMING_MAP_SUPPLIER =
       SoyTemplateUtils.createCssRenamingMapSupplier(
-          Resources.getResource("com/google/domain/registry/ui/css/registrar_bin.css.js"),
-          Resources.getResource("com/google/domain/registry/ui/css/registrar_dbg.css.js"));
+          Resources.getResource("google/registry/ui/css/registrar_bin.css.js"),
+          Resources.getResource("google/registry/ui/css/registrar_dbg.css.js"));
 
   @Inject HttpServletRequest req;
   @Inject Response response;

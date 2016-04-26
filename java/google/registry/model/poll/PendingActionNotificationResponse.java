@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.poll;
+package google.registry.model.poll;
 
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.eppoutput.Response.ResponseData;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppoutput.Response.ResponseData;
 
 import org.joda.time.DateTime;
 

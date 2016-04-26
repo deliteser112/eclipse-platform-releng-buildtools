@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.registry.Registries.assertTldExists;
 import static java.util.Arrays.asList;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -27,14 +27,15 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.model.billing.RegistrarCredit;
-import com.google.domain.registry.model.billing.RegistrarCredit.CreditType;
-import com.google.domain.registry.model.billing.RegistrarCreditBalance;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registry.Registry;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.billing.RegistrarCredit;
+import google.registry.model.billing.RegistrarCredit.CreditType;
+import google.registry.model.billing.RegistrarCreditBalance;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registry.Registry;
 
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;

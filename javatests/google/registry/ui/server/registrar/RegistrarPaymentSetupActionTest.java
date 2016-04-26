@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
@@ -21,12 +21,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.braintree.BraintreeRegistrarSyncer;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.testing.AppEngineRule;
 
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.ClientTokenGateway;
+
+import google.registry.braintree.BraintreeRegistrarSyncer;
+import google.registry.model.registrar.Registrar;
+import google.registry.testing.AppEngineRule;
 
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;

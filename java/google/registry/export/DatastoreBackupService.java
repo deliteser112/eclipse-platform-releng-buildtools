@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.appengine.api.datastore.DatastoreServiceFactory.getDatastoreService;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
@@ -30,7 +30,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.util.NonFinalForTesting;
+
+import google.registry.util.NonFinalForTesting;
 
 import java.util.NoSuchElementException;
 

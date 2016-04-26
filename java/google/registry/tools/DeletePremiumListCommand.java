@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
-import javax.annotation.Nullable;
+import google.registry.model.registry.label.PremiumList;
+import google.registry.tools.Command.RemoteApiCommand;
 
+import javax.annotation.Nullable;
 
 /**
  * Command to delete a {@link PremiumList} in Datastore. This command will fail if the premium

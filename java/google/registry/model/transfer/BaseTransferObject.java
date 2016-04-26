@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.transfer;
+package google.registry.model.transfer;
 
-import com.google.domain.registry.model.Buildable.GenericBuilder;
-import com.google.domain.registry.model.ImmutableObject;
+import google.registry.model.Buildable.GenericBuilder;
+import google.registry.model.ImmutableObject;
 
 import org.joda.time.DateTime;
 

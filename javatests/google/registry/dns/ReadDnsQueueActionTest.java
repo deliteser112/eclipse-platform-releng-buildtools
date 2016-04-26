@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns;
+package google.registry.dns;
 
 import static com.google.common.collect.Lists.transform;
-import static com.google.domain.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
-import static com.google.domain.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
-import static com.google.domain.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
-import static com.google.domain.registry.request.RequestParameters.PARAM_TLD;
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
+import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
+import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
+import static google.registry.request.RequestParameters.PARAM_TLD;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static java.util.Arrays.asList;
 
 import com.google.appengine.api.taskqueue.QueueFactory;
@@ -33,15 +33,16 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.dns.DnsConstants.TargetType;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldType;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
-import com.google.domain.registry.util.Retrier;
-import com.google.domain.registry.util.TaskEnqueuer;
+
+import google.registry.dns.DnsConstants.TargetType;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldType;
+import google.registry.request.RequestParameters;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.Retrier;
+import google.registry.util.TaskEnqueuer;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;

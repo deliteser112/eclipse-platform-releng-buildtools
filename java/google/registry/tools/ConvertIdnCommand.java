@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.util.DomainNameUtils.ACE_PREFIX;
-import static com.google.domain.registry.util.DomainNameUtils.canonicalizeDomainName;
-
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.util.Idn;
+import static google.registry.util.DomainNameUtils.ACE_PREFIX;
+import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.Command.GtechCommand;
+import google.registry.util.Idn;
 
 import java.io.IOException;
 import java.util.List;

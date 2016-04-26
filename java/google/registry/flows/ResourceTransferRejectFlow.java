@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.flows.ResourceFlowUtils.createPendingTransferNotificationResponse;
-import static com.google.domain.registry.flows.ResourceFlowUtils.createTransferResponse;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.flows.ResourceFlowUtils.createPendingTransferNotificationResponse;
+import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.Builder;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferStatus;
+
+import google.registry.model.EppResource;
+import google.registry.model.EppResource.Builder;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
 
 /**
  * An EPP flow that rejects a transfer on a resource.

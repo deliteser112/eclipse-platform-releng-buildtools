@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.launch;
+package google.registry.model.domain.launch;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
-import com.google.domain.registry.model.mark.Mark;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.mark.Mark;
 
 import java.util.List;
 

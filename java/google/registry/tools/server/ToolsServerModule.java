@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.common.base.Strings.emptyToNull;
-import static com.google.domain.registry.request.RequestParameters.extractBooleanParameter;
-import static com.google.domain.registry.request.RequestParameters.extractOptionalParameter;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
+import static google.registry.request.RequestParameters.extractBooleanParameter;
+import static google.registry.request.RequestParameters.extractOptionalParameter;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.request.Parameter;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.request.Parameter;
 
 import javax.servlet.http.HttpServletRequest;
 

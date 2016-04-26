@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.async;
+package google.registry.flows.async;
 
-import static com.google.domain.registry.flows.async.DeleteEppResourceAction.PARAM_IS_SUPERUSER;
-import static com.google.domain.registry.flows.async.DeleteEppResourceAction.PARAM_REQUESTING_CLIENT_ID;
-import static com.google.domain.registry.flows.async.DeleteEppResourceAction.PARAM_RESOURCE_KEY;
-import static com.google.domain.registry.flows.async.DnsRefreshForHostRenameAction.PARAM_HOST_KEY;
-import static com.google.domain.registry.request.RequestParameters.extractBooleanParameter;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
-
-import com.google.domain.registry.request.Parameter;
+import static google.registry.flows.async.DeleteEppResourceAction.PARAM_IS_SUPERUSER;
+import static google.registry.flows.async.DeleteEppResourceAction.PARAM_REQUESTING_CLIENT_ID;
+import static google.registry.flows.async.DeleteEppResourceAction.PARAM_RESOURCE_KEY;
+import static google.registry.flows.async.DnsRefreshForHostRenameAction.PARAM_HOST_KEY;
+import static google.registry.request.RequestParameters.extractBooleanParameter;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.request.Parameter;
 
 import javax.servlet.http.HttpServletRequest;
 

@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
 import com.google.common.truth.SubjectFactory;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
+
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 /** Helper to reduce boilerplate in making new Truth subject classes. */
 public class ReflectiveSubjectFactory<T, S extends Subject<S, T>> extends SubjectFactory<S, T> {

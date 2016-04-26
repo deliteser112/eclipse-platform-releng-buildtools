@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.domain.registry.flows.EppException.CommandUseErrorException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.eppinput.EppInput.ResourceCommandWrapper;
-import com.google.domain.registry.model.eppinput.ResourceCommand;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
+
+import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.model.EppResource;
+import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
+import google.registry.model.eppinput.ResourceCommand;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 /**
  * An EPP flow that addresses a stored resource.

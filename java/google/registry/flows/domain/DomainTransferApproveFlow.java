@@ -12,34 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
-import static com.google.domain.registry.model.domain.DomainResource.extendRegistrationWithCap;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
+import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
+import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.ResourceTransferApproveFlow;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.BillingEvent.Flag;
-import com.google.domain.registry.model.billing.BillingEvent.Reason;
-import com.google.domain.registry.model.domain.DomainCommand.Transfer;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.DomainResource.Builder;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferData;
 
 import com.googlecode.objectify.Ref;
+
+import google.registry.flows.EppException;
+import google.registry.flows.ResourceTransferApproveFlow;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Flag;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainCommand.Transfer;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainResource.Builder;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.registry.Registry;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
 
 import org.joda.time.DateTime;
 
@@ -49,11 +50,11 @@ import org.joda.time.DateTime;
  * The logic in this flow, which handles client approvals, very closely parallels the logic in
  * {@link DomainResource#cloneProjectedAtTime} which handles implicit server approvals.
  *
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.ResourceMutatePendingTransferFlow.NotPendingTransferException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceMutatePendingTransferFlow.NotPendingTransferException}
  */
 public class DomainTransferApproveFlow extends
     ResourceTransferApproveFlow<DomainResource, Builder, Transfer> {

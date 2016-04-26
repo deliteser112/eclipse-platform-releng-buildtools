@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
 import static com.google.appengine.api.users.UserServiceFactory.getUserService;
-import static com.google.domain.registry.flows.EppConsoleServlet.XSRF_SCOPE;
-import static com.google.domain.registry.security.JsonResponseHelper.Status.ERROR;
+import static google.registry.flows.EppConsoleServlet.XSRF_SCOPE;
+import static google.registry.security.JsonResponseHelper.Status.ERROR;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.request.HttpException.NotFoundException;
-import com.google.domain.registry.security.JsonResponseHelper;
-import com.google.domain.registry.security.JsonTransportServlet;
-import com.google.domain.registry.ui.forms.FormException;
-import com.google.domain.registry.ui.forms.FormFieldException;
-import com.google.domain.registry.util.NonFinalForTesting;
+
+import google.registry.request.HttpException.NotFoundException;
+import google.registry.security.JsonResponseHelper;
+import google.registry.security.JsonTransportServlet;
+import google.registry.ui.forms.FormException;
+import google.registry.ui.forms.FormFieldException;
+import google.registry.util.NonFinalForTesting;
 
 import java.util.Map;
 

@@ -1,4 +1,9 @@
-package(default_visibility = ["//java/com/google/domain/registry:registry_project"])
+package(
+    default_testonly = 1,
+    default_visibility = ["//java/google/registry:registry_project"],
+)
+
+licenses(["notice"])  # Apache 2.0
 
 load("//third_party/closure/compiler:closure_js_library.bzl", "closure_js_library")
 load("//third_party/closure/testing:closure_js_test.bzl", "closure_js_test")
@@ -17,7 +22,7 @@ closure_js_test(
     srcs = glob(["*_test.js"]),
     deps = [
         ":testing",
-        "//java/com/google/domain/registry/ui/js",
         "//javascript/closure",
+        "//java/google/registry/ui/js",
     ],
 )

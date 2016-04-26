@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.common.EntityGroupRoot;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.common.EntityGroupRoot;
 
 /**
  * A test model object that can be persisted in any entity group.

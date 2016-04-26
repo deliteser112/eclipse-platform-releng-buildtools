@@ -12,29 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.EppResourceUtils.isDeleted;
-import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.EppResourceUtils.isDeleted;
+import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.ResourceFlowTestCase;
-import com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
-import com.google.domain.registry.model.contact.ContactAddress;
-import com.google.domain.registry.model.contact.ContactAuthInfo;
-import com.google.domain.registry.model.contact.ContactPhoneNumber;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.Disclose;
-import com.google.domain.registry.model.contact.PostalInfo;
-import com.google.domain.registry.model.contact.PostalInfo.Type;
-import com.google.domain.registry.model.eppcommon.AuthInfo.PasswordAuth;
-import com.google.domain.registry.model.eppcommon.PresenceMarker;
-import com.google.domain.registry.model.eppcommon.StatusValue;
+
+import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
+import google.registry.model.contact.ContactAddress;
+import google.registry.model.contact.ContactAuthInfo;
+import google.registry.model.contact.ContactPhoneNumber;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.Disclose;
+import google.registry.model.contact.PostalInfo;
+import google.registry.model.contact.PostalInfo.Type;
+import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import google.registry.model.eppcommon.PresenceMarker;
+import google.registry.model.eppcommon.StatusValue;
 
 import org.joda.time.DateTime;
 import org.junit.Test;

@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.session;
+package google.registry.flows.session;
 
 
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.Environment;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppConsoleServlet.GaeUserCredentials;
-import com.google.domain.registry.flows.EppConsoleServlet.GaeUserCredentials.BadGaeUserIdException;
-import com.google.domain.registry.flows.EppConsoleServlet.GaeUserCredentials.UserNotLoggedInException;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
+
+import google.registry.flows.EppConsoleServlet.GaeUserCredentials;
+import google.registry.flows.EppConsoleServlet.GaeUserCredentials.BadGaeUserIdException;
+import google.registry.flows.EppConsoleServlet.GaeUserCredentials.UserNotLoggedInException;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
 
 import org.junit.Test;
 

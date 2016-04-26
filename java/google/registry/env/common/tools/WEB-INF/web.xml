@@ -9,7 +9,7 @@
   <servlet>
     <display-name>ToolsServlet</display-name>
     <servlet-name>tools-servlet</servlet-name>
-    <servlet-class>com.google.domain.registry.module.tools.ToolsServlet</servlet-class>
+    <servlet-class>google.registry.module.tools.ToolsServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
 
@@ -67,7 +67,7 @@
     </description>
     <display-name>Registry tool EPP endpoint</display-name>
     <servlet-name>epptool</servlet-name>
-    <servlet-class>com.google.domain.registry.flows.EppToolServlet</servlet-class>
+    <servlet-class>google.registry.flows.EppToolServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet-mapping>
@@ -110,12 +110,6 @@
   <servlet-mapping>
     <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/task/killAllCommitLogs</url-pattern>
-  </servlet-mapping>
-
-  <!-- Mapreduce to delete all cross-tld entities. -->
-  <servlet-mapping>
-    <servlet-name>tools-servlet</servlet-name>
-    <url-pattern>/_dr/task/killAllCrossTld</url-pattern>
   </servlet-mapping>
 
   <!-- This path serves up the App Engine results page for mapreduce runs. -->
@@ -229,7 +223,7 @@
   <!-- Register types with Objectify. -->
   <filter>
     <filter-name>OfyFilter</filter-name>
-    <filter-class>com.google.domain.registry.model.ofy.OfyFilter</filter-class>
+    <filter-class>google.registry.model.ofy.OfyFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>OfyFilter</filter-name>

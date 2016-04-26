@@ -29,15 +29,15 @@
     </div>
   </div>
   {switch DEBUG}
-    {case com.google.domain.registry.ui.ConsoleDebug.PRODUCTION}
+    {case google.registry.ui.ConsoleDebug.PRODUCTION}
       {if $isAdmin}
         <script src="/assets/js/registrar_bin_map.js"></script>
       {else}
         <script src="/assets/js/registrar_bin.js"></script>
       {/if}
-    {case com.google.domain.registry.ui.ConsoleDebug.DEBUG}
+    {case google.registry.ui.ConsoleDebug.DEBUG}
       <script src="/assets/js/registrar_dbg.js"></script>
-    {case com.google.domain.registry.ui.ConsoleDebug.RAW}
+    {case google.registry.ui.ConsoleDebug.RAW}
       <script src="/assets/sources/external/closure_library/closure/goog/base.js">
       </script>
       <script src="/assets/sources/deps-runfiles.js"></script>

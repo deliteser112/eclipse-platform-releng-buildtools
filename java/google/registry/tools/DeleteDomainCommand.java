@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.soy.DeleteDomainSoyInfo;
 import com.google.template.soy.data.SoyMapData;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.soy.DeleteDomainSoyInfo;
 
 /** A command to delete a domain via EPP. */
 @Parameters(separators = " =", commandDescription = "Delete domain")

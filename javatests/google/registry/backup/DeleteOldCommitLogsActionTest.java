@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.joda.time.Duration.millis;
 
-import com.google.domain.registry.config.TestRegistryConfig;
-import com.google.domain.registry.model.ofy.CommitLogManifest;
-import com.google.domain.registry.model.ofy.CommitLogMutation;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.RegistryConfigRule;
-
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.config.TestRegistryConfig;
+import google.registry.model.ofy.CommitLogManifest;
+import google.registry.model.ofy.CommitLogMutation;
+import google.registry.model.ofy.Ofy;
+import google.registry.model.registrar.Registrar;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.RegistryConfigRule;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

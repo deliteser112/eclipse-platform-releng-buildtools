@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.export.PublishDetailReportAction.DETAIL_REPORT_NAME_PARAM;
-import static com.google.domain.registry.export.PublishDetailReportAction.GCS_BUCKET_PARAM;
-import static com.google.domain.registry.export.PublishDetailReportAction.GCS_FOLDER_PREFIX_PARAM;
-import static com.google.domain.registry.export.PublishDetailReportAction.REGISTRAR_ID_PARAM;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.export.PublishDetailReportAction.DETAIL_REPORT_NAME_PARAM;
+import static google.registry.export.PublishDetailReportAction.GCS_BUCKET_PARAM;
+import static google.registry.export.PublishDetailReportAction.GCS_FOLDER_PREFIX_PARAM;
+import static google.registry.export.PublishDetailReportAction.REGISTRAR_ID_PARAM;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -32,13 +32,14 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.gcs.GcsUtils;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.InternalServerErrorException;
-import com.google.domain.registry.storage.drive.DriveConnection;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.gcs.GcsUtils;
+import google.registry.model.registrar.Registrar;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.storage.drive.DriveConnection;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
 
 import org.junit.Before;
 import org.junit.Rule;

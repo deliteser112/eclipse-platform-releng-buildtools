@@ -14,4 +14,4 @@
 
 /** Braintree payment gateway utilities. */
 @javax.annotation.ParametersAreNonnullByDefault
-package com.google.domain.registry.braintree;
+package google.registry.braintree;

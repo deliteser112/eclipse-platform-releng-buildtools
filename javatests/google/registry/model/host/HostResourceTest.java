@@ -12,30 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.host;
+package google.registry.model.host;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.HostResourceSubject.assertAboutHosts;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferData.TransferServerApproveEntity;
-import com.google.domain.registry.model.transfer.TransferStatus;
-import com.google.domain.registry.testing.ExceptionRule;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+
+import google.registry.model.EntityTestCase;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
+import google.registry.model.transfer.TransferStatus;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

@@ -12,32 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import static com.google.domain.registry.testing.ContactResourceSubject.assertAboutContacts;
-import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.newContactResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
+import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.newContactResource;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistDeletedContact;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.FlowRunner.CommitMode;
-import com.google.domain.registry.flows.FlowRunner.UserPrivileges;
-import com.google.domain.registry.flows.ResourceFlowTestCase;
-import com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
-import com.google.domain.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException;
-import com.google.domain.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException;
-import com.google.domain.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
-import com.google.domain.registry.flows.contact.ContactFlowUtils.BadInternationalizedPostalInfoException;
-import com.google.domain.registry.flows.contact.ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException;
-import com.google.domain.registry.model.contact.ContactAddress;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.PostalInfo;
-import com.google.domain.registry.model.contact.PostalInfo.Type;
-import com.google.domain.registry.model.eppcommon.StatusValue;
+
+import google.registry.flows.FlowRunner.CommitMode;
+import google.registry.flows.FlowRunner.UserPrivileges;
+import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
+import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
+import google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException;
+import google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException;
+import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
+import google.registry.flows.contact.ContactFlowUtils.BadInternationalizedPostalInfoException;
+import google.registry.flows.contact.ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException;
+import google.registry.model.contact.ContactAddress;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.PostalInfo;
+import google.registry.model.contact.PostalInfo.Type;
+import google.registry.model.eppcommon.StatusValue;
 
 import org.junit.Test;
 

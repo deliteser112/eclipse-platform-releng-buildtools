@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.rgp;
+package google.registry.model.domain.rgp;
 
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.eppinput.EppInput.CommandExtension;
+import google.registry.model.ImmutableObject;
+import google.registry.model.eppinput.EppInput.CommandExtension;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

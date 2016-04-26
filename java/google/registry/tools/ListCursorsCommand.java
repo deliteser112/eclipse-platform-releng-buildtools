@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.model.registry.Registries;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldType;
-import com.google.domain.registry.model.registry.RegistryCursor;
-import com.google.domain.registry.model.registry.RegistryCursor.CursorType;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.registry.Registries;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldType;
+import google.registry.model.registry.RegistryCursor;
+import google.registry.model.registry.RegistryCursor.CursorType;
+import google.registry.tools.Command.RemoteApiCommand;
 
 import org.joda.time.DateTime;
 

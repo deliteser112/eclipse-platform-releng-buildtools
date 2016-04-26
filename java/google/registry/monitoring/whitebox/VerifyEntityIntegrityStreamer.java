@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.monitoring.whitebox;
+package google.registry.monitoring.whitebox;
 
 import static com.google.api.client.util.Data.NULL_STRING;
-import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.DATASET;
-import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_MESSAGE;
-import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_SCANTIME;
-import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_SOURCE;
-import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_TARGET;
-import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.TABLE_ID;
+import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.DATASET;
+import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_MESSAGE;
+import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_SCANTIME;
+import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_SOURCE;
+import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_TARGET;
+import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.TABLE_ID;
 
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.Bigquery.Tabledata.InsertAll;
@@ -36,9 +36,10 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.util.Retrier;
+
+import google.registry.bigquery.BigqueryFactory;
+import google.registry.config.RegistryEnvironment;
+import google.registry.util.Retrier;
 
 import org.joda.time.DateTime;
 

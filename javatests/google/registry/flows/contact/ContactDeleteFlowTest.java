@@ -12,36 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import static com.google.domain.registry.flows.async.AsyncFlowUtils.ASYNC_FLOW_QUEUE_NAME;
-import static com.google.domain.registry.request.Actions.getPathForAction;
-import static com.google.domain.registry.testing.ContactResourceSubject.assertAboutContacts;
-import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newContactResource;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.flows.async.AsyncFlowUtils.ASYNC_FLOW_QUEUE_NAME;
+import static google.registry.request.Actions.getPathForAction;
+import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
+import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newContactResource;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistDeletedContact;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.FlowRunner.CommitMode;
-import com.google.domain.registry.flows.FlowRunner.UserPrivileges;
-import com.google.domain.registry.flows.ResourceAsyncDeleteFlow.ResourceToDeleteIsReferencedException;
-import com.google.domain.registry.flows.ResourceFlowTestCase;
-import com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
-import com.google.domain.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
-import com.google.domain.registry.flows.async.DeleteContactResourceAction;
-import com.google.domain.registry.flows.async.DeleteEppResourceAction;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.flows.FlowRunner.CommitMode;
+import google.registry.flows.FlowRunner.UserPrivileges;
+import google.registry.flows.ResourceAsyncDeleteFlow.ResourceToDeleteIsReferencedException;
+import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
+import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
+import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
+import google.registry.flows.async.DeleteContactResourceAction;
+import google.registry.flows.async.DeleteEppResourceAction;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 
 import org.joda.time.Duration;
 import org.junit.Before;

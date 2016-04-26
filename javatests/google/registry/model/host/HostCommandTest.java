@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.host;
+package google.registry.model.host;
 
-import com.google.domain.registry.model.ResourceCommandTestCase;
+import google.registry.model.ResourceCommandTestCase;
 
 import org.junit.Test;
 

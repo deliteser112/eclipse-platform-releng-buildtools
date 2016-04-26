@@ -12,56 +12,57 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateContactsHaveTypes;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateDomainName;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateDsData;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateNameservers;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateRegistrantAllowedOnTld;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyLaunchPhase;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
-import static com.google.domain.registry.model.EppResourceUtils.createDomainRoid;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.Registries.findTldForName;
-import static com.google.domain.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
+import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
+import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
+import static google.registry.flows.domain.DomainFlowUtils.validateContactsHaveTypes;
+import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
+import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
+import static google.registry.flows.domain.DomainFlowUtils.validateDsData;
+import static google.registry.flows.domain.DomainFlowUtils.validateNameservers;
+import static google.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
+import static google.registry.flows.domain.DomainFlowUtils.validateRegistrantAllowedOnTld;
+import static google.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
+import static google.registry.flows.domain.DomainFlowUtils.verifyLaunchPhase;
+import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
+import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
+import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
+import static google.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
+import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
+import static google.registry.model.EppResourceUtils.createDomainRoid;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registries.findTldForName;
+import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.ParameterValuePolicyErrorException;
-import com.google.domain.registry.flows.EppException.ParameterValueRangeErrorException;
-import com.google.domain.registry.flows.EppException.ParameterValueSyntaxErrorException;
-import com.google.domain.registry.flows.EppException.StatusProhibitsOperationException;
-import com.google.domain.registry.flows.EppException.UnimplementedOptionException;
-import com.google.domain.registry.flows.ResourceCreateFlow;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.DomainBase.Builder;
-import com.google.domain.registry.model.domain.DomainCommand.Create;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.fee.FeeCreateExtension;
-import com.google.domain.registry.model.domain.launch.LaunchCreateExtension;
-import com.google.domain.registry.model.domain.launch.LaunchNotice;
-import com.google.domain.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.domain.secdns.SecDnsCreateExtension;
-import com.google.domain.registry.model.ofy.ObjectifyService;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.model.smd.SignedMark;
-import com.google.domain.registry.model.tmch.ClaimsListShard;
 
 import com.googlecode.objectify.Work;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.ParameterValuePolicyErrorException;
+import google.registry.flows.EppException.ParameterValueRangeErrorException;
+import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
+import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.flows.EppException.UnimplementedOptionException;
+import google.registry.flows.ResourceCreateFlow;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.DomainBase.Builder;
+import google.registry.model.domain.DomainCommand.Create;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.fee.FeeCreateExtension;
+import google.registry.model.domain.launch.LaunchCreateExtension;
+import google.registry.model.domain.launch.LaunchNotice;
+import google.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.domain.secdns.SecDnsCreateExtension;
+import google.registry.model.ofy.ObjectifyService;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.model.smd.SignedMark;
+import google.registry.model.tmch.ClaimsListShard;
 
 import org.joda.money.Money;
 

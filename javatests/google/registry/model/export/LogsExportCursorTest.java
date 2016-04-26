@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.export;
+package google.registry.model.export;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.common.PersistedRangeLong;
+
+import google.registry.model.EntityTestCase;
+import google.registry.model.common.PersistedRangeLong;
 
 import org.junit.Before;
 import org.junit.Test;

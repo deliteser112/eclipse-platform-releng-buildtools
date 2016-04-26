@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registry;
+package google.registry.model.registry;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.RegistryCursor.CursorType.BRDA;
-import static com.google.domain.registry.model.registry.RegistryCursor.CursorType.RDE_UPLOAD;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-
-import com.google.domain.registry.model.EntityTestCase;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.RegistryCursor.CursorType.BRDA;
+import static google.registry.model.registry.RegistryCursor.CursorType.RDE_UPLOAD;
+import static google.registry.testing.DatastoreHelper.createTld;
 
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.model.EntityTestCase;
 
 import org.joda.time.DateTime;
 import org.junit.Test;

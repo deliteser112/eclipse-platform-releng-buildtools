@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.io.ByteStreams;
-import com.google.domain.registry.keyring.api.KeyModule.Key;
-import com.google.domain.registry.rde.Ghostryde;
-import com.google.domain.registry.tools.params.PathParameter;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.keyring.api.KeyModule.Key;
+import google.registry.rde.Ghostryde;
+import google.registry.tools.params.PathParameter;
 
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPrivateKey;

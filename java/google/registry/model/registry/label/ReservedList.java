@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registry.label;
+package google.registry.model.registry.label;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
-import static com.google.domain.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
-import static com.google.domain.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
-import static com.google.domain.registry.model.registry.label.ReservationType.UNRESERVED;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
+import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
+import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
+import static google.registry.model.registry.label.ReservationType.UNRESERVED;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.common.base.Optional;
@@ -34,8 +34,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.registry.Registry;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
@@ -44,6 +42,9 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.mapper.Mapper;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.registry.Registry;
 
 import java.util.List;
 import java.util.Map;

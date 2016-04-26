@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.GcsTestingUtils.readGcsFile;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
+import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.GcsTestingUtils.readGcsFile;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
@@ -30,12 +30,13 @@ import com.google.appengine.tools.cloudstorage.ListOptions;
 import com.google.appengine.tools.cloudstorage.ListResult;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldType;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeResponse;
-import com.google.domain.registry.testing.mapreduce.MapreduceTestCase;
+
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldType;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeResponse;
+import google.registry.testing.mapreduce.MapreduceTestCase;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

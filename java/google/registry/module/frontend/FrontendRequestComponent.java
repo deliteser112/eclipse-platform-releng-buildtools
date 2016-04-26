@@ -12,29 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.module.frontend;
-
-import com.google.domain.registry.rdap.RdapAutnumAction;
-import com.google.domain.registry.rdap.RdapDomainAction;
-import com.google.domain.registry.rdap.RdapDomainSearchAction;
-import com.google.domain.registry.rdap.RdapEntityAction;
-import com.google.domain.registry.rdap.RdapEntitySearchAction;
-import com.google.domain.registry.rdap.RdapHelpAction;
-import com.google.domain.registry.rdap.RdapIpAction;
-import com.google.domain.registry.rdap.RdapModule;
-import com.google.domain.registry.rdap.RdapNameserverAction;
-import com.google.domain.registry.rdap.RdapNameserverSearchAction;
-import com.google.domain.registry.request.RequestModule;
-import com.google.domain.registry.request.RequestScope;
-import com.google.domain.registry.ui.server.registrar.ConsoleUiAction;
-import com.google.domain.registry.ui.server.registrar.RegistrarPaymentAction;
-import com.google.domain.registry.ui.server.registrar.RegistrarPaymentSetupAction;
-import com.google.domain.registry.ui.server.registrar.RegistrarUserModule;
-import com.google.domain.registry.whois.WhoisHttpServer;
-import com.google.domain.registry.whois.WhoisModule;
-import com.google.domain.registry.whois.WhoisServer;
+package google.registry.module.frontend;
 
 import dagger.Subcomponent;
+
+import google.registry.rdap.RdapAutnumAction;
+import google.registry.rdap.RdapDomainAction;
+import google.registry.rdap.RdapDomainSearchAction;
+import google.registry.rdap.RdapEntityAction;
+import google.registry.rdap.RdapEntitySearchAction;
+import google.registry.rdap.RdapHelpAction;
+import google.registry.rdap.RdapIpAction;
+import google.registry.rdap.RdapModule;
+import google.registry.rdap.RdapNameserverAction;
+import google.registry.rdap.RdapNameserverSearchAction;
+import google.registry.request.RequestModule;
+import google.registry.request.RequestScope;
+import google.registry.ui.server.registrar.ConsoleUiAction;
+import google.registry.ui.server.registrar.RegistrarPaymentAction;
+import google.registry.ui.server.registrar.RegistrarPaymentSetupAction;
+import google.registry.ui.server.registrar.RegistrarUserModule;
+import google.registry.whois.WhoisHttpServer;
+import google.registry.whois.WhoisModule;
+import google.registry.whois.WhoisServer;
 
 /** Dagger component with per-request lifetime for "default" App Engine module. */
 @RequestScope

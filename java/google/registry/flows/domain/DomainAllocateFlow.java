@@ -12,47 +12,48 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.getReservationType;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.CollectionUtils.isNullOrEmpty;
+import static google.registry.flows.domain.DomainFlowUtils.getReservationType;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.AuthorizationErrorException;
-import com.google.domain.registry.flows.EppException.ObjectDoesNotExistException;
-import com.google.domain.registry.flows.EppException.RequiredParameterMissingException;
-import com.google.domain.registry.flows.EppException.StatusProhibitsOperationException;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.BillingEvent.Flag;
-import com.google.domain.registry.model.billing.BillingEvent.Reason;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainResource.Builder;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.domain.allocate.AllocateCreateExtension;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.model.domain.launch.LaunchInfoResponseExtension;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.label.ReservationType;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.tmch.LordnTask;
 
 import com.googlecode.objectify.Ref;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.AuthorizationErrorException;
+import google.registry.flows.EppException.ObjectDoesNotExistException;
+import google.registry.flows.EppException.RequiredParameterMissingException;
+import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Flag;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainResource.Builder;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.allocate.AllocateCreateExtension;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.domain.launch.LaunchInfoResponseExtension;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.ReservationType;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.tmch.LordnTask;
 
 /**
  * An EPP flow that allocates a new domain resource from a domain application.
  *
- * @error {@link com.google.domain.registry.flows.EppException.UnimplementedExtensionException}
- * @error {@link com.google.domain.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException}
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
+ * @error {@link google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainAllocateFlow.HasFinalStatusException}
  * @error {@link DomainAllocateFlow.MissingAllocateCreateExtensionException}
  * @error {@link DomainAllocateFlow.MissingApplicationException}

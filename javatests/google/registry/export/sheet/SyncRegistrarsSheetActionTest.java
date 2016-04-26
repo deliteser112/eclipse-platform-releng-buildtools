@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export.sheet;
+package google.registry.export.sheet;
 
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
@@ -25,9 +25,10 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.model.server.Lock;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeResponse;
+
+import google.registry.model.server.Lock;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeResponse;
 
 import org.joda.time.Duration;
 import org.junit.Rule;

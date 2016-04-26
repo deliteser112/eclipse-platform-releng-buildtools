@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppcommon;
+package google.registry.model.eppcommon;
 
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 import static com.google.common.base.Strings.nullToEmpty;
 
-import com.google.domain.registry.model.translators.EnumToAttributeAdapter.EppEnum;
-import com.google.domain.registry.model.translators.StatusValueAdapter;
+import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
+import google.registry.model.translators.StatusValueAdapter;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 

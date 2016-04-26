@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.domain.registry.testing.SystemInfo.hasCommand;
+import static google.registry.testing.SystemInfo.hasCommand;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
 
 import com.google.common.io.CharStreams;
-import com.google.domain.registry.keyring.api.Keyring;
-import com.google.domain.registry.testing.BouncyCastleProviderRule;
-import com.google.domain.registry.testing.GpgSystemCommandRule;
-import com.google.domain.registry.testing.Providers;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.keyring.api.Keyring;
+import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.GpgSystemCommandRule;
+import google.registry.testing.Providers;
+import google.registry.util.FormattingLogger;
 
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPublicKey;

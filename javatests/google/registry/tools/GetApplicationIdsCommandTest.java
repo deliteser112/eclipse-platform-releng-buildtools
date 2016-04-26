@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainApplication;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.domain.registry.model.domain.launch.LaunchPhase;
-
 import com.beust.jcommander.ParameterException;
+
+import google.registry.model.domain.launch.LaunchPhase;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

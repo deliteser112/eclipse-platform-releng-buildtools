@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.host;
+package google.registry.model.host;
 
 import com.google.common.net.InetAddresses;
 

@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_FILE_PARAM;
-import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_ID_PARAM;
-import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARAM;
-import static com.google.domain.registry.export.LoadSnapshotAction.PATH;
-import static com.google.domain.registry.export.LoadSnapshotAction.QUEUE;
-import static com.google.domain.registry.export.LoadSnapshotAction.enqueueLoadSnapshotTask;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_FILE_PARAM;
+import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_ID_PARAM;
+import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARAM;
+import static google.registry.export.LoadSnapshotAction.PATH;
+import static google.registry.export.LoadSnapshotAction.QUEUE;
+import static google.registry.export.LoadSnapshotAction.enqueueLoadSnapshotTask;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -39,14 +39,15 @@ import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.InternalServerErrorException;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
+
+import google.registry.bigquery.BigqueryFactory;
+import google.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

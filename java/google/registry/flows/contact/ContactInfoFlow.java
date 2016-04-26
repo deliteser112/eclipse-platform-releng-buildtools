@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import com.google.domain.registry.flows.ResourceInfoFlow;
-import com.google.domain.registry.model.contact.ContactCommand.Info;
-import com.google.domain.registry.model.contact.ContactResource;
+import google.registry.flows.ResourceInfoFlow;
+import google.registry.model.contact.ContactCommand.Info;
+import google.registry.model.contact.ContactResource;
 
 /**
  * An EPP flow that reads a contact.
  *
- * @error {@link com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
  */
 public class ContactInfoFlow extends ResourceInfoFlow<ContactResource, Info> {}
 

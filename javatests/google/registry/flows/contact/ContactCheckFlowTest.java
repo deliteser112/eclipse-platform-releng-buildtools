@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import static com.google.domain.registry.model.eppoutput.CheckData.ContactCheck.create;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedContact;
+import static google.registry.model.eppoutput.CheckData.ContactCheck.create;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 
-import com.google.domain.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
-import com.google.domain.registry.flows.ResourceCheckFlowTestCase;
-import com.google.domain.registry.model.contact.ContactResource;
+import google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
+import google.registry.flows.ResourceCheckFlowTestCase;
+import google.registry.model.contact.ContactResource;
 
 import org.junit.Test;
 

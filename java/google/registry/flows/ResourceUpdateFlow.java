@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.Success;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.domain.registry.flows.EppException.ParameterValuePolicyErrorException;
-import com.google.domain.registry.flows.EppException.ParameterValueRangeErrorException;
-import com.google.domain.registry.flows.EppException.StatusProhibitsOperationException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.Builder;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppinput.ResourceCommand.AddRemoveSameValueException;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceUpdate;
-import com.google.domain.registry.model.eppoutput.EppOutput;
+
+import google.registry.flows.EppException.ParameterValuePolicyErrorException;
+import google.registry.flows.EppException.ParameterValueRangeErrorException;
+import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.model.EppResource;
+import google.registry.model.EppResource.Builder;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppinput.ResourceCommand.AddRemoveSameValueException;
+import google.registry.model.eppinput.ResourceCommand.ResourceUpdate;
+import google.registry.model.eppoutput.EppOutput;
 
 import java.util.Set;
 

@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.earliestOf;
-import static com.google.domain.registry.util.DateTimeUtils.isAtOrAfter;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
-import static com.google.domain.registry.util.DateTimeUtils.latestOf;
-import static com.google.domain.registry.util.DateTimeUtils.leapSafeAddYears;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.DateTimeUtils.earliestOf;
+import static google.registry.util.DateTimeUtils.isAtOrAfter;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.util.DateTimeUtils.latestOf;
+import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.testing.ExceptionRule;
 
 import org.joda.time.DateTime;
 import org.junit.Rule;

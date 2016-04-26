@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.xml;
+package google.registry.xml;
 
 /** Enum that determines whether xml should be validated against a schema while marshaling. */
 public enum ValidationMode {

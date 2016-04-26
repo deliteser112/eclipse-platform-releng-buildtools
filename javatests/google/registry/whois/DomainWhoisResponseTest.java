@@ -12,33 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.whois.WhoisHelper.loadWhoisTestFile;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.contact.ContactAddress;
-import com.google.domain.registry.model.contact.ContactPhoneNumber;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.PostalInfo;
-import com.google.domain.registry.model.domain.DesignatedContact;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
 
 import com.googlecode.objectify.Ref;
+
+import google.registry.model.contact.ContactAddress;
+import google.registry.model.contact.ContactPhoneNumber;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.PostalInfo;
+import google.registry.model.domain.DesignatedContact;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.model.registrar.Registrar;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

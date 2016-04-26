@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.session;
+package google.registry.flows.session;
 
-import static com.google.domain.registry.model.eppoutput.Result.Code.SuccessAndClose;
+import static google.registry.model.eppoutput.Result.Code.SuccessAndClose;
 
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.LoggedInFlow;
-import com.google.domain.registry.model.eppoutput.EppOutput;
+import google.registry.flows.EppException;
+import google.registry.flows.LoggedInFlow;
+import google.registry.model.eppoutput.EppOutput;
 
 /**
  * An EPP flow for logout.
  *
- * @error {@link com.google.domain.registry.flows.LoggedInFlow.NotLoggedInException}
+ * @error {@link google.registry.flows.LoggedInFlow.NotLoggedInException}
  */
 public class LogoutFlow extends LoggedInFlow {
   @Override

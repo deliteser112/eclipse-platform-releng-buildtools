@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registry.label;
+package google.registry.model.registry.label;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.label.PremiumList.getPremiumPrice;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistPremiumList;
-import static com.google.domain.registry.testing.DatastoreHelper.persistReservedList;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.label.PremiumList.getPremiumPrice;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistPremiumList;
+import static google.registry.testing.DatastoreHelper.persistReservedList;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.label.PremiumList.PremiumListEntry;
-import com.google.domain.registry.model.registry.label.PremiumList.PremiumListRevision;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.PremiumList.PremiumListEntry;
+import google.registry.model.registry.label.PremiumList.PremiumListRevision;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

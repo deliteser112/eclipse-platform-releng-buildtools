@@ -1,5 +1,5 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_visibility = ["//java/google/registry:registry_project"],
 )
 
 java_binary(
@@ -19,16 +19,16 @@ java_binary(
     create_executable = 0,
     runtime_deps = [
         "//java/com/google/common/testing",
-        "//java/com/google/domain/registry/module/frontend",
-        "//java/com/google/domain/registry/module/backend",
-        "//java/com/google/domain/registry/module/tools",  
-        "//java/com/google/domain/registry/tools",
+        "//java/google/registry/module/backend",
+        "//java/google/registry/module/frontend",
+        "//java/google/registry/module/tools",
+        "//java/google/registry/tools",
+        "//third_party/java/apache_sshd",
         "//third_party/java/appengine:appengine-api-link",
+        "//third_party/java/appengine:appengine-integration-testing",
         "//third_party/java/appengine:appengine-remote-api-link",
         "//third_party/java/appengine:appengine-stubs",
-        "//third_party/java/appengine:appengine-integration-testing",
         "//third_party/java/appengine:appengine-testing",
-        "//third_party/java/apache_sshd",
         "//third_party/java/ftpserver",
         "//third_party/java/hamcrest",
         "//third_party/java/jetty/v6_1_22",
@@ -43,13 +43,8 @@ java_binary(
 # of domain-registry classes on the eclipse build path.
 genrule(
     name = "eclipse_deps",
-    srcs = ["//java/com/google/domain/registry/eclipse:registry_deps_deploy.jar"],
+    srcs = ["//java/google/registry/eclipse:registry_deps_deploy.jar"],
     outs = ["eclipse_deps.jar"],
-    tools = [
-        "@local_jdk//:bin/jar",
-        "@local_jdk//:jdk-lib",
-        "@local_jdk//:jre-default",
-    ],
     cmd = " && ".join([
         "JAR=$$(pwd)/$(location @local_jdk//:bin/jar)",
         "IN=$$(pwd)/$(SRCS)",
@@ -57,9 +52,14 @@ genrule(
         "TMP=$$(mktemp -d $${TMPDIR:-/tmp}/eclipse_deps.XXXXXXXX)",
         "cd $$TMP",
         "$$JAR -xf $$IN",
-        "rm -rf com/google/domain/registry",
+        "rm -rf google/registry",
         "$$JAR -cmf META-INF/MANIFEST.MF eclipse_deps.jar .",
         "mv eclipse_deps.jar $$OUT",
         "rm -rf $$TMP",
     ]),
+    tools = [
+        "@local_jdk//:bin/jar",
+        "@local_jdk//:jdk-lib",
+        "@local_jdk//:jre-default",
+    ],
 )

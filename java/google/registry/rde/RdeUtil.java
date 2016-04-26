@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
-import static com.google.domain.registry.util.HexDumper.dumpHex;
+import static google.registry.util.HexDumper.dumpHex;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.io.BaseEncoding;
-import com.google.domain.registry.xjc.rde.XjcRdeRrType;
-import com.google.domain.registry.xml.XmlException;
+
+import google.registry.xjc.rde.XjcRdeRrType;
+import google.registry.xml.XmlException;
 
 import org.joda.time.DateTime;
 import org.joda.time.ReadableInstant;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui;
+package google.registry.ui;
 
 /** Enum defining which JS/CSS files get rendered in a soy templates. */
 public enum ConsoleDebug {

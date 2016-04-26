@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.async;
+package google.registry.flows.async;
 
-import static com.google.domain.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
+import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.reporting.HistoryEntry.Type;
-import com.google.domain.registry.request.Action;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.HistoryEntry.Type;
+import google.registry.request.Action;
 
 import org.joda.time.DateTime;
 

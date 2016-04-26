@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.common.collect.Iterables.toArray;
 
@@ -21,8 +21,9 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.config.RegistryConfig;
-import com.google.domain.registry.config.RegistryEnvironment;
+
+import google.registry.config.RegistryConfig;
+import google.registry.config.RegistryEnvironment;
 
 import java.util.List;
 

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.domain.registry.rde.RdeTestData;
-import com.google.domain.registry.xml.XmlException;
+import google.registry.rde.RdeTestData;
+import google.registry.xml.XmlException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

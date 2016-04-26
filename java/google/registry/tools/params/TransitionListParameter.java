@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.params;
+package google.registry.tools.params;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -20,7 +20,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.model.registry.Registry.TldState;
+
+import google.registry.model.registry.Registry.TldState;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

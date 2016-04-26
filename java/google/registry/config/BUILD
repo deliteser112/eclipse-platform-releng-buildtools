@@ -1,4 +1,6 @@
-package(default_visibility = ["//java/com/google/domain/registry:registry_project"])
+package(default_visibility = ["//java/google/registry:registry_project"])
+
+licenses(["notice"])  # Apache 2.0
 
 
 java_library(

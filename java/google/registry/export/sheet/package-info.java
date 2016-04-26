@@ -13,4 +13,4 @@
 // limitations under the License.
 
 @javax.annotation.ParametersAreNonnullByDefault
-package com.google.domain.registry.export.sheet;
+package google.registry.export.sheet;

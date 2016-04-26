@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.eppoutput.CheckData;
+import google.registry.model.EppResource;
+import google.registry.model.eppoutput.CheckData;
 
 /**
  * Base class for resource check flow unit tests.

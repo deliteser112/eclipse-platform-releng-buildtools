@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.base.Throwables.getRootCause;
-import static com.google.domain.registry.flows.EppXmlTransformer.marshal;
+import static google.registry.flows.EppXmlTransformer.marshal;
 
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.eppoutput.Response;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.SystemClock;
-import com.google.domain.registry.xml.ValidationMode;
+import google.registry.flows.EppException;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.Response;
+import google.registry.util.Clock;
+import google.registry.util.SystemClock;
+import google.registry.xml.ValidationMode;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;

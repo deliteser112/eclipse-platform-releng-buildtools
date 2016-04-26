@@ -12,30 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.flows.EppXmlTransformer.unmarshal;
-import static com.google.domain.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyLaunchApplicationIdMatchesDomain;
+import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
+import static google.registry.flows.domain.DomainFlowUtils.verifyLaunchApplicationIdMatchesDomain;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.ParameterValuePolicyErrorException;
-import com.google.domain.registry.flows.EppException.RequiredParameterMissingException;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainApplication.Builder;
-import com.google.domain.registry.model.domain.launch.LaunchInfoExtension;
-import com.google.domain.registry.model.domain.launch.LaunchInfoResponseExtension;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
-import com.google.domain.registry.model.mark.Mark;
-import com.google.domain.registry.model.smd.EncodedSignedMark;
-import com.google.domain.registry.model.smd.SignedMark;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.ParameterValuePolicyErrorException;
+import google.registry.flows.EppException.RequiredParameterMissingException;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainApplication.Builder;
+import google.registry.model.domain.launch.LaunchInfoExtension;
+import google.registry.model.domain.launch.LaunchInfoResponseExtension;
+import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.mark.Mark;
+import google.registry.model.smd.EncodedSignedMark;
+import google.registry.model.smd.SignedMark;
 
 /**
  * An EPP flow that reads a domain application.
  *
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
  * @error {@link DomainFlowUtils.ApplicationDomainNameMismatchException}
  * @error {@link DomainApplicationInfoFlow.ApplicationLaunchPhaseMismatchException}
  * @error {@link DomainApplicationInfoFlow.MissingApplicationIdException}

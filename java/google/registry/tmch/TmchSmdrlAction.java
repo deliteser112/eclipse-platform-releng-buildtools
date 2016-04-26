@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.request.Action.Method.POST;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.keyring.api.KeyModule.Key;
-import com.google.domain.registry.model.smd.SignedMarkRevocationList;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.keyring.api.KeyModule.Key;
+import google.registry.model.smd.SignedMarkRevocationList;
+import google.registry.request.Action;
+import google.registry.util.FormattingLogger;
 
 import org.bouncycastle.openpgp.PGPException;
 

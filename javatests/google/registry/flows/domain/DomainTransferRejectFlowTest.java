@@ -12,37 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.assertBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.deleteResource;
-import static com.google.domain.registry.testing.DatastoreHelper.getOnlyPollMessage;
-import static com.google.domain.registry.testing.DatastoreHelper.getPollMessages;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DomainResourceSubject.assertAboutDomains;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.testing.DatastoreHelper.assertBillingEvents;
+import static google.registry.testing.DatastoreHelper.deleteResource;
+import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
+import static google.registry.testing.DatastoreHelper.getPollMessages;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
-import com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
-import com.google.domain.registry.flows.ResourceMutatePendingTransferFlow.NotPendingTransferException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
-import com.google.domain.registry.model.contact.ContactAuthInfo;
-import com.google.domain.registry.model.domain.DomainAuthInfo;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.eppcommon.AuthInfo.PasswordAuth;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferResponse;
-import com.google.domain.registry.model.transfer.TransferStatus;
+
+import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
+import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
+import google.registry.flows.ResourceMutatePendingTransferFlow.NotPendingTransferException;
+import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
+import google.registry.model.contact.ContactAuthInfo;
+import google.registry.model.domain.DomainAuthInfo;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.poll.PendingActionNotificationResponse;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferResponse;
+import google.registry.model.transfer.TransferStatus;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

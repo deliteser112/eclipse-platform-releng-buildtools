@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export.sheet;
+package google.registry.export.sheet;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.ABUSE;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.ADMIN;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.BILLING;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.LEGAL;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.MARKETING;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.TECH;
-import static com.google.domain.registry.model.registrar.RegistrarContact.Type.WHOIS;
+import static google.registry.model.registrar.RegistrarContact.Type.ABUSE;
+import static google.registry.model.registrar.RegistrarContact.Type.ADMIN;
+import static google.registry.model.registrar.RegistrarContact.Type.BILLING;
+import static google.registry.model.registrar.RegistrarContact.Type.LEGAL;
+import static google.registry.model.registrar.RegistrarContact.Type.MARKETING;
+import static google.registry.model.registrar.RegistrarContact.Type.TECH;
+import static google.registry.model.registrar.RegistrarContact.Type.WHOIS;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -31,12 +31,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarAddress;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.DateTimeUtils;
 import com.google.gdata.util.ServiceException;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarAddress;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.util.Clock;
+import google.registry.util.DateTimeUtils;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain;
+package google.registry.model.domain;
 
-
-import com.google.domain.registry.model.ImmutableObject;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.ImmutableObject;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlEnumValue;

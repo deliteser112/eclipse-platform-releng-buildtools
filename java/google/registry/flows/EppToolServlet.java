@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.flows.EppServletUtils.handleEppCommandAndWriteResponse;
+import static google.registry.flows.EppServletUtils.handleEppCommandAndWriteResponse;
 
 import com.google.common.io.ByteStreams;
-import com.google.domain.registry.flows.SessionMetadata.SessionSource;
-import com.google.domain.registry.model.eppcommon.ProtocolDefinition;
-import com.google.domain.registry.security.XsrfProtectedServlet;
+
+import google.registry.flows.SessionMetadata.SessionSource;
+import google.registry.model.eppcommon.ProtocolDefinition;
+import google.registry.security.XsrfProtectedServlet;
 
 import java.io.IOException;
 

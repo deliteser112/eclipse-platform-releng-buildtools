@@ -1,6 +1,8 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 
 java_library(
@@ -10,27 +12,27 @@ java_library(
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
         "//java/com/google/common/net",
-        "//java/com/google/domain/registry/backup",
-        "//java/com/google/domain/registry/bigquery",
-        "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/cron",
-        "//java/com/google/domain/registry/dns",
-        "//java/com/google/domain/registry/dns/writer/api",
-        "//java/com/google/domain/registry/dns/writer/dnsupdate",
-        "//java/com/google/domain/registry/export",
-        "//java/com/google/domain/registry/export/sheet",
-        "//java/com/google/domain/registry/flows",
-        "//java/com/google/domain/registry/gcs",
-        "//java/com/google/domain/registry/groups",
-        "//java/com/google/domain/registry/keyring/api",
-        "//java/com/google/domain/registry/mapreduce",
-        "//java/com/google/domain/registry/model",
-        "//java/com/google/domain/registry/monitoring/whitebox",
-        "//java/com/google/domain/registry/rde",
-        "//java/com/google/domain/registry/request",
-        "//java/com/google/domain/registry/request:modules",
-        "//java/com/google/domain/registry/tmch",
-        "//java/com/google/domain/registry/util",
+        "//java/google/registry/backup",
+        "//java/google/registry/bigquery",
+        "//java/google/registry/config",
+        "//java/google/registry/cron",
+        "//java/google/registry/dns",
+        "//java/google/registry/dns/writer/api",
+        "//java/google/registry/dns/writer/dnsupdate",
+        "//java/google/registry/export",
+        "//java/google/registry/export/sheet",
+        "//java/google/registry/flows",
+        "//java/google/registry/gcs",
+        "//java/google/registry/groups",
+        "//java/google/registry/keyring/api",
+        "//java/google/registry/mapreduce",
+        "//java/google/registry/model",
+        "//java/google/registry/monitoring/whitebox",
+        "//java/google/registry/rde",
+        "//java/google/registry/request",
+        "//java/google/registry/request:modules",
+        "//java/google/registry/tmch",
+        "//java/google/registry/util",
         "//third_party/java/bouncycastle",
         "//third_party/java/dagger",
         "//third_party/java/jsr305_annotations",
@@ -48,6 +50,6 @@ java_binary(
     create_executable = 0,
     runtime_deps = [
         ":backend",
-        "//java/com/google/domain/registry/monitoring/whitebox",  # MetricsTaskServlet
+        "//java/google/registry/monitoring/whitebox",  # MetricsTaskServlet
     ],
 )

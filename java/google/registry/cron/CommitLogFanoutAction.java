@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.cron;
+package google.registry.cron;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -20,10 +20,11 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.common.base.Optional;
-import com.google.domain.registry.model.ofy.CommitLogBucket;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.util.TaskEnqueuer;
+
+import google.registry.model.ofy.CommitLogBucket;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.util.TaskEnqueuer;
 
 import java.util.Random;
 

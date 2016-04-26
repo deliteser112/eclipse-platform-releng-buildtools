@@ -12,27 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
+import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.ResourceTransferCancelFlow;
-import com.google.domain.registry.model.domain.DomainCommand.Transfer;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.DomainResource.Builder;
-import com.google.domain.registry.model.reporting.HistoryEntry;
+import google.registry.flows.EppException;
+import google.registry.flows.ResourceTransferCancelFlow;
+import google.registry.model.domain.DomainCommand.Transfer;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainResource.Builder;
+import google.registry.model.reporting.HistoryEntry;
 
 /**
  * An EPP flow that cancels a pending transfer on a {@link DomainResource}.
  *
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.ResourceMutatePendingTransferFlow.NotPendingTransferException}
- * @error {@link com.google.domain.registry.flows.ResourceTransferCancelFlow.NotTransferInitiatorException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceMutatePendingTransferFlow.NotPendingTransferException}
+ * @error {@link google.registry.flows.ResourceTransferCancelFlow.NotTransferInitiatorException}
  */
 public class DomainTransferCancelFlow
     extends ResourceTransferCancelFlow<DomainResource, Builder, Transfer> {

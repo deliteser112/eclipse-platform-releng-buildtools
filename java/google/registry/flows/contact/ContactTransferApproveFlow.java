@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import com.google.domain.registry.flows.ResourceTransferApproveFlow;
-import com.google.domain.registry.model.contact.ContactCommand.Transfer;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.ContactResource.Builder;
-import com.google.domain.registry.model.reporting.HistoryEntry;
+import google.registry.flows.ResourceTransferApproveFlow;
+import google.registry.model.contact.ContactCommand.Transfer;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.ContactResource.Builder;
+import google.registry.model.reporting.HistoryEntry;
 
 /**
  * An EPP flow that approves a pending transfer on a {@link ContactResource}.
  *
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.ResourceMutatePendingTransferFlow.NotPendingTransferException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceMutatePendingTransferFlow.NotPendingTransferException}
  */
 public class ContactTransferApproveFlow
     extends ResourceTransferApproveFlow<ContactResource, Builder, Transfer> {

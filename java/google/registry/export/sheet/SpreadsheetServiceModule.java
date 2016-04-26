@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export.sheet;
+package google.registry.export.sheet;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.common.collect.ImmutableList;

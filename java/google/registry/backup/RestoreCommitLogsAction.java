@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterators.peekingIterator;
-import static com.google.domain.registry.backup.BackupUtils.createDeserializingIterator;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.backup.BackupUtils.createDeserializingIterator;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static java.util.Arrays.asList;
 
 import com.google.appengine.api.datastore.DatastoreService;
@@ -29,21 +29,22 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.PeekingIterator;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.ofy.CommitLogBucket;
-import com.google.domain.registry.model.ofy.CommitLogCheckpoint;
-import com.google.domain.registry.model.ofy.CommitLogCheckpointRoot;
-import com.google.domain.registry.model.ofy.CommitLogManifest;
-import com.google.domain.registry.model.ofy.CommitLogMutation;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.Retrier;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.ResultNow;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.ImmutableObject;
+import google.registry.model.ofy.CommitLogBucket;
+import google.registry.model.ofy.CommitLogCheckpoint;
+import google.registry.model.ofy.CommitLogCheckpointRoot;
+import google.registry.model.ofy.CommitLogManifest;
+import google.registry.model.ofy.CommitLogMutation;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.util.FormattingLogger;
+import google.registry.util.Retrier;
 
 import org.joda.time.DateTime;
 

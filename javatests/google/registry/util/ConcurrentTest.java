@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
@@ -22,7 +22,8 @@ import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.NullPointerTester;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.domain.registry.testing.AppEngineRule;
+
+import google.registry.testing.AppEngineRule;
 
 import org.junit.Rule;
 import org.junit.Test;

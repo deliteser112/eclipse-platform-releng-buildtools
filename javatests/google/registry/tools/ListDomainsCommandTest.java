@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import com.google.domain.registry.tools.server.ListDomainsAction;
+import google.registry.tools.server.ListDomainsAction;
 
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;

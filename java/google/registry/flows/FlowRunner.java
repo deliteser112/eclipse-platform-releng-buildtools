@@ -12,26 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static com.google.common.io.BaseEncoding.base64;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.xml.XmlTransformer.prettyPrint;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.xml.XmlTransformer.prettyPrint;
 
 import com.google.common.base.Strings;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.eppinput.EppInput;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.monitoring.whitebox.EppMetrics;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
-import com.google.domain.registry.util.SystemClock;
-import com.google.domain.registry.util.TypeUtils;
 
 import com.googlecode.objectify.Work;
+
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.monitoring.whitebox.EppMetrics;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.SystemClock;
+import google.registry.util.TypeUtils;
 
 import org.joda.time.DateTime;
 

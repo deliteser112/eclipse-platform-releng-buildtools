@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.rde;
+package google.registry.model.rde;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.rde.RdeMode.FULL;
-import static com.google.domain.registry.model.rde.RdeMode.THIN;
-import static com.google.domain.registry.model.rde.RdeNamingUtils.makePartialName;
-import static com.google.domain.registry.model.rde.RdeNamingUtils.makeRydeFilename;
+import static google.registry.model.rde.RdeMode.FULL;
+import static google.registry.model.rde.RdeMode.THIN;
+import static google.registry.model.rde.RdeNamingUtils.makePartialName;
+import static google.registry.model.rde.RdeNamingUtils.makeRydeFilename;
 
-import com.google.domain.registry.testing.ExceptionRule;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.time.DateTime;
 import org.junit.Rule;

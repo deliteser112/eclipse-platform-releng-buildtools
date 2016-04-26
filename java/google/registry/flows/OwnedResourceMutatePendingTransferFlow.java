@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
+import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.Builder;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.EppResource;
+import google.registry.model.EppResource.Builder;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 
 /**
  * An EPP flow that acts on an owned resource with a pending transfer on it.

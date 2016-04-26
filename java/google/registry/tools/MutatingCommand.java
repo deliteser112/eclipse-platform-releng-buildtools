@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
@@ -21,9 +21,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.emptyToNull;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DatastoreServiceUtils.getNameOrId;
-import static com.google.domain.registry.util.DiffUtils.prettyPrintDeepDiff;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DatastoreServiceUtils.getNameOrId;
+import static google.registry.util.DiffUtils.prettyPrintDeepDiff;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -32,11 +32,12 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.model.ImmutableObject;
+import google.registry.tools.Command.RemoteApiCommand;
 
 import java.util.ArrayList;
 import java.util.HashSet;

@@ -12,28 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.poll;
+package google.registry.model.poll;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.domain.registry.model.domain.Period;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.model.poll.PollMessageExternalKeyConverter.PollMessageExternalKeyParseException;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-
 import com.googlecode.objectify.Key;
+
+import google.registry.model.domain.Period;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.ofy.Ofy;
+import google.registry.model.poll.PollMessageExternalKeyConverter.PollMessageExternalKeyParseException;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

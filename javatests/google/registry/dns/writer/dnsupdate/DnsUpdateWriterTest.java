@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns.writer.dnsupdate;
+package google.registry.dns.writer.dnsupdate;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
+import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
+import static google.registry.testing.DatastoreHelper.persistDeletedHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,15 +31,18 @@ import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.model.ofy.Ofy;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+
+import junit.framework.AssertionFailedError;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -64,8 +67,6 @@ import org.xbill.DNS.Update;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-
-import junit.framework.AssertionFailedError;
 
 /** Unit tests for {@link DnsUpdateWriter}. */
 @RunWith(MockitoJUnitRunner.class)

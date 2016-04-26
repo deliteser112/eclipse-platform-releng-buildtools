@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.contact;
-
-import com.google.domain.registry.model.eppcommon.Address;
+package google.registry.model.contact;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.eppcommon.Address;
 
 /**
  * EPP Contact Address

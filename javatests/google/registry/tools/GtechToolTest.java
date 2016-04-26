@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
@@ -25,7 +25,8 @@ import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 import com.google.common.truth.Expect;
-import com.google.domain.registry.tools.Command.GtechCommand;
+
+import google.registry.tools.Command.GtechCommand;
 
 import org.junit.Before;
 import org.junit.Rule;

@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-
-import com.google.domain.registry.flows.EppException.AuthorizationErrorException;
-import com.google.domain.registry.flows.SessionMetadata.SessionSource;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.domain.Period;
-import com.google.domain.registry.model.domain.metadata.MetadataExtension;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.flows.EppException.AuthorizationErrorException;
+import google.registry.flows.SessionMetadata.SessionSource;
+import google.registry.model.EppResource;
+import google.registry.model.domain.Period;
+import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 /**
  * An EPP flow that creates or mutates a single stored resource.

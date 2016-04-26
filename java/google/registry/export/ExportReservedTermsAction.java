@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
-import static com.google.domain.registry.export.ExportUtils.exportReservedTerms;
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.export.ExportUtils.exportReservedTerms;
+import static google.registry.request.Action.Method.POST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.net.MediaType;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.storage.drive.DriveConnection;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.model.registry.Registry;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
+import google.registry.request.Response;
+import google.registry.storage.drive.DriveConnection;
+import google.registry.util.FormattingLogger;
 
 import javax.inject.Inject;
 

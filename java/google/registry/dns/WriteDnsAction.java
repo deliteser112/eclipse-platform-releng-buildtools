@@ -12,29 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns;
+package google.registry.dns;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
-import static com.google.domain.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
-import static com.google.domain.registry.model.server.Lock.executeWithLocks;
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
+import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
+import static google.registry.model.server.Lock.executeWithLocks;
+import static google.registry.request.Action.Method.POST;
 
 import com.google.appengine.api.LifecycleManager;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.common.base.Throwables;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.dns.DnsConstants.TargetType;
-import com.google.domain.registry.dns.writer.api.DnsWriter;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.util.DomainNameUtils;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.dns.DnsConstants.TargetType;
+import google.registry.dns.writer.api.DnsWriter;
+import google.registry.model.registry.Registry;
+import google.registry.request.Action;
+import google.registry.request.HttpException;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
+import google.registry.util.DomainNameUtils;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.Duration;
 

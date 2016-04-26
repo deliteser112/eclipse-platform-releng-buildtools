@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.util.HexDumper.dumpHex;
+import static google.registry.util.HexDumper.dumpHex;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.bouncycastle.bcpg.CompressionAlgorithmTags.ZIP;
 import static org.bouncycastle.bcpg.HashAlgorithmTags.SHA256;
@@ -23,8 +23,9 @@ import static org.bouncycastle.bcpg.PublicKeyAlgorithmTags.RSA_GENERAL;
 import static org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags.AES_128;
 
 import com.google.common.io.CharStreams;
-import com.google.domain.registry.testing.BouncyCastleProviderRule;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.util.FormattingLogger;
 
 import org.bouncycastle.openpgp.PGPCompressedData;
 import org.bouncycastle.openpgp.PGPCompressedDataGenerator;

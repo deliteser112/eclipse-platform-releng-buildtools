@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import com.google.common.collect.Multimap;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.soy.DomainCheckClaimsSoyInfo;
 import com.google.template.soy.data.SoyMapData;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.soy.DomainCheckClaimsSoyInfo;
 
 import java.util.Collection;
 import java.util.List;

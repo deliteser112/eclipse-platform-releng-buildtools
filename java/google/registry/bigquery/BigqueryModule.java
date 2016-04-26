@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.bigquery;
+package google.registry.bigquery;
 
 import static dagger.Provides.Type.SET_VALUES;
 
@@ -23,12 +23,13 @@ import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.BigqueryScopes;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.request.OAuthScopes;
 
 import dagger.Module;
 import dagger.Multibindings;
 import dagger.Provides;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.request.OAuthScopes;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,11 +37,11 @@ import java.util.Set;
 /**
  * Dagger module for Google {@link Bigquery} connection objects.
  *
- * @see com.google.domain.registry.config.ConfigModule
- * @see com.google.domain.registry.request.Modules.UrlFetchTransportModule
- * @see com.google.domain.registry.request.Modules.Jackson2Module
- * @see com.google.domain.registry.request.Modules.AppIdentityCredentialModule
- * @see com.google.domain.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule
+ * @see google.registry.config.ConfigModule
+ * @see google.registry.request.Modules.UrlFetchTransportModule
+ * @see google.registry.request.Modules.Jackson2Module
+ * @see google.registry.request.Modules.AppIdentityCredentialModule
+ * @see google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule
  */
 @Module
 public final class BigqueryModule {

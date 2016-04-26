@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Maps.transformValues;
-import static com.google.domain.registry.model.ofy.CommitLogBucket.getBucketKey;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.earliestOf;
+import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.earliestOf;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.ofy.CommitLogBucket;
-import com.google.domain.registry.model.ofy.CommitLogCheckpoint;
-import com.google.domain.registry.model.ofy.CommitLogManifest;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.util.Clock;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
+
+import google.registry.model.ofy.CommitLogBucket;
+import google.registry.model.ofy.CommitLogCheckpoint;
+import google.registry.model.ofy.CommitLogManifest;
+import google.registry.model.ofy.Ofy;
+import google.registry.util.Clock;
 
 import org.joda.time.DateTime;
 

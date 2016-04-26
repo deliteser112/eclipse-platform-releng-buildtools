@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.io.BaseEncoding.base16;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
 import com.google.common.base.Function;
@@ -25,16 +25,17 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.tools.params.PathParameter;
-import com.google.domain.registry.util.Clock;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.host.HostResource;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.PathParameter;
+import google.registry.util.Clock;
 
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
-import static com.google.domain.registry.flows.EppXmlTransformer.marshalInput;
-import static com.google.domain.registry.xml.ValidationMode.STRICT;
-import static com.google.domain.registry.xml.XmlTestUtils.assertXmlEquals;
+import static google.registry.flows.EppXmlTransformer.marshalInput;
+import static google.registry.xml.ValidationMode.STRICT;
+import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.domain.registry.testing.EppLoader;
+import google.registry.testing.EppLoader;
 
 /** Unit tests for {@code ResourceCommand}. */
 public abstract class ResourceCommandTestCase extends EntityTestCase {

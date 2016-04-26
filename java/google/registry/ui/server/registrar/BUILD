@@ -1,12 +1,14 @@
-package(default_visibility = ["//java/com/google/domain/registry:registry_project"])
+package(default_visibility = ["//java/google/registry:registry_project"])
+
+licenses(["notice"])  # Apache 2.0
 
 
 java_library(
     name = "registrar",
     srcs = glob(["*.java"]),
     resources = [
-        "//java/com/google/domain/registry/ui/css:registrar_bin.css.js",
-        "//java/com/google/domain/registry/ui/css:registrar_dbg.css.js",
+        "//java/google/registry/ui/css:registrar_bin.css.js",
+        "//java/google/registry/ui/css:registrar_dbg.css.js",
     ],
     deps = [
         "//java/com/google/common/annotations",
@@ -14,19 +16,19 @@ java_library(
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
         "//java/com/google/common/net",
-        "//java/com/google/domain/registry/braintree",
-        "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/export/sheet",
-        "//java/com/google/domain/registry/flows",
-        "//java/com/google/domain/registry/model",
-        "//java/com/google/domain/registry/request",
-        "//java/com/google/domain/registry/security",
-        "//java/com/google/domain/registry/security:servlets",
-        "//java/com/google/domain/registry/ui/forms",
-        "//java/com/google/domain/registry/ui/server",
-        "//java/com/google/domain/registry/ui/soy:soy_java_wrappers",
-        "//java/com/google/domain/registry/ui/soy/registrar:soy_java_wrappers",
-        "//java/com/google/domain/registry/util",
+        "//java/google/registry/braintree",
+        "//java/google/registry/config",
+        "//java/google/registry/export/sheet",
+        "//java/google/registry/flows",
+        "//java/google/registry/model",
+        "//java/google/registry/request",
+        "//java/google/registry/security",
+        "//java/google/registry/security:servlets",
+        "//java/google/registry/ui/forms",
+        "//java/google/registry/ui/server",
+        "//java/google/registry/ui/soy:soy_java_wrappers",
+        "//java/google/registry/ui/soy/registrar:soy_java_wrappers",
+        "//java/google/registry/util",
         "//third_party/java/appengine:appengine-api",
         "//third_party/java/braintree",
         "//third_party/java/dagger",

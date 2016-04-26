@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.appengine.api.datastore.DatastoreServiceFactory.getDatastoreService;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import static com.googlecode.objectify.Key.create;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
@@ -25,14 +25,15 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.FormattingLogger;
 
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.impl.EntityMetadata;
+
+import google.registry.request.Action;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.Parameter;
+import google.registry.request.Response;
+import google.registry.util.FormattingLogger;
 
 import javax.inject.Inject;
 

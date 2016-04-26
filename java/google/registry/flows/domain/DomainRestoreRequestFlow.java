@@ -12,42 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.newAutorenewBillingEvent;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.newAutorenewPollMessage;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
-import static com.google.domain.registry.model.eppoutput.Result.Code.Success;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
+import static google.registry.flows.domain.DomainFlowUtils.newAutorenewBillingEvent;
+import static google.registry.flows.domain.DomainFlowUtils.newAutorenewPollMessage;
+import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
+import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
+import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
+import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.dns.DnsQueue;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.CommandUseErrorException;
-import com.google.domain.registry.flows.EppException.StatusProhibitsOperationException;
-import com.google.domain.registry.flows.OwnedResourceMutateFlow;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.BillingEvent.Reason;
-import com.google.domain.registry.model.domain.DomainCommand.Update;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.fee.Fee;
-import com.google.domain.registry.model.domain.fee.FeeUpdateExtension;
-import com.google.domain.registry.model.domain.fee.FeeUpdateResponseExtension;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.domain.rgp.RgpUpdateExtension;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.reporting.HistoryEntry;
 
 import com.googlecode.objectify.Ref;
+
+import google.registry.dns.DnsQueue;
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.flows.OwnedResourceMutateFlow;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainCommand.Update;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.fee.Fee;
+import google.registry.model.domain.fee.FeeUpdateExtension;
+import google.registry.model.domain.fee.FeeUpdateResponseExtension;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.domain.rgp.RgpUpdateExtension;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.index.ForeignKeyIndex;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.registry.Registry;
+import google.registry.model.reporting.HistoryEntry;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -55,10 +56,10 @@ import org.joda.time.DateTime;
 /**
  * An EPP flow that requests that a deleted domain be restored.
  *
- * @error {@link com.google.domain.registry.flows.EppException.UnimplementedExtensionException}
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}
  * @error {@link DomainFlowUtils.DomainReservedException}

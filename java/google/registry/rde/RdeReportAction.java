@@ -12,30 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.base.Verify.verify;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
-import static com.google.domain.registry.model.rde.RdeMode.FULL;
-import static com.google.domain.registry.request.Action.Method.POST;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.rde.RdeMode.FULL;
+import static google.registry.request.Action.Method.POST;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.io.ByteStreams;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.gcs.GcsUtils;
-import com.google.domain.registry.keyring.api.KeyModule.Key;
-import com.google.domain.registry.model.rde.RdeNamingUtils;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.RegistryCursor;
-import com.google.domain.registry.model.registry.RegistryCursor.CursorType;
-import com.google.domain.registry.rde.EscrowTaskRunner.EscrowTask;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException.NoContentException;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.gcs.GcsUtils;
+import google.registry.keyring.api.KeyModule.Key;
+import google.registry.model.rde.RdeNamingUtils;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.RegistryCursor;
+import google.registry.model.registry.RegistryCursor.CursorType;
+import google.registry.rde.EscrowTaskRunner.EscrowTask;
+import google.registry.request.Action;
+import google.registry.request.HttpException.NoContentException;
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
+import google.registry.request.Response;
+import google.registry.util.FormattingLogger;
 
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPrivateKey;

@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.datastore.EntityTranslator;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.ImmutableObject;
 import com.google.storage.onestore.v3.OnestoreEntity.EntityProto;
+
+import google.registry.model.ImmutableObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

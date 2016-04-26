@@ -12,37 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.domain.registry.flows.EppXmlTransformer.unmarshal;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
-import static com.google.domain.registry.util.DomainNameUtils.ACE_PREFIX;
+import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.smd.EncodedSignedMark;
-import com.google.domain.registry.model.smd.SignedMark;
-import com.google.domain.registry.model.smd.SignedMarkRevocationList;
-import com.google.domain.registry.model.tmch.ClaimsListShard;
-import com.google.domain.registry.tmch.TmchXmlSignature;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.tools.params.PathParameter;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.Idn;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Query;
+
+import google.registry.flows.EppException;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.smd.EncodedSignedMark;
+import google.registry.model.smd.SignedMark;
+import google.registry.model.smd.SignedMarkRevocationList;
+import google.registry.model.tmch.ClaimsListShard;
+import google.registry.tmch.TmchXmlSignature;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.PathParameter;
+import google.registry.util.Clock;
+import google.registry.util.Idn;
 
 import org.joda.time.DateTime;
 

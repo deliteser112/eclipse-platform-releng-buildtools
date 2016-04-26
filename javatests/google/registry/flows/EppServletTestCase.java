@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
-import static com.google.domain.registry.security.XsrfTokenManager.generateToken;
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.TestDataHelper.loadFileWithSubstitutions;
-import static com.google.domain.registry.xml.XmlTestUtils.assertXmlEqualsWithMessage;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
+import static google.registry.security.XsrfTokenManager.generateToken;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.xml.XmlTestUtils.assertXmlEqualsWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Mockito.mock;
@@ -32,16 +32,17 @@ import com.google.appengine.api.modules.ModulesService;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
-import com.google.domain.registry.monitoring.whitebox.Metrics;
-import com.google.domain.registry.security.XsrfProtectedServlet;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.FakeServletInputStream;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.util.BasicHttpSession;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
+
+import google.registry.model.ofy.Ofy;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
+import google.registry.monitoring.whitebox.Metrics;
+import google.registry.security.XsrfProtectedServlet;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeServletInputStream;
+import google.registry.testing.InjectRule;
+import google.registry.util.BasicHttpSession;
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import com.google.auto.value.AutoValue;
-import com.google.domain.registry.model.rde.RdeMode;
-import com.google.domain.registry.model.registry.RegistryCursor.CursorType;
+
+import google.registry.model.rde.RdeMode;
+import google.registry.model.registry.RegistryCursor.CursorType;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.createTld;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityTranslator;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.testing.AppEngineRule;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.registry.Registry;
+import google.registry.testing.AppEngineRule;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;

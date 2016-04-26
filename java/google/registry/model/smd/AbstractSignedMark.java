@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.smd;
+package google.registry.model.smd;
 
 /**
  * Marker interface for signed mark types.

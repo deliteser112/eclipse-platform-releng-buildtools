@@ -1,6 +1,8 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 
 java_library(
@@ -9,21 +11,21 @@ java_library(
     deps = [
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
-        "//java/com/google/domain/registry/braintree",
-        "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/keyring/api",
-        "//java/com/google/domain/registry/rdap",
-        "//java/com/google/domain/registry/request",
-        "//java/com/google/domain/registry/request:modules",
-        "//java/com/google/domain/registry/ui",
-        "//java/com/google/domain/registry/ui/server/registrar",
-        "//java/com/google/domain/registry/util",
-        "//java/com/google/domain/registry/whois",
         "//third_party/java/bouncycastle",
         "//third_party/java/dagger",
         "//third_party/java/jsr305_annotations",
         "//third_party/java/jsr330_inject",
         "//third_party/java/servlet/servlet_api",
+        "//java/google/registry/braintree",
+        "//java/google/registry/config",
+        "//java/google/registry/keyring/api",
+        "//java/google/registry/rdap",
+        "//java/google/registry/request",
+        "//java/google/registry/request:modules",
+        "//java/google/registry/ui",
+        "//java/google/registry/ui/server/registrar",
+        "//java/google/registry/util",
+        "//java/google/registry/whois",
     ],
 )
 
@@ -36,7 +38,7 @@ java_binary(
     create_executable = 0,
     runtime_deps = [
         ":frontend",
-        "//java/com/google/domain/registry/ui/server/api",  # CheckApiServlet
-        "//java/com/google/domain/registry/ui/server/registrar",  # ResourceServlet
+        "//java/google/registry/ui/server/api",  # CheckApiServlet
+        "//java/google/registry/ui/server/registrar",  # ResourceServlet
     ],
 )

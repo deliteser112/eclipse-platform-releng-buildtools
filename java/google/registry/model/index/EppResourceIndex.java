@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.index;
+package google.registry.model.index;
 
-import static com.google.domain.registry.util.TypeUtils.instantiate;
+import static google.registry.util.TypeUtils.instantiate;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.domain.registry.model.BackupGroupRoot;
-import com.google.domain.registry.model.EppResource;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
@@ -26,6 +24,9 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
+
+import google.registry.model.BackupGroupRoot;
+import google.registry.model.EppResource;
 
 /** An index that allows for quick enumeration of all EppResource entities (e.g. via map reduce). */
 @Entity

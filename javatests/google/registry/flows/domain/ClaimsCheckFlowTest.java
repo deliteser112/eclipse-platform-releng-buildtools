@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
-import com.google.domain.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
-import com.google.domain.registry.flows.ResourceFlowTestCase;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.testing.DatastoreHelper;
+
+import google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
+import google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
+import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
+import google.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.testing.DatastoreHelper;
 
 import org.junit.Before;
 import org.junit.Test;

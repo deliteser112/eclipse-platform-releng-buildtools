@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.monitoring.whitebox;
+package google.registry.monitoring.whitebox;
 
-import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.ENTITY_INTEGRITY_ALERTS_SCHEMA_FIELDS;
-import static com.google.domain.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.TABLE_ID;
-import static com.google.domain.registry.monitoring.whitebox.EppMetrics.EPPMETRICS_SCHEMA_FIELDS;
-import static com.google.domain.registry.monitoring.whitebox.EppMetrics.EPPMETRICS_TABLE_ID;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
 import static dagger.Provides.Type.MAP;
+import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.ENTITY_INTEGRITY_ALERTS_SCHEMA_FIELDS;
+import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.TABLE_ID;
+import static google.registry.monitoring.whitebox.EppMetrics.EPPMETRICS_SCHEMA_FIELDS;
+import static google.registry.monitoring.whitebox.EppMetrics.EPPMETRICS_TABLE_ID;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.request.Parameter;
 
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.StringKey;
+
+import google.registry.request.Parameter;
 
 import java.util.UUID;
 

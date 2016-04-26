@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.appengine.api.urlfetch.FetchOptions.Builder.validateCertificate;
 import static com.google.appengine.api.urlfetch.HTTPMethod.GET;
-import static com.google.domain.registry.util.HexDumper.dumpHex;
-import static com.google.domain.registry.util.UrlFetchUtils.setAuthorizationHeader;
+import static google.registry.util.HexDumper.dumpHex;
+import static google.registry.util.UrlFetchUtils.setAuthorizationHeader;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
@@ -26,9 +26,10 @@ import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.base.Optional;
 import com.google.common.io.ByteSource;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.keyring.api.KeyModule.Key;
-import com.google.domain.registry.util.UrlFetchException;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.keyring.api.KeyModule.Key;
+import google.registry.util.UrlFetchException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPException;

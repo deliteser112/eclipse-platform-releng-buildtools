@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.flows.ResourceFlowUtils.createTransferResponse;
-import static com.google.domain.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
+import static google.registry.model.eppoutput.Result.Code.Success;
 
-import com.google.domain.registry.flows.EppException.AuthorizationErrorException;
-import com.google.domain.registry.flows.EppException.CommandUseErrorException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.model.eppoutput.EppOutput;
+import google.registry.flows.EppException.AuthorizationErrorException;
+import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.model.EppResource;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.eppoutput.EppOutput;
 
 /**
  * An EPP flow that queries the state of a pending transfer on a resource.

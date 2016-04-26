@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
 import static com.google.common.base.Verify.verify;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -26,25 +26,26 @@ import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.gcs.GcsUtils;
-import com.google.domain.registry.keyring.api.KeyModule;
-import com.google.domain.registry.keyring.api.PgpHelper;
-import com.google.domain.registry.model.rde.RdeMode;
-import com.google.domain.registry.model.rde.RdeNamingUtils;
-import com.google.domain.registry.model.rde.RdeRevision;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.RegistryCursor;
-import com.google.domain.registry.model.server.Lock;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.tldconfig.idn.IdnTableEnum;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.TaskEnqueuer;
-import com.google.domain.registry.xjc.rdeheader.XjcRdeHeader;
-import com.google.domain.registry.xjc.rdeheader.XjcRdeHeaderElement;
-import com.google.domain.registry.xml.XmlException;
 
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.gcs.GcsUtils;
+import google.registry.keyring.api.KeyModule;
+import google.registry.keyring.api.PgpHelper;
+import google.registry.model.rde.RdeMode;
+import google.registry.model.rde.RdeNamingUtils;
+import google.registry.model.rde.RdeRevision;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.RegistryCursor;
+import google.registry.model.server.Lock;
+import google.registry.request.RequestParameters;
+import google.registry.tldconfig.idn.IdnTableEnum;
+import google.registry.util.FormattingLogger;
+import google.registry.util.TaskEnqueuer;
+import google.registry.xjc.rdeheader.XjcRdeHeader;
+import google.registry.xjc.rdeheader.XjcRdeHeaderElement;
+import google.registry.xml.XmlException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPException;

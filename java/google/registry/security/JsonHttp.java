@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.security;
+package google.registry.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
@@ -21,7 +21,8 @@ import static com.google.common.net.MediaType.JSON_UTF_8;
 import static org.json.simple.JSONValue.writeJSONString;
 
 import com.google.common.net.MediaType;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.util.FormattingLogger;
 
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;

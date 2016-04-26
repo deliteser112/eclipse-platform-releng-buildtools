@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.mapreduce;
+package google.registry.mapreduce;
 
-import static com.google.domain.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
-import static com.google.domain.registry.mapreduce.MapreduceRunner.PARAM_MAP_SHARDS;
-import static com.google.domain.registry.mapreduce.MapreduceRunner.PARAM_REDUCE_SHARDS;
-import static com.google.domain.registry.request.RequestParameters.extractBooleanParameter;
-import static com.google.domain.registry.request.RequestParameters.extractOptionalIntParameter;
+import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
+import static google.registry.mapreduce.MapreduceRunner.PARAM_MAP_SHARDS;
+import static google.registry.mapreduce.MapreduceRunner.PARAM_REDUCE_SHARDS;
+import static google.registry.request.RequestParameters.extractBooleanParameter;
+import static google.registry.request.RequestParameters.extractOptionalIntParameter;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.request.Parameter;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.request.Parameter;
 
 import javax.servlet.http.HttpServletRequest;
 

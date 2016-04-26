@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.request;
+package google.registry.request;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.request.RequestModule.provideJsonPayload;
+import static google.registry.request.RequestModule.provideJsonPayload;
 
 import com.google.common.net.MediaType;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.UnsupportedMediaTypeException;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.UnsupportedMediaTypeException;
+import google.registry.testing.ExceptionRule;
 
 import org.junit.Rule;
 import org.junit.Test;

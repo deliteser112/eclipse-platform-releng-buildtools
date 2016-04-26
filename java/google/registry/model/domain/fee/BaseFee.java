@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.fee;
+package google.registry.model.domain.fee;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.xml.PeriodAdapter;
+import google.registry.model.ImmutableObject;
+import google.registry.xml.PeriodAdapter;
 
 import org.joda.time.Period;
 

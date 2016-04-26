@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
 import static java.util.Arrays.asList;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
-import com.google.domain.registry.model.BackupGroupRoot;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+
+import google.registry.model.BackupGroupRoot;
 
 import org.joda.time.DateTime;
 

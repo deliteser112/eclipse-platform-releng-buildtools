@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.testing.DatastoreHelper.newContactResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistContactWithPendingTransfer;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.newContactResource;
+import static google.registry.testing.DatastoreHelper.persistContactWithPendingTransfer;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.domain.registry.flows.Flow;
-import com.google.domain.registry.flows.ResourceFlowTestCase;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.transfer.TransferStatus;
-import com.google.domain.registry.testing.AppEngineRule;
+import google.registry.flows.Flow;
+import google.registry.flows.ResourceFlowTestCase;
+import google.registry.model.EppResource;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.registry.Registry;
+import google.registry.model.transfer.TransferStatus;
+import google.registry.testing.AppEngineRule;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

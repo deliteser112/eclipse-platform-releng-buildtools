@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
 import static org.mockito.Mockito.when;
@@ -31,20 +31,21 @@ import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
-import com.google.domain.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.NotModifiedException;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.FakeSleeper;
-import com.google.domain.registry.testing.TaskQueueHelper;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
-import com.google.domain.registry.util.CapturingLogHandler;
-import com.google.domain.registry.util.Retrier;
-import com.google.domain.registry.util.TaskEnqueuer;
 
 import dagger.Lazy;
+
+import google.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.NotModifiedException;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeSleeper;
+import google.registry.testing.TaskQueueHelper;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.CapturingLogHandler;
+import google.registry.util.Retrier;
+import google.registry.util.TaskEnqueuer;
 
 import org.junit.Before;
 import org.junit.Rule;

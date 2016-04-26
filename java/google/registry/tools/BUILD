@@ -1,6 +1,8 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 
 # Restrict visibility to :tools because :remoteapi-internal (and transitively
@@ -9,10 +11,10 @@ package(
 package_group(
     name = "allowed-tools",
     packages = [
-        "//java/com/google/domain/registry/testing",
-        "//java/com/google/domain/registry/tools",
-        "//java/com/google/domain/registry/eclipse",
-        "//javatests/com/google/domain/registry/tools",
+        "//java/google/registry/testing",
+        "//java/google/registry/tools",
+        "//java/google/registry/eclipse",
+        "//javatests/google/registry/tools",
     ],
 )
 
@@ -41,24 +43,24 @@ java_library(
         "//java/com/google/common/io",
         "//java/com/google/common/net",
         "//java/com/google/common/util/concurrent",
-        "//java/com/google/domain/registry/bigquery",
-        "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/export",
-        "//java/com/google/domain/registry/flows",
-        "//java/com/google/domain/registry/keyring/api",
-        "//java/com/google/domain/registry/model",
-        "//java/com/google/domain/registry/rde",
-        "//java/com/google/domain/registry/security",
-        "//java/com/google/domain/registry/request:modules",
-        "//java/com/google/domain/registry/tldconfig/idn",
-        "//java/com/google/domain/registry/tmch",
-        "//java/com/google/domain/registry/tools/params",
-        "//java/com/google/domain/registry/tools/server",
-        "//java/com/google/domain/registry/tools/soy:soy_java_wrappers",
-        "//java/com/google/domain/registry/util",
-        "//java/com/google/domain/registry/whois",
-        "//java/com/google/domain/registry/xjc",
-        "//java/com/google/domain/registry/xml",
+        "//java/google/registry/bigquery",
+        "//java/google/registry/config",
+        "//java/google/registry/export",
+        "//java/google/registry/flows",
+        "//java/google/registry/keyring/api",
+        "//java/google/registry/model",
+        "//java/google/registry/rde",
+        "//java/google/registry/security",
+        "//java/google/registry/request:modules",
+        "//java/google/registry/tldconfig/idn",
+        "//java/google/registry/tmch",
+        "//java/google/registry/tools/params",
+        "//java/google/registry/tools/server",
+        "//java/google/registry/tools/soy:soy_java_wrappers",
+        "//java/google/registry/util",
+        "//java/google/registry/whois",
+        "//java/google/registry/xjc",
+        "//java/google/registry/xml",
         "//third_party/java/appengine:appengine-api",
         "//third_party/java/bouncycastle",
         "//third_party/java/bouncycastle_bcpg",
@@ -81,7 +83,7 @@ java_library(
 java_binary(
     name = "registry_tool",
     create_executable = 1,
-    main_class = "com.google.domain.registry.tools.RegistryTool",
+    main_class = "google.registry.tools.RegistryTool",
     runtime_deps = [
         ":tools",
         "//third_party/java/appengine:appengine-api-link",

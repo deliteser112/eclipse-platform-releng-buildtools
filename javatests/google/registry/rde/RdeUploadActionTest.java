@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.rde.RdeMode.FULL;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleResource;
-import static com.google.domain.registry.testing.GcsTestingUtils.readGcsFile;
-import static com.google.domain.registry.testing.GcsTestingUtils.writeGcsFile;
-import static com.google.domain.registry.testing.SystemInfo.hasCommand;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.rde.RdeMode.FULL;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.testing.GcsTestingUtils.readGcsFile;
+import static google.registry.testing.GcsTestingUtils.writeGcsFile;
+import static google.registry.testing.SystemInfo.hasCommand;
+import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardSeconds;
@@ -42,29 +42,30 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.io.ByteSource;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
-import com.google.domain.registry.gcs.GcsUtils;
-import com.google.domain.registry.keyring.api.Keyring;
-import com.google.domain.registry.model.rde.RdeRevision;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.RegistryCursor;
-import com.google.domain.registry.model.registry.RegistryCursor.CursorType;
-import com.google.domain.registry.rde.JSchSshSession.JSchSshSessionFactory;
-import com.google.domain.registry.request.HttpException.ServiceUnavailableException;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.BouncyCastleProviderRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.FakeResponse;
-import com.google.domain.registry.testing.GpgSystemCommandRule;
-import com.google.domain.registry.testing.IoSpyRule;
-import com.google.domain.registry.testing.Providers;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
-import com.google.domain.registry.testing.sftp.SftpServerRule;
-import com.google.domain.registry.util.Retrier;
-import com.google.domain.registry.util.TaskEnqueuer;
 
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.gcs.GcsUtils;
+import google.registry.keyring.api.Keyring;
+import google.registry.model.rde.RdeRevision;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.RegistryCursor;
+import google.registry.model.registry.RegistryCursor.CursorType;
+import google.registry.rde.JSchSshSession.JSchSshSessionFactory;
+import google.registry.request.HttpException.ServiceUnavailableException;
+import google.registry.request.RequestParameters;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeResponse;
+import google.registry.testing.GpgSystemCommandRule;
+import google.registry.testing.IoSpyRule;
+import google.registry.testing.Providers;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.testing.sftp.SftpServerRule;
+import google.registry.util.Retrier;
+import google.registry.util.TaskEnqueuer;
 
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPublicKey;

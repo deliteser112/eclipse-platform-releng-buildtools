@@ -12,28 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registrar;
+package google.registry.model.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT2;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT2_HASH;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
-import static com.google.domain.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT2;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT2_HASH;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
+import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.common.EntityGroupRoot;
-import com.google.domain.registry.model.registrar.Registrar.CertificateState;
-import com.google.domain.registry.model.registrar.Registrar.State;
-import com.google.domain.registry.model.registrar.Registrar.Type;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.util.CidrAddressBlock;
+
+import google.registry.model.EntityTestCase;
+import google.registry.model.common.EntityGroupRoot;
+import google.registry.model.registrar.Registrar.CertificateState;
+import google.registry.model.registrar.Registrar.State;
+import google.registry.model.registrar.Registrar.Type;
+import google.registry.testing.ExceptionRule;
+import google.registry.util.CidrAddressBlock;
 
 import org.junit.Before;
 import org.junit.Rule;

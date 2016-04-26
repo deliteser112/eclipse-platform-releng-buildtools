@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registry.label;
+package google.registry.model.registry.label;
 
 import static com.google.common.base.Preconditions.checkState;
 

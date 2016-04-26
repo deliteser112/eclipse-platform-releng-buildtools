@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.model.translators.UpdateAutoTimestampTranslatorFactory;
+
+import google.registry.model.translators.UpdateAutoTimestampTranslatorFactory;
 
 import org.joda.time.DateTime;
 

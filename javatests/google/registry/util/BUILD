@@ -1,6 +1,9 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_testonly = 1,
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 
@@ -15,14 +18,14 @@ java_library(
         "//java/com/google/common/net",
         "//java/com/google/common/testing",
         "//java/com/google/common/util/concurrent",
-        "//java/com/google/domain/registry/util",
-        "//javatests/com/google/domain/registry/testing",
         "//third_party/java/appengine:appengine-api",
         "//third_party/java/joda_time",
         "//third_party/java/jsr305_annotations",
         "//third_party/java/junit",
         "//third_party/java/mockito",
         "//third_party/java/truth",
+        "//java/google/registry/util",
+        "//javatests/google/registry/testing",
     ],
 )
 

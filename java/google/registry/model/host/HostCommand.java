@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.host;
+package google.registry.model.host;
 
 import static com.google.common.collect.Sets.intersection;
-import static com.google.domain.registry.util.CollectionUtils.nullSafeImmutableCopy;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.eppinput.ResourceCommand.AbstractSingleResourceCommand;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceCheck;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceCreateOrChange;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceUpdate;
+
+import google.registry.model.eppinput.ResourceCommand.AbstractSingleResourceCommand;
+import google.registry.model.eppinput.ResourceCommand.ResourceCheck;
+import google.registry.model.eppinput.ResourceCommand.ResourceCreateOrChange;
+import google.registry.model.eppinput.ResourceCommand.ResourceUpdate;
 
 import java.net.InetAddress;
 import java.util.Set;

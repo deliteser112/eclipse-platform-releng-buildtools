@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.launch.LaunchNotice;
-import com.google.domain.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.launch.LaunchNotice;
+import google.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.tools.Command.RemoteApiCommand;
 
 import org.joda.time.DateTime;
 

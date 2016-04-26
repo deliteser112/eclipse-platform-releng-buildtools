@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.poll;
+package google.registry.flows.poll;
 
-import static com.google.domain.registry.model.eppoutput.Result.Code.SuccessWithAckMessage;
-import static com.google.domain.registry.model.eppoutput.Result.Code.SuccessWithNoMessages;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.CollectionUtils.forceEmptyToNull;
-
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.ParameterValueSyntaxErrorException;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.poll.MessageQueueInfo;
-import com.google.domain.registry.model.poll.PollMessage;
+import static google.registry.model.eppoutput.Result.Code.SuccessWithAckMessage;
+import static google.registry.model.eppoutput.Result.Code.SuccessWithNoMessages;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.poll.MessageQueueInfo;
+import google.registry.model.poll.PollMessage;
 
 import java.util.List;
 

@@ -12,38 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rdap;
+package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
-import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
-import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
-import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
-import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
-import static com.google.domain.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
-import static com.google.domain.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
+import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DesignatedContact;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.Period;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.rdap.RdapJsonFormatter.MakeRdapJsonNoticeParameters;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DesignatedContact;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.Period;
+import google.registry.model.host.HostResource;
+import google.registry.model.ofy.Ofy;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.rdap.RdapJsonFormatter.MakeRdapJsonNoticeParameters;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
 
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;

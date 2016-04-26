@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.common.truth.Truth.assertThat;
@@ -26,10 +26,11 @@ import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.FakeSleeper;
+
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeSleeper;
 
 import org.joda.time.DateTime;
 import org.junit.Rule;

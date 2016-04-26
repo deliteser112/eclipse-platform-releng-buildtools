@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.request.JsonResponse;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.request.JsonResponse;
+import google.registry.request.Parameter;
+import google.registry.util.FormattingLogger;
 
 import javax.inject.Inject;
 

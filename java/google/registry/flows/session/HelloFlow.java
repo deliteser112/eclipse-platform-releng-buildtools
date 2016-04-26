@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.session;
+package google.registry.flows.session;
 
-import com.google.domain.registry.flows.Flow;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.eppoutput.Greeting;
+import google.registry.flows.Flow;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.Greeting;
 
 /** A flow for an Epp "hello". */
 public class HelloFlow extends Flow {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -20,30 +20,15 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.io.BaseEncoding.base16;
-import static com.google.domain.registry.flows.EppXmlTransformer.unmarshal;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.tools.CommandUtilities.addHeader;
+import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.tools.CommandUtilities.addHeader;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppXmlTransformer;
-import com.google.domain.registry.model.domain.DesignatedContact;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainCommand;
-import com.google.domain.registry.model.domain.Period;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.model.domain.launch.LaunchNotice;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.eppinput.EppInput;
-import com.google.domain.registry.model.eppinput.EppInput.ResourceCommandWrapper;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.smd.SignedMark;
-import com.google.domain.registry.tools.soy.DomainAllocateSoyInfo;
 import com.google.template.soy.data.SoyMapData;
 
 import com.beust.jcommander.Parameter;
@@ -51,6 +36,22 @@ import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppXmlTransformer;
+import google.registry.model.domain.DesignatedContact;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainCommand;
+import google.registry.model.domain.Period;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.domain.launch.LaunchNotice;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
+import google.registry.model.host.HostResource;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.smd.SignedMark;
+import google.registry.tools.soy.DomainAllocateSoyInfo;
 
 import java.util.ArrayList;
 import java.util.List;

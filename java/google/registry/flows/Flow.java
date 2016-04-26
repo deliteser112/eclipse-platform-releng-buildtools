@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.eppinput.EppInput;
-import com.google.domain.registry.model.eppinput.EppInput.CommandExtension;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.eppoutput.Response;
-import com.google.domain.registry.model.eppoutput.Response.ResponseData;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
-import com.google.domain.registry.model.eppoutput.Result;
+
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppinput.EppInput.CommandExtension;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.Response;
+import google.registry.model.eppoutput.Response.ResponseData;
+import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.Result;
 
 import org.joda.time.DateTime;
 

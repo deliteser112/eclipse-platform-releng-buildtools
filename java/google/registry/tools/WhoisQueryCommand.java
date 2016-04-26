@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import com.google.common.base.Joiner;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.whois.Whois;
-import com.google.domain.registry.whois.WhoisException;
-import com.google.domain.registry.whois.WhoisResponse;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.whois.Whois;
+import google.registry.whois.WhoisException;
+import google.registry.whois.WhoisResponse;
 
 import java.util.List;
 

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.common.net.HttpHeaders.X_REQUESTED_WITH;
 import static com.google.common.net.MediaType.JSON_UTF_8;
-import static com.google.domain.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
-import static com.google.domain.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
+import static google.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
+import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Function;
@@ -30,12 +30,13 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.security.XsrfTokenManager;
-import com.google.domain.registry.tools.ServerSideCommand.Connection;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.security.XsrfTokenManager;
+import google.registry.tools.ServerSideCommand.Connection;
 
 import org.joda.time.Duration;
 import org.json.simple.JSONValue;

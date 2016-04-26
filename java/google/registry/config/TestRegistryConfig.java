@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.config;
+package google.registry.config;
 
-import static com.google.domain.registry.config.ConfigUtils.makeUrl;
+import static google.registry.config.ConfigUtils.makeUrl;
 import static org.joda.time.Duration.standardDays;
 
 import com.google.common.base.Optional;

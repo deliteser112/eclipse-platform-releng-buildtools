@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.monitoring.whitebox;
+package google.registry.monitoring.whitebox;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.deleteResource;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDomainAsDeleted;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.deleteResource;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistDeletedContact;
+import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -40,26 +40,27 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex.ForeignKeyContactIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.FakeResponse;
-import com.google.domain.registry.testing.FakeSleeper;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.mapreduce.MapreduceTestCase;
-import com.google.domain.registry.util.Retrier;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+
+import google.registry.bigquery.BigqueryFactory;
+import google.registry.config.RegistryEnvironment;
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.host.HostResource;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.index.ForeignKeyIndex;
+import google.registry.model.index.ForeignKeyIndex.ForeignKeyContactIndex;
+import google.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeResponse;
+import google.registry.testing.FakeSleeper;
+import google.registry.testing.InjectRule;
+import google.registry.testing.mapreduce.MapreduceTestCase;
+import google.registry.util.Retrier;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;

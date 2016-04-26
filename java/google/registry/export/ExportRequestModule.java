@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
-import static com.google.domain.registry.export.BigqueryPollJobAction.CHAINED_TASK_QUEUE_HEADER;
-import static com.google.domain.registry.export.BigqueryPollJobAction.JOB_ID_HEADER;
-import static com.google.domain.registry.export.BigqueryPollJobAction.PROJECT_ID_HEADER;
-import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_FILE_PARAM;
-import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_ID_PARAM;
-import static com.google.domain.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARAM;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DATASET_ID_PARAM;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
-import static com.google.domain.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredHeader;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
-
-import com.google.domain.registry.request.Header;
-import com.google.domain.registry.request.Parameter;
+import static google.registry.export.BigqueryPollJobAction.CHAINED_TASK_QUEUE_HEADER;
+import static google.registry.export.BigqueryPollJobAction.JOB_ID_HEADER;
+import static google.registry.export.BigqueryPollJobAction.PROJECT_ID_HEADER;
+import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_FILE_PARAM;
+import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_ID_PARAM;
+import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARAM;
+import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DATASET_ID_PARAM;
+import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
+import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
+import static google.registry.request.RequestParameters.extractRequiredHeader;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.request.Header;
+import google.registry.request.Parameter;
 
 import javax.servlet.http.HttpServletRequest;
 

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.session;
+package google.registry.flows.session;
 
-import static com.google.domain.registry.flows.EppXmlTransformer.marshal;
-import static com.google.domain.registry.xml.ValidationMode.STRICT;
-import static com.google.domain.registry.xml.XmlTestUtils.assertXmlEquals;
+import static google.registry.flows.EppXmlTransformer.marshal;
+import static google.registry.xml.ValidationMode.STRICT;
+import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.domain.registry.flows.FlowTestCase;
+import google.registry.flows.FlowTestCase;
 
 import org.junit.Test;
 

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.bigquery;
+package google.registry.bigquery;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.bigquery.BigqueryUtils.FieldType.STRING;
+import static google.registry.bigquery.BigqueryUtils.FieldType.STRING;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;

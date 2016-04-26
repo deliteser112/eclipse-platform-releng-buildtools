@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rdap;
+package google.registry.rdap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.Registries.findTldForName;
-import static com.google.domain.registry.model.registry.Registries.getTlds;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.util.DomainNameUtils.canonicalizeDomainName;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registries.findTldForName;
+import static google.registry.model.registry.Registries.getTlds;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -29,18 +29,19 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.NotFoundException;
-import com.google.domain.registry.request.RequestMethod;
-import com.google.domain.registry.request.RequestPath;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.FormattingLogger;
 
 import com.googlecode.objectify.cmd.Query;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.model.EppResource;
+import google.registry.request.Action;
+import google.registry.request.HttpException;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.NotFoundException;
+import google.registry.request.RequestMethod;
+import google.registry.request.RequestPath;
+import google.registry.request.Response;
+import google.registry.util.FormattingLogger;
 
 import org.json.simple.JSONValue;
 

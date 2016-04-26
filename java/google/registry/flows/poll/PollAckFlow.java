@@ -12,26 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.poll;
+package google.registry.flows.poll;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.model.eppoutput.Result.Code.Success;
-import static com.google.domain.registry.model.eppoutput.Result.Code.SuccessWithNoMessages;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
-
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.AuthorizationErrorException;
-import com.google.domain.registry.flows.EppException.ObjectDoesNotExistException;
-import com.google.domain.registry.flows.EppException.ParameterValueSyntaxErrorException;
-import com.google.domain.registry.flows.EppException.RequiredParameterMissingException;
-import com.google.domain.registry.flows.TransactionalFlow;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.poll.MessageQueueInfo;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.poll.PollMessageExternalKeyConverter.PollMessageExternalKeyParseException;
+import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SuccessWithNoMessages;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.AuthorizationErrorException;
+import google.registry.flows.EppException.ObjectDoesNotExistException;
+import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
+import google.registry.flows.EppException.RequiredParameterMissingException;
+import google.registry.flows.TransactionalFlow;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.poll.MessageQueueInfo;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.poll.PollMessageExternalKeyConverter.PollMessageExternalKeyParseException;
 
 import org.joda.time.DateTime;
 

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import com.google.domain.registry.tools.server.ListPremiumListsAction;
+import google.registry.tools.server.ListPremiumListsAction;
 
 /**
  * Unit tests for {@link ListPremiumListsCommand}.

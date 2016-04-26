@@ -12,29 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.backup;
+package google.registry.backup;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.transform;
-import static com.google.domain.registry.model.ofy.CommitLogBucket.getBucketKey;
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
+import static google.registry.request.Action.Method.POST;
 
 import com.google.common.base.Function;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.model.ofy.CommitLogBucket;
-import com.google.domain.registry.model.ofy.CommitLogManifest;
-import com.google.domain.registry.model.ofy.CommitLogMutation;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Query;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.model.ofy.CommitLogBucket;
+import google.registry.model.ofy.CommitLogManifest;
+import google.registry.model.ofy.CommitLogMutation;
+import google.registry.model.ofy.Ofy;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -72,7 +73,7 @@ import javax.inject.Inject;
  * there's a 10mB upper bound on transaction size and a four minute time limit, we can only delete
  * so many commit logs at once. So given the above constraints, five hundred would make a safe
  * default value for {@code maxDeletes}. See {@linkplain
- * com.google.domain.registry.config.ConfigModule#provideCommitLogMaxDeletes() commitLogMaxDeletes}
+ * google.registry.config.ConfigModule#provideCommitLogMaxDeletes() commitLogMaxDeletes}
  * for further documentation on this matter.
  *
  * <p>Finally, we need to pick an appropriate cron interval time for this task. Since a bucket

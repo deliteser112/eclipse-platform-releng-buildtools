@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.request;
+package google.registry.request;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.request.Action.Method.GET;
-import static com.google.domain.registry.request.Action.Method.POST;
-import static com.google.domain.registry.security.XsrfTokenManager.generateToken;
+import static google.registry.request.Action.Method.GET;
+import static google.registry.request.Action.Method.POST;
+import static google.registry.security.XsrfTokenManager.generateToken;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -26,10 +26,11 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.users.UserService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.NullPointerTester;
-import com.google.domain.registry.request.HttpException.ServiceUnavailableException;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.UserInfo;
+
+import google.registry.request.HttpException.ServiceUnavailableException;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.InjectRule;
+import google.registry.testing.UserInfo;
 
 import org.junit.After;
 import org.junit.Before;

@@ -12,26 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
+import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.DomainResource.Builder;
-import com.google.domain.registry.model.domain.fee.FeeInfoExtension;
-import com.google.domain.registry.model.domain.fee.FeeInfoResponseExtension;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.domain.rgp.RgpInfoExtension;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
+
+import google.registry.flows.EppException;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainResource.Builder;
+import google.registry.model.domain.fee.FeeInfoExtension;
+import google.registry.model.domain.fee.FeeInfoResponseExtension;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.domain.rgp.RgpInfoExtension;
+import google.registry.model.eppoutput.Response.ResponseExtension;
 
 /**
  * An EPP flow that reads a domain.
  *
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.FeeChecksDontSupportPhasesException}

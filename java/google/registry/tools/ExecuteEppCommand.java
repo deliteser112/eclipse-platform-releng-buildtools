@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
-import com.google.domain.registry.util.NonFinalForTesting;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.util.NonFinalForTesting;
 
 import java.io.File;
 import java.io.IOException;

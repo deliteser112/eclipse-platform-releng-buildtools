@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.appengine.api.urlfetch.HTTPMethod.PUT;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.GcsTestingUtils.writeGcsFile;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.GcsTestingUtils.writeGcsFile;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.joda.time.Duration.standardDays;
@@ -39,20 +39,21 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
-import com.google.domain.registry.config.RegistryConfig;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.gcs.GcsUtils;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.RegistryCursor;
-import com.google.domain.registry.model.registry.RegistryCursor.CursorType;
-import com.google.domain.registry.request.HttpException.InternalServerErrorException;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.BouncyCastleProviderRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeResponse;
-import com.google.domain.registry.xjc.XjcXmlTransformer;
-import com.google.domain.registry.xjc.rdereport.XjcRdeReportReport;
-import com.google.domain.registry.xml.XmlException;
+
+import google.registry.config.RegistryConfig;
+import google.registry.config.RegistryEnvironment;
+import google.registry.gcs.GcsUtils;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.RegistryCursor;
+import google.registry.model.registry.RegistryCursor.CursorType;
+import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeResponse;
+import google.registry.xjc.XjcXmlTransformer;
+import google.registry.xjc.rdereport.XjcRdeReportReport;
+import google.registry.xml.XmlException;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.joda.time.DateTime;

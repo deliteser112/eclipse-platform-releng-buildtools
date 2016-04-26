@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.common;
+package google.registry.model.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.latestOf;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.DateTimeUtils.latestOf;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.util.TypeUtils;
 
 import com.googlecode.objectify.mapper.Mapper;
+
+import google.registry.model.ImmutableObject;
+import google.registry.util.TypeUtils;
 
 import org.joda.time.DateTime;
 

@@ -12,28 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
-import static com.google.domain.registry.export.SyncGroupMembersAction.getGroupEmailAddressForContactType;
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.export.SyncGroupMembersAction.getGroupEmailAddressForContactType;
+import static google.registry.request.Action.Method.POST;
 import static java.util.Arrays.asList;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.groups.GroupsConnection;
-import com.google.domain.registry.groups.GroupsConnection.Role;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.model.registrar.RegistrarContact.Type;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.InternalServerErrorException;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.Concurrent;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.groups.GroupsConnection;
+import google.registry.groups.GroupsConnection.Role;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.model.registrar.RegistrarContact.Type;
+import google.registry.request.Action;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.request.Parameter;
+import google.registry.request.Response;
+import google.registry.util.Concurrent;
+import google.registry.util.FormattingLogger;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

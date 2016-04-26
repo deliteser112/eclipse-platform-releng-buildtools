@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tldconfig.idn;
+package google.registry.tldconfig.idn;
 
 import static java.lang.Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION;
 import static java.lang.Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS;

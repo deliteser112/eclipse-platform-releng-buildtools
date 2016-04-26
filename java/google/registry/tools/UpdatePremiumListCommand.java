@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
-
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.tools.server.UpdatePremiumListAction;
+package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.registry.label.PremiumList;
+import google.registry.tools.server.UpdatePremiumListAction;
 
 /** Command to safely update {@link PremiumList} in Datastore for a given TLD. */
 @Parameters(separators = " =", commandDescription = "Update a PremiumList in Datastore.")

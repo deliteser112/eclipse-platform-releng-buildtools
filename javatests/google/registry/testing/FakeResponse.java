@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -21,7 +21,8 @@ import static java.util.Collections.unmodifiableMap;
 
 import com.google.common.base.Throwables;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.request.Response;
+
+import google.registry.request.Response;
 
 import org.joda.time.DateTime;
 

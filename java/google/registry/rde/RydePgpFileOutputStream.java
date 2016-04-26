@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.bouncycastle.openpgp.PGPLiteralData.BINARY;
 
 import com.google.auto.factory.AutoFactory;
 import com.google.auto.factory.Provided;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.util.ImprovedOutputStream;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.util.ImprovedOutputStream;
 
 import org.bouncycastle.openpgp.PGPLiteralDataGenerator;
 import org.joda.time.DateTime;

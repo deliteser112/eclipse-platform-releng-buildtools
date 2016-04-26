@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
@@ -20,7 +20,8 @@ import static com.google.common.truth.Truth.assertAbout;
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.SubjectFactory;
-import com.google.domain.registry.model.EppResource;
+
+import google.registry.model.EppResource;
 
 /** Truth subject for asserting things about {@link EppResource} instances. */
 public final class GenericEppResourceSubject

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.truth.Truth.assertThat;
@@ -23,9 +23,10 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
-import com.google.domain.registry.model.ImmutableObject;
 
 import com.googlecode.objectify.annotation.Entity;
+
+import google.registry.model.ImmutableObject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

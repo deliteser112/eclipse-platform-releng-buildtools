@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.params;
+package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.domain.registry.testing.ExceptionRule;
-
 import com.beust.jcommander.ParameterException;
+
+import google.registry.testing.ExceptionRule;
 
 import org.joda.time.DateTime;
 import org.junit.Rule;

@@ -12,51 +12,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
-import static com.google.domain.registry.model.eppoutput.Result.Code.Success;
-import static com.google.domain.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
-import static com.google.domain.registry.model.index.ForeignKeyIndex.loadAndGetReference;
+import static google.registry.flows.domain.DomainFlowUtils.DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS;
+import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
+import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
+import static google.registry.model.index.ForeignKeyIndex.loadAndGetReference;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.CommandUseErrorException;
-import com.google.domain.registry.flows.EppException.ObjectAlreadyExistsException;
-import com.google.domain.registry.flows.EppException.RequiredParameterMissingException;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainApplication.Builder;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.Period;
-import com.google.domain.registry.model.domain.fee.Fee;
-import com.google.domain.registry.model.domain.fee.FeeCreateExtension;
-import com.google.domain.registry.model.domain.fee.FeeCreateResponseExtension;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.model.domain.launch.LaunchCreateExtension;
-import com.google.domain.registry.model.domain.launch.LaunchCreateResponseExtension;
-import com.google.domain.registry.model.domain.launch.LaunchPhase;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppoutput.CreateData.DomainCreateData;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.smd.AbstractSignedMark;
-import com.google.domain.registry.model.smd.EncodedSignedMark;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.flows.EppException.ObjectAlreadyExistsException;
+import google.registry.flows.EppException.RequiredParameterMissingException;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainApplication.Builder;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.Period;
+import google.registry.model.domain.fee.Fee;
+import google.registry.model.domain.fee.FeeCreateExtension;
+import google.registry.model.domain.fee.FeeCreateResponseExtension;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.domain.launch.LaunchCreateExtension;
+import google.registry.model.domain.launch.LaunchCreateResponseExtension;
+import google.registry.model.domain.launch.LaunchPhase;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppoutput.CreateData.DomainCreateData;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.smd.AbstractSignedMark;
+import google.registry.model.smd.EncodedSignedMark;
 
 import java.util.List;
 
 /**
  * An EPP flow that creates a new application for a domain resource.
  *
- * @error {@link com.google.domain.registry.flows.EppException.UnimplementedExtensionException}
- * @error {@link com.google.domain.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException}
- * @error {@link com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
- * @error {@link com.google.domain.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException}
+ * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
+ * @error {@link google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException}
+ * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException}
  * @error {@link BaseDomainCreateFlow.AcceptedTooLongAgoException}
  * @error {@link BaseDomainCreateFlow.ClaimsPeriodEndedException}
  * @error {@link BaseDomainCreateFlow.ExpiredClaimException}

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.domain.registry.util.CacheUtils.memoizeWithShortExpiration;
-import static com.google.domain.registry.util.RegistrarUtils.normalizeRegistrarName;
+import static google.registry.util.CacheUtils.memoizeWithShortExpiration;
+import static google.registry.util.RegistrarUtils.normalizeRegistrarName;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -26,8 +26,9 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 

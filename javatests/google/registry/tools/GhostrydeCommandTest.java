@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.domain.registry.keyring.api.Keyring;
-import com.google.domain.registry.rde.Ghostryde;
-import com.google.domain.registry.rde.Ghostryde.DecodeResult;
-import com.google.domain.registry.rde.RdeKeyringModule;
-import com.google.domain.registry.testing.BouncyCastleProviderRule;
-import com.google.domain.registry.testing.InjectRule;
+import google.registry.keyring.api.Keyring;
+import google.registry.rde.Ghostryde;
+import google.registry.rde.Ghostryde.DecodeResult;
+import google.registry.rde.RdeKeyringModule;
+import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.InjectRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

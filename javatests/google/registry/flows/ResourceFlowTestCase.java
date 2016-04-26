@@ -12,30 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.tmch.ClaimsListShardTest.createTestClaimsListShard;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.tmch.ClaimsListShardTest.createTestClaimsListShard;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.flows.EppException.CommandUseErrorException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.domain.launch.ApplicationIdTargetExtension;
-import com.google.domain.registry.model.eppinput.EppInput.ResourceCommandWrapper;
-import com.google.domain.registry.model.eppinput.ResourceCommand;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.index.EppResourceIndexBucket;
-import com.google.domain.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
-import com.google.domain.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.model.EppResource;
+import google.registry.model.domain.launch.ApplicationIdTargetExtension;
+import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
+import google.registry.model.eppinput.ResourceCommand;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.index.EppResourceIndexBucket;
+import google.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
+import google.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
+import google.registry.testing.ExceptionRule;
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 import org.joda.time.DateTime;
 import org.junit.Rule;

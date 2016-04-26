@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.Maps.uniqueIndex;
-import static com.google.domain.registry.util.CollectionUtils.union;
-import static com.google.domain.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
 import static com.googlecode.objectify.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.union;
+import static google.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
 
 import com.google.appengine.api.datastore.DatastoreFailureException;
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
@@ -30,16 +30,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.annotations.NotBackedUp;
-import com.google.domain.registry.model.annotations.VirtualEntity;
-import com.google.domain.registry.model.ofy.ReadOnlyWork.KillTransactionException;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
-import com.google.domain.registry.util.Sleeper;
-import com.google.domain.registry.util.SystemClock;
-import com.google.domain.registry.util.SystemSleeper;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
@@ -48,6 +38,17 @@ import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.annotations.NotBackedUp;
+import google.registry.model.annotations.VirtualEntity;
+import google.registry.model.ofy.ReadOnlyWork.KillTransactionException;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.Sleeper;
+import google.registry.util.SystemClock;
+import google.registry.util.SystemSleeper;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

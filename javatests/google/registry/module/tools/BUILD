@@ -1,6 +1,9 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_testonly = 1,
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 
 java_library(
@@ -12,11 +15,11 @@ java_library(
         "//third_party/java/appengine:appengine-api-testonly",
     ],
     deps = [
-        "//java/com/google/domain/registry/module/tools",
         "//third_party/java/junit",
         "//third_party/java/mockito",
         "//third_party/java/servlet/servlet_api",
         "//third_party/java/truth",
+        "//java/google/registry/module/tools",
     ],
 )
 

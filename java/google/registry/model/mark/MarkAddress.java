@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.mark;
+package google.registry.model.mark;
 
-import com.google.domain.registry.model.eppcommon.Address;
+import google.registry.model.eppcommon.Address;
 
 /**
  * Mark Holder/Owner Address

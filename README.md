@@ -83,14 +83,14 @@ locally. Once that's done, here are some example commands to get you started:
 
 ```sh
 # Run all tests
-bazel test //java{,tests}/com/google/domain/registry/...
+bazel test //java{,tests}/google/registry/...
 
 # Run the registry_tool command
-bazel run //java/com/google/domain/registry/tool:registry_tool -- --help
+bazel run //java/google/registry/tool:registry_tool -- --help
 
 # Run the Registrar Console on a local development server
-bazel run //javatests/com/google/domain/registry/server -- --help
-bazel run //javatests/com/google/domain/registry/server
+bazel run //javatests/google/registry/server -- --help
+bazel run //javatests/google/registry/server
 google-chrome http://localhost:8080/registrar
 ```
 

@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.CertificateSamples;
-import com.google.domain.registry.testing.FakeServletInputStream;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.CertificateSamples;
+import google.registry.testing.FakeServletInputStream;
 
 import org.junit.Before;
 import org.junit.Rule;

@@ -12,27 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.billing;
+package google.registry.model.billing;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
-import static com.google.domain.registry.util.CollectionUtils.union;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.union;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.common.TimeOfYear;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferData.TransferServerApproveEntity;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
@@ -43,6 +36,14 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.condition.IfNull;
+
+import google.registry.model.Buildable;
+import google.registry.model.ImmutableObject;
+import google.registry.model.common.TimeOfYear;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

@@ -12,36 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.module.tools;
-
-import com.google.domain.registry.export.PublishDetailReportAction;
-import com.google.domain.registry.loadtest.LoadTestAction;
-import com.google.domain.registry.loadtest.LoadTestModule;
-import com.google.domain.registry.mapreduce.MapreduceModule;
-import com.google.domain.registry.request.RequestModule;
-import com.google.domain.registry.request.RequestScope;
-import com.google.domain.registry.tools.server.CreateGroupsAction;
-import com.google.domain.registry.tools.server.CreatePremiumListAction;
-import com.google.domain.registry.tools.server.DeleteEntityAction;
-import com.google.domain.registry.tools.server.DeleteProberDataAction;
-import com.google.domain.registry.tools.server.GenerateZoneFilesAction;
-import com.google.domain.registry.tools.server.KillAllCommitLogsAction;
-import com.google.domain.registry.tools.server.KillAllCrossTldEntitiesAction;
-import com.google.domain.registry.tools.server.KillAllEppResourcesAction;
-import com.google.domain.registry.tools.server.ListDomainsAction;
-import com.google.domain.registry.tools.server.ListHostsAction;
-import com.google.domain.registry.tools.server.ListPremiumListsAction;
-import com.google.domain.registry.tools.server.ListRegistrarsAction;
-import com.google.domain.registry.tools.server.ListReservedListsAction;
-import com.google.domain.registry.tools.server.ListTldsAction;
-import com.google.domain.registry.tools.server.ResaveAllEppResourcesAction;
-import com.google.domain.registry.tools.server.ToolsServerModule;
-import com.google.domain.registry.tools.server.UpdatePremiumListAction;
-import com.google.domain.registry.tools.server.VerifyOteAction;
-import com.google.domain.registry.tools.server.javascrap.BackfillAutorenewBillingFlagAction;
-import com.google.domain.registry.tools.server.javascrap.CountRecurringBillingEventsAction;
+package google.registry.module.tools;
 
 import dagger.Subcomponent;
+
+import google.registry.export.PublishDetailReportAction;
+import google.registry.loadtest.LoadTestAction;
+import google.registry.loadtest.LoadTestModule;
+import google.registry.mapreduce.MapreduceModule;
+import google.registry.request.RequestModule;
+import google.registry.request.RequestScope;
+import google.registry.tools.server.CreateGroupsAction;
+import google.registry.tools.server.CreatePremiumListAction;
+import google.registry.tools.server.DeleteEntityAction;
+import google.registry.tools.server.DeleteProberDataAction;
+import google.registry.tools.server.GenerateZoneFilesAction;
+import google.registry.tools.server.KillAllCommitLogsAction;
+import google.registry.tools.server.KillAllEppResourcesAction;
+import google.registry.tools.server.ListDomainsAction;
+import google.registry.tools.server.ListHostsAction;
+import google.registry.tools.server.ListPremiumListsAction;
+import google.registry.tools.server.ListRegistrarsAction;
+import google.registry.tools.server.ListReservedListsAction;
+import google.registry.tools.server.ListTldsAction;
+import google.registry.tools.server.ResaveAllEppResourcesAction;
+import google.registry.tools.server.ToolsServerModule;
+import google.registry.tools.server.UpdatePremiumListAction;
+import google.registry.tools.server.VerifyOteAction;
+import google.registry.tools.server.javascrap.BackfillAutorenewBillingFlagAction;
+import google.registry.tools.server.javascrap.CountRecurringBillingEventsAction;
 
 /** Dagger component with per-request lifetime for "tools" App Engine module. */
 @RequestScope
@@ -61,7 +60,6 @@ interface ToolsRequestComponent {
   DeleteProberDataAction deleteProberDataAction();
   GenerateZoneFilesAction generateZoneFilesAction();
   KillAllCommitLogsAction killAllCommitLogsAction();
-  KillAllCrossTldEntitiesAction killAllCrossTldEntitiesAction();
   KillAllEppResourcesAction killAllEppResourcesAction();
   ListDomainsAction listDomainsAction();
   ListHostsAction listHostsAction();

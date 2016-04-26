@@ -18,9 +18,9 @@
     elementFormDefault = XmlNsForm.QUALIFIED)
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlJavaTypeAdapter(CurrencyUnitAdapter.class)
-package com.google.domain.registry.model.domain.fee;
+package google.registry.model.domain.fee;
 
-import com.google.domain.registry.model.translators.CurrencyUnitAdapter;
+import google.registry.model.translators.CurrencyUnitAdapter;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

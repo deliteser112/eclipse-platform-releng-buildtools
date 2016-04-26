@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.xjc;
+package google.registry.xjc;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
-import static com.google.domain.registry.xjc.XjcXmlTransformer.unmarshal;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.xjc.XjcXmlTransformer.unmarshal;
 import static java.nio.charset.StandardCharsets.UTF_16;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.xjc.rde.XjcRdeDeposit;
-import com.google.domain.registry.xjc.rde.XjcRdeDepositTypeType;
-import com.google.domain.registry.xjc.rdecontact.XjcRdeContact;
+import google.registry.testing.ExceptionRule;
+import google.registry.xjc.rde.XjcRdeDeposit;
+import google.registry.xjc.rde.XjcRdeDepositTypeType;
+import google.registry.xjc.rdecontact.XjcRdeContact;
 
 import org.junit.Rule;
 import org.junit.Test;

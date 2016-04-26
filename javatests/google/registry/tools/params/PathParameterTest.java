@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.params;
+package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -22,9 +22,9 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
 
-import com.google.domain.registry.testing.ExceptionRule;
-
 import com.beust.jcommander.ParameterException;
+
+import google.registry.testing.ExceptionRule;
 
 import org.junit.Rule;
 import org.junit.Test;

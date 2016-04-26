@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.common;
+package google.registry.model.common;
 
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
-import com.google.domain.registry.model.ImmutableObject;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.ImmutableObject;
 
 /** An object that's equivalent to a {@code Range<Long>} that can be persisted to datastore. */
 @Embed

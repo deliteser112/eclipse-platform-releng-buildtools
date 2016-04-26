@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.contact;
+package google.registry.model.contact;
 
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.Buildable.Overlayable;
-import com.google.domain.registry.model.ImmutableObject;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.Buildable;
+import google.registry.model.Buildable.Overlayable;
+import google.registry.model.ImmutableObject;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;

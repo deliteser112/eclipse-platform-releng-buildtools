@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registrar;
+package google.registry.model.registrar;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.util.CollectionUtils.forceEmptyToNull;
-
-import com.google.domain.registry.model.eppcommon.Address;
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
 
 import com.googlecode.objectify.annotation.Embed;
+
+import google.registry.model.eppcommon.Address;
 
 /**
  * Registrar Address

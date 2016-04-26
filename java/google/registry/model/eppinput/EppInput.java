@@ -12,36 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppinput;
+package google.registry.model.eppinput;
 
-import static com.google.domain.registry.util.CollectionUtils.nullSafeImmutableCopy;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.contact.ContactCommand;
-import com.google.domain.registry.model.domain.DomainCommand;
-import com.google.domain.registry.model.domain.allocate.AllocateCreateExtension;
-import com.google.domain.registry.model.domain.fee.FeeCheckExtension;
-import com.google.domain.registry.model.domain.fee.FeeCreateExtension;
-import com.google.domain.registry.model.domain.fee.FeeInfoExtension;
-import com.google.domain.registry.model.domain.fee.FeeRenewExtension;
-import com.google.domain.registry.model.domain.fee.FeeTransferExtension;
-import com.google.domain.registry.model.domain.fee.FeeUpdateExtension;
-import com.google.domain.registry.model.domain.launch.LaunchCheckExtension;
-import com.google.domain.registry.model.domain.launch.LaunchCreateExtension;
-import com.google.domain.registry.model.domain.launch.LaunchDeleteExtension;
-import com.google.domain.registry.model.domain.launch.LaunchInfoExtension;
-import com.google.domain.registry.model.domain.launch.LaunchUpdateExtension;
-import com.google.domain.registry.model.domain.metadata.MetadataExtension;
-import com.google.domain.registry.model.domain.rgp.RgpUpdateExtension;
-import com.google.domain.registry.model.domain.secdns.SecDnsCreateExtension;
-import com.google.domain.registry.model.domain.secdns.SecDnsUpdateExtension;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceCheck;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.model.host.HostCommand;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.contact.ContactCommand;
+import google.registry.model.domain.DomainCommand;
+import google.registry.model.domain.allocate.AllocateCreateExtension;
+import google.registry.model.domain.fee.FeeCheckExtension;
+import google.registry.model.domain.fee.FeeCreateExtension;
+import google.registry.model.domain.fee.FeeInfoExtension;
+import google.registry.model.domain.fee.FeeRenewExtension;
+import google.registry.model.domain.fee.FeeTransferExtension;
+import google.registry.model.domain.fee.FeeUpdateExtension;
+import google.registry.model.domain.launch.LaunchCheckExtension;
+import google.registry.model.domain.launch.LaunchCreateExtension;
+import google.registry.model.domain.launch.LaunchDeleteExtension;
+import google.registry.model.domain.launch.LaunchInfoExtension;
+import google.registry.model.domain.launch.LaunchUpdateExtension;
+import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.domain.rgp.RgpUpdateExtension;
+import google.registry.model.domain.secdns.SecDnsCreateExtension;
+import google.registry.model.domain.secdns.SecDnsUpdateExtension;
+import google.registry.model.eppinput.ResourceCommand.ResourceCheck;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.host.HostCommand;
 
 import java.util.List;
 import java.util.Set;

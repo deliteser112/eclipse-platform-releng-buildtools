@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static org.bouncycastle.bcpg.HashAlgorithmTags.SHA256;
 import static org.bouncycastle.bcpg.PublicKeyAlgorithmTags.RSA_GENERAL;
 import static org.bouncycastle.openpgp.PGPSignature.BINARY_DOCUMENT;
 
 import com.google.auto.factory.AutoFactory;
-import com.google.domain.registry.util.ImprovedOutputStream;
+
+import google.registry.util.ImprovedOutputStream;
 
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;

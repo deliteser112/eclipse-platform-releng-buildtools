@@ -12,40 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.base.Predicates.not;
-import static com.google.domain.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
-import static com.google.domain.registry.util.TypeUtils.hasAnnotation;
+import static google.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
+import static google.registry.util.TypeUtils.hasAnnotation;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.model.EntityClasses;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.annotations.NotBackedUp;
-import com.google.domain.registry.model.annotations.VirtualEntity;
-import com.google.domain.registry.model.billing.BillingEvent.Cancellation;
-import com.google.domain.registry.model.billing.BillingEvent.Modification;
-import com.google.domain.registry.model.billing.BillingEvent.OneTime;
-import com.google.domain.registry.model.billing.BillingEvent.Recurring;
-import com.google.domain.registry.model.billing.RegistrarCredit;
-import com.google.domain.registry.model.billing.RegistrarCreditBalance;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.index.DomainApplicationIndex;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex.ForeignKeyContactIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
-import com.google.domain.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.model.registry.label.PremiumList.PremiumListEntry;
-import com.google.domain.registry.model.reporting.HistoryEntry;
+
+import google.registry.model.EntityClasses;
+import google.registry.model.ImmutableObject;
+import google.registry.model.annotations.NotBackedUp;
+import google.registry.model.annotations.VirtualEntity;
+import google.registry.model.billing.BillingEvent.Cancellation;
+import google.registry.model.billing.BillingEvent.Modification;
+import google.registry.model.billing.BillingEvent.OneTime;
+import google.registry.model.billing.BillingEvent.Recurring;
+import google.registry.model.billing.RegistrarCredit;
+import google.registry.model.billing.RegistrarCreditBalance;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.host.HostResource;
+import google.registry.model.index.DomainApplicationIndex;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.index.ForeignKeyIndex.ForeignKeyContactIndex;
+import google.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
+import google.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.PremiumList;
+import google.registry.model.registry.label.PremiumList.PremiumListEntry;
+import google.registry.model.reporting.HistoryEntry;
 
 /** Constants related to export code. */
 public final class ExportConstants {

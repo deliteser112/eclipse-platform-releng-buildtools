@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
-import com.google.domain.registry.request.JsonResponse;
+import google.registry.request.JsonResponse;
 
 import java.util.Map;
 

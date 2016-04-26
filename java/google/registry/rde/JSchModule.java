@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.api.ThreadManager;
-import com.google.domain.registry.keyring.api.KeyModule.Key;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.keyring.api.KeyModule.Key;
 
 /** Dagger module for {@link JSch} which provides SSH/SFTP connectivity. */
 @Module

@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.server;
+package google.registry.server;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.UserInfo;
-import com.google.domain.registry.tools.params.HostAndPortParameter;
-import com.google.domain.registry.ui.ConsoleDebug;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.UserInfo;
+import google.registry.tools.params.HostAndPortParameter;
+import google.registry.ui.ConsoleDebug;
 
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;

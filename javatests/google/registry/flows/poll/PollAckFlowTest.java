@@ -12,24 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.poll;
+package google.registry.flows.poll;
 
-import static com.google.domain.registry.testing.DatastoreHelper.createHistoryEntryForEppResource;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.testing.DatastoreHelper.createHistoryEntryForEppResource;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
-import com.google.domain.registry.flows.FlowTestCase;
-import com.google.domain.registry.flows.poll.PollAckFlow.InvalidMessageIdException;
-import com.google.domain.registry.flows.poll.PollAckFlow.MessageDoesNotExistException;
-import com.google.domain.registry.flows.poll.PollAckFlow.MissingMessageIdException;
-import com.google.domain.registry.flows.poll.PollAckFlow.NotAuthorizedToAckMessageException;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.testing.ExceptionRule;
+import google.registry.flows.FlowTestCase;
+import google.registry.flows.poll.PollAckFlow.InvalidMessageIdException;
+import google.registry.flows.poll.PollAckFlow.MessageDoesNotExistException;
+import google.registry.flows.poll.PollAckFlow.MissingMessageIdException;
+import google.registry.flows.poll.PollAckFlow.NotAuthorizedToAckMessageException;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.poll.PollMessage;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

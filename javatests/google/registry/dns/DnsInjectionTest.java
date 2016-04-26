@@ -12,23 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns;
+package google.registry.dns;
 
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
+import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.request.HttpException.NotFoundException;
-import com.google.domain.registry.request.RequestModule;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
+import google.registry.model.ofy.Ofy;
+import google.registry.request.HttpException.NotFoundException;
+import google.registry.request.RequestModule;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

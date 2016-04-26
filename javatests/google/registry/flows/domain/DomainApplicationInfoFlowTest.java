@@ -12,42 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 import static com.google.common.io.BaseEncoding.base16;
-import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.ResourceFlowTestCase;
-import com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
-import com.google.domain.registry.flows.domain.DomainApplicationInfoFlow.ApplicationLaunchPhaseMismatchException;
-import com.google.domain.registry.flows.domain.DomainApplicationInfoFlow.MissingApplicationIdException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.ApplicationDomainNameMismatchException;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DesignatedContact;
-import com.google.domain.registry.model.domain.DesignatedContact.Type;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainAuthInfo;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.domain.launch.ApplicationStatus;
-import com.google.domain.registry.model.domain.launch.LaunchCreateExtension;
-import com.google.domain.registry.model.domain.launch.LaunchPhase;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.eppcommon.AuthInfo.PasswordAuth;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.model.smd.EncodedSignedMark;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.EppLoader;
+
+import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
+import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
+import google.registry.flows.domain.DomainApplicationInfoFlow.ApplicationLaunchPhaseMismatchException;
+import google.registry.flows.domain.DomainApplicationInfoFlow.MissingApplicationIdException;
+import google.registry.flows.domain.DomainFlowUtils.ApplicationDomainNameMismatchException;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DesignatedContact;
+import google.registry.model.domain.DesignatedContact.Type;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainAuthInfo;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.domain.launch.LaunchCreateExtension;
+import google.registry.model.domain.launch.LaunchPhase;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.model.smd.EncodedSignedMark;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.EppLoader;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

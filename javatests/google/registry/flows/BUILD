@@ -1,6 +1,9 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_testonly = 1,
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 
@@ -26,22 +29,6 @@ java_library(
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
         "//java/com/google/common/net",
-        "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/dns",
-        "//java/com/google/domain/registry/flows",
-        "//java/com/google/domain/registry/mapreduce",
-        "//java/com/google/domain/registry/model",
-        "//java/com/google/domain/registry/monitoring/whitebox",
-        "//java/com/google/domain/registry/request",
-        "//java/com/google/domain/registry/security",
-        "//java/com/google/domain/registry/security:servlets",
-        "//java/com/google/domain/registry/tmch",
-        "//java/com/google/domain/registry/util",
-        "//java/com/google/domain/registry/xml",
-        "//javatests/com/google/domain/registry/model",
-        "//javatests/com/google/domain/registry/testing",
-        "//javatests/com/google/domain/registry/testing/mapreduce",
-        "//javatests/com/google/domain/registry/xml",
         "//third_party/java/appengine:appengine-api-testonly",
         "//third_party/java/appengine:appengine-testing",
         "//third_party/java/joda_money",
@@ -52,6 +39,22 @@ java_library(
         "//third_party/java/objectify:objectify-v4_1",
         "//third_party/java/servlet/servlet_api",
         "//third_party/java/truth",
+        "//java/google/registry/config",
+        "//java/google/registry/dns",
+        "//java/google/registry/flows",
+        "//java/google/registry/mapreduce",
+        "//java/google/registry/model",
+        "//java/google/registry/monitoring/whitebox",
+        "//java/google/registry/request",
+        "//java/google/registry/security",
+        "//java/google/registry/security:servlets",
+        "//java/google/registry/tmch",
+        "//java/google/registry/util",
+        "//java/google/registry/xml",
+        "//javatests/google/registry/model",
+        "//javatests/google/registry/testing",
+        "//javatests/google/registry/testing/mapreduce",
+        "//javatests/google/registry/xml",
     ],
 )
 

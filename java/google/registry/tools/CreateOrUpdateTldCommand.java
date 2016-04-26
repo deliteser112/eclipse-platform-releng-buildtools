@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.union;
-import static com.google.domain.registry.model.RoidSuffixes.isRoidSuffixUsed;
-import static com.google.domain.registry.util.CollectionUtils.findDuplicates;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
-import static com.google.domain.registry.util.DomainNameUtils.canonicalizeDomainName;
+import static google.registry.model.RoidSuffixes.isRoidSuffixUsed;
+import static google.registry.util.CollectionUtils.findDuplicates;
+import static google.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
@@ -31,18 +31,19 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.domain.registry.model.registry.Registries;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.model.registry.Registry.TldType;
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.model.registry.label.ReservedList;
-import com.google.domain.registry.tools.params.OptionalStringParameter;
-import com.google.domain.registry.tools.params.TransitionListParameter.BillingCostTransitions;
-import com.google.domain.registry.tools.params.TransitionListParameter.TldStateTransitions;
 
 import com.beust.jcommander.Parameter;
 import com.googlecode.objectify.Key;
+
+import google.registry.model.registry.Registries;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.model.registry.Registry.TldType;
+import google.registry.model.registry.label.PremiumList;
+import google.registry.model.registry.label.ReservedList;
+import google.registry.tools.params.OptionalStringParameter;
+import google.registry.tools.params.TransitionListParameter.BillingCostTransitions;
+import google.registry.tools.params.TransitionListParameter.TldStateTransitions;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

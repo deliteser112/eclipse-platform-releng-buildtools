@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.request;
+package google.registry.request;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.request.RequestParameters.extractBooleanParameter;
-import static com.google.domain.registry.request.RequestParameters.extractEnumParameter;
-import static com.google.domain.registry.request.RequestParameters.extractOptionalParameter;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredDatetimeParameter;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredMaybeEmptyParameter;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
+import static google.registry.request.RequestParameters.extractBooleanParameter;
+import static google.registry.request.RequestParameters.extractEnumParameter;
+import static google.registry.request.RequestParameters.extractOptionalParameter;
+import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
+import static google.registry.request.RequestParameters.extractRequiredMaybeEmptyParameter;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.time.DateTime;
 import org.junit.Rule;

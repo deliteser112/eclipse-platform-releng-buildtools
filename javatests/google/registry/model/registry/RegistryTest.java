@@ -12,32 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registry;
+package google.registry.model.registry;
 
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.label.ReservedListTest.GET_NAME_FUNCTION;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistPremiumList;
-import static com.google.domain.registry.testing.DatastoreHelper.persistReservedList;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.label.ReservedListTest.GET_NAME_FUNCTION;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistPremiumList;
+import static google.registry.testing.DatastoreHelper.persistReservedList;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.registry.Registry.RegistryNotFoundException;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.model.registry.label.ReservedList;
-import com.google.domain.registry.testing.ExceptionRule;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.model.EntityTestCase;
+import google.registry.model.registry.Registry.RegistryNotFoundException;
+import google.registry.model.registry.Registry.TldState;
+import google.registry.model.registry.label.PremiumList;
+import google.registry.model.registry.label.ReservedList;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

@@ -12,32 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rdap;
+package google.registry.rdap;
 
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.request.Action.Method.GET;
-import static com.google.domain.registry.request.Action.Method.HEAD;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.request.Action.Method.GET;
+import static google.registry.request.Action.Method.HEAD;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.primitives.Booleans;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.rdap.RdapJsonFormatter.BoilerplateType;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.NotFoundException;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.Idn;
 
 import com.googlecode.objectify.cmd.Query;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.host.HostResource;
+import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
+import google.registry.request.Action;
+import google.registry.request.HttpException;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.NotFoundException;
+import google.registry.request.Parameter;
+import google.registry.util.Clock;
+import google.registry.util.Idn;
 
 import org.joda.time.DateTime;
 

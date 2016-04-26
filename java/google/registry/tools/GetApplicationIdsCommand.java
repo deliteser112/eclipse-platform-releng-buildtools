@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
-import static com.google.domain.registry.model.registry.Registries.findTldForNameOrThrow;
+import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
+import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.registry.Registries.findTldForNameOrThrow;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.domain.DomainApplication;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.Command.RemoteApiCommand;
 
 import java.util.List;
 

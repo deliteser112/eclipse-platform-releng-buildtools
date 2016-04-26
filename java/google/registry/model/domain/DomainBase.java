@@ -12,27 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain;
+package google.registry.model.domain;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
-import static com.google.domain.registry.model.domain.DesignatedContact.Type.REGISTRANT;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
-import static com.google.domain.registry.util.CollectionUtils.union;
-import static com.google.domain.registry.util.DomainNameUtils.getTldFromDomainName;
+import static google.registry.model.domain.DesignatedContact.Type.REGISTRANT;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
+import static google.registry.util.CollectionUtils.union;
+import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResourceUtils;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.launch.LaunchNotice;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.eppcommon.AuthInfo;
-import com.google.domain.registry.model.host.HostResource;
 
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Ignore;
@@ -40,6 +33,14 @@ import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.condition.IfNull;
+
+import google.registry.model.EppResource;
+import google.registry.model.EppResourceUtils;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.launch.LaunchNotice;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.host.HostResource;
 
 import java.util.Set;
 
@@ -126,7 +127,7 @@ public abstract class DomainBase extends EppResource {
   /**
    * Name of first IDN table associated with TLD that matched the characters in this domain label.
    *
-   * @see com.google.domain.registry.tldconfig.idn.IdnLabelValidator#findValidIdnTableForTld
+   * @see google.registry.tldconfig.idn.IdnLabelValidator#findValidIdnTableForTld
    */
   @IgnoreSave(IfNull.class)
   @XmlTransient

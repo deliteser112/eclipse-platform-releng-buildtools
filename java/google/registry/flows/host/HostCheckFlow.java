@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.host;
+package google.registry.flows.host;
 
-import static com.google.domain.registry.model.EppResourceUtils.checkResourcesExist;
+import static google.registry.model.EppResourceUtils.checkResourcesExist;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.flows.ResourceCheckFlow;
-import com.google.domain.registry.model.eppoutput.CheckData;
-import com.google.domain.registry.model.eppoutput.CheckData.HostCheck;
-import com.google.domain.registry.model.eppoutput.CheckData.HostCheckData;
-import com.google.domain.registry.model.host.HostCommand.Check;
-import com.google.domain.registry.model.host.HostResource;
+
+import google.registry.flows.ResourceCheckFlow;
+import google.registry.model.eppoutput.CheckData;
+import google.registry.model.eppoutput.CheckData.HostCheck;
+import google.registry.model.eppoutput.CheckData.HostCheckData;
+import google.registry.model.host.HostCommand.Check;
+import google.registry.model.host.HostResource;
 
 import java.util.Set;
 
 /**
  * An EPP flow that checks whether a host can be provisioned.
  *
- * @error {@link com.google.domain.registry.flows.ResourceCheckFlow.TooManyResourceChecksException}
+ * @error {@link google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException}
  */
 public class HostCheckFlow extends ResourceCheckFlow<HostResource, Check> {
   @Override

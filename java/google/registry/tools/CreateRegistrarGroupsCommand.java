@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.collect.Iterables.transform;
-import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.server.CreateGroupsAction;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.server.CreateGroupsAction;
 
 import java.io.IOException;
 import java.util.ArrayList;

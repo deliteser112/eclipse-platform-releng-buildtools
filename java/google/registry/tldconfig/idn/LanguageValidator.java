@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tldconfig.idn;
+package google.registry.tldconfig.idn;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;

@@ -12,38 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.transform;
-import static com.google.domain.registry.model.RoidSuffixes.getRoidSuffixForTld;
-import static com.google.domain.registry.model.index.ForeignKeyIndex.loadAndGetReference;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.isAtOrAfter;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
-import static com.google.domain.registry.util.DateTimeUtils.latestOf;
+import static google.registry.model.RoidSuffixes.getRoidSuffixForTld;
+import static google.registry.model.index.ForeignKeyIndex.loadAndGetReference;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.isAtOrAfter;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.util.DateTimeUtils.latestOf;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.EppResource.Builder;
-import com.google.domain.registry.model.EppResource.ForeignKeyedEppResource;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
-import com.google.domain.registry.model.ofy.CommitLogManifest;
-import com.google.domain.registry.model.ofy.CommitLogMutation;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferStatus;
-import com.google.domain.registry.util.FormattingLogger;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.ResultNow;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.EppResource.Builder;
+import google.registry.model.EppResource.ForeignKeyedEppResource;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.model.index.ForeignKeyIndex;
+import google.registry.model.ofy.CommitLogManifest;
+import google.registry.model.ofy.CommitLogMutation;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -272,7 +273,7 @@ public final class EppResourceUtils {
    * certain circumstances, a resource might be restored to a revision on the previous day, even if
    * there were revisions made earlier on the same date as {@code timestamp}; however, a resource
    * will never be restored to a revision occuring after {@code timestamp}. This behavior is due to
-   * the way {@link com.google.domain.registry.model.translators.CommitLogRevisionsTranslatorFactory
+   * the way {@link google.registry.model.translators.CommitLogRevisionsTranslatorFactory
    * CommitLogRevisionsTranslatorFactory} manages the {@link EppResource#revisions} field. Please
    * note however that the creation and deletion times of a resource are granular to the
    * millisecond.

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.appengine.api.urlfetch.FetchOptions.Builder.validateCertificate;
 import static com.google.appengine.api.urlfetch.HTTPMethod.PUT;
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.common.net.HttpHeaders.AUTHORIZATION;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
-import static com.google.domain.registry.util.DomainNameUtils.canonicalizeDomainName;
+import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -28,18 +28,19 @@ import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.config.RegistryConfig;
-import com.google.domain.registry.keyring.api.KeyModule.Key;
-import com.google.domain.registry.request.HttpException.InternalServerErrorException;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.UrlFetchException;
-import com.google.domain.registry.xjc.XjcXmlTransformer;
-import com.google.domain.registry.xjc.iirdea.XjcIirdeaResponseElement;
-import com.google.domain.registry.xjc.iirdea.XjcIirdeaResult;
-import com.google.domain.registry.xjc.rdeheader.XjcRdeHeader;
-import com.google.domain.registry.xjc.rdereport.XjcRdeReportReport;
-import com.google.domain.registry.xml.XmlException;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig;
+import google.registry.keyring.api.KeyModule.Key;
+import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.util.FormattingLogger;
+import google.registry.util.UrlFetchException;
+import google.registry.xjc.XjcXmlTransformer;
+import google.registry.xjc.iirdea.XjcIirdeaResponseElement;
+import google.registry.xjc.iirdea.XjcIirdeaResult;
+import google.registry.xjc.rdeheader.XjcRdeHeader;
+import google.registry.xjc.rdereport.XjcRdeReportReport;
+import google.registry.xml.XmlException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

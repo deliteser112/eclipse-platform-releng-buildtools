@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTld;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.testing.FakeClock;
+
+import google.registry.testing.FakeClock;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

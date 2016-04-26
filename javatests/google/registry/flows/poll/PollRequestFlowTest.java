@@ -12,29 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.poll;
+package google.registry.flows.poll;
 
-import static com.google.domain.registry.testing.DatastoreHelper.createHistoryEntryForEppResource;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.createHistoryEntryForEppResource;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.flows.FlowTestCase;
-import com.google.domain.registry.flows.poll.PollRequestFlow.UnexpectedMessageIdException;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferResponse.ContactTransferResponse;
-import com.google.domain.registry.model.transfer.TransferResponse.DomainTransferResponse;
-import com.google.domain.registry.model.transfer.TransferStatus;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.flows.FlowTestCase;
+import google.registry.flows.poll.PollRequestFlow.UnexpectedMessageIdException;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.host.HostResource;
+import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
+import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
+import google.registry.model.transfer.TransferStatus;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

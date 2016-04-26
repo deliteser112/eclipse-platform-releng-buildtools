@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.collect.Ordering.arbitrary;
-import static com.google.domain.registry.model.EntityClasses.ALL_CLASSES;
+import static google.registry.model.EntityClasses.ALL_CLASSES;
 import static java.lang.ClassLoader.getSystemClassLoader;
 import static java.lang.reflect.Modifier.isAbstract;
 
@@ -24,15 +24,16 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultimap;
-import com.google.domain.registry.model.BackupGroupRoot;
-import com.google.domain.registry.model.annotations.NotBackedUp;
-import com.google.domain.registry.model.annotations.VirtualEntity;
-import com.google.domain.registry.tools.Command.GtechCommand;
 
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Parent;
+
+import google.registry.model.BackupGroupRoot;
+import google.registry.model.annotations.NotBackedUp;
+import google.registry.model.annotations.VirtualEntity;
+import google.registry.tools.Command.GtechCommand;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;

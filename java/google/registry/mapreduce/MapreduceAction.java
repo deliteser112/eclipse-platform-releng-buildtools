@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.mapreduce;
+package google.registry.mapreduce;
 
-import com.google.domain.registry.request.Action;
+import google.registry.request.Action;
 
 /**
  * Marker interface to denote an action intended for the Mapreduce queue.

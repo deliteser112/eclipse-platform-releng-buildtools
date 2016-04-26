@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.launch;
+package google.registry.model.domain.launch;
 
-import com.google.domain.registry.model.Buildable.GenericBuilder;
-import com.google.domain.registry.model.ImmutableObject;
+import google.registry.model.Buildable.GenericBuilder;
+import google.registry.model.ImmutableObject;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;

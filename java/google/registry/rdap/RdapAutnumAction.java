@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rdap;
+package google.registry.rdap;
 
-import static com.google.domain.registry.request.Action.Method.GET;
-import static com.google.domain.registry.request.Action.Method.HEAD;
+import static google.registry.request.Action.Method.GET;
+import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.HttpException;
-import com.google.domain.registry.request.HttpException.NotImplementedException;
+
+import google.registry.request.Action;
+import google.registry.request.HttpException;
+import google.registry.request.HttpException.NotImplementedException;
 
 import javax.inject.Inject;
 

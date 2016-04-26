@@ -12,32 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.host;
+package google.registry.flows.host;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveHost;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDeletedHost;
-import static com.google.domain.registry.testing.HostResourceSubject.assertAboutHosts;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistDeletedHost;
+import static google.registry.testing.HostResourceSubject.assertAboutHosts;
+import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.flows.EppXmlTransformer.IpAddressVersionMismatchException;
-import com.google.domain.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
-import com.google.domain.registry.flows.ResourceFlowTestCase;
-import com.google.domain.registry.flows.host.HostCreateFlow.SubordinateHostMustHaveIpException;
-import com.google.domain.registry.flows.host.HostCreateFlow.UnexpectedExternalHostIpException;
-import com.google.domain.registry.flows.host.HostFlowUtils.HostNameTooLongException;
-import com.google.domain.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
-import com.google.domain.registry.flows.host.HostFlowUtils.InvalidHostNameException;
-import com.google.domain.registry.flows.host.HostFlowUtils.SuperordinateDomainDoesNotExistException;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.reporting.HistoryEntry;
+
+import google.registry.flows.EppXmlTransformer.IpAddressVersionMismatchException;
+import google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
+import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.host.HostCreateFlow.SubordinateHostMustHaveIpException;
+import google.registry.flows.host.HostCreateFlow.UnexpectedExternalHostIpException;
+import google.registry.flows.host.HostFlowUtils.HostNameTooLongException;
+import google.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
+import google.registry.flows.host.HostFlowUtils.InvalidHostNameException;
+import google.registry.flows.host.HostFlowUtils.SuperordinateDomainDoesNotExistException;
+import google.registry.model.host.HostResource;
+import google.registry.model.reporting.HistoryEntry;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

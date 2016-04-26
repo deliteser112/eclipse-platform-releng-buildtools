@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.base.Verify.verify;
@@ -27,12 +27,13 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.RequestPath;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.request.Action;
+import google.registry.request.RequestPath;
+import google.registry.request.Response;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

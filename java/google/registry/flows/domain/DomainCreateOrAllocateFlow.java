@@ -12,31 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.leapSafeAddYears;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.dns.DnsQueue;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.BillingEvent.Flag;
-import com.google.domain.registry.model.billing.BillingEvent.Reason;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.DomainResource.Builder;
-import com.google.domain.registry.model.domain.Period;
-import com.google.domain.registry.model.domain.fee.Fee;
-import com.google.domain.registry.model.domain.fee.FeeCreateResponseExtension;
-import com.google.domain.registry.model.domain.metadata.MetadataExtension;
-import com.google.domain.registry.model.eppoutput.CreateData.DomainCreateData;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.eppoutput.Result;
-import com.google.domain.registry.model.poll.PollMessage;
 
 import com.googlecode.objectify.Ref;
+
+import google.registry.dns.DnsQueue;
+import google.registry.flows.EppException;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Flag;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainResource.Builder;
+import google.registry.model.domain.Period;
+import google.registry.model.domain.fee.Fee;
+import google.registry.model.domain.fee.FeeCreateResponseExtension;
+import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.eppoutput.CreateData.DomainCreateData;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.Result;
+import google.registry.model.poll.PollMessage;
 
 import org.joda.time.DateTime;
 

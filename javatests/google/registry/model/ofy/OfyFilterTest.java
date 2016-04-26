@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.initOfy;
+import static google.registry.model.ofy.ObjectifyService.initOfy;
 
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.Registrar.Type;
-import com.google.domain.registry.testing.ExceptionRule;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyFilter;
 import com.googlecode.objectify.ObjectifyService;
+
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.Type;
+import google.registry.testing.ExceptionRule;
 
 import org.junit.After;
 import org.junit.Before;
@@ -83,7 +84,7 @@ public class OfyFilterTest {
       Key.create(registrar);
     } catch (IllegalStateException e) {
       assertThat(e).hasMessage(
-          "class com.google.domain.registry.model.registrar.Registrar has not been registered");
+          "class google.registry.model.registrar.Registrar has not been registered");
     }
   }
 

@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateDomainName;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
+import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
+import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
+import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.ResourceCheckFlow;
-import com.google.domain.registry.model.domain.DomainCommand.Check;
-import com.google.domain.registry.model.domain.DomainResource;
+
+import google.registry.flows.EppException;
+import google.registry.flows.ResourceCheckFlow;
+import google.registry.model.domain.DomainCommand.Check;
+import google.registry.model.domain.DomainResource;
 
 import java.util.Map;
 

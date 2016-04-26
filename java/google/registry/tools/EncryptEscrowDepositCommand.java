@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.util.DomainNameUtils.canonicalizeDomainName;
-
-import com.google.domain.registry.tools.params.PathParameter;
+import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.params.PathParameter;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

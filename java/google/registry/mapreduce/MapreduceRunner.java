@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.mapreduce;
+package google.registry.mapreduce;
 
 import static com.google.appengine.api.search.checkers.Preconditions.checkNotNull;
 import static com.google.appengine.tools.pipeline.PipelineServiceFactory.newPipelineService;
-import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.MapJob;
@@ -34,10 +34,11 @@ import com.google.appengine.tools.pipeline.Job0;
 import com.google.appengine.tools.pipeline.JobSetting;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
-import com.google.domain.registry.mapreduce.inputs.ConcatenatingInput;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.PipelineUtils;
+
+import google.registry.mapreduce.inputs.ConcatenatingInput;
+import google.registry.request.Parameter;
+import google.registry.util.FormattingLogger;
+import google.registry.util.PipelineUtils;
 
 import org.joda.time.Duration;
 

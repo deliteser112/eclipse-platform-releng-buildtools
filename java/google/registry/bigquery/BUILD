@@ -1,6 +1,8 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 
 java_library(
@@ -21,12 +23,12 @@ java_library(
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
         "//java/com/google/common/util/concurrent",
-        "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/request",
-        "//java/com/google/domain/registry/util",
         "//third_party/java/dagger",
         "//third_party/java/joda_time",
         "//third_party/java/jsr305_annotations",
         "//third_party/java/jsr330_inject",
+        "//java/google/registry/config",
+        "//java/google/registry/request",
+        "//java/google/registry/util",
     ],
 )

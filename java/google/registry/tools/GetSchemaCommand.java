@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
-
-import com.google.domain.registry.model.SchemaVersion;
-import com.google.domain.registry.tools.Command.GtechCommand;
+package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.SchemaVersion;
+import google.registry.tools.Command.GtechCommand;
 
 /** Generates the schema file used for model versioning. */
 @Parameters(commandDescription = "Generate a model schema file")

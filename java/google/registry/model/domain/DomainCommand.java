@@ -12,31 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain;
+package google.registry.model.domain;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.intersection;
-import static com.google.domain.registry.model.index.ForeignKeyIndex.loadAndGetReference;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.CollectionUtils.nullSafeImmutableCopy;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.model.index.ForeignKeyIndex.loadAndGetReference;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.eppcommon.AuthInfo;
-import com.google.domain.registry.model.eppinput.ResourceCommand.AbstractSingleResourceCommand;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceCheck;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceCreateOrChange;
-import com.google.domain.registry.model.eppinput.ResourceCommand.ResourceUpdate;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.model.host.HostResource;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Work;
+
+import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppinput.ResourceCommand.AbstractSingleResourceCommand;
+import google.registry.model.eppinput.ResourceCommand.ResourceCheck;
+import google.registry.model.eppinput.ResourceCommand.ResourceCreateOrChange;
+import google.registry.model.eppinput.ResourceCommand.ResourceUpdate;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.host.HostResource;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;

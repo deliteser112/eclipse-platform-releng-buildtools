@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
-import static com.google.domain.registry.util.CollectionUtils.isNullOrEmpty;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.util.CollectionUtils.isNullOrEmpty;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import java.util.Map;
 import java.util.Map.Entry;

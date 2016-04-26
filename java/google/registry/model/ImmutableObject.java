@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.base.Functions.identity;
 import static com.google.common.collect.Iterables.transform;
@@ -22,10 +22,11 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
-import com.google.domain.registry.model.domain.ReferenceUnion;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Ignore;
+
+import google.registry.model.domain.ReferenceUnion;
 
 import java.util.Arrays;
 import java.util.Collection;

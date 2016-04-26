@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.smd;
+package google.registry.model.smd;
 
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.mark.Mark;
+import google.registry.model.ImmutableObject;
+import google.registry.model.mark.Mark;
 
 import org.joda.time.DateTime;
 

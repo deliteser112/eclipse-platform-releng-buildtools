@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.common.net.HttpHeaders.CONTENT_LENGTH;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.common.net.MediaType.CSV_UTF_8;
-import static com.google.domain.registry.util.UrlFetchUtils.setPayloadMultipart;
+import static google.registry.util.UrlFetchUtils.setPayloadMultipart;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
@@ -28,8 +28,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.InjectRule;
 
 import org.junit.Before;
 import org.junit.Rule;

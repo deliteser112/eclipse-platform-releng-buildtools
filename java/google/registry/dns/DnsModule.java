@@ -12,27 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns;
+package google.registry.dns;
 
-import static com.google.domain.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
-import static com.google.domain.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
-import static com.google.domain.registry.dns.PublishDnsUpdatesAction.DOMAINS_PARAM;
-import static com.google.domain.registry.dns.PublishDnsUpdatesAction.HOSTS_PARAM;
-import static com.google.domain.registry.dns.ReadDnsQueueAction.KEEP_TASKS_PARAM;
-import static com.google.domain.registry.request.RequestParameters.extractBooleanParameter;
-import static com.google.domain.registry.request.RequestParameters.extractEnumParameter;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
-import static com.google.domain.registry.request.RequestParameters.extractSetOfParameters;
+import static google.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
+import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
+import static google.registry.dns.PublishDnsUpdatesAction.DOMAINS_PARAM;
+import static google.registry.dns.PublishDnsUpdatesAction.HOSTS_PARAM;
+import static google.registry.dns.ReadDnsQueueAction.KEEP_TASKS_PARAM;
+import static google.registry.request.RequestParameters.extractBooleanParameter;
+import static google.registry.request.RequestParameters.extractEnumParameter;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
+import static google.registry.request.RequestParameters.extractSetOfParameters;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
-import com.google.domain.registry.dns.DnsConstants.TargetType;
-import com.google.domain.registry.dns.writer.api.DnsWriterZone;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.dns.DnsConstants.TargetType;
+import google.registry.dns.writer.api.DnsWriterZone;
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
 
 import java.util.Set;
 

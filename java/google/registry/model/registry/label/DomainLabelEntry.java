@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.registry.label;
+package google.registry.model.registry.label;
 
 import static com.google.common.base.Strings.emptyToNull;
-import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
-
-import com.google.domain.registry.model.Buildable.GenericBuilder;
-import com.google.domain.registry.model.ImmutableObject;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.googlecode.objectify.annotation.Id;
+
+import google.registry.model.Buildable.GenericBuilder;
+import google.registry.model.ImmutableObject;
 
 /**
  * Represents a label entry parsed from a line in a Reserved List txt file.

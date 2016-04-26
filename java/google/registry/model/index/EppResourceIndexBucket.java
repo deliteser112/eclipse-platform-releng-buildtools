@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.index;
+package google.registry.model.index;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.Hashing;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.annotations.VirtualEntity;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
+import google.registry.model.annotations.VirtualEntity;
 
 /** A virtual entity to represent buckets to which EppResourceIndex objects are randomly added. */
 @Entity

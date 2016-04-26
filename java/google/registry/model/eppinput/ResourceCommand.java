@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppinput;
+package google.registry.model.eppinput;
 
 import static com.google.common.collect.Sets.intersection;
-import static com.google.domain.registry.util.CollectionUtils.nullSafeImmutableCopy;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.Buildable.Builder;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.eppcommon.AuthInfo;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
+
+import google.registry.model.Buildable.Builder;
+import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
+import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 import java.util.List;
 import java.util.Set;

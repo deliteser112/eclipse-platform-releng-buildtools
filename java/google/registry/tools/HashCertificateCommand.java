@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.util.X509Utils.getCertificateHash;
-import static com.google.domain.registry.util.X509Utils.loadCertificate;
+import static google.registry.util.X509Utils.getCertificateHash;
+import static google.registry.util.X509Utils.loadCertificate;
 
 import com.google.common.base.Joiner;
-import com.google.domain.registry.tools.Command.GtechCommand;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.Command.GtechCommand;
 
 import java.io.IOException;
 import java.nio.file.Paths;

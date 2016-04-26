@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.translators;
+package google.registry.model.translators;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.ofy.CommitLogManifest;
 
 import com.googlecode.objectify.Ref;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.ofy.CommitLogManifest;
 
 import org.joda.time.DateTime;
 
@@ -44,7 +45,7 @@ import org.joda.time.DateTime;
  * <p><b>Warning:</b> Fields of this type must not be {@code null}, or else new entries can't be
  * inserted. You must take care to initialize the field to empty.
  *
- * @see com.google.domain.registry.model.EppResource
+ * @see google.registry.model.EppResource
  */
 public final class CommitLogRevisionsTranslatorFactory
     extends ImmutableSortedMapTranslatorFactory<DateTime, Ref<CommitLogManifest>> {
@@ -61,7 +62,7 @@ public final class CommitLogRevisionsTranslatorFactory
    * <p>We store a maximum of one entry per day. It will be the last transaction that happened on
    * that day.
    *
-   * @see com.google.domain.registry.config.RegistryConfig#getCommitLogDatastoreRetention()
+   * @see google.registry.config.RegistryConfig#getCommitLogDatastoreRetention()
    */
   @Override
   ImmutableSortedMap<DateTime, Ref<CommitLogManifest>> transformBeforeSave(

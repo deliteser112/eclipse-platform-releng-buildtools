@@ -1,6 +1,9 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_testonly = 1,
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 
 java_library(
@@ -14,8 +17,8 @@ java_library(
     ),
     resources = [
         "logging.properties",
-        "//java/com/google/domain/registry/env/common/default:WEB-INF/datastore-indexes.xml",
-        "//java/com/google/domain/registry/env/common/default:WEB-INF/queue.xml",
+        "//java/google/registry/env/common/default:WEB-INF/datastore-indexes.xml",
+        "//java/google/registry/env/common/default:WEB-INF/queue.xml",
     ] + glob(["*.csv"]),
     visibility = ["//visibility:public"],
     deps = [
@@ -26,14 +29,6 @@ java_library(
         "//java/com/google/common/net",
         "//java/com/google/common/testing",
         "//java/com/google/common/util/concurrent",
-        "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/dns:constants",
-        "//java/com/google/domain/registry/flows",
-        "//java/com/google/domain/registry/model",
-        "//java/com/google/domain/registry/request",
-        "//java/com/google/domain/registry/tmch",
-        "//java/com/google/domain/registry/util",
-        "//java/com/google/domain/registry/xml",
         "//third_party/java/appengine:appengine-api-testonly",
         "//third_party/java/appengine:appengine-integration-testing",
         "//third_party/java/appengine:appengine-stubs",
@@ -53,6 +48,14 @@ java_library(
         "//third_party/java/objectify:objectify-v4_1",
         "//third_party/java/servlet/servlet_api",
         "//third_party/java/truth",
+        "//java/google/registry/config",
+        "//java/google/registry/dns:constants",
+        "//java/google/registry/flows",
+        "//java/google/registry/model",
+        "//java/google/registry/request",
+        "//java/google/registry/tmch",
+        "//java/google/registry/util",
+        "//java/google/registry/xml",
     ],
 )
 

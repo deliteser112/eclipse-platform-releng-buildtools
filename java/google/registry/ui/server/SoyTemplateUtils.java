@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server;
+package google.registry.ui.server;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Suppliers.memoize;
@@ -25,13 +25,14 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
-import com.google.domain.registry.ui.ConsoleDebug;
 import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.SoyUtils;
 import com.google.template.soy.base.SoySyntaxException;
 import com.google.template.soy.parseinfo.SoyFileInfo;
 import com.google.template.soy.shared.SoyCssRenamingMap;
 import com.google.template.soy.tofu.SoyTofu;
+
+import google.registry.ui.ConsoleDebug;
 
 import java.io.IOException;
 import java.net.URL;
@@ -129,7 +130,7 @@ public final class SoyTemplateUtils {
     return builder.build();
   }
 
-  private static final URL SOY_GLOBALS = getResource("com/google/domain/registry/ui/globals.txt");
+  private static final URL SOY_GLOBALS = getResource("google/registry/ui/globals.txt");
   private static final Splitter CSS_CLASS_SPLITTER = Splitter.on('-');
   private static final Joiner CSS_CLASS_JOINER = Joiner.on('-');
   private static final Pattern KEY_VALUE_PATTERN =

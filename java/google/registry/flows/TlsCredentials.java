@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -21,10 +21,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.InetAddresses;
-import com.google.domain.registry.flows.EppException.AuthenticationErrorException;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.util.CidrAddressBlock;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.flows.EppException.AuthenticationErrorException;
+import google.registry.model.registrar.Registrar;
+import google.registry.util.CidrAddressBlock;
+import google.registry.util.FormattingLogger;
 
 import java.net.InetAddress;
 

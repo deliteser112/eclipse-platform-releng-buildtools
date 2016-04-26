@@ -12,46 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.testing.DatastoreHelper.createBillingEventForTransfer;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistDomainWithPendingTransfer;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
-import static com.google.domain.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.testing.DatastoreHelper.createBillingEventForTransfer;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistDomainWithPendingTransfer;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.Flow;
-import com.google.domain.registry.flows.ResourceFlowTestCase;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.billing.BillingEvent;
-import com.google.domain.registry.model.billing.BillingEvent.Flag;
-import com.google.domain.registry.model.billing.BillingEvent.Reason;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DesignatedContact;
-import com.google.domain.registry.model.domain.DesignatedContact.Type;
-import com.google.domain.registry.model.domain.DomainAuthInfo;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.GracePeriod;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.domain.rgp.GracePeriodStatus;
-import com.google.domain.registry.model.eppcommon.AuthInfo.PasswordAuth;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferStatus;
-import com.google.domain.registry.testing.AppEngineRule;
 
 import com.googlecode.objectify.Ref;
+
+import google.registry.flows.Flow;
+import google.registry.flows.ResourceFlowTestCase;
+import google.registry.model.EppResource;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Flag;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DesignatedContact;
+import google.registry.model.domain.DesignatedContact.Type;
+import google.registry.model.domain.DomainAuthInfo;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.registry.Registry;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
+import google.registry.testing.AppEngineRule;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

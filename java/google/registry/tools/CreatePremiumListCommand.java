@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.registry.label.PremiumList;
-import com.google.domain.registry.tools.server.CreatePremiumListAction;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.registry.label.PremiumList;
+import google.registry.tools.server.CreatePremiumListAction;
 
 import javax.annotation.Nullable;
 

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.RoidSuffixes.getRoidSuffixForTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.RoidSuffixes.getRoidSuffixForTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.testing.AppEngineRule;
+import google.registry.model.registry.Registry;
+import google.registry.testing.AppEngineRule;
 
 import org.junit.Rule;
 import org.junit.Test;

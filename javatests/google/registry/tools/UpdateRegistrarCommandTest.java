@@ -12,28 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.registrar.Registrar.loadByClientId;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT;
-import static com.google.domain.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.registrar.Registrar.loadByClientId;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
+import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.billing.RegistrarBillingEntry;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.Registrar.BillingMethod;
-import com.google.domain.registry.model.registrar.Registrar.State;
-import com.google.domain.registry.model.registrar.Registrar.Type;
-import com.google.domain.registry.util.CidrAddressBlock;
 
 import com.beust.jcommander.ParameterException;
+
+import google.registry.model.billing.RegistrarBillingEntry;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.BillingMethod;
+import google.registry.model.registrar.Registrar.State;
+import google.registry.model.registrar.Registrar.Type;
+import google.registry.util.CidrAddressBlock;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;

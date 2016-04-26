@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.FailureStrategy;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.launch.LaunchNotice;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.eppcommon.AuthInfo;
-import com.google.domain.registry.testing.TruthChainer.And;
+
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.launch.LaunchNotice;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppcommon.AuthInfo;
+import google.registry.testing.TruthChainer.And;
 
 import java.util.Set;
 

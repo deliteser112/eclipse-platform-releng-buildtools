@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import static com.google.domain.registry.model.EppResourceUtils.checkResourcesExist;
+import static google.registry.model.EppResourceUtils.checkResourcesExist;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.flows.ResourceCheckFlow;
-import com.google.domain.registry.model.contact.ContactCommand.Check;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.eppoutput.CheckData;
-import com.google.domain.registry.model.eppoutput.CheckData.ContactCheck;
-import com.google.domain.registry.model.eppoutput.CheckData.ContactCheckData;
+
+import google.registry.flows.ResourceCheckFlow;
+import google.registry.model.contact.ContactCommand.Check;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.eppoutput.CheckData;
+import google.registry.model.eppoutput.CheckData.ContactCheck;
+import google.registry.model.eppoutput.CheckData.ContactCheckData;
 
 import java.util.Set;
 
 /**
  * An EPP flow that checks whether a contact can be provisioned.
  *
- * @error {@link com.google.domain.registry.flows.ResourceCheckFlow.TooManyResourceChecksException}
+ * @error {@link google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException}
  */
 public class ContactCheckFlow extends ResourceCheckFlow<ContactResource, Check> {
   @Override

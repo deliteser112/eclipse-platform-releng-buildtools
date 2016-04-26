@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools.server;
+package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -21,14 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Optional;
-import com.google.domain.registry.groups.DirectoryGroupsConnection;
-import com.google.domain.registry.groups.GroupsConnection.Role;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.HttpException.InternalServerErrorException;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.groups.DirectoryGroupsConnection;
+import google.registry.groups.GroupsConnection.Role;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.request.Response;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.InjectRule;
 
 import org.junit.Assert;
 import org.junit.Rule;

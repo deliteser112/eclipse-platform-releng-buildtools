@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.isBeforeOrAt;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.model.rde.RdeMode;
-import com.google.domain.registry.model.registry.Registries;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.TldType;
-import com.google.domain.registry.model.registry.RegistryCursor;
-import com.google.domain.registry.model.registry.RegistryCursor.CursorType;
-import com.google.domain.registry.util.Clock;
 
 import com.googlecode.objectify.Work;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.model.rde.RdeMode;
+import google.registry.model.registry.Registries;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldType;
+import google.registry.model.registry.RegistryCursor;
+import google.registry.model.registry.RegistryCursor.CursorType;
+import google.registry.util.Clock;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

@@ -12,43 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.createTlds;
-import static com.google.domain.registry.testing.DatastoreHelper.generateNewContactHostRoid;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResourceWithCommitLog;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.generateNewContactHostRoid;
+import static google.registry.testing.DatastoreHelper.persistResourceWithCommitLog;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.google.domain.registry.config.TestRegistryConfig;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.rde.RdeCounter;
-import com.google.domain.registry.rde.RdeResourceType;
-import com.google.domain.registry.rde.RdeUtil;
-import com.google.domain.registry.testing.BouncyCastleProviderRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.util.Idn;
-import com.google.domain.registry.xjc.XjcXmlTransformer;
-import com.google.domain.registry.xjc.rde.XjcRdeContentType;
-import com.google.domain.registry.xjc.rde.XjcRdeDeposit;
-import com.google.domain.registry.xjc.rde.XjcRdeDepositTypeType;
-import com.google.domain.registry.xjc.rdeheader.XjcRdeHeader;
-import com.google.domain.registry.xjc.rdeheader.XjcRdeHeaderCount;
-import com.google.domain.registry.xjc.rdehost.XjcRdeHost;
-import com.google.domain.registry.xjc.rderegistrar.XjcRdeRegistrar;
-import com.google.domain.registry.xml.XmlException;
-import com.google.domain.registry.xml.XmlTestUtils;
 
 import com.beust.jcommander.ParameterException;
+
+import google.registry.config.TestRegistryConfig;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.model.ofy.Ofy;
+import google.registry.rde.RdeCounter;
+import google.registry.rde.RdeResourceType;
+import google.registry.rde.RdeUtil;
+import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import google.registry.util.Idn;
+import google.registry.xjc.XjcXmlTransformer;
+import google.registry.xjc.rde.XjcRdeContentType;
+import google.registry.xjc.rde.XjcRdeDeposit;
+import google.registry.xjc.rde.XjcRdeDepositTypeType;
+import google.registry.xjc.rdeheader.XjcRdeHeader;
+import google.registry.xjc.rdeheader.XjcRdeHeaderCount;
+import google.registry.xjc.rdehost.XjcRdeHost;
+import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
+import google.registry.xml.XmlException;
+import google.registry.xml.XmlTestUtils;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

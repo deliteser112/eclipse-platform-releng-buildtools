@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.poll;
+package google.registry.model.poll;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomain;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.domain.registry.model.EntityTestCase;
-import com.google.domain.registry.model.domain.Period;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.reporting.HistoryEntry;
+import google.registry.model.EntityTestCase;
+import google.registry.model.domain.Period;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.reporting.HistoryEntry;
 
 import org.junit.Before;
 import org.junit.Test;

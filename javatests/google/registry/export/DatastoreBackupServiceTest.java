@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.appengine.api.datastore.DatastoreServiceFactory.getDatastoreService;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.datastore.Entity;
@@ -25,10 +25,11 @@ import com.google.appengine.api.modules.ModulesService;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
+
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.InjectRule;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

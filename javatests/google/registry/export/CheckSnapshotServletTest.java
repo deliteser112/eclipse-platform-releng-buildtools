@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.export.CheckSnapshotServlet.SNAPSHOT_KINDS_TO_LOAD_PARAM;
-import static com.google.domain.registry.export.CheckSnapshotServlet.SNAPSHOT_NAME_PARAM;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.export.CheckSnapshotServlet.SNAPSHOT_KINDS_TO_LOAD_PARAM;
+import static google.registry.export.CheckSnapshotServlet.SNAPSHOT_NAME_PARAM;
+import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
@@ -31,10 +31,11 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
+
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.security;
+package google.registry.security;
 
 import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
-import static com.google.domain.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
+import static google.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
 
 import com.google.common.base.Supplier;
 

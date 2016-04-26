@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.registry.Registry;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.registry.Registry;
 
 import java.util.List;
 

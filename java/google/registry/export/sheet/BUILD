@@ -1,4 +1,6 @@
-package(default_visibility = ["//java/com/google/domain/registry:registry_project"])
+package(default_visibility = ["//java/google/registry:registry_project"])
+
+licenses(["notice"])  # Apache 2.0
 
 
 java_library(
@@ -10,10 +12,6 @@ java_library(
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
         "//java/com/google/common/net",
-        "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/model",
-        "//java/com/google/domain/registry/request",
-        "//java/com/google/domain/registry/util",
         "//java/com/google/gdata",
         "//java/com/google/gdata:spreadsheet",
         "//third_party/java/appengine:appengine-api",
@@ -22,5 +20,9 @@ java_library(
         "//third_party/java/jsr305_annotations",
         "//third_party/java/jsr330_inject",
         "//third_party/java/servlet/servlet_api",
+        "//java/google/registry/config",
+        "//java/google/registry/model",
+        "//java/google/registry/request",
+        "//java/google/registry/util",
     ],
 )

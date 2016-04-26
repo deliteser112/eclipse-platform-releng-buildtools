@@ -12,31 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.server;
+package google.registry.model.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.skip;
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
-import static com.google.domain.registry.util.DateTimeUtils.isAtOrAfter;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.DateTimeUtils.isAtOrAfter;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.annotations.NotBackedUp;
-import com.google.domain.registry.model.annotations.NotBackedUp.Reason;
-import com.google.domain.registry.util.AppEngineTimeLimiter;
-import com.google.domain.registry.util.FormattingLogger;
 
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+
+import google.registry.model.ImmutableObject;
+import google.registry.model.annotations.NotBackedUp;
+import google.registry.model.annotations.NotBackedUp.Reason;
+import google.registry.util.AppEngineTimeLimiter;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

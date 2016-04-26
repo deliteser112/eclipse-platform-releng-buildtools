@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.google.domain.registry.util.CollectionUtils.nullToEmpty;
-import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Enums;
@@ -28,16 +28,17 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.common.GaeUserIdConverter;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registrar.RegistrarContact;
-import com.google.domain.registry.model.registrar.RegistrarContact.Builder;
-import com.google.domain.registry.tools.Command.GtechCommand;
-import com.google.domain.registry.tools.params.OptionalPhoneNumberParameter;
-import com.google.domain.registry.tools.params.PathParameter;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.common.GaeUserIdConverter;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
+import google.registry.model.registrar.RegistrarContact.Builder;
+import google.registry.tools.Command.GtechCommand;
+import google.registry.tools.params.OptionalPhoneNumberParameter;
+import google.registry.tools.params.PathParameter;
 
 import java.io.IOException;
 import java.nio.file.Files;

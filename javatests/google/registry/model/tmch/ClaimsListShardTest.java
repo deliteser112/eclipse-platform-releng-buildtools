@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.tmch;
+package google.registry.model.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
-import com.google.domain.registry.model.tmch.ClaimsListShard.UnshardedSaveException;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
+import google.registry.model.tmch.ClaimsListShard.UnshardedSaveException;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
 
 import org.joda.time.DateTime;
 import org.junit.Rule;

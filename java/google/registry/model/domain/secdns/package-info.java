@@ -17,7 +17,7 @@
     xmlns = @XmlNs(prefix = "secDNS", namespaceURI = "urn:ietf:params:xml:ns:secDNS-1.1"),
     elementFormDefault = XmlNsForm.QUALIFIED)
 @XmlAccessorType(XmlAccessType.FIELD)
-package com.google.domain.registry.model.domain.secdns;
+package google.registry.model.domain.secdns;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

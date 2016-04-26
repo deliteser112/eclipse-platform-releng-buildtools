@@ -12,41 +12,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.eppoutput;
+package google.registry.model.eppoutput;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.DomainRenewData;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.fee.FeeCheckResponseExtension;
-import com.google.domain.registry.model.domain.fee.FeeCreateResponseExtension;
-import com.google.domain.registry.model.domain.fee.FeeDeleteResponseExtension;
-import com.google.domain.registry.model.domain.fee.FeeInfoResponseExtension;
-import com.google.domain.registry.model.domain.fee.FeeRenewResponseExtension;
-import com.google.domain.registry.model.domain.fee.FeeTransferResponseExtension;
-import com.google.domain.registry.model.domain.fee.FeeUpdateResponseExtension;
-import com.google.domain.registry.model.domain.launch.LaunchCheckResponseExtension;
-import com.google.domain.registry.model.domain.launch.LaunchCreateResponseExtension;
-import com.google.domain.registry.model.domain.launch.LaunchInfoResponseExtension;
-import com.google.domain.registry.model.domain.rgp.RgpInfoExtension;
-import com.google.domain.registry.model.domain.secdns.SecDnsInfoExtension;
-import com.google.domain.registry.model.eppcommon.Trid;
-import com.google.domain.registry.model.eppoutput.CheckData.ContactCheckData;
-import com.google.domain.registry.model.eppoutput.CheckData.DomainCheckData;
-import com.google.domain.registry.model.eppoutput.CheckData.HostCheckData;
-import com.google.domain.registry.model.eppoutput.CreateData.ContactCreateData;
-import com.google.domain.registry.model.eppoutput.CreateData.DomainCreateData;
-import com.google.domain.registry.model.eppoutput.CreateData.HostCreateData;
-import com.google.domain.registry.model.eppoutput.EppOutput.ResponseOrGreeting;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.poll.MessageQueueInfo;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
-import com.google.domain.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
-import com.google.domain.registry.model.transfer.TransferResponse.ContactTransferResponse;
-import com.google.domain.registry.model.transfer.TransferResponse.DomainTransferResponse;
+
+import google.registry.model.Buildable;
+import google.registry.model.ImmutableObject;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainRenewData;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.fee.FeeCheckResponseExtension;
+import google.registry.model.domain.fee.FeeCreateResponseExtension;
+import google.registry.model.domain.fee.FeeDeleteResponseExtension;
+import google.registry.model.domain.fee.FeeInfoResponseExtension;
+import google.registry.model.domain.fee.FeeRenewResponseExtension;
+import google.registry.model.domain.fee.FeeTransferResponseExtension;
+import google.registry.model.domain.fee.FeeUpdateResponseExtension;
+import google.registry.model.domain.launch.LaunchCheckResponseExtension;
+import google.registry.model.domain.launch.LaunchCreateResponseExtension;
+import google.registry.model.domain.launch.LaunchInfoResponseExtension;
+import google.registry.model.domain.rgp.RgpInfoExtension;
+import google.registry.model.domain.secdns.SecDnsInfoExtension;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppoutput.CheckData.ContactCheckData;
+import google.registry.model.eppoutput.CheckData.DomainCheckData;
+import google.registry.model.eppoutput.CheckData.HostCheckData;
+import google.registry.model.eppoutput.CreateData.ContactCreateData;
+import google.registry.model.eppoutput.CreateData.DomainCreateData;
+import google.registry.model.eppoutput.CreateData.HostCreateData;
+import google.registry.model.eppoutput.EppOutput.ResponseOrGreeting;
+import google.registry.model.host.HostResource;
+import google.registry.model.poll.MessageQueueInfo;
+import google.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
+import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
+import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
+import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 
 import org.joda.time.DateTime;
 

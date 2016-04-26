@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns.writer.dnsupdate;
-
-import com.google.domain.registry.config.ConfigModule.Config;
-
-import org.joda.time.Duration;
+package google.registry.dns.writer.dnsupdate;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.config.ConfigModule.Config;
+
+import org.joda.time.Duration;
 
 @Module
 public class DnsUpdateConfigModule {

@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
-import static com.google.domain.registry.model.registry.label.ReservationType.UNRESERVED;
+import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 
 import com.google.common.base.Joiner;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.label.ReservedList;
-import com.google.domain.registry.model.registry.label.ReservedList.ReservedListEntry;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.ReservedList;
+import google.registry.model.registry.label.ReservedList.ReservedListEntry;
 
 import java.util.Set;
 import java.util.TreeSet;

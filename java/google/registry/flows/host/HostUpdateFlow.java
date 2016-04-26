@@ -12,35 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.host;
+package google.registry.flows.host;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.domain.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
-import static com.google.domain.registry.flows.host.HostFlowUtils.validateHostName;
-import static com.google.domain.registry.flows.host.HostFlowUtils.verifyDomainIsSameRegistrar;
-import static com.google.domain.registry.model.index.ForeignKeyIndex.loadAndGetReference;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.CollectionUtils.isNullOrEmpty;
+import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
+import static google.registry.flows.host.HostFlowUtils.validateHostName;
+import static google.registry.flows.host.HostFlowUtils.verifyDomainIsSameRegistrar;
+import static google.registry.model.index.ForeignKeyIndex.loadAndGetReference;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.dns.DnsQueue;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.ObjectAlreadyExistsException;
-import com.google.domain.registry.flows.EppException.ParameterValueRangeErrorException;
-import com.google.domain.registry.flows.EppException.RequiredParameterMissingException;
-import com.google.domain.registry.flows.EppException.StatusProhibitsOperationException;
-import com.google.domain.registry.flows.ResourceUpdateFlow;
-import com.google.domain.registry.flows.async.AsyncFlowUtils;
-import com.google.domain.registry.flows.async.DnsRefreshForHostRenameAction;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.host.HostCommand.Update;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.host.HostResource.Builder;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
-import com.google.domain.registry.model.reporting.HistoryEntry;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+
+import google.registry.dns.DnsQueue;
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.ObjectAlreadyExistsException;
+import google.registry.flows.EppException.ParameterValueRangeErrorException;
+import google.registry.flows.EppException.RequiredParameterMissingException;
+import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.flows.ResourceUpdateFlow;
+import google.registry.flows.async.AsyncFlowUtils;
+import google.registry.flows.async.DnsRefreshForHostRenameAction;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.host.HostCommand.Update;
+import google.registry.model.host.HostResource;
+import google.registry.model.host.HostResource.Builder;
+import google.registry.model.index.ForeignKeyIndex;
+import google.registry.model.reporting.HistoryEntry;
 
 import org.joda.time.Duration;
 
@@ -49,11 +50,11 @@ import java.util.Objects;
 /**
  * An EPP flow that updates a host resource.
  *
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException}
- * @error {@link com.google.domain.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException}
- * @error {@link com.google.domain.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException}
+ * @error {@link google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException}
+ * @error {@link google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
  * @error {@link HostFlowUtils.HostNameTooShallowException}
  * @error {@link HostFlowUtils.InvalidHostNameException}
  * @error {@link HostFlowUtils.SuperordinateDomainDoesNotExistException}

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.groups;
+package google.registry.groups;
 
 import static dagger.Provides.Type.SET_VALUES;
 
@@ -20,11 +20,12 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.admin.directory.Directory;
 import com.google.api.services.admin.directory.DirectoryScopes;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.request.DelegatedOAuthScopes;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.request.DelegatedOAuthScopes;
 
 import java.util.Set;
 
@@ -33,11 +34,11 @@ import javax.inject.Named;
 /**
  * Dagger module for the Google {@link Directory} service.
  *
- * @see com.google.domain.registry.config.ConfigModule
- * @see com.google.domain.registry.request.Modules.UrlFetchTransportModule
- * @see com.google.domain.registry.request.Modules.Jackson2Module
- * @see com.google.domain.registry.request.Modules.AppIdentityCredentialModule
- * @see com.google.domain.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule
+ * @see google.registry.config.ConfigModule
+ * @see google.registry.request.Modules.UrlFetchTransportModule
+ * @see google.registry.request.Modules.Jackson2Module
+ * @see google.registry.request.Modules.AppIdentityCredentialModule
+ * @see google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule
  */
 @Module
 public final class DirectoryModule {

@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.mapreduce.inputs;
+package google.registry.mapreduce.inputs;
 
-import static com.google.domain.registry.util.TypeUtils.checkNoInheritanceRelationships;
+import static google.registry.util.TypeUtils.checkNoInheritanceRelationships;
 
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.index.EppResourceIndexBucket;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
+import google.registry.model.index.EppResourceIndexBucket;
 
 /**
  * A MapReduce {@link Input} that loads all child objects of a given set of types, that are children

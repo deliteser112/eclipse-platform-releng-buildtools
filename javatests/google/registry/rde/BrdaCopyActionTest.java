@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.domain.registry.testing.GcsTestingUtils.readGcsFile;
-import static com.google.domain.registry.testing.SystemInfo.hasCommand;
+import static google.registry.testing.GcsTestingUtils.readGcsFile;
+import static google.registry.testing.SystemInfo.hasCommand;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.junit.Assume.assumeTrue;
@@ -28,13 +28,14 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.io.ByteSource;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
-import com.google.domain.registry.gcs.GcsUtils;
-import com.google.domain.registry.keyring.api.Keyring;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.BouncyCastleProviderRule;
-import com.google.domain.registry.testing.GcsTestingUtils;
-import com.google.domain.registry.testing.GpgSystemCommandRule;
-import com.google.domain.registry.testing.Providers;
+
+import google.registry.gcs.GcsUtils;
+import google.registry.keyring.api.Keyring;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.GcsTestingUtils;
+import google.registry.testing.GpgSystemCommandRule;
+import google.registry.testing.Providers;
 
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;

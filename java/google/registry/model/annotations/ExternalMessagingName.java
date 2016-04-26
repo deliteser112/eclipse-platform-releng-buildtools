@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.annotations;
+package google.registry.model.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

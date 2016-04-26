@@ -12,40 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
-import static com.google.domain.registry.testing.DatastoreHelper.assertNoBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.newDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.newHostResource;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveContact;
-import static com.google.domain.registry.testing.DatastoreHelper.persistActiveDomainApplication;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainApplication;
+import static google.registry.testing.DatastoreHelper.newHostResource;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppException.UnimplementedExtensionException;
-import com.google.domain.registry.flows.FlowRunner.CommitMode;
-import com.google.domain.registry.flows.FlowRunner.UserPrivileges;
-import com.google.domain.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
-import com.google.domain.registry.flows.ResourceFlowTestCase;
-import com.google.domain.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
-import com.google.domain.registry.flows.domain.DomainApplicationDeleteFlow.SunriseApplicationCannotBeDeletedInLandrushException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.ApplicationDomainNameMismatchException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.LaunchPhaseMismatchException;
-import com.google.domain.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainApplication;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.domain.launch.LaunchPhase;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.model.registry.Registry.TldState;
+
+import google.registry.flows.EppException.UnimplementedExtensionException;
+import google.registry.flows.FlowRunner.CommitMode;
+import google.registry.flows.FlowRunner.UserPrivileges;
+import google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
+import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
+import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
+import google.registry.flows.domain.DomainApplicationDeleteFlow.SunriseApplicationCannotBeDeletedInLandrushException;
+import google.registry.flows.domain.DomainFlowUtils.ApplicationDomainNameMismatchException;
+import google.registry.flows.domain.DomainFlowUtils.LaunchPhaseMismatchException;
+import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
+import google.registry.model.EppResource;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.domain.launch.LaunchPhase;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registry.Registry.TldState;
 
 import org.junit.Before;
 import org.junit.Test;

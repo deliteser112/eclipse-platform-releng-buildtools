@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
-import static com.google.domain.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
+import static google.registry.model.eppoutput.Result.Code.Success;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.eppoutput.Response.ResponseData;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
+
+import google.registry.model.EppResource;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.Response.ResponseData;
+import google.registry.model.eppoutput.Response.ResponseExtension;
 
 /**
  * An EPP flow that reads a storable resource.

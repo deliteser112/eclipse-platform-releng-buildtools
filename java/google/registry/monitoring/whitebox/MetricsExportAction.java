@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.monitoring.whitebox;
+package google.registry.monitoring.whitebox;
 
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Multimaps.filterKeys;
-import static com.google.domain.registry.request.Action.Method.POST;
-import static com.google.domain.registry.util.FormattingLogger.getLoggerForCallerClass;
+import static google.registry.request.Action.Method.POST;
+import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.TableDataInsertAllRequest;
@@ -31,12 +31,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.bigquery.BigqueryFactory;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.ParameterMap;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.bigquery.BigqueryFactory;
+import google.registry.config.ConfigModule.Config;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.request.ParameterMap;
+import google.registry.util.FormattingLogger;
 
 import java.io.IOException;
 import java.util.Map;

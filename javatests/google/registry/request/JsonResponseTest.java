@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.request;
+package google.registry.request;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
+import static google.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.FakeResponse;
+
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeResponse;
 
 import org.json.simple.JSONValue;
 import org.junit.Rule;

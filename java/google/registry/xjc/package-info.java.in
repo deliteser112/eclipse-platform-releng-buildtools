@@ -77,7 +77,7 @@
             namespaceURI = "urn:ietf:params:xml:ns:signedMark-1.0"),
     })
 @XmlAccessorType(XmlAccessType.FIELD)
-package com.google.domain.registry.xjc.@PACKAGE@;
+package google.registry.xjc.@PACKAGE@;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

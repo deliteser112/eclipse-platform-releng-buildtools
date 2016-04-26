@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
+
+import google.registry.model.EppResource;
+import google.registry.tools.Command.RemoteApiCommand;
 
 import java.util.List;
 

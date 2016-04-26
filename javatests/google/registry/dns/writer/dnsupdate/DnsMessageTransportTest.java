@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns.writer.dnsupdate;
+package google.registry.dns.writer.dnsupdate;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;

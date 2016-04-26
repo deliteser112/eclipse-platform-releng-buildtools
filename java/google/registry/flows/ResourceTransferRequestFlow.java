@@ -12,32 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.flows.ResourceFlowUtils.createPendingTransferNotificationResponse;
-import static com.google.domain.registry.flows.ResourceFlowUtils.createTransferResponse;
-import static com.google.domain.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
-import static com.google.domain.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.CollectionUtils.union;
+import static google.registry.flows.ResourceFlowUtils.createPendingTransferNotificationResponse;
+import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
+import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
+import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.union;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppException.AuthorizationErrorException;
-import com.google.domain.registry.flows.EppException.CommandUseErrorException;
-import com.google.domain.registry.flows.EppException.ObjectPendingTransferException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.model.eppoutput.EppOutput;
-import com.google.domain.registry.model.eppoutput.Response.ResponseData;
-import com.google.domain.registry.model.eppoutput.Response.ResponseExtension;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.transfer.TransferData;
-import com.google.domain.registry.model.transfer.TransferData.TransferServerApproveEntity;
-import com.google.domain.registry.model.transfer.TransferStatus;
 
 import com.googlecode.objectify.Key;
+
+import google.registry.flows.EppException.AuthorizationErrorException;
+import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.flows.EppException.ObjectPendingTransferException;
+import google.registry.model.EppResource;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.Response.ResponseData;
+import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
+import google.registry.model.transfer.TransferStatus;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

@@ -12,13 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.reporting;
-
-import com.google.domain.registry.model.Buildable;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.domain.Period;
-import com.google.domain.registry.model.eppcommon.Trid;
+package google.registry.model.reporting;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
@@ -28,6 +22,12 @@ import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.condition.IfNull;
+
+import google.registry.model.Buildable;
+import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
+import google.registry.model.domain.Period;
+import google.registry.model.eppcommon.Trid;
 
 import org.joda.time.DateTime;
 

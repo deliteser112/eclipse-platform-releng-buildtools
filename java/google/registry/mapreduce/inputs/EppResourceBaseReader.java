@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.mapreduce.inputs;
+package google.registry.mapreduce.inputs;
 
-import static com.google.domain.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.index.EppResourceIndexBucket;
-import com.google.domain.registry.util.FormattingLogger;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
+
+import google.registry.model.EppResource;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.index.EppResourceIndexBucket;
+import google.registry.util.FormattingLogger;
 
 import java.util.NoSuchElementException;
 

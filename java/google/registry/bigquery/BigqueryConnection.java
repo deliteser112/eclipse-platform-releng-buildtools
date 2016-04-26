@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.bigquery;
+package google.registry.bigquery;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Verify.verify;
-import static com.google.domain.registry.bigquery.BigqueryUtils.toJobReferenceString;
+import static google.registry.bigquery.BigqueryUtils.toJobReferenceString;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
@@ -56,16 +56,17 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.domain.registry.bigquery.BigqueryUtils.DestinationFormat;
-import com.google.domain.registry.bigquery.BigqueryUtils.SourceFormat;
-import com.google.domain.registry.bigquery.BigqueryUtils.TableType;
-import com.google.domain.registry.bigquery.BigqueryUtils.WriteDisposition;
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
-import com.google.domain.registry.util.Sleeper;
-import com.google.domain.registry.util.SqlTemplate;
-import com.google.domain.registry.util.SystemSleeper;
+
+import google.registry.bigquery.BigqueryUtils.DestinationFormat;
+import google.registry.bigquery.BigqueryUtils.SourceFormat;
+import google.registry.bigquery.BigqueryUtils.TableType;
+import google.registry.bigquery.BigqueryUtils.WriteDisposition;
+import google.registry.config.RegistryEnvironment;
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.Sleeper;
+import google.registry.util.SqlTemplate;
+import google.registry.util.SystemSleeper;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

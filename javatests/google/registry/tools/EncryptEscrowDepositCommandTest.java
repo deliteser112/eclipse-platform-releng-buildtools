@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.util.ResourceUtils.readResourceBytes;
+import static google.registry.util.ResourceUtils.readResourceBytes;
 
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-import com.google.domain.registry.rde.RdeKeyringModule;
-import com.google.domain.registry.rde.RdeTestData;
-import com.google.domain.registry.rde.RydePgpCompressionOutputStreamFactory;
-import com.google.domain.registry.rde.RydePgpEncryptionOutputStreamFactory;
-import com.google.domain.registry.rde.RydePgpFileOutputStreamFactory;
-import com.google.domain.registry.rde.RydePgpSigningOutputStreamFactory;
-import com.google.domain.registry.rde.RydeTarOutputStreamFactory;
-import com.google.domain.registry.testing.BouncyCastleProviderRule;
-import com.google.domain.registry.testing.Providers;
+
+import google.registry.rde.RdeKeyringModule;
+import google.registry.rde.RdeTestData;
+import google.registry.rde.RydePgpCompressionOutputStreamFactory;
+import google.registry.rde.RydePgpEncryptionOutputStreamFactory;
+import google.registry.rde.RydePgpFileOutputStreamFactory;
+import google.registry.rde.RydePgpSigningOutputStreamFactory;
+import google.registry.rde.RydeTarOutputStreamFactory;
+import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.Providers;
 
 import org.junit.Before;
 import org.junit.Rule;

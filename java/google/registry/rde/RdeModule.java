@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 
 import com.google.appengine.api.taskqueue.Queue;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
 
 import org.joda.time.DateTime;
 
@@ -31,7 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Dagger module for RDE package.
  *
- * @see "com.google.domain.registry.module.backend.BackendComponent"
+ * @see "google.registry.module.backend.BackendComponent"
  */
 @Module
 public final class RdeModule {

@@ -1,8 +1,10 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_visibility = ["//java/google/registry:registry_project"],
 )
 
-load("//java/com/google/domain/registry/xjc:generated_files.bzl", "pkginfo_generated_files", "xjc_generated_files")
+licenses(["notice"])  # Apache 2.0
+
+load("//java/google/registry/xjc:generated_files.bzl", "pkginfo_generated_files", "xjc_generated_files")
 
 
 sh_binary(
@@ -10,8 +12,8 @@ sh_binary(
     srcs = ["list_generated_files.sh"],
     data = [
         "bindings.xjb",
-        "//java/com/google/domain/registry/xml:xml_schema_files",
         "//third_party/java/jaxb:jaxb-xjc",
+        "//java/google/registry/xml:xml_schema_files",
     ],
 )
 
@@ -19,16 +21,17 @@ genrule(
     name = "jaxb_srcs",
     srcs = [
         "bindings.xjb",
-        "//java/com/google/domain/registry/xml:xml_schema_files",
+        "//java/google/registry/xml:xml_schema_files",
     ],
     outs = xjc_generated_files,
     cmd = " && ".join([
         "XJC=$$PWD/$(location //third_party/java/jaxb:jaxb-xjc)",
-        "OUT=$$PWD/$(GENDIR)",
+        "OUT=$$PWD/$(GENDIR)/java",
+        "mkdir -p $$OUT",
         "cp $(SRCS) /tmp",
         "cd /tmp",
-        "$$XJC -npa -quiet -extension -d $$OUT/java -b *.xjb *.xsd",
-        "find $$OUT/java -name '*.java' | xargs sed -i 's/" +
+        "$$XJC -npa -quiet -extension -d $$OUT -b *.xjb *.xsd",
+        "find $$OUT -name '*.java' | xargs sed -i 's/" +
         "public class/" +
         "@SuppressWarnings({\"unchecked\",\"serial\",\"cast\"}) " +
         "public class/'",
@@ -57,8 +60,8 @@ java_library(
     srcs = glob(["*.java"]) + xjc_generated_files + pkginfo_generated_files,
     deps = [
         "//java/com/google/common/collect",
-        "//java/com/google/domain/registry/xml",
         "//third_party/java/joda_time",
         "//third_party/java/jsr305_annotations",
+        "//java/google/registry/xml",
     ],
 )

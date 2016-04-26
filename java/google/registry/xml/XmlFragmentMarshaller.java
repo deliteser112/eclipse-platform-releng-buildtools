@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.xml;
+package google.registry.xml;
 
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static com.google.common.base.Verify.verify;

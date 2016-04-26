@@ -12,24 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.contact;
+package google.registry.flows.contact;
 
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.flows.ResourceTransferRequestFlow;
-import com.google.domain.registry.model.contact.ContactCommand.Transfer;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.reporting.HistoryEntry;
+import google.registry.config.RegistryEnvironment;
+import google.registry.flows.ResourceTransferRequestFlow;
+import google.registry.model.contact.ContactCommand.Transfer;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.reporting.HistoryEntry;
 
 import org.joda.time.Duration;
 
 /**
  * An EPP flow that requests a transfer on a {@link ContactResource}.
  *
- * @error {@link com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link com.google.domain.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link com.google.domain.registry.flows.ResourceTransferRequestFlow.AlreadyPendingTransferException}
- * @error {@link com.google.domain.registry.flows.ResourceTransferRequestFlow.MissingTransferRequestAuthInfoException}
- * @error {@link com.google.domain.registry.flows.ResourceTransferRequestFlow.ObjectAlreadySponsoredException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceTransferRequestFlow.AlreadyPendingTransferException}
+ * @error {@link google.registry.flows.ResourceTransferRequestFlow.MissingTransferRequestAuthInfoException}
+ * @error {@link google.registry.flows.ResourceTransferRequestFlow.ObjectAlreadySponsoredException}
  */
 public class ContactTransferRequestFlow
     extends ResourceTransferRequestFlow<ContactResource, Transfer> {

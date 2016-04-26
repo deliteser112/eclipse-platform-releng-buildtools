@@ -12,46 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.async;
+package google.registry.flows.async;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.domain.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
-import static com.google.domain.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
-import static com.google.domain.registry.model.EppResourceUtils.isActive;
-import static com.google.domain.registry.model.EppResourceUtils.isDeleted;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.util.PipelineUtils.createJobPath;
-import static com.google.domain.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
+import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
+import static google.registry.model.EppResourceUtils.isActive;
+import static google.registry.model.EppResourceUtils.isDeleted;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.PipelineUtils.createJobPath;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
-import com.google.domain.registry.mapreduce.MapreduceAction;
-import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.mapreduce.inputs.EppResourceInputs;
-import com.google.domain.registry.mapreduce.inputs.NullInput;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.annotations.ExternalMessagingName;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.poll.PollMessage;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.request.HttpException.BadRequestException;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.NonFinalForTesting;
-import com.google.domain.registry.util.SystemClock;
-import com.google.domain.registry.util.TypeUtils.TypeInstantiator;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Work;
+
+import google.registry.mapreduce.MapreduceAction;
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.mapreduce.inputs.EppResourceInputs;
+import google.registry.mapreduce.inputs.NullInput;
+import google.registry.model.EppResource;
+import google.registry.model.annotations.ExternalMessagingName;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.Parameter;
+import google.registry.request.Response;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.SystemClock;
+import google.registry.util.TypeUtils.TypeInstantiator;
 
 import org.joda.time.DateTime;
 

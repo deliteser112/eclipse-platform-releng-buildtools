@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.contact;
+package google.registry.model.contact;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
-import static com.google.domain.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
+import static google.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
+import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.ForeignKeyedEppResource;
-import com.google.domain.registry.model.annotations.ExternalMessagingName;
-import com.google.domain.registry.model.contact.PostalInfo.Type;
-import com.google.domain.registry.model.eppcommon.AuthInfo;
 
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfNull;
+
+import google.registry.model.EppResource;
+import google.registry.model.EppResource.ForeignKeyedEppResource;
+import google.registry.model.annotations.ExternalMessagingName;
+import google.registry.model.contact.PostalInfo.Type;
+import google.registry.model.eppcommon.AuthInfo;
 
 import org.joda.time.DateTime;
 

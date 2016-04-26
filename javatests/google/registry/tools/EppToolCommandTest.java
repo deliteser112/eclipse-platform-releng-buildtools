@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.flows.EppServletUtils.APPLICATION_EPP_XML_UTF8;
+import static google.registry.flows.EppServletUtils.APPLICATION_EPP_XML_UTF8;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 

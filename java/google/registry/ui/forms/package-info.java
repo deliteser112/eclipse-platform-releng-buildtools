@@ -14,4 +14,4 @@
 
 /** Web application backend form processing utilities. */
 @javax.annotation.ParametersAreNonnullByDefault
-package com.google.domain.registry.ui.forms;
+package google.registry.ui.forms;

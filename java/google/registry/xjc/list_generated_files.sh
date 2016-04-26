@@ -22,10 +22,10 @@ base="${PWD}"
 export LC_ALL=C
 
 cd "${tmp}"
-cp "${base}/java/com/google/domain/registry/xjc/bindings.xjb" .
-cp "${base}"/java/com/google/domain/registry/xml/xsd/*.xsd .
+cp "${base}/java/google/registry/xjc/bindings.xjb" .
+cp "${base}"/java/google/registry/xml/xsd/*.xsd .
 "${base}/third_party/java/jaxb/jaxb-xjc" -extension -d "${tmp}" -b *.xjb *.xsd \
-  | sed -ne s@com/google/domain/registry/xjc/@@p \
+  | sed -ne s@google/registry/xjc/@@p \
   | grep -v package-info.java \
   | sort \
   > xjc_generated_files
@@ -46,8 +46,8 @@ cat <<EOF
 # When you make changes to the XML schemas (*.xsd) or the JAXB bindings file
 # (bindings.xjb), you must regenerate this file with the following commands:
 #
-#   bazel run java/com/google/domain/registry/xjc:list_generated_files | tee /tmp/lol
-#   mv /tmp/lol java/com/google/domain/registry/xjc/generated_files.bzl
+#   bazel run third_party/java_src/gtld/java/google/registry/xjc:list_generated_files | tee /tmp/lol
+#   mv /tmp/lol third_party/java_src/gtld/java/google/registry/xjc/generated_files.bzl
 #
 EOF
 

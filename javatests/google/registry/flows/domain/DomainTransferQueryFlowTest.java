@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.testing.DatastoreHelper.assertBillingEvents;
-import static com.google.domain.registry.testing.DatastoreHelper.deleteResource;
-import static com.google.domain.registry.testing.DatastoreHelper.getPollMessages;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
-import static com.google.domain.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.DatastoreHelper.assertBillingEvents;
+import static google.registry.testing.DatastoreHelper.deleteResource;
+import static google.registry.testing.DatastoreHelper.getPollMessages;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 
-import com.google.domain.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
-import com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
-import com.google.domain.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException;
-import com.google.domain.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException;
-import com.google.domain.registry.model.contact.ContactAuthInfo;
-import com.google.domain.registry.model.domain.DomainAuthInfo;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.eppcommon.AuthInfo.PasswordAuth;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.transfer.TransferStatus;
+import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
+import google.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException;
+import google.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException;
+import google.registry.model.contact.ContactAuthInfo;
+import google.registry.model.domain.DomainAuthInfo;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferStatus;
 
 import org.junit.Before;
 import org.junit.Test;

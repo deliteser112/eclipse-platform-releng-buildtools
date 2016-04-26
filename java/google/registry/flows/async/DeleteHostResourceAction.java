@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.async;
+package google.registry.flows.async;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.domain.registry.dns.DnsQueue;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.reporting.HistoryEntry;
-import com.google.domain.registry.model.reporting.HistoryEntry.Type;
-import com.google.domain.registry.request.Action;
+import google.registry.dns.DnsQueue;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.host.HostResource;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.HistoryEntry.Type;
+import google.registry.request.Action;
 
 import org.joda.time.DateTime;
 

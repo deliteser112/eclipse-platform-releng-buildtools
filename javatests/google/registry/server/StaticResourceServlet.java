@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.server;
+package google.registry.server;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -25,7 +25,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import com.google.common.primitives.Ints;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.util.FormattingLogger;
 
 import org.mortbay.jetty.servlet.ServletHolder;
 

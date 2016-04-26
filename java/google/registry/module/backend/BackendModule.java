@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.module.backend;
+package google.registry.module.backend;
 
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
-
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
+import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
 
 import javax.servlet.http.HttpServletRequest;
 

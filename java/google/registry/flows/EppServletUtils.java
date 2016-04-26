@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.flows.EppController.handleEppCommand;
+import static google.registry.flows.EppController.handleEppCommand;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.net.MediaType;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.util.FormattingLogger;
 
 import java.io.IOException;
 import java.io.OutputStream;

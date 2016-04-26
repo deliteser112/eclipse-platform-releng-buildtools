@@ -12,54 +12,54 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.module.backend;
-
-import com.google.domain.registry.backup.BackupModule;
-import com.google.domain.registry.backup.CommitLogCheckpointAction;
-import com.google.domain.registry.backup.DeleteOldCommitLogsAction;
-import com.google.domain.registry.backup.ExportCommitLogDiffAction;
-import com.google.domain.registry.backup.RestoreCommitLogsAction;
-import com.google.domain.registry.cron.CommitLogFanoutAction;
-import com.google.domain.registry.cron.CronModule;
-import com.google.domain.registry.cron.TldFanoutAction;
-import com.google.domain.registry.dns.DnsModule;
-import com.google.domain.registry.dns.PublishDnsUpdatesAction;
-import com.google.domain.registry.dns.ReadDnsQueueAction;
-import com.google.domain.registry.dns.RefreshDnsAction;
-import com.google.domain.registry.dns.WriteDnsAction;
-import com.google.domain.registry.export.BigqueryPollJobAction;
-import com.google.domain.registry.export.ExportDomainListsAction;
-import com.google.domain.registry.export.ExportRequestModule;
-import com.google.domain.registry.export.ExportReservedTermsAction;
-import com.google.domain.registry.export.LoadSnapshotAction;
-import com.google.domain.registry.export.SyncGroupMembersAction;
-import com.google.domain.registry.export.UpdateSnapshotViewAction;
-import com.google.domain.registry.export.sheet.SheetModule;
-import com.google.domain.registry.export.sheet.SyncRegistrarsSheetAction;
-import com.google.domain.registry.flows.async.AsyncFlowsModule;
-import com.google.domain.registry.flows.async.DeleteContactResourceAction;
-import com.google.domain.registry.flows.async.DeleteHostResourceAction;
-import com.google.domain.registry.flows.async.DnsRefreshForHostRenameAction;
-import com.google.domain.registry.mapreduce.MapreduceModule;
-import com.google.domain.registry.monitoring.whitebox.MetricsExportAction;
-import com.google.domain.registry.monitoring.whitebox.VerifyEntityIntegrityAction;
-import com.google.domain.registry.monitoring.whitebox.WhiteboxModule;
-import com.google.domain.registry.rde.BrdaCopyAction;
-import com.google.domain.registry.rde.RdeModule;
-import com.google.domain.registry.rde.RdeReportAction;
-import com.google.domain.registry.rde.RdeReporter;
-import com.google.domain.registry.rde.RdeStagingAction;
-import com.google.domain.registry.rde.RdeUploadAction;
-import com.google.domain.registry.request.RequestModule;
-import com.google.domain.registry.request.RequestScope;
-import com.google.domain.registry.tmch.NordnUploadAction;
-import com.google.domain.registry.tmch.NordnVerifyAction;
-import com.google.domain.registry.tmch.TmchCrlAction;
-import com.google.domain.registry.tmch.TmchDnlAction;
-import com.google.domain.registry.tmch.TmchModule;
-import com.google.domain.registry.tmch.TmchSmdrlAction;
+package google.registry.module.backend;
 
 import dagger.Subcomponent;
+
+import google.registry.backup.BackupModule;
+import google.registry.backup.CommitLogCheckpointAction;
+import google.registry.backup.DeleteOldCommitLogsAction;
+import google.registry.backup.ExportCommitLogDiffAction;
+import google.registry.backup.RestoreCommitLogsAction;
+import google.registry.cron.CommitLogFanoutAction;
+import google.registry.cron.CronModule;
+import google.registry.cron.TldFanoutAction;
+import google.registry.dns.DnsModule;
+import google.registry.dns.PublishDnsUpdatesAction;
+import google.registry.dns.ReadDnsQueueAction;
+import google.registry.dns.RefreshDnsAction;
+import google.registry.dns.WriteDnsAction;
+import google.registry.export.BigqueryPollJobAction;
+import google.registry.export.ExportDomainListsAction;
+import google.registry.export.ExportRequestModule;
+import google.registry.export.ExportReservedTermsAction;
+import google.registry.export.LoadSnapshotAction;
+import google.registry.export.SyncGroupMembersAction;
+import google.registry.export.UpdateSnapshotViewAction;
+import google.registry.export.sheet.SheetModule;
+import google.registry.export.sheet.SyncRegistrarsSheetAction;
+import google.registry.flows.async.AsyncFlowsModule;
+import google.registry.flows.async.DeleteContactResourceAction;
+import google.registry.flows.async.DeleteHostResourceAction;
+import google.registry.flows.async.DnsRefreshForHostRenameAction;
+import google.registry.mapreduce.MapreduceModule;
+import google.registry.monitoring.whitebox.MetricsExportAction;
+import google.registry.monitoring.whitebox.VerifyEntityIntegrityAction;
+import google.registry.monitoring.whitebox.WhiteboxModule;
+import google.registry.rde.BrdaCopyAction;
+import google.registry.rde.RdeModule;
+import google.registry.rde.RdeReportAction;
+import google.registry.rde.RdeReporter;
+import google.registry.rde.RdeStagingAction;
+import google.registry.rde.RdeUploadAction;
+import google.registry.request.RequestModule;
+import google.registry.request.RequestScope;
+import google.registry.tmch.NordnUploadAction;
+import google.registry.tmch.NordnVerifyAction;
+import google.registry.tmch.TmchCrlAction;
+import google.registry.tmch.TmchDnlAction;
+import google.registry.tmch.TmchModule;
+import google.registry.tmch.TmchSmdrlAction;
 
 /** Dagger component with per-request lifetime for "backend" App Engine module. */
 @RequestScope

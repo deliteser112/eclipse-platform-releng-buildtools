@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.domain.registry.flows.EppException.StatusProhibitsOperationException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.domain.launch.ApplicationIdTargetExtension;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+
+import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.model.EppResource;
+import google.registry.model.domain.launch.ApplicationIdTargetExtension;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 
 import java.util.Set;
 

@@ -12,33 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.domain;
+package google.registry.flows.domain;
 
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateContactsHaveTypes;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateDsData;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateNameservers;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateRegistrantAllowedOnTld;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
-import static com.google.domain.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
+import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
+import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
+import static google.registry.flows.domain.DomainFlowUtils.validateContactsHaveTypes;
+import static google.registry.flows.domain.DomainFlowUtils.validateDsData;
+import static google.registry.flows.domain.DomainFlowUtils.validateNameservers;
+import static google.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
+import static google.registry.flows.domain.DomainFlowUtils.validateRegistrantAllowedOnTld;
+import static google.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
+import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.flows.EppException;
-import com.google.domain.registry.flows.EppException.ParameterValuePolicyErrorException;
-import com.google.domain.registry.flows.EppException.RequiredParameterMissingException;
-import com.google.domain.registry.flows.EppException.UnimplementedOptionException;
-import com.google.domain.registry.flows.ResourceUpdateFlow;
-import com.google.domain.registry.model.domain.DomainBase;
-import com.google.domain.registry.model.domain.DomainBase.Builder;
-import com.google.domain.registry.model.domain.DomainCommand.Update;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.domain.secdns.SecDnsUpdateExtension;
-import com.google.domain.registry.model.domain.secdns.SecDnsUpdateExtension.Add;
-import com.google.domain.registry.model.domain.secdns.SecDnsUpdateExtension.Remove;
+
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.ParameterValuePolicyErrorException;
+import google.registry.flows.EppException.RequiredParameterMissingException;
+import google.registry.flows.EppException.UnimplementedOptionException;
+import google.registry.flows.ResourceUpdateFlow;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.DomainBase.Builder;
+import google.registry.model.domain.DomainCommand.Update;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.domain.secdns.SecDnsUpdateExtension;
+import google.registry.model.domain.secdns.SecDnsUpdateExtension.Add;
+import google.registry.model.domain.secdns.SecDnsUpdateExtension.Remove;
 
 import java.util.Set;
 

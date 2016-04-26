@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.export.DatastoreBackupInfo;
-import com.google.domain.registry.export.DatastoreBackupService;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.export.DatastoreBackupInfo;
+import google.registry.export.DatastoreBackupService;
+import google.registry.tools.Command.RemoteApiCommand;
 
 /**
  * Command to check the status of a datastore backup, or "snapshot".

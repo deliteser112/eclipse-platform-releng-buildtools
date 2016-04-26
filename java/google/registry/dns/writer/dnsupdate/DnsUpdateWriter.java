@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns.writer.dnsupdate;
+package google.registry.dns.writer.dnsupdate;
 
 import static com.google.common.base.Verify.verify;
-import static com.google.domain.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
 
 import com.google.common.net.InternetDomainName;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.dns.writer.api.DnsWriter;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.domain.secdns.DelegationSignerData;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.registry.Registries;
-import com.google.domain.registry.util.Clock;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.dns.writer.api.DnsWriter;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.host.HostResource;
+import google.registry.model.registry.Registries;
+import google.registry.util.Clock;
 
 import org.joda.time.Duration;
 import org.xbill.DNS.AAAARecord;

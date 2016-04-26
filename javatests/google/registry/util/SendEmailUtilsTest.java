@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.util.SendEmailUtils.sendEmail;
+import static google.registry.util.SendEmailUtils.sendEmail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -23,8 +23,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.InjectRule;
 
 import org.junit.Before;
 import org.junit.Rule;

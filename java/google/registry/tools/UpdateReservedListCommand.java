@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.domain.registry.util.ListNamingUtils.convertFilePathToName;
+import static google.registry.util.ListNamingUtils.convertFilePathToName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import com.google.domain.registry.model.registry.label.ReservedList;
-import com.google.domain.registry.model.registry.label.ReservedList.Builder;
-import com.google.domain.registry.util.SystemClock;
 
 import com.beust.jcommander.Parameters;
+
+import google.registry.model.registry.label.ReservedList;
+import google.registry.model.registry.label.ReservedList.Builder;
+import google.registry.util.SystemClock;
 
 import java.nio.file.Files;
 

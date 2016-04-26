@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.storage.drive;
+package google.registry.storage.drive;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.truth.Truth.assertThat;
@@ -33,7 +33,8 @@ import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.ParentReference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.testing.ExceptionRule;
+
+import google.registry.testing.ExceptionRule;
 
 import org.junit.Before;
 import org.junit.Rule;

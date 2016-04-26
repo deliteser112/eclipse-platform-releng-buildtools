@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.util;
+package google.registry.util;
 
 import static com.google.appengine.api.search.checkers.Preconditions.checkArgument;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.math.IntMath.pow;
-import static com.google.domain.registry.util.PredicateUtils.supertypeOf;
+import static google.registry.util.PredicateUtils.supertypeOf;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import com.google.domain.registry.config.ConfigModule.Config;
+
+import google.registry.config.ConfigModule.Config;
 
 import org.joda.time.Duration;
 

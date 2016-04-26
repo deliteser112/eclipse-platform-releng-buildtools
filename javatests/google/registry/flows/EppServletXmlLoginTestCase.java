@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.util.DateTimeUtils.START_OF_TIME;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
-import static com.google.domain.registry.xml.XmlTestUtils.assertXmlEquals;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.domain.registry.model.registry.Registry.TldState;
-import com.google.domain.registry.util.DateTimeUtils;
+
+import google.registry.model.registry.Registry.TldState;
+import google.registry.util.DateTimeUtils;
 
 import org.joda.time.DateTime;
 import org.junit.Test;

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rdap;
+package google.registry.rdap;
 
-import com.google.domain.registry.request.HttpException.UnprocessableEntityException;
+import google.registry.request.HttpException.UnprocessableEntityException;
 
 import javax.annotation.Nullable;
 

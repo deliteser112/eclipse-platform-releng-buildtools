@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.domain.registry.config.RegistryEnvironment;
-import com.google.domain.registry.tools.Command.GtechCommand;
-
 import com.beust.jcommander.Parameters;
+
+import google.registry.config.RegistryEnvironment;
+import google.registry.tools.Command.GtechCommand;
 
 /** Command to create a TLD in sandbox, separated out for Gtech use. */
 @Parameters(separators = " =", commandDescription = "Create new sandbox TLD(s)")

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#
 # Copyright 2016 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,7 +103,7 @@ def build_classpath():
         {"kind": "src", "path": "bazel-genfiles/java"},
         {
             "kind": "lib",
-            "path": ("%s/java/com/google/domain/"
+            "path": ("%s/java/google/"
                      "registry/eclipse/eclipse_deps.jar" % bazel_genfiles)
         },
         {"kind": "output", "path": "bin"},
@@ -202,7 +202,7 @@ def build_factorypath():
     bazel_bin = bazel_info("bazel-bin")
     annotations_jar = os.path.join(
         bazel_bin,
-        "java/com/google/domain/registry/eclipse"
+        "java/google/registry/eclipse"
         "/annotation_processors_ide_deploy.jar",
     )
     factorypath_entries = [
@@ -232,21 +232,21 @@ def build_dependencies():
     subprocess.check_call([
         "bazel",
         "build",
-        "//java/com/google/domain/registry/...",
-        "//javatests/com/google/domain/registry/..."])
+        "//java/google/registry/...",
+        "//javatests/google/registry/..."])
 
     # Builds a giant jar of all compile-time dependencies of the project
     subprocess.check_call([
         "bazel",
         "build",
-        "//java/com/google/domain/registry/eclipse:eclipse_deps",
+        "//java/google/registry/eclipse:eclipse_deps",
     ])
 
     # Builds a jar with all annotation processors
     subprocess.check_call([
         "bazel",
         "build",
-        "//java/com/google/domain/registry/eclipse"
+        "//java/google/registry/eclipse"
         ":annotation_processors_ide_deploy.jar"
     ])
 

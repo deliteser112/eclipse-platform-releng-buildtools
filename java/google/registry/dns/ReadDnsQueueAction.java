@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.dns;
+package google.registry.dns;
 
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.common.collect.Sets.difference;
-import static com.google.domain.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
-import static com.google.domain.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
-import static com.google.domain.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
-import static com.google.domain.registry.model.registry.Registries.getTlds;
+import static google.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
+import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
+import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
+import static google.registry.model.registry.Registries.getTlds;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.appengine.api.taskqueue.Queue;
@@ -32,14 +32,15 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.TreeMultimap;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.dns.DnsConstants.TargetType;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Parameter;
-import com.google.domain.registry.request.RequestParameters;
-import com.google.domain.registry.util.FormattingLogger;
-import com.google.domain.registry.util.TaskEnqueuer;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.dns.DnsConstants.TargetType;
+import google.registry.model.registry.Registry;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
+import google.registry.util.FormattingLogger;
+import google.registry.util.TaskEnqueuer;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;

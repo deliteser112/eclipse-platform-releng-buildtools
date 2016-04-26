@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.util.ResourceUtils.readResourceBytes;
+import static google.registry.util.ResourceUtils.readResourceBytes;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-import com.google.domain.registry.tools.params.PathParameter;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import google.registry.tools.params.PathParameter;
 
 import java.io.IOException;
 import java.io.InputStream;

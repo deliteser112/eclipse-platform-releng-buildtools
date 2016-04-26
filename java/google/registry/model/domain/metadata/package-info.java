@@ -17,7 +17,7 @@
     xmlns = @XmlNs(prefix = "metadata", namespaceURI = "urn:google:params:xml:ns:metadata-1.0"),
     elementFormDefault = XmlNsForm.QUALIFIED)
 @XmlAccessorType(XmlAccessType.FIELD)
-package com.google.domain.registry.model.domain.metadata;
+package google.registry.model.domain.metadata;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

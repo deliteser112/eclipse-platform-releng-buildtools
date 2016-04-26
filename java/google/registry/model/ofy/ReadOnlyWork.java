@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
-
-import com.google.domain.registry.util.Clock;
+package google.registry.model.ofy;
 
 import com.googlecode.objectify.Work;
+
+import google.registry.util.Clock;
 
 /** Wrapper for {@link Work} that disallows mutations and fails the transaction at the end. */
 class ReadOnlyWork<R> extends CommitLoggedWork<R> {

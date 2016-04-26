@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tools;
+package google.registry.tools;
 
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registries.assertTldExists;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.joda.time.DateTimeZone.UTC;
@@ -25,34 +25,35 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.domain.registry.config.ConfigModule.Config;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResourceUtils;
-import com.google.domain.registry.model.ImmutableObject;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.domain.DomainResource;
-import com.google.domain.registry.model.host.HostResource;
-import com.google.domain.registry.model.index.EppResourceIndex;
-import com.google.domain.registry.model.index.EppResourceIndexBucket;
-import com.google.domain.registry.model.rde.RdeMode;
-import com.google.domain.registry.model.rde.RdeNamingUtils;
-import com.google.domain.registry.model.registrar.Registrar;
-import com.google.domain.registry.rde.DepositFragment;
-import com.google.domain.registry.rde.RdeCounter;
-import com.google.domain.registry.rde.RdeMarshaller;
-import com.google.domain.registry.rde.RdeResourceType;
-import com.google.domain.registry.rde.RdeUtil;
-import com.google.domain.registry.tldconfig.idn.IdnTableEnum;
-import com.google.domain.registry.tools.Command.RemoteApiCommand;
-import com.google.domain.registry.tools.params.DateTimeParameter;
-import com.google.domain.registry.tools.params.PathParameter;
-import com.google.domain.registry.xjc.rdeheader.XjcRdeHeader;
-import com.google.domain.registry.xjc.rdeheader.XjcRdeHeaderElement;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
+
+import google.registry.config.ConfigModule.Config;
+import google.registry.model.EppResource;
+import google.registry.model.EppResourceUtils;
+import google.registry.model.ImmutableObject;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.host.HostResource;
+import google.registry.model.index.EppResourceIndex;
+import google.registry.model.index.EppResourceIndexBucket;
+import google.registry.model.rde.RdeMode;
+import google.registry.model.rde.RdeNamingUtils;
+import google.registry.model.registrar.Registrar;
+import google.registry.rde.DepositFragment;
+import google.registry.rde.RdeCounter;
+import google.registry.rde.RdeMarshaller;
+import google.registry.rde.RdeResourceType;
+import google.registry.rde.RdeUtil;
+import google.registry.tldconfig.idn.IdnTableEnum;
+import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.DateTimeParameter;
+import google.registry.tools.params.PathParameter;
+import google.registry.xjc.rdeheader.XjcRdeHeader;
+import google.registry.xjc.rdeheader.XjcRdeHeaderElement;
 
 import org.joda.time.DateTime;
 

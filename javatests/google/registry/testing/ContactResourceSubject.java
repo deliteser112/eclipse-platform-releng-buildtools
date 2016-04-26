@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.testing;
+package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
-import com.google.domain.registry.model.contact.ContactResource;
-import com.google.domain.registry.model.contact.PostalInfo;
-import com.google.domain.registry.model.eppcommon.AuthInfo;
-import com.google.domain.registry.testing.TruthChainer.And;
+
+import google.registry.model.contact.ContactResource;
+import google.registry.model.contact.PostalInfo;
+import google.registry.model.eppcommon.AuthInfo;
+import google.registry.testing.TruthChainer.And;
 
 /** Truth subject for asserting things about {@link ContactResource} instances. */
 public final class ContactResourceSubject

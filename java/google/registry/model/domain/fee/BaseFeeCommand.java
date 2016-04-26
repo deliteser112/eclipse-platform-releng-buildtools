@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.domain.fee;
+package google.registry.model.domain.fee;
 
-import com.google.domain.registry.model.ImmutableObject;
+import google.registry.model.ImmutableObject;
 
 import org.joda.money.CurrencyUnit;
 

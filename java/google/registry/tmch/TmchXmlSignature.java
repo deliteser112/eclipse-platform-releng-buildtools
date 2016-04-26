@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.getRootCause;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
-import static com.google.domain.registry.xml.XmlTransformer.loadXmlSchemas;
+import static google.registry.xml.XmlTransformer.loadXmlSchemas;
 
 import com.google.common.collect.ImmutableList;
 

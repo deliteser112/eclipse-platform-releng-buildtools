@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.ofy;
+package google.registry.model.ofy;
 
-import static com.google.domain.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
 import static com.googlecode.objectify.ObjectifyService.ofy;
+import static google.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
 import static java.util.Arrays.asList;
 
 import com.google.common.base.Functions;

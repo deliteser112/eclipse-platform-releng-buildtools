@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
-import static com.google.domain.registry.keyring.api.PgpHelper.KeyRequirement.ENCRYPT;
-import static com.google.domain.registry.keyring.api.PgpHelper.KeyRequirement.SIGN;
+import static google.registry.keyring.api.PgpHelper.KeyRequirement.ENCRYPT;
+import static google.registry.keyring.api.PgpHelper.KeyRequirement.SIGN;
 
 import com.google.common.io.ByteSource;
-import com.google.domain.registry.keyring.api.Keyring;
-import com.google.domain.registry.keyring.api.PgpHelper;
-import com.google.domain.registry.keyring.api.PgpHelper.KeyRequirement;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.keyring.api.Keyring;
+import google.registry.keyring.api.PgpHelper;
+import google.registry.keyring.api.PgpHelper.KeyRequirement;
 
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;

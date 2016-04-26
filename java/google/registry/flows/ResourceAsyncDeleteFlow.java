@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-
-import com.google.domain.registry.flows.EppException.AssociationProhibitsOperationException;
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.Builder;
-import com.google.domain.registry.model.domain.ReferenceUnion;
-import com.google.domain.registry.model.eppcommon.StatusValue;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.model.eppoutput.Result.Code;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
+import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.Work;
+
+import google.registry.flows.EppException.AssociationProhibitsOperationException;
+import google.registry.model.EppResource;
+import google.registry.model.EppResource.Builder;
+import google.registry.model.domain.ReferenceUnion;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.eppoutput.Result.Code;
+import google.registry.model.index.ForeignKeyIndex;
 
 /**
  * An EPP flow that deletes a resource asynchronously (i.e. via mapreduce).

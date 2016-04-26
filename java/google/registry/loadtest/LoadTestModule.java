@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.loadtest;
+package google.registry.loadtest;
 
-import static com.google.domain.registry.request.RequestParameters.extractOptionalIntParameter;
-import static com.google.domain.registry.request.RequestParameters.extractRequiredParameter;
-
-import com.google.domain.registry.request.Parameter;
+import static google.registry.request.RequestParameters.extractOptionalIntParameter;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import dagger.Module;
 import dagger.Provides;
+
+import google.registry.request.Parameter;
 
 import org.joda.time.Minutes;
 
@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Dagger module for loadtest package.
  *
- * @see "com.google.domain.registry.module.backend.ToolsComponent"
+ * @see "google.registry.module.backend.ToolsComponent"
  */
 @Module
 public final class LoadTestModule {

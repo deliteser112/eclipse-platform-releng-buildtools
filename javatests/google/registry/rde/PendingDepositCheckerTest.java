@@ -12,29 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.rde;
+package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
-import static com.google.domain.registry.model.rde.RdeMode.FULL;
-import static com.google.domain.registry.model.rde.RdeMode.THIN;
-import static com.google.domain.registry.model.registry.RegistryCursor.CursorType.BRDA;
-import static com.google.domain.registry.model.registry.RegistryCursor.CursorType.RDE_STAGING;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.rde.RdeMode.FULL;
+import static google.registry.model.rde.RdeMode.THIN;
+import static google.registry.model.registry.RegistryCursor.CursorType.BRDA;
+import static google.registry.model.registry.RegistryCursor.CursorType.RDE_STAGING;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeConstants.TUESDAY;
 import static org.joda.time.Duration.standardDays;
 
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.domain.registry.model.ofy.Ofy;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.RegistryCursor;
-import com.google.domain.registry.model.registry.RegistryCursor.CursorType;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeClock;
-import com.google.domain.registry.testing.InjectRule;
 
 import com.googlecode.objectify.VoidWork;
+
+import google.registry.model.ofy.Ofy;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.RegistryCursor;
+import google.registry.model.registry.RegistryCursor.CursorType;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
 
 import org.joda.time.DateTime;
 import org.junit.Before;

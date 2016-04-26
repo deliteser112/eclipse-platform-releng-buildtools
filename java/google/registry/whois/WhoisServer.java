@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.whois;
+package google.registry.whois;
 
-import static com.google.domain.registry.request.Action.Method.POST;
+import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.net.MediaType;
-import com.google.domain.registry.request.Action;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.util.Clock;
-import com.google.domain.registry.util.FormattingLogger;
+
+import google.registry.request.Action;
+import google.registry.request.Response;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
 

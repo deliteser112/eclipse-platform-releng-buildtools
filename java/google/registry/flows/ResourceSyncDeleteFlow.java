@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows;
+package google.registry.flows;
 
-import static com.google.domain.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
-import static com.google.domain.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
-import static com.google.domain.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
+import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
+import static google.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
+import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
 
-import com.google.domain.registry.model.EppResource;
-import com.google.domain.registry.model.EppResource.Builder;
-import com.google.domain.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-import com.google.domain.registry.model.index.ForeignKeyIndex;
+import google.registry.model.EppResource;
+import google.registry.model.EppResource.Builder;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.index.ForeignKeyIndex;
 
 /**
  * An EPP flow that deletes a resource synchronously.

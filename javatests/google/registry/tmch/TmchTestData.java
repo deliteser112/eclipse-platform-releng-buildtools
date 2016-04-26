@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.tmch;
+package google.registry.tmch;
 
 import static com.google.common.base.CharMatcher.whitespace;
 import static com.google.common.io.BaseEncoding.base64;
-import static com.google.domain.registry.util.ResourceUtils.readResourceBytes;
-import static com.google.domain.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.util.ResourceUtils.readResourceBytes;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.google.common.io.ByteSource;
 

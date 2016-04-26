@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.export;
+package google.registry.export;
 
-import static com.google.domain.registry.export.ExportReservedTermsAction.EXPORT_MIME_TYPE;
-import static com.google.domain.registry.export.ExportReservedTermsAction.RESERVED_TERMS_FILENAME;
-import static com.google.domain.registry.testing.DatastoreHelper.createTld;
-import static com.google.domain.registry.testing.DatastoreHelper.persistReservedList;
-import static com.google.domain.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.export.ExportReservedTermsAction.EXPORT_MIME_TYPE;
+import static google.registry.export.ExportReservedTermsAction.RESERVED_TERMS_FILENAME;
+import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistReservedList;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -29,14 +29,15 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.model.registry.Registry;
-import com.google.domain.registry.model.registry.Registry.RegistryNotFoundException;
-import com.google.domain.registry.model.registry.label.ReservedList;
-import com.google.domain.registry.request.Response;
-import com.google.domain.registry.storage.drive.DriveConnection;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.InjectRule;
+
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.RegistryNotFoundException;
+import google.registry.model.registry.label.ReservedList;
+import google.registry.request.Response;
+import google.registry.storage.drive.DriveConnection;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.InjectRule;
 
 import org.junit.Before;
 import org.junit.Rule;

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model;
+package google.registry.model;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.domain.registry.model.EntityClasses.ALL_CLASSES;
-import static com.google.domain.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
-import static com.google.domain.registry.util.TypeUtils.hasAnnotation;
+import static google.registry.model.EntityClasses.ALL_CLASSES;
+import static google.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
+import static google.registry.util.TypeUtils.hasAnnotation;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;

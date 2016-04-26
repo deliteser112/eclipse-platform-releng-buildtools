@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.flows.host;
+package google.registry.flows.host;
 
-import com.google.domain.registry.flows.ResourceInfoFlow;
-import com.google.domain.registry.model.host.HostCommand;
-import com.google.domain.registry.model.host.HostResource;
+import google.registry.flows.ResourceInfoFlow;
+import google.registry.model.host.HostCommand;
+import google.registry.model.host.HostResource;
 
 /**
  * An EPP flow that reads a host.
  *
- * @error {@link com.google.domain.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
  */
 public class HostInfoFlow extends ResourceInfoFlow<HostResource, HostCommand.Info> {}

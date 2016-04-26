@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.ui.server.registrar;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
@@ -20,9 +20,10 @@ import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.net.MediaType;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.FakeResponse;
-import com.google.domain.registry.testing.UserInfo;
+
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeResponse;
+import google.registry.testing.UserInfo;
 
 import org.junit.Before;
 import org.junit.Rule;

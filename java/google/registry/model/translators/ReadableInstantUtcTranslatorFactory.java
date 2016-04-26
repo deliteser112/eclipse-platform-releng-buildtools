@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.model.translators;
+package google.registry.model.translators;
 
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
@@ -30,7 +30,6 @@ import org.joda.time.ReadableInstant;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.Date;
-
 
 /**
  * Stores Joda {@link ReadableInstant} types ({@code DateTime}, etc) as a {@link java.util.Date}.

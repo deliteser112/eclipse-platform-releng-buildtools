@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.cron;
+package google.registry.cron;
 
-import static com.google.domain.registry.cron.CommitLogFanoutAction.BUCKET_PARAM;
-import static com.google.domain.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.cron.CommitLogFanoutAction.BUCKET_PARAM;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.domain.registry.model.ofy.CommitLogBucket;
-import com.google.domain.registry.testing.AppEngineRule;
-import com.google.domain.registry.testing.ExceptionRule;
-import com.google.domain.registry.testing.TaskQueueHelper.TaskMatcher;
-import com.google.domain.registry.util.Retrier;
-import com.google.domain.registry.util.TaskEnqueuer;
+
+import google.registry.model.ofy.CommitLogBucket;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.Retrier;
+import google.registry.util.TaskEnqueuer;
 
 import org.junit.Rule;
 import org.junit.Test;

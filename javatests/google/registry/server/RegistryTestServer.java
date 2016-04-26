@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.domain.registry.server;
+package google.registry.server;
 
-import static com.google.domain.registry.server.Route.route;
+import static google.registry.server.Route.route;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -29,57 +29,57 @@ public final class RegistryTestServer {
 
   public static final ImmutableMap<String, Path> RUNFILES =
       new ImmutableMap.Builder<String, Path>()
-          .put("/index.html", Paths.get("java/com/google/domain/registry/ui/html/index.html"))
-          .put("/error.html", Paths.get("java/com/google/domain/registry/ui/html/error.html"))
-          .put("/assets/js/*", Paths.get("java/com/google/domain/registry/ui"))
-          .put("/assets/css/*", Paths.get("java/com/google/domain/registry/ui/css"))
+          .put("/index.html", Paths.get("third_party/java_src/gtld/java/google/registry/ui/html/index.html"))
+          .put("/error.html", Paths.get("third_party/java_src/gtld/java/google/registry/ui/html/error.html"))
+          .put("/assets/js/*", Paths.get("third_party/java_src/gtld/java/google/registry/ui"))
+          .put("/assets/css/*", Paths.get("third_party/java_src/gtld/java/google/registry/ui/css"))
           .put("/assets/sources/deps-runfiles.js",
-              Paths.get("java/com/google/domain/registry/ui/deps-runfiles.js"))
+              Paths.get("third_party/java_src/gtld/java/google/registry/ui/deps-runfiles.js"))
           .put("/assets/sources/*", Paths.get(""))
-          .put("/assets/*", Paths.get("java/com/google/domain/registry/ui/assets"))
+          .put("/assets/*", Paths.get("third_party/java_src/gtld/java/google/registry/ui/assets"))
           .build();
 
   private static final ImmutableList<Route> ROUTES = ImmutableList.of(
       // Frontend Services
-      route("/whois/*", com.google.domain.registry.module.frontend.FrontendServlet.class),
-      route("/rdap/*", com.google.domain.registry.module.frontend.FrontendServlet.class),
-      route("/registrar-xhr", com.google.domain.registry.flows.EppConsoleServlet.class),
-      route("/check", com.google.domain.registry.ui.server.api.CheckApiServlet.class),
+      route("/whois/*", google.registry.module.frontend.FrontendServlet.class),
+      route("/rdap/*", google.registry.module.frontend.FrontendServlet.class),
+      route("/registrar-xhr", google.registry.flows.EppConsoleServlet.class),
+      route("/check", google.registry.ui.server.api.CheckApiServlet.class),
 
       // Proxy Services
-      route("/_dr/epp", com.google.domain.registry.flows.EppTlsServlet.class),
-      route("/_dr/whois", com.google.domain.registry.module.frontend.FrontendServlet.class),
+      route("/_dr/epp", google.registry.flows.EppTlsServlet.class),
+      route("/_dr/whois", google.registry.module.frontend.FrontendServlet.class),
 
       // Registry Data Escrow (RDE)
-      route("/_dr/cron/rdeCreate", com.google.domain.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/rdeStaging", com.google.domain.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/rdeUpload", com.google.domain.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/rdeReport", com.google.domain.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/brdaCopy", com.google.domain.registry.module.backend.BackendServlet.class),
+      route("/_dr/cron/rdeCreate", google.registry.module.backend.BackendServlet.class),
+      route("/_dr/task/rdeStaging", google.registry.module.backend.BackendServlet.class),
+      route("/_dr/task/rdeUpload", google.registry.module.backend.BackendServlet.class),
+      route("/_dr/task/rdeReport", google.registry.module.backend.BackendServlet.class),
+      route("/_dr/task/brdaCopy", google.registry.module.backend.BackendServlet.class),
 
       // Trademark Clearinghouse (TMCH)
-      route("/_dr/cron/tmchDnl", com.google.domain.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/tmchSmdrl", com.google.domain.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/tmchCrl", com.google.domain.registry.module.backend.BackendServlet.class),
+      route("/_dr/cron/tmchDnl", google.registry.module.backend.BackendServlet.class),
+      route("/_dr/task/tmchSmdrl", google.registry.module.backend.BackendServlet.class),
+      route("/_dr/task/tmchCrl", google.registry.module.backend.BackendServlet.class),
 
       // Notification of Registered Domain Names (NORDN)
       route("/_dr/task/nordnUpload",
-          com.google.domain.registry.module.backend.BackendServlet.class),
+          google.registry.module.backend.BackendServlet.class),
       route("/_dr/task/nordnVerify",
-          com.google.domain.registry.module.backend.BackendServlet.class),
+          google.registry.module.backend.BackendServlet.class),
 
       // Process DNS pull queue
       route("/_dr/task/writeDns",
-          com.google.domain.registry.module.backend.BackendServlet.class),
+          google.registry.module.backend.BackendServlet.class),
 
       // Registrar Console
-      route("/registrar", com.google.domain.registry.module.frontend.FrontendServlet.class),
+      route("/registrar", google.registry.module.frontend.FrontendServlet.class),
       route("/registrar-settings",
-          com.google.domain.registry.ui.server.registrar.RegistrarServlet.class),
+          google.registry.ui.server.registrar.RegistrarServlet.class),
       route("/registrar-payment",
-          com.google.domain.registry.module.frontend.FrontendServlet.class),
+          google.registry.module.frontend.FrontendServlet.class),
       route("/registrar-payment-setup",
-          com.google.domain.registry.module.frontend.FrontendServlet.class));
+          google.registry.module.frontend.FrontendServlet.class));
 
   private final TestServer server;
 

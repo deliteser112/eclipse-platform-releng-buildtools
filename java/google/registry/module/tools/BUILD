@@ -1,6 +1,8 @@
 package(
-    default_visibility = ["//java/com/google/domain/registry:registry_project"],
+    default_visibility = ["//java/google/registry:registry_project"],
 )
+
+licenses(["notice"])  # Apache 2.0
 
 
 java_library(
@@ -9,23 +11,23 @@ java_library(
     deps = [
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
-        "//java/com/google/domain/registry/config",
-        "//java/com/google/domain/registry/export",
-        "//java/com/google/domain/registry/gcs",
-        "//java/com/google/domain/registry/groups",
-        "//java/com/google/domain/registry/keyring/api",
-        "//java/com/google/domain/registry/loadtest",
-        "//java/com/google/domain/registry/mapreduce",
-        "//java/com/google/domain/registry/request",
-        "//java/com/google/domain/registry/request:modules",
-        "//java/com/google/domain/registry/tools/server",
-        "//java/com/google/domain/registry/tools/server/javascrap",
-        "//java/com/google/domain/registry/util",
         "//third_party/java/bouncycastle",
         "//third_party/java/dagger",
         "//third_party/java/jsr305_annotations",
         "//third_party/java/jsr330_inject",
         "//third_party/java/servlet/servlet_api",
+        "//java/google/registry/config",
+        "//java/google/registry/export",
+        "//java/google/registry/gcs",
+        "//java/google/registry/groups",
+        "//java/google/registry/keyring/api",
+        "//java/google/registry/loadtest",
+        "//java/google/registry/mapreduce",
+        "//java/google/registry/request",
+        "//java/google/registry/request:modules",
+        "//java/google/registry/tools/server",
+        "//java/google/registry/tools/server/javascrap",
+        "//java/google/registry/util",
     ],
 )
 
