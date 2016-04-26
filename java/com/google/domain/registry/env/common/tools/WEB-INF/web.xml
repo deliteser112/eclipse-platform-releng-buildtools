@@ -112,6 +112,12 @@
     <url-pattern>/_dr/task/killAllCommitLogs</url-pattern>
   </servlet-mapping>
 
+  <!-- Mapreduce to delete all cross-tld entities. -->
+  <servlet-mapping>
+    <servlet-name>tools-servlet</servlet-name>
+    <url-pattern>/_dr/task/killAllCrossTld</url-pattern>
+  </servlet-mapping>
+
   <!-- This path serves up the App Engine results page for mapreduce runs. -->
   <servlet>
     <servlet-name>mapreduce</servlet-name>

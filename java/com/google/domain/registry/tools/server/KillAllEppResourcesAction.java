@@ -47,7 +47,7 @@ public class KillAllEppResourcesAction implements MapreduceAction {
   @Inject KillAllEppResourcesAction() {}
 
   @Override
-  public void run() {
+  public final void run() {
     checkArgument( // safety
         RegistryEnvironment.get() == RegistryEnvironment.CRASH
             || RegistryEnvironment.get() == RegistryEnvironment.UNITTEST,
@@ -61,25 +61,26 @@ public class KillAllEppResourcesAction implements MapreduceAction {
             ImmutableList.of(EppResourceInputs.createIndexInput()))));
   }
 
+  /**
+   * Mapper to delete an {@link EppResourceIndex}, its referent, all descendants of each referent,
+   * and the {@link ForeignKeyIndex} or {@link DomainApplicationIndex} of the referent, as
+   * appropriate.
+   *
+   * <p>This will delete:
+   * <ul>
+   *   <li>All {@link ForeignKeyIndex} types
+   *   <li>{@link DomainApplicationIndex}
+   *   <li>{@link EppResourceIndex}
+   *   <li>All {@link EppResource} types
+   *   <li>{@code HistoryEntry}
+   *   <li>All {@code BillingEvent} types
+   *   <li>All {@code PollMessage} types
+   * </ul>
+   */
   static class KillAllEppResourcesMapper extends Mapper<EppResourceIndex, Key<?>, Key<?>> {
 
     private static final long serialVersionUID = 8205309000002507407L;
 
-    /**
-     * Delete an {@link EppResourceIndex}, its referent, all descendants of each referent, and the
-     * {@link ForeignKeyIndex} or {@link DomainApplicationIndex} of the referent, as appropriate.
-     *
-     * <p>This will delete:
-     * <ul>
-     *   <li>All {@link ForeignKeyIndex} types
-     *   <li>{@link DomainApplicationIndex}
-     *   <li>{@link EppResourceIndex}
-     *   <li>All {@link EppResource} types
-     *   <li>{@code HistoryEntry}
-     *   <li>All {@code BillingEvent} types
-     *   <li>All {@code PollMessage} types
-     * </ul>
-     */
     @Override
     public void map(final EppResourceIndex eri) {
       Key<EppResourceIndex> eriKey = Key.create(eri);

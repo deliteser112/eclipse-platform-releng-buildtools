@@ -26,6 +26,7 @@ import com.google.domain.registry.tools.server.DeleteEntityAction;
 import com.google.domain.registry.tools.server.DeleteProberDataAction;
 import com.google.domain.registry.tools.server.GenerateZoneFilesAction;
 import com.google.domain.registry.tools.server.KillAllCommitLogsAction;
+import com.google.domain.registry.tools.server.KillAllCrossTldEntitiesAction;
 import com.google.domain.registry.tools.server.KillAllEppResourcesAction;
 import com.google.domain.registry.tools.server.ListDomainsAction;
 import com.google.domain.registry.tools.server.ListHostsAction;
@@ -60,6 +61,7 @@ interface ToolsRequestComponent {
   DeleteProberDataAction deleteProberDataAction();
   GenerateZoneFilesAction generateZoneFilesAction();
   KillAllCommitLogsAction killAllCommitLogsAction();
+  KillAllCrossTldEntitiesAction killAllCrossTldEntitiesAction();
   KillAllEppResourcesAction killAllEppResourcesAction();
   ListDomainsAction listDomainsAction();
   ListHostsAction listHostsAction();

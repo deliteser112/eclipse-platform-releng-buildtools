@@ -15,36 +15,37 @@
 package com.google.domain.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Lists.partition;
+import static com.google.domain.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static com.google.domain.registry.model.ofy.ObjectifyService.ofy;
 import static com.google.domain.registry.request.Action.Method.POST;
 import static com.google.domain.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
-import com.google.appengine.tools.mapreduce.inputs.InMemoryInput;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.domain.registry.config.RegistryEnvironment;
 import com.google.domain.registry.mapreduce.MapreduceAction;
 import com.google.domain.registry.mapreduce.MapreduceRunner;
-import com.google.domain.registry.model.ofy.CommitLogBucket;
-import com.google.domain.registry.model.ofy.CommitLogCheckpointRoot;
+import com.google.domain.registry.mapreduce.inputs.NullInput;
+import com.google.domain.registry.model.common.EntityGroupRoot;
 import com.google.domain.registry.request.Action;
 import com.google.domain.registry.request.Response;
 
 import com.googlecode.objectify.Key;
 
-import java.util.Arrays;
-
 import javax.inject.Inject;
 
-/** Deletes all commit logs in datastore. */
-@Action(path = "/_dr/task/killAllCommitLogs", method = POST)
-public class KillAllCommitLogsAction implements MapreduceAction {
+/**
+ * Deletes all cross tld entities in datastore.
+ *
+ * <p>This doesn't really need to be a mapreduce, but doing so makes it consistent with the other
+ * kill-all actions, and gives us retries, a dashboard and counters for free.
+ */
+@Action(path = "/_dr/task/killAllCrossTld", method = POST)
+public class KillAllCrossTldEntitiesAction implements MapreduceAction {
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
-  @Inject KillAllCommitLogsAction() {}
+  @Inject KillAllCrossTldEntitiesAction() {}
 
   @Override
   public final void run() {
@@ -53,44 +54,48 @@ public class KillAllCommitLogsAction implements MapreduceAction {
             || RegistryEnvironment.get() == RegistryEnvironment.UNITTEST,
         "DO NOT RUN ANYWHERE ELSE EXCEPT CRASH OR TESTS.");
     response.sendJavaScriptRedirect(createJobPath(mrRunner
-        .setJobName("Delete all commit logs and checkpoints")
+        .setJobName("Delete all cross-tld entities")
         .setModuleName("tools")
         .runMapreduce(
-            new KillAllCommitLogsMapper(),
+            new KillAllCrossTldEntitiesMapper(),
             new KillAllEntitiesReducer(),
-            // Create a in-memory input, assigning each bucket to its own shard for maximum
-            // parallelization, with one extra shard for the CommitLogCheckpointRoot.
-            ImmutableList.of(
-                new InMemoryInput<>(
-                    partition(
-                        FluentIterable
-                            .from(Arrays.<Key<?>>asList(CommitLogCheckpointRoot.getKey()))
-                            .append(CommitLogBucket.getAllBucketKeys())
-                            .toList(),
-                    1))))));
+            ImmutableList.of(new NullInput<Object>()))));
   }
 
   /**
-   * Mapper to delete a {@link CommitLogBucket} or {@link CommitLogCheckpointRoot} and any commit
-   * logs or checkpoints that descend from it.
+   * Mapper to delete all descendants of {@link EntityGroupRoot#getCrossTldKey()}.
    *
    * <p>This will delete:
    * <ul>
-   *   <li>{@link CommitLogBucket}
-   *   <li>{@code CommitLogCheckpoint}
-   *   <li>{@link CommitLogCheckpointRoot}
-   *   <li>{@code CommitLogManifest}
-   *   <li>{@code CommitLogMutation}
+   *   <i>{@code ClaimsListShard}
+   *   <i>{@code ClaimsListSingleton}
+   *   <i>{@link EntityGroupRoot}
+   *   <i>{@code LogsExportCursor}
+   *   <i>{@code PremiumList}
+   *   <i>{@code PremiumListEntry}
+   *   <i>{@code Registrar}
+   *   <i>{@code RegistrarBillingEntry}
+   *   <i>{@code RegistrarContact}
+   *   <i>{@code RegistrarCredit}
+   *   <i>{@code RegistrarCreditBalance}
+   *   <i>{@code Registry}
+   *   <i>{@code RegistryCursor}
+   *   <i>{@code ReservedList}
+   *   <i>{@code ServerSecret}
+   *   <i>{@code SignedMarkRevocationList}
+   *   <i>{@code TmchCrl}
    * </ul>
    */
-  static class KillAllCommitLogsMapper extends Mapper<Key<?>, Key<?>, Key<?>> {
+  static class KillAllCrossTldEntitiesMapper extends Mapper<Object, Key<?>, Key<?>> {
 
-    private static final long serialVersionUID = 1504266335352952033L;
+    private static final long serialVersionUID = 8343696167876596542L;
 
     @Override
-    public void map(Key<?> bucketOrRoot) {
-      for (Key<Object> key : ofy().load().ancestor(bucketOrRoot).keys()) {
-        emit(bucketOrRoot, key);
+    public void map(Object ignored) {
+      // There will be exactly one input to the mapper, and we ignore it.
+      Key<EntityGroupRoot> crossTldKey = getCrossTldKey();
+      for (Key<Object> key : ofy().load().ancestor(crossTldKey).keys()) {
+        emit(crossTldKey, key);
         getContext().incrementCounter("entities emitted");
         getContext().incrementCounter(String.format("%s emitted", key.getKind()));
      }
