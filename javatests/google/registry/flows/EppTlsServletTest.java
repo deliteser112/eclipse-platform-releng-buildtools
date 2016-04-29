@@ -19,6 +19,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
@@ -30,9 +32,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /** Test setup for EppServletTest subclasses. */
 @RunWith(MockitoJUnitRunner.class)

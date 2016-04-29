@@ -16,6 +16,7 @@ java_library(
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
         "//java/com/google/common/net",
+        "//third_party/java/re2j",
         "//java/google/registry/braintree",
         "//java/google/registry/config",
         "//java/google/registry/export/sheet",

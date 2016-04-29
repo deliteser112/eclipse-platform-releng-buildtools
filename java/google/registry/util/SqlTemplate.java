@@ -22,11 +22,11 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.Immutable;
 

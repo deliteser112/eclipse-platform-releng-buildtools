@@ -21,10 +21,10 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableRangeSet;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 
 import java.net.URI;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /** An IDN table for a particular TLD. */
 public final class IdnTable {

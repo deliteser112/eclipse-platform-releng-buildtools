@@ -27,6 +27,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -49,8 +51,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Command for creating new auction credits based on a CSV file from Pool.

@@ -18,8 +18,9 @@ import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static com.google.common.base.Verify.verify;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.re2j.Pattern;
+
 import java.io.ByteArrayOutputStream;
-import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.xml.bind.JAXBContext;

@@ -16,6 +16,7 @@ java_library(
         "//third_party/java/hamcrest",
         "//third_party/java/jsr305_annotations",
         "//third_party/java/junit",
+        "//third_party/java/re2j",
         "//third_party/java/truth",
         "//java/google/registry/util",
         "//java/google/registry/xjc",

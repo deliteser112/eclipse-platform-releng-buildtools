@@ -20,5 +20,6 @@ java_library(
         "//java/com/google/common/io",
         "//third_party/java/joda_time",
         "//third_party/java/jsr305_annotations",
+        "//third_party/java/re2j",
     ],
 )

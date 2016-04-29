@@ -23,6 +23,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
+import com.google.re2j.Pattern;
 
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarAddress;
@@ -37,7 +38,6 @@ import java.security.cert.CertificateParsingException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
@@ -45,7 +45,7 @@ import javax.annotation.Nullable;
 public final class RegistrarFormFields {
 
   public static final Pattern BASE64_PATTERN = Pattern.compile("[+/a-zA-Z0-9]*");
-  public static final Pattern ASCII_PATTERN = Pattern.compile("\\p{ASCII}*");
+  public static final Pattern ASCII_PATTERN = Pattern.compile("[[:ascii:]]*");
   public static final String ASCII_ERROR = "Please only use ASCII-US characters.";
 
   private static final Function<String, CidrAddressBlock> CIDR_TRANSFORM =

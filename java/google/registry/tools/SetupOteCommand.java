@@ -20,6 +20,7 @@ import static google.registry.util.X509Utils.loadCertificate;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.re2j.Pattern;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -36,7 +37,6 @@ import org.joda.time.Duration;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 

@@ -29,6 +29,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
+import com.google.re2j.Pattern;
 
 import com.googlecode.objectify.cmd.Query;
 
@@ -47,7 +48,6 @@ import org.json.simple.JSONValue;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 

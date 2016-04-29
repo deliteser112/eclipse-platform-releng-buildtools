@@ -12,5 +12,6 @@ java_library(
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
         "//third_party/java/jsr305_annotations",
+        "//third_party/java/re2j",
     ],
 )

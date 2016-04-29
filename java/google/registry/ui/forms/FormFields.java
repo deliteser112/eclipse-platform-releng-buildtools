@@ -21,8 +21,7 @@ import static java.util.Locale.getISOCountries;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
-
-import java.util.regex.Pattern;
+import com.google.re2j.Pattern;
 
 import javax.annotation.Nullable;
 

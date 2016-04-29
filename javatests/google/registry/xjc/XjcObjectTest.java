@@ -21,6 +21,8 @@ import static google.registry.xjc.XjcXmlTransformer.unmarshal;
 import static java.nio.charset.StandardCharsets.UTF_16;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.re2j.Pattern;
+
 import google.registry.testing.ExceptionRule;
 import google.registry.xjc.rde.XjcRdeDeposit;
 import google.registry.xjc.rde.XjcRdeDepositTypeType;
@@ -33,7 +35,6 @@ import org.junit.runners.JUnit4;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.regex.Pattern;
 
 /** Unit tests for {@code XjcObject}. */
 @RunWith(JUnit4.class)

@@ -509,6 +509,12 @@ def domain_registry_repositories():
   )
 
   native.maven_jar(
+      name = "re2j",
+      artifact = "com.google.re2j:re2j:1.1",
+      sha1 = "d716952ab58aa4369ea15126505a36544d50a333",
+  )
+
+  native.maven_jar(
       name = "servlet_api",
       artifact = "org.apache.tomcat:servlet-api:6.0.20",
       sha1 = "230937c21f1e2da527bf5ebb13f28bab6b2f3849",

@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
 import com.google.common.testing.NullPointerTester;
+import com.google.re2j.Pattern;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +41,6 @@ import org.junit.runners.JUnit4;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /** Unit tests for {@link FormField}. */
 @RunWith(JUnit4.class)

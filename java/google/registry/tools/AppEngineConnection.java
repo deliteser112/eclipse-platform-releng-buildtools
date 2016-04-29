@@ -30,6 +30,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.MediaType;
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -49,8 +51,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /** An http connection to the appengine server. */
 @Parameters(separators = " =")

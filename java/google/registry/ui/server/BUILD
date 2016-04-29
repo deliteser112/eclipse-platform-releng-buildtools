@@ -17,7 +17,6 @@ java_library(
         "//java/com/google/common/io",
         "//java/com/google/common/net",
         "//java/google/registry/model",
-        "//java/google/registry/security",
         "//java/google/registry/ui",
         "//java/google/registry/ui/forms",
         "//java/google/registry/util",
@@ -25,6 +24,7 @@ java_library(
         "//third_party/java/joda_time",
         "//third_party/java/json_simple",
         "//third_party/java/jsr305_annotations",
+        "//third_party/java/re2j",
         "//third_party/java/servlet/servlet_api",
 
         "//third_party/closure/templates",

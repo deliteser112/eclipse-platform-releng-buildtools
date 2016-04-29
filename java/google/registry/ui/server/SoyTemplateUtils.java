@@ -25,6 +25,8 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.SoyUtils;
 import com.google.template.soy.base.SoySyntaxException;
@@ -40,8 +42,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /** Helper methods for rendering Soy templates from Java code. */
 public final class SoyTemplateUtils {

@@ -16,7 +16,7 @@ package google.registry.tools.params;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.util.regex.Pattern;
+import com.google.re2j.Pattern;
 
 /** Phone number CLI parameter converter/validator. */
 public final class PhoneNumberParameter extends ParameterConverterValidator<String> {

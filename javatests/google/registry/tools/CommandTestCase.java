@@ -44,7 +44,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Base class for all command tests.
@@ -152,10 +151,6 @@ public abstract class CommandTestCase<C extends Command> {
 
   void assertInStdout(String expected) throws Exception {
     assertThat(stdout.toString(UTF_8.toString())).contains(expected);
-  }
-
-  void assertInStdout(Pattern expected) throws Exception {
-    assertThat(stdout.toString(UTF_8.toString())).containsMatch(expected);
   }
 
   void assertNotInStdout(String expected) throws Exception {

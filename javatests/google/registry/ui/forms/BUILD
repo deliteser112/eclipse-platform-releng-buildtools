@@ -18,6 +18,7 @@ java_library(
         "//third_party/java/hamcrest",
         "//third_party/java/junit",
         "//third_party/java/mockito",
+        "//third_party/java/re2j",
         "//third_party/java/truth",
         "//java/google/registry/ui/forms",
     ],

@@ -20,6 +20,7 @@ import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import com.google.re2j.Pattern;
 
 import com.googlecode.objectify.Key;
 
@@ -31,8 +32,6 @@ import google.registry.request.HttpException;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.util.Clock;
-
-import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 

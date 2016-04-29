@@ -43,6 +43,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
+import com.google.re2j.Pattern;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
@@ -76,7 +77,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /** Information about a registrar. */
 @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)

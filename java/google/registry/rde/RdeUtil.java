@@ -18,6 +18,8 @@ import static google.registry.util.HexDumper.dumpHex;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.io.BaseEncoding;
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 
 import google.registry.xjc.rde.XjcRdeRrType;
 import google.registry.xml.XmlException;
@@ -30,8 +32,6 @@ import org.joda.time.format.ISODateTimeFormat;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /** Helper methods for RDE. */
 public final class RdeUtil {

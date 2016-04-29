@@ -23,6 +23,7 @@ import static java.util.Arrays.asList;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
+import com.google.re2j.Pattern;
 
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.Result;
@@ -49,7 +50,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 
