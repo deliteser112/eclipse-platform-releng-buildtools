@@ -51,7 +51,7 @@ final class DeleteDomainCommand extends MutatingEppToolCommand implements GtechC
   private boolean requestedByRegistrar = false;
 
   @Override
-  void initMutatingEppToolCommand() {
+  protected void initMutatingEppToolCommand() {
     setSoyTemplate(DeleteDomainSoyInfo.getInstance(), DeleteDomainSoyInfo.DELETEDOMAIN);
     addSoyRecord(clientIdentifier, new SoyMapData(
         "domainName", domainName,

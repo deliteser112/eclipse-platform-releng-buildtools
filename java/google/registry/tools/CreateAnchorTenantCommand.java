@@ -77,7 +77,7 @@ final class CreateAnchorTenantCommand extends MutatingEppToolCommand implements 
   PasswordGenerator passwordGenerator;
 
   @Override
-  void initMutatingEppToolCommand() {
+  protected void initMutatingEppToolCommand() {
     checkArgument(superuser, "This command must be run as a superuser.");
     String tld = findTldForNameOrThrow(InternetDomainName.from(domainName)).toString();
     if (isNullOrEmpty(password)) {

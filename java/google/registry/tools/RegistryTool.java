@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 
 import google.registry.tools.javascrap.LoadAndResaveCommand;
+import google.registry.tools.javascrap.RemoveIpAddressCommand;
 
 /** Container class to create and run remote commands against a datastore instance. */
 public final class RegistryTool {
@@ -61,6 +62,7 @@ public final class RegistryTool {
           .put("load_snapshot", LoadSnapshotCommand.class)
           .put("make_billing_tables", MakeBillingTablesCommand.class)
           .put("pending_escrow", PendingEscrowCommand.class)
+          .put("remove_ip_address", RemoveIpAddressCommand.class)
           .put("resave_environment_entities", ResaveEnvironmentEntitiesCommand.class)
           .put("send_escrow_report_to_icann", SendEscrowReportToIcannCommand.class)
           .put("update_application_status", UpdateApplicationStatusCommand.class)

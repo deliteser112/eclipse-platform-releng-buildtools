@@ -111,7 +111,7 @@ final class CreateContactCommand extends MutatingEppToolCommand implements Gtech
   private static final int PASSWORD_LENGTH = 16;
 
   @Override
-  void initMutatingEppToolCommand() {
+  protected void initMutatingEppToolCommand() {
     if (isNullOrEmpty(password)) {
       password = passwordGenerator.createPassword(PASSWORD_LENGTH);
     }

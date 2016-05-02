@@ -17,10 +17,10 @@ package google.registry.tools;
 import com.beust.jcommander.Parameter;
 
 /**
- * A command to execute an epp command that intends to mutate objects 
+ * A command to execute an epp command that intends to mutate objects
  * (i.e. enables a dry run option).
  */
-abstract class MutatingEppToolCommand extends EppToolCommand {
+public abstract class MutatingEppToolCommand extends EppToolCommand {
 
   @Parameter(
       names = {"-d", "--dry_run"},
@@ -37,5 +37,5 @@ abstract class MutatingEppToolCommand extends EppToolCommand {
     initMutatingEppToolCommand();
   }
 
-  abstract void initMutatingEppToolCommand() throws Exception;
+  protected abstract void initMutatingEppToolCommand() throws Exception;
 }

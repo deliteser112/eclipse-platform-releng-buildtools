@@ -94,7 +94,7 @@ final class UpdateServerLocksCommand extends MutatingEppToolCommand implements G
   }
 
   @Override
-  void initMutatingEppToolCommand() {
+  protected void initMutatingEppToolCommand() {
     checkArgument(
         requestedByRegistrar || !isNullOrEmpty(reason),
         "A reason must be provided when a change is not requested by a registrar.");

@@ -47,7 +47,7 @@ final class ExecuteEppCommand extends MutatingEppToolCommand {
   private static InputStream stdin = System.in;
 
   @Override
-  void initMutatingEppToolCommand() throws IOException {
+  protected void initMutatingEppToolCommand() throws IOException {
     if (mainParameters.isEmpty()) {
       addXmlCommand(
           clientIdentifier, CharStreams.toString(new InputStreamReader(stdin, UTF_8)));

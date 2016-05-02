@@ -97,7 +97,7 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
   }
 
   @Override
-  void initMutatingEppToolCommand() {
+  protected void initMutatingEppToolCommand() {
     checkArgument(superuser, "This command MUST be run as --superuser.");
     setSoyTemplate(DomainAllocateSoyInfo.getInstance(), DomainAllocateSoyInfo.CREATE);
     ofy().transactNewReadOnly(new VoidWork() {

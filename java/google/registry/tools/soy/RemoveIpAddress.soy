@@ -1,0 +1,33 @@
+{namespace domain.registry.tools autoescape="strict"}
+
+/**
+ * Request to remove IP addresses.
+ */
+{template .remove_ip_address}
+{@param name: string}
+{@param ipAddresses: list<map<string, string>>}
+{@param requestedByRegistrar: string}
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <update>
+      <host:update
+       xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+        <host:name>{$name}</host:name>
+        {foreach $ip in $ipAddresses}
+          <host:rem>
+            <host:addr ip="{$ip['type']}">{$ip['address']}</host:addr>
+          </host:rem>
+        {/foreach}
+      </host:update>
+    </update>
+    <extension>
+      <metadata:metadata xmlns:metadata="urn:google:params:xml:ns:metadata-1.0">
+        <metadata:reason>External IP address removed by registry administrator.</metadata:reason>
+        <metadata:requestedByRegistrar>{$requestedByRegistrar}</metadata:requestedByRegistrar>
+      </metadata:metadata>
+    </extension>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>
+{/template}
