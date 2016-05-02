@@ -15,7 +15,7 @@
 package google.registry.util;
 
 import static com.google.appengine.api.search.checkers.Preconditions.checkArgument;
-import static com.google.common.base.Throwables.propagate;
+import static com.google.common.base.Throwables.throwIfUnchecked;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.math.IntMath.pow;
 import static google.registry.util.PredicateUtils.supertypeOf;
@@ -67,7 +67,8 @@ public class Retrier implements Serializable {
         return callable.call();
       } catch (Throwable e) {
         if (++failures == attempts || !isRetryable.apply(e)) {
-          propagate(e);
+          throwIfUnchecked(e);
+          throw new RuntimeException(e);
         }
         logger.info(e, "Retrying transient error, attempt " + failures);
         try {
@@ -77,7 +78,8 @@ public class Retrier implements Serializable {
           // Since we're not rethrowing InterruptedException, set the interrupt state on the thread
           // so the next blocking operation will know to abort the thread.
           Thread.currentThread().interrupt();
-          propagate(e);
+          throwIfUnchecked(e);
+          throw new RuntimeException(e);
         }
       }
     }
