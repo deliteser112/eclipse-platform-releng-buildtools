@@ -176,10 +176,9 @@ public class BigqueryPollJobActionTest {
     action.run();
     assertLogMessage(INFO,
         String.format("Bigquery job succeeded - %s:%s", PROJECT_ID, JOB_ID));
-    assertLogMessage(INFO,
-        String.format(
-            "Added chained task my_task_name for /_dr/something to queue default:",
-            PROJECT_ID, JOB_ID));
+    assertLogMessage(
+        INFO,
+        "Added chained task my_task_name for /_dr/something to queue default");
     assertTasksEnqueued(CHAINED_QUEUE_NAME, new TaskMatcher()
         .url("/_dr/something")
         .method("POST")
