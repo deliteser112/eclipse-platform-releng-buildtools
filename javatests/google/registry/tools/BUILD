@@ -7,11 +7,6 @@ licenses(["notice"])  # Apache 2.0
 
 load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 
-internal_files = [
-    "brda_copy_files_test.py",
-    "tld_watcher_test.py",
-]
-
 
 java_library(
     name = "tools",
@@ -59,4 +54,3 @@ GenTestRules(
     test_files = glob(["**/*Test.java"]),
     deps = [":tools"],
 )
-
