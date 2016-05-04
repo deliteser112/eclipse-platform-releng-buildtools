@@ -35,4 +35,3 @@ GenTestRules(
     test_files = glob(["*Test.java"]),
     deps = [":util"],
 )
-
