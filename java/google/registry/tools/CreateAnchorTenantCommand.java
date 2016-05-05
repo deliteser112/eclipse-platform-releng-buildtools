@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static google.registry.model.registry.Registries.findTldForNameOrThrow;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.net.InternetDomainName;
 import com.google.template.soy.data.SoyMapData;
@@ -29,6 +30,7 @@ import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.soy.CreateAnchorTenantSoyInfo;
 
 import org.joda.money.Money;
+import org.joda.time.DateTime;
 
 import javax.inject.Inject;
 
@@ -86,7 +88,9 @@ final class CreateAnchorTenantCommand extends MutatingEppToolCommand implements 
 
     Money cost = null;
     if (fee) {
-      cost = Registry.get(tld).getDomainCreateCost(domainName, DEFAULT_ANCHOR_TENANT_PERIOD_YEARS);
+      cost = Registry.get(tld)
+          .getDomainCreateCost(
+              domainName, DateTime.now(UTC), clientIdentifier, DEFAULT_ANCHOR_TENANT_PERIOD_YEARS);
     }
 
     setSoyTemplate(CreateAnchorTenantSoyInfo.getInstance(),

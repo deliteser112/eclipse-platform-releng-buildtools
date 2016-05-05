@@ -311,9 +311,9 @@ public class RegistryTest extends EntityTestCase {
   public void testIsPremiumDomain() throws Exception {
     createTld("example");
     Registry registry = Registry.get("example");
-    assertThat(registry.isPremiumName("poor.example")).isFalse();
-    assertThat(registry.isPremiumName("rich.example")).isTrue();
-    assertThat(registry.isPremiumName("richer.example")).isTrue();
+    assertThat(registry.isPremiumName("poor.example", clock.nowUtc(), "TheRegistrar")).isFalse();
+    assertThat(registry.isPremiumName("rich.example", clock.nowUtc(), "TheRegistrar")).isTrue();
+    assertThat(registry.isPremiumName("richer.example", clock.nowUtc(), "TheRegistrar")).isTrue();
   }
 
   public void testGetDomainCreateCost() throws Exception {
@@ -321,10 +321,14 @@ public class RegistryTest extends EntityTestCase {
     createTld("example");
     Registry registry = Registry.get("example");
     // The default value of 17 is set in createTld().
-    assertThat(registry.getDomainCreateCost("poor.example", 1)).isEqualTo(Money.of(USD, 13));
-    assertThat(registry.getDomainCreateCost("poor.example", 2)).isEqualTo(Money.of(USD, 26));
-    assertThat(registry.getDomainCreateCost("rich.example", 1)).isEqualTo(Money.of(USD, 100));
-    assertThat(registry.getDomainCreateCost("rich.example", 2)).isEqualTo(Money.of(USD, 200));
+    assertThat(registry.getDomainCreateCost("poor.example", clock.nowUtc(), "TheRegistrar", 1))
+        .isEqualTo(Money.of(USD, 13));
+    assertThat(registry.getDomainCreateCost("poor.example", clock.nowUtc(), "TheRegistrar", 2))
+        .isEqualTo(Money.of(USD, 26));
+    assertThat(registry.getDomainCreateCost("rich.example", clock.nowUtc(), "TheRegistrar", 1))
+        .isEqualTo(Money.of(USD, 100));
+    assertThat(registry.getDomainCreateCost("rich.example", clock.nowUtc(), "TheRegistrar", 2))
+        .isEqualTo(Money.of(USD, 200));
   }
 
   @Test
@@ -336,21 +340,21 @@ public class RegistryTest extends EntityTestCase {
             START_OF_TIME, Money.of(USD, 8),
             clock.nowUtc(), Money.of(USD, 10)))
         .build();
-    assertThat(registry.getDomainRenewCost("poor.example", 1, START_OF_TIME))
+    assertThat(registry.getDomainRenewCost("poor.example", START_OF_TIME, "TheRegistrar", 1))
         .isEqualTo(Money.of(USD, 8));
-    assertThat(registry.getDomainRenewCost("poor.example", 2, START_OF_TIME))
+    assertThat(registry.getDomainRenewCost("poor.example", START_OF_TIME, "TheRegistrar", 2))
         .isEqualTo(Money.of(USD, 16));
-    assertThat(registry.getDomainRenewCost("poor.example", 1, clock.nowUtc()))
+    assertThat(registry.getDomainRenewCost("poor.example", clock.nowUtc(), "TheRegistrar", 1))
         .isEqualTo(Money.of(USD, 10));
-    assertThat(registry.getDomainRenewCost("poor.example", 2, clock.nowUtc()))
+    assertThat(registry.getDomainRenewCost("poor.example", clock.nowUtc(), "TheRegistrar", 2))
         .isEqualTo(Money.of(USD, 20));
-    assertThat(registry.getDomainRenewCost("rich.example", 1, START_OF_TIME))
+    assertThat(registry.getDomainRenewCost("rich.example", START_OF_TIME, "TheRegistrar", 1))
         .isEqualTo(Money.of(USD, 100));
-    assertThat(registry.getDomainRenewCost("rich.example", 2, START_OF_TIME))
+    assertThat(registry.getDomainRenewCost("rich.example", START_OF_TIME, "TheRegistrar", 2))
         .isEqualTo(Money.of(USD, 200));
-    assertThat(registry.getDomainRenewCost("rich.example", 1, clock.nowUtc()))
+    assertThat(registry.getDomainRenewCost("rich.example", clock.nowUtc(), "TheRegistrar", 1))
         .isEqualTo(Money.of(USD, 100));
-    assertThat(registry.getDomainRenewCost("rich.example", 2, clock.nowUtc()))
+    assertThat(registry.getDomainRenewCost("rich.example", clock.nowUtc(), "TheRegistrar", 2))
         .isEqualTo(Money.of(USD, 200));
   }
 
@@ -454,39 +458,41 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_isPremiumNameForSldNotUnderTld() {
     thrown.expect(IllegalArgumentException.class);
-    Registry.get("tld").isPremiumName("test.example");
+    Registry.get("tld").isPremiumName("test.example", clock.nowUtc(), "TheRegistrar");
   }
 
   @Test
   public void testFailure_isPremiumNameForSldSubdomain() throws Exception {
     createTld("example");
     thrown.expect(IllegalArgumentException.class);
-    Registry.get("example").isPremiumName("rich.sld.example");
+    Registry.get("example").isPremiumName("rich.sld.example", clock.nowUtc(), "TheRegistrar");
   }
 
   @Test
   public void testFailure_getCreateCostForSldNotUnderTld() {
     thrown.expect(IllegalArgumentException.class);
-    Registry.get("tld").getDomainCreateCost("test.example", 1);
+    Registry.get("tld").getDomainCreateCost("test.example", clock.nowUtc(), "TheRegistrar", 1);
   }
 
   @Test
   public void testFailure_getCreateCostForSldSubdomain() throws Exception {
     createTld("example");
     thrown.expect(IllegalArgumentException.class);
-    Registry.get("example").getDomainCreateCost("rich.sld.example", 1);
+    Registry.get("example")
+        .getDomainCreateCost("rich.sld.example", clock.nowUtc(), "TheRegistrar", 1);
   }
 
   @Test
   public void testFailure_getRenewCostForSldNotUnderTld() {
     thrown.expect(IllegalArgumentException.class);
-    Registry.get("tld").getDomainRenewCost("test.example", 1, clock.nowUtc());
+    Registry.get("tld").getDomainRenewCost("test.example", clock.nowUtc(), "TheRegistrar", 1);
   }
 
   @Test
   public void testFailure_getRenewCostForSldSubdomain() throws Exception {
     createTld("example");
     thrown.expect(IllegalArgumentException.class);
-    Registry.get("example").getDomainRenewCost("rich.sld.example", 1, clock.nowUtc());
+    Registry.get("example")
+        .getDomainRenewCost("rich.sld.example", clock.nowUtc(), "TheRegistrar", 1);
   }
 }

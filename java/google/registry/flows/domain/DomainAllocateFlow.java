@@ -103,7 +103,8 @@ public class DomainAllocateFlow extends DomainCreateOrAllocateFlow {
         .setFlags(billingFlagsBuilder.add(Flag.ALLOCATION).build())
         .setTargetId(targetId)
         .setClientId(getClientId())
-        .setCost(registry.getDomainCreateCost(targetId, command.getPeriod().getValue()))
+        .setCost(registry
+            .getDomainCreateCost(targetId, now, getClientId(), command.getPeriod().getValue()))
         .setPeriodYears(command.getPeriod().getValue())
         .setEventTime(now)
         // If there are no nameservers on the domain, then they get the benefit of the sunrush add

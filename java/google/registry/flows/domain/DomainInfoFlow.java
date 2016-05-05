@@ -87,7 +87,8 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
     FeeInfoExtension feeInfo = eppInput.getSingleExtension(FeeInfoExtension.class);
     if (feeInfo != null) {  // Fee check was requested.
       FeeInfoResponseExtension.Builder builder = new FeeInfoResponseExtension.Builder();
-      handleFeeRequest(feeInfo, builder, getTargetId(), existingResource.getTld(), now);
+      handleFeeRequest(
+          feeInfo, builder, getTargetId(), existingResource.getTld(), getClientId(), now);
       extensions.add(builder.build());
     }
     return extensions.build();

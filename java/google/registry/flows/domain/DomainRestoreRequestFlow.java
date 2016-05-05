@@ -98,12 +98,12 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
     checkAllowedAccessToTld(getAllowedTlds(), tld);
     if (!superuser) {
       verifyNotReserved(InternetDomainName.from(targetId), false);
-      verifyPremiumNameIsNotBlocked(targetId, tld, getClientId());
+      verifyPremiumNameIsNotBlocked(targetId, now, getClientId(), tld);
     }
     feeUpdate = eppInput.getSingleExtension(FeeUpdateExtension.class);
     restoreCost = Registry.get(tld).getStandardRestoreCost();
-    renewCost = Registry.get(tld).getDomainRenewCost(targetId, 1, now);
-    validateFeeChallenge(targetId, tld, feeUpdate, restoreCost, renewCost);
+    renewCost = Registry.get(tld).getDomainRenewCost(targetId, now, getClientId(), 1);
+    validateFeeChallenge(targetId, tld, now, getClientId(), feeUpdate, restoreCost, renewCost);
   }
 
   @Override

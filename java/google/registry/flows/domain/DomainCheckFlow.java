@@ -77,7 +77,7 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
     ReservationType reservationType = getReservationType(domainName);
     Registry registry = Registry.get(domainName.parent().toString());
     if (reservationType == UNRESERVED
-        && registry.isPremiumName(domainName)
+        && registry.isPremiumName(domainName, now, getClientId())
         && registry.getPremiumPriceAckRequired()
         && !nullToEmpty(sessionMetadata.getServiceExtensionUris()).contains(
             ServiceExtension.FEE_0_6.getUri())) {
@@ -114,7 +114,8 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
         throw new OnlyCheckedNamesCanBeFeeCheckedException();
       }
       FeeCheck.Builder builder = new FeeCheck.Builder();
-      handleFeeRequest(domainCheck, builder, domainName, getTldFromSld(domainName), now);
+      handleFeeRequest(
+          domainCheck, builder, domainName, getTldFromSld(domainName), getClientId(), now);
       feeChecksBuilder.add(builder.setName(domainName).build());
     }
     return ImmutableList.of(FeeCheckResponseExtension.create(feeChecksBuilder.build()));

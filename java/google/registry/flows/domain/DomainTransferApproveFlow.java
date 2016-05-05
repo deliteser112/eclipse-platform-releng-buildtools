@@ -78,8 +78,9 @@ public class DomainTransferApproveFlow extends
         .setPeriodYears(extraYears)
         .setCost(Registry.get(tld).getDomainRenewCost(
             targetId,
-            extraYears,
-            transferData.getTransferRequestTime()))
+            transferData.getTransferRequestTime(),
+            getClientId(),
+            extraYears))
         .setEventTime(now)
         .setBillingTime(now.plus(Registry.get(tld).getTransferGracePeriodLength()))
         .setParent(historyEntry)

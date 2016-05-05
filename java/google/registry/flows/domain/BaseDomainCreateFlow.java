@@ -176,7 +176,8 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
     tldState = registry.getTldState(now);
     checkRegistryStateForTld(tld);
     domainLabel = domainName.parts().get(0);
-    createCost = registry.getDomainCreateCost(targetId, command.getPeriod().getValue());
+    createCost =
+        registry.getDomainCreateCost(targetId, now, getClientId(), command.getPeriod().getValue());
     // The TLD should always be the parent of the requested domain name.
     isAnchorTenantViaReservation = matchesAnchorTenantReservation(
         domainLabel, tld, command.getAuthInfo().getPw().getValue());
@@ -201,7 +202,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
       } else if (isClaimsCreate) {
         throw new ClaimsPeriodEndedException(tld);
       }
-      verifyPremiumNameIsNotBlocked(targetId, tld, getClientId());
+      verifyPremiumNameIsNotBlocked(targetId, now, getClientId(), tld);
     }
     verifyUnitIsYears(command.getPeriod());
     verifyNotInPendingDelete(

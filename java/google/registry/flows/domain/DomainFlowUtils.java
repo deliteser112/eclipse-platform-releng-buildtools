@@ -384,9 +384,9 @@ public class DomainFlowUtils {
    * where it would not be allowed is if domain name is premium, and premium names are blocked by
    * this registrar.
    */
-  static void verifyPremiumNameIsNotBlocked(String domainName, String tld, String clientId)
-      throws EppException {
-    if (Registry.get(tld).isPremiumName(domainName)) {
+  static void verifyPremiumNameIsNotBlocked(
+      String domainName, DateTime priceTime, String clientId, String tld) throws EppException {
+    if (Registry.get(tld).isPremiumName(domainName, priceTime, clientId)) {
       // NB: The load of the Registar object is transactionless, which means that it should hit
       // memcache most of the time.
       if (Registrar.loadByClientId(clientId).getBlockPremiumNames()) {
@@ -561,6 +561,7 @@ public class DomainFlowUtils {
       BaseFeeResponse.Builder<?, ?> builder,
       String domainName,
       String tld,
+      String clientIdentifier,
       DateTime now) throws EppException {
     InternetDomainName domain = InternetDomainName.from(domainName);
     FeeCommandDescriptor feeCommand = feeRequest.getCommand();
@@ -584,7 +585,7 @@ public class DomainFlowUtils {
         .setPeriod(feeRequest.getPeriod())
         // Choose from four classes: premium, premium-collision, collision, or null (standard case).
         .setClass(emptyToNull(Joiner.on('-').skipNulls().join(
-            registry.isPremiumName(domainName) ? "premium" : null,
+            registry.isPremiumName(domainName, now, clientIdentifier) ? "premium" : null,
             isNameCollisionInSunrise ? "collision" : null)));
 
     switch (feeCommand.getCommand()) {
@@ -595,7 +596,11 @@ public class DomainFlowUtils {
           builder.setClass("reserved");  // Override whatever class we've set above.
         } else {
           builder.setFee(
-              Fee.create(registry.getDomainCreateCost(domainName, years).getAmount(), "create"));
+              Fee.create(
+                  registry
+                      .getDomainCreateCost(domainName, now, clientIdentifier, years)
+                      .getAmount(),
+                  "create"));
         }
         break;
       case RESTORE:
@@ -604,23 +609,32 @@ public class DomainFlowUtils {
         }
         // Restores have a "renew" and a "restore" fee.
         builder.setFee(
-            Fee.create(registry.getDomainRenewCost(domainName, years, now).getAmount(), "renew"),
+            Fee.create(
+                registry.getDomainRenewCost(domainName, now, clientIdentifier, years).getAmount(),
+                "renew"),
             Fee.create(registry.getStandardRestoreCost().getAmount(), "restore"));
         break;
       default:
         // Anything else (transfer|renew) will have a "renew" fee.
         builder.setFee(
-            Fee.create(registry.getDomainRenewCost(domainName, years, now).getAmount(), "renew"));
+            Fee.create(
+                registry.getDomainRenewCost(domainName, now, clientIdentifier, years).getAmount(),
+                "renew"));
     }
   }
 
   static void validateFeeChallenge(
-      String domainName, String tld,
+      String domainName,
+      String tld,
+      DateTime priceTime,
+      String clientIdentifier,
       final BaseFeeCommand feeCommand,
-      Money cost, Money... otherCosts) throws EppException {
+      Money cost,
+      Money... otherCosts)
+      throws EppException {
     Registry registry = Registry.get(tld);
     if (registry.getPremiumPriceAckRequired()
-        && registry.isPremiumName(domainName)
+        && registry.isPremiumName(domainName, priceTime, clientIdentifier)
         && feeCommand == null) {
       throw new FeesRequiredForPremiumNameException();
     }

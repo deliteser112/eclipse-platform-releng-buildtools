@@ -113,7 +113,8 @@ public class DomainTransferRequestFlow
     }
     Registry registry = Registry.get(existingResource.getTld());
     automaticTransferTime = now.plus(registry.getAutomaticTransferLength());
-    renewCost = registry.getDomainRenewCost(targetId, command.getPeriod().getValue(), now);
+    renewCost = registry
+        .getDomainRenewCost(targetId, now, getClientId(), command.getPeriod().getValue());
     transferBillingEvent = new BillingEvent.OneTime.Builder()
         .setReason(Reason.TRANSFER)
         .setTargetId(targetId)
@@ -151,9 +152,10 @@ public class DomainTransferRequestFlow
   protected final void verifyTransferRequestIsAllowed() throws EppException {
     verifyUnitIsYears(command.getPeriod());
     if (!superuser) {
-      verifyPremiumNameIsNotBlocked(targetId, existingResource.getTld(), getClientId());
+      verifyPremiumNameIsNotBlocked(targetId, now, getClientId(), existingResource.getTld());
     }
-    validateFeeChallenge(targetId, existingResource.getTld(), feeTransfer, renewCost);
+    validateFeeChallenge(
+        targetId, existingResource.getTld(), now, getClientId(), feeTransfer, renewCost);
     checkAllowedAccessToTld(getAllowedTlds(), existingResource.getTld());
   }
 

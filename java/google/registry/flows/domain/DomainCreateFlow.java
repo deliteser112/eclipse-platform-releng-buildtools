@@ -105,7 +105,7 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
   @Override
   protected final void verifyDomainCreateIsAllowed() throws EppException {
     String tld = getTld();
-    validateFeeChallenge(targetId, tld, feeCreate, createCost);
+    validateFeeChallenge(targetId, tld, now, getClientId(), feeCreate, createCost);
     if (!superuser) {
       // Prohibit creating a domain if there is an open application for the same name.
       for (DomainApplication application : loadActiveApplicationsByDomainName(targetId, now)) {

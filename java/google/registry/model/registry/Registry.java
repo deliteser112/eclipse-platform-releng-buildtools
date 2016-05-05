@@ -492,26 +492,32 @@ public class Registry extends ImmutableObject implements Buildable {
   }
 
   /** Returns true if the given domain name is on the premium price list. */
-  public boolean isPremiumName(String domainName) {
-    return isPremiumName(InternetDomainName.from(domainName));
+  public boolean isPremiumName(String domainName, DateTime priceTime, String clientIdentifier) {
+    return isPremiumName(InternetDomainName.from(domainName), priceTime, clientIdentifier);
   }
 
   /** Returns true if the given domain name is on the premium price list. */
-  public boolean isPremiumName(InternetDomainName domainName) {
+  @SuppressWarnings("unused")
+  public boolean isPremiumName(
+      InternetDomainName domainName, DateTime priceTime, String clientIdentifier) {
     return getPremiumPriceForSld(domainName).isPresent();
   }
 
   /** Returns the billing cost for registering the specified domain name for this many years. */
-  public Money getDomainCreateCost(String domainName, int years) {
+  @SuppressWarnings("unused")
+  public Money getDomainCreateCost(
+      String domainName, DateTime priceTime, String clientIdentifier, int years) {
     checkArgument(years > 0, "Number of years must be positive");
     Money annualCost = getPremiumPriceForSld(domainName).or(getStandardCreateCost());
     return annualCost.multipliedBy(years);
   }
 
   /** Returns the billing cost for renewing the specified domain name for this many years. */
-  public Money getDomainRenewCost(String domainName, int years, DateTime now) {
+  @SuppressWarnings("unused")
+  public Money getDomainRenewCost(
+      String domainName, DateTime priceTime, String clientIdentifier, int years) {
     checkArgument(years > 0, "Number of years must be positive");
-    Money annualCost = getPremiumPriceForSld(domainName).or(getStandardRenewCost(now));
+    Money annualCost = getPremiumPriceForSld(domainName).or(getStandardRenewCost(priceTime));
     return annualCost.multipliedBy(years);
   }
 
