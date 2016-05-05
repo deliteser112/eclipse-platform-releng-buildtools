@@ -92,7 +92,7 @@ public final class Registries {
    *
    * <p><b>Note:</b> This routine will only work on names under TLDs for which this registry is
    * authoritative. To extract TLDs from domains (not hosts) that other registries control, use
-   * {@link google.registry.util.DomainNameUtils#getTldFromDomainName(String)
+   * {@link google.registry.util.DomainNameUtils#getTldFromSld(String)
    * DomainNameUtils#getTldFromDomainName}.
    *
    * @param domainName domain name or host name (but not TLD) under an authoritative TLD

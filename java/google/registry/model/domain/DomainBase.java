@@ -22,7 +22,7 @@ import static google.registry.model.domain.DesignatedContact.Type.REGISTRANT;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
 import static google.registry.util.CollectionUtils.union;
-import static google.registry.util.DomainNameUtils.getTldFromDomainName;
+import static google.registry.util.DomainNameUtils.getTldFromSld;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
@@ -228,7 +228,7 @@ public abstract class DomainBase extends EppResource {
       T instance = getInstance();
       checkState(
           !isNullOrEmpty(instance.fullyQualifiedDomainName), "Missing fullyQualifiedDomainName");
-      instance.tld = getTldFromDomainName(instance.fullyQualifiedDomainName);
+      instance.tld = getTldFromSld(instance.fullyQualifiedDomainName);
       instance.allContacts = instance.registrant == null ? instance.contacts : union(
           instance.getContacts(), DesignatedContact.create(REGISTRANT, instance.registrant));
       return super.build();

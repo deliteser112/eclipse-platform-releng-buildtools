@@ -15,6 +15,7 @@
 package google.registry.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Strings;
@@ -42,8 +43,8 @@ public final class DomainNameUtils {
   }
 
   /**
-   * Returns the canonicalized TLD part of a valid domain name (just an SLD, no subdomains) by
-   * stripping off the leftmost part.
+   * Returns the canonicalized TLD part of a valid second level domain name by stripping off the
+   * leftmost part.
    *
    * <p>This function is compatible with multi-part tlds, e.g. {@code co.uk}. This function will
    * also work on domains for which the registry is not authoritative. If you are certain that the
@@ -51,16 +52,26 @@ public final class DomainNameUtils {
    * {@link google.registry.model.registry.Registries#findTldForName(InternetDomainName)
    * Registries#findTldForName}, which will work on hostnames in addition to domains.
    *
-   * @param fullyQualifiedDomainName must be a punycode SLD (not a host or unicode)
+   * @param sld must be a punycode SLD (not a host or unicode)
    * @throws IllegalArgumentException if there is no TLD
    */
-  public static String getTldFromDomainName(String fullyQualifiedDomainName) {
-    checkArgument(
-        !Strings.isNullOrEmpty(fullyQualifiedDomainName),
-        "fullyQualifiedDomainName cannot be null or empty");
-    InternetDomainName domainName = InternetDomainName.from(fullyQualifiedDomainName);
-    checkArgument(domainName.hasParent(), "fullyQualifiedDomainName does not have a TLD");
-    return domainName.parent().toString();
+  public static String getTldFromSld(String sld) {
+    checkArgument(!Strings.isNullOrEmpty(sld), "secondLevelDomainName cannot be null or empty");
+    return getTldFromSld(InternetDomainName.from(sld));
+  }
+
+  /**
+   * Returns the canonicalized TLD part of a valid second level domain name by stripping off the
+   * leftmost part.
+   *
+   * <p>This function is compatible with multi-part tlds.
+   *
+   * @throws IllegalArgumentException if there is no TLD
+   */
+  public static String getTldFromSld(InternetDomainName sld) {
+    checkArgumentNotNull(sld);
+    checkArgument(sld.hasParent(), "secondLevelDomainName does not have a TLD");
+    return sld.parent().toString();
   }
 
   private DomainNameUtils() {}

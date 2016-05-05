@@ -21,7 +21,7 @@ import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
 import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
 import static google.registry.model.registry.Registries.assertTldExists;
 import static google.registry.request.RequestParameters.PARAM_TLD;
-import static google.registry.util.DomainNameUtils.getTldFromDomainName;
+import static google.registry.util.DomainNameUtils.getTldFromSld;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.appengine.api.taskqueue.Queue;
@@ -91,7 +91,7 @@ public class DnsQueue {
     return addToQueue(
         TargetType.DOMAIN,
         fullyQualifiedDomainName,
-        assertTldExists(getTldFromDomainName(fullyQualifiedDomainName)));
+        assertTldExists(getTldFromSld(fullyQualifiedDomainName)));
   }
 
   /** Adds a task to the queue to refresh the DNS information for the specified zone. */
