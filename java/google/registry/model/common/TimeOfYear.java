@@ -14,10 +14,12 @@
 
 package google.registry.model.common;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
@@ -66,14 +68,30 @@ public class TimeOfYear extends ImmutableObject {
     return instance;
   }
 
+  /**
+   * Returns an {@link ImmutableSet} of {@link DateTime}s of every recurrence of this particular
+   * time of year within a given range (usually a range spanning many years).
+   */
+  public ImmutableSet<DateTime> getInstancesInRange(DateTime lower, DateTime upper) {
+    checkArgument(isBeforeOrAt(lower, upper), "Lower bound is not before or at upper bound.");
+    ImmutableSet.Builder<DateTime> instances = ImmutableSet.builder();
+    DateTime firstInstance = getNextInstanceAtOrAfter(lower);
+    for (int year = firstInstance.getYear();
+        year <= getLastInstanceBeforeOrAt(upper).getYear();
+        year++) {
+      instances.add(firstInstance.withYear(year));
+    }
+    return instances.build();
+  }
+
   /** Get the first {@link DateTime} with this month/day/millis that is at or after the start. */
-  public DateTime atOrAfter(DateTime start) {
+  public DateTime getNextInstanceAtOrAfter(DateTime start) {
     DateTime withSameYear = getDateTimeWithSameYear(start);
     return isAtOrAfter(withSameYear, start) ? withSameYear : withSameYear.plusYears(1);
   }
 
   /** Get the first {@link DateTime} with this month/day/millis that is at or before the end. */
-  public DateTime beforeOrAt(DateTime end) {
+  public DateTime getLastInstanceBeforeOrAt(DateTime end) {
     DateTime withSameYear = getDateTimeWithSameYear(end);
     return isBeforeOrAt(withSameYear, end) ? withSameYear : withSameYear.minusYears(1);
   }
