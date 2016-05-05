@@ -24,7 +24,6 @@ import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.model.registry.label.PremiumList.getPremiumPrice;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
-import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.money.CurrencyUnit.USD;
@@ -254,14 +253,12 @@ public class Registry extends ImmutableObject implements Buildable {
   TldType tldType = TldType.REAL;
 
   /**
-   * A property that transitions to different TldStates at different times.  Stored as a list
-   * of TldStateTransition embedded objects using the @Mapify annotation.
+   * A property that transitions to different TldStates at different times. Stored as a list of
+   * TldStateTransition embedded objects using the @Mapify annotation.
    */
   @Mapify(TimedTransitionProperty.TimeMapper.class)
   TimedTransitionProperty<TldState, TldStateTransition> tldStateTransitions =
-      TimedTransitionProperty.forMapify(
-          ImmutableSortedMap.of(START_OF_TIME, DEFAULT_TLD_STATE),
-          TldStateTransition.class);
+      TimedTransitionProperty.forMapify(DEFAULT_TLD_STATE, TldStateTransition.class);
 
   /** An automatically managed creation timestamp. */
   CreateAutoTimestamp creationTime = CreateAutoTimestamp.create(null);
@@ -326,7 +323,7 @@ public class Registry extends ImmutableObject implements Buildable {
   Money serverStatusChangeBillingCost = DEFAULT_SERVER_STATUS_CHANGE_BILLING_COST;
 
   /**
-   * A property that transitions to different renew billing costs at different times.  Stored as a
+   * A property that transitions to different renew billing costs at different times. Stored as a
    * list of BillingCostTransition embedded objects using the @Mapify annotation.
    * <p>
    * A given value of this property represents the per-year billing cost for renewing a domain name.
@@ -335,9 +332,7 @@ public class Registry extends ImmutableObject implements Buildable {
    */
   @Mapify(TimedTransitionProperty.TimeMapper.class)
   TimedTransitionProperty<Money, BillingCostTransition> renewBillingCostTransitions =
-      TimedTransitionProperty.forMapify(
-          ImmutableSortedMap.of(START_OF_TIME, DEFAULT_RENEW_BILLING_COST),
-          BillingCostTransition.class);
+      TimedTransitionProperty.forMapify(DEFAULT_RENEW_BILLING_COST, BillingCostTransition.class);
 
   String lordnUsername;
 

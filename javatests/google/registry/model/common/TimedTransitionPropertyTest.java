@@ -15,6 +15,7 @@
 package google.registry.model.common;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.common.TimedTransitionProperty.forMapify;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
@@ -109,8 +110,7 @@ public class TimedTransitionPropertyTest {
   public void testSuccess_simulatedLoad() throws Exception {
     // Just for testing, don't extract transitions from a TimedTransitionProperty in real code.
     Set<Map.Entry<DateTime, StringTimedTransition>> transitions = timedString.entrySet();
-    timedString = TimedTransitionProperty.forMapify(
-            ImmutableSortedMap.of(START_OF_TIME, "0"), StringTimedTransition.class);
+    timedString = forMapify("0", StringTimedTransition.class);
     // Simulate a load from datastore by clearing and then re-inserting the original transitions.
     timedString.clear();
     for (Map.Entry<DateTime, StringTimedTransition> transition : transitions) {
@@ -152,8 +152,7 @@ public class TimedTransitionPropertyTest {
   @Test
   public void testFailure_noValuesAfterSimulatedEmptyLoad() throws Exception {
     thrown.expect(IllegalStateException.class);
-    timedString = TimedTransitionProperty.forMapify(
-            ImmutableSortedMap.of(START_OF_TIME, "0"), StringTimedTransition.class);
+    timedString = forMapify("0", StringTimedTransition.class);
     // Simulate a load from datastore by clearing, but don't insert any transitions.
     timedString.clear();
     timedString.checkValidity();
@@ -164,8 +163,7 @@ public class TimedTransitionPropertyTest {
     thrown.expect(IllegalStateException.class);
     // Just for testing, don't extract transitions from a TimedTransitionProperty in real code.
     StringTimedTransition transition1 = timedString.get(DATE_1);
-    timedString = TimedTransitionProperty.forMapify(
-            ImmutableSortedMap.of(START_OF_TIME, "0"), StringTimedTransition.class);
+    timedString = forMapify("0", StringTimedTransition.class);
     // Simulate a load from datastore by clearing and inserting transitions, but deliberately
     // omit a transition corresponding to START_OF_TIME.
     timedString.clear();

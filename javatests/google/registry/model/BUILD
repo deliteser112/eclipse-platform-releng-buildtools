@@ -17,7 +17,6 @@ java_library(
         "**/*.java",
     ]),
     resources = [
-        "schema.txt",
     ] + glob(["**/testdata/*.xml"]),
     deps = [
         "//java/com/google/common/annotations",

@@ -139,8 +139,23 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
   public static <V, T extends TimedTransition<V>> TimedTransitionProperty<V, T> forMapify(
       ImmutableSortedMap<DateTime, V> valueMap,
       Class<T> timedTransitionSubclass) {
-    return new TimedTransitionProperty<>(new TreeMap<>(
-        makeTransitionMap(valueMap, timedTransitionSubclass)));
+    return new TimedTransitionProperty<>(
+        new TreeMap<>(makeTransitionMap(valueMap, timedTransitionSubclass)));
+  }
+
+  /**
+   * Returns a new mutable {@code TimedTransitionProperty} representing the given value being set at
+   * start of time, constructed using the given {@code TimedTransition} subclass.
+   *
+   * <p>
+   * This method should only be used for initializing fields that are declared with the @Mapify
+   * annotation. The map for those fields must be mutable so that Objectify can load values from the
+   * datastore into the map, but clients should still never mutate the field's map directly.
+   */
+  public static <V, T extends TimedTransition<V>> TimedTransitionProperty<V, T> forMapify(
+      V valueAtStartOfTime, Class<T> timedTransitionSubclass) {
+    return forMapify(
+        ImmutableSortedMap.of(START_OF_TIME, valueAtStartOfTime), timedTransitionSubclass);
   }
 
   /** The backing map of DateTime to TimedTransition subclass used to store the transitions. */

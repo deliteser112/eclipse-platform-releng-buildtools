@@ -19,10 +19,13 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
+import com.google.re2j.Pattern;
 
 import com.googlecode.objectify.annotation.Entity;
 
@@ -34,6 +37,8 @@ import org.junit.runners.JUnit4;
 
 import java.net.URL;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 /** Unit tests for {@link ExportConstants}. */
 @RunWith(JUnit4.class)
@@ -56,8 +61,16 @@ public class ExportConstantsTest {
   public void testBackupKinds_matchGoldenBackupKindsFile() throws Exception {
     URL goldenBackupKindsResource =
         getResource(ExportConstantsTest.class, GOLDEN_BACKUP_KINDS_FILENAME);
-    List<String> goldenKinds = Splitter.on('\n').splitToList(
-        Resources.toString(goldenBackupKindsResource, UTF_8).trim());
+    final Pattern stripComments = Pattern.compile("\\s*#.*$");
+    List<String> goldenKinds = FluentIterable
+        .from(Splitter.on('\n').split(
+            Resources.toString(goldenBackupKindsResource, UTF_8).trim()))
+        .transform(
+            new Function<String, String>() {
+              @Override @Nullable public String apply(@Nullable String line) {
+                return stripComments.matcher(line).replaceFirst("");
+              }})
+        .toList();
     ImmutableSet<String> actualKinds = ExportConstants.getBackupKinds();
     String updateInstructions = String.format(
         UPDATE_INSTRUCTIONS_TEMPLATE,
