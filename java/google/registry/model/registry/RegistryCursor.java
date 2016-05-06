@@ -24,12 +24,16 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 
 import google.registry.model.ImmutableObject;
+import google.registry.model.common.Cursor;
 
 import org.joda.time.DateTime;
 
-/** Shared entity type for per-TLD date cursors. */
+/** Shared entity for per-TLD date cursors. */
 @Entity
 public class RegistryCursor extends ImmutableObject {
+
+  // TODO(b/28386088): Drop this class once all registry cursors have been saved in parallel as
+  // new-style Cursors (either through business-as-usual operations or UpdateCursorsCommand).
 
   /** The types of cursors, used as the string id field for each cursor in datastore. */
   public enum CursorType {
@@ -80,6 +84,10 @@ public class RegistryCursor extends ImmutableObject {
   /** Convenience shortcut to save a cursor. */
   public static void save(Registry registry, CursorType cursorType, DateTime value) {
     ofy().save().entity(create(registry, cursorType, value));
+    // In parallel, save the new cursor type alongside the old.
+    ofy()
+        .save()
+        .entity(Cursor.create(Cursor.CursorType.valueOf(cursorType.name()), value, registry));
   }
 
   /** Creates a new cursor instance. */

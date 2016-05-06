@@ -19,6 +19,7 @@ import com.google.common.base.Optional;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
+import google.registry.model.common.Cursor;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.RegistryCursor;
 import google.registry.model.registry.RegistryCursor.CursorType;
@@ -31,6 +32,8 @@ import java.util.List;
 /** Modifies {code RegistryCursor} timestamps used by locking rolling cursor tasks, like in RDE. */
 @Parameters(separators = " =", commandDescription = "Modifies cursor timestamps used by LRC tasks")
 final class UpdateCursorsCommand extends MutatingCommand {
+
+  // TODO(b/28386088): Cut command over to new Cursor format
 
   @Parameter(
       description = "TLDs on which to operate.",
@@ -60,6 +63,10 @@ final class UpdateCursorsCommand extends MutatingCommand {
               ? RegistryCursor.create(registry, cursorType, expectedTimestamp.get())
               : null,
           RegistryCursor.create(registry, cursorType, newTimestamp));
-    }
+      Cursor.CursorType newCursorType = Cursor.CursorType.valueOf(cursorType.name());
+      stageEntityChange(
+          null,
+          Cursor.create(newCursorType, newTimestamp, registry));
+      }
   }
 }

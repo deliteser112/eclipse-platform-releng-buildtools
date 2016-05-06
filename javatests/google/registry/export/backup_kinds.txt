@@ -1,6 +1,7 @@
 
 Cancellation
 ContactResource
+Cursor
 DomainApplicationIndex
 DomainBase
 EntityGroupRoot

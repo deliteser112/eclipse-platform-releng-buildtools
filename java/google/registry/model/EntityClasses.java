@@ -23,6 +23,7 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.RegistrarBillingEntry;
 import google.registry.model.billing.RegistrarCredit;
 import google.registry.model.billing.RegistrarCreditBalance;
+import google.registry.model.common.Cursor;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.common.GaeUserIdConverter;
 import google.registry.model.contact.ContactResource;
@@ -77,6 +78,7 @@ public final class EntityClasses {
           CommitLogManifest.class,
           CommitLogMutation.class,
           ContactResource.class,
+          Cursor.class,
           DomainApplication.class,
           DomainApplicationIndex.class,
           DomainBase.class,
