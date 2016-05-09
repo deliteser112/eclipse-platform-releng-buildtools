@@ -18,6 +18,7 @@ import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToT
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Predicate;
@@ -76,10 +77,10 @@ public class DomainTransferApproveFlow extends
         .setTargetId(targetId)
         .setClientId(gainingClientId)
         .setPeriodYears(extraYears)
-        .setCost(Registry.get(tld).getDomainRenewCost(
+        .setCost(getDomainRenewCost(
             targetId,
             transferData.getTransferRequestTime(),
-            getClientId(),
+            transferData.getGainingClientId(),
             extraYears))
         .setEventTime(now)
         .setBillingTime(now.plus(Registry.get(tld).getTransferGracePeriodLength()))

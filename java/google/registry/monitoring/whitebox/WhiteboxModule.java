@@ -14,7 +14,6 @@
 
 package google.registry.monitoring.whitebox;
 
-import static dagger.Provides.Type.MAP;
 import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.ENTITY_INTEGRITY_ALERTS_SCHEMA_FIELDS;
 import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.TABLE_ID;
 import static google.registry.monitoring.whitebox.EppMetrics.EPPMETRICS_SCHEMA_FIELDS;
@@ -27,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.IntoMap;
 import dagger.multibindings.StringKey;
 
 import google.registry.request.Parameter;
@@ -41,13 +41,13 @@ import javax.servlet.http.HttpServletRequest;
 @Module
 public class WhiteboxModule {
 
-  @Provides(type = MAP)
+  @Provides @IntoMap
   @StringKey(EPPMETRICS_TABLE_ID)
   static ImmutableList<TableFieldSchema> provideEppMetricsSchema() {
     return EPPMETRICS_SCHEMA_FIELDS;
   }
 
-  @Provides(type = MAP)
+  @Provides @IntoMap
   @StringKey(TABLE_ID)
   static ImmutableList<TableFieldSchema> provideEntityIntegrityAlertsSchema() {
     return ENTITY_INTEGRITY_ALERTS_SCHEMA_FIELDS;

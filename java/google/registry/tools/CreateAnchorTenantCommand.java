@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static google.registry.model.registry.Registries.findTldForNameOrThrow;
+import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.net.InternetDomainName;
@@ -25,7 +26,6 @@ import com.google.template.soy.data.SoyMapData;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
-import google.registry.model.registry.Registry;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.soy.CreateAnchorTenantSoyInfo;
 
@@ -81,15 +81,15 @@ final class CreateAnchorTenantCommand extends MutatingEppToolCommand implements 
   @Override
   protected void initMutatingEppToolCommand() {
     checkArgument(superuser, "This command must be run as a superuser.");
-    String tld = findTldForNameOrThrow(InternetDomainName.from(domainName)).toString();
+    findTldForNameOrThrow(InternetDomainName.from(domainName)); // Check that the tld exists.
     if (isNullOrEmpty(password)) {
       password = passwordGenerator.createPassword(PASSWORD_LENGTH);
     }
 
     Money cost = null;
     if (fee) {
-      cost = Registry.get(tld)
-          .getDomainCreateCost(
+      cost =
+          getDomainCreateCost(
               domainName, DateTime.now(UTC), clientIdentifier, DEFAULT_ANCHOR_TENANT_PERIOD_YEARS);
     }
 

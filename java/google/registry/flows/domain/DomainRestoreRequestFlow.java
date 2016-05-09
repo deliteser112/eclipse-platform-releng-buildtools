@@ -22,6 +22,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
 import static google.registry.model.eppoutput.Result.Code.Success;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
@@ -98,11 +99,11 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
     checkAllowedAccessToTld(getAllowedTlds(), tld);
     if (!superuser) {
       verifyNotReserved(InternetDomainName.from(targetId), false);
-      verifyPremiumNameIsNotBlocked(targetId, now, getClientId(), tld);
+      verifyPremiumNameIsNotBlocked(targetId, now, getClientId());
     }
     feeUpdate = eppInput.getSingleExtension(FeeUpdateExtension.class);
     restoreCost = Registry.get(tld).getStandardRestoreCost();
-    renewCost = Registry.get(tld).getDomainRenewCost(targetId, now, getClientId(), 1);
+    renewCost = getDomainRenewCost(targetId, now, getClientId(), 1);
     validateFeeChallenge(targetId, tld, now, getClientId(), feeUpdate, restoreCost, renewCost);
   }
 

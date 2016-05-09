@@ -190,20 +190,20 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "dagger",
-      artifact = "com.google.dagger:dagger:2.0.2",
-      sha1 = "de8416eda7b2fd7c25836b140c39e1cbf10542f6",
+      artifact = "com.google.dagger:dagger:2.4",
+      sha1 = "6b290a792253035c9fcc912d6a4d7efb3e850211",
   )
 
   native.maven_jar(
       name = "dagger_compiler",
-      artifact = "com.google.dagger:dagger-compiler:2.0.2",
-      sha1 = "1170f75c1ce293f80755bbc9fcd60e0765022bd0",
+      artifact = "com.google.dagger:dagger-compiler:2.4",
+      sha1 = "01053c9ef441e93088c9261c33163f6af30766b7",
   )
 
   native.maven_jar(
       name = "dagger_producers",
-      artifact = "com.google.dagger:dagger-producers:2.0-beta",
-      sha1 = "80276338d1c2542ebebac542b535d1ecd48a3fd7",
+      artifact = "com.google.dagger:dagger-producers:2.4",
+      sha1 = "f334a19afdc2ce2d8d5191f8a0fac2321bdd50fc",
   )
 
   native.maven_jar(

@@ -46,6 +46,7 @@ java_library(
         "//java/google/registry/mapreduce",
         "//java/google/registry/model",
         "//java/google/registry/monitoring/whitebox",
+        "//java/google/registry/pricing",
         "//java/google/registry/request",
         "//java/google/registry/security",
         "//java/google/registry/security:servlets",

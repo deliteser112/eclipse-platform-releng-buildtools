@@ -25,6 +25,7 @@ import static google.registry.model.EppResourceUtils.createContactHostRoid;
 import static google.registry.model.EppResourceUtils.createDomainRoid;
 import static google.registry.model.domain.launch.ApplicationStatus.VALIDATED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.difference;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -78,6 +79,7 @@ import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
@@ -232,6 +234,7 @@ public class DatastoreHelper {
       .setServerStatusChangeBillingCost(Money.of(USD, 19))
       // Always set a default premium list. Tests that don't want it can delete it.
       .setPremiumList(persistPremiumList(tld, DEFAULT_PREMIUM_LIST_CONTENTS.get()))
+      .setPricingEngineClass(StaticPremiumListPricingEngine.class)
       .build();
   }
 
@@ -436,7 +439,7 @@ public class DatastoreHelper {
             eventTime.plus(Registry.get(domain.getTld()).getTransferGracePeriodLength()))
         .setClientId("NewRegistrar")
         .setPeriodYears(extendedRegistrationYears)
-        .setCost(Registry.get(domain.getTld()).getDomainRenewCost(
+        .setCost(getDomainRenewCost(
             domain.getFullyQualifiedDomainName(),
             costLookupTime,
             gainingClientId,

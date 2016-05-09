@@ -16,9 +16,9 @@ package google.registry.model;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.RoidSuffixes.getRoidSuffixForTld;
+import static google.registry.testing.DatastoreHelper.newRegistry;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
-import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
 
 import org.junit.Rule;
@@ -37,7 +37,7 @@ public class RoidSuffixesTest {
 
   @Test
   public void test_newlyCreatedRegistry_isAddedToRoidSuffixesList() {
-    persistResource(new Registry.Builder().setTldStr("tld").setRoidSuffix("MEOW").build());
+    persistResource(newRegistry("tld", "MEOW"));
     assertThat(getRoidSuffixForTld("tld")).isEqualTo("MEOW");
   }
 }

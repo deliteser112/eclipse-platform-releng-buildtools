@@ -21,7 +21,6 @@ import static com.google.common.base.Predicates.not;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
-import static google.registry.model.registry.label.PremiumList.getPremiumPrice;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
@@ -47,6 +46,7 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Mapify;
+import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
 
@@ -57,6 +57,8 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.common.TimedTransitionProperty;
 import google.registry.model.common.TimedTransitionProperty.TimedTransition;
+import google.registry.model.pricing.PricingEngine;
+import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.util.Idn;
@@ -239,6 +241,27 @@ public class Registry extends ImmutableObject implements Buildable {
   }
 
   /**
+   * Backfill the Registry entities that were saved before this field was added.
+   *
+   * <p>Note that this defaults to the {@link StaticPremiumListPricingEngine}.
+   */
+  // TODO(b/26901539): Remove this backfill once it is populated on all Registry entities.
+  @OnLoad
+  void backfillPricingEngine() {
+    if (pricingEngineClassName == null) {
+      pricingEngineClassName = StaticPremiumListPricingEngine.class.getCanonicalName();
+    }
+  }
+
+  /**
+   * The fully qualified canonical classname of the pricing engine that this TLD uses.
+   *
+   * <p>This must be a valid key for the map of pricing engines injected by
+   * <code>@Inject Map<String, PricingEngine></code>
+   */
+  String pricingEngineClassName;
+
+  /**
    * The unicode-aware representation of the TLD associated with this {@link Registry}.
    * <p>
    * This will be equal to {@link #tldStr} for ASCII TLDs, but will be non-ASCII for IDN TLDs.
@@ -271,7 +294,7 @@ public class Registry extends ImmutableObject implements Buildable {
     return nullToEmptyImmutableCopy(reservedLists);
   }
 
-  /** The {@link PremiumList} for this TLD. */
+  /** The static {@link PremiumList} for this TLD, if there is one. */
   Key<PremiumList> premiumList;
 
   /** Should RDE upload a nightly escrow deposit for this TLD? */
@@ -442,7 +465,10 @@ public class Registry extends ImmutableObject implements Buildable {
     return currency;
   }
 
-  /** Use {@link #getDomainCreateCost} instead of this to find the cost for a domain create. */
+  /**
+   * Use <code>PricingUtils.getDomainCreateCost</code> instead of this to find the cost for a
+   * domain create.
+   */
   @VisibleForTesting
   public Money getStandardCreateCost() {
     return createBillingCost;
@@ -457,8 +483,9 @@ public class Registry extends ImmutableObject implements Buildable {
   }
 
   /**
-   * Use {@link #getDomainRenewCost} instead of this to find the cost for a domain renew, and all
-   * derived costs (i.e. autorenews, transfers, and the per-domain part of a restore cost).
+   * Use <code>PricingUtils.getDomainRenewCost</code> instead of this to find the cost for a domain
+   * renewal, and all derived costs (i.e. autorenews, transfers, and the per-domain part of a
+   * restore cost).
    */
   @VisibleForTesting
   public Money getStandardRenewCost(DateTime now) {
@@ -480,53 +507,16 @@ public class Registry extends ImmutableObject implements Buildable {
     return renewBillingCostTransitions.toValueMap();
   }
 
-  private Optional<Money> getPremiumPriceForSld(String sldName) {
-    return getPremiumPriceForSld(InternetDomainName.from(sldName));
-  }
-
-  private Optional<Money> getPremiumPriceForSld(InternetDomainName domainName) {
-    checkArgument(getTld().equals(domainName.parent()),
-        "Domain name %s is not an SLD for TLD %s", domainName.toString(), tldStr);
-    String label = domainName.parts().get(0);
-    return getPremiumPrice(label, tldStr);
-  }
-
-  /** Returns true if the given domain name is on the premium price list. */
-  public boolean isPremiumName(String domainName, DateTime priceTime, String clientIdentifier) {
-    return isPremiumName(InternetDomainName.from(domainName), priceTime, clientIdentifier);
-  }
-
-  /** Returns true if the given domain name is on the premium price list. */
-  @SuppressWarnings("unused")
-  public boolean isPremiumName(
-      InternetDomainName domainName, DateTime priceTime, String clientIdentifier) {
-    return getPremiumPriceForSld(domainName).isPresent();
-  }
-
-  /** Returns the billing cost for registering the specified domain name for this many years. */
-  @SuppressWarnings("unused")
-  public Money getDomainCreateCost(
-      String domainName, DateTime priceTime, String clientIdentifier, int years) {
-    checkArgument(years > 0, "Number of years must be positive");
-    Money annualCost = getPremiumPriceForSld(domainName).or(getStandardCreateCost());
-    return annualCost.multipliedBy(years);
-  }
-
-  /** Returns the billing cost for renewing the specified domain name for this many years. */
-  @SuppressWarnings("unused")
-  public Money getDomainRenewCost(
-      String domainName, DateTime priceTime, String clientIdentifier, int years) {
-    checkArgument(years > 0, "Number of years must be positive");
-    Money annualCost = getPremiumPriceForSld(domainName).or(getStandardRenewCost(priceTime));
-    return annualCost.multipliedBy(years);
-  }
-
   public String getLordnUsername() {
     return lordnUsername;
   }
 
   public DateTime getClaimsPeriodEnd() {
     return claimsPeriodEnd;
+  }
+
+  public String getPricingEngineClassName() {
+    return pricingEngineClassName;
   }
 
   public ImmutableSet<String> getAllowedRegistrantContactIds() {
@@ -592,6 +582,12 @@ public class Registry extends ImmutableObject implements Buildable {
 
     public Builder setPremiumPriceAckRequired(boolean premiumPriceAckRequired) {
       getInstance().premiumPriceAckRequired = premiumPriceAckRequired;
+      return this;
+    }
+
+    public Builder setPricingEngineClass(Class<? extends PricingEngine> pricingEngineClass) {
+      getInstance().pricingEngineClassName =
+          checkArgumentNotNull(pricingEngineClass).getCanonicalName();
       return this;
     }
 
@@ -800,6 +796,8 @@ public class Registry extends ImmutableObject implements Buildable {
                   return money.getCurrencyUnit().equals(instance.currency);
                 }}),
           "Renew cost must be in the registry's currency");
+      checkArgumentNotNull(
+          instance.pricingEngineClassName, "All registries must have a configured pricing engine");
       instance.tldStrId = tldName;
       instance.tldUnicode = Idn.toUnicode(tldName);
       return super.build();

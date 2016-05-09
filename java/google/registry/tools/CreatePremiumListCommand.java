@@ -22,13 +22,10 @@ import com.beust.jcommander.Parameters;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.tools.server.CreatePremiumListAction;
 
-import javax.annotation.Nullable;
-
 /** Command to create a {@link PremiumList} on Datastore. */
 @Parameters(separators = " =", commandDescription = "Create a PremiumList in Datastore.")
 public class CreatePremiumListCommand extends CreateOrUpdatePremiumListCommand {
 
-  @Nullable
   @Parameter(
       names = {"-o", "--override"},
       description = "Override restrictions on premium list naming")

@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationType;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableList;
@@ -103,15 +104,19 @@ public class DomainAllocateFlow extends DomainCreateOrAllocateFlow {
         .setFlags(billingFlagsBuilder.add(Flag.ALLOCATION).build())
         .setTargetId(targetId)
         .setClientId(getClientId())
-        .setCost(registry
-            .getDomainCreateCost(targetId, now, getClientId(), command.getPeriod().getValue()))
+        // Note that the cost is calculated as of now, i.e. the event time, not the billing time,
+        // which may be some additional days into the future.
+        .setCost(
+            getDomainCreateCost(targetId, now, getClientId(), command.getPeriod().getValue()))
         .setPeriodYears(command.getPeriod().getValue())
         .setEventTime(now)
-        // If there are no nameservers on the domain, then they get the benefit of the sunrush add
-        // grace period, which is longer than the standard add grace period.
-        .setBillingTime(now.plus(sunrushAddGracePeriod
-            ? registry.getSunrushAddGracePeriodLength()
-            : registry.getAddGracePeriodLength()))
+        // If there are no nameservers on the domain, then they get the benefit of the sunrush
+        // add grace period, which is longer than the standard add grace period.
+        .setBillingTime(
+            now.plus(
+                sunrushAddGracePeriod
+                    ? registry.getSunrushAddGracePeriodLength()
+                    : registry.getAddGracePeriodLength()))
         .setParent(historyEntry)
         .build();
     ReservationType reservationType = getReservationType(domainName);

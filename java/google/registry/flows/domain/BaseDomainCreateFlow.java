@@ -35,6 +35,7 @@ import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
+import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
@@ -176,8 +177,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
     tldState = registry.getTldState(now);
     checkRegistryStateForTld(tld);
     domainLabel = domainName.parts().get(0);
-    createCost =
-        registry.getDomainCreateCost(targetId, now, getClientId(), command.getPeriod().getValue());
+    createCost = getDomainCreateCost(targetId, now, getClientId(), command.getPeriod().getValue());
     // The TLD should always be the parent of the requested domain name.
     isAnchorTenantViaReservation = matchesAnchorTenantReservation(
         domainLabel, tld, command.getAuthInfo().getPw().getValue());
@@ -202,7 +202,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
       } else if (isClaimsCreate) {
         throw new ClaimsPeriodEndedException(tld);
       }
-      verifyPremiumNameIsNotBlocked(targetId, now, getClientId(), tld);
+      verifyPremiumNameIsNotBlocked(targetId, now, getClientId());
     }
     verifyUnitIsYears(command.getPeriod());
     verifyNotInPendingDelete(

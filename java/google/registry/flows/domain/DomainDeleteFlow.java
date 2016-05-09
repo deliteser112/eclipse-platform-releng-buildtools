@@ -20,6 +20,7 @@ import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurr
 import static google.registry.model.eppoutput.Result.Code.Success;
 import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.collect.ImmutableList;
@@ -139,8 +140,7 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
           TimeOfYear recurrenceTimeOfYear =
               checkNotNull(gracePeriod.getRecurringBillingEvent()).get().getRecurrenceTimeOfYear();
           DateTime autoRenewTime = recurrenceTimeOfYear.getLastInstanceBeforeOrAt(now);
-          cost = Registry.get(existingResource.getTld())
-              .getDomainRenewCost(targetId, autoRenewTime, getClientId(), 1);
+          cost = getDomainRenewCost(targetId, autoRenewTime, getClientId(), 1);
         } else {
           cost = checkNotNull(gracePeriod.getOneTimeBillingEvent()).get().getCost();
         }

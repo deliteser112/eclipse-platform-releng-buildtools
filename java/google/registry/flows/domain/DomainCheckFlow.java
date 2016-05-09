@@ -18,6 +18,7 @@ import static google.registry.flows.domain.DomainFlowUtils.getReservationType;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
+import static google.registry.pricing.PricingEngineProxy.isPremiumName;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DomainNameUtils.getTldFromSld;
 
@@ -77,7 +78,7 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
     ReservationType reservationType = getReservationType(domainName);
     Registry registry = Registry.get(domainName.parent().toString());
     if (reservationType == UNRESERVED
-        && registry.isPremiumName(domainName, now, getClientId())
+        && isPremiumName(domainName, now, getClientId())
         && registry.getPremiumPriceAckRequired()
         && !nullToEmpty(sessionMetadata.getServiceExtensionUris()).contains(
             ServiceExtension.FEE_0_6.getUri())) {

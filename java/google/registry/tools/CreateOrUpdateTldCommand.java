@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.beust.jcommander.Parameter;
 import com.googlecode.objectify.Key;
 
+import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.Registries;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
@@ -259,8 +260,13 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
             "The roid suffix %s is already in use",
             roidSuffix);
       }
-      Registry.Builder builder = oldRegistry == null
-          ? new Registry.Builder().setTldStr(tld) : oldRegistry.asBuilder();
+      // TODO(b/26901539): Add a flag to set the pricing engine once we have more than one option.
+      Registry.Builder builder =
+          oldRegistry == null
+              ? new Registry.Builder()
+                  .setTldStr(tld)
+                  .setPricingEngineClass(StaticPremiumListPricingEngine.class)
+              : oldRegistry.asBuilder();
 
       if (escrow != null) {
         builder.setEscrowEnabled(escrow);

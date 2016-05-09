@@ -24,6 +24,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
 import static google.registry.model.eppoutput.Result.Code.Success;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.collect.ImmutableList;
@@ -109,8 +110,7 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
         existingResource.getRegistrationExpirationTime().toLocalDate())) {
       throw new IncorrectCurrentExpirationDateException();
     }
-    renewCost = Registry.get(existingResource.getTld())
-        .getDomainRenewCost(targetId, now, getClientId(), command.getPeriod().getValue());
+    renewCost = getDomainRenewCost(targetId, now, getClientId(), command.getPeriod().getValue());
     validateFeeChallenge(
         targetId, existingResource.getTld(), now, getClientId(), feeRenew, renewCost);
   }

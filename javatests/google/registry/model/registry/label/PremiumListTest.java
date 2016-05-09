@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 
 import com.googlecode.objectify.Key;
 
+import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList.PremiumListEntry;
 import google.registry.model.registry.label.PremiumList.PremiumListRevision;
@@ -70,7 +71,11 @@ public class PremiumListTest {
   @Test
   public void testGetPremiumPrice_returnsNoPriceWhenNoPremiumListConfigured() throws Exception {
     createTld("ghost");
-    persistResource(new Registry.Builder().setTldStr("ghost").build());
+    persistResource(
+        new Registry.Builder()
+            .setTldStr("ghost")
+            .setPricingEngineClass(StaticPremiumListPricingEngine.class)
+            .build());
     assertThat(Registry.get("ghost").getPremiumList()).isNull();
     assertThat(getPremiumPrice("blah", "ghost")).isAbsent();
   }

@@ -22,6 +22,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNo
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
@@ -113,8 +114,8 @@ public class DomainTransferRequestFlow
     }
     Registry registry = Registry.get(existingResource.getTld());
     automaticTransferTime = now.plus(registry.getAutomaticTransferLength());
-    renewCost = registry
-        .getDomainRenewCost(targetId, now, getClientId(), command.getPeriod().getValue());
+    // Note that the gaining registrar is used to calculate the cost of the renewal.
+    renewCost = getDomainRenewCost(targetId, now, getClientId(), command.getPeriod().getValue());
     transferBillingEvent = new BillingEvent.OneTime.Builder()
         .setReason(Reason.TRANSFER)
         .setTargetId(targetId)
@@ -152,7 +153,7 @@ public class DomainTransferRequestFlow
   protected final void verifyTransferRequestIsAllowed() throws EppException {
     verifyUnitIsYears(command.getPeriod());
     if (!superuser) {
-      verifyPremiumNameIsNotBlocked(targetId, now, getClientId(), existingResource.getTld());
+      verifyPremiumNameIsNotBlocked(targetId, now, getClientId());
     }
     validateFeeChallenge(
         targetId, existingResource.getTld(), now, getClientId(), feeTransfer, renewCost);

@@ -52,6 +52,7 @@ java_library(
         "//java/google/registry/dns:constants",
         "//java/google/registry/flows",
         "//java/google/registry/model",
+        "//java/google/registry/pricing",
         "//java/google/registry/request",
         "//java/google/registry/tmch",
         "//java/google/registry/util",
