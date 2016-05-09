@@ -14,8 +14,6 @@
 
 package google.registry.export;
 
-import static dagger.Provides.Type.SET_VALUES;
-
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -24,6 +22,7 @@ import com.google.api.services.drive.DriveScopes;
 
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.ElementsIntoSet;
 
 import google.registry.config.ConfigModule.Config;
 import google.registry.request.OAuthScopes;
@@ -43,7 +42,8 @@ import java.util.Set;
 public final class DriveModule {
 
   /** Provides OAuth2 scopes for the Drive service needed by Domain Registry. */
-  @Provides(type = SET_VALUES)
+  @Provides
+  @ElementsIntoSet
   @OAuthScopes
   static Set<String> provideDriveOAuthScopes() {
     return DriveScopes.all();

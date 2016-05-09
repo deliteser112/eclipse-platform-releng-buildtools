@@ -14,8 +14,6 @@
 
 package google.registry.bigquery;
 
-import static dagger.Provides.Type.SET_VALUES;
-
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -27,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Multibindings;
 import dagger.Provides;
+import dagger.multibindings.ElementsIntoSet;
 
 import google.registry.config.ConfigModule.Config;
 import google.registry.request.OAuthScopes;
@@ -54,7 +53,8 @@ public final class BigqueryModule {
   }
 
   /** Provides OAuth2 scopes for the Bigquery service needed by Domain Registry. */
-  @Provides(type = SET_VALUES)
+  @Provides
+  @ElementsIntoSet
   @OAuthScopes
   static Set<String> provideBigqueryOAuthScopes() {
     return BigqueryScopes.all();

@@ -14,8 +14,6 @@
 
 package google.registry.groups;
 
-import static dagger.Provides.Type.SET_VALUES;
-
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.groupssettings.Groupssettings;
 import com.google.api.services.groupssettings.GroupssettingsScopes;
@@ -23,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.ElementsIntoSet;
 
 import google.registry.config.ConfigModule.Config;
 import google.registry.request.DelegatedOAuthScopes;
@@ -44,7 +43,8 @@ import javax.inject.Named;
 public final class GroupssettingsModule {
 
   /** Provides OAuth2 scopes for the Groupssettings service needed by Domain Registry. */
-  @Provides(type = SET_VALUES)
+  @Provides
+  @ElementsIntoSet
   @DelegatedOAuthScopes
   static Set<String> provideGroupssettingsOAuthScopes() {
     return ImmutableSet.of(GroupssettingsScopes.APPS_GROUPS_SETTINGS);
