@@ -45,7 +45,7 @@ public class CreateContactCommandTest
         "--fax=+1.7035555556",
         "--email=jdoe@example.com",
         "--password=2fooBAR");
-    verifySent("testdata/contact_create_complete.xml", false, false);
+    eppVerifier().verifySent("testdata/contact_create_complete.xml");
   }
 
   @Test
@@ -53,7 +53,7 @@ public class CreateContactCommandTest
     // Will never be the case, but tests that each field can be omitted.
     // Also tests the auto-gen password.
     runCommandForced("--client=NewRegistrar");
-    verifySent("testdata/contact_create_minimal.xml", false, false);
+    eppVerifier().verifySent("testdata/contact_create_minimal.xml");
   }
 
   @Test

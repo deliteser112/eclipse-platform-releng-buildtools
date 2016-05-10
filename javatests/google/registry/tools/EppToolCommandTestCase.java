@@ -20,6 +20,7 @@ import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.binarySearch;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -64,29 +65,47 @@ public abstract class EppToolCommandTestCase<C extends EppToolCommand> extends C
   /** Subclasses can override this to perform additional initialization. */
   void initEppToolCommandTestCase() throws Exception {}
 
-  void verifySent(String fileToMatch, boolean dryRun, boolean superuser) throws Exception {
-    ImmutableMap<String, ?> params = ImmutableMap.of(
-        "clientIdentifier", "NewRegistrar",
-        "superuser", superuser,
-        "dryRun", dryRun);
-    verify(connection)
-        .send(eq("/_dr/epptool"), eq(params), eq(APPLICATION_EPP_XML_UTF8), xml.capture());
-    assertXmlEquals(readResourceUtf8(getClass(), fileToMatch), new String(xml.getValue(), UTF_8));
+  /** Helper to get a new {@link EppVerifier} instance. */
+  EppVerifier eppVerifier() {
+    return new EppVerifier();
   }
 
-  void verifySent(List<String> filesToMatch, boolean dryRun, boolean superuser) throws Exception {
-    ImmutableMap<String, ?> params = ImmutableMap.of(
-        "clientIdentifier", "NewRegistrar",
-        "superuser", superuser,
-        "dryRun", dryRun);
-    verify(connection, times(filesToMatch.size()))
-        .send(eq("/_dr/epptool"), eq(params), eq(APPLICATION_EPP_XML_UTF8), xml.capture());
-    List<byte[]> capturedXml = xml.getAllValues();
-    assertThat(filesToMatch).hasSize(capturedXml.size());
-    for (String fileToMatch : filesToMatch) {
-      assertXmlEquals(
-          readResourceUtf8(getClass(), fileToMatch),
-          new String(capturedXml.get(filesToMatch.indexOf(fileToMatch)), UTF_8));
+  /** Builder pattern class for verifying EPP commands sent to the server. */
+  class EppVerifier {
+
+    String clientIdentifier = "NewRegistrar";
+    boolean superuser = false;
+    boolean dryRun = false;
+
+    EppVerifier setClientIdentifier(String clientIdentifier) {
+      this.clientIdentifier = clientIdentifier;
+      return this;
+    }
+
+    EppVerifier asSuperuser() {
+      this.superuser = true;
+      return this;
+    }
+
+    EppVerifier asDryRun() {
+      this.dryRun = true;
+      return this;
+    }
+
+    void verifySent(String... filesToMatch) throws Exception {
+      ImmutableMap<String, ?> params = ImmutableMap.of(
+          "clientIdentifier", clientIdentifier,
+          "superuser", superuser,
+          "dryRun", dryRun);
+      verify(connection, times(filesToMatch.length))
+          .send(eq("/_dr/epptool"), eq(params), eq(APPLICATION_EPP_XML_UTF8), xml.capture());
+      List<byte[]> capturedXml = xml.getAllValues();
+      assertThat(filesToMatch).hasLength(capturedXml.size());
+      for (String fileToMatch : filesToMatch) {
+        assertXmlEquals(
+            readResourceUtf8(getClass(), fileToMatch),
+            new String(capturedXml.get(binarySearch(filesToMatch, fileToMatch)), UTF_8));
+      }
     }
   }
 }

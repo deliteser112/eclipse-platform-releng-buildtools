@@ -37,35 +37,35 @@ public class CreateAnchorTenantCommandTest
   public void testSuccess() throws Exception {
     runCommandForced("--client=NewRegistrar", "--superuser",
         "--reason=anchor-tenant-test", "--contact=jd1234", "--domain_name=example.tld");
-    verifySent("testdata/domain_create_anchor_tenant.xml", false, true);
+    eppVerifier().asSuperuser().verifySent("testdata/domain_create_anchor_tenant.xml");
   }
 
   @Test
   public void testSuccess_suppliedPassword() throws Exception {
     runCommandForced("--client=NewRegistrar", "--superuser", "--password=foo",
         "--reason=anchor-tenant-test", "--contact=jd1234", "--domain_name=example.tld");
-    verifySent("testdata/domain_create_anchor_tenant_password.xml", false, true);
+    eppVerifier().asSuperuser().verifySent("testdata/domain_create_anchor_tenant_password.xml");
   }
 
   @Test
   public void testSuccess_multipleWordReason() throws Exception {
     runCommandForced("--client=NewRegistrar", "--superuser",
         "--reason=\"anchor tenant test\"", "--contact=jd1234", "--domain_name=example.tld");
-    verifySent("testdata/domain_create_anchor_tenant_multiple_word_reason.xml", false, true);
+    eppVerifier().asSuperuser().verifySent("testdata/domain_create_anchor_tenant_multiple_word_reason.xml");
   }
 
   @Test
   public void testSuccess_noReason() throws Exception {
     runCommandForced("--client=NewRegistrar", "--superuser",
         "--contact=jd1234", "--domain_name=example.tld");
-    verifySent("testdata/domain_create_anchor_tenant_no_reason.xml", false, true);
+    eppVerifier().asSuperuser().verifySent("testdata/domain_create_anchor_tenant_no_reason.xml");
   }
 
   @Test
   public void testSuccess_feeStandard() throws Exception {
     runCommandForced("--client=NewRegistrar", "--superuser", "--fee",
         "--reason=anchor-tenant-test", "--contact=jd1234", "--domain_name=example.tld");
-    verifySent("testdata/domain_create_anchor_tenant_fee_standard.xml", false, true);
+    eppVerifier().asSuperuser().verifySent("testdata/domain_create_anchor_tenant_fee_standard.xml");
   }
 
   @Test
@@ -78,7 +78,7 @@ public class CreateAnchorTenantCommandTest
             .build());
     runCommandForced("--client=NewRegistrar", "--superuser", "--fee",
         "--reason=anchor-tenant-test", "--contact=jd1234", "--domain_name=premium.tld");
-    verifySent("testdata/domain_create_anchor_tenant_fee_premium.xml", false, true);
+    eppVerifier().asSuperuser().verifySent("testdata/domain_create_anchor_tenant_fee_premium.xml");
   }
 
   @Test

@@ -14,8 +14,6 @@
 
 package google.registry.tools;
 
-import com.google.common.collect.ImmutableList;
-
 import com.beust.jcommander.ParameterException;
 
 import org.junit.Test;
@@ -26,18 +24,15 @@ public class DomainCheckCommandTest extends EppToolCommandTestCase<DomainCheckCo
   @Test
   public void testSuccess() throws Exception {
     runCommandForced("--client=NewRegistrar", "example.tld");
-    verifySent("testdata/domain_check.xml", false, false);
+    eppVerifier().verifySent("testdata/domain_check.xml");
   }
 
   @Test
   public void testSuccess_multipleTlds() throws Exception {
     runCommandForced("--client=NewRegistrar", "example.tld", "example.tld2");
-    verifySent(
-        ImmutableList.of(
-            "testdata/domain_check.xml",
-            "testdata/domain_check_second_tld.xml"),
-        false,
-        false);
+    eppVerifier().verifySent(
+        "testdata/domain_check.xml",
+        "testdata/domain_check_second_tld.xml");
   }
 
   @Test
@@ -47,7 +42,7 @@ public class DomainCheckCommandTest extends EppToolCommandTestCase<DomainCheckCo
         "example.tld",
         "example2.tld",
         "example3.tld");
-    verifySent("testdata/domain_check_multiple.xml", false, false);
+    eppVerifier().verifySent("testdata/domain_check_multiple.xml");
   }
 
   @Test
@@ -58,12 +53,9 @@ public class DomainCheckCommandTest extends EppToolCommandTestCase<DomainCheckCo
         "example2.tld",
         "example3.tld",
         "example.tld2");
-    verifySent(
-        ImmutableList.of(
-            "testdata/domain_check_multiple.xml",
-            "testdata/domain_check_second_tld.xml"),
-        false,
-        false);
+    eppVerifier().verifySent(
+        "testdata/domain_check_multiple.xml",
+        "testdata/domain_check_second_tld.xml");
   }
 
   @Test

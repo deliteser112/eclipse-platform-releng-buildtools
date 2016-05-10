@@ -26,7 +26,7 @@ public class DomainApplicationInfoCommandTest
   public void testSuccess() throws Exception {
     runCommandForced("--client=NewRegistrar", "--domain_name=example.tld",
         "--phase=landrush", "--id=123");
-    verifySent("testdata/domain_info_landrush.xml", false, false);
+    eppVerifier().verifySent("testdata/domain_info_landrush.xml");
   }
 
   @Test
@@ -34,7 +34,7 @@ public class DomainApplicationInfoCommandTest
     // Sunrush: phase=sunrise, subphase=landrush
     runCommandForced("--client=NewRegistrar", "--domain_name=example.tld",
         "--phase=sunrush", "--id=123");
-    verifySent("testdata/domain_info_sunrush.xml", false, false);
+    eppVerifier().verifySent("testdata/domain_info_sunrush.xml");
   }
 
   @Test

@@ -17,8 +17,6 @@ package google.registry.tools;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.collect.ImmutableList;
-
 import com.beust.jcommander.ParameterException;
 
 import org.junit.Test;
@@ -40,19 +38,19 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
   @Test
   public void testSuccess() throws Exception {
     runCommand("--client=NewRegistrar", "--force", eppFile);
-    verifySent("testdata/contact_create.xml", false, false);
+    eppVerifier().verifySent("testdata/contact_create.xml");
   }
 
   @Test
   public void testSuccess_dryRun() throws Exception {
     runCommand("--client=NewRegistrar", "--dry_run", eppFile);
-    verifySent("testdata/contact_create.xml", true, false);
+    eppVerifier().asDryRun().verifySent("testdata/contact_create.xml");
   }
 
   @Test
   public void testSuccess_withSuperuser() throws Exception {
     runCommand("--client=NewRegistrar", "--superuser", "--force", eppFile);
-    verifySent("testdata/contact_create.xml", false, true);
+    eppVerifier().asSuperuser().verifySent("testdata/contact_create.xml");
   }
 
   @Test
@@ -60,7 +58,7 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
     inject.setStaticField(
         ExecuteEppCommand.class, "stdin", new ByteArrayInputStream(xmlInput.getBytes(UTF_8)));
     runCommand("--client=NewRegistrar", "--force");
-    verifySent("testdata/contact_create.xml", false, false);
+    eppVerifier().verifySent("testdata/contact_create.xml");
   }
 
   @Test
@@ -68,10 +66,7 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
     String xmlInput2 = readResourceUtf8(ExecuteEppCommandTest.class, "testdata/domain_check.xml");
     String eppFile2 = writeToNamedTmpFile("eppFile2", xmlInput2);
     runCommand("--client=NewRegistrar", "--force", eppFile, eppFile2);
-    verifySent(
-        ImmutableList.of("testdata/contact_create.xml", "testdata/domain_check.xml"),
-        false,
-        false);
+    eppVerifier().verifySent("testdata/contact_create.xml", "testdata/domain_check.xml");
   }
 
   @Test

@@ -25,35 +25,35 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
   public void testSuccess_applyOne() throws Exception {
     runCommandForced("--client=NewRegistrar", "--registrar_request=true", "--reason=Test",
         "--domain_name=example.tld", "--apply=serverRenewProhibited");
-    verifySent("testdata/update_server_locks_apply_one.xml", false, false);
+    eppVerifier().verifySent("testdata/update_server_locks_apply_one.xml");
   }
 
   @Test
   public void testSuccess_multipleWordReason() throws Exception {
     runCommandForced("--client=NewRegistrar", "--registrar_request=false",
         "--reason=\"Test this\"", "--domain_name=example.tld", "--apply=serverRenewProhibited");
-    verifySent("testdata/update_server_locks_multiple_word_reason.xml", false, false);
+    eppVerifier().verifySent("testdata/update_server_locks_multiple_word_reason.xml");
   }
 
   @Test
   public void testSuccess_removeOne() throws Exception {
     runCommandForced("--client=NewRegistrar", "--registrar_request=true", "--reason=Test",
         "--domain_name=example.tld", "--remove=serverRenewProhibited");
-    verifySent("testdata/update_server_locks_remove_one.xml", false, false);
+    eppVerifier().verifySent("testdata/update_server_locks_remove_one.xml");
   }
 
   @Test
   public void testSuccess_applyAll() throws Exception {
     runCommandForced("--client=NewRegistrar", "--registrar_request=true", "--reason=Test",
         "--domain_name=example.tld", "--apply=all");
-    verifySent("testdata/update_server_locks_apply_all.xml", false, false);
+    eppVerifier().verifySent("testdata/update_server_locks_apply_all.xml");
   }
 
   @Test
   public void testSuccess_removeAll() throws Exception {
     runCommandForced("--client=NewRegistrar", "--registrar_request=true", "--reason=Test",
         "--domain_name=example.tld", "--remove=all");
-    verifySent("testdata/update_server_locks_remove_all.xml", false, false);
+    eppVerifier().verifySent("testdata/update_server_locks_remove_all.xml");
   }
 
   @Test
@@ -123,5 +123,4 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
     runCommandForced("--client=NewRegistrar", "--reason=Test",
         "--domain_name=example.tld", "--apply=serverRenewProhibited");
   }
-
 }
