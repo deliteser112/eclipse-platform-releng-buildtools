@@ -282,7 +282,9 @@ public class DomainFlowUtils {
 
   /** Return a foreign key for a {@link ReferenceUnion} from memory or datastore as needed. */
   private static String resolveForeignKey(ReferenceUnion<?> ref) {
-    return Optional.fromNullable(ref.getForeignKey()).or(ref.getLinked().get().getForeignKey());
+    return ref.getForeignKey() != null 
+        ? ref.getForeignKey() 
+        : ref.getLinked().get().getForeignKey();
   }
 
   static void validateNameservers(String tld, Set<ReferenceUnion<HostResource>> nameservers)
@@ -293,7 +295,7 @@ public class DomainFlowUtils {
     }
     ImmutableSet<String> whitelist = Registry.get(tld).getAllowedFullyQualifiedHostNames();
     if (!whitelist.isEmpty()) {  // Empty whitelists are ignored.
-      for (ReferenceUnion<HostResource> nameserver : nameservers) {
+      for (ReferenceUnion<HostResource> nameserver : nullToEmpty(nameservers)) {
         String foreignKey = resolveForeignKey(nameserver);
         if (!whitelist.contains(foreignKey)) {
           throw new NameserverNotAllowedException(foreignKey);
@@ -336,7 +338,7 @@ public class DomainFlowUtils {
     ImmutableSet<String> whitelist = Registry.get(tld).getAllowedRegistrantContactIds();
     // Empty whitelists are ignored.
     if (!whitelist.isEmpty() && !whitelist.contains(resolveForeignKey(registrant))) {
-      throw new RegistrantNotAllowedException(registrant.toString());
+      throw new RegistrantNotAllowedException(resolveForeignKey(registrant));
     }
   }
 

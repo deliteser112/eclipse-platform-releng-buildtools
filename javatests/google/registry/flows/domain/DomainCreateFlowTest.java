@@ -1241,19 +1241,28 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedRegistrantContactIds(ImmutableSet.of("someone"))
         .build());
-    thrown.expect(RegistrantNotAllowedException.class);
+    thrown.expect(RegistrantNotAllowedException.class, "jd1234");
     runFlow();
   }
 
   @Test
   public void testFailure_nameserverNotWhitelisted() throws Exception {
-    persistActiveHost("ns1.example.com");
     persistContactsAndHosts();
     persistResource(Registry.get("tld").asBuilder()
-        .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.someone.tld"))
+        .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.net"))
         .build());
-    thrown.expect(NameserverNotAllowedException.class);
+    thrown.expect(NameserverNotAllowedException.class, "ns1.example.net");
     runFlow();
+  }
+
+  @Test
+  public void testSuccess_emptyNameserversPassesWhitelist() throws Exception {
+    setEppInput("domain_create_no_hosts_or_dsdata.xml");
+    persistResource(Registry.get("tld").asBuilder()
+        .setAllowedFullyQualifiedHostNames(ImmutableSet.of("somethingelse.example.net"))
+        .build());
+    persistContactsAndHosts();
+    runFlow();  // This is sufficient, as doSuccessfulTests validates hosts, which will fail here.
   }
 
   @Test

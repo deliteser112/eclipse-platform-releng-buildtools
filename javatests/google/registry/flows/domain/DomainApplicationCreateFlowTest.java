@@ -1181,18 +1181,17 @@ public class DomainApplicationCreateFlowTest
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedRegistrantContactIds(ImmutableSet.of("someone"))
         .build());
-    thrown.expect(RegistrantNotAllowedException.class);
+    thrown.expect(RegistrantNotAllowedException.class, "jd1234");
     runFlow();
   }
 
   @Test
   public void testFailure_nameserverNotWhitelisted() throws Exception {
-    persistActiveHost("ns1.example.com");
     persistContactsAndHosts();
     persistResource(Registry.get("tld").asBuilder()
-        .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.someone.tld"))
+        .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.net"))
         .build());
-    thrown.expect(NameserverNotAllowedException.class);
+    thrown.expect(NameserverNotAllowedException.class, "ns1.example.net");
     runFlow();
   }
 
@@ -1201,6 +1200,20 @@ public class DomainApplicationCreateFlowTest
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedRegistrantContactIds(ImmutableSet.of("jd1234"))
         .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.net", "ns2.example.net"))
+        .build());
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    doSuccessfulTest("domain_create_sunrise_encoded_signed_mark_response.xml", true);
+    assertAboutApplications().that(getOnlyGlobalResource(DomainApplication.class))
+        .hasApplicationStatus(ApplicationStatus.VALIDATED);
+  }
+
+  @Test
+  public void testSuccess_emptyNameserversPassesWhitelist() throws Exception {
+    setEppInput("domain_create_sunrise_encoded_signed_mark_no_hosts.xml");
+    persistResource(Registry.get("tld").asBuilder()
+        .setAllowedRegistrantContactIds(ImmutableSet.of("jd1234"))
+        .setAllowedFullyQualifiedHostNames(ImmutableSet.of("somethingelse.example.net"))
         .build());
     persistContactsAndHosts();
     clock.advanceOneMilli();

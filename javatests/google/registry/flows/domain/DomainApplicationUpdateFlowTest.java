@@ -629,12 +629,11 @@ public class DomainApplicationUpdateFlowTest
 
   @Test
   public void testFailure_newRegistrantNotWhitelisted() throws Exception {
-    setEppInput("domain_update_sunrise_registrant_to_tech.xml");
     persistReferencedEntities();
     persistApplication();
     persistResource(
         Registry.get("tld").asBuilder()
-            .setAllowedRegistrantContactIds(ImmutableSet.of("sha8013"))
+            .setAllowedRegistrantContactIds(ImmutableSet.of("contact1234"))
             .build());
     clock.advanceOneMilli();
     thrown.expect(RegistrantNotAllowedException.class);
