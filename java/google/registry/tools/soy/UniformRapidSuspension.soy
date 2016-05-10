@@ -1,0 +1,54 @@
+{namespace domain.registry.tools autoescape="strict"}
+
+/**
+ * Uniform Rapid Suspension
+ */
+{template .uniformrapidsuspension}
+{@param domainName: string}
+{@param hostsToAdd: list<string>}
+{@param hostsToRemove: list<string>}
+{@param locksToApply: list<string>}
+{@param locksToRemove: list<string>}
+{@param reason: string}
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <update>
+      <domain:update xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>{$domainName}</domain:name>
+        <domain:add>
+        {if length($hostsToAdd) > 0}
+          <domain:ns>
+          {foreach $ha in $hostsToAdd}
+            <domain:hostObj>{$ha}</domain:hostObj>
+          {/foreach}
+          </domain:ns>
+        {/if}
+        {foreach $la in $locksToApply}
+          <domain:status s="{$la}" />
+        {/foreach}
+        </domain:add>
+        <domain:rem>
+        {if length($hostsToRemove) > 0}
+          <domain:ns>
+          {foreach $hr in $hostsToRemove}
+            <domain:hostObj>{$hr}</domain:hostObj>
+          {/foreach}
+          </domain:ns>
+        {/if}
+        {foreach $lr in $locksToRemove}
+          <domain:status s="{$lr}" />
+        {/foreach}
+        </domain:rem>
+      </domain:update>
+    </update>
+    <extension>
+      <metadata:metadata xmlns:metadata="urn:google:params:xml:ns:metadata-1.0">
+        <metadata:reason>{$reason}</metadata:reason>
+        <metadata:requestedByRegistrar>false</metadata:requestedByRegistrar>
+      </metadata:metadata>
+    </extension>
+    <clTRID>GTechTool</clTRID>
+  </command>
+</epp>
+{/template}

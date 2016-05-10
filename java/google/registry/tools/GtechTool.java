@@ -67,6 +67,7 @@ public final class GtechTool {
           .put("registrar_activity_report", RegistrarActivityReportCommand.class)
           .put("registrar_contact", RegistrarContactCommand.class)
           .put("setup_ote", SetupOteCommand.class)
+          .put("uniform_rapid_suspension", UniformRapidSuspensionCommand.class)
           .put("update_registrar", UpdateRegistrarCommand.class)
           .put("update_sandbox_tld", UpdateSandboxTldCommand.class)
           .put("update_server_locks", UpdateServerLocksCommand.class)
