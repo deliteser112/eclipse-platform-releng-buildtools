@@ -150,15 +150,18 @@ final class GetSchemaTreeCommand implements GtechCommand {
           .append(getPrintableName(clazz))
           .append(clazz.isAnnotationPresent(EntitySubclass.class) ? " (subclass)" : ""));
       printSubclasses(clazz, indent + 2);
+      printTree(clazz, indent + 2);
     }
   }
 
+  /** Returns the simple name of the class prefixed with its wrapper's simple name, if any. */
   static String getPrintableName(Class<?> clazz) {
     return clazz.isMemberClass()
        ? getPrintableName(clazz.getDeclaringClass()) + "." + clazz.getSimpleName()
        : clazz.getSimpleName();
   }
 
+  /** An ordering that sorts on {@link #getPrintableName}. */
   static class PrintableNameOrdering extends Ordering<Class<?>> implements Serializable {
     @Override
     public int compare(Class<?> left, Class<?> right) {
