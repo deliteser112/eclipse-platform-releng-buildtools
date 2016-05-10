@@ -398,7 +398,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
     }
   }
 
-  private ImmutableSet<String> formUpdatedList(
+  private static ImmutableSet<String> formUpdatedList(
       String description,
       ImmutableSet<String> originals,
       List<String> toReplace,
@@ -422,7 +422,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
     return ImmutableSet.copyOf(difference(union(originals, toAdd), toRemove));
   }
 
-  private void checkIsEmpty(Set<String> set, String errorString) {
+  private static void checkIsEmpty(Set<String> set, String errorString) {
     checkArgument(set.isEmpty(), String.format("%s: %s", errorString, set));
   }
 
