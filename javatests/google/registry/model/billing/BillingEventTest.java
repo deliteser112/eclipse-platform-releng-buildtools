@@ -55,6 +55,7 @@ public class BillingEventTest extends EntityTestCase {
   HistoryEntry historyEntry2;
   DomainResource domain;
   BillingEvent.OneTime oneTime;
+  BillingEvent.OneTime oneTimeSynthetic;
   BillingEvent.Recurring recurring;
   BillingEvent.Cancellation cancellationOneTime;
   BillingEvent.Cancellation cancellationRecurring;
@@ -80,6 +81,16 @@ public class BillingEventTest extends EntityTestCase {
             .setParent(historyEntry)
             .setReason(Reason.CREATE)
             .setFlags(ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT))
+            .setPeriodYears(2)
+            .setCost(Money.of(USD, 1))
+            .setEventTime(now)
+            .setBillingTime(now.plusDays(5))));
+    oneTimeSynthetic = persistResource(commonInit(
+        new BillingEvent.OneTime.Builder()
+            .setParent(historyEntry)
+            .setReason(Reason.CREATE)
+            .setFlags(ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT, BillingEvent.Flag.SYNTHETIC))
+            .setSyntheticCreationTime(now.plusDays(10))
             .setPeriodYears(2)
             .setCost(Money.of(USD, 1))
             .setEventTime(now)
@@ -136,7 +147,7 @@ public class BillingEventTest extends EntityTestCase {
     // Note that these are all tested separately because BillingEvent is an abstract base class that
     // lacks the @Entity annotation, and thus we cannot call .type(BillingEvent.class)
     assertThat(ofy().load().type(BillingEvent.OneTime.class).ancestor(domain).list())
-        .containsExactly(oneTime);
+        .containsExactly(oneTime, oneTimeSynthetic);
     assertThat(ofy().load().type(BillingEvent.Recurring.class).ancestor(domain).list())
         .containsExactly(recurring);
     assertThat(ofy().load().type(BillingEvent.Cancellation.class).ancestor(domain).list())
@@ -144,7 +155,7 @@ public class BillingEventTest extends EntityTestCase {
     assertThat(ofy().load().type(BillingEvent.Modification.class).ancestor(domain).list())
         .containsExactly(modification);
     assertThat(ofy().load().type(BillingEvent.OneTime.class).ancestor(historyEntry).list())
-        .containsExactly(oneTime);
+        .containsExactly(oneTime, oneTimeSynthetic);
     assertThat(ofy().load().type(BillingEvent.Recurring.class).ancestor(historyEntry).list())
         .containsExactly(recurring);
     assertThat(ofy().load().type(BillingEvent.Cancellation.class).ancestor(historyEntry2).list())
@@ -155,11 +166,33 @@ public class BillingEventTest extends EntityTestCase {
 
   @Test
   public void testIndexing() throws Exception {
-    verifyIndexing(oneTime, "clientId", "eventTime", "billingTime");
+    verifyIndexing(oneTime, "clientId", "eventTime", "billingTime", "syntheticCreationTime");
+    verifyIndexing(
+        oneTimeSynthetic, "clientId", "eventTime", "billingTime", "syntheticCreationTime");
     verifyIndexing(
         recurring, "clientId", "eventTime", "recurrenceEndTime", "recurrenceTimeOfYear.timeString");
     verifyIndexing(cancellationOneTime, "clientId", "eventTime", "billingTime");
     verifyIndexing(modification, "clientId", "eventTime");
+  }
+
+  @Test
+  public void testFailure_syntheticFlagWithoutCreationTime() {
+    thrown.expect(
+        IllegalStateException.class,
+        "Billing events with SYNTHETIC flag set must have a synthetic creation time");
+    oneTime.asBuilder()
+        .setFlags(ImmutableSet.of(BillingEvent.Flag.SYNTHETIC))
+        .build();
+  }
+
+  @Test
+  public void testFailure_syntheticCreationTimeWithoutFlag() {
+    thrown.expect(
+        IllegalStateException.class,
+        "Billing events with SYNTHETIC flag set must have a synthetic creation time");
+    oneTime.asBuilder()
+        .setSyntheticCreationTime(now.plusDays(10))
+        .build();
   }
 
   @Test

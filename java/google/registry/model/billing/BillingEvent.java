@@ -216,6 +216,15 @@ public abstract class BillingEvent extends ImmutableObject
     @IgnoreSave(IfNull.class)
     Integer periodYears = null;
 
+    /**
+     * For {@link Flag#SYNTHETIC} events, when this event was persisted to datastore (i.e. the
+     * cursor position at the time the recurrence expansion job was last run). In the event a job
+     * needs to be undone, a query on this field will return the complete set of potentially bad
+     * events.
+     */
+    @Index
+    DateTime syntheticCreationTime;
+
     public Money getCost() {
       return cost;
     }
@@ -226,6 +235,10 @@ public abstract class BillingEvent extends ImmutableObject
 
     public Integer getPeriodYears() {
       return periodYears;
+    }
+
+    public DateTime getSyntheticCreationTime() {
+      return syntheticCreationTime;
     }
 
     @Override
@@ -259,6 +272,11 @@ public abstract class BillingEvent extends ImmutableObject
         return this;
       }
 
+      public Builder setSyntheticCreationTime(DateTime syntheticCreationTime) {
+        getInstance().syntheticCreationTime = syntheticCreationTime;
+        return this;
+      }
+
       @Override
       public OneTime build() {
         OneTime instance = getInstance();
@@ -270,6 +288,10 @@ public abstract class BillingEvent extends ImmutableObject
         checkState(
             reasonsWithPeriods.contains(instance.reason) == (instance.periodYears != null),
             "Period years must be set if and only if reason is CREATE, RENEW, or TRANSFER.");
+        checkState(
+            instance.getFlags().contains(Flag.SYNTHETIC)
+                == (instance.syntheticCreationTime != null),
+            "Billing events with SYNTHETIC flag set must have a synthetic creation time.");
         return super.build();
       }
     }

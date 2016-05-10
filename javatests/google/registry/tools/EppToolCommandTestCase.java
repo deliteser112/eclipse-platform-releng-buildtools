@@ -67,29 +67,32 @@ public abstract class EppToolCommandTestCase<C extends EppToolCommand> extends C
 
   /** Helper to get a new {@link EppVerifier} instance. */
   EppVerifier eppVerifier() {
-    return new EppVerifier();
+    return new EppVerifier("NewRegistrar", false, false);
   }
 
-  /** Builder pattern class for verifying EPP commands sent to the server. */
+  /** Class for verifying EPP commands sent to the server. */
   class EppVerifier {
 
-    String clientIdentifier = "NewRegistrar";
-    boolean superuser = false;
-    boolean dryRun = false;
+    private final String clientIdentifier;
+    private final boolean superuser;
+    private final boolean dryRun;
+
+    private EppVerifier(String clientIdentifier, boolean superuser, boolean dryRun) {
+      this.clientIdentifier = clientIdentifier;
+      this.superuser = superuser;
+      this.dryRun = dryRun;
+    }
 
     EppVerifier setClientIdentifier(String clientIdentifier) {
-      this.clientIdentifier = clientIdentifier;
-      return this;
+      return new EppVerifier(clientIdentifier, superuser, dryRun);
     }
 
     EppVerifier asSuperuser() {
-      this.superuser = true;
-      return this;
+      return new EppVerifier(clientIdentifier, true, dryRun);
     }
 
     EppVerifier asDryRun() {
-      this.dryRun = true;
-      return this;
+      return new EppVerifier(clientIdentifier, superuser, true);
     }
 
     void verifySent(String... filesToMatch) throws Exception {
