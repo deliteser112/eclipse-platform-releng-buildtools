@@ -15,17 +15,25 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Sets.difference;
+import static com.google.common.collect.Sets.intersection;
+import static com.google.common.collect.Sets.union;
 import static google.registry.model.registry.Registries.assertTldExists;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.googlecode.objectify.Key;
 
 import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.ReservedList;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -74,27 +82,87 @@ class UpdateTldCommand extends CreateOrUpdateTldCommand {
   }
 
   @Override
+  ImmutableSet<String> getAllowedRegistrants(Registry oldRegistry) {
+    return formUpdatedList(
+        "allowed registrants",
+        oldRegistry.getAllowedRegistrantContactIds(),
+        allowedRegistrants,
+        allowedRegistrantsAdd,
+        allowedRegistrantsRemove);
+  }
+
+  @Override
+  ImmutableSet<String> getAllowedNameservers(Registry oldRegistry) {
+    return formUpdatedList(
+        "allowed nameservers",
+        oldRegistry.getAllowedFullyQualifiedHostNames(),
+        allowedNameservers,
+        allowedNameserversAdd,
+        allowedNameserversRemove);
+  }
+
+  @Override
+  ImmutableSet<String> getReservedLists(Registry oldRegistry) {
+    return formUpdatedList(
+        "reserved lists",
+        FluentIterable
+            .from(oldRegistry.getReservedLists())
+            .transform(
+                new Function<Key<ReservedList>, String>() {
+                  @Override
+                  public String apply(Key<ReservedList> key) {
+                    return key.getName();
+                  }})
+            .toSet(),
+        reservedListNames,
+        reservedListsAdd,
+        reservedListsRemove);
+  }
+
+  @Override
   protected void initTldCommand() throws Exception {
     checkConflicts("reserved_lists", reservedListNames, reservedListsAdd, reservedListsRemove);
     checkConflicts(
         "allowed_registrants", allowedRegistrants, allowedRegistrantsAdd, allowedRegistrantsRemove);
     checkConflicts(
         "allowed_nameservers", allowedNameservers, allowedNameserversAdd, allowedNameserversRemove);
-    reservedListNamesToAdd = ImmutableSet.copyOf(nullToEmpty(reservedListsAdd));
-    reservedListNamesToRemove = ImmutableSet.copyOf(nullToEmpty(reservedListsRemove));
-    allowedRegistrantsToAdd = ImmutableSet.copyOf(nullToEmpty(allowedRegistrantsAdd));
-    allowedRegistrantsToRemove = ImmutableSet.copyOf(nullToEmpty(allowedRegistrantsRemove));
-    allowedNameserversToAdd = ImmutableSet.copyOf(nullToEmpty(allowedNameserversAdd));
-    allowedNameserversToRemove = ImmutableSet.copyOf(nullToEmpty(allowedNameserversRemove));
   }
 
-  private void checkConflicts(
+  private static ImmutableSet<String> formUpdatedList(
+      String description,
+      ImmutableSet<String> originals,
+      List<String> fullReplacement,
+      List<String> itemsToAdd,
+      List<String> itemsToRemove) {
+    if (fullReplacement != null) {
+      return ImmutableSet.copyOf(fullReplacement);
+    }
+    Set<String> toAdd = ImmutableSet.copyOf(nullToEmpty(itemsToAdd));
+    Set<String> toRemove = ImmutableSet.copyOf(nullToEmpty(itemsToRemove));
+    checkIsEmpty(
+        intersection(toAdd, toRemove),
+        String.format(
+            "Adding and removing the same %s simultaneously doesn't make sense", description));
+    checkIsEmpty(
+        intersection(originals, toAdd),
+        String.format("Cannot add %s that were previously present", description));
+    checkIsEmpty(
+        difference(toRemove, originals),
+        String.format("Cannot remove %s that were not previously present", description));
+    return ImmutableSet.copyOf(difference(union(originals, toAdd), toRemove));
+  }
+
+  private static void checkIsEmpty(Set<String> set, String errorString) {
+    checkArgument(set.isEmpty(), String.format("%s: %s", errorString, set));
+  }
+
+  private static void checkConflicts(
       String baseFlagName, Object overwriteValue, Object addValue, Object removeValue) {
     checkNotBoth(baseFlagName, overwriteValue, "add_" + baseFlagName, addValue);
     checkNotBoth(baseFlagName, overwriteValue, "remove_" + baseFlagName, removeValue);
   }
 
-  private void checkNotBoth(String nameA, Object valueA, String nameB, Object valueB) {
+  private static void checkNotBoth(String nameA, Object valueA, String nameB, Object valueB) {
     checkArgument(valueA == null || valueB == null, "Don't pass both --%s and --%s", nameA, nameB);
   }
 }

@@ -17,9 +17,11 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.registry.Registries.getTlds;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 
 import com.beust.jcommander.Parameter;
@@ -80,5 +82,20 @@ class CreateTldCommand extends CreateOrUpdateTldCommand {
   Registry getOldRegistry(String tld) {
     checkState(!getTlds().contains(tld), "TLD already exists");
     return null;
+  }
+
+  @Override
+  ImmutableSet<String> getAllowedRegistrants(Registry oldRegistry) {
+    return ImmutableSet.copyOf(nullToEmpty(allowedRegistrants));
+  }
+
+  @Override
+  ImmutableSet<String> getAllowedNameservers(Registry oldRegistry) {
+    return ImmutableSet.copyOf(nullToEmpty(allowedNameservers));
+  }
+
+  @Override
+  ImmutableSet<String> getReservedLists(Registry oldRegistry) {
+    return ImmutableSet.copyOf(nullToEmpty(reservedListNames));
   }
 }

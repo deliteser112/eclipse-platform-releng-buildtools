@@ -15,25 +15,18 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Sets.difference;
-import static com.google.common.collect.Sets.intersection;
-import static com.google.common.collect.Sets.union;
 import static google.registry.model.RoidSuffixes.isRoidSuffixUsed;
 import static google.registry.util.CollectionUtils.findDuplicates;
-import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 
 import com.beust.jcommander.Parameter;
-import com.googlecode.objectify.Key;
 
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.Registries;
@@ -41,7 +34,6 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.model.registry.label.PremiumList;
-import google.registry.model.registry.label.ReservedList;
 import google.registry.tools.params.OptionalStringParameter;
 import google.registry.tools.params.TransitionListParameter.BillingCostTransitions;
 import google.registry.tools.params.TransitionListParameter.TldStateTransitions;
@@ -208,27 +200,15 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
       description = "The end of the claims period")
   DateTime claimsPeriodEnd;
 
-  @Nullable
-  Set<String> reservedListNamesToAdd;
-
-  @Nullable
-  Set<String> reservedListNamesToRemove;
-
-  @Nullable
-  Set<String> allowedRegistrantsToAdd;
-
-  @Nullable
-  Set<String> allowedRegistrantsToRemove;
-
-  @Nullable
-  Set<String> allowedNameserversToAdd;
-
-  @Nullable
-  Set<String> allowedNameserversToRemove;
-
   /** Returns the existing registry (for update) or null (for creates). */
   @Nullable
   abstract Registry getOldRegistry(String tld);
+
+  abstract ImmutableSet<String> getAllowedRegistrants(Registry oldRegistry);
+
+  abstract ImmutableSet<String> getAllowedNameservers(Registry oldRegistry);
+
+  abstract ImmutableSet<String> getReservedLists(Registry oldRegistry);
 
   /** Subclasses can override this to set their own properties. */
   void setCommandSpecificProperties(@SuppressWarnings("unused") Registry.Builder builder) {}
@@ -354,76 +334,18 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
         }
       }
 
-      ImmutableSet<String> newReservedListNames =
-          formUpdatedList(
-              "reserved lists",
-              oldRegistry == null ? ImmutableSet.<String>of() : FluentIterable
-                  .from(oldRegistry.getReservedLists())
-                  .transform(
-                      new Function<Key<ReservedList>, String>() {
-                        @Override
-                        public String apply(Key<ReservedList> key) {
-                          return key.getName();
-                        }})
-                  .toSet(),
-              reservedListNames,
-              reservedListNamesToAdd,
-              reservedListNamesToRemove);
+      ImmutableSet<String> newReservedListNames = getReservedLists(oldRegistry);
       checkReservedListValidityForTld(tld, newReservedListNames);
       builder.setReservedListsByName(newReservedListNames);
 
-      builder.setAllowedRegistrantContactIds(
-          formUpdatedList(
-              "allowed registrants",
-              oldRegistry == null
-                  ? ImmutableSet.<String>of()
-                  : oldRegistry.getAllowedRegistrantContactIds(),
-              allowedRegistrants,
-              allowedRegistrantsToAdd,
-              allowedRegistrantsToRemove));
+      builder.setAllowedRegistrantContactIds(getAllowedRegistrants(oldRegistry));
 
-      builder.setAllowedFullyQualifiedHostNames(
-          formUpdatedList(
-              "allowed nameservers",
-              oldRegistry == null
-                  ? ImmutableSet.<String>of()
-                  : oldRegistry.getAllowedFullyQualifiedHostNames(),
-              allowedNameservers,
-              allowedNameserversToAdd,
-              allowedNameserversToRemove));
+      builder.setAllowedFullyQualifiedHostNames(getAllowedNameservers(oldRegistry));
 
       // Update the Registry object.
       setCommandSpecificProperties(builder);
       stageEntityChange(oldRegistry, builder.build());
     }
-  }
-
-  private static ImmutableSet<String> formUpdatedList(
-      String description,
-      ImmutableSet<String> originals,
-      List<String> toReplace,
-      Set<String> toAdd,
-      Set<String> toRemove) {
-    if (toReplace != null) {
-      return ImmutableSet.copyOf(toReplace);
-    }
-    toAdd = nullToEmpty(toAdd);
-    toRemove = nullToEmpty(toRemove);
-    checkIsEmpty(
-        intersection(toAdd, toRemove),
-        String.format(
-            "Adding and removing the same %s simultaneously doesn't make sense", description));
-    checkIsEmpty(
-        intersection(originals, toAdd),
-        String.format("Cannot add %s that were previously present", description));
-    checkIsEmpty(
-        difference(toRemove, originals),
-        String.format("Cannot remove %s that were not previously present", description));
-    return ImmutableSet.copyOf(difference(union(originals, toAdd), toRemove));
-  }
-
-  private static void checkIsEmpty(Set<String> set, String errorString) {
-    checkArgument(set.isEmpty(), String.format("%s: %s", errorString, set));
   }
 
   @Override
