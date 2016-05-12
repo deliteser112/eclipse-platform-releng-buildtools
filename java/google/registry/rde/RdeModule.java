@@ -56,16 +56,4 @@ public final class RdeModule {
   static Queue provideQueueRdeReport() {
     return getQueue("rde-report");
   }
-
-  @Provides
-  @Named("rde-staging")
-  static Queue provideQueueRdeStaging() {
-    return getQueue("rde-staging");
-  }
-
-  @Provides
-  @Named("rde-upload")
-  static Queue provideQueueRdeUpload() {
-    return getQueue("rde-upload");
-  }
 }

@@ -173,15 +173,6 @@
   </queue>
 
   <queue>
-    <name>rde-staging</name>
-    <rate>1/m</rate>
-    <max-concurrent-requests>10</max-concurrent-requests>
-    <retry-parameters>
-      <task-age-limit>4h</task-age-limit>
-    </retry-parameters>
-  </queue>
-
-  <queue>
     <name>brda</name>
     <rate>1/m</rate>
     <max-concurrent-requests>10</max-concurrent-requests>
