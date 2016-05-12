@@ -225,6 +225,13 @@ public abstract class BillingEvent extends ImmutableObject
     @Index
     DateTime syntheticCreationTime;
 
+    /**
+     * For {@link Flag#SYNTHETIC} events, the {@link BillingEvent} from which this OneTime was
+     * created. This is needed in order to properly match billing events against
+     * {@link Cancellation}s.
+     */
+    Long cancellationTargetId;
+
     public Money getCost() {
       return cost;
     }
@@ -239,6 +246,10 @@ public abstract class BillingEvent extends ImmutableObject
 
     public DateTime getSyntheticCreationTime() {
       return syntheticCreationTime;
+    }
+
+    public Long getCancellationTargetId() {
+      return cancellationTargetId;
     }
 
     @Override
@@ -277,6 +288,11 @@ public abstract class BillingEvent extends ImmutableObject
         return this;
       }
 
+      public Builder setCancellationTargetId(Long cancellationTargetId) {
+        getInstance().cancellationTargetId = cancellationTargetId;
+        return this;
+      }
+
       @Override
       public OneTime build() {
         OneTime instance = getInstance();
@@ -291,7 +307,11 @@ public abstract class BillingEvent extends ImmutableObject
         checkState(
             instance.getFlags().contains(Flag.SYNTHETIC)
                 == (instance.syntheticCreationTime != null),
-            "Billing events with SYNTHETIC flag set must have a synthetic creation time.");
+            "Synthetic creation time must be set if and only if the SYNTHETIC flag is set.");
+        checkState(
+            instance.getFlags().contains(Flag.SYNTHETIC)
+                == (instance.cancellationTargetId != null),
+            "Cancellation target ID must be set if and only if the SYNTHETIC flag is set.");
         return super.build();
       }
     }

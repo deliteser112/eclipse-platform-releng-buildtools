@@ -91,6 +91,7 @@ public class BillingEventTest extends EntityTestCase {
             .setReason(Reason.CREATE)
             .setFlags(ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT, BillingEvent.Flag.SYNTHETIC))
             .setSyntheticCreationTime(now.plusDays(10))
+            .setCancellationTargetId(1L)
             .setPeriodYears(2)
             .setCost(Money.of(USD, 1))
             .setEventTime(now)
@@ -179,7 +180,7 @@ public class BillingEventTest extends EntityTestCase {
   public void testFailure_syntheticFlagWithoutCreationTime() {
     thrown.expect(
         IllegalStateException.class,
-        "Billing events with SYNTHETIC flag set must have a synthetic creation time");
+        "Synthetic creation time must be set if and only if the SYNTHETIC flag is set.");
     oneTime.asBuilder()
         .setFlags(ImmutableSet.of(BillingEvent.Flag.SYNTHETIC))
         .build();
@@ -189,9 +190,29 @@ public class BillingEventTest extends EntityTestCase {
   public void testFailure_syntheticCreationTimeWithoutFlag() {
     thrown.expect(
         IllegalStateException.class,
-        "Billing events with SYNTHETIC flag set must have a synthetic creation time");
+        "Synthetic creation time must be set if and only if the SYNTHETIC flag is set");
     oneTime.asBuilder()
         .setSyntheticCreationTime(now.plusDays(10))
+        .build();
+  }
+
+  @Test
+  public void testFailure_syntheticFlagWithoutCancellationTargetId() {
+    thrown.expect(
+        IllegalStateException.class,
+        "Synthetic creation time must be set if and only if the SYNTHETIC flag is set.");
+    oneTime.asBuilder()
+        .setFlags(ImmutableSet.of(BillingEvent.Flag.SYNTHETIC))
+        .build();
+  }
+
+  @Test
+  public void testFailure_cancellationTargetIdWithoutFlag() {
+    thrown.expect(
+        IllegalStateException.class,
+        "Cancellation target ID must be set if and only if the SYNTHETIC flag is set");
+    oneTime.asBuilder()
+        .setCancellationTargetId(2L)
         .build();
   }
 
