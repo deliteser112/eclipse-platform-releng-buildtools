@@ -274,7 +274,6 @@ public class VerifyEntityIntegrityAction implements Runnable {
           DomainResource domain = (DomainResource) domainBase;
           verifyExistence(key, domain.getApplication());
           verifyExistence(key, domain.getAutorenewBillingEvent());
-          verifyExistence(key, domain.getAutorenewPollMessage());
           for (GracePeriod gracePeriod : domain.getGracePeriods()) {
             verifyExistence(key, gracePeriod.getOneTimeBillingEvent());
             verifyExistence(key, gracePeriod.getRecurringBillingEvent());
