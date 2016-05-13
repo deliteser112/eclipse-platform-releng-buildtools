@@ -39,6 +39,7 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 
@@ -49,7 +50,6 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -76,16 +76,20 @@ public class DnsUpdateWriterTest {
   public final AppEngineRule appEngine =
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
-  @Rule public ExpectedException thrown = ExpectedException.none();
+  @Rule
+  public final ExceptionRule thrown = new ExceptionRule();
 
-  @Rule public final InjectRule inject = new InjectRule();
+  @Rule
+  public final InjectRule inject = new InjectRule();
 
   private final FakeClock clock = new FakeClock(DateTime.parse("1971-01-01TZ"));
 
-  @Mock private DnsMessageTransport mockResolver;
-  @Captor private ArgumentCaptor<Update> updateCaptor;
-  private DelegationSignerData testSignerData =
-      DelegationSignerData.create(1, 3, 1, base16().decode("0123456789ABCDEF"));
+  @Mock
+  private DnsMessageTransport mockResolver;
+
+  @Captor
+  private ArgumentCaptor<Update> updateCaptor;
+
   private DnsUpdateWriter writer;
 
   @Before
@@ -127,7 +131,9 @@ public class DnsUpdateWriterTest {
             .asBuilder()
             .setNameservers(
                 ImmutableSet.of(ReferenceUnion.create(persistActiveHost("ns1.example.tld"))))
-            .setDsData(ImmutableSet.of(testSignerData))
+            .setDsData(
+                ImmutableSet.of(
+                    DelegationSignerData.create(1, 3, 1, base16().decode("0123456789ABCDEF"))))
             .build();
     persistResource(domain);
 
@@ -184,7 +190,7 @@ public class DnsUpdateWriterTest {
                 ImmutableSet.of(
                     InetAddresses.forString("10.0.0.1"),
                     InetAddresses.forString("10.1.0.1"),
-                    InetAddresses.forString("fd0e:a5c8:6dfb:6a5e:0:0:0:1")))
+                    InetAddresses.forString("fd0e:a5c8:6dfb:6a5e::1")))
             .build();
     persistResource(host);
 
@@ -195,7 +201,7 @@ public class DnsUpdateWriterTest {
     assertThatUpdatedZoneIs(update, "tld.");
     assertThatUpdateDeletes(update, "ns1.example.tld.", Type.ANY);
     assertThatUpdateAdds(update, "ns1.example.tld.", Type.A, "10.0.0.1", "10.1.0.1");
-    assertThatUpdateAdds(update, "ns1.example.tld.", Type.AAAA, "fd0e:a5c8:6dfb:6a5e:0:0:0:1");
+    assertThatUpdateAdds(update, "ns1.example.tld.", Type.AAAA, "fd0e:a5c8:6dfb:6a5e::1");
     assertThatTotalUpdateSetsIs(update, 3); // The delete, the A, and AAAA sets
   }
 
@@ -222,8 +228,7 @@ public class DnsUpdateWriterTest {
             .build();
     persistResource(domain);
     when(mockResolver.send(any(Message.class))).thenReturn(messageWithResponseCode(Rcode.SERVFAIL));
-    thrown.expect(VerifyException.class);
-    thrown.expectMessage("SERVFAIL");
+    thrown.expect(VerifyException.class, "SERVFAIL");
 
     writer.publishDomain("example.tld");
   }
@@ -237,8 +242,7 @@ public class DnsUpdateWriterTest {
             .build();
     persistResource(host);
     when(mockResolver.send(any(Message.class))).thenReturn(messageWithResponseCode(Rcode.SERVFAIL));
-    thrown.expect(VerifyException.class);
-    thrown.expectMessage("SERVFAIL");
+    thrown.expect(VerifyException.class, "SERVFAIL");
 
     writer.publishHost("ns1.example.tld");
   }

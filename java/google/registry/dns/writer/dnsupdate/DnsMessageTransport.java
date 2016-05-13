@@ -25,6 +25,7 @@ import google.registry.config.ConfigModule.Config;
 import org.joda.time.Duration;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.Opcode;
+import org.xbill.DNS.SimpleResolver;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -33,6 +34,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 import javax.inject.Inject;
 import javax.net.SocketFactory;

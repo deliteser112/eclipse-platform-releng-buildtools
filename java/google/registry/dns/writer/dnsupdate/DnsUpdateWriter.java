@@ -66,8 +66,8 @@ import javax.inject.Inject;
  * <p>Only NS, DS, A, and AAAA records are published, and in particular no DNSSEC signing is done
  * assuming that this will be done by a third party DNS provider.
  *
- * <p>Each publish call is treated as an atomic update to the DNS. If an update fails an exception is
- * thrown, expecting the caller to retry the update later. The SOA record serial number is
+ * <p>Each publish call is treated as an atomic update to the DNS. If an update fails an exception
+ * is thrown, expecting the caller to retry the update later. The SOA record serial number is
  * implicitly incremented by the server on each UPDATE message, as required by RFC 2136. Care must
  * be taken to make sure the SOA serial number does not go backwards if the entire TLD (zone) is
  * "reset" to empty and republished.
@@ -193,13 +193,16 @@ public class DnsUpdateWriter implements DnsWriter {
   }
 
   private RRset makeV6AddressSet(String hostName, Iterable<InetAddress> addresses)
-      throws TextParseException {
+      throws TextParseException, IOException {
     RRset addressSet = new RRset();
     for (InetAddress address : addresses) {
       if (address instanceof Inet6Address) {
         AAAARecord record =
             new AAAARecord(
-                toAbsoluteName(hostName), DClass.IN, dnsTimeToLive.getStandardSeconds(), address);
+                toAbsoluteName(hostName),
+                DClass.IN,
+                dnsTimeToLive.getStandardSeconds(),
+                new org.xbill.DNS.Inet6Address(address.getAddress()));
         addressSet.addRR(record);
       }
     }

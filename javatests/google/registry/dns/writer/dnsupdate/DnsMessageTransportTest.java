@@ -22,11 +22,12 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.base.VerifyException;
 
+import google.registry.testing.ExceptionRule;
+
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -45,7 +46,6 @@ import org.xbill.DNS.utils.base16;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -61,13 +61,18 @@ public class DnsMessageTransportTest {
 
   private static final String UPDATE_HOST = "127.0.0.1";
 
-  @Mock private SocketFactory mockFactory;
-  @Mock private Socket mockSocket;
+  @Mock
+  private SocketFactory mockFactory;
+
+  @Mock
+  private Socket mockSocket;
+
   private Message simpleQuery;
   private Message expectedResponse;
   private DnsMessageTransport resolver;
 
-  @Rule public ExpectedException thrown = ExpectedException.none();
+  @Rule
+  public final ExceptionRule thrown = new ExceptionRule();
 
   @Before
   public void before() throws Exception {
@@ -153,8 +158,7 @@ public class DnsMessageTransportTest {
     }
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     when(mockSocket.getOutputStream()).thenReturn(outputStream);
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("message larger than maximum");
+    thrown.expect(IllegalArgumentException.class, "message larger than maximum");
 
     resolver.send(oversize);
   }
@@ -165,8 +169,8 @@ public class DnsMessageTransportTest {
     when(mockSocket.getInputStream())
         .thenReturn(new ByteArrayInputStream(messageToBytesWithLength(expectedResponse)));
     when(mockSocket.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-    thrown.expect(VerifyException.class);
-    thrown.expectMessage(
+    thrown.expect(
+        VerifyException.class,
         "response ID "
             + expectedResponse.getHeader().getID()
             + " does not match query ID "
@@ -182,8 +186,8 @@ public class DnsMessageTransportTest {
     when(mockSocket.getInputStream())
         .thenReturn(new ByteArrayInputStream(messageToBytesWithLength(expectedResponse)));
     when(mockSocket.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-    thrown.expect(VerifyException.class);
-    thrown.expectMessage("response opcode 'STATUS' does not match query opcode 'QUERY'");
+    thrown.expect(
+        VerifyException.class, "response opcode 'STATUS' does not match query opcode 'QUERY'");
 
     resolver.send(simpleQuery);
   }
@@ -196,7 +200,7 @@ public class DnsMessageTransportTest {
     return message;
   }
 
-  private byte[] messageToBytesWithLength(Message message) throws IOException {
+  private byte[] messageToBytesWithLength(Message message) {
     byte[] bytes = message.toWire();
     ByteBuffer buffer =
         ByteBuffer.allocate(bytes.length + DnsMessageTransport.MESSAGE_LENGTH_FIELD_BYTES);

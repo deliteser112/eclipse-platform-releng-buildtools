@@ -41,9 +41,9 @@ public interface DnsWriter extends AutoCloseable {
   /**
    * Loads {@code hostName} from datastore and publishes its A/AAAA glue records to the DNS server.
    * Replaces existing records for the exact name supplied, with an A or AAAA record (as
-   * appropriate) for each address stored in the registry, for the supplied host name. If the host is
-   * deleted then the existing records are deleted. Assumes that this method will only be called for
-   * in-bailiwick hosts. The registry does not have addresses for other hosts.
+   * appropriate) for each address stored in the registry, for the supplied host name. If the host
+   * is deleted then the existing records are deleted. Assumes that this method will only be called
+   * for in-bailiwick hosts. The registry does not have addresses for other hosts.
    *
    * @param hostName the fully qualified host name, with no trailing dot
    */
