@@ -14,8 +14,8 @@
 
 package google.registry.model;
 
+import static com.google.common.base.Predicates.assignableFrom;
 import static com.google.common.base.Predicates.or;
-import static com.google.common.base.Predicates.subtypeOf;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -62,7 +62,7 @@ public final class SchemaVersion {
    */
   public static String getSchema() {
     return FluentIterable.from(getAllPersistedTypes())
-        .filter(or(subtypeOf(Enum.class), subtypeOf(ImmutableObject.class)))
+        .filter(or(assignableFrom(Enum.class), assignableFrom(ImmutableObject.class)))
         .transform(new Function<Class<?>, String>() {
             @Override
             public String apply(Class<?> clazz) {
