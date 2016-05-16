@@ -79,7 +79,7 @@ public abstract class BaseDomainUpdateFlow<R extends DomainBase, B extends Build
             : new MaxSigLifeChangeNotSupportedException();
       }
       Set<DelegationSignerData> newDsData = existingResource.getDsData();
-      // RFC 5901 specifies that removes are processed before adds.
+      // RFC 5910 specifies that removes are processed before adds.
       Remove remove = secDnsUpdate.getRemove();
       if (remove != null) {
         if (Boolean.FALSE.equals(remove.getAll())) {  // Explicit all=false is meaningless.
