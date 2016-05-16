@@ -195,16 +195,13 @@ public class DnsUpdateWriter implements DnsWriter {
   }
 
   private RRset makeV6AddressSet(String hostName, Iterable<InetAddress> addresses)
-      throws TextParseException, IOException {
+      throws TextParseException {
     RRset addressSet = new RRset();
     for (InetAddress address : addresses) {
       if (address instanceof Inet6Address) {
         AAAARecord record =
             new AAAARecord(
-                toAbsoluteName(hostName),
-                DClass.IN,
-                dnsTimeToLive.getStandardSeconds(),
-                new org.xbill.DNS.Inet6Address(address.getAddress()));
+                toAbsoluteName(hostName), DClass.IN, dnsTimeToLive.getStandardSeconds(), address);
         addressSet.addRR(record);
       }
     }

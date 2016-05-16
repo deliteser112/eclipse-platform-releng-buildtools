@@ -16,6 +16,7 @@ package google.registry.dns.writer.dnsupdate;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assert_;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -43,8 +44,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-
-import junit.framework.AssertionFailedError;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -83,13 +82,13 @@ public class DnsUpdateWriterTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  private final FakeClock clock = new FakeClock(DateTime.parse("1971-01-01TZ"));
-
   @Mock
   private DnsMessageTransport mockResolver;
 
   @Captor
   private ArgumentCaptor<Update> updateCaptor;
+
+  private final FakeClock clock = new FakeClock(DateTime.parse("1971-01-01TZ"));
 
   private DnsUpdateWriter writer;
 
@@ -188,7 +187,7 @@ public class DnsUpdateWriterTest {
                 ImmutableSet.of(
                     InetAddresses.forString("10.0.0.1"),
                     InetAddresses.forString("10.1.0.1"),
-                    InetAddresses.forString("fd0e:a5c8:6dfb:6a5e::1")))
+                    InetAddresses.forString("fd0e:a5c8:6dfb:6a5e:0:0:0:1")))
             .build();
     persistResource(host);
 
@@ -199,7 +198,7 @@ public class DnsUpdateWriterTest {
     assertThatUpdatedZoneIs(update, "tld.");
     assertThatUpdateDeletes(update, "ns1.example.tld.", Type.ANY);
     assertThatUpdateAdds(update, "ns1.example.tld.", Type.A, "10.0.0.1", "10.1.0.1");
-    assertThatUpdateAdds(update, "ns1.example.tld.", Type.AAAA, "fd0e:a5c8:6dfb:6a5e::1");
+    assertThatUpdateAdds(update, "ns1.example.tld.", Type.AAAA, "fd0e:a5c8:6dfb:6a5e:0:0:0:1");
     assertThatTotalUpdateSetsIs(update, 3); // The delete, the A, and AAAA sets
   }
 
@@ -281,12 +280,10 @@ public class DnsUpdateWriterTest {
         return fixIterator(Record.class, set.rrs());
       }
     }
-    throw new AssertionFailedError(
-        "no record set found for resource '"
-            + resourceName
-            + "', type '"
-            + Type.string(recordType)
-            + "'");
+    assert_().fail(
+        "No record set found for resource '%s' type '%s'",
+        resourceName, Type.string(recordType));
+    throw new AssertionError();
   }
 
   @SuppressWarnings({"unchecked", "unused"})

@@ -14,6 +14,7 @@
 
 package google.registry.dns.writer.dnsupdate;
 
+import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -41,7 +42,6 @@ import org.xbill.DNS.Rcode;
 import org.xbill.DNS.Record;
 import org.xbill.DNS.Type;
 import org.xbill.DNS.Update;
-import org.xbill.DNS.utils.base16;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -99,7 +99,7 @@ public class DnsMessageTransportTest {
     byte[] messageData = new byte[messageLength];
     sentMessage.get(messageData);
     assertThat(messageLength).isEqualTo(simpleQuery.toWire().length);
-    assertThat(base16.toString(messageData)).isEqualTo(base16.toString(simpleQuery.toWire()));
+    assertThat(base16().encode(messageData)).isEqualTo(base16().encode(simpleQuery.toWire()));
   }
 
   @Test
@@ -111,8 +111,8 @@ public class DnsMessageTransportTest {
 
     Message actualResponse = resolver.send(simpleQuery);
 
-    assertThat(base16.toString(actualResponse.toWire()))
-        .isEqualTo(base16.toString(expectedResponse.toWire()));
+    assertThat(base16().encode(actualResponse.toWire()))
+        .isEqualTo(base16().encode(expectedResponse.toWire()));
   }
 
   @Test

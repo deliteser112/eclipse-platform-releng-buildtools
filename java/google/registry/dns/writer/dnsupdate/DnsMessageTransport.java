@@ -25,7 +25,6 @@ import google.registry.config.ConfigModule.Config;
 import org.joda.time.Duration;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.Opcode;
-import org.xbill.DNS.SimpleResolver;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -34,7 +33,6 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 import javax.inject.Inject;
 import javax.net.SocketFactory;
@@ -42,8 +40,8 @@ import javax.net.SocketFactory;
 /**
  * A transport for DNS messages. Sends/receives DNS messages over TCP using old-style {@link Socket}
  * s and the message framing defined in <a href="https://tools.ietf.org/html/rfc1035">RFC 1035</a>.
- * We would like use the dnsjava library's {@link SimpleResolver} class for this, but it requires
- * {@link SocketChannel} which is not supported on AppEngine.
+ * We would like use the dnsjava library's {@link org.xbill.DNS.SimpleResolver} class for this, but
+ * it requires {@link java.nio.channels.SocketChannel} which is not supported on AppEngine.
  */
 public class DnsMessageTransport {
 
