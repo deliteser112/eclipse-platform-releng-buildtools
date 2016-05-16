@@ -48,7 +48,7 @@ import google.registry.flows.domain.BaseDomainUpdateFlow.SecDnsAllUsageException
 import google.registry.flows.domain.BaseDomainUpdateFlow.UrgentAttributeNotSupportedException;
 import google.registry.flows.domain.DomainApplicationUpdateFlow.ApplicationStatusProhibitsUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
-import google.registry.flows.domain.DomainFlowUtils.LinkedResourceDoesNotExistException;
+import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
@@ -467,7 +467,7 @@ public class DomainApplicationUpdateFlowTest
   @Test
   public void testFailure_missingHost() throws Exception {
     thrown.expect(
-        LinkedResourceDoesNotExistException.class,
+        LinkedResourcesDoNotExistException.class,
         "(ns2.example.tld)");
     persistActiveHost("ns1.example.tld");
     persistActiveContact("sh8013");
@@ -479,7 +479,7 @@ public class DomainApplicationUpdateFlowTest
   @Test
   public void testFailure_missingContact() throws Exception {
     thrown.expect(
-        LinkedResourceDoesNotExistException.class,
+        LinkedResourcesDoNotExistException.class,
         "(sh8013)");
     persistActiveHost("ns1.example.tld");
     persistActiveHost("ns2.example.tld");

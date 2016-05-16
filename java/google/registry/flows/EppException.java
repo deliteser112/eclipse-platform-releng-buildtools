@@ -17,7 +17,9 @@ package google.registry.flows;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.eppinput.EppInput.InnerCommand;
@@ -117,10 +119,20 @@ public abstract class EppException extends Exception {
       super(
           String.format(
               "The %s with given ID (%s) doesn't exist.",
-              !type.isAnnotationPresent(ExternalMessagingName.class)
-                  ? "object"
-                  : type.getAnnotation(ExternalMessagingName.class).value(),
+              type.isAnnotationPresent(ExternalMessagingName.class)
+                  ? type.getAnnotation(ExternalMessagingName.class).value()
+                  : "object",
               id));
+    }
+
+    public ObjectDoesNotExistException(Class<?> type, ImmutableSet<String> ids) {
+      super(
+          String.format(
+              "The %s with given IDs (%s) don't exist.",
+              type.isAnnotationPresent(ExternalMessagingName.class)
+                  ? type.getAnnotation(ExternalMessagingName.class).value() + " objects"
+                  : "objects",
+              Joiner.on(',').join(ids)));
     }
   }
 

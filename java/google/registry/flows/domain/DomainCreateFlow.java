@@ -75,7 +75,7 @@ import java.util.Set;
  * @error {@link DomainFlowUtils.InvalidIdnDomainLabelException}
  * @error {@link DomainFlowUtils.InvalidPunycodeException}
  * @error {@link DomainFlowUtils.LeadingDashException}
- * @error {@link DomainFlowUtils.LinkedResourceDoesNotExistException}
+ * @error {@link DomainFlowUtils.LinkedResourcesDoNotExistException}
  * @error {@link DomainFlowUtils.LinkedResourceInPendingDeleteProhibitsOperationException}
  * @error {@link DomainFlowUtils.MissingAdminContactException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}

@@ -89,7 +89,7 @@ import java.util.List;
  * @error {@link DomainFlowUtils.InvalidPunycodeException}
  * @error {@link DomainFlowUtils.LaunchPhaseMismatchException}
  * @error {@link DomainFlowUtils.LeadingDashException}
- * @error {@link DomainFlowUtils.LinkedResourceDoesNotExistException}
+ * @error {@link DomainFlowUtils.LinkedResourcesDoNotExistException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedException}
  * @error {@link DomainFlowUtils.NoMarksFoundMatchingDomainException}

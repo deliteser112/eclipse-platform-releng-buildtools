@@ -16,13 +16,19 @@ package google.registry.model.domain;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.Maps.transformValues;
+import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
-import static google.registry.model.index.ForeignKeyIndex.loadAndGetReference;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.difference;
 import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+import static google.registry.util.CollectionUtils.union;
 
+import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import com.googlecode.objectify.Ref;
@@ -38,10 +44,12 @@ import google.registry.model.eppinput.ResourceCommand.ResourceCreateOrChange;
 import google.registry.model.eppinput.ResourceCommand.ResourceUpdate;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 import google.registry.model.host.HostResource;
+import google.registry.model.index.ForeignKeyIndex;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -66,7 +74,7 @@ public class DomainCommand {
    */
   public interface CreateOrUpdate<T extends CreateOrUpdate<T>> extends SingleResourceCommand {
     /** Creates a copy of this command with hard links to hosts and contacts. */
-    public T cloneAndLinkReferences(DateTime now) throws InvalidReferenceException;
+    public T cloneAndLinkReferences(DateTime now) throws InvalidReferencesException;
   }
 
   /** The fields on "chgType" from {@link "http://tools.ietf.org/html/rfc5731"}. */
@@ -190,12 +198,27 @@ public class DomainCommand {
 
     /** Creates a copy of this {@link Create} with hard links to hosts and contacts. */
     @Override
-    public Create cloneAndLinkReferences(DateTime now) throws InvalidReferenceException {
+    public Create cloneAndLinkReferences(DateTime now) throws InvalidReferencesException {
       Create clone = clone(this);
       clone.nameservers = linkHosts(clone.nameserverFullyQualifiedHostNames, now);
-      clone.contacts = linkContacts(clone.foreignKeyedDesignatedContacts, now);
-      clone.registrant = clone.registrantContactId == null
-          ? null : loadReference(clone.registrantContactId, ContactResource.class, now);
+      if (registrantContactId == null) {
+        clone.contacts = linkContacts(clone.foreignKeyedDesignatedContacts, now);
+      } else {
+        // Load the registrant and contacts in one shot.
+        ForeignKeyedDesignatedContact registrantPlaceholder = new ForeignKeyedDesignatedContact();
+        registrantPlaceholder.contactId = clone.registrantContactId;
+        registrantPlaceholder.type = DesignatedContact.Type.REGISTRANT;
+        Set<DesignatedContact> contacts = linkContacts(
+            union(clone.foreignKeyedDesignatedContacts, registrantPlaceholder),
+            now);
+        for (DesignatedContact contact : contacts) {
+          if (DesignatedContact.Type.REGISTRANT.equals(contact.getType())) {
+            clone.registrant = contact.getContactRef();
+            clone.contacts = difference(contacts, contact);
+            break;
+          }
+        }
+      }
       return clone;
     }
   }
@@ -378,7 +401,7 @@ public class DomainCommand {
       }
 
       /** Creates a copy of this {@link AddRemove} with hard links to hosts and contacts. */
-      private AddRemove cloneAndLinkReferences(DateTime now) throws InvalidReferenceException {
+      private AddRemove cloneAndLinkReferences(DateTime now) throws InvalidReferencesException {
         AddRemove clone = clone(this);
         clone.nameservers = linkHosts(clone.nameserverFullyQualifiedHostNames, now);
         clone.contacts = linkContacts(clone.foreignKeyedDesignatedContacts, now);
@@ -390,10 +413,14 @@ public class DomainCommand {
     @XmlType(propOrder = {"registrantContactId", "authInfo"})
     public static class Change extends DomainCreateOrChange<DomainBase.Builder<?, ?>> {
       /** Creates a copy of this {@link Change} with hard links to hosts and contacts. */
-      Change cloneAndLinkReferences(DateTime now) throws InvalidReferenceException {
+      Change cloneAndLinkReferences(DateTime now) throws InvalidReferencesException {
         Change clone = clone(this);
         clone.registrant = clone.registrantContactId == null
-            ? null : loadReference(clone.registrantContactId, ContactResource.class, now);
+            ? null
+            : getOnlyElement(
+                loadReferences(
+                    ImmutableSet.of(clone.registrantContactId), ContactResource.class, now)
+                        .values());
         return clone;
       }
     }
@@ -423,7 +450,7 @@ public class DomainCommand {
      * those classes, which is harmless because the getters do that anyways.
      */
     @Override
-    public Update cloneAndLinkReferences(DateTime now) throws InvalidReferenceException {
+    public Update cloneAndLinkReferences(DateTime now) throws InvalidReferencesException {
       Update clone = clone(this);
       clone.innerAdd = clone.getInnerAdd().cloneAndLinkReferences(now);
       clone.innerRemove = clone.getInnerRemove().cloneAndLinkReferences(now);
@@ -433,44 +460,54 @@ public class DomainCommand {
   }
 
   private static Set<Ref<HostResource>> linkHosts(
-      Set<String> fullyQualifiedHostNames, DateTime now) throws InvalidReferenceException {
+      Set<String> fullyQualifiedHostNames, DateTime now) throws InvalidReferencesException {
     if (fullyQualifiedHostNames == null) {
       return null;
     }
-    ImmutableSet.Builder<Ref<HostResource>> linked = new ImmutableSet.Builder<>();
-    for (String fullyQualifiedHostName : fullyQualifiedHostNames) {
-      linked.add(loadReference(fullyQualifiedHostName, HostResource.class, now));
-    }
-    return linked.build();
+    return ImmutableSet.copyOf(
+        loadReferences(fullyQualifiedHostNames, HostResource.class, now).values());
   }
 
   private static Set<DesignatedContact> linkContacts(
-      Set<ForeignKeyedDesignatedContact> contacts, DateTime now) throws InvalidReferenceException {
+      Set<ForeignKeyedDesignatedContact> contacts, DateTime now) throws InvalidReferencesException {
     if (contacts == null) {
       return null;
     }
+    ImmutableSet.Builder<String> foreignKeys = new ImmutableSet.Builder<>();
+    for (ForeignKeyedDesignatedContact contact : contacts) {
+      foreignKeys.add(contact.contactId);
+    }
+    ImmutableMap<String, Ref<ContactResource>> loadedContacts =
+        loadReferences(foreignKeys.build(), ContactResource.class, now);
     ImmutableSet.Builder<DesignatedContact> linkedContacts = new ImmutableSet.Builder<>();
     for (ForeignKeyedDesignatedContact contact : contacts) {
       linkedContacts.add(DesignatedContact.create(
-          contact.type, loadReference(contact.contactId, ContactResource.class, now)));
+          contact.type, loadedContacts.get(contact.contactId)));
     }
     return linkedContacts.build();
   }
 
-  /** Load a reference to a resource by its foreign key. */
-  private static <T extends EppResource> Ref<T> loadReference(
-      final String foreignKey, final Class<T> clazz, final DateTime now)
-      throws InvalidReferenceException {
-    Ref<T> ref = ofy().doTransactionless(new Work<Ref<T>>() {
-      @Override
-      public Ref<T> run() {
-        return loadAndGetReference(clazz, foreignKey, now);
-      }
-    });
-    if (ref == null) {
-      throw new InvalidReferenceException(clazz, foreignKey);
+  /** Load references to resources by their foreign keys. */
+  private static <T extends EppResource> ImmutableMap<String, Ref<T>> loadReferences(
+      final Set<String> foreignKeys, final Class<T> clazz, final DateTime now)
+      throws InvalidReferencesException {
+    Map<String, ForeignKeyIndex<T>> fkis = ofy().doTransactionless(
+        new Work<Map<String, ForeignKeyIndex<T>>>() {
+          @Override
+          public Map<String, ForeignKeyIndex<T>> run() {
+            return ForeignKeyIndex.load(clazz, foreignKeys, now);
+          }});
+    if (!fkis.keySet().equals(foreignKeys)) {
+      throw new InvalidReferencesException(
+          clazz, ImmutableSet.copyOf(difference(foreignKeys, fkis.keySet())));
     }
-    return ref;
+    return ImmutableMap.copyOf(transformValues(
+        fkis,
+        new Function<ForeignKeyIndex<T>, Ref<T>>() {
+          @Override
+          public Ref<T> apply(ForeignKeyIndex<T> fki) {
+            return fki.getReference();
+          }}));
   }
 
   /**
@@ -487,18 +524,18 @@ public class DomainCommand {
     String contactId;
   }
 
-  /** Exception to throw when a referenced object does not exist. */
-  public static class InvalidReferenceException extends Exception {
-    private String foreignKey;
-    private Class<?> type;
+  /** Exception to throw when referenced objects don't exist. */
+  public static class InvalidReferencesException extends Exception {
+    private final ImmutableSet<String> foreignKeys;
+    private final Class<?> type;
 
-    InvalidReferenceException(Class<?> type, String foreignKey) {
+    InvalidReferencesException(Class<?> type, ImmutableSet<String> foreignKeys) {
       this.type = checkNotNull(type);
-      this.foreignKey = foreignKey;
+      this.foreignKeys = foreignKeys;
     }
 
-    public String getForeignKey() {
-      return foreignKey;
+    public ImmutableSet<String> getForeignKeys() {
+      return foreignKeys;
     }
 
     public Class<?> getType() {

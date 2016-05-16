@@ -56,7 +56,7 @@ import java.util.Set;
  * @error {@link BaseDomainUpdateFlow.SecDnsAllUsageException}
  * @error {@link BaseDomainUpdateFlow.UrgentAttributeNotSupportedException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
- * @error {@link DomainFlowUtils.LinkedResourceDoesNotExistException}
+ * @error {@link DomainFlowUtils.LinkedResourcesDoNotExistException}
  * @error {@link DomainFlowUtils.LinkedResourceInPendingDeleteProhibitsOperationException}
  * @error {@link DomainFlowUtils.MissingAdminContactException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}

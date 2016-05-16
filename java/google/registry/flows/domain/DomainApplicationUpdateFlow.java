@@ -46,7 +46,7 @@ import google.registry.model.reporting.HistoryEntry;
  * @error {@link BaseDomainUpdateFlow.SecDnsAllUsageException}
  * @error {@link BaseDomainUpdateFlow.UrgentAttributeNotSupportedException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
- * @error {@link DomainFlowUtils.LinkedResourceDoesNotExistException}
+ * @error {@link DomainFlowUtils.LinkedResourcesDoNotExistException}
  * @error {@link DomainFlowUtils.MissingAdminContactException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.MissingTechnicalContactException}

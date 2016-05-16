@@ -64,7 +64,7 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.CreateOrUpdate;
-import google.registry.model.domain.DomainCommand.InvalidReferenceException;
+import google.registry.model.domain.DomainCommand.InvalidReferencesException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.BaseFeeCommand;
@@ -405,8 +405,8 @@ public class DomainFlowUtils {
       throws EppException {
     try {
       return command.cloneAndLinkReferences(now);
-    } catch (InvalidReferenceException e) {
-      throw new LinkedResourceDoesNotExistException(e.getType(), e.getForeignKey());
+    } catch (InvalidReferencesException e) {
+      throw new LinkedResourcesDoNotExistException(e.getType(), e.getForeignKeys());
     }
   }
 
@@ -681,9 +681,9 @@ public class DomainFlowUtils {
   }
 
   /** Resource linked to this domain does not exist. */
-  static class LinkedResourceDoesNotExistException extends ObjectDoesNotExistException {
-    public LinkedResourceDoesNotExistException(Class<?> type, String resourceId) {
-      super(type, resourceId);
+  static class LinkedResourcesDoNotExistException extends ObjectDoesNotExistException {
+    public LinkedResourcesDoNotExistException(Class<?> type, ImmutableSet<String> resourceIds) {
+      super(type, resourceIds);
     }
   }
 

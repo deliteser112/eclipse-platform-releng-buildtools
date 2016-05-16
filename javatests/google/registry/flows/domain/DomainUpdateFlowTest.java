@@ -57,8 +57,8 @@ import google.registry.flows.domain.BaseDomainUpdateFlow.MaxSigLifeChangeNotSupp
 import google.registry.flows.domain.BaseDomainUpdateFlow.SecDnsAllUsageException;
 import google.registry.flows.domain.BaseDomainUpdateFlow.UrgentAttributeNotSupportedException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
-import google.registry.flows.domain.DomainFlowUtils.LinkedResourceDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourceInPendingDeleteProhibitsOperationException;
+import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
@@ -858,7 +858,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   @Test
   public void testFailure_missingHost() throws Exception {
     thrown.expect(
-        LinkedResourceDoesNotExistException.class,
+        LinkedResourcesDoNotExistException.class,
         "(ns2.example.foo)");
     persistActiveHost("ns1.example.foo");
     persistActiveContact("sh8013");
@@ -870,7 +870,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   @Test
   public void testFailure_missingContact() throws Exception {
     thrown.expect(
-        LinkedResourceDoesNotExistException.class,
+        LinkedResourcesDoNotExistException.class,
         "(sh8013)");
     persistActiveHost("ns1.example.foo");
     persistActiveHost("ns2.example.foo");

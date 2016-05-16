@@ -83,8 +83,8 @@ import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameEx
 import google.registry.flows.domain.DomainFlowUtils.InvalidIdnDomainLabelException;
 import google.registry.flows.domain.DomainFlowUtils.InvalidPunycodeException;
 import google.registry.flows.domain.DomainFlowUtils.LeadingDashException;
-import google.registry.flows.domain.DomainFlowUtils.LinkedResourceDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourceInPendingDeleteProhibitsOperationException;
+import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingRegistrantException;
@@ -668,7 +668,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testFailure_missingHost() throws Exception {
     thrown.expect(
-        LinkedResourceDoesNotExistException.class,
+        LinkedResourcesDoNotExistException.class,
         "(ns2.example.net)");
     persistActiveHost("ns1.example.net");
     persistActiveContact("jd1234");
@@ -720,7 +720,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testFailure_missingContact() throws Exception {
     thrown.expect(
-        LinkedResourceDoesNotExistException.class,
+        LinkedResourcesDoNotExistException.class,
         "(sh8013)");
     persistActiveHost("ns1.example.net");
     persistActiveHost("ns2.example.net");

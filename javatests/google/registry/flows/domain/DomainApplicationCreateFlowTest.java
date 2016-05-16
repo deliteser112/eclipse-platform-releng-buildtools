@@ -77,7 +77,7 @@ import google.registry.flows.domain.DomainFlowUtils.InvalidIdnDomainLabelExcepti
 import google.registry.flows.domain.DomainFlowUtils.InvalidPunycodeException;
 import google.registry.flows.domain.DomainFlowUtils.LaunchPhaseMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.LeadingDashException;
-import google.registry.flows.domain.DomainFlowUtils.LinkedResourceDoesNotExistException;
+import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedException;
 import google.registry.flows.domain.DomainFlowUtils.NoMarksFoundMatchingDomainException;
@@ -760,7 +760,7 @@ public class DomainApplicationCreateFlowTest
 
   @Test
   public void testFailure_missingHost() throws Exception {
-    thrown.expect(LinkedResourceDoesNotExistException.class, "(ns2.example.net)");
+    thrown.expect(LinkedResourcesDoNotExistException.class, "(ns2.example.net)");
     persistActiveHost("ns1.example.net");
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
@@ -769,7 +769,7 @@ public class DomainApplicationCreateFlowTest
 
   @Test
   public void testFailure_missingContact() throws Exception {
-    thrown.expect(LinkedResourceDoesNotExistException.class, "(sh8013)");
+    thrown.expect(LinkedResourcesDoNotExistException.class, "(sh8013)");
     persistActiveHost("ns1.example.net");
     persistActiveHost("ns2.example.net");
     persistActiveContact("jd1234");
