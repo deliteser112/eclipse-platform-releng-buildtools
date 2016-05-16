@@ -30,7 +30,6 @@ import google.registry.mapreduce.MapreduceAction;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.host.HostResource;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -98,7 +97,7 @@ public class DnsRefreshForHostRenameAction implements MapreduceAction {
     @Override
     public final void map(DomainResource domain) {
       if (isActive(domain, hostUpdateTime)
-          && domain.getNameservers().contains(ReferenceUnion.create(Ref.create(targetHostKey)))) {
+          && domain.getNameservers().contains(Ref.create(targetHostKey))) {
         try {
           dnsQueue.addDomainRefreshTask(domain.getFullyQualifiedDomainName());
           logger.infofmt("Enqueued refresh for domain %s", domain.getFullyQualifiedDomainName());

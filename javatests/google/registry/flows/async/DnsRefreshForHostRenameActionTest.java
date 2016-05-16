@@ -30,10 +30,10 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 
 import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.host.HostResource;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.testing.ExceptionRule;
@@ -77,21 +77,21 @@ public class DnsRefreshForHostRenameActionTest
   @Test
   public void testSuccess_dnsUpdateEnqueued() throws Exception {
     createTld("tld");
-    HostResource renamedHost = persistActiveHost("ns1.example.tld");
-    HostResource otherHost = persistActiveHost("ns2.example.tld");
+    Ref<HostResource> renamedHostRef = Ref.create(persistActiveHost("ns1.example.tld"));
+    Ref<HostResource> otherHostRef = Ref.create(persistActiveHost("ns2.example.tld"));
     persistResource(newDomainApplication("notadomain.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(ReferenceUnion.create(renamedHost)))
+        .setNameservers(ImmutableSet.of(renamedHostRef))
         .build());
     persistResource(newDomainResource("example.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(ReferenceUnion.create(renamedHost)))
+        .setNameservers(ImmutableSet.of(renamedHostRef))
         .build());
     persistResource(newDomainResource("otherexample.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(ReferenceUnion.create(renamedHost)))
+        .setNameservers(ImmutableSet.of(renamedHostRef))
         .build());
     persistResource(newDomainResource("untouched.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(ReferenceUnion.create(otherHost)))
+        .setNameservers(ImmutableSet.of(otherHostRef))
         .build());
-    runMapreduce(Key.create(renamedHost).getString());
+    runMapreduce(renamedHostRef.getKey().getString());
     verify(dnsQueue).addDomainRefreshTask("example.tld");
     verify(dnsQueue).addDomainRefreshTask("otherexample.tld");
     verifyNoMoreInteractions(dnsQueue);
@@ -100,12 +100,12 @@ public class DnsRefreshForHostRenameActionTest
   @Test
   public void testSuccess_noDnsTasksForDeletedDomain() throws Exception {
     createTld("tld");
-    HostResource renamedHost = persistActiveHost("ns1.example.tld");
+    Ref<HostResource> renamedHostRef = Ref.create(persistActiveHost("ns1.example.tld"));
     persistResource(newDomainResource("example.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(ReferenceUnion.create(renamedHost)))
+        .setNameservers(ImmutableSet.of(renamedHostRef))
         .setDeletionTime(START_OF_TIME)
         .build());
-    runMapreduce(Key.create(renamedHost).getString());
+    runMapreduce(renamedHostRef.getKey().getString());
     verifyZeroInteractions(dnsQueue);
   }
 

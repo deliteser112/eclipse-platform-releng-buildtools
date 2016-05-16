@@ -20,7 +20,8 @@ import static google.registry.flows.domain.DomainFlowUtils.validateContactsHaveT
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 import static google.registry.flows.domain.DomainFlowUtils.validateDsData;
-import static google.registry.flows.domain.DomainFlowUtils.validateNameservers;
+import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnTld;
+import static google.registry.flows.domain.DomainFlowUtils.validateNameserversCount;
 import static google.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
 import static google.registry.flows.domain.DomainFlowUtils.validateRegistrantAllowedOnTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
@@ -36,6 +37,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
@@ -66,6 +68,8 @@ import google.registry.model.smd.SignedMark;
 import google.registry.model.tmch.ClaimsListShard;
 
 import org.joda.money.Money;
+
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -210,10 +214,13 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
         command.getRegistrant(),
         command.getNameservers());
     validateContactsHaveTypes(command.getContacts());
-    validateRegistrantAllowedOnTld(tld, command.getRegistrant());
+    validateRegistrantAllowedOnTld(tld, command.getRegistrantContactId());
     validateNoDuplicateContacts(command.getContacts());
     validateRequiredContactsPresent(command.getRegistrant(), command.getContacts());
-    validateNameservers(tld, command.getNameservers());
+    Set<String> fullyQualifiedHostNames =
+        nullToEmpty(command.getNameserverFullyQualifiedHostNames());
+    validateNameserversCount(fullyQualifiedHostNames.size());
+    validateNameserversAllowedOnTld(tld, fullyQualifiedHostNames);
     validateLaunchCreateExtension();
     // If a signed mark was provided, then it must match the desired domain label.
     // We do this after validating the launch create extension so that flows which don't allow any

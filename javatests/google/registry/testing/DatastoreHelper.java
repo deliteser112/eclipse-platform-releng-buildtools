@@ -68,7 +68,6 @@ import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
@@ -132,6 +131,7 @@ public class DatastoreHelper {
 
   public static DomainResource newDomainResource(
       String domainName, String repoId, ContactResource contact) {
+    Ref<ContactResource> contactRef = Ref.create(contact);
     return new DomainResource.Builder()
         .setRepoId(repoId)
         .setFullyQualifiedDomainName(domainName)
@@ -139,10 +139,10 @@ public class DatastoreHelper {
         .setCurrentSponsorClientId("TheRegistrar")
         .setCreationTimeForTest(START_OF_TIME)
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
-        .setRegistrant(ReferenceUnion.create(contact))
+        .setRegistrant(contactRef)
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, ReferenceUnion.create(contact)),
-            DesignatedContact.create(Type.TECH, ReferenceUnion.create(contact))))
+            DesignatedContact.create(Type.ADMIN, contactRef),
+            DesignatedContact.create(Type.TECH, contactRef)))
         .setRegistrationExpirationTime(END_OF_TIME)
         .build();
   }
@@ -172,15 +172,16 @@ public class DatastoreHelper {
 
   public static DomainApplication newDomainApplication(
       String domainName, String repoId, ContactResource contact, LaunchPhase phase) {
+    Ref<ContactResource> contactRef = Ref.create(contact);
     return new DomainApplication.Builder()
         .setRepoId(repoId)
         .setFullyQualifiedDomainName(domainName)
         .setCurrentSponsorClientId("TheRegistrar")
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
-        .setRegistrant(ReferenceUnion.create(contact))
+        .setRegistrant(contactRef)
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, ReferenceUnion.create(contact)),
-            DesignatedContact.create(Type.TECH, ReferenceUnion.create(contact))))
+            DesignatedContact.create(Type.ADMIN, contactRef),
+            DesignatedContact.create(Type.TECH, contactRef)))
         .setPhase(phase)
         .setApplicationStatus(VALIDATED)
         .addStatusValue(StatusValue.PENDING_CREATE)

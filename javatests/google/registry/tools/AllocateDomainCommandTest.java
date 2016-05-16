@@ -42,12 +42,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import com.beust.jcommander.ParameterException;
+import com.googlecode.objectify.Ref;
 
 import google.registry.flows.EppXmlTransformer;
 import google.registry.flows.domain.DomainAllocateFlow;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainApplication;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.Trid;
@@ -93,20 +93,20 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
             .asBuilder()
             .setRepoId(repoId)
             .setCreationTimeForTest(START_OF_TIME)
-            .setRegistrant(ReferenceUnion.create(persistActiveContact("registrant")))
+            .setRegistrant(Ref.create(persistActiveContact("registrant")))
             .setContacts(ImmutableSet.of(
                 DesignatedContact.create(
                     ADMIN,
-                    ReferenceUnion.create(persistActiveContact("adminContact"))),
+                    Ref.create(persistActiveContact("adminContact"))),
                 DesignatedContact.create(
                     BILLING,
-                    ReferenceUnion.create(persistActiveContact("billingContact"))),
+                    Ref.create(persistActiveContact("billingContact"))),
                 DesignatedContact.create(
                     TECH,
-                    ReferenceUnion.create(persistActiveContact("techContact")))))
+                    Ref.create(persistActiveContact("techContact")))))
             .setNameservers(ImmutableSet.of(
-                ReferenceUnion.create(persistActiveHost("ns1.example.com")),
-                ReferenceUnion.create(persistActiveHost("ns2.example.com"))))
+                Ref.create(persistActiveHost("ns1.example.com")),
+                Ref.create(persistActiveHost("ns2.example.com"))))
             .setApplicationStatus(VALIDATED)
             .setDsData(ImmutableSet.of(
                 DelegationSignerData.create(

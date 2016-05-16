@@ -41,7 +41,6 @@ import google.registry.mapreduce.inputs.NullInput;
 import google.registry.model.EppResource;
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.domain.DomainBase;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
@@ -110,7 +109,7 @@ public abstract class DeleteEppResourceAction<T extends EppResource> implements 
         "Resource %s is already deleted.", resource.getForeignKey());
     checkState(
         resource.getStatusValues().contains(StatusValue.PENDING_DELETE),
-        "Resource %s is not set as PENDING_DELETE", resource.getForeignKey());    
+        "Resource %s is not set as PENDING_DELETE", resource.getForeignKey());
     mapper.setTargetResource(resourceKey);
     reducer.setClient(requestingClientId, isSuperuser);
     logger.infofmt("Executing Delete EPP resource mapreduce for %s", resourceKey);
@@ -147,7 +146,7 @@ public abstract class DeleteEppResourceAction<T extends EppResource> implements 
     }
 
     /** Determine whether the target resource is a linked resource on the domain. */
-    protected abstract boolean isLinked(DomainBase domain, ReferenceUnion<T> targetResourceRef);
+    protected abstract boolean isLinked(DomainBase domain, Ref<T> targetResourceRef);
 
     @Override
     public void map(DomainBase domain) {
@@ -159,12 +158,12 @@ public abstract class DeleteEppResourceAction<T extends EppResource> implements 
         emit(targetEppResourceKey, false);
         return;
       }
-      // The ReferenceUnion can't be a field on the Mapper, because when a Ref<?> is serialized
-      // (required for each MapShardTask), it uses the DeadRef version, which contains the Ref's
-      // value, which isn't serializable. Thankfully, this isn't expensive.
+      // The Ref can't be a field on the Mapper, because when a Ref<?> is serialized (required for
+      // each MapShardTask), it uses the DeadRef version, which contains the Ref's value, which
+      // isn't serializable. Thankfully, this isn't expensive.
       // See: https://github.com/objectify/objectify/blob/master/src/main/java/com/googlecode/objectify/impl/ref/DeadRef.java
       if (isActive(domain, targetResourceUpdateTimestamp)
-          && isLinked(domain, ReferenceUnion.create(Ref.create(targetEppResourceKey)))) {
+          && isLinked(domain, Ref.create(targetEppResourceKey))) {
         emit(targetEppResourceKey, true);
       }
     }

@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableSet;
 import com.beust.jcommander.ParameterException;
 import com.googlecode.objectify.Ref;
 
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
@@ -45,9 +44,9 @@ public class UniformRapidSuspensionCommandTest
   }
 
   private void persistDomainWithHosts(HostResource... hosts) {
-    ImmutableSet.Builder<ReferenceUnion<HostResource>> hostRefs = new ImmutableSet.Builder<>();
+    ImmutableSet.Builder<Ref<HostResource>> hostRefs = new ImmutableSet.Builder<>();
     for (HostResource host : hosts) {
-      hostRefs.add(ReferenceUnion.create(Ref.create(host)));
+      hostRefs.add(Ref.create(host));
     }
     persistResource(newDomainResource("evil.tld").asBuilder()
         .setNameservers(hostRefs.build())

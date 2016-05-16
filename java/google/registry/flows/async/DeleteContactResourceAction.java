@@ -16,9 +16,10 @@ package google.registry.flows.async;
 
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 
+import com.googlecode.objectify.Ref;
+
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.HistoryEntry.Type;
 import google.registry.request.Action;
@@ -48,7 +49,7 @@ public class DeleteContactResourceAction extends DeleteEppResourceAction<Contact
 
     @Override
     protected boolean isLinked(
-        DomainBase domain, ReferenceUnion<ContactResource> targetResourceRef) {
+        DomainBase domain, Ref<ContactResource> targetResourceRef) {
       return domain.getReferencedContacts().contains(targetResourceRef);
     }
   }

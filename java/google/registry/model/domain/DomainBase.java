@@ -19,6 +19,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static google.registry.model.domain.DesignatedContact.Type.REGISTRANT;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
 import static google.registry.util.CollectionUtils.union;
@@ -27,6 +28,7 @@ import static google.registry.util.DomainNameUtils.getTldFromSld;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.IgnoreSave;
@@ -74,6 +76,7 @@ public abstract class DomainBase extends EppResource {
   /** References to hosts that are the nameservers for the domain. */
   @XmlElementWrapper(name = "ns")
   @XmlElement(name = "hostObj")
+  //TODO(b/28713909): Make this a Set<Ref<HostResource>>.
   Set<ReferenceUnion<HostResource>> nameservers;
 
   /**
@@ -102,6 +105,7 @@ public abstract class DomainBase extends EppResource {
    * both stored in {@link DomainBase#allContacts} to allow for more efficient queries.
    */
   @Ignore
+  //TODO(b/28713909): Make this a Ref<ContactResource>.
   ReferenceUnion<ContactResource> registrant;
 
   /** Authorization info (aka transfer secret) of the domain. */
@@ -149,8 +153,12 @@ public abstract class DomainBase extends EppResource {
     return idnTableName;
   }
 
-  public ImmutableSet<ReferenceUnion<HostResource>> getNameservers() {
-    return nullToEmptyImmutableCopy(nameservers);
+  public ImmutableSet<Ref<HostResource>> getNameservers() {
+    ImmutableSet.Builder<Ref<HostResource>> builder = new ImmutableSet.Builder<>();
+    for (ReferenceUnion<HostResource> union : nullToEmptyImmutableCopy(nameservers)) {
+      builder.add(union.getLinked());
+    }
+    return builder.build();
   }
 
   /** Loads and returns all linked nameservers. */
@@ -158,12 +166,12 @@ public abstract class DomainBase extends EppResource {
     return EppResourceUtils.loadReferencedNameservers(getNameservers());
   }
 
-  public ReferenceUnion<ContactResource> getRegistrant() {
-    return registrant;
+  public Ref<ContactResource> getRegistrant() {
+    return registrant == null ? null : registrant.getLinked();
   }
 
   public ContactResource loadRegistrant() {
-    return registrant.getLinked().get();
+    return getRegistrant().get();
   }
 
   public ImmutableSet<DesignatedContact> getContacts() {
@@ -175,11 +183,11 @@ public abstract class DomainBase extends EppResource {
   }
 
   /** Returns all referenced contacts from this domain or application. */
-  public ImmutableSet<ReferenceUnion<ContactResource>> getReferencedContacts() {
-    ImmutableSet.Builder<ReferenceUnion<ContactResource>> contactsBuilder =
+  public ImmutableSet<Ref<ContactResource>> getReferencedContacts() {
+    ImmutableSet.Builder<Ref<ContactResource>> contactsBuilder =
         new ImmutableSet.Builder<>();
     for (DesignatedContact designated : nullToEmptyImmutableCopy(allContacts)) {
-      contactsBuilder.add(designated.getContactId());
+      contactsBuilder.add(designated.getContactRef());
     }
     return contactsBuilder.build();
   }
@@ -202,7 +210,7 @@ public abstract class DomainBase extends EppResource {
     ImmutableSet.Builder<DesignatedContact> contactsBuilder = new ImmutableSet.Builder<>();
     for (DesignatedContact contact : nullToEmptyImmutableCopy(allContacts)) {
       if (REGISTRANT.equals(contact.getType())){
-        registrant = contact.getContactId();
+        registrant = ReferenceUnion.create(contact.getContactRef());
       } else {
         contactsBuilder.add(contact);
       }
@@ -229,8 +237,11 @@ public abstract class DomainBase extends EppResource {
       checkState(
           !isNullOrEmpty(instance.fullyQualifiedDomainName), "Missing fullyQualifiedDomainName");
       instance.tld = getTldFromSld(instance.fullyQualifiedDomainName);
-      instance.allContacts = instance.registrant == null ? instance.contacts : union(
-          instance.getContacts(), DesignatedContact.create(REGISTRANT, instance.registrant));
+      instance.allContacts = instance.registrant == null
+          ? instance.contacts
+          : union(
+              instance.getContacts(),
+              DesignatedContact.create(REGISTRANT, instance.registrant.getLinked()));
       return super.build();
     }
 
@@ -244,8 +255,8 @@ public abstract class DomainBase extends EppResource {
       return thisCastToDerived();
     }
 
-    public B setRegistrant(ReferenceUnion<ContactResource> registrant) {
-      getInstance().registrant = registrant;
+    public B setRegistrant(Ref<ContactResource> registrant) {
+      getInstance().registrant = ReferenceUnion.create(registrant);
       return thisCastToDerived();
     }
 
@@ -254,17 +265,21 @@ public abstract class DomainBase extends EppResource {
       return thisCastToDerived();
     }
 
-    public B setNameservers(ImmutableSet<ReferenceUnion<HostResource>> nameservers) {
-      getInstance().nameservers = nameservers;
+    public B setNameservers(ImmutableSet<Ref<HostResource>> nameservers) {
+      ImmutableSet.Builder<ReferenceUnion<HostResource>> builder = new ImmutableSet.Builder<>();
+      for (Ref<HostResource> ref : nullToEmpty(nameservers)) {
+        builder.add(ReferenceUnion.create(ref));
+      }
+      getInstance().nameservers = builder.build();
       return thisCastToDerived();
     }
 
-    public B addNameservers(ImmutableSet<ReferenceUnion<HostResource>> nameservers) {
+    public B addNameservers(ImmutableSet<Ref<HostResource>> nameservers) {
       return setNameservers(
           ImmutableSet.copyOf(union(getInstance().getNameservers(), nameservers)));
     }
 
-    public B removeNameservers(ImmutableSet<ReferenceUnion<HostResource>> nameservers) {
+    public B removeNameservers(ImmutableSet<Ref<HostResource>> nameservers) {
       return setNameservers(
           ImmutableSet.copyOf(difference(getInstance().getNameservers(), nameservers)));
     }

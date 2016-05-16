@@ -16,7 +16,6 @@ package google.registry.model.domain;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Embed;
-import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 
 import google.registry.model.EppResource;
@@ -24,81 +23,50 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.host.HostResource;
 
-import java.io.Serializable;
-
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
- * A "union" type to represent referenced objects as either a foreign key or as a link to another
- * object in the datastore.
+ * Legacy shell of a "union" type to represent referenced objects as either a foreign key or as a
+ * link to another object in the datastore. In its current form it merely wraps a {@link Ref}.
  * <p>
- * This type always marshals as the "foreign key". When it is explicitly storing a foreign key it
- * gets the value from its own string field. When it is linked to another object, it gets the value
- * from the other object.
- * <p>
- * When a {@link ReferenceUnion} comes in from Epp, either in an update or a delete, it fills in the
- * "foreign key" string field, but as soon as the relevant Flow runs it deletes that field and
- * replaces it with a linked {@link Ref} to the object named by that string. We can't do this in a
- * {@code XmlJavaTypeAdapter} because failing a lookup is a business logic error, not a failure to
- * parse the XML.
+ * This type always marshals as the "foreign key". We no longer use this type for unmarshalling.
  *
  * @param <T> the type being referenced
  */
 @Embed
-public class ReferenceUnion<T extends EppResource> extends ImmutableObject implements Serializable {
+public class ReferenceUnion<T extends EppResource> extends ImmutableObject {
 
   @Index
   Ref<T> linked;
-
-  /** This is never persisted, and only ever populated to marshal or unmarshal to or from XML. */
-  @Ignore
-  String foreignKey;
 
   public Ref<T> getLinked() {
     return linked;
   }
 
-  public String getForeignKey() {
-    return foreignKey;
-  }
-
-  /** An adapter that is aware of the union inside {@link ReferenceUnion}. */
+  /** An adapter that marshals the linked {@link Ref} as its loaded foreign key. */
   public static class Adapter<T extends EppResource>
       extends XmlAdapter<String, ReferenceUnion<T>> {
 
     @Override
     public ReferenceUnion<T> unmarshal(String foreignKey) throws Exception {
-      return ReferenceUnion.<T>create(foreignKey);
+      throw new UnsupportedOperationException();
     }
 
     @Override
     public String marshal(ReferenceUnion<T> reference) throws Exception {
-      return reference.getForeignKey() == null
-          ? reference.getLinked().get().getForeignKey()
-          : reference.getForeignKey();
+      return reference.getLinked().get().getForeignKey();
     }
   }
 
   /** An adapter for references to contacts. */
-  static class ContactReferenceUnionAdapter extends ReferenceUnion.Adapter<ContactResource>{}
+  static class ContactReferenceUnionAdapter extends Adapter<ContactResource>{}
 
   /** An adapter for references to hosts. */
-  static class HostReferenceUnionAdapter extends ReferenceUnion.Adapter<HostResource>{}
-
-  public static <T extends EppResource> ReferenceUnion<T> create(String foreignKey) {
-    ReferenceUnion<T> instance = new ReferenceUnion<>();
-    instance.foreignKey = foreignKey;
-    return instance;
-  }
+  static class HostReferenceUnionAdapter extends Adapter<HostResource>{}
 
   public static <T extends EppResource> ReferenceUnion<T> create(Ref<T> linked) {
     ReferenceUnion<T> instance = new ReferenceUnion<>();
     instance.linked = linked;
     return instance;
-  }
-
-  /** Convenience method. */
-  public static <T extends EppResource> ReferenceUnion<T> create(T resource) {
-    return create(Ref.create(resource));
   }
 }

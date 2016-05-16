@@ -36,7 +36,6 @@ import google.registry.model.EppResource.Builder;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex;
@@ -139,12 +138,12 @@ public final class EppResourceUtils {
         latestOf(now, resource.getUpdateAutoTimestamp().getTimestamp()));
   }
 
-  /** Loads returns the hosts specified by the given ReferenceUnions. */
+  /** Loads and returns the hosts specified by the given reference. */
   public static ImmutableSet<HostResource> loadReferencedNameservers(
-      Set<ReferenceUnion<HostResource>> hostRefs) {
+      Set<Ref<HostResource>> hostRefs) {
     ImmutableSet.Builder<HostResource> builder = new ImmutableSet.Builder<>();
-    for (ReferenceUnion<HostResource> hostRef : hostRefs) {
-      HostResource host = hostRef.getLinked().get();
+    for (Ref<HostResource> hostRef : hostRefs) {
+      HostResource host = hostRef.get();
       if (host != null) {
         builder.add(host);
       }
@@ -152,12 +151,12 @@ public final class EppResourceUtils {
     return builder.build();
   }
 
-  /** Loads and returns the contacts specified by the given ReferenceUnions. */
+  /** Loads and returns the contacts specified by the given references. */
   public static ImmutableSet<ContactResource> loadReferencedContacts(
-      Set<ReferenceUnion<ContactResource>> contactRefs) {
+      Set<Ref<ContactResource>> contactRefs) {
     ImmutableSet.Builder<ContactResource> builder = new ImmutableSet.Builder<>();
-    for (ReferenceUnion<ContactResource> contactRef : contactRefs) {
-      builder.add(contactRef.getLinked().get());
+    for (Ref<ContactResource> contactRef : contactRefs) {
+      builder.add(contactRef.get());
     }
     return builder.build();
   }

@@ -24,6 +24,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 
+import com.googlecode.objectify.Ref;
+
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -32,7 +34,6 @@ import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
@@ -232,27 +233,27 @@ public final class FullFieldsTestEntityHelper {
             StatusValue.SERVER_UPDATE_PROHIBITED))
         .setDsData(ImmutableSet.of(new DelegationSignerData()));
     if (registrant != null) {
-      builder.setRegistrant(ReferenceUnion.create(registrant));
+      builder.setRegistrant(Ref.create(registrant));
     }
     if ((admin != null) || (tech != null)) {
       ImmutableSet.Builder<DesignatedContact> contactsBuilder = new ImmutableSet.Builder<>();
       if (admin != null) {
         contactsBuilder.add(DesignatedContact.create(
-            DesignatedContact.Type.ADMIN, ReferenceUnion.create(admin)));
+            DesignatedContact.Type.ADMIN, Ref.create(admin)));
       }
       if (tech != null) {
         contactsBuilder.add(DesignatedContact.create(
-            DesignatedContact.Type.TECH, ReferenceUnion.create(tech)));
+            DesignatedContact.Type.TECH, Ref.create(tech)));
       }
       builder.setContacts(contactsBuilder.build());
     }
     if ((ns1 != null) || (ns2 != null)) {
-      ImmutableSet.Builder<ReferenceUnion<HostResource>> nsBuilder = new ImmutableSet.Builder<>();
+      ImmutableSet.Builder<Ref<HostResource>> nsBuilder = new ImmutableSet.Builder<>();
       if (ns1 != null) {
-        nsBuilder.add(ReferenceUnion.create(ns1));
+        nsBuilder.add(Ref.create(ns1));
       }
       if (ns2 != null) {
-        nsBuilder.add(ReferenceUnion.create(ns2));
+        nsBuilder.add(Ref.create(ns2));
       }
       builder.setNameservers(nsBuilder.build());
     }

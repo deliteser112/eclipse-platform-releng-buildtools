@@ -33,7 +33,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
@@ -68,8 +67,7 @@ public class DeleteHostResourceActionTest
     assertAboutHosts().that(hostUsed).doesNotHaveStatusValue(StatusValue.PENDING_DELETE)
         .and().hasDeletionTime(END_OF_TIME);
     domain = loadByUniqueId(DomainResource.class, "example.tld", now);
-    assertThat(domain.getNameservers())
-        .contains(ReferenceUnion.<HostResource>create(Ref.create(hostUsed)));
+    assertThat(domain.getNameservers()).contains(Ref.create(hostUsed));
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(hostUsed, HistoryEntry.Type.HOST_DELETE_FAILURE);
     assertPollMessageFor(

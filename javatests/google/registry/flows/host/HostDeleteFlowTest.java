@@ -31,6 +31,7 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import com.google.common.collect.ImmutableSet;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 
 import google.registry.flows.FlowRunner.CommitMode;
 import google.registry.flows.FlowRunner.UserPrivileges;
@@ -41,7 +42,6 @@ import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistExce
 import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
 import google.registry.flows.async.DeleteEppResourceAction;
 import google.registry.flows.async.DeleteHostResourceAction;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
@@ -179,7 +179,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     createTld("tld");
     persistResource(newDomainResource("example.tld").asBuilder()
         .setNameservers(ImmutableSet.of(
-            ReferenceUnion.create(persistActiveHost(getUniqueIdFromCommand()))))
+            Ref.create(persistActiveHost(getUniqueIdFromCommand()))))
         .build());
     thrown.expect(ResourceToDeleteIsReferencedException.class);
     runFlow();
@@ -190,7 +190,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     createTld("tld");
     persistResource(newDomainApplication("example.tld").asBuilder()
         .setNameservers(ImmutableSet.of(
-            ReferenceUnion.create(persistActiveHost(getUniqueIdFromCommand()))))
+            Ref.create(persistActiveHost(getUniqueIdFromCommand()))))
         .build());
     thrown.expect(ResourceToDeleteIsReferencedException.class);
     runFlow();

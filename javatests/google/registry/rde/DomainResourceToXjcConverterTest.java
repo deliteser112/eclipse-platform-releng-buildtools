@@ -46,7 +46,6 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
@@ -264,10 +263,10 @@ public class DomainResourceToXjcConverterTest {
     domain = domain.asBuilder()
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("secret")))
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(DesignatedContact.Type.ADMIN, ReferenceUnion.create(
+            DesignatedContact.create(DesignatedContact.Type.ADMIN, Ref.create(
                 makeContactResource(clock, "10-Q9JYB4C", "5372808-IRL",
                     "be that word our sign in parting", "BOFH@cat.みんな"))),
-            DesignatedContact.create(DesignatedContact.Type.TECH, ReferenceUnion.create(
+            DesignatedContact.create(DesignatedContact.Type.TECH, Ref.create(
                 makeContactResource(clock, "11-Q9JYB4C", "5372808-TRL",
                     "bird or fiend!? i shrieked upstarting", "bog@cat.みんな")))))
         .setCreationClientId("LawyerCat")
@@ -280,11 +279,11 @@ public class DomainResourceToXjcConverterTest {
         .setLastEppUpdateClientId("IntoTheTempest")
         .setLastEppUpdateTime(DateTime.parse("1920-01-01T00:00:00Z"))
         .setNameservers(ImmutableSet.of(
-            ReferenceUnion.create(
+            Ref.create(
                 makeHostResource(clock, "3-Q9JYB4C", "bird.or.devil.みんな", "1.2.3.4")),
-            ReferenceUnion.create(
+            Ref.create(
                     makeHostResource(clock, "4-Q9JYB4C", "ns2.cat.みんな", "bad:f00d:cafe::15:beef"))))
-        .setRegistrant(ReferenceUnion.create(makeContactResource(
+        .setRegistrant(Ref.create(makeContactResource(
             clock, "12-Q9JYB4C", "5372808-ERL", "(◕‿◕) nevermore", "prophet@evil.みんな")))
         .setRegistrationExpirationTime(DateTime.parse("1930-01-01T00:00:00Z"))
         .setGracePeriods(ImmutableSet.of(

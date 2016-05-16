@@ -44,7 +44,6 @@ import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
@@ -91,12 +90,11 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
         .setLastEppUpdateTime(DateTime.parse("1999-12-03T09:00:00.0Z"))
         .setLastTransferTime(DateTime.parse("2000-04-08T09:00:00.0Z"))
         .setRegistrationExpirationTime(DateTime.parse("2005-04-03T22:00:00.0Z"))
-        .setRegistrant(ReferenceUnion.create(registrant))
+        .setRegistrant(Ref.create(registrant))
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, ReferenceUnion.create(contact)),
-            DesignatedContact.create(Type.TECH, ReferenceUnion.create(contact))))
-        .setNameservers(inactive ? null
-            : ImmutableSet.of(ReferenceUnion.create(host1), ReferenceUnion.create(host2)))
+            DesignatedContact.create(Type.ADMIN, Ref.create(contact)),
+            DesignatedContact.create(Type.TECH, Ref.create(contact))))
+        .setNameservers(inactive ? null : ImmutableSet.of(Ref.create(host1), Ref.create(host2)))
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
         .build());
     // Set the superordinate domain of ns1.example.com to example.com. In reality, this would have
@@ -243,8 +241,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     persistResource(domain.asBuilder()
         .setDsData(ImmutableSet.of(DelegationSignerData.create(
             12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC"))))
-        .setNameservers(ImmutableSet.of(
-            ReferenceUnion.create(host1), ReferenceUnion.create(host3)))
+        .setNameservers(ImmutableSet.of(Ref.create(host1), Ref.create(host3)))
         .build());
     doSuccessfulTest("domain_info_response_dsdata.xml", false);
   }

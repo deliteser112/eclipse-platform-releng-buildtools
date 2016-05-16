@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 
 import google.registry.config.RegistryEnvironment;
 import google.registry.flows.EppException;
@@ -33,7 +34,6 @@ import google.registry.model.contact.ContactCommand.Delete;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.ContactResource.Builder;
 import google.registry.model.domain.DomainBase;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.reporting.HistoryEntry;
 
 /**
@@ -50,7 +50,7 @@ public class ContactDeleteFlow extends ResourceAsyncDeleteFlow<ContactResource, 
   private static final int FAILFAST_CHECK_COUNT = 5;
 
   @Override
-  protected boolean isLinkedForFailfast(final ReferenceUnion<ContactResource> ref) {
+  protected boolean isLinkedForFailfast(final Ref<ContactResource> ref) {
     // Query for the first few linked domains, and if found, actually load them. The query is
     // eventually consistent and so might be very stale, but the direct load will not be stale,
     // just non-transactional. If we find at least one actual reference then we can reliably
@@ -58,7 +58,7 @@ public class ContactDeleteFlow extends ResourceAsyncDeleteFlow<ContactResource, 
     return Iterables.any(
         ofy().load().keys(
             queryDomainsUsingResource(
-                  ContactResource.class, ref.getLinked(), now, FAILFAST_CHECK_COUNT)).values(),
+                  ContactResource.class, ref, now, FAILFAST_CHECK_COUNT)).values(),
         new Predicate<DomainBase>() {
             @Override
             public boolean apply(DomainBase domain) {

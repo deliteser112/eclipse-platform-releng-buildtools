@@ -42,7 +42,6 @@ import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
@@ -123,18 +122,14 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
         .setCreationClientId("TheRegistrar")
         .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
         .setRegistrationExpirationTime(REGISTRATION_EXPIRATION_TIME)
-        .setRegistrant(
-            ReferenceUnion.create(loadByUniqueId(
-                ContactResource.class, "jd1234", clock.nowUtc())))
+        .setRegistrant(Ref.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc())))
         .setContacts(ImmutableSet.of(
             DesignatedContact.create(
                 Type.ADMIN,
-                ReferenceUnion.create(
-                    loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc()))),
+                Ref.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc()))),
             DesignatedContact.create(
                 Type.TECH,
-                ReferenceUnion.create(
-                    loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc())))))
+                Ref.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc())))))
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("fooBAR")))
         .addGracePeriod(GracePeriod.create(
             GracePeriodStatus.ADD, clock.nowUtc().plusDays(10), "foo", null))

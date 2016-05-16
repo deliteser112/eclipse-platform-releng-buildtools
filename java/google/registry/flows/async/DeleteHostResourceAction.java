@@ -16,9 +16,10 @@ package google.registry.flows.async;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
+import com.googlecode.objectify.Ref;
+
 import google.registry.dns.DnsQueue;
 import google.registry.model.domain.DomainBase;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.HistoryEntry.Type;
@@ -48,8 +49,7 @@ public class DeleteHostResourceAction extends DeleteEppResourceAction<HostResour
     private static final long serialVersionUID = 1941092742903217194L;
 
     @Override
-    protected boolean isLinked(
-        DomainBase domain, ReferenceUnion<HostResource> targetResourceRef) {
+    protected boolean isLinked(DomainBase domain, Ref<HostResource> targetResourceRef) {
       return domain.getNameservers().contains(targetResourceRef);
     }
   }

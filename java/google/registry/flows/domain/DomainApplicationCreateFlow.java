@@ -91,7 +91,7 @@ import java.util.List;
  * @error {@link DomainFlowUtils.LeadingDashException}
  * @error {@link DomainFlowUtils.LinkedResourceDoesNotExistException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}
- * @error {@link DomainFlowUtils.NameserverNotAllowedException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedException}
  * @error {@link DomainFlowUtils.NoMarksFoundMatchingDomainException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}

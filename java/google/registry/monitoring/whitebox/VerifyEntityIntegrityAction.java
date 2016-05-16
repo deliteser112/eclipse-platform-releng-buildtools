@@ -50,7 +50,6 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.DomainApplicationIndex;
 import google.registry.model.index.EppResourceIndex;
@@ -246,8 +245,8 @@ public class VerifyEntityIntegrityAction implements Runnable {
       if (resource instanceof DomainBase) {
         DomainBase domainBase = (DomainBase) resource;
         Key<?> key = Key.create(domainBase);
-        verifyExistence(key, bustUnions(domainBase.getReferencedContacts()));
-        verifyExistence(key, bustUnions(domainBase.getNameservers()));
+        verifyExistence(key, refsToKeys(domainBase.getReferencedContacts()));
+        verifyExistence(key, refsToKeys(domainBase.getNameservers()));
         verifyExistence(key, domainBase.getTransferData().getServerApproveAutorenewEvent());
         verifyExistence(key, domainBase.getTransferData().getServerApproveAutorenewPollMessage());
         verifyExistence(key, domainBase.getTransferData().getServerApproveBillingEvent());
@@ -386,14 +385,13 @@ public class VerifyEntityIntegrityAction implements Runnable {
       return entity;
     }
 
-    private static <E extends EppResource> Set<Key<E>> bustUnions(
-        Iterable<ReferenceUnion<E>> unions) {
+    private static <E extends EppResource> ImmutableSet<Key<E>> refsToKeys(Iterable<Ref<E>> refs) {
       return FluentIterable
-          .from(unions)
-          .transform(new Function<ReferenceUnion<E>, Key<E>>() {
+          .from(refs)
+          .transform(new Function<Ref<E>, Key<E>>() {
             @Override
-            public Key<E> apply(ReferenceUnion<E> union) {
-              return union.getLinked().getKey();
+            public Key<E> apply(Ref<E> ref) {
+              return ref.getKey();
             }})
           .toSet();
     }

@@ -39,7 +39,6 @@ import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.eppcommon.Address;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -398,11 +397,7 @@ public class RdapJsonFormatter {
       @Nullable String linkBase,
       @Nullable String whoisServer) {
     // Kick off the database loads of the nameservers that we will need.
-    Set<Ref<HostResource>> hostRefs = new LinkedHashSet<>();
-    for (ReferenceUnion<HostResource> hostReference : domainResource.getNameservers()) {
-      hostRefs.add(hostReference.getLinked());
-    }
-    Map<Key<HostResource>, HostResource> loadedHosts = ofy().load().refs(hostRefs);
+    ImmutableSet<HostResource> loadedHosts = domainResource.loadNameservers();
     // And the registrant and other contacts.
     List<DesignatedContact> allContacts = new ArrayList<>();
     if (domainResource.getRegistrant() != null) {
@@ -411,7 +406,7 @@ public class RdapJsonFormatter {
     allContacts.addAll(domainResource.getContacts());
     Set<Ref<ContactResource>> contactRefs = new LinkedHashSet<>();
     for (DesignatedContact designatedContact : allContacts) {
-      contactRefs.add(designatedContact.getContactId().getLinked());
+      contactRefs.add(designatedContact.getContactRef());
     }
     Map<Key<ContactResource>, ContactResource> loadedContacts = ofy().load().refs(contactRefs);
     // Now, assemble the results, using the loaded objects as needed.
@@ -432,8 +427,7 @@ public class RdapJsonFormatter {
     }
     // Nameservers
     ImmutableList.Builder<Object> nsBuilder = new ImmutableList.Builder<>();
-    for (HostResource hostResource
-        : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
+    for (HostResource hostResource : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts)) {
       nsBuilder.add(makeRdapJsonForHost(hostResource, false, linkBase, null));
     }
     ImmutableList<Object> ns = nsBuilder.build();
@@ -445,7 +439,7 @@ public class RdapJsonFormatter {
     for (DesignatedContact designatedContact
         : DESIGNATED_CONTACT_ORDERING.immutableSortedCopy(allContacts)) {
       ContactResource loadedContact =
-          loadedContacts.get(designatedContact.getContactId().getLinked().key());
+          loadedContacts.get(designatedContact.getContactRef().key());
       entitiesBuilder.add(makeRdapJsonForContact(
           loadedContact, false, Optional.of(designatedContact.getType()), linkBase, null));
     }

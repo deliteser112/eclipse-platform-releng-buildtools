@@ -32,7 +32,6 @@ import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
@@ -227,17 +226,11 @@ public class DomainWhoisResponseTest {
             StatusValue.CLIENT_RENEW_PROHIBITED,
             StatusValue.CLIENT_TRANSFER_PROHIBITED,
             StatusValue.SERVER_UPDATE_PROHIBITED))
-        .setRegistrant(ReferenceUnion.create(registrantResourceRef))
+        .setRegistrant(registrantResourceRef)
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(
-                DesignatedContact.Type.ADMIN,
-                ReferenceUnion.create(adminResourceRef)),
-            DesignatedContact.create(
-                DesignatedContact.Type.TECH,
-                ReferenceUnion.create(techResourceRef))))
-        .setNameservers(ImmutableSet.of(
-            ReferenceUnion.create(hostResource1Ref),
-            ReferenceUnion.create(hostResource2Ref)))
+            DesignatedContact.create(DesignatedContact.Type.ADMIN, adminResourceRef),
+            DesignatedContact.create(DesignatedContact.Type.TECH, techResourceRef)))
+        .setNameservers(ImmutableSet.of(hostResource1Ref, hostResource2Ref))
         .setDsData(ImmutableSet.of(new DelegationSignerData()))
         .setGracePeriods(ImmutableSet.of(
             GracePeriod.create(GracePeriodStatus.ADD, END_OF_TIME, "", null),

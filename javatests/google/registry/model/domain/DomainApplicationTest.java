@@ -19,6 +19,7 @@ import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
+import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -29,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent;
@@ -78,12 +80,12 @@ public class DomainApplicationTest extends EntityTestCase {
                 StatusValue.SERVER_UPDATE_PROHIBITED,
                 StatusValue.SERVER_RENEW_PROHIBITED,
                 StatusValue.SERVER_HOLD))
-            .setRegistrant(ReferenceUnion.create(persistActiveContact("contact_id1")))
+            .setRegistrant(Ref.create(persistActiveContact("contact_id1")))
             .setContacts(ImmutableSet.of(DesignatedContact.create(
                 DesignatedContact.Type.ADMIN,
-                ReferenceUnion.create(persistActiveContact("contact_id2")))))
+                Ref.create(persistActiveContact("contact_id2")))))
             .setNameservers(
-                ImmutableSet.of(ReferenceUnion.create(persistActiveHost("ns1.example.com"))))
+                ImmutableSet.of(Ref.create(persistActiveHost("ns1.example.com"))))
             .setCurrentSponsorClientId("a third registrar")
             .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("password")))
             .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))
@@ -149,12 +151,12 @@ public class DomainApplicationTest extends EntityTestCase {
   public void testEmptySetsAndArraysBecomeNull() {
     assertThat(emptyBuilder().setNameservers(null).build().nameservers).isNull();
     assertThat(emptyBuilder()
-        .setNameservers(ImmutableSet.<ReferenceUnion<HostResource>>of())
+        .setNameservers(ImmutableSet.<Ref<HostResource>>of())
         .build()
         .nameservers)
             .isNull();
     assertThat(emptyBuilder()
-        .setNameservers(ImmutableSet.of(ReferenceUnion.<HostResource>create("foo")))
+        .setNameservers(ImmutableSet.of(Ref.create(newHostResource("foo.example.tld"))))
         .build()
         .nameservers)
             .isNotNull();

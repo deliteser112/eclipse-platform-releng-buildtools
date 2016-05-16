@@ -16,7 +16,6 @@ package google.registry.tools.server;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
 import static com.google.common.base.Predicates.notNull;
-import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Iterators.filter;
 import static com.google.common.io.BaseEncoding.base16;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
@@ -38,15 +37,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-import com.googlecode.objectify.Ref;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.NullInput;
 import google.registry.model.EppResource;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
 import google.registry.request.Action;
@@ -280,14 +276,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
    */
   private static String domainStanza(DomainResource domain, DateTime exportTime) {
     StringBuilder result = new StringBuilder();
-    for (HostResource nameserver : ofy().load().refs(
-        transform(
-            domain.getNameservers(),
-            new Function<ReferenceUnion<HostResource>, Ref<HostResource>>() {
-              @Override
-              public Ref<HostResource> apply(ReferenceUnion<HostResource> referenceUnion) {
-                return referenceUnion.getLinked();
-              }})).values()) {
+    for (HostResource nameserver : ofy().load().refs(domain.getNameservers()).values()) {
       result.append(String.format(
           NS_FORMAT,
           domain.getFullyQualifiedDomainName(),

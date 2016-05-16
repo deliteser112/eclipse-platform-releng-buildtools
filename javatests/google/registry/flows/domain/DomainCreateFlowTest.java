@@ -89,7 +89,7 @@ import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingRegistrantException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
-import google.registry.flows.domain.DomainFlowUtils.NameserverNotAllowedException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
@@ -1251,7 +1251,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.net"))
         .build());
-    thrown.expect(NameserverNotAllowedException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedException.class, "ns1.example.net");
     runFlow();
   }
 

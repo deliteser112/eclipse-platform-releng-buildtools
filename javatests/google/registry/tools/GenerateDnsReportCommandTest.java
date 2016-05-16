@@ -34,7 +34,6 @@ import com.beust.jcommander.ParameterException;
 import com.googlecode.objectify.Ref;
 
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -135,17 +134,13 @@ public class GenerateDnsReportCommandTest extends CommandTestCase<GenerateDnsRep
     nameserver3 = persistActiveHost("ns1.google.com");
     nameserver4 = persistActiveHost("ns2.google.com");
     domain1 = persistResource(newDomainResource("example.xn--q9jyb4c").asBuilder()
-        .setNameservers(ImmutableSet.of(
-            ReferenceUnion.create(Ref.create(nameserver1)),
-            ReferenceUnion.create(Ref.create(nameserver2))))
+        .setNameservers(ImmutableSet.of(Ref.create(nameserver1), Ref.create(nameserver2)))
         .setDsData(ImmutableSet.of(
             DelegationSignerData.create(12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC")),
             DelegationSignerData.create(56789, 2, 4, base16().decode("69FD46E6C4A45C55D4AC"))))
         .build());
     persistResource(newDomainResource("foobar.xn--q9jyb4c").asBuilder()
-        .setNameservers(ImmutableSet.of(
-            ReferenceUnion.create(Ref.create(nameserver3)),
-            ReferenceUnion.create(Ref.create(nameserver4))))
+        .setNameservers(ImmutableSet.of(Ref.create(nameserver3), Ref.create(nameserver4)))
         .build());
     // Persist a domain in a different tld that should be ignored.
     persistActiveDomain("should-be-ignored.example");

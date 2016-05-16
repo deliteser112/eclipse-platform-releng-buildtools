@@ -27,9 +27,9 @@ import com.google.template.soy.data.SoyMapData;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.googlecode.objectify.Ref;
 
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.tools.Command.GtechCommand;
@@ -113,8 +113,8 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand impleme
 
   private ImmutableSortedSet<String> getExistingNameservers(DomainResource domain) {
     ImmutableSortedSet.Builder<String> nameservers = ImmutableSortedSet.naturalOrder();
-    for (ReferenceUnion<HostResource> nameserverRef : domain.getNameservers()) {
-      nameservers.add(nameserverRef.getLinked().get().getForeignKey());
+    for (Ref<HostResource> nameserverRef : domain.getNameservers()) {
+      nameservers.add(nameserverRef.get().getForeignKey());
     }
     return nameservers.build();
   }

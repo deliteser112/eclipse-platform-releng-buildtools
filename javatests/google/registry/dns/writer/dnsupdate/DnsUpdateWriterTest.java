@@ -32,8 +32,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 
+import com.googlecode.objectify.Ref;
+
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -109,8 +110,7 @@ public class DnsUpdateWriterTest {
     DomainResource domain =
         persistActiveDomain("example.tld")
             .asBuilder()
-            .setNameservers(
-                ImmutableSet.of(ReferenceUnion.create(host1), ReferenceUnion.create(host2)))
+            .setNameservers(ImmutableSet.of(Ref.create(host1), Ref.create(host2)))
             .build();
     persistResource(domain);
 
@@ -129,8 +129,7 @@ public class DnsUpdateWriterTest {
     DomainResource domain =
         persistActiveDomain("example.tld")
             .asBuilder()
-            .setNameservers(
-                ImmutableSet.of(ReferenceUnion.create(persistActiveHost("ns1.example.tld"))))
+            .setNameservers(ImmutableSet.of(Ref.create(persistActiveHost("ns1.example.tld"))))
             .setDsData(
                 ImmutableSet.of(
                     DelegationSignerData.create(1, 3, 1, base16().decode("0123456789ABCDEF"))))
@@ -154,8 +153,7 @@ public class DnsUpdateWriterTest {
         persistActiveDomain("example.tld")
             .asBuilder()
             .addStatusValue(StatusValue.SERVER_HOLD)
-            .setNameservers(
-                ImmutableSet.of(ReferenceUnion.create(persistActiveHost("ns1.example.tld"))))
+            .setNameservers(ImmutableSet.of(Ref.create(persistActiveHost("ns1.example.tld"))))
             .build();
     persistResource(domain);
 
@@ -223,8 +221,7 @@ public class DnsUpdateWriterTest {
     DomainResource domain =
         persistActiveDomain("example.tld")
             .asBuilder()
-            .setNameservers(
-                ImmutableSet.of(ReferenceUnion.create(persistActiveHost("ns1.example.tld"))))
+            .setNameservers(ImmutableSet.of(Ref.create(persistActiveHost("ns1.example.tld"))))
             .build();
     persistResource(domain);
     when(mockResolver.send(any(Message.class))).thenReturn(messageWithResponseCode(Rcode.SERVFAIL));

@@ -40,7 +40,6 @@ import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PendingActionNotificationResponse;
@@ -79,8 +78,7 @@ public class DeleteContactResourceActionTest
     assertAboutContacts().that(contactUsed).doesNotHaveStatusValue(StatusValue.PENDING_DELETE)
         .and().hasDeletionTime(END_OF_TIME);
     domain = loadByUniqueId(DomainResource.class, "example.tld", now);
-    assertThat(domain.getReferencedContacts())
-        .contains(ReferenceUnion.<ContactResource>create(Ref.create(contactUsed)));
+    assertThat(domain.getReferencedContacts()).contains(Ref.create(contactUsed));
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(contactUsed, HistoryEntry.Type.CONTACT_DELETE_FAILURE);
     assertPollMessageFor(

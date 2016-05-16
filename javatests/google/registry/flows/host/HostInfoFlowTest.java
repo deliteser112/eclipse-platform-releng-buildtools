@@ -29,7 +29,6 @@ import com.googlecode.objectify.Ref;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 
@@ -94,7 +93,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
     persistResource(
         newDomainResource("example.foobar").asBuilder()
           .addNameservers(
-              ImmutableSet.of(ReferenceUnion.<HostResource>create(persistHostResource(true))))
+              ImmutableSet.of(Ref.<HostResource>create(persistHostResource(true))))
           .build());
     assertTransactionalFlow(false);
     // Check that the persisted host info was returned.

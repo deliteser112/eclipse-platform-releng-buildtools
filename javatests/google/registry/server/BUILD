@@ -38,6 +38,7 @@ java_library(
         "//java/com/google/common/collect",
         "//third_party/java/appengine:appengine-api",
         "//third_party/java/joda_time",
+        "//third_party/java/objectify:objectify-v4_1",
         "//java/google/registry/model",
         "//javatests/google/registry/testing",
     ],

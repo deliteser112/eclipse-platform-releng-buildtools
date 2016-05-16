@@ -58,7 +58,6 @@ import google.registry.flows.host.HostUpdateFlow.HostAlreadyExistsException;
 import google.registry.flows.host.HostUpdateFlow.RenameHostToExternalRemoveIpException;
 import google.registry.flows.host.HostUpdateFlow.RenameHostToSubordinateRequiresIpException;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex;
@@ -162,7 +161,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     persistResource(
         newDomainResource("test.xn--q9jyb4c").asBuilder()
             .setDeletionTime(END_OF_TIME)
-            .setNameservers(ImmutableSet.of(ReferenceUnion.create(host)))
+            .setNameservers(ImmutableSet.of(Ref.create(host)))
             .build());
     HostResource renamedHost = doSuccessfulTest();
     assertThat(renamedHost.getSuperordinateDomain()).isNull();

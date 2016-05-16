@@ -140,7 +140,7 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
             for (DesignatedContact contact : application.getContacts()) {
               contactsMapBuilder.put(
                   contact.getType().toString().toLowerCase(),
-                  contact.getContactId().getLinked().get().getForeignKey());
+                  contact.getContactRef().get().getForeignKey());
             }
             LaunchNotice launchNotice = application.getLaunchNotice();
             addSoyRecord(application.getCurrentSponsorClientId(), new SoyMapData(

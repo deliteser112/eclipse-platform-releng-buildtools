@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 
 import google.registry.config.RegistryEnvironment;
 import google.registry.flows.EppException;
@@ -30,7 +31,6 @@ import google.registry.flows.async.AsyncFlowUtils;
 import google.registry.flows.async.DeleteEppResourceAction;
 import google.registry.flows.async.DeleteHostResourceAction;
 import google.registry.model.domain.DomainBase;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.host.HostCommand.Delete;
 import google.registry.model.host.HostResource;
 import google.registry.model.host.HostResource.Builder;
@@ -50,7 +50,7 @@ public class HostDeleteFlow extends ResourceAsyncDeleteFlow<HostResource, Builde
   private static final int FAILFAST_CHECK_COUNT = 5;
 
   @Override
-  protected boolean isLinkedForFailfast(final ReferenceUnion<HostResource> ref) {
+  protected boolean isLinkedForFailfast(final Ref<HostResource> ref) {
     // Query for the first few linked domains, and if found, actually load them. The query is
     // eventually consistent and so might be very stale, but the direct load will not be stale,
     // just non-transactional. If we find at least one actual reference then we can reliably
@@ -58,7 +58,7 @@ public class HostDeleteFlow extends ResourceAsyncDeleteFlow<HostResource, Builde
     return Iterables.any(
         ofy().load().keys(
             queryDomainsUsingResource(
-                  HostResource.class, ref.getLinked(), now, FAILFAST_CHECK_COUNT)).values(),
+                  HostResource.class, ref, now, FAILFAST_CHECK_COUNT)).values(),
         new Predicate<DomainBase>() {
             @Override
             public boolean apply(DomainBase domain) {

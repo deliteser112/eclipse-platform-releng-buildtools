@@ -20,6 +20,7 @@ import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Sets.difference;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
@@ -43,6 +44,7 @@ import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
@@ -65,7 +67,6 @@ import google.registry.model.domain.DomainCommand.CreateOrUpdate;
 import google.registry.model.domain.DomainCommand.InvalidReferenceException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.fee.BaseFeeCommand;
 import google.registry.model.domain.fee.BaseFeeRequest;
 import google.registry.model.domain.fee.BaseFeeResponse;
@@ -249,23 +250,23 @@ public class DomainFlowUtils {
   /** Verify that no linked resources have disallowed statuses. */
   static void verifyNotInPendingDelete(
       Set<DesignatedContact> contacts,
-      ReferenceUnion<ContactResource> registrant,
-      Set<ReferenceUnion<HostResource>> nameservers) throws EppException {
+      Ref<ContactResource> registrant,
+      Set<Ref<HostResource>> nameservers) throws EppException {
     for (DesignatedContact contact : nullToEmpty(contacts)) {
-      verifyNotInPendingDelete(contact.getContactId());
+      verifyNotInPendingDelete(contact.getContactRef());
     }
     if (registrant != null) {
       verifyNotInPendingDelete(registrant);
     }
-    for (ReferenceUnion<HostResource> host : nullToEmpty(nameservers)) {
+    for (Ref<HostResource> host : nullToEmpty(nameservers)) {
       verifyNotInPendingDelete(host);
     }
   }
 
   private static void verifyNotInPendingDelete(
-      ReferenceUnion<? extends EppResource> resourceRef) throws EppException {
+      Ref<? extends EppResource> resourceRef) throws EppException {
 
-    EppResource resource = resourceRef.getLinked().get();
+    EppResource resource = resourceRef.get();
     if (resource.getStatusValues().contains(StatusValue.PENDING_DELETE)) {
       throw new LinkedResourceInPendingDeleteProhibitsOperationException(resource.getForeignKey());
     }
@@ -280,28 +281,12 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Return a foreign key for a {@link ReferenceUnion} from memory or datastore as needed. */
-  private static String resolveForeignKey(ReferenceUnion<?> ref) {
-    return ref.getForeignKey() != null 
-        ? ref.getForeignKey() 
-        : ref.getLinked().get().getForeignKey();
-  }
+  static void validateNameserversCount(int count) throws EppException {
+    if (count > MAX_NAMESERVERS_PER_DOMAIN) {
+      throw new TooManyNameserversException(String.format(
+          "Only %d nameservers are allowed per domain", MAX_NAMESERVERS_PER_DOMAIN));
+    }
 
-  static void validateNameservers(String tld, Set<ReferenceUnion<HostResource>> nameservers)
-      throws EppException {
-    if (nameservers != null && nameservers.size() > MAX_NAMESERVERS_PER_DOMAIN) {
-        throw new TooManyNameserversException(String.format(
-            "Only %d nameservers are allowed per domain", MAX_NAMESERVERS_PER_DOMAIN));
-    }
-    ImmutableSet<String> whitelist = Registry.get(tld).getAllowedFullyQualifiedHostNames();
-    if (!whitelist.isEmpty()) {  // Empty whitelists are ignored.
-      for (ReferenceUnion<HostResource> nameserver : nullToEmpty(nameservers)) {
-        String foreignKey = resolveForeignKey(nameserver);
-        if (!whitelist.contains(foreignKey)) {
-          throw new NameserverNotAllowedException(foreignKey);
-        }
-      }
-    }
   }
 
   static void validateNoDuplicateContacts(Set<DesignatedContact> contacts)
@@ -315,8 +300,8 @@ public class DomainFlowUtils {
   }
 
   static void validateRequiredContactsPresent(
-      ReferenceUnion<ContactResource> registrant, Set<DesignatedContact> contacts)
-      throws RequiredParameterMissingException {
+      Ref<ContactResource> registrant, Set<DesignatedContact> contacts)
+          throws RequiredParameterMissingException {
     if (registrant == null) {
       throw new MissingRegistrantException();
     }
@@ -333,12 +318,24 @@ public class DomainFlowUtils {
     }
   }
 
-  static void validateRegistrantAllowedOnTld(String tld, ReferenceUnion<ContactResource> registrant)
+  static void validateRegistrantAllowedOnTld(String tld, String registrantContactId)
       throws RegistrantNotAllowedException {
     ImmutableSet<String> whitelist = Registry.get(tld).getAllowedRegistrantContactIds();
     // Empty whitelists are ignored.
-    if (!whitelist.isEmpty() && !whitelist.contains(resolveForeignKey(registrant))) {
-      throw new RegistrantNotAllowedException(resolveForeignKey(registrant));
+    if (!whitelist.isEmpty() && !whitelist.contains(registrantContactId)) {
+      throw new RegistrantNotAllowedException(registrantContactId);
+    }
+  }
+
+  static void validateNameserversAllowedOnTld(String tld, Set<String> fullyQualifiedHostNames)
+      throws EppException {
+    ImmutableSet<String> whitelist = Registry.get(tld).getAllowedFullyQualifiedHostNames();
+    if (whitelist.isEmpty()) {  // Empty whitelists are ignored.
+      return;
+    }
+    Set<String> disallowedNameservers = difference(nullToEmpty(fullyQualifiedHostNames), whitelist);
+    if (!disallowedNameservers.isEmpty()) {
+      throw new NameserversNotAllowedException(disallowedNameservers);
     }
   }
 
@@ -1015,10 +1012,13 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Nameserver is not whitelisted for this TLD. */
-  public static class NameserverNotAllowedException extends StatusProhibitsOperationException {
-    public NameserverNotAllowedException(String fullyQualifiedHostName) {
-      super(String.format("Nameserver %s is not whitelisted for this TLD", fullyQualifiedHostName));
+  /** Nameserver are not whitelisted for this TLD. */
+  public static class NameserversNotAllowedException extends StatusProhibitsOperationException {
+    public NameserversNotAllowedException(Set<String> fullyQualifiedHostNames) {
+      super(String.format(
+          "Nameservers '%s' are not whitelisted for this TLD",
+          Joiner.on(',').join(fullyQualifiedHostNames)));
     }
   }
 }
+

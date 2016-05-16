@@ -74,11 +74,24 @@ public class DomainCommand {
   public static class DomainCreateOrChange<B extends DomainBase.Builder<?, ?>>
       extends ImmutableObject implements ResourceCreateOrChange<B> {
 
-    /** A reference to the registrant who registered this domain. */
-    ReferenceUnion<ContactResource> registrant;
+    /** The contactId of the registrant who registered this domain. */
+    @XmlElement(name = "registrant")
+    String registrantContactId;
+
+    /** A resolved reference to the registrant who registered this domain. */
+    @XmlTransient
+    Ref<ContactResource> registrant;
 
     /** Authorization info (aka transfer secret) of the domain. */
     DomainAuthInfo authInfo;
+
+    public String getRegistrantContactId() {
+      return registrantContactId;
+    }
+
+    public Ref<ContactResource> getRegistrant() {
+      return registrant;
+    }
 
     @Override
     public void applyTo(B builder) {
@@ -97,7 +110,12 @@ public class DomainCommand {
    */
   @XmlRootElement
   @XmlType(propOrder = {
-      "fullyQualifiedDomainName", "period", "nameservers", "registrant", "contacts", "authInfo" })
+      "fullyQualifiedDomainName",
+      "period",
+      "nameserverFullyQualifiedHostNames",
+      "registrantContactId",
+      "foreignKeyedDesignatedContacts",
+      "authInfo"})
   public static class Create
       extends DomainCreateOrChange<DomainBase.Builder<?, ?>>
       implements CreateOrUpdate<Create> {
@@ -106,13 +124,21 @@ public class DomainCommand {
     @XmlElement(name = "name")
     String fullyQualifiedDomainName;
 
-    /** References to hosts that are the nameservers for the domain. */
+    /** Fully qualified host names of the hosts that are the nameservers for the domain. */
     @XmlElementWrapper(name = "ns")
     @XmlElement(name = "hostObj")
-    Set<ReferenceUnion<HostResource>> nameservers;
+    Set<String> nameserverFullyQualifiedHostNames;
 
-    /** Associated contacts for the domain (other than registrant).  */
+    /** Resolved references to hosts that are the nameservers for the domain. */
+    @XmlTransient
+    Set<Ref<HostResource>> nameservers;
+
+    /** Foreign keyed associated contacts for the domain (other than registrant). */
     @XmlElement(name = "contact")
+    Set<ForeignKeyedDesignatedContact> foreignKeyedDesignatedContacts;
+
+    /** Resolved references to associated contacts for the domain (other than registrant). */
+    @XmlTransient
     Set<DesignatedContact> contacts;
 
     /** The period that this domain's state was set to last for (e.g. 1-10 years). */
@@ -131,7 +157,11 @@ public class DomainCommand {
       return fullyQualifiedDomainName;
     }
 
-    public ImmutableSet<ReferenceUnion<HostResource>> getNameservers() {
+    public ImmutableSet<String> getNameserverFullyQualifiedHostNames() {
+      return nullSafeImmutableCopy(nameserverFullyQualifiedHostNames);
+    }
+
+    public ImmutableSet<Ref<HostResource>> getNameservers() {
       return nullSafeImmutableCopy(nameservers);
     }
 
@@ -139,11 +169,7 @@ public class DomainCommand {
       return nullSafeImmutableCopy(contacts);
     }
 
-    public ReferenceUnion<ContactResource> getRegistrant() {
-      return registrant;
-    }
-
-   @Override
+    @Override
     public AuthInfo getAuthInfo() {
       return authInfo;
     }
@@ -166,10 +192,10 @@ public class DomainCommand {
     @Override
     public Create cloneAndLinkReferences(DateTime now) throws InvalidReferenceException {
       Create clone = clone(this);
-      clone.nameservers = linkHosts(clone.nameservers, now);
-      clone.contacts = linkContacts(clone.contacts, now);
-      clone.registrant = clone.registrant == null
-          ? null : linkReference(clone.registrant, ContactResource.class, now);
+      clone.nameservers = linkHosts(clone.nameserverFullyQualifiedHostNames, now);
+      clone.contacts = linkContacts(clone.foreignKeyedDesignatedContacts, now);
+      clone.registrant = clone.registrantContactId == null
+          ? null : loadReference(clone.registrantContactId, ContactResource.class, now);
       return clone;
     }
   }
@@ -317,18 +343,33 @@ public class DomainCommand {
     }
 
     /** The inner change type on a domain update command. */
-    @XmlType(propOrder = {"nameservers", "contacts", "statusValues"})
+    @XmlType(propOrder = {
+        "nameserverFullyQualifiedHostNames",
+        "foreignKeyedDesignatedContacts",
+        "statusValues"})
     public static class AddRemove extends ResourceUpdate.AddRemove {
-      /** References to hosts that are the nameservers for the domain. */
+      /** Fully qualified host names of the hosts that are the nameservers for the domain. */
       @XmlElementWrapper(name = "ns")
       @XmlElement(name = "hostObj")
-      Set<ReferenceUnion<HostResource>> nameservers;
+      Set<String> nameserverFullyQualifiedHostNames;
 
-      /** Associated contacts for the domain. */
+      /** Resolved references to hosts that are the nameservers for the domain. */
+      @XmlTransient
+      Set<Ref<HostResource>> nameservers;
+
+      /** Foreign keyed associated contacts for the domain (other than registrant). */
       @XmlElement(name = "contact")
+      Set<ForeignKeyedDesignatedContact> foreignKeyedDesignatedContacts;
+
+      /** Resolved references to associated contacts for the domain (other than registrant). */
+      @XmlTransient
       Set<DesignatedContact> contacts;
 
-      public ImmutableSet<ReferenceUnion<HostResource>> getNameservers() {
+      public ImmutableSet<String> getNameserverFullyQualifiedHostNames() {
+        return nullSafeImmutableCopy(nameserverFullyQualifiedHostNames);
+      }
+
+      public ImmutableSet<Ref<HostResource>> getNameservers() {
         return nullToEmptyImmutableCopy(nameservers);
       }
 
@@ -339,25 +380,20 @@ public class DomainCommand {
       /** Creates a copy of this {@link AddRemove} with hard links to hosts and contacts. */
       private AddRemove cloneAndLinkReferences(DateTime now) throws InvalidReferenceException {
         AddRemove clone = clone(this);
-        clone.nameservers = linkHosts(clone.nameservers, now);
-        clone.contacts = linkContacts(clone.contacts, now);
+        clone.nameservers = linkHosts(clone.nameserverFullyQualifiedHostNames, now);
+        clone.contacts = linkContacts(clone.foreignKeyedDesignatedContacts, now);
         return clone;
       }
     }
 
     /** The inner change type on a domain update command. */
-    @XmlType(propOrder = {"registrant", "authInfo"})
+    @XmlType(propOrder = {"registrantContactId", "authInfo"})
     public static class Change extends DomainCreateOrChange<DomainBase.Builder<?, ?>> {
-
-      public ReferenceUnion<ContactResource> getRegistrant() {
-        return registrant;
-      }
-
       /** Creates a copy of this {@link Change} with hard links to hosts and contacts. */
       Change cloneAndLinkReferences(DateTime now) throws InvalidReferenceException {
         Change clone = clone(this);
-        clone.registrant = clone.registrant == null
-            ? null : linkReference(clone.registrant, ContactResource.class, now);
+        clone.registrant = clone.registrantContactId == null
+            ? null : loadReference(clone.registrantContactId, ContactResource.class, now);
         return clone;
       }
     }
@@ -396,50 +432,59 @@ public class DomainCommand {
     }
   }
 
-  private static Set<ReferenceUnion<HostResource>> linkHosts(
-      Set<ReferenceUnion<HostResource>> hosts,
-      DateTime now) throws InvalidReferenceException {
-    if (hosts == null) {
+  private static Set<Ref<HostResource>> linkHosts(
+      Set<String> fullyQualifiedHostNames, DateTime now) throws InvalidReferenceException {
+    if (fullyQualifiedHostNames == null) {
       return null;
     }
-    ImmutableSet.Builder<ReferenceUnion<HostResource>> linked = new ImmutableSet.Builder<>();
-    for (ReferenceUnion<HostResource> host : hosts) {
-      linked.add(linkReference(host, HostResource.class, now));
+    ImmutableSet.Builder<Ref<HostResource>> linked = new ImmutableSet.Builder<>();
+    for (String fullyQualifiedHostName : fullyQualifiedHostNames) {
+      linked.add(loadReference(fullyQualifiedHostName, HostResource.class, now));
     }
     return linked.build();
   }
 
   private static Set<DesignatedContact> linkContacts(
-      Set<DesignatedContact> contacts, DateTime now) throws InvalidReferenceException {
+      Set<ForeignKeyedDesignatedContact> contacts, DateTime now) throws InvalidReferenceException {
     if (contacts == null) {
       return null;
     }
     ImmutableSet.Builder<DesignatedContact> linkedContacts = new ImmutableSet.Builder<>();
-    for (DesignatedContact contact : contacts) {
+    for (ForeignKeyedDesignatedContact contact : contacts) {
       linkedContacts.add(DesignatedContact.create(
-          contact.getType(),
-          linkReference(contact.getContactId(), ContactResource.class, now)));
+          contact.type, loadReference(contact.contactId, ContactResource.class, now)));
     }
     return linkedContacts.build();
   }
 
-  /** Turn a foreign-keyed {@link ReferenceUnion} into a linked one. */
-  private static <T extends EppResource> ReferenceUnion<T> linkReference(
-      final ReferenceUnion<T> reference, final Class<T> clazz, final DateTime now)
+  /** Load a reference to a resource by its foreign key. */
+  private static <T extends EppResource> Ref<T> loadReference(
+      final String foreignKey, final Class<T> clazz, final DateTime now)
       throws InvalidReferenceException {
-    if (reference.getForeignKey() == null) {
-      return reference;
-    }
     Ref<T> ref = ofy().doTransactionless(new Work<Ref<T>>() {
       @Override
       public Ref<T> run() {
-        return loadAndGetReference(clazz, reference.getForeignKey(), now);
+        return loadAndGetReference(clazz, foreignKey, now);
       }
     });
     if (ref == null) {
-      throw new InvalidReferenceException(clazz, reference.getForeignKey());
+      throw new InvalidReferenceException(clazz, foreignKey);
     }
-    return ReferenceUnion.create(ref);
+    return ref;
+  }
+
+  /**
+   * EPP-inputable version of XML type for contact identifiers associated with a domain, which can
+   * be converted to a storable (and EPP-outputable) {@link DesignatedContact}.
+   *
+   * @see "http://tools.ietf.org/html/rfc5731#section-2.2"
+   */
+  static class ForeignKeyedDesignatedContact extends ImmutableObject {
+    @XmlAttribute(required = true)
+    DesignatedContact.Type type;
+
+    @XmlValue
+    String contactId;
   }
 
   /** Exception to throw when a referenced object does not exist. */

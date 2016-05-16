@@ -17,10 +17,11 @@ package google.registry.rde;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 
+import com.googlecode.objectify.Ref;
+
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
@@ -163,9 +164,9 @@ final class DomainResourceToXjcConverter {
         // o  An OPTIONAL <registrant> element that contain the identifier for
         //    the human or organizational social information object associated
         //    as the holder of the domain name object.
-        ReferenceUnion<ContactResource> registrant = model.getRegistrant();
+        Ref<ContactResource> registrant = model.getRegistrant();
         if (registrant != null) {
-          bean.setRegistrant(registrant.getLinked().get().getContactId());
+          bean.setRegistrant(registrant.get().getContactId());
         }
 
         // o  Zero or more OPTIONAL <contact> elements that contain identifiers
@@ -282,7 +283,7 @@ final class DomainResourceToXjcConverter {
   /** Converts {@link DesignatedContact} to {@link XjcDomainContactType}. */
   private static XjcDomainContactType convertDesignatedContact(DesignatedContact model) {
     XjcDomainContactType bean = new XjcDomainContactType();
-    ContactResource contact = model.getContactId().getLinked().get();
+    ContactResource contact = model.getContactRef().get();
     bean.setType(XjcDomainContactAttrType.fromValue(model.getType().toString().toLowerCase()));
     bean.setValue(contact.getContactId());
     return bean;

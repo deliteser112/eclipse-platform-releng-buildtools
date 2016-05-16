@@ -27,6 +27,8 @@ import static google.registry.testing.GenericEppResourceSubject.assertAboutEppRe
 
 import com.google.common.collect.ImmutableSet;
 
+import com.googlecode.objectify.Ref;
+
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.FlowRunner.CommitMode;
 import google.registry.flows.FlowRunner.UserPrivileges;
@@ -41,7 +43,6 @@ import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -89,10 +90,10 @@ public class DomainApplicationDeleteFlowTest
     persistResource(newDomainApplication("example.tld").asBuilder()
         .setRepoId("1-TLD")
         .setRegistrant(
-            ReferenceUnion.create(
+            Ref.create(
                 loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc())))
         .setNameservers(ImmutableSet.of(
-            ReferenceUnion.create(
+            Ref.create(
                 loadByUniqueId(HostResource.class, "ns1.example.net", clock.nowUtc()))))
         .build());
     doSuccessfulTest();

@@ -49,7 +49,6 @@ import google.registry.config.RegistryEnvironment;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
@@ -192,9 +191,9 @@ public class VerifyEntityIntegrityActionTest
                 .asBuilder()
                 .setNameservers(
                     ImmutableSet.of(
-                        ReferenceUnion.create(Ref.create(missingHost1)),
-                        ReferenceUnion.create(Ref.create(missingHost2)),
-                        ReferenceUnion.create(Ref.create(missingHost3))))
+                        Ref.create(missingHost1),
+                        Ref.create(missingHost2),
+                        Ref.create(missingHost3)))
                 .build());
     String source = Key.create(domain).toString();
     runMapreduce();

@@ -60,7 +60,6 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
@@ -118,7 +117,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     ContactResource contact = persistActiveContact("sh8013");
     domain = newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .setCreationTimeForTest(TIME_BEFORE_FLOW)
-        .setRegistrant(ReferenceUnion.create(contact))
+        .setRegistrant(Ref.create(contact))
         .setRegistrationExpirationTime(expirationTime)
         .build();
     earlierHistoryEntry = persistResource(
@@ -466,14 +465,12 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(loadByUniqueId(
         DomainResource.class, getUniqueIdFromCommand(), clock.nowUtc())
         .asBuilder()
-        .setNameservers(ImmutableSet.of(ReferenceUnion.create(host)))
+        .setNameservers(ImmutableSet.of(Ref.create(host)))
         .build());
     // Persist another domain that's already been deleted and references this contact and host.
     persistResource(newDomainResource("example1.tld").asBuilder()
-        .setRegistrant(
-            ReferenceUnion.create(loadByUniqueId(
-                ContactResource.class, "sh8013", clock.nowUtc())))
-        .setNameservers(ImmutableSet.of(ReferenceUnion.create(host)))
+        .setRegistrant(Ref.create(loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc())))
+        .setNameservers(ImmutableSet.of(Ref.create(host)))
         .setDeletionTime(START_OF_TIME)
         .build());
     clock.advanceOneMilli();

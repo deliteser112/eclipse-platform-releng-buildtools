@@ -20,6 +20,7 @@ import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -103,11 +104,11 @@ public class DomainResourceTest extends EntityTestCase {
                 StatusValue.SERVER_UPDATE_PROHIBITED,
                 StatusValue.SERVER_RENEW_PROHIBITED,
                 StatusValue.SERVER_HOLD))
-            .setRegistrant(ReferenceUnion.create(contactResource1))
+            .setRegistrant(Ref.create(contactResource1))
             .setContacts(ImmutableSet.of(DesignatedContact.create(
                 DesignatedContact.Type.ADMIN,
-                ReferenceUnion.create(contactResource2))))
-            .setNameservers(ImmutableSet.of(ReferenceUnion.create(hostResource)))
+                Ref.create(contactResource2))))
+            .setNameservers(ImmutableSet.of(Ref.create(hostResource)))
             .setSubordinateHosts(ImmutableSet.of("ns1.example.com"))
             .setCurrentSponsorClientId("a third registrar")
             .setRegistrationExpirationTime(clock.nowUtc().plusYears(1))
@@ -190,10 +191,10 @@ public class DomainResourceTest extends EntityTestCase {
     assertThat(newDomainResource("example.com").asBuilder()
         .setNameservers(null).build().nameservers).isNull();
     assertThat(newDomainResource("example.com").asBuilder()
-        .setNameservers(ImmutableSet.<ReferenceUnion<HostResource>>of()).build().nameservers)
+        .setNameservers(ImmutableSet.<Ref<HostResource>>of()).build().nameservers)
             .isNull();
     assertThat(newDomainResource("example.com").asBuilder()
-        .setNameservers(ImmutableSet.of(ReferenceUnion.<HostResource>create("foo")))
+        .setNameservers(ImmutableSet.of(Ref.create(newHostResource("foo.example.tld"))))
             .build().nameservers)
                 .isNotNull();
     // This behavior should also hold true for ImmutableObjects nested in collections.
@@ -222,8 +223,8 @@ public class DomainResourceTest extends EntityTestCase {
 
   @Test
   public void testImplicitStatusValues() {
-    ImmutableSet<ReferenceUnion<HostResource>> nameservers =
-        ImmutableSet.of(ReferenceUnion.<HostResource>create("foo"));
+    ImmutableSet<Ref<HostResource>> nameservers =
+        ImmutableSet.of(Ref.create(newHostResource("foo.example.tld")));
     StatusValue[] statuses = {StatusValue.OK};
     // OK is implicit if there's no other statuses but there are nameservers.
     assertAboutDomains()

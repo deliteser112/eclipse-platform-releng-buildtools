@@ -79,7 +79,7 @@ import google.registry.flows.domain.DomainFlowUtils.LaunchPhaseMismatchException
 import google.registry.flows.domain.DomainFlowUtils.LeadingDashException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourceDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
-import google.registry.flows.domain.DomainFlowUtils.NameserverNotAllowedException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedException;
 import google.registry.flows.domain.DomainFlowUtils.NoMarksFoundMatchingDomainException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
@@ -1191,7 +1191,7 @@ public class DomainApplicationCreateFlowTest
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.net"))
         .build());
-    thrown.expect(NameserverNotAllowedException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedException.class, "ns1.example.net");
     runFlow();
   }
 

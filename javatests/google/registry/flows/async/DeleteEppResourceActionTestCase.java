@@ -29,11 +29,11 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.poll.PollMessage;
@@ -84,7 +84,7 @@ public abstract class DeleteEppResourceActionTestCase<T extends DeleteEppResourc
     hostUsed = persistActiveHost("ns1.example.tld");
     domain = persistResource(
         newDomainResource("example.tld", contactUsed).asBuilder()
-            .setNameservers(ImmutableSet.of(ReferenceUnion.create(hostUsed)))
+            .setNameservers(ImmutableSet.of(Ref.create(hostUsed)))
             .build());
   }
 

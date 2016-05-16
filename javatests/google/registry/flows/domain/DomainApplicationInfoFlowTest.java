@@ -26,6 +26,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
+import com.googlecode.objectify.Ref;
+
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
@@ -37,7 +39,6 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainAuthInfo;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.launch.LaunchPhase;
@@ -89,12 +90,12 @@ public class DomainApplicationInfoFlowTest
         .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
         .setLastEppUpdateTime(DateTime.parse("1999-12-03T09:00:00.0Z"))
         .setLastTransferTime(DateTime.parse("2000-04-08T09:00:00.0Z"))
-        .setRegistrant(ReferenceUnion.create(registrant))
+        .setRegistrant(Ref.create(registrant))
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, ReferenceUnion.create(contact)),
-            DesignatedContact.create(Type.TECH, ReferenceUnion.create(contact))))
+            DesignatedContact.create(Type.ADMIN, Ref.create(contact)),
+            DesignatedContact.create(Type.TECH, Ref.create(contact))))
         .setNameservers(hostsState.equals(HostsState.HOSTS_EXIST) ? ImmutableSet.of(
-            ReferenceUnion.create(host1), ReferenceUnion.create(host2)) : null)
+            Ref.create(host1), Ref.create(host2)) : null)
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
         .addStatusValue(StatusValue.PENDING_CREATE)
         .setApplicationStatus(ApplicationStatus.PENDING_VALIDATION)
@@ -244,7 +245,7 @@ public class DomainApplicationInfoFlowTest
         .setDsData(ImmutableSet.of(DelegationSignerData.create(
             12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC"))))
         .setNameservers(ImmutableSet.of(
-            ReferenceUnion.create(host1), ReferenceUnion.create(host2)))
+            Ref.create(host1), Ref.create(host2)))
         .build());
     doSuccessfulTest("domain_info_sunrise_response_dsdata.xml", HostsState.NO_HOSTS_EXIST);
   }

@@ -20,7 +20,8 @@ import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToT
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.validateContactsHaveTypes;
 import static google.registry.flows.domain.DomainFlowUtils.validateDsData;
-import static google.registry.flows.domain.DomainFlowUtils.validateNameservers;
+import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnTld;
+import static google.registry.flows.domain.DomainFlowUtils.validateNameserversCount;
 import static google.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
 import static google.registry.flows.domain.DomainFlowUtils.validateRegistrantAllowedOnTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
@@ -112,6 +113,10 @@ public abstract class BaseDomainUpdateFlow<R extends DomainBase, B extends Build
         command.getInnerAdd().getNameservers());
     validateContactsHaveTypes(command.getInnerAdd().getContacts());
     validateContactsHaveTypes(command.getInnerRemove().getContacts());
+    validateRegistrantAllowedOnTld(
+        existingResource.getTld(), command.getInnerChange().getRegistrantContactId());
+    validateNameserversAllowedOnTld(
+        existingResource.getTld(), command.getInnerAdd().getNameserverFullyQualifiedHostNames());
   }
 
   /** Subclasses can override this to do more specific verification. */
@@ -123,8 +128,7 @@ public abstract class BaseDomainUpdateFlow<R extends DomainBase, B extends Build
     validateNoDuplicateContacts(newResource.getContacts());
     validateRequiredContactsPresent(newResource.getRegistrant(), newResource.getContacts());
     validateDsData(newResource.getDsData());
-    validateRegistrantAllowedOnTld(newResource.getTld(), newResource.getRegistrant());
-    validateNameservers(newResource.getTld(), newResource.getNameservers());
+    validateNameserversCount(newResource.getNameservers().size());
   }
 
   /** The secDNS:all element must have value 'true' if present. */

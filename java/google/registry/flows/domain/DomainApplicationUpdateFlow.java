@@ -50,7 +50,7 @@ import google.registry.model.reporting.HistoryEntry;
  * @error {@link DomainFlowUtils.MissingAdminContactException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.MissingTechnicalContactException}
- * @error {@link DomainFlowUtils.NameserverNotAllowedException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
  * @error {@link DomainFlowUtils.TooManyDsRecordsException}
  * @error {@link DomainFlowUtils.TooManyNameserversException}

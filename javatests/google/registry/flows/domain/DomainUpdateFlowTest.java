@@ -62,7 +62,7 @@ import google.registry.flows.domain.DomainFlowUtils.LinkedResourceInPendingDelet
 import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
-import google.registry.flows.domain.DomainFlowUtils.NameserverNotAllowedException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
@@ -74,7 +74,6 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
@@ -123,9 +122,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     DomainResource domain = persistResource(
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
             .setContacts(ImmutableSet.of(
-                DesignatedContact.create(Type.TECH, ReferenceUnion.create(sh8013Contact)),
-                DesignatedContact.create(Type.ADMIN, ReferenceUnion.create(unusedContact))))
-            .setNameservers(ImmutableSet.of(ReferenceUnion.create(host)))
+                DesignatedContact.create(Type.TECH, Ref.create(sh8013Contact)),
+                DesignatedContact.create(Type.ADMIN, Ref.create(unusedContact))))
+            .setNameservers(ImmutableSet.of(Ref.create(host)))
             .build());
     historyEntryDomainCreate = persistResource(
         new HistoryEntry.Builder()
@@ -180,7 +179,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     HistoryEntry historyEntryDomainUpdate =
         getOnlyHistoryEntryOfType(resource, HistoryEntry.Type.DOMAIN_UPDATE);
     assertThat(resource.getNameservers()).containsExactly(
-        ReferenceUnion.create(
+        Ref.create(
             loadByUniqueId(HostResource.class, "ns2.example.foo", clock.nowUtc())));
     BillingEvent.OneTime regularAddBillingEvent = new BillingEvent.OneTime.Builder()
         .setReason(Reason.CREATE)
@@ -278,7 +277,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     // serverHold on it.
     persistResource(
         reloadResourceByUniqueId().asBuilder()
-            .setNameservers(ImmutableSet.of(ReferenceUnion.create(
+            .setNameservers(ImmutableSet.of(Ref.create(
                 loadByUniqueId(HostResource.class, "ns2.example.foo", clock.nowUtc()))))
             .addGracePeriod(GracePeriod.forBillingEvent(
                 GracePeriodStatus.SUNRUSH_ADD, sunrushAddBillingEvent))
@@ -302,7 +301,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     // serverHold on it.
     persistResource(
         reloadResourceByUniqueId().asBuilder()
-            .setNameservers(ImmutableSet.of(ReferenceUnion.create(
+            .setNameservers(ImmutableSet.of(Ref.create(
                 loadByUniqueId(HostResource.class, "ns2.example.foo", clock.nowUtc()))))
             .addGracePeriod(GracePeriod.forBillingEvent(
                 GracePeriodStatus.SUNRUSH_ADD, sunrushAddBillingEvent))
@@ -345,10 +344,10 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   private void modifyDomainToHave13Nameservers() throws Exception {
-    ImmutableSet.Builder<ReferenceUnion<HostResource>> nameservers = new ImmutableSet.Builder<>();
+    ImmutableSet.Builder<Ref<HostResource>> nameservers = new ImmutableSet.Builder<>();
     for (int i = 1; i < 15; i++) {
       if (i != 2) { // Skip 2 since that's the one that the tests will add.
-        nameservers.add(ReferenceUnion.create(loadByUniqueId(
+        nameservers.add(Ref.create(loadByUniqueId(
             HostResource.class, String.format("ns%d.example.foo", i), clock.nowUtc())));
       }
     }
@@ -374,11 +373,11 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistDomain();
     setEppInput("domain_update_max_everything.xml");
     // Create 26 hosts and 8 contacts. Start the domain with half of them.
-    ImmutableSet.Builder<ReferenceUnion<HostResource>> nameservers = new ImmutableSet.Builder<>();
+    ImmutableSet.Builder<Ref<HostResource>> nameservers = new ImmutableSet.Builder<>();
     for (int i = 0; i < 26; i++) {
       HostResource host = persistActiveHost(String.format("max_test_%d.example.tld", i));
       if (i < 13) {
-        nameservers.add(ReferenceUnion.create(host));
+        nameservers.add(Ref.create(host));
       }
     }
     ImmutableSet.Builder<DesignatedContact> contacts = new ImmutableSet.Builder<>();
@@ -388,7 +387,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         contacts.add(
             DesignatedContact.create(
                 DesignatedContact.Type.values()[i],
-                ReferenceUnion.create(contact)));
+                Ref.create(contact)));
       }
     }
     persistResource(
@@ -407,7 +406,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     assertThat(domain.getNameservers()).hasSize(13);
     // getContacts does not return contacts of type REGISTRANT, so check these separately.
     assertThat(domain.getContacts()).hasSize(3);
-    assertThat(domain.getRegistrant().getLinked().get().getContactId()).isEqualTo("max_test_7");
+    assertThat(domain.getRegistrant().get().getContactId()).isEqualTo("max_test_7");
     assertNoBillingEvents();
     assertDnsTasksEnqueued("example.tld");
   }
@@ -459,14 +458,14 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     domain = persistResource(domain.asBuilder()
         .addSubordinateHost("ns1.example.tld")
         .addSubordinateHost("ns2.example.tld")
-        .setNameservers(ImmutableSet.of(ReferenceUnion.create(
+        .setNameservers(ImmutableSet.of(Ref.create(
             loadByUniqueId(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
         .build());
     clock.advanceOneMilli();
     assertTransactionalFlow(true);
     runFlowAssertResponse(readFile("domain_update_response.xml"));
     domain = reloadResourceByUniqueId();
-    assertThat(domain.getNameservers()).containsExactly(ReferenceUnion.create(addedHost));
+    assertThat(domain.getNameservers()).containsExactly(Ref.create(addedHost));
     assertThat(domain.getSubordinateHosts()).containsExactly("ns1.example.tld", "ns2.example.tld");
     existingHost = loadByUniqueId(HostResource.class, "ns1.example.tld", clock.nowUtc());
     addedHost = loadByUniqueId(HostResource.class, "ns2.example.tld", clock.nowUtc());
@@ -481,7 +480,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     ContactResource sh8013 = loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc());
     persistResource(
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
-            .setRegistrant(ReferenceUnion.create(sh8013))
+            .setRegistrant(Ref.create(sh8013))
             .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(readFile("domain_update_response.xml"));
@@ -492,14 +491,14 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_remove_multiple_contacts.xml");
     persistReferencedEntities();
     ContactResource sh8013 = loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc());
-    ReferenceUnion<ContactResource> sh8013ReferenceUnion = ReferenceUnion.create(sh8013);
+    Ref<ContactResource> sh8013Ref = Ref.create(sh8013);
     persistResource(
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
-            .setRegistrant(sh8013ReferenceUnion)
+            .setRegistrant(sh8013Ref)
             .setContacts(ImmutableSet.of(
-                DesignatedContact.create(Type.ADMIN, sh8013ReferenceUnion),
-                DesignatedContact.create(Type.BILLING, sh8013ReferenceUnion),
-                DesignatedContact.create(Type.TECH, sh8013ReferenceUnion)))
+                DesignatedContact.create(Type.ADMIN, sh8013Ref),
+                DesignatedContact.create(Type.BILLING, sh8013Ref),
+                DesignatedContact.create(Type.TECH, sh8013Ref)))
             .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(readFile("domain_update_response.xml"));
@@ -891,7 +890,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistResource(
         reloadResourceByUniqueId().asBuilder()
             .setContacts(ImmutableSet.of(
-                DesignatedContact.create(Type.TECH, ReferenceUnion.create(
+                DesignatedContact.create(Type.TECH, Ref.create(
                     loadByUniqueId(ContactResource.class, "foo", clock.nowUtc())))))
             .build());
     runFlow();
@@ -988,7 +987,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistResource(
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
-            .setNameservers(ImmutableSet.of(ReferenceUnion.create(
+            .setNameservers(ImmutableSet.of(Ref.create(
                 loadByUniqueId(HostResource.class, "ns1.example.foo", clock.nowUtc()))))
             .build());
     runFlow();
@@ -1003,7 +1002,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
             .setContacts(ImmutableSet.of(DesignatedContact.create(
                 Type.TECH,
-                ReferenceUnion.create(
+                Ref.create(
                     loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc())))))
             .build());
     runFlow();
@@ -1017,8 +1016,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistResource(
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
             .setContacts(ImmutableSet.of(
-                DesignatedContact.create(Type.ADMIN, ReferenceUnion.create(sh8013Contact)),
-                DesignatedContact.create(Type.TECH, ReferenceUnion.create(sh8013Contact))))
+                DesignatedContact.create(Type.ADMIN, Ref.create(sh8013Contact)),
+                DesignatedContact.create(Type.TECH, Ref.create(sh8013Contact))))
             .build());
     runFlow();
   }
@@ -1031,8 +1030,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistResource(
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
             .setContacts(ImmutableSet.of(
-                DesignatedContact.create(Type.ADMIN, ReferenceUnion.create(sh8013Contact)),
-                DesignatedContact.create(Type.TECH, ReferenceUnion.create(sh8013Contact))))
+                DesignatedContact.create(Type.ADMIN, Ref.create(sh8013Contact)),
+                DesignatedContact.create(Type.TECH, Ref.create(sh8013Contact))))
             .build());
     runFlow();
   }
@@ -1094,7 +1093,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserverNotAllowedException.class);
+    thrown.expect(NameserversNotAllowedException.class);
     runFlow();
   }
 

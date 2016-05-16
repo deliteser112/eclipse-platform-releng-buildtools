@@ -26,11 +26,12 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
+import com.googlecode.objectify.Ref;
+
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DesignatedContact;
-import google.registry.model.domain.ReferenceUnion;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.FakeClock;
@@ -114,28 +115,26 @@ public enum Fixture {
       persistResource(
           newDomainResource("love.xn--q9jyb4c", justine).asBuilder()
               .setContacts(ImmutableSet.of(
-                  DesignatedContact.create(ADMIN, ReferenceUnion.create(robert)),
-                  DesignatedContact.create(BILLING, ReferenceUnion.create(google)),
-                  DesignatedContact.create(TECH, ReferenceUnion.create(justine))))
+                  DesignatedContact.create(ADMIN, Ref.create(robert)),
+                  DesignatedContact.create(BILLING, Ref.create(google)),
+                  DesignatedContact.create(TECH, Ref.create(justine))))
               .setNameservers(ImmutableSet.of(
-                  ReferenceUnion.create(
-                      persistActiveHost("ns1.love.xn--q9jyb4c")),
-                  ReferenceUnion.create(
-                      persistActiveHost("ns2.love.xn--q9jyb4c"))))
+                  Ref.create(persistActiveHost("ns1.love.xn--q9jyb4c")),
+                  Ref.create(persistActiveHost("ns2.love.xn--q9jyb4c"))))
               .build());
 
       persistResource(
           newDomainResource("moogle.example", justine).asBuilder()
               .setContacts(ImmutableSet.of(
-                  DesignatedContact.create(ADMIN, ReferenceUnion.create(robert)),
-                  DesignatedContact.create(BILLING, ReferenceUnion.create(google)),
-                  DesignatedContact.create(TECH, ReferenceUnion.create(justine))))
+                  DesignatedContact.create(ADMIN, Ref.create(robert)),
+                  DesignatedContact.create(BILLING, Ref.create(google)),
+                  DesignatedContact.create(TECH, Ref.create(justine))))
               .setNameservers(ImmutableSet.of(
-                  ReferenceUnion.create(persistActiveHost("ns1.linode.com")),
-                  ReferenceUnion.create(persistActiveHost("ns2.linode.com")),
-                  ReferenceUnion.create(persistActiveHost("ns3.linode.com")),
-                  ReferenceUnion.create(persistActiveHost("ns4.linode.com")),
-                  ReferenceUnion.create(persistActiveHost("ns5.linode.com"))))
+                  Ref.create(persistActiveHost("ns1.linode.com")),
+                  Ref.create(persistActiveHost("ns2.linode.com")),
+                  Ref.create(persistActiveHost("ns3.linode.com")),
+                  Ref.create(persistActiveHost("ns4.linode.com")),
+                  Ref.create(persistActiveHost("ns5.linode.com"))))
               .build());
 
       persistResource(
