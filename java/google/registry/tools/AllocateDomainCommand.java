@@ -48,7 +48,6 @@ import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
-import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.SignedMark;
 import google.registry.tools.soy.DomainAllocateSoyInfo;
@@ -146,13 +145,7 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
             addSoyRecord(application.getCurrentSponsorClientId(), new SoyMapData(
                 "name", application.getFullyQualifiedDomainName(),
                 "period", period.getValue(),
-                "nameservers", FluentIterable.from(application.loadNameservers())
-                    .transform(new Function<HostResource, String>() {
-                        @Override
-                        public String apply(HostResource host) {
-                          return host.getForeignKey();
-                        }})
-                    .toList(),
+                "nameservers", application.loadNameserverFullyQualifiedHostNames(),
                 "registrant", application.loadRegistrant().getForeignKey(),
                 "contacts", contactsMapBuilder.build(),
                 "authInfo", application.getAuthInfo().getPw().getValue(),

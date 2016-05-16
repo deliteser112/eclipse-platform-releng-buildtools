@@ -34,7 +34,6 @@ import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
 import google.registry.util.FormattingLogger;
@@ -89,11 +88,11 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
       .emitContact("Billing", getContactReference(Type.BILLING), preferUnicode)
       .emitSet(
           "Name Server",
-          domain.loadNameservers(),
-          new Function<HostResource, String>() {
+          domain.loadNameserverFullyQualifiedHostNames(),
+          new Function<String, String>() {
             @Override
-            public String apply(HostResource host) {
-              return maybeFormatHostname(host.getFullyQualifiedHostName(), preferUnicode);
+            public String apply(String hostName) {
+              return maybeFormatHostname(hostName, preferUnicode);
             }})
       .emitField("DNSSEC", isNullOrEmpty(domain.getDsData()) ? "unsigned" : "signedDelegation")
       .emitLastUpdated(getTimestamp())

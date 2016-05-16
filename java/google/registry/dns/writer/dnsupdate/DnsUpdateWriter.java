@@ -16,6 +16,7 @@ package google.registry.dns.writer.dnsupdate;
 
 import static com.google.common.base.Verify.verify;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.net.InternetDomainName;
 
@@ -102,7 +103,8 @@ public class DnsUpdateWriter implements DnsWriter {
       Update update = new Update(toAbsoluteName(findTldFromName(domainName)));
       update.delete(toAbsoluteName(domainName), Type.ANY);
       if (domain != null && domain.shouldPublishToDns()) {
-        update.add(makeNameServerSet(domainName, domain.loadNameservers()));
+        update.add(makeNameServerSet(
+            domainName, ofy().load().refs(domain.getNameservers()).values()));
         update.add(makeDelegationSignerSet(domainName, domain.getDsData()));
       }
 

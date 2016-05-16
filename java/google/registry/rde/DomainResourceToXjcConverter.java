@@ -25,7 +25,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.host.HostResource;
 import google.registry.model.rde.RdeMode;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
@@ -141,11 +140,11 @@ final class DomainResourceToXjcConverter {
     //    it is that with host attributes, you inline the nameserver data
     //    on each domain; with host objects, you normalize the nameserver
     //    data to a separate EPP object.
-    ImmutableSet<HostResource> linkedNameservers = model.loadNameservers();
-    if (!linkedNameservers.isEmpty()) {
+    ImmutableSet<String> linkedNameserverHostNames = model.loadNameserverFullyQualifiedHostNames();
+    if (!linkedNameserverHostNames.isEmpty()) {
       XjcDomainNsType nameservers = new XjcDomainNsType();
-      for (HostResource host : linkedNameservers) {
-        nameservers.getHostObjs().add(host.getFullyQualifiedHostName());
+      for (String hostName : linkedNameserverHostNames) {
+        nameservers.getHostObjs().add(hostName);
       }
       bean.setNs(nameservers);
     }

@@ -19,12 +19,15 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static google.registry.model.domain.DesignatedContact.Type.REGISTRANT;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DomainNameUtils.getTldFromSld;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 
@@ -37,7 +40,6 @@ import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.condition.IfNull;
 
 import google.registry.model.EppResource;
-import google.registry.model.EppResourceUtils;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -161,9 +163,16 @@ public abstract class DomainBase extends EppResource {
     return builder.build();
   }
 
-  /** Loads and returns all linked nameservers. */
-  public ImmutableSet<HostResource> loadNameservers() {
-    return EppResourceUtils.loadReferencedNameservers(getNameservers());
+  /** Loads and returns the fully qualified host names of all linked nameservers. */
+  public ImmutableSet<String> loadNameserverFullyQualifiedHostNames() {
+    return FluentIterable.from(ofy().load().refs(getNameservers()).values())
+        .transform(
+            new Function<HostResource, String>() {
+              @Override
+              public String apply(HostResource host) {
+                return host.getFullyQualifiedHostName();
+              }})
+        .toSet();
   }
 
   public Ref<ContactResource> getRegistrant() {
@@ -190,11 +199,6 @@ public abstract class DomainBase extends EppResource {
       contactsBuilder.add(designated.getContactRef());
     }
     return contactsBuilder.build();
-  }
-
-  /** Loads and returns all referenced contacts from this domain or application. */
-  public ImmutableSet<ContactResource> loadReferencedContacts() {
-    return EppResourceUtils.loadReferencedContacts(getReferencedContacts());
   }
 
   public String getTld() {

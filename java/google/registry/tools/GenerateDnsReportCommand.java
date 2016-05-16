@@ -104,12 +104,8 @@ final class GenerateDnsReportCommand implements RemoteApiCommand, GtechCommand {
     }
 
     private void write(DomainResource domain) {
-      ImmutableList<String> nameservers = FluentIterable.from(domain.loadNameservers())
-          .transform(new Function<HostResource, String>() {
-              @Override
-              public String apply(HostResource host) {
-                return host.getForeignKey();
-              }})
+      ImmutableList<String> nameservers = FluentIterable
+          .from(domain.loadNameserverFullyQualifiedHostNames())
           .toSortedList(Ordering.natural());
       ImmutableList<Map<String, ?>> dsData = FluentIterable.from(domain.getDsData())
           .transform(new Function<DelegationSignerData, Map<String, ?>>() {

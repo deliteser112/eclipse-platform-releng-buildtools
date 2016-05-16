@@ -397,7 +397,8 @@ public class RdapJsonFormatter {
       @Nullable String linkBase,
       @Nullable String whoisServer) {
     // Kick off the database loads of the nameservers that we will need.
-    ImmutableSet<HostResource> loadedHosts = domainResource.loadNameservers();
+    Map<Key<HostResource>, HostResource> loadedHosts =
+        ofy().load().refs(domainResource.getNameservers());
     // And the registrant and other contacts.
     List<DesignatedContact> allContacts = new ArrayList<>();
     if (domainResource.getRegistrant() != null) {
@@ -427,7 +428,8 @@ public class RdapJsonFormatter {
     }
     // Nameservers
     ImmutableList.Builder<Object> nsBuilder = new ImmutableList.Builder<>();
-    for (HostResource hostResource : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts)) {
+    for (HostResource hostResource
+        : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
       nsBuilder.add(makeRdapJsonForHost(hostResource, false, linkBase, null));
     }
     ImmutableList<Object> ns = nsBuilder.build();

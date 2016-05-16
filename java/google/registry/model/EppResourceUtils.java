@@ -24,7 +24,6 @@ import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static google.registry.util.DateTimeUtils.latestOf;
 
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableSet;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
@@ -136,29 +135,6 @@ public final class EppResourceUtils {
     return cloneProjectedAtTime(
         resource,
         latestOf(now, resource.getUpdateAutoTimestamp().getTimestamp()));
-  }
-
-  /** Loads and returns the hosts specified by the given reference. */
-  public static ImmutableSet<HostResource> loadReferencedNameservers(
-      Set<Ref<HostResource>> hostRefs) {
-    ImmutableSet.Builder<HostResource> builder = new ImmutableSet.Builder<>();
-    for (Ref<HostResource> hostRef : hostRefs) {
-      HostResource host = hostRef.get();
-      if (host != null) {
-        builder.add(host);
-      }
-    }
-    return builder.build();
-  }
-
-  /** Loads and returns the contacts specified by the given references. */
-  public static ImmutableSet<ContactResource> loadReferencedContacts(
-      Set<Ref<ContactResource>> contactRefs) {
-    ImmutableSet.Builder<ContactResource> builder = new ImmutableSet.Builder<>();
-    for (Ref<ContactResource> contactRef : contactRefs) {
-      builder.add(contactRef.get());
-    }
-    return builder.build();
   }
 
   /**
