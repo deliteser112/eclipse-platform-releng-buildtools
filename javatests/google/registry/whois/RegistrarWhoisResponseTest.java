@@ -16,7 +16,7 @@ package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
 
 import com.google.common.collect.ImmutableList;
@@ -110,7 +110,7 @@ public class RegistrarWhoisResponseTest {
             .setTypes(ImmutableSet.of(RegistrarContact.Type.TECH))
             .setVisibleInWhoisAsTech(true)
         .build());
-    persistSimpleGlobalResources(contacts);
+    persistSimpleResources(contacts);
     persistResource(registrar);
 
     RegistrarWhoisResponse registrarWhoisResponse =

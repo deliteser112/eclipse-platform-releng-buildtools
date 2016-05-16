@@ -17,7 +17,7 @@ package google.registry.rdap;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
@@ -86,7 +86,7 @@ public class RdapNameserverSearchActionTest {
     Registrar registrar =
         persistResource(
             makeRegistrar("evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     hostNs1CatLol = makeAndPersistHostResource(
         "ns1.cat.lol", "1.2.3.4", clock.nowUtc().minusYears(1));
     hostNs2CatLol = makeAndPersistHostResource(
@@ -98,13 +98,13 @@ public class RdapNameserverSearchActionTest {
     // cat.みんな
     createTld("xn--q9jyb4c");
     registrar = persistResource(makeRegistrar("unicoderegistrar", "みんな", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     makeAndPersistHostResource("ns1.cat.みんな", "1.2.3.5", clock.nowUtc().minusYears(1));
 
     // cat.1.test
     createTld("1.test");
     registrar = persistResource(makeRegistrar("multiregistrar", "1.test", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     makeAndPersistHostResource("ns1.cat.1.test", "1.2.3.6", clock.nowUtc().minusYears(1));
 
     // create a domain so that we can use it as a test nameserver search string suffix

@@ -17,7 +17,7 @@ package google.registry.model.billing;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
 import static org.joda.money.CurrencyUnit.JPY;
@@ -105,7 +105,7 @@ public final class RegistrarBillingUtilsTest {
         .setDescription("USD Invoice for August")
         .setAmount(Money.parse("USD 23.00"))
         .build();
-    persistSimpleGlobalResources(asList(entry1, entry2));
+    persistSimpleResources(asList(entry1, entry2));
     Map<CurrencyUnit, Money> balance = RegistrarBillingUtils.loadBalance(registrar);
     assertThat(balance).hasSize(2);
     assertThat(balance).containsEntry(USD, Money.parse("USD 33.00"));
@@ -136,7 +136,7 @@ public final class RegistrarBillingUtilsTest {
         .setDescription("JPY Invoice for August")
         .setAmount(Money.parse("JPY 666"))
         .build();
-    persistSimpleGlobalResources(asList(entry1, entry2, entry3));
+    persistSimpleResources(asList(entry1, entry2, entry3));
     Map<CurrencyUnit, Money> balance = RegistrarBillingUtils.loadBalance(registrar);
     assertThat(balance).hasSize(2);
     assertThat(balance).containsEntry(USD, Money.parse("USD 13.50"));

@@ -21,7 +21,7 @@ import static google.registry.model.index.DomainApplicationIndex.loadActiveAppli
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -61,8 +61,7 @@ public class DomainApplicationIndexTest extends EntityTestCase {
 
   @Test
   public void testSuccess_singleApplication() {
-    DomainApplication application =
-        persistSimpleGlobalResource(newDomainApplication("example.com"));
+    DomainApplication application = persistSimpleResource(newDomainApplication("example.com"));
     persistResource(createUpdatedInstance(application));
     DomainApplicationIndex savedIndex = DomainApplicationIndex.load("example.com");
     assertThat(savedIndex).isNotNull();
@@ -79,12 +78,9 @@ public class DomainApplicationIndexTest extends EntityTestCase {
 
   @Test
   public void testSuccess_multipleApplications() {
-    DomainApplication application1 =
-        persistSimpleGlobalResource(newDomainApplication("example.com"));
-    DomainApplication application2 =
-        persistSimpleGlobalResource(newDomainApplication("example.com"));
-    DomainApplication application3 =
-        persistSimpleGlobalResource(newDomainApplication("example.com"));
+    DomainApplication application1 = persistSimpleResource(newDomainApplication("example.com"));
+    DomainApplication application2 = persistSimpleResource(newDomainApplication("example.com"));
+    DomainApplication application3 = persistSimpleResource(newDomainApplication("example.com"));
     persistResource(createUpdatedInstance(application1));
     persistResource(createUpdatedInstance(application2));
     persistResource(createUpdatedInstance(application3));
@@ -98,10 +94,8 @@ public class DomainApplicationIndexTest extends EntityTestCase {
 
   @Test
   public void testSuccess_doesntStoreSameApplicationMultipleTimes() {
-    DomainApplication application1 =
-        persistSimpleGlobalResource(newDomainApplication("example.com"));
-    DomainApplication application2 =
-        persistSimpleGlobalResource(newDomainApplication("example.com"));
+    DomainApplication application1 = persistSimpleResource(newDomainApplication("example.com"));
+    DomainApplication application2 = persistSimpleResource(newDomainApplication("example.com"));
     persistResource(createUpdatedInstance(application1));
     persistResource(createUpdatedInstance(application2));
     persistResource(createUpdatedInstance(application1));
@@ -111,13 +105,13 @@ public class DomainApplicationIndexTest extends EntityTestCase {
 
   @Test
   public void testSuccess_doesntIncludePastApplications() {
-    DomainApplication application1 =
-        persistSimpleGlobalResource(newDomainApplication("example.com"));
-    DomainApplication application2 = persistSimpleGlobalResource(
-        newDomainApplication("example.com")
-            .asBuilder()
-            .setDeletionTime(DateTime.now().minusDays(30))
-            .build());
+    DomainApplication application1 = persistSimpleResource(newDomainApplication("example.com"));
+    DomainApplication application2 =
+        persistSimpleResource(
+            newDomainApplication("example.com")
+                .asBuilder()
+                .setDeletionTime(DateTime.now().minusDays(30))
+                .build());
     persistResource(createUpdatedInstance(application1));
     persistResource(createUpdatedInstance(application2));
     DomainApplicationIndex savedIndex =

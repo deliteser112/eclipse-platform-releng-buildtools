@@ -16,6 +16,8 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
@@ -25,7 +27,6 @@ import com.google.common.collect.ImmutableSet;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.DatastoreHelper;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -122,8 +123,8 @@ public class ContactSettingsTest extends RegistrarServletTestCase {
         .setTypes(ImmutableSet.of(RegistrarContact.Type.ADMIN, RegistrarContact.Type.TECH))
         .build();
     // Lest we anger the timestamp inversion bug.
-    DatastoreHelper.persistResource(registrar);
-    DatastoreHelper.persistSimpleGlobalResources(ImmutableSet.of(rc));
+    persistResource(registrar);
+    persistSimpleResource(rc);
 
     // Now try to remove the phone number.
     rc = rc.asBuilder().setPhoneNumber(null).build();

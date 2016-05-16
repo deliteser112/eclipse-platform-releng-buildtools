@@ -1012,7 +1012,7 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Nameserver are not whitelisted for this TLD. */
+  /** Nameservers are not whitelisted for this TLD. */
   public static class NameserversNotAllowedException extends StatusProhibitsOperationException {
     public NameserversNotAllowedException(Set<String> fullyQualifiedHostNames) {
       super(String.format(

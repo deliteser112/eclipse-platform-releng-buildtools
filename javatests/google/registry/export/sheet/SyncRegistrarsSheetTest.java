@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardHours;
 import static org.mockito.Matchers.eq;
@@ -189,7 +189,7 @@ public class SyncRegistrarsSheetTest {
             .setTypes(ImmutableSet.of(RegistrarContact.Type.TECH))
         .build());
     // Use registrar ref for contacts' parent.
-    persistSimpleGlobalResources(contacts);
+    persistSimpleResources(contacts);
     persistResource(registrar);
 
     newSyncRegistrarsSheet().run("foobar");

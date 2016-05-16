@@ -18,7 +18,7 @@ import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
@@ -127,7 +127,7 @@ public class WhoisHttpServerTest {
         persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4")),
         persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
         registrar));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisHttpServer("/domain/cat.lol").run();
     assertThat(response.getStatus()).isEqualTo(404);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
@@ -147,7 +147,7 @@ public class WhoisHttpServerTest {
         persistResource(makeHostResource("ns1.cat.みんな",  "1.2.3.4")),
         persistResource(makeHostResource("ns2.cat.みんな",  "bad:f00d:cafe::15:beef")),
         registrar));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisHttpServer("/domain/cat.みんな").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_idn_utf8.txt"));
@@ -217,7 +217,7 @@ public class WhoisHttpServerTest {
         persistResource(makeHostResource("ns1.cat.みんな",  "1.2.3.4")),
         persistResource(makeHostResource("ns2.cat.みんな",  "bad:f00d:cafe::15:beef")),
         registrar));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisHttpServer("/domain/cat.xn--q9jyb4c").run();
     assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_idn_utf8.txt"));
   }
@@ -304,7 +304,7 @@ public class WhoisHttpServerTest {
   public void testRun_registrarLookup_works() throws Exception {
     Registrar registrar = persistResource(
         makeRegistrar("example", "Example Registrar, Inc.", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     // Notice the partial search without "inc".
     newWhoisHttpServer("/registrar/Example%20Registrar").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -315,7 +315,7 @@ public class WhoisHttpServerTest {
   public void testRun_registrarLookupInPendingState_returnsNotFound() throws Exception {
     Registrar registrar = persistResource(
         makeRegistrar("example", "Example Registrar, Inc.", Registrar.State.PENDING));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisHttpServer("/registrar/Example%20Registrar,%20Inc.").run();
     assertThat(response.getStatus()).isEqualTo(404);
     assertThat(response.getPayload())
@@ -327,7 +327,7 @@ public class WhoisHttpServerTest {
     Registrar registrar = persistResource(
         makeRegistrar("example", "Example Registrar, Inc.", Registrar.State.ACTIVE)
             .asBuilder().setType(Registrar.Type.TEST).setIanaIdentifier(null).build());
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisHttpServer("/registrar/Example%20Registrar,%20Inc.").run();
     assertThat(response.getStatus()).isEqualTo(404);
     assertThat(response.getPayload())

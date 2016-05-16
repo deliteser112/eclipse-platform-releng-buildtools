@@ -843,24 +843,6 @@ public class DatastoreHelper {
   }
 
   /**
-   * Persists a single Objectify resource in the global namespace, without adjusting foreign
-   * resources or keys.
-   */
-  public static <R> R persistSimpleGlobalResource(final R resource) {
-    return persistSimpleResources(ImmutableList.of(resource)).get(0);
-  }
-
-  /**
-   * Like persistResource but for multiple entities, with no helper for saving
-   * ForeignKeyedEppResources. All entities are persisted into the global namespace.
-   *
-   * @see "http://docs.objectify-appengine.googlecode.com/git/apidocs/com/googlecode/objectify/cmd/Loader.htmls#entities(java.lang.Iterable)"
-   */
-  public static <R> ImmutableList<R> persistSimpleGlobalResources(Iterable<R> resources) {
-    return persistSimpleResources(resources);
-  }
-
-  /**
    * Like persistResource but for multiple entities, with no helper for saving
    * ForeignKeyedEppResources.
    *

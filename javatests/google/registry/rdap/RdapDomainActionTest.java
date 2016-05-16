@@ -17,7 +17,7 @@ package google.registry.rdap;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
@@ -77,7 +77,7 @@ public class RdapDomainActionTest {
     createTld("lol");
     Registrar registrarLol = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrarLol));
+    persistSimpleResources(makeRegistrarContacts(registrarLol));
     ContactResource registrant = makeAndPersistContactResource(
         "5372808-ERL", "Goblin Market", "lol@cat.lol", clock.nowUtc().minusYears(1));
     ContactResource adminContact = makeAndPersistContactResource(
@@ -104,7 +104,7 @@ public class RdapDomainActionTest {
     createTld("xn--q9jyb4c");
     Registrar registrarIdn =
         persistResource(makeRegistrar("idnregistrar", "IDN Registrar", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrarIdn));
+    persistSimpleResources(makeRegistrarContacts(registrarIdn));
     DomainBase domainCatIdn = persistResource(makeDomainResource("cat.みんな",
         registrant,
         adminContact,
@@ -115,7 +115,7 @@ public class RdapDomainActionTest {
     createTld("1.tld");
     Registrar registrar1tld = persistResource(
         makeRegistrar("1tldregistrar", "Multilevel Registrar", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar1tld));
+    persistSimpleResources(makeRegistrarContacts(registrar1tld));
     DomainBase domainCat1Tld = persistResource(makeDomainResource("cat.1.tld",
         registrant,
         adminContact,

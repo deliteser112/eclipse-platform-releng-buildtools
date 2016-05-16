@@ -15,6 +15,7 @@
 package google.registry.testing;
 
 import static com.google.common.truth.Truth.assert_;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.json.XML.toJSONObject;
@@ -55,7 +56,6 @@ import org.junit.runners.model.Statement;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -401,10 +401,8 @@ public final class AppEngineRule extends ExternalResource {
 
   /** Create some fake registrars. */
   public static void loadInitialData() {
-    DatastoreHelper.persistSimpleGlobalResources(Arrays.asList(
-        makeRegistrar1(),
-        makeRegistrarContact1(),
-        makeRegistrar2(),
-        makeRegistrarContact2()));
+    persistSimpleResources(
+        ImmutableList.of(
+            makeRegistrar1(), makeRegistrarContact1(), makeRegistrar2(), makeRegistrarContact2()));
   }
 }

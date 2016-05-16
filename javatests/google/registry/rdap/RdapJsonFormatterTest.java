@@ -17,7 +17,7 @@ package google.registry.rdap;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
@@ -94,7 +94,7 @@ public class RdapJsonFormatterTest {
     clock.setTo(DateTime.parse("2000-01-01T00:00:00Z"));
     registrar = persistResource(registrar);
 
-    persistSimpleGlobalResources(makeMoreRegistrarContacts(registrar));
+    persistSimpleResources(makeMoreRegistrarContacts(registrar));
 
     contactResourceRegistrant = makeAndPersistContactResource(
         "8372808-ERL",

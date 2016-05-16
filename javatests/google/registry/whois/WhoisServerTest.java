@@ -19,7 +19,7 @@ import static google.registry.model.registrar.Registrar.State.ACTIVE;
 import static google.registry.model.registrar.Registrar.Type.PDT;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
@@ -96,7 +96,7 @@ public class WhoisServerTest {
         persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4")),
         persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
         registrar));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisServer("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_domain.txt"));
@@ -114,7 +114,7 @@ public class WhoisServerTest {
         persistResource(makeHostResource("ns1.cat.みんな",  "1.2.3.4")),
         persistResource(makeHostResource("ns2.cat.みんな",  "bad:f00d:cafe::15:beef")),
         registrar));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisServer("domain cat.みんな\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_idn_punycode.txt"));
@@ -132,7 +132,7 @@ public class WhoisServerTest {
         persistResource(makeHostResource("ns1.cat.みんな",  "1.2.3.4")),
         persistResource(makeHostResource("ns2.cat.みんな",  "bad:f00d:cafe::15:beef")),
         registrar));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisServer("domain cat.xn--q9jyb4c\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_idn_punycode.txt"));
@@ -161,7 +161,7 @@ public class WhoisServerTest {
         persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4")),
         persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
         registrar));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisServer("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
@@ -183,7 +183,7 @@ public class WhoisServerTest {
         persistResource(
             (registrar = makeRegistrar("example", "Example Registrar", ACTIVE))))
                 .asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisServer("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
@@ -223,7 +223,7 @@ public class WhoisServerTest {
         persistResource((registrar = makeRegistrar(
             "example", "Example Registrar", ACTIVE)))).asBuilder()
             .setCreationTimeForTest(DateTime.now()).build());
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     assertThat(domain1.getRepoId()).isNotEqualTo(domain2.getRepoId());
     newWhoisServer("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -369,7 +369,7 @@ public class WhoisServerTest {
   public void testRun_registrarLookup_works() throws Exception {
     Registrar registrar = persistResource(
         makeRegistrar("example", "Example Registrar, Inc.", ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     // Notice the partial search without "inc".
     newWhoisServer("registrar example registrar").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -385,7 +385,7 @@ public class WhoisServerTest {
                 .setIanaIdentifier(9995L)
                 .setType(PDT)
                 .build());
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     // Notice the partial search without "inc".
     newWhoisServer("registrar example registrar").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -396,7 +396,7 @@ public class WhoisServerTest {
   public void testRun_registrarLookupInPendingState_returnsNotFound() throws Exception {
     Registrar registrar = persistResource(
         makeRegistrar("example", "Example Registrar, Inc.", Registrar.State.PENDING));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisServer("registrar Example Registrar, Inc.").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
@@ -411,7 +411,7 @@ public class WhoisServerTest {
             .setIanaIdentifier(null)
             .setType(Registrar.Type.TEST)
             .build());
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisServer("registrar Example Registrar, Inc.").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
@@ -429,7 +429,7 @@ public class WhoisServerTest {
         persistResource(makeHostResource("ns1.cat.1.test", "1.2.3.4")),
         persistResource(makeHostResource("ns2.cat.1.test", "bad:f00d:cafe::15:beef")),
         registrar));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
 
     newWhoisServer("domain cat.1.test\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);

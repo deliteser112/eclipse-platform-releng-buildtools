@@ -23,7 +23,8 @@ import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -92,7 +93,7 @@ public class RegistrarTest extends EntityTestCase {
             .setPhonePasscode("01234")
             .build());
     persistResource(registrar);
-    persistSimpleGlobalResources(ImmutableList.of(
+    persistSimpleResources(ImmutableList.of(
         new RegistrarContact.Builder()
             .setParent(registrar)
             .setName("John Abused")
@@ -260,7 +261,7 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testSuccess_emptyContactTypesAllowed() throws Exception {
-    persistSimpleGlobalResources(ImmutableList.of(
+    persistSimpleResource(
         new RegistrarContact.Builder()
             .setParent(registrar)
             .setName("John Abused")
@@ -268,7 +269,7 @@ public class RegistrarTest extends EntityTestCase {
             .setPhoneNumber("+1.2125551213")
             .setFaxNumber("+1.2125551213")
             // No setTypes(...)
-            .build()));
+            .build());
     for (RegistrarContact rc : registrar.getContacts()) {
       rc.toJsonMap();
     }

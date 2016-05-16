@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
@@ -118,7 +118,7 @@ public class RdapDomainSearchActionTest {
     createTld("lol");
     Registrar registrar = persistResource(
         makeRegistrar("evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     domainCatLol = persistResource(makeDomainResource(
             "cat.lol",
             makeAndPersistContactResource(
@@ -176,7 +176,7 @@ public class RdapDomainSearchActionTest {
     createTld("example");
     registrar = persistResource(
         makeRegistrar("goodregistrar", "St. John Chrysostom", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     domainCatExample = persistResource(makeDomainResource(
         "cat.example",
         makeAndPersistContactResource(
@@ -201,7 +201,7 @@ public class RdapDomainSearchActionTest {
     // cat.みんな
     createTld("xn--q9jyb4c");
     registrar = persistResource(makeRegistrar("unicoderegistrar", "みんな", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     persistResource(makeDomainResource(
         "cat.みんな",
         makeAndPersistContactResource(
@@ -227,7 +227,7 @@ public class RdapDomainSearchActionTest {
     createTld("1.test");
     registrar =
         persistResource(makeRegistrar("unicoderegistrar", "1.test", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
     persistResource(makeDomainResource(
             "cat.1.test",
             makeAndPersistContactResource(

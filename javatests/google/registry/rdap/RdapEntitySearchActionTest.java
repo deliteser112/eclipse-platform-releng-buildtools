@@ -17,7 +17,7 @@ package google.registry.rdap;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
@@ -96,12 +96,12 @@ public class RdapEntitySearchActionTest {
     registrar =
         persistResource(
             makeRegistrar("2-Registrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
 
     // inactive
     registrarInactive =
         persistResource(makeRegistrar("2-RegistrarInact", "No Way", Registrar.State.PENDING));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrarInactive));
+    persistSimpleResources(makeRegistrarContacts(registrarInactive));
 
     // test
     registrarTest =
@@ -111,7 +111,7 @@ public class RdapEntitySearchActionTest {
                 .setType(Registrar.Type.TEST)
                 .setIanaIdentifier(null)
                 .build());
-    persistSimpleGlobalResources(makeRegistrarContacts(registrarTest));
+    persistSimpleResources(makeRegistrarContacts(registrarTest));
 
     action.clock = clock;
     action.requestPath = RdapEntitySearchAction.PATH;

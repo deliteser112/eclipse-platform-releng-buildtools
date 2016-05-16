@@ -18,7 +18,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.registrar.RegistrarContact.Type.ABUSE;
 import static google.registry.model.registrar.RegistrarContact.Type.ADMIN;
 import static google.registry.model.registrar.RegistrarContact.Type.WHOIS;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
@@ -75,7 +76,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
             .setVisibleInWhoisAsAdmin(true)
             .setVisibleInWhoisAsTech(true)
             .build());
-    persistSimpleGlobalResources(contacts);
+    persistSimpleResources(contacts);
     runCommand(
         "--force",
         "--mode=UPDATE",
@@ -105,12 +106,12 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
   @Test
   public void testUpdate_enableConsoleAccess() throws Exception {
     Registrar registrar = Registrar.loadByClientId("NewRegistrar");
-    persistSimpleGlobalResources(ImmutableList.of(
+    persistSimpleResource(
         new RegistrarContact.Builder()
             .setParent(registrar)
             .setName("Jane Doe")
             .setEmailAddress("jane.doe@example.com")
-            .build()));
+            .build());
     runCommand(
         "--force",
         "--mode=UPDATE",
@@ -125,13 +126,13 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
   @Test
   public void testUpdate_disableConsoleAccess() throws Exception {
     Registrar registrar = Registrar.loadByClientId("NewRegistrar");
-    persistSimpleGlobalResources(ImmutableList.of(
+    persistSimpleResource(
         new RegistrarContact.Builder()
             .setParent(registrar)
             .setName("Judith Doe")
             .setEmailAddress("judith.doe@example.com")
             .setGaeUserId("11111")
-            .build()));
+            .build());
     runCommand(
         "--force",
         "--mode=UPDATE",

@@ -17,7 +17,7 @@ package google.registry.rdap;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DatastoreHelper.persistSimpleGlobalResources;
+import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
@@ -79,7 +79,7 @@ public class RdapEntityActionTest {
     createTld("lol");
     registrarLol = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrarLol));
+    persistSimpleResources(makeRegistrarContacts(registrarLol));
     registrant = makeAndPersistContactResource(
         "8372808-ERL",
         "(◕‿◕)",
@@ -113,7 +113,7 @@ public class RdapEntityActionTest {
     createTld("xn--q9jyb4c");
     Registrar registrarIdn =
         persistResource(makeRegistrar("idnregistrar", "IDN Registrar", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrarIdn));
+    persistSimpleResources(makeRegistrarContacts(registrarIdn));
     persistResource(makeDomainResource("cat.みんな",
         registrant,
         adminContact,
@@ -124,7 +124,7 @@ public class RdapEntityActionTest {
     createTld("1.tld");
     Registrar registrar1tld = persistResource(
         makeRegistrar("1tldregistrar", "Multilevel Registrar", Registrar.State.ACTIVE));
-    persistSimpleGlobalResources(makeRegistrarContacts(registrar1tld));
+    persistSimpleResources(makeRegistrarContacts(registrar1tld));
     persistResource(makeDomainResource("cat.1.tld",
         registrant,
         adminContact,
