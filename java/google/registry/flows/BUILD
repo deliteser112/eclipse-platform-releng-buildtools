@@ -19,6 +19,7 @@ java_library(
         "*.java",
         "**/*.java",
     ]),
+    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",
@@ -48,5 +49,4 @@ java_library(
         "//java/google/registry/util",
         "//java/google/registry/xml",
     ],
-    visibility = ["//visibility:public"],
 )

@@ -11,9 +11,9 @@ licenses(["notice"])  # Apache 2.0
 package_group(
     name = "allowed-tools",
     packages = [
+        "//java/google/registry/eclipse",
         "//java/google/registry/testing",
         "//java/google/registry/tools",
-        "//java/google/registry/eclipse",
         "//javatests/google/registry/tools",
     ],
 )

@@ -10,6 +10,7 @@ java_library(
         "//java/google/registry/ui/css:registrar_bin.css.js",
         "//java/google/registry/ui/css:registrar_dbg.css.js",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",
@@ -41,5 +42,4 @@ java_library(
 
         "//third_party/closure/templates",
     ],
-    visibility = ["//visibility:public"],
 )

@@ -26,8 +26,8 @@ java_library(
 
 java_library(
     name = "dagger-compiler",
-    exports = ["@dagger_compiler//jar"],
     visibility = ["//visibility:public"],
+    exports = ["@dagger_compiler//jar"],
     runtime_deps = [
         "@gson//jar",
         "@guava//jar",
