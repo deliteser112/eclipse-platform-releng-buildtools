@@ -24,6 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -54,6 +55,7 @@ import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.index.ForeignKeyIndex.ForeignKeyContactIndex;
 import google.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
+import google.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
@@ -177,7 +179,7 @@ public class VerifyEntityIntegrityActionTest
     deleteResource(EppResourceIndex.create(cooperKey));
     runMapreduce();
     assertIntegrityErrors(IntegrityError.create(
-        Data.NULL_STRING, cooperKey.toString(), "Missing EPP resource index for EPP resource"));
+        Data.NULL_STRING, cooperKey, "Missing EPP resource index for EPP resource"));
   }
 
   @Test
@@ -195,12 +197,12 @@ public class VerifyEntityIntegrityActionTest
                         Ref.create(missingHost2),
                         Ref.create(missingHost3)))
                 .build());
-    String source = Key.create(domain).toString();
+    Key<DomainResource> domainKey = Key.create(domain);
     runMapreduce();
     assertIntegrityErrors(
-        IntegrityError.create(source, missingHost1.toString(), "Target entity does not exist"),
-        IntegrityError.create(source, missingHost2.toString(), "Target entity does not exist"),
-        IntegrityError.create(source, missingHost3.toString(), "Target entity does not exist"));
+        IntegrityError.create(domainKey, missingHost1, "Target entity does not exist"),
+        IntegrityError.create(domainKey, missingHost2, "Target entity does not exist"),
+        IntegrityError.create(domainKey, missingHost3, "Target entity does not exist"));
   }
 
   @Test
@@ -214,8 +216,8 @@ public class VerifyEntityIntegrityActionTest
     runMapreduce();
     assertIntegrityErrors(
         IntegrityError.create(
-            ForeignKeyDomainIndex.createKey(domain2).toString(),
-            Key.create(domain1).toString(),
+            ForeignKeyDomainIndex.createKey(domain2),
+            Key.create(domain1),
             "Found inactive resource deleted more recently than when active resource was created"));
   }
 
@@ -226,13 +228,48 @@ public class VerifyEntityIntegrityActionTest
     runMapreduce();
     assertIntegrityErrors(
         IntegrityError.create(
-            Key.create(ForeignKeyContactIndex.class, "dupeid").toString(),
-            Key.create(contact1).toString(),
+            Key.create(ForeignKeyContactIndex.class, "dupeid"),
+            Key.create(contact1),
             "Multiple active EppResources with same foreign key"),
         IntegrityError.create(
-            Key.create(ForeignKeyContactIndex.class, "dupeid").toString(),
-            Key.create(contact2).toString(),
+            Key.create(ForeignKeyContactIndex.class, "dupeid"),
+            Key.create(contact2),
             "Multiple active EppResources with same foreign key"));
+  }
+
+  @Test
+  public void test_deletedFkiWithOldHostnameIsntAnError() throws Exception {
+    HostResource hostLosing = persistActiveHost("losing.example.tld");
+    persistResource(
+        hostLosing.asBuilder().setFullyQualifiedHostName("gaining.example.tld").build());
+    persistSimpleResource(
+        ForeignKeyHostIndex.create(hostLosing, DateTime.parse("2010-01-01T00:00:00Z")));
+    // The old FKI with a primary key of "losing.example.tld" still exists, and it points to the
+    // resource which has a hostname of "gaining.example.tld", but this isn't an error because the
+    // FKI is soft-deleted.
+    runMapreduce();
+    verifyZeroInteractions(bigquery);
+  }
+
+  @Test
+  public void test_fkiWithDifferentHostnameDeletedMoreRecentlyIsAnError() throws Exception {
+    HostResource hostLosing = persistActiveHost("losing.example.tld");
+    HostResource hostGaining = persistResource(
+        hostLosing
+            .asBuilder()
+            .setFullyQualifiedHostName("gaining.example.tld")
+            .setDeletionTime(DateTime.parse("2013-01-01T00:00:00Z"))
+            .build());
+    ForeignKeyIndex<?> fki = persistSimpleResource(
+        ForeignKeyHostIndex.create(hostLosing, DateTime.parse("2014-01-01T00:00:00Z")));
+    // The old FKI is pointing to the old name but has a deletion time more recent than the deleted
+    // host, so it should have the same foreign key.
+    runMapreduce();
+    assertIntegrityErrors(
+        IntegrityError.create(
+            Key.create(fki),
+            Key.create(hostGaining),
+            "Foreign key index points to EppResource with different foreign key"));
   }
 
   /** Encapsulates the data representing a single integrity error. */
@@ -241,10 +278,10 @@ public class VerifyEntityIntegrityActionTest
     String target;
     String message;
 
-    static IntegrityError create(String source, String target, String message) {
+    static IntegrityError create(Object source, Object target, String message) {
       IntegrityError instance = new IntegrityError();
-      instance.source = source;
-      instance.target = target;
+      instance.source = source.toString();
+      instance.target = target.toString();
       instance.message = message;
       return instance;
     }

@@ -22,6 +22,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DateTimeUtils.earliestOf;
+import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.PipelineUtils.createJobPath;
@@ -305,11 +306,14 @@ public class VerifyEntityIntegrityAction implements Runnable {
       @SuppressWarnings("cast")
       EppResource resource = verifyExistence(fkiKey, fki.getReference());
       if (resource != null) {
-        integrity().check(
-            fki.getForeignKey().equals(resource.getForeignKey()),
-            fkiKey,
-            Key.create(resource),
-            "Foreign key index points to EppResource with different foreign key");
+        // TODO(user): Traverse the chain of pointers to old FKIs instead once they are written.
+        if (isAtOrAfter(fki.getDeletionTime(), resource.getDeletionTime())) {
+          integrity().check(
+              fki.getForeignKey().equals(resource.getForeignKey()),
+              fkiKey,
+              Key.create(resource),
+              "Foreign key index points to EppResource with different foreign key");
+        }
       }
       if (fki instanceof ForeignKeyDomainIndex) {
         getContext().incrementCounter("domain foreign key indexes");
@@ -539,7 +543,9 @@ public class VerifyEntityIntegrityAction implements Runnable {
           foreignKey,
           resourceKind,
           "Missing foreign key index for EppResource");
-      if (thereCanBeOnlyOne) {
+      // Skip the case where no resources were found because entity exceptions are already thrown in
+      // the mapper in invalid situations where FKIs point to non-existent entities.
+      if (thereCanBeOnlyOne && !resources.isEmpty()) {
         verifyOnlyOneActiveResource(resources, getOnlyElement(foreignKeyIndexes));
       }
     }
