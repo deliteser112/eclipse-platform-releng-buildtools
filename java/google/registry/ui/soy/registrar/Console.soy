@@ -38,9 +38,10 @@
     {case google.registry.ui.ConsoleDebug.DEBUG}
       <script src="/assets/js/registrar_dbg.js"></script>
     {case google.registry.ui.ConsoleDebug.RAW}
+      <script>var CLOSURE_NO_DEPS = true;</script>
       <script src="/assets/sources/external/closure_library/closure/goog/base.js">
       </script>
-      <script src="/assets/sources/deps-runfiles.js"></script>
+      <script src="/assets/sources/deps.js"></script>
       <script>goog.require('registry.registrar.main');</script>
   {/switch}
   {if isNonnull(DEBUG)}

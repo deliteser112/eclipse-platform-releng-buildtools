@@ -33,8 +33,8 @@ public final class RegistryTestServer {
           .put("/error.html", Paths.get("java/google/registry/ui/html/error.html"))
           .put("/assets/js/*", Paths.get("java/google/registry/ui"))
           .put("/assets/css/*", Paths.get("java/google/registry/ui/css"))
-          .put("/assets/sources/deps-runfiles.js",
-              Paths.get("java/google/registry/ui/deps-runfiles.js"))
+          .put("/assets/sources/deps.js",
+              Paths.get("java/google/registry/ui/deps.js"))
           .put("/assets/sources/*", Paths.get(""))
           .put("/assets/*", Paths.get("java/google/registry/ui/assets"))
           .build();

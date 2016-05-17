@@ -5,14 +5,16 @@ package(
 
 licenses(["notice"])  # Apache 2.0
 
-load("//third_party/closure/compiler:closure_js_library.bzl", "closure_js_library")
-load("//third_party/closure/testing:closure_js_test.bzl", "closure_js_test")
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library", "closure_js_test")
 
 
 closure_js_library(
     name = "testing",
     srcs = ["testing.js"],
-    deps = ["//javascript/closure"],
+    deps = [
+        "//javascript/closure",
+        "//javascript/closure:testing",
+    ],
 )
 
 closure_js_test(

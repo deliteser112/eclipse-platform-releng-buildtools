@@ -1,10 +1,15 @@
 package(default_visibility = ["//visibility:public"])
 
-load("//third_party/closure/compiler:closure_js_library.bzl", "closure_js_library")
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
 
 closure_js_library(
     name = "closure",
-    exports = ["//third_party/closure/library"],
+    exports = ["@io_bazel_rules_closure//closure/library"],
+)
+
+closure_js_library(
+    name = "testing",
+    exports = ["@io_bazel_rules_closure//closure/library:testing"],
 )
 
 filegroup(

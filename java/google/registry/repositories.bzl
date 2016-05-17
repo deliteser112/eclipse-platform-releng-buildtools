@@ -19,42 +19,6 @@
 def domain_registry_repositories():
 
   native.maven_jar(
-      name = "aopalliance",
-      artifact = "aopalliance:aopalliance:1.0",
-      sha1 = "0235ba8b489512805ac13a8f9ea77a1ca5ebe3e8",
-  )
-
-  native.maven_jar(
-      name = "asm",
-      artifact = "org.ow2.asm:asm:5.0.3",
-      sha1 = "dcc2193db20e19e1feca8b1240dbbc4e190824fa",
-  )
-
-  native.maven_jar(
-      name = "asm_analysis",
-      artifact = "org.ow2.asm:asm-analysis:5.0.3",
-      sha1 = "c7126aded0e8e13fed5f913559a0dd7b770a10f3",
-  )
-
-  native.maven_jar(
-      name = "asm_commons",
-      artifact = "org.ow2.asm:asm-commons:5.0.3",
-      sha1 = "a7111830132c7f87d08fe48cb0ca07630f8cb91c",
-  )
-
-  native.maven_jar(
-      name = "asm_util",
-      artifact = "org.ow2.asm:asm-util:5.0.3",
-      sha1 = "1512e5571325854b05fb1efce1db75fcced54389",
-  )
-
-  native.maven_jar(
-      name = "args4j",
-      artifact = "args4j:args4j:2.0.26",
-      sha1 = "01ebb18ebb3b379a74207d5af4ea7c8338ebd78b",
-  )
-
-  native.maven_jar(
       name = "appengine_api_sdk",
       artifact = "com.google.appengine:appengine-api-1.0-sdk:1.9.30",
       sha1 = "239376bdb4d57e2c2f5b61197ad11cb5eeca6b6c",
@@ -166,26 +130,6 @@ def domain_registry_repositories():
       name = "charts4j",
       artifact = "com.googlecode.charts4j:charts4j:1.3",
       sha1 = "80dd3b0d5591580c429b0e2529706f6be5bddc0f",
-  )
-
-  native.maven_jar(
-      name = "closure_compiler",
-      artifact = "com.google.javascript:closure-compiler:v20160208",
-      sha1 = "5a2f4be6cf41e27ed7119d26cb8f106300d87d91",
-  )
-
-  native.new_http_archive(
-      name = "closure_library",
-      build_file = "third_party/closure/library/closure_library.BUILD",
-      sha256 = "8f610300e4930190137505a574a54d12346426f2a7b4f179026e41674e452a86",
-      strip_prefix = "closure-library-20160208",
-      url = "https://github.com/google/closure-library/archive/20160208.zip",
-  )
-
-  native.maven_jar(
-      name = "closure_stylesheets",
-      artifact = "com.google.closure-stylesheets:closure-stylesheets:20160212",
-      sha1 = "f0e8625a2cfe0f501b28f5e6438b836358da8a97",
   )
 
   native.maven_jar(
@@ -324,24 +268,6 @@ def domain_registry_repositories():
       name = "guava_testlib",
       artifact = "com.google.guava:guava-testlib:19.0",
       sha1 = "ce5b880b206de3f76d364988a6308c68c726f74a",
-  )
-
-  native.maven_jar(
-      name = "guice",
-      artifact = "com.google.inject:guice:3.0",
-      sha1 = "9d84f15fe35e2c716a02979fb62f50a29f38aefa",
-  )
-
-  native.maven_jar(
-      name = "guice_assistedinject",
-      artifact = "com.google.inject.extensions:guice-assistedinject:3.0",
-      sha1 = "544449ddb19f088dcde44f055d30a08835a954a7",
-  )
-
-  native.maven_jar(
-      name = "guice_multibindings",
-      artifact = "com.google.inject.extensions:guice-multibindings:3.0",
-      sha1 = "5e670615a927571234df68a8b1fe1a16272be555",
   )
 
   native.maven_jar(
@@ -488,14 +414,6 @@ def domain_registry_repositories():
       sha1 = "79a8984096fc6591c1e3690e07d41be506356fa5",
   )
 
-  # XXX: new_http_archive() doesn't maintain the executable bit.
-  #      https://github.com/bazelbuild/bazel/issues/984
-  native.http_file(
-      name = "phantomjs",
-      sha256 = "86dd9a4bf4aee45f1a84c9f61cf1947c1d6dce9b9e8d2a907105da7852460d2f",
-      url = "https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2",
-  )
-
   native.maven_jar(
       name = "protobuf_java",
       artifact = "com.google.protobuf:protobuf-java:2.6.1",
@@ -524,18 +442,6 @@ def domain_registry_repositories():
       name = "slf4j_api",
       artifact = "org.slf4j:slf4j-api:1.7.14",
       sha1 = "862a5bc736005d68727d1387844d09d62efdb6cb",
-  )
-
-  native.maven_jar(
-      name = "soy",
-      artifact = "com.google.template:soy:2016-01-12",
-      sha1 = "adadc37aecf1042de7c9c6a6eb8f34719500ed69",
-  )
-
-  native.http_file(
-      name = "soyutils_usegoog",
-      sha256 = "fdb0e318949c1af668038df1d85d45353a00ff585f321c86efe91ac2a10cc91f",
-      url = "https://repo1.maven.org/maven2/com/google/template/soy/2016-01-12/soy-2016-01-12-soyutils_usegoog.js",
   )
 
   native.maven_jar(

@@ -40,6 +40,6 @@ java_library(
         "//third_party/java/objectify:objectify-v4_1",
         "//third_party/java/servlet/servlet_api",
 
-        "//third_party/closure/templates",
+        "@io_bazel_rules_closure//closure/templates",
     ],
 )

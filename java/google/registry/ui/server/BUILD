@@ -27,6 +27,6 @@ java_library(
         "//third_party/java/re2j",
         "//third_party/java/servlet/servlet_api",
 
-        "//third_party/closure/templates",
+        "@io_bazel_rules_closure//closure/templates",
     ],
 )

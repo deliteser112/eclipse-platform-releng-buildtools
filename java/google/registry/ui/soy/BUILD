@@ -2,8 +2,7 @@ package(default_visibility = ["//java/google/registry:registry_project"])
 
 licenses(["notice"])  # Apache 2.0
 
-load("//third_party/closure/templates:closure_template_java_library.bzl", "closure_template_java_library")
-load("//third_party/closure/templates:closure_template_js_library.bzl", "closure_template_js_library")
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_template_java_library", "closure_template_js_library")
 
 
 filegroup(
