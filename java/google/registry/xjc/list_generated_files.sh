@@ -46,8 +46,8 @@ cat <<EOF
 # When you make changes to the XML schemas (*.xsd) or the JAXB bindings file
 # (bindings.xjb), you must regenerate this file with the following commands:
 #
-#   bazel run third_party/java_src/gtld/java/google/registry/xjc:list_generated_files | tee /tmp/lol
-#   mv /tmp/lol third_party/java_src/gtld/java/google/registry/xjc/generated_files.bzl
+#   bazel run java/google/registry/xjc:list_generated_files | tee /tmp/lol
+#   mv /tmp/lol java/google/registry/xjc/generated_files.bzl
 #
 EOF
 
