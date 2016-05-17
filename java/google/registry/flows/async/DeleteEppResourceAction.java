@@ -49,8 +49,6 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-import google.registry.util.NonFinalForTesting;
-import google.registry.util.SystemClock;
 import google.registry.util.TypeUtils.TypeInstantiator;
 
 import org.joda.time.DateTime;
@@ -63,9 +61,6 @@ import javax.inject.Inject;
  */
 public abstract class DeleteEppResourceAction<T extends EppResource> implements MapreduceAction {
 
-  @NonFinalForTesting
-  static Clock clock = new SystemClock();
-
   /** The HTTP parameter name used to specify the websafe key of the resource to delete. */
   public static final String PARAM_RESOURCE_KEY = "resourceKey";
   public static final String PARAM_REQUESTING_CLIENT_ID = "requestingClientId";
@@ -76,6 +71,7 @@ public abstract class DeleteEppResourceAction<T extends EppResource> implements 
   @Inject @Parameter(PARAM_RESOURCE_KEY) String resourceKeyString;
   @Inject @Parameter(PARAM_REQUESTING_CLIENT_ID) String requestingClientId;
   @Inject @Parameter(PARAM_IS_SUPERUSER) boolean isSuperuser;
+  @Inject Clock clock;
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
 

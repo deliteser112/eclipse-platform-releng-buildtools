@@ -76,8 +76,8 @@ public abstract class DeleteEppResourceActionTestCase<T extends DeleteEppResourc
     action = deleteEppResourceAction;
     action.mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
     action.response = new FakeResponse();
+    action.clock = clock;
     inject.setStaticField(Ofy.class, "clock", clock);
-    inject.setStaticField(DeleteEppResourceAction.class, "clock", clock);
 
     createTld("tld");
     contactUsed = persistActiveContact("blah1234");
