@@ -46,6 +46,7 @@ filegroup(
         "brain_bin.js.map",
         "deps.js",
         "registrar_bin.js.map",
+        ":js_files_recursive",
         ":runfiles",
         "//javascript/closure:js_files_recursive",
         "//javascript/template/soy:soy_usegoog_js_files",
