@@ -57,6 +57,7 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
           .setFullyQualifiedDomainName(existingResource.getFullyQualifiedDomainName())
           .setRepoId(existingResource.getRepoId())
           .setCurrentSponsorClientId(existingResource.getCurrentSponsorClientId())
+          .setRegistrant(existingResource.getRegistrant())
           // If we didn't do this, we'd get implicit status values.
           .buildWithoutImplicitStatusValues();
     }

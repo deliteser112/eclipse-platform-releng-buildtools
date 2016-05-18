@@ -8,6 +8,7 @@
        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
         <domain:name>example.tld</domain:name>
         <domain:roid>%ROID%</domain:roid>
+        <domain:registrant>jd1234</domain:registrant>
         <domain:clID>NewRegistrar</domain:clID>
       </domain:infData>
     </resData>
