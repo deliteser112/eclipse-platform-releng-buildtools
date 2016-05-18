@@ -119,7 +119,8 @@ public class GracePeriod extends ImmutableObject {
     return instance;
   }
 
-  /** Create a GracePeriod for an (optional) OneTime billing event.
+  /** 
+   * Creates a GracePeriod for an (optional) OneTime billing event.
    *
    * <p>Normal callers should always use {@link #forBillingEvent} instead, assuming they do not
    * need to avoid loading the BillingEvent from datastore.  This method should typically be
@@ -133,7 +134,7 @@ public class GracePeriod extends ImmutableObject {
     return createInternal(type, expirationTime, clientId, billingEventOneTime, null);
   }
 
-  /** Create a GracePeriod for a Recurring billing event. */
+  /** Creates a GracePeriod for a Recurring billing event. */
   public static GracePeriod createForRecurring(
       GracePeriodStatus type,
       DateTime expirationTime,
@@ -143,7 +144,7 @@ public class GracePeriod extends ImmutableObject {
     return createInternal(type, expirationTime, clientId, null, billingEventRecurring);
   }
 
-  /** Create a GracePeriod with no billing event. */
+  /** Creates a GracePeriod with no billing event. */
   public static GracePeriod createWithoutBillingEvent(
       GracePeriodStatus type, DateTime expirationTime, String clientId) {
     return createInternal(type, expirationTime, clientId, null, null);
