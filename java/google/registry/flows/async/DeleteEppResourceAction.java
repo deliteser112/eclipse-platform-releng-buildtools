@@ -34,7 +34,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Work;
 
-import google.registry.mapreduce.MapreduceAction;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.mapreduce.inputs.NullInput;
@@ -59,7 +58,7 @@ import javax.inject.Inject;
  * A mapreduce to delete the specified EPP resource, but ONLY if it is not referred to by any
  * existing DomainBase entity.
  */
-public abstract class DeleteEppResourceAction<T extends EppResource> implements MapreduceAction {
+public abstract class DeleteEppResourceAction<T extends EppResource> implements Runnable {
 
   /** The HTTP parameter name used to specify the websafe key of the resource to delete. */
   public static final String PARAM_RESOURCE_KEY = "resourceKey";

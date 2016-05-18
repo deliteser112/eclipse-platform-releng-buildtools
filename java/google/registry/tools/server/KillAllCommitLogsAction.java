@@ -29,7 +29,6 @@ import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 
 import google.registry.config.RegistryEnvironment;
-import google.registry.mapreduce.MapreduceAction;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpointRoot;
@@ -42,7 +41,7 @@ import javax.inject.Inject;
 
 /** Deletes all commit logs in datastore. */
 @Action(path = "/_dr/task/killAllCommitLogs", method = POST)
-public class KillAllCommitLogsAction implements MapreduceAction {
+public class KillAllCommitLogsAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;

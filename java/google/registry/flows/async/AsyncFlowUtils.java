@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 
 import google.registry.config.RegistryEnvironment;
-import google.registry.mapreduce.MapreduceAction;
 import google.registry.util.FormattingLogger;
 
 import org.joda.time.Duration;
@@ -45,7 +44,7 @@ public final class AsyncFlowUtils {
 
   /** Enqueues a mapreduce action to perform an async flow operation. */
   public static TaskHandle enqueueMapreduceAction(
-      Class<? extends MapreduceAction> action,
+      Class<? extends Runnable> action,
       ImmutableMap<String, String> params,
       Duration executionDelay) {
     Queue queue = QueueFactory.getQueue(ASYNC_FLOW_QUEUE_NAME);

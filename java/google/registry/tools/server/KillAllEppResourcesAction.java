@@ -26,7 +26,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 
 import google.registry.config.RegistryEnvironment;
-import google.registry.mapreduce.MapreduceAction;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.EppResource;
@@ -41,7 +40,7 @@ import javax.inject.Inject;
 
 /** Deletes all {@link EppResource} objects in datastore, including indices and descendants. */
 @Action(path = "/_dr/task/killAllEppResources", method = POST)
-public class KillAllEppResourcesAction implements MapreduceAction {
+public class KillAllEppResourcesAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;

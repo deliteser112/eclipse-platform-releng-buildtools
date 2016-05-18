@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableSet;
 
 import google.registry.config.ConfigModule.Config;
 import google.registry.gcs.GcsUtils;
-import google.registry.mapreduce.MapreduceAction;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.registry.Registry.TldType;
@@ -57,7 +56,7 @@ import javax.inject.Inject;
  * TLD.txt into the domain-lists bucket.  Note that this overwrites the files in place.
  */
 @Action(path = "/_dr/task/exportDomainLists")
-public class ExportDomainListsAction implements MapreduceAction {
+public class ExportDomainListsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
   private static final int MAX_NUM_REDUCE_SHARDS = 100;

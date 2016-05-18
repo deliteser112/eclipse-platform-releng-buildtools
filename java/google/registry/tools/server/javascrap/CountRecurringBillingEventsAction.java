@@ -22,7 +22,6 @@ import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
-import google.registry.mapreduce.MapreduceAction;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent.Recurring;
@@ -37,7 +36,7 @@ import javax.inject.Inject;
  * <p>This is a test of the ChildEntityInput/ChildEntityReader classes.
  */
 @Action(path = "/_dr/task/countRecurringBillingEvents")
-public class CountRecurringBillingEventsAction implements MapreduceAction {
+public class CountRecurringBillingEventsAction implements Runnable {
 
   // TODO(b/27562876): Delete this mapreduce once tested in production.
 

@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableSet;
 
 import com.googlecode.objectify.VoidWork;
 
-import google.registry.mapreduce.MapreduceAction;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Recurring;
@@ -40,7 +39,7 @@ import javax.inject.Inject;
 
 /** A mapreduce that backfills new {@link Flag#AUTO_RENEW} flag on recurring billing events. */
 @Action(path = "/_dr/task/backfillAutorenewBillingFlag")
-public class BackfillAutorenewBillingFlagAction implements MapreduceAction {
+public class BackfillAutorenewBillingFlagAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 

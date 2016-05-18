@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableList;
 
 import com.googlecode.objectify.VoidWork;
 
-import google.registry.mapreduce.MapreduceAction;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.EppResource;
 import google.registry.request.Action;
@@ -39,7 +38,7 @@ import javax.inject.Inject;
  * commit logs (for backup purposes).
  */
 @Action(path = "/_dr/task/resaveAllEppResources")
-public class ResaveAllEppResourcesAction implements MapreduceAction {
+public class ResaveAllEppResourcesAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;

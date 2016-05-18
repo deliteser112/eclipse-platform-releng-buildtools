@@ -26,7 +26,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
 import google.registry.dns.DnsQueue;
-import google.registry.mapreduce.MapreduceAction;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.domain.DomainResource;
@@ -46,7 +45,7 @@ import javax.inject.Inject;
  * Enqueues DNS refreshes for applicable domains following a host rename.
  */
 @Action(path = "/_dr/task/dnsRefreshForHostRename")
-public class DnsRefreshForHostRenameAction implements MapreduceAction {
+public class DnsRefreshForHostRenameAction implements Runnable {
 
   /** The HTTP parameter name used to specify the websafe key of the host to rename. */
   public static final String PARAM_HOST_KEY = "hostKey";
