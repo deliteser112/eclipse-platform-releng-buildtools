@@ -16,6 +16,7 @@ package google.registry.flows;
 
 import static google.registry.model.domain.launch.LaunchCreateExtension.CreateType.APPLICATION;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
@@ -292,6 +293,18 @@ public class FlowRegistry {
           : null;
     }};
 
+  private static final ImmutableList<FlowProvider> FLOW_PROVIDERS =
+      ImmutableList.of(
+          HELLO_FLOW_PROVIDER,
+          SESSION_FLOW_PROVIDER,
+          POLL_FLOW_PROVIDER,
+          DOMAIN_RESTORE_FLOW_PROVIDER,
+          ALLOCATE_FLOW_PROVIDER,
+          APPLICATION_CRUD_FLOW_PROVIDER,
+          DOMAIN_CHECK_FLOW_PROVIDER,
+          RESOURCE_CRUD_FLOW_PROVIDER,
+          TRANSFER_FLOW_PROVIDER);
+
   /** Return the appropriate flow to handle this EPP command. */
   public static Class<? extends Flow> getFlowClass(EppInput eppInput) throws EppException {
     // Do some sanity checking on the input; anything but Hello must have a command type.
@@ -301,16 +314,7 @@ public class FlowRegistry {
     }
     // Try the FlowProviders until we find a match. The order matters because it's possible to
     // match multiple FlowProviders and so more specific matches are tried first.
-    for (FlowProvider flowProvider : new FlowProvider[] {
-        HELLO_FLOW_PROVIDER,
-        SESSION_FLOW_PROVIDER,
-        POLL_FLOW_PROVIDER,
-        DOMAIN_RESTORE_FLOW_PROVIDER,
-        ALLOCATE_FLOW_PROVIDER,
-        APPLICATION_CRUD_FLOW_PROVIDER,
-        DOMAIN_CHECK_FLOW_PROVIDER,
-        RESOURCE_CRUD_FLOW_PROVIDER,
-        TRANSFER_FLOW_PROVIDER}) {
+    for (FlowProvider flowProvider : FLOW_PROVIDERS) {
       Class<? extends Flow> flowClass = flowProvider.get(eppInput);
       if (flowClass == UnimplementedFlow.class) {
         break;  // We found it, but it's marked as not implemented.
