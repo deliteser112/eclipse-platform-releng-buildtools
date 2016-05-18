@@ -177,7 +177,7 @@ final class GenerateApplicationsReportCommand implements RemoteApiCommand, Gtech
         domainApplication.getEncodedSignedMarks().isEmpty() ? "landrush" : "sunrise",
         domainApplication.getApplicationStatus(),
         domainApplication.getCurrentSponsorClientId(),
-        domainApplication.loadRegistrant().getEmailAddress(),
+        domainApplication.getRegistrant().get().getEmailAddress(),
         validityMessage);
   }
 }

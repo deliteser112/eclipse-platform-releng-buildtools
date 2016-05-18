@@ -103,7 +103,7 @@
 
 <rdeHost:host>
     <rdeHost:name>bird.or.devil.xn--q9jyb4c</rdeHost:name>
-    <rdeHost:roid>7-ROID</rdeHost:roid>
+    <rdeHost:roid>8-ROID</rdeHost:roid>
     <rdeHost:status s="pendingUpdate"/>
     <rdeHost:addr ip="v4">1.2.3.4</rdeHost:addr>
     <rdeHost:clID>BusinessCat</rdeHost:clID>
@@ -116,7 +116,7 @@
 
 <rdeHost:host>
     <rdeHost:name>ns2.cat.xn--q9jyb4c</rdeHost:name>
-    <rdeHost:roid>8-ROID</rdeHost:roid>
+    <rdeHost:roid>9-ROID</rdeHost:roid>
     <rdeHost:status s="pendingUpdate"/>
     <rdeHost:addr ip="v6">bad:f00d:cafe::15:beef</rdeHost:addr>
     <rdeHost:clID>BusinessCat</rdeHost:clID>
@@ -171,7 +171,7 @@
 
 <rdeContact:contact>
     <rdeContact:id>5372808-IRL</rdeContact:id>
-    <rdeContact:roid>5-ROID</rdeContact:roid>
+    <rdeContact:roid>6-ROID</rdeContact:roid>
     <rdeContact:status s="ok"/>
     <rdeContact:postalInfo type="int">
         <contact:name>be that word our sign in parting</contact:name>
@@ -194,7 +194,7 @@
 
 <rdeContact:contact>
     <rdeContact:id>5372808-TRL</rdeContact:id>
-    <rdeContact:roid>6-ROID</rdeContact:roid>
+    <rdeContact:roid>7-ROID</rdeContact:roid>
     <rdeContact:status s="ok"/>
     <rdeContact:postalInfo type="int">
         <contact:name>bird or fiend!? i shrieked upstarting</contact:name>
@@ -217,7 +217,7 @@
 
 <rdeContact:contact>
     <rdeContact:id>5372808-ERL</rdeContact:id>
-    <rdeContact:roid>9-ROID</rdeContact:roid>
+    <rdeContact:roid>3-ROID</rdeContact:roid>
     <rdeContact:status s="ok"/>
     <rdeContact:postalInfo type="int">
         <contact:name>(◕‿◕) nevermore</contact:name>

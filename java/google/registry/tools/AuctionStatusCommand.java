@@ -104,7 +104,7 @@ final class AuctionStatusCommand implements RemoteApiCommand, GtechCommand {
       new Function<DomainApplication, String>() {
         @Override
         public String apply(DomainApplication app) {
-          ContactResource registrant = checkNotNull(app.loadRegistrant());
+          ContactResource registrant = checkNotNull(app.getRegistrant().get());
           Object[] keysAndValues = new Object[] {
               "Domain", app.getFullyQualifiedDomainName(),
               "Type", app.getEncodedSignedMarks().isEmpty() ? "Landrush" : "Sunrise",

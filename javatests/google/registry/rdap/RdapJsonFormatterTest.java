@@ -68,8 +68,6 @@ public class RdapJsonFormatterTest {
 
   private Registrar registrar;
   private DomainResource domainResourceFull;
-  private DomainResource domainResourceNoRegistrant;
-  private DomainResource domainResourceNoContacts;
   private DomainResource domainResourceNoNameservers;
   private HostResource hostResourceIpv4;
   private HostResource hostResourceIpv6;
@@ -131,24 +129,6 @@ public class RdapJsonFormatterTest {
             hostResourceIpv4,
             hostResourceIpv6,
             registrar));
-    domainResourceNoRegistrant = persistResource(
-        makeDomainResource(
-            "dog.みんな",
-            null,
-            contactResourceAdmin,
-            contactResourceTech,
-            hostResourceBoth,
-            hostResourceNoAddresses,
-            registrar));
-    domainResourceNoContacts = persistResource(
-        makeDomainResource(
-            "bird.みんな",
-            null,
-            null,
-            null,
-            hostResourceIpv4,
-            hostResourceIpv6,
-            registrar));
     domainResourceNoNameservers = persistResource(
         makeDomainResource(
             "fish.みんな",
@@ -163,20 +143,6 @@ public class RdapJsonFormatterTest {
     persistResource(
         makeHistoryEntry(
             domainResourceFull,
-            HistoryEntry.Type.DOMAIN_CREATE,
-            Period.create(1, Period.Unit.YEARS),
-            "created",
-            clock.nowUtc()));
-    persistResource(
-        makeHistoryEntry(
-            domainResourceNoRegistrant,
-            HistoryEntry.Type.DOMAIN_CREATE,
-            Period.create(1, Period.Unit.YEARS),
-            "created",
-            clock.nowUtc()));
-    persistResource(
-        makeHistoryEntry(
-            domainResourceNoContacts,
             HistoryEntry.Type.DOMAIN_CREATE,
             Period.create(1, Period.Unit.YEARS),
             "created",
@@ -337,22 +303,6 @@ public class RdapJsonFormatterTest {
             RdapJsonFormatter.makeRdapJsonForDomain(
                 domainResourceFull, false, LINK_BASE, WHOIS_SERVER))
         .isEqualTo(loadJson("rdapjson_domain_full.json"));
-  }
-
-  @Test
-  public void testDomain_noRegistrant() throws Exception {
-    assertThat(
-            RdapJsonFormatter.makeRdapJsonForDomain(
-                domainResourceNoRegistrant, false, LINK_BASE, WHOIS_SERVER))
-        .isEqualTo(loadJson("rdapjson_domain_no_registrant.json"));
-  }
-
-  @Test
-  public void testDomain_noContacts() throws Exception {
-    assertThat(
-            RdapJsonFormatter.makeRdapJsonForDomain(
-                domainResourceNoContacts, false, LINK_BASE, WHOIS_SERVER))
-        .isEqualTo(loadJson("rdapjson_domain_no_contacts.json"));
   }
 
   @Test

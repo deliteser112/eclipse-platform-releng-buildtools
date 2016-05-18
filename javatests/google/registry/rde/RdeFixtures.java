@@ -66,6 +66,9 @@ final class RdeFixtures {
     DomainResource domain = new DomainResource.Builder()
         .setFullyQualifiedDomainName("example." + tld)
         .setRepoId(generateNewDomainRoid(tld))
+        .setRegistrant(Ref.create(
+            makeContactResource(clock,
+                "5372808-ERL", "(◕‿◕) nevermore", "prophet@evil.みんな")))
         .build();
     HistoryEntry historyEntry =
         persistResource(new HistoryEntry.Builder().setParent(domain).build());
@@ -106,9 +109,6 @@ final class RdeFixtures {
             Ref.create(
                 makeHostResource(
                     clock, "ns2.cat.みんな", "bad:f00d:cafe::15:beef"))))
-        .setRegistrant(Ref.create(
-            makeContactResource(clock,
-                "5372808-ERL", "(◕‿◕) nevermore", "prophet@evil.みんな")))
         .setRegistrationExpirationTime(DateTime.parse("1930-01-01T00:00:00Z"))
         .setGracePeriods(ImmutableSet.of(
             GracePeriod.forBillingEvent(GracePeriodStatus.RENEW,

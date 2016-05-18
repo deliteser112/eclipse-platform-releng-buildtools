@@ -30,7 +30,6 @@ import com.google.common.collect.Ordering;
 import com.google.common.net.InetAddresses;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -54,12 +53,8 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -400,16 +395,9 @@ public class RdapJsonFormatter {
     Map<Key<HostResource>, HostResource> loadedHosts =
         ofy().load().refs(domainResource.getNameservers());
     // And the registrant and other contacts.
-    List<DesignatedContact> allContacts = new ArrayList<>();
-    if (domainResource.getRegistrant() != null) {
-      allContacts.add(DesignatedContact.create(Type.REGISTRANT, domainResource.getRegistrant()));
-    }
-    allContacts.addAll(domainResource.getContacts());
-    Set<Ref<ContactResource>> contactRefs = new LinkedHashSet<>();
-    for (DesignatedContact designatedContact : allContacts) {
-      contactRefs.add(designatedContact.getContactRef());
-    }
-    Map<Key<ContactResource>, ContactResource> loadedContacts = ofy().load().refs(contactRefs);
+    Map<Key<ContactResource>, ContactResource> loadedContacts =
+        ofy().load().refs(domainResource.getReferencedContacts());
+
     // Now, assemble the results, using the loaded objects as needed.
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("objectClassName", "domain");
@@ -438,8 +426,9 @@ public class RdapJsonFormatter {
     }
     // Contacts
     ImmutableList.Builder<Object> entitiesBuilder = new ImmutableList.Builder<>();
-    for (DesignatedContact designatedContact
-        : DESIGNATED_CONTACT_ORDERING.immutableSortedCopy(allContacts)) {
+    for (DesignatedContact designatedContact : FluentIterable.from(domainResource.getContacts())
+        .append(DesignatedContact.create(Type.REGISTRANT, domainResource.getRegistrant()))
+        .toSortedList(DESIGNATED_CONTACT_ORDERING)) {
       ContactResource loadedContact =
           loadedContacts.get(designatedContact.getContactRef().key());
       entitiesBuilder.add(makeRdapJsonForContact(

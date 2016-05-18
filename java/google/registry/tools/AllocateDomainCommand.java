@@ -146,7 +146,7 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
                 "name", application.getFullyQualifiedDomainName(),
                 "period", period.getValue(),
                 "nameservers", application.loadNameserverFullyQualifiedHostNames(),
-                "registrant", application.loadRegistrant().getForeignKey(),
+                "registrant", application.getRegistrant().get().getForeignKey(),
                 "contacts", contactsMapBuilder.build(),
                 "authInfo", application.getAuthInfo().getPw().getValue(),
                 "smdId", application.getEncodedSignedMarks().isEmpty()

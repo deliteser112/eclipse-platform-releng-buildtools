@@ -14,8 +14,7 @@
 
 package google.registry.model.domain;
 
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static google.registry.model.domain.DesignatedContact.Type.REGISTRANT;
@@ -25,6 +24,7 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DomainNameUtils.getTldFromSld;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -176,11 +176,7 @@ public abstract class DomainBase extends EppResource {
   }
 
   public Ref<ContactResource> getRegistrant() {
-    return registrant == null ? null : registrant.getLinked();
-  }
-
-  public ContactResource loadRegistrant() {
-    return getRegistrant().get();
+    return registrant.getLinked();
   }
 
   public ImmutableSet<DesignatedContact> getContacts() {
@@ -238,12 +234,11 @@ public abstract class DomainBase extends EppResource {
     @Override
     public T build() {
       T instance = getInstance();
-      checkState(
-          !isNullOrEmpty(instance.fullyQualifiedDomainName), "Missing fullyQualifiedDomainName");
+      checkArgumentNotNull(
+          emptyToNull(instance.fullyQualifiedDomainName), "Missing fullyQualifiedDomainName");
+      checkArgumentNotNull(instance.registrant, "Missing registrant");
       instance.tld = getTldFromSld(instance.fullyQualifiedDomainName);
-      instance.allContacts = instance.registrant == null
-          ? instance.contacts
-          : union(
+      instance.allContacts = union(
               instance.getContacts(),
               DesignatedContact.create(REGISTRANT, instance.registrant.getLinked()));
       return super.build();

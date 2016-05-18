@@ -17,6 +17,7 @@ package google.registry.tmch;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDomainAndEnqueueLordn;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
@@ -32,6 +33,7 @@ import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.apphosting.api.DeadlineExceededException;
 import com.google.common.collect.ImmutableList;
 
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.VoidWork;
 
 import google.registry.model.domain.DomainResource;
@@ -103,16 +105,19 @@ public class LordnTaskTest {
     LordnTask.convertTasksToCsv(null, clock.nowUtc(), "header");
   }
 
-  @Test
-  public void test_enqueueDomainResourceTask_sunrise() throws Exception {
-    DateTime time = DateTime.parse("2010-05-01T10:11:12Z");
-    DomainResource domain = new DomainResource.Builder()
+  private DomainResource.Builder newDomainBuilder(DateTime applicationTime) {
+    return new DomainResource.Builder()
         .setFullyQualifiedDomainName("fleece.example")
-        .setRepoId("A-EXAMPLE")
+        .setRegistrant(Ref.create(persistActiveContact("jd1234")))
         .setSmdId("smdzzzz")
         .setCreationClientId("TheRegistrar")
-        .setApplicationTime(time)
-        .setLaunchNotice(null)
+        .setApplicationTime(applicationTime);
+  }
+
+  @Test
+  public void test_enqueueDomainResourceTask_sunrise() throws Exception {
+    DomainResource domain = newDomainBuilder(DateTime.parse("2010-05-01T10:11:12Z"))
+        .setRepoId("A-EXAMPLE")
         .build();
     persistDomainAndEnqueueLordn(domain);
     String expectedPayload =
@@ -124,12 +129,8 @@ public class LordnTaskTest {
   @Test
   public void test_enqueueDomainResourceTask_claims() throws Exception {
     DateTime time = DateTime.parse("2010-05-01T10:11:12Z");
-    DomainResource domain = new DomainResource.Builder()
-        .setFullyQualifiedDomainName("fleece.example")
+    DomainResource domain = newDomainBuilder(time)
         .setRepoId("11-EXAMPLE")
-        .setSmdId("smdzzzz")
-        .setCreationClientId("TheRegistrar")
-        .setApplicationTime(time)
         .setLaunchNotice(LaunchNotice.create("landrush1tcn", null, null, time.minusHours(1)))
         .build();
     persistDomainAndEnqueueLordn(domain);
@@ -149,14 +150,8 @@ public class LordnTaskTest {
             .setIanaIdentifier(null)
             .build());
       }});
-    DateTime time = DateTime.parse("2010-05-01T10:11:12Z");
-    DomainResource domain = new DomainResource.Builder()
-        .setFullyQualifiedDomainName("fleece.example")
+    DomainResource domain = newDomainBuilder(DateTime.parse("2010-05-01T10:11:12Z"))
         .setRepoId("3-EXAMPLE")
-        .setSmdId("smdzzzz")
-        .setCreationClientId("TheRegistrar")
-        .setApplicationTime(time)
-        .setLaunchNotice(null)
         .build();
     persistDomainAndEnqueueLordn(domain);
     String expectedPayload =
@@ -168,13 +163,9 @@ public class LordnTaskTest {
   @Test
   public void test_enqueueDomainResourceTask_throwsExceptionOnInvalidRegistrar() throws Exception {
     DateTime time = DateTime.parse("2010-05-01T10:11:12Z");
-    DomainResource domain = new DomainResource.Builder()
-        .setFullyQualifiedDomainName("fleece.example")
+    DomainResource domain = newDomainBuilder(time)
         .setRepoId("9000-EXAMPLE")
-        .setSmdId("smdzzzz")
         .setCreationClientId("nonexistentRegistrar")
-        .setApplicationTime(time)
-        .setLaunchNotice(null)
         .build();
     thrown.expect(NullPointerException.class,
         "No registrar found for client id: nonexistentRegistrar");

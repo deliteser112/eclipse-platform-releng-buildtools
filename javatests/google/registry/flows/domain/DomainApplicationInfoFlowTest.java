@@ -278,6 +278,7 @@ public class DomainApplicationInfoFlowTest
         .setRepoId("123-COM")
         .setFullyQualifiedDomainName("timber.com")
         .setDeletionTime(DateTime.now().minusDays(1))
+        .setRegistrant(Ref.create(persistActiveContact("jd1234")))
         .build());
     runFlow();
   }
@@ -298,6 +299,7 @@ public class DomainApplicationInfoFlowTest
     persistResource(new DomainApplication.Builder()
         .setRepoId("123-TLD")
         .setFullyQualifiedDomainName("invalid.tld")
+        .setRegistrant(Ref.create(persistActiveContact("jd1234")))
         .setPhase(LaunchPhase.SUNRUSH)
         .build());
     runFlow();
