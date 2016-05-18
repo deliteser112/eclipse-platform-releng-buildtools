@@ -47,8 +47,8 @@ import org.joda.time.DateTime;
 
 /**
  * An EPP flow that approves a pending transfer on a {@link DomainResource}.
- * <p>
- * The logic in this flow, which handles client approvals, very closely parallels the logic in
+ *
+ * <p>The logic in this flow, which handles client approvals, very closely parallels the logic in
  * {@link DomainResource#cloneProjectedAtTime} which handles implicit server approvals.
  *
  * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}

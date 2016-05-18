@@ -18,8 +18,8 @@ import java.lang.reflect.Field;
 
 /**
  * A helper that exposes package-private fields in this package for reflective lookup.
- * <p>
- * By adding a subclass of this to every package in the model, we can write generic code that can
+ *
+ * <p>By adding a subclass of this to every package in the model, we can write generic code that can
  * access fields with package private access. The other alternative is to call
  * {@link Field#setAccessible} with {@code true} on any such Field objects, but that does not work
  * reliably in Google App Engine cross-package because of its custom security manager

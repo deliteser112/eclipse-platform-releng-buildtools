@@ -32,8 +32,8 @@ public interface Buildable {
 
   /**
    * Boilerplate for immutable builders.
-   * <p>
-   * This can be used without implementing {@link Buildable}.
+   *
+   * <p>This can be used without implementing {@link Buildable}.
    */
   public abstract static class Builder<S> {
 
@@ -95,8 +95,8 @@ public interface Buildable {
   /**
    * Interface for objects that can produce an "overlay", which means a copy where non-null fields
    * from another object are copied over, but null fields on the source are not.
-   * <p>
-   * Warning: Do not use {@code emptyToNull} methods in the getters of an {@link Overlayable}! We
+   *
+   * <p>Warning: Do not use {@code emptyToNull} methods in the getters of an {@link Overlayable}! We
    * use null to mean "skip this field" whereas empty means "set this field to empty", so they are
    * semantically different.
    *

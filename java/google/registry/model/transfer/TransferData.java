@@ -45,42 +45,42 @@ public class TransferData extends BaseTransferObject implements Buildable {
 
   /**
    * The billing event and poll messages associated with a server-approved transfer.
-   * <p>
-   * This field should be null if there is not currently a pending transfer or if the object being
-   * transferred is not a domain. If there is a pending transfer for a domain there should be a
-   * number of poll messages and billing events for both the gaining and losing registrars. If the
+   *
+   * <p>This field should be null if there is not currently a pending transfer or if the object
+   * being transferred is not a domain. If there is a pending transfer for a domain there should be
+   * a number of poll messages and billing events for both the gaining and losing registrars. If the
    * pending transfer is explicitly approved, rejected or cancelled, the referenced entities should
    * be deleted.
-   * <p>
-   * Keys are stored here instead of references to facilitate bulk deletion (the typical use case,
-   * as described above), since Objectify allows bulk deletion by key but not by reference.
+   *
+   * <p>Keys are stored here instead of references to facilitate bulk deletion (the typical use
+   * case, as described above), since Objectify allows bulk deletion by key but not by reference.
    */
   @IgnoreSave(IfNull.class)
   Set<Key<? extends TransferServerApproveEntity>> serverApproveEntities;
 
   /**
    * The regular one-time billing event that will be charged for a server-approved transfer.
-   * <p>
-   * This field should be null if there is not currently a pending transfer or if the object being
-   * transferred is not a domain.
+   *
+   * <p>This field should be null if there is not currently a pending transfer or if the object
+   * being transferred is not a domain.
    */
   @IgnoreSave(IfNull.class)
   Ref<BillingEvent.OneTime> serverApproveBillingEvent;
 
   /**
    * The autorenew billing event that should be associated with this resource after the transfer.
-   * <p>
-   * This field should be null if there is not currently a pending transfer or if the object being
-   * transferred is not a domain.
+   *
+   * <p>This field should be null if there is not currently a pending transfer or if the object
+   * being transferred is not a domain.
    */
   @IgnoreSave(IfNull.class)
   Ref<BillingEvent.Recurring> serverApproveAutorenewEvent;
 
   /**
    * The autorenew poll message that should be associated with this resource after the transfer.
-   * <p>
-   * This field should be null if there is not currently a pending transfer or if the object being
-   * transferred is not a domain.
+   *
+   * <p>This field should be null if there is not currently a pending transfer or if the object
+   * being transferred is not a domain.
    */
   @IgnoreSave(IfNull.class)
   Ref<PollMessage.Autorenew> serverApproveAutorenewPollMessage;

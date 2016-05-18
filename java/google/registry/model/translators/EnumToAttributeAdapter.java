@@ -32,9 +32,9 @@ public class EnumToAttributeAdapter<E extends Enum<E> & EnumToAttributeAdapter.E
 
   /**
    * EPP's peculiar enum format.
-   * <p>
-   * It's meant to allow more information inside the element, but it's an annoyance when we want to
-   * deal with pure enums.
+   *
+   * <p>It's meant to allow more information inside the element, but it's an annoyance when we want
+   * to deal with pure enums.
    */
   static class EnumShim {
     @XmlAttribute

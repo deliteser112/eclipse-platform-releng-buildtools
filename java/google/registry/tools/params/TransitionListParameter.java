@@ -30,15 +30,16 @@ import java.util.Map;
 
 /**
  * Combined converter and validator class for transition list JCommander argument strings.
- * <p>
- * These strings have the form {@code <DateTime>=<T-str>,[<DateTime>=<T-str>]*} where
- * {@code <T-str>} is a string that can be parsed into an instance of some value type {@code T},
- * and the entire argument represents a series of timed transitions of some property taking on
- * those values.  This class converts such a string into an ImmutableSortedMap mapping DateTime to
- * {@code T}.  Validation and conversion share the same logic; validation is just done by attempting
+ *
+ * <p>These strings have the form {@code <DateTime>=<T-str>,[<DateTime>=<T-str>]*} where
+ * {@code <T-str>} is a string that can be parsed into an instance of some value type {@code T}, and
+ * the entire argument represents a series of timed transitions of some property taking on those
+ * values. This class converts such a string into an ImmutableSortedMap mapping DateTime to
+ * {@code T}. Validation and conversion share the same logic; validation is just done by attempting
  * conversion and throwing exceptions if need be.
- * <p>
- * Subclasses must implement parseValue() to define how to parse {@code <T-str>} into a {@code T}.
+ *
+ * <p>Subclasses must implement parseValue() to define how to parse {@code <T-str>} into a
+ * {@code T}.
  *
  * @param <T> instance value type
  */

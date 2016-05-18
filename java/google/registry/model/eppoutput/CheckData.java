@@ -71,9 +71,9 @@ public abstract class CheckData extends ImmutableObject implements ResponseData 
 
   /**
    * The "checkNameType" and "checkIDType" types.
-   * <p>
-   * Although these are specified in the Epp extension RFCs and not in RFC 5730, which implies that
-   * they should be implemented per-extension, all of RFCs 5731, 5732 and 5733 define them
+   *
+   * <p>Although these are specified in the Epp extension RFCs and not in RFC 5730, which implies
+   * that they should be implemented per-extension, all of RFCs 5731, 5732 and 5733 define them
    * identically except for the namespace and some slightly renamed fields, allowing us to share
    * some code between the different extensions.
    */

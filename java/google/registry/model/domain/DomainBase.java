@@ -59,9 +59,9 @@ public abstract class DomainBase extends EppResource {
 
   /**
    * Fully qualified domain name (puny-coded), which serves as the foreign key for this domain.
-   * <p>
-   * This is only unique in the sense that for any given lifetime specified as the time range from
-   * (creationTime, deletionTime) there can only be one domain in the datastore with this name.
+   *
+   * <p>This is only unique in the sense that for any given lifetime specified as the time range
+   * from (creationTime, deletionTime) there can only be one domain in the datastore with this name.
    * However, there can be many domains with the same name and non-overlapping lifetimes.
    *
    * @invariant fullyQualifiedDomainName == fullyQualifiedDomainName.toLowerCase()
@@ -83,8 +83,8 @@ public abstract class DomainBase extends EppResource {
 
   /**
    * Associated contacts for the domain (other than registrant).
-   * <p>
-   * This field is marked with {@literal @}Ignore so that {@link DomainBase} subclasses won't
+   *
+   * <p>This field is marked with {@literal @}Ignore so that {@link DomainBase} subclasses won't
    * persist it. Instead, the data in this field and in the {@link #registrant} are both stored in
    * {@link DomainBase#allContacts} to allow for more efficient queries.
    */
@@ -101,10 +101,10 @@ public abstract class DomainBase extends EppResource {
 
   /**
    * A reference to the registrant who registered this domain.
-   * <p>
-   * This field is marked with {@literal @}Ignore so that {@link DomainBase} subclasses won't
-   * persist it. Instead, the data in this field and in the {@link DomainBase#contacts} are
-   * both stored in {@link DomainBase#allContacts} to allow for more efficient queries.
+   *
+   * <p>This field is marked with {@literal @}Ignore so that {@link DomainBase} subclasses won't
+   * persist it. Instead, the data in this field and in the {@link DomainBase#contacts} are both
+   * stored in {@link DomainBase#allContacts} to allow for more efficient queries.
    */
   @Ignore
   //TODO(b/28713909): Make this a Ref<ContactResource>.
@@ -115,8 +115,8 @@ public abstract class DomainBase extends EppResource {
 
   /**
    * Data used to construct DS records for this domain.
-   * <p>
-   * This is {@literal @}XmlTransient because it needs to be returned under the "extension" tag
+   *
+   * <p>This is {@literal @}XmlTransient because it needs to be returned under the "extension" tag
    * of an info response rather than inside the "infData" tag.
    */
   @XmlTransient

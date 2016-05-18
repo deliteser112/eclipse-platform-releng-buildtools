@@ -34,8 +34,9 @@ import java.util.Set;
 
 /**
  * An abstract EPP flow.
- * <p>
- * This class also contains static methods for loading an appropriate flow based on model classes.
+ *
+ * <p>This class also contains static methods for loading an appropriate flow based on model
+ * classes.
  */
 public abstract class Flow {
 

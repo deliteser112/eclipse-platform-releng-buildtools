@@ -29,12 +29,12 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * Container for generic E164 phone number.
- * <p>
- * This is the "e164" type from {@link "http://tools.ietf.org/html/rfc5733"}. It also matches the
+ *
+ * <p>This is the "e164" type from {@link "http://tools.ietf.org/html/rfc5733"}. It also matches the
  * "e164Type" type from {@link "http://tools.ietf.org/html/draft-lozano-tmch-smd"}.
  *
- * <blockquote><p>
- * "Contact telephone number structure is derived from structures defined in [ITU.E164.2005].
+ * <blockquote>
+ * <p>"Contact telephone number structure is derived from structures defined in [ITU.E164.2005].
  * Telephone numbers described in this mapping are character strings that MUST begin with a plus
  * sign ("+", ASCII value 0x002B), followed by a country code defined in [ITU.E164.2005], followed
  * by a dot (".", ASCII value 0x002E), followed by a sequence of digits representing the telephone

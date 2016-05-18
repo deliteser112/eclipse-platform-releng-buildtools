@@ -57,8 +57,8 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * A servlet that returns availability and premium checks as json.
- * <p>
- * This servlet returns plain JSON without a safety prefix, so it's vital that the output not be
+ *
+ * <p>This servlet returns plain JSON without a safety prefix, so it's vital that the output not be
  * user controlled, lest it open an XSS vector. Do not modify this to return the domain name in the
  * response.
  */

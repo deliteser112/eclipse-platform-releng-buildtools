@@ -24,13 +24,13 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * Represents the EPP application status.
- * <p>
- * These values are never read from a command and only used in responses, so, we don't need to model
- * anything we don't output. We don't model the CUSTOM status because we don't use it. This allows
- * us to also avoid modeling the "name" attribute which is only used with CUSTOM. We don't model the
- * "lang" attribute because we only support English and that's the default.
- * <p>
- * Given all of this, we can use {@link EnumToAttributeAdapter} to make this code very simple.
+ *
+ * <p>These values are never read from a command and only used in responses, so, we don't need to
+ * model anything we don't output. We don't model the CUSTOM status because we don't use it. This
+ * allows us to also avoid modeling the "name" attribute which is only used with CUSTOM. We don't
+ * model the "lang" attribute because we only support English and that's the default.
+ *
+ * <p>Given all of this, we can use {@link EnumToAttributeAdapter} to make this code very simple.
  *
  * @see "http://tools.ietf.org/html/draft-tan-epp-launchphase-11#section-2.3"
  */

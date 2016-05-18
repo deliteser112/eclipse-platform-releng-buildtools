@@ -142,10 +142,10 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
 
   /**
    * Fail the domain or application create very fast if the domain is already registered.
-   * <p>
-   * Try to load the domain non-transactionally, since this can hit memcache. If we succeed, and the
-   * domain is not in the ADD grace period (the only state that allows instantaneous transition to
-   * being deleted), we can assume that the domain will not be deleted (and therefore won't be
+   *
+   * <p>Try to load the domain non-transactionally, since this can hit memcache. If we succeed, and
+   * the domain is not in the ADD grace period (the only state that allows instantaneous transition
+   * to being deleted), we can assume that the domain will not be deleted (and therefore won't be
    * creatable) until its deletion time. For repeated failed creates this means we can avoid the
    * datastore lookup, which is very expensive (and first-seen failed creates are no worse than they
    * otherwise would be). This comes at the cost of the extra lookup for successful creates (or

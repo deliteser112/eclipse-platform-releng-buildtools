@@ -32,14 +32,14 @@ import java.util.List;
 
 /**
  * A time of year (month, day, millis of day) that can be stored in a sort-friendly format.
- * <p>
- * This is conceptually similar to {@code MonthDay} in Joda or more generally to Joda's
+ *
+ * <p>This is conceptually similar to {@code MonthDay} in Joda or more generally to Joda's
  * {@code Partial}, but the parts we need are too simple to justify a full implementation of
  * {@code Partial}.
- * <p>
- * For simplicity, the native representation of this class's data is its stored format. This allows
- * it to be embeddable with no translation needed and also delays parsing of the string on load
- * until it's actually needed.
+ *
+ * <p>For simplicity, the native representation of this class's data is its stored format. This
+ * allows it to be embeddable with no translation needed and also delays parsing of the string on
+ * load until it's actually needed.
  */
 @Embed
 public class TimeOfYear extends ImmutableObject {
@@ -53,8 +53,8 @@ public class TimeOfYear extends ImmutableObject {
 
   /**
    * Constructs a {@link TimeOfYear} from a {@link DateTime}.
-   * <p>
-   * This handles leap years in an intentionally peculiar way by always treating February 29 as
+   *
+   * <p>This handles leap years in an intentionally peculiar way by always treating February 29 as
    * February 28. It is impossible to construct a {@link TimeOfYear} for February 29th.
    */
   public static TimeOfYear fromDateTime(DateTime dateTime) {

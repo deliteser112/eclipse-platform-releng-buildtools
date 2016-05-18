@@ -18,8 +18,8 @@ import java.util.logging.Level;
 
 /**
  * Java logging level CLI parameter converter/validator.
- * <p>
- * If Level were an enum then this wouldn't be needed since JCommander has built-in conversion
+ *
+ * <p>If Level were an enum then this wouldn't be needed since JCommander has built-in conversion
  * support for enums, but Level is actually just a regular class with some static instances.
  */
 public final class LoggingLevelParameter extends ParameterConverterValidator<Level> {

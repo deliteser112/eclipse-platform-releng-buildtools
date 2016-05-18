@@ -32,8 +32,9 @@ import javax.xml.bind.annotation.XmlType;
 public class SecDnsCreateExtension extends ImmutableObject implements CommandExtension {
   /**
    * Time in seconds until the signature should expire.
-   * <p>
-   * We do not support expirations, but we need this field to be able to return appropriate errors.
+   *
+   * <p>We do not support expirations, but we need this field to be able to return appropriate
+   * errors.
    */
   Long maxSigLife;
 

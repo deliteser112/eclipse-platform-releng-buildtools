@@ -32,8 +32,8 @@ public class BaseFeeCommand extends ImmutableObject {
 
   /**
    * The magnitude of the fee, in the specified units, with an optional description.
-   * <p>
-   * This is a list because a single operation can involve multiple fees.
+   *
+   * <p>This is a list because a single operation can involve multiple fees.
    */
   @XmlElement(name = "fee")
   List<Fee> fees;

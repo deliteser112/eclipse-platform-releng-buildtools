@@ -79,16 +79,16 @@ public class Response extends ImmutableObject implements ResponseOrGreeting {
 
   /**
    * The time the command that created this response was executed.
-   * <p>
-   * This is for logging purposes only and is not returned to the user.
+   *
+   * <p>This is for logging purposes only and is not returned to the user.
    */
   @XmlTransient
   DateTime executionTime;
 
   /**
    * The repository id of a new object if this is a create response, or null.
-   * <p>
-   * This is for logging purposes only and is not returned to the user.
+   *
+   * <p>This is for logging purposes only and is not returned to the user.
    */
   @XmlTransient
   String createdRepoId;

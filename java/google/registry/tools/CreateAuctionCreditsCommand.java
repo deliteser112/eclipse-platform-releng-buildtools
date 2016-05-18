@@ -54,15 +54,14 @@ import java.util.List;
 
 /**
  * Command for creating new auction credits based on a CSV file from Pool.
- * <p>
- * The CSV file from the auction provider uses double-quotes around every field, so in order to
+ *
+ * <p>The CSV file from the auction provider uses double-quotes around every field, so in order to
  * extract the raw field value we strip off the quotes after splitting each line by commas.  We are
  * using a simple parsing strategy that does not support embedded quotation marks, commas, or
  * newlines.
- * <p>
- * TODO(b/16009815): Switch this file to using a real CSV parser.
- * <p>
- * Example file format:
+ *
+ * <p>Example file format:
+ *
  * <pre>
  * "Affiliate","DomainName","Email","BidderId","BidderStatus","UpdatedAt",
  *      "SalePrice","Commissions","CurrencyCode"
@@ -71,12 +70,14 @@ import java.util.List;
  * "reg2","foo.xn--q9jyb4c","email2@example.net","???_64","WIN","4/3/2014 7:13:09 PM",
  *      "1000.0000","40.0000","JPY"
  * </pre>
- * We only care about three fields: 1) the "Affiliate" field which corresponds to the registrar
- * clientId stored in datastore, and which we use to determine which registrar gets the credit,
- * 2) the "Commissions" field which contains the amount of the auction credit (as determined by
- * logic on the auction provider's side, see the Finance Requirements Doc for more information), and
- * 3) the "CurrencyCode" field, which we validate matches the TLD-wide currency for this TLD.
+ *
+ * <p>We only care about three fields: 1) the "Affiliate" field which corresponds to the registrar
+ * clientId stored in datastore, and which we use to determine which registrar gets the credit, 2)
+ * the "Commissions" field which contains the amount of the auction credit (as determined by logic
+ * on the auction provider's side, see the Finance Requirements Doc for more information), and 3)
+ * the "CurrencyCode" field, which we validate matches the TLD-wide currency for this TLD.
  */
+// TODO(b/16009815): Switch this file to using a real CSV parser.
 @Parameters(separators = " =", commandDescription = "Create new auction credits based on CSV")
 final class CreateAuctionCreditsCommand extends MutatingCommand {
 

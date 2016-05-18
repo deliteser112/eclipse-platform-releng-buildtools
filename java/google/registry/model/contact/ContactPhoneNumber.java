@@ -20,10 +20,10 @@ import google.registry.model.eppcommon.PhoneNumber;
 
 /**
  * EPP Contact Phone Number
- * <p>
- * This class is embedded inside a {@link ContactResource} hold the phone number of an EPP contact.
- * The fields are all defined in the parent class {@link PhoneNumber}, but the subclass is still
- * necessary to pick up the contact namespace.
+ *
+ * <p>This class is embedded inside a {@link ContactResource} hold the phone number of an EPP
+ * contact.  The fields are all defined in the parent class {@link PhoneNumber}, but the subclass is
+ * still necessary to pick up the contact namespace.
  *
  * @see ContactResource
  */

@@ -40,17 +40,17 @@ import java.util.TreeMap;
  * at a corresponding instant, and remains active until the next transition occurs.  At least one
  * "start of time" value (corresponding to START_OF_TIME, i.e. the Unix epoch) must be provided
  * so that the property will have a value for all possible times.
- * <p>
- * This concept is naturally represented by a sorted map of {@code DateTime} to {@code V}, but
- * the AppEngine datastore cannot natively represent a map keyed on non-strings.  Instead, we
- * store an ordered list of transitions and use Objectify's @Mapify annotation to automatically
- * recreate the sorted map on load from the datastore, which is used as a backing map for this
- * property; the property itself also implements Map by way of extending ForwardingMap, so that
- * this property can stored directly as the @Mapify field in the entity.
- * <p>
- * The type parameter {@code T} specifies a user-defined subclass of {@code TimedTransition<V>} to
- * use for storing the list of transitions.  The user is given this choice of subclass so that the
- * field of the value type stored in the transition can be given a customized name.
+ *
+ * <p>This concept is naturally represented by a sorted map of {@code DateTime} to {@code V}, but
+ * the AppEngine datastore cannot natively represent a map keyed on non-strings.  Instead, we store
+ * an ordered list of transitions and use Objectify's @Mapify annotation to automatically recreate
+ * the sorted map on load from the datastore, which is used as a backing map for this property; the
+ * property itself also implements Map by way of extending ForwardingMap, so that this property can
+ * stored directly as the @Mapify field in the entity.
+ *
+ * <p>The type parameter {@code T} specifies a user-defined subclass of {@code TimedTransition<V>}
+ * to use for storing the list of transitions.  The user is given this choice of subclass so that
+ * the field of the value type stored in the transition can be given a customized name.
  */
 public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedTransition<V>>
     extends ForwardingMap<DateTime, T> {
@@ -61,11 +61,11 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
    * and implementations of the abstract getter and setter methods to access that field. This design
    * is so that subclasses tagged with @Embed can define a custom field name for their value, for
    * the purpose of backwards compatibility and better readability of the datastore representation.
-   * <p>
-   * The public visibility of this class exists only so that it can be subclassed; clients should
-   * never call any methods on this class or attempt to access its members, but should instead
-   * treat it as a customizable implementation detail of {@code TimedTransitionProperty}.  However,
-   * note that subclasses must also have public visibility so that they can be instantiated via
+   *
+   * <p>The public visibility of this class exists only so that it can be subclassed; clients should
+   * never call any methods on this class or attempt to access its members, but should instead treat
+   * it as a customizable implementation detail of {@code TimedTransitionProperty}.  However, note
+   * that subclasses must also have public visibility so that they can be instantiated via
    * reflection in a call to {@code fromValueMap}.
    */
   public abstract static class TimedTransition<V> extends ImmutableObject {
@@ -79,7 +79,7 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
     protected abstract void setValue(V value);
   }
 
-  /** Mapper for use with @Mapify; extracts the time from a TimedTransition to use it as a key. */
+  /** Mapper used with @Mapify extracting time from TimedTransition to use as key. */
   public static class TimeMapper implements Mapper<DateTime, TimedTransition<?>> {
     @Override
     public DateTime getKey(TimedTransition<?> transition) {
@@ -118,8 +118,8 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
   /**
    * Returns a new immutable {@code TimedTransitionProperty} representing the given map of DateTime
    * to value, with transitions constructed using the given {@code TimedTransition} subclass.
-   * <p>
-   * This method should be the normal method for constructing a {@TimedTransitionProperty}.
+   *
+   * <p>This method should be the normal method for constructing a {@link TimedTransitionProperty}.
    */
   public static <V, T extends TimedTransition<V>> TimedTransitionProperty<V, T> fromValueMap(
       ImmutableSortedMap<DateTime, V> valueMap,
@@ -131,10 +131,11 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
   /**
    * Returns a new mutable {@code TimedTransitionProperty} representing the given map of DateTime
    * to value, with transitions constructed using the given {@code TimedTransition} subclass.
-   * <p>
-   * This method should only be used for initializing fields that are declared with the @Mapify
-   * annotation.  The map for those fields must be mutable so that Objectify can load values from
-   * the datastore into the map, but clients should still never mutate the field's map directly.
+   *
+   * <p>This method should only be used for initializing fields that are declared with the
+   * @Mapify annotation. The map for those fields must be mutable so that Objectify can load values
+   * from the datastore into the map, but clients should still never mutate the field's map
+   * directly.
    */
   public static <V, T extends TimedTransition<V>> TimedTransitionProperty<V, T> forMapify(
       ImmutableSortedMap<DateTime, V> valueMap,
@@ -147,10 +148,10 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
    * Returns a new mutable {@code TimedTransitionProperty} representing the given value being set at
    * start of time, constructed using the given {@code TimedTransition} subclass.
    *
-   * <p>
-   * This method should only be used for initializing fields that are declared with the @Mapify
-   * annotation. The map for those fields must be mutable so that Objectify can load values from the
-   * datastore into the map, but clients should still never mutate the field's map directly.
+   * <p>This method should only be used for initializing fields that are declared with the
+   * @Mapify annotation. The map for those fields must be mutable so that Objectify can load values
+   * from the datastore into the map, but clients should still never mutate the field's map
+   * directly.
    */
   public static <V, T extends TimedTransition<V>> TimedTransitionProperty<V, T> forMapify(
       V valueAtStartOfTime, Class<T> timedTransitionSubclass) {

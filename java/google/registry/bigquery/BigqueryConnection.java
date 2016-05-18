@@ -183,8 +183,8 @@ public class BigqueryConnection implements AutoCloseable {
    * Class that wraps a normal Bigquery API Table object to make it immutable from the client side
    * and give it additional semantics as a "destination" for load or query jobs, with an overwrite
    * flag set by the client upon creation.
-   * <p>
-   * Additionally provides encapsulation so that clients of BigqueryConnection don't need to take
+   *
+   * <p>Additionally provides encapsulation so that clients of BigqueryConnection don't need to take
    * any direct dependencies on Bigquery API classes and can instead use DestinationTable.
    */
   public static class DestinationTable {
@@ -365,8 +365,8 @@ public class BigqueryConnection implements AutoCloseable {
    * A function that updates the specified Bigquery table to reflect the metadata from the input
    * DestinationTable, passing the same DestinationTable through as the output.  If the specified
    * table does not already exist, it will be inserted into the dataset.
-   * <p>
-   * Clients can call this function directly to update a table on demand, or can pass it to
+   *
+   * <p>Clients can call this function directly to update a table on demand, or can pass it to
    * Futures.transform() to update a table produced as the asynchronous result of a load or query
    * job (e.g. to add a description to it).
    */
@@ -441,8 +441,8 @@ public class BigqueryConnection implements AutoCloseable {
    * ImmutableTable object, row-keyed by the row number (indexed from 1), column-keyed by the
    * TableFieldSchema for that column, and with the value object as the cell value.  Note that null
    * values will not actually be null, but they can be checked for using Data.isNull().
-   * <p>
-   * Returns a ListenableFuture that holds the ImmutableTable on success.
+   *
+   * <p>Returns a ListenableFuture that holds the ImmutableTable on success.
    */
   public ListenableFuture<ImmutableTable<Integer, TableFieldSchema, Object>>
       queryToLocalTable(String querySql) throws Exception {
@@ -465,9 +465,9 @@ public class BigqueryConnection implements AutoCloseable {
    * (indexed from 1), column-keyed by the TableFieldSchema for that field, and with the value
    * object as the cell value.  Note that null values will not actually be null (since we're using
    * ImmutableTable) but they can be checked for using Data.isNull().
-   * <p>
-   * This table is fully materialized in memory (not lazily loaded), so it should not be used with
-   * queries expected to return large results.
+   *
+   * <p>This table is fully materialized in memory (not lazily loaded), so it should not be used
+   * with queries expected to return large results.
    */
   private ImmutableTable<Integer, TableFieldSchema, Object> getQueryResults(Job job) {
     try {
@@ -555,8 +555,8 @@ public class BigqueryConnection implements AutoCloseable {
    * Starts an asynchronous job to run the provided query, store the results in a temporary table,
    * and then extract the contents of that table to the given GCS filepath in the specified
    * destination format, optionally printing headers.
-   * <p>
-   * Returns a ListenableFuture that holds the destination GCS URI on success.
+   *
+   * <p>Returns a ListenableFuture that holds the destination GCS URI on success.
    */
   public ListenableFuture<String> extractQuery(
       String querySql,

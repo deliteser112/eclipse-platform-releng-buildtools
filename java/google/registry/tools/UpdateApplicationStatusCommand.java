@@ -85,8 +85,8 @@ final class UpdateApplicationStatusCommand extends MutatingCommand {
   /**
    * Stages changes to update the status of an application and also enqueue a poll message for the
    * status change, which may contain a PendingActionNotificationResponse if this is a final status.
-   * <p>
-   * This method must be called from within a transaction.
+   *
+   * <p>This method must be called from within a transaction.
    */
   private void updateApplicationStatus(String applicationId) {
     ofy().assertInTransaction();

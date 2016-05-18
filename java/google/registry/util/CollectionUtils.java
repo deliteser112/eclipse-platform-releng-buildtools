@@ -113,9 +113,9 @@ public class CollectionUtils {
 
   /**
    * Turns an empty collection into a null collection.
-   * <p>
-   * This is unwise in the general case (nulls are bad; empties are good) but occasionally needed to
-   * cause JAXB not to emit a field, or to avoid saving something to datastore. The method name
+   *
+   * <p>This is unwise in the general case (nulls are bad; empties are good) but occasionally needed
+   * to cause JAXB not to emit a field, or to avoid saving something to datastore. The method name
    * includes "force" to indicate that you should think twice before using it.
    */
   @Nullable

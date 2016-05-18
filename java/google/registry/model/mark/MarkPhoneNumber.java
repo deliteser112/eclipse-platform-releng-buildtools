@@ -18,8 +18,8 @@ import google.registry.model.eppcommon.PhoneNumber;
 
 /**
  * Mark Holder/Owner Phone Number
- * <p>
- * This class is embedded inside {@link CommonMarkContactFields} hold the phone number of a mark
+ *
+ * <p>This class is embedded inside {@link CommonMarkContactFields} hold the phone number of a mark
  * contact or holder. The fields are all defined in parent class {@link PhoneNumber}, but the
  * subclass is still necessary to pick up the mark namespace.
  *

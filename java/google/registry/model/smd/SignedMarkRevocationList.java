@@ -53,14 +53,14 @@ import java.util.Map;
 
 /**
  * Signed Mark Data Revocation List (SMDRL).
- * <p>
- * Represents a SMDRL file downloaded from the TMCH MarksDB each day. The list holds the ids of
- * all the {@link SignedMark SignedMarks} that have been revoked. A new list is created for each
- * new file that's created, depending on the timestamp.
- * <p>
- * We'll be putting the entire table into a single entity for the sake of performance. But in order
- * to avoid exceeding the one megabyte max entity size limit, we'll also be sharding that entity
- * into multiple entities, each entity containing {@value #SHARD_SIZE} rows.
+ *
+ * <p>Represents a SMDRL file downloaded from the TMCH MarksDB each day. The list holds the ids of
+ * all the {@link SignedMark SignedMarks} that have been revoked. A new list is created for each new
+ * file that's created, depending on the timestamp.
+ *
+ * <p>We'll be putting the entire table into a single entity for the sake of performance. But in
+ * order to avoid exceeding the one megabyte max entity size limit, we'll also be sharding that
+ * entity into multiple entities, each entity containing {@value #SHARD_SIZE} rows.
  *
  * @see google.registry.tmch.SmdrlCsvParser
  * @see "http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.2"

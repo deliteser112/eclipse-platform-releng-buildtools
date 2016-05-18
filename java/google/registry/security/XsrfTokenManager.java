@@ -56,9 +56,10 @@ public final class XsrfTokenManager {
 
   /**
    * Generate an xsrf token for a given scope using the logged in user or else no user.
-   * <p>
-   * If there is no user, the entire xsrf check becomes basically a no-op, but that's ok because any
-   * callback that doesn't have a user shouldn't be able to access any per-user resources anyways.
+   *
+   * <p>If there is no user, the entire xsrf check becomes basically a no-op, but that's ok because
+   * any callback that doesn't have a user shouldn't be able to access any per-user resources
+   * anyways.
    */
   public static String generateToken(String scope) {
     return generateToken(scope, getLoggedInEmailOrEmpty());

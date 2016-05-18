@@ -60,10 +60,10 @@ import javax.inject.Inject;
 
 /**
  * A wrapper around ofy().
- * <p>
- * The primary purpose of this class is to add functionality to support commit logs. It is simpler
- * to wrap {@link Objectify} rather than extend it because this way we can remove some methods that
- * we don't really want exposed and add some shortcuts.
+ *
+ * <p>The primary purpose of this class is to add functionality to support commit logs. It is
+ * simpler to wrap {@link Objectify} rather than extend it because this way we can remove some
+ * methods that we don't really want exposed and add some shortcuts.
  */
 public class Ofy {
 
@@ -71,10 +71,10 @@ public class Ofy {
 
   /**
    * Recommended memcache expiration time, which is one hour, specified in seconds.
-   * <p>
-   * This value should used as a cache expiration time for any entities annotated with an Objectify
-   * {@code @Cache} annotation, to put an upper bound on unlikely-but-possible divergence between
-   * memcache and datastore when a memcache write fails.
+   *
+   * <p>This value should used as a cache expiration time for any entities annotated with an
+   * Objectify {@code @Cache} annotation, to put an upper bound on unlikely-but-possible divergence
+   * between memcache and datastore when a memcache write fails.
    */
   public static final int RECOMMENDED_MEMCACHE_EXPIRATION = 3600;
 
@@ -181,8 +181,8 @@ public class Ofy {
 
   /**
    * Save, without any augmentations except to check that we're not saving any virtual entities.
-   * <p>
-   * No backups get written.
+   *
+   * <p>No backups get written.
    */
   public Saver saveWithoutBackup() {
     return new AugmentedSaver() {

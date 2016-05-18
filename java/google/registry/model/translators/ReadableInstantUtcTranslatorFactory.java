@@ -33,10 +33,10 @@ import java.util.Date;
 
 /**
  * Stores Joda {@link ReadableInstant} types ({@code DateTime}, etc) as a {@link java.util.Date}.
- * <p>
- * This is a fork of the {@code ReadableInstantTranslatorFactory} that comes bundled with Objectify.
- * The original reifies a {@link ReadableInstant} using the machine's local time zone. This version
- * always uses UTC.
+ *
+ * <p>This is a fork of the {@code ReadableInstantTranslatorFactory} that comes bundled with
+ * Objectify.  The original reifies a {@link ReadableInstant} using the machine's local time
+ * zone. This version always uses UTC.
  */
 public class ReadableInstantUtcTranslatorFactory
     extends ValueTranslatorFactory<ReadableInstant, Date> {

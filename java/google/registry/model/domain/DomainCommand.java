@@ -445,9 +445,9 @@ public class DomainCommand {
 
     /**
      * Creates a copy of this {@link Update} with hard links to hosts and contacts.
-     * <p>
-     * As a side effect, this will turn null innerAdd/innerRemove/innerChange into empty versions of
-     * those classes, which is harmless because the getters do that anyways.
+     *
+     * <p>As a side effect, this will turn null innerAdd/innerRemove/innerChange into empty versions
+     * of those classes, which is harmless because the getters do that anyways.
      */
     @Override
     public Update cloneAndLinkReferences(DateTime now) throws InvalidReferencesException {

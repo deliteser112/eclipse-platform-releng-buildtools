@@ -151,9 +151,9 @@ public class FlowRegistry {
   /**
    * The domain restore command is technically a domain {@literal <update>}, but logically a totally
    * separate flow.
-   * <p>
-   * This provider must be tried before {@link #RESOURCE_CRUD_FLOW_PROVIDER}. Otherwise, the regular
-   * domain update flow will match first.
+   *
+   * <p>This provider must be tried before {@link #RESOURCE_CRUD_FLOW_PROVIDER}. Otherwise, the
+   * regular domain update flow will match first.
    */
   private static final FlowProvider DOMAIN_RESTORE_FLOW_PROVIDER = new FlowProvider() {
     @Override

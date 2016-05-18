@@ -24,8 +24,8 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Used as the value of a tag that is present in the XML but has no children or value.
- * <p>
- * When placed in a field "foo", this will correctly unmarshal from both {@code <foo/>} and
+ *
+ * <p>When placed in a field "foo", this will correctly unmarshal from both {@code <foo/>} and
  * {@code <foo></foo>}, and will unmarshal always to {@code <foo/>}.
  */
 @Embed

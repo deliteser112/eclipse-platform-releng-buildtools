@@ -213,10 +213,10 @@ public class ModelUtils {
 
   /**
    * Returns a map from field names (including non-public and inherited fields) to values.
-   * <p>
-   * This turns arrays into {@link List} objects so that ImmutableObject can more easily use the
-   * returned map in its implementation of {@link ImmutableObject#toString} and
-   * {@link ImmutableObject#equals}, which work by comparing and printing these maps.
+   *
+   * <p>This turns arrays into {@link List} objects so that ImmutableObject can more easily use the
+   * returned map in its implementation of {@link ImmutableObject#toString} and {@link
+   * ImmutableObject#equals}, which work by comparing and printing these maps.
    */
   static Map<String, Object> getFieldValues(Object instance) {
     // Don't make this ImmutableMap because field values can be null.

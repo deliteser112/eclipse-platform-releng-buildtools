@@ -23,9 +23,9 @@ import google.registry.model.eppcommon.Address;
 
 /**
  * Registrar Address
- * <p>
- * This class is embedded inside a {@link Registrar} object to hold its address. The fields are all
- * defined in parent class {@link Address} so that it can share it with other similar address
+ *
+ * <p>This class is embedded inside a {@link Registrar} object to hold its address. The fields are
+ * all defined in parent class {@link Address} so that it can share it with other similar address
  * classes.
  */
 @Embed

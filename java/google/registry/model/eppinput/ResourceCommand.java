@@ -40,11 +40,11 @@ public interface ResourceCommand {
 
   /**
    * A command for a single {@link EppResource}.
-   * <p>
-   * In general commands should extend {@link AbstractSingleResourceCommand} instead of
-   * implementing this directly, but "Create" commands can't do that since they need to inherit
-   * from a base class that gives them all of the resource's fields. The domain "Info" command
-   * also can't do that since it's "name" field is overloaded with a "hosts" attribute.
+   *
+   * <p>In general commands should extend {@link AbstractSingleResourceCommand} instead of
+   * implementing this directly, but "Create" commands can't do that since they need to inherit from
+   * a base class that gives them all of the resource's fields. The domain "Info" command also can't
+   * do that since it's "name" field is overloaded with a "hosts" attribute.
    */
   public interface SingleResourceCommand extends ResourceCommand {
     String getTargetId();

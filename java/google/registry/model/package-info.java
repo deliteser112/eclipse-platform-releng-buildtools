@@ -32,15 +32,15 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 /**
  * This package defines all entities which are managed via EPP XML and persisted to the Datastore
  * via Objectify.
- * <p>
- * All first class entities are represented as a "Resource" class - {@link DomainResource},
+ *
+ * <p>All first class entities are represented as a "Resource" class - {@link DomainResource},
  * {@link HostResource}, {@link ContactResource}, and {@link RegistrarResource}. Resource objects
  * are written in a single shared entity group per TLD. All commands that operate on those entities
  * are grouped in a "Command" class- {@link DomainCommand}, {@link HostCommand},
  * {@link ContactCommand}. The Resource does double duty as both the persisted representation and as
  * the XML-marshallable object returned in respond to Info commands.
- * <p>
- * Command classes are never persisted, and the Objectify annotations on the Create and Update
+ *
+ * <p>Command classes are never persisted, and the Objectify annotations on the Create and Update
  * classes are purely for the benefit of the derived Resource classes that inherit from them.
  * Whenever a command that mutates the model is executed, a HistoryEvent is stored with the affected
  * Resource as its datastore parent. All history entries have an indexed modification time field so

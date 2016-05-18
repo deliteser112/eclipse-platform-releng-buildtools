@@ -139,9 +139,9 @@ public final class EppResourceUtils {
 
   /**
    * Checks multiple {@link EppResource} objects from the datastore by unique ids.
-   * <p>
-   * There are currently no resources that support checks and do not use foreign keys. If we need to
-   * support that case in the future, we can loosen the type to allow any {@link EppResource} and
+   *
+   * <p>There are currently no resources that support checks and do not use foreign keys. If we need
+   * to support that case in the future, we can loosen the type to allow any {@link EppResource} and
    * add code to do the lookup by id directly.
    *
    * @param clazz the resource type to load

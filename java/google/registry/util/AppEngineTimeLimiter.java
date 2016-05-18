@@ -26,22 +26,22 @@ import java.util.concurrent.TimeUnit;
 /**
  * A factory for {@link TimeLimiter} instances that use request threads, which carry the namespace
  * and live only as long as the request that spawned them.
- * <p>
- * It is safe to reuse instances of this class, but there is no benefit in doing so over creating a
- * fresh instance each time.
+ *
+ * <p>It is safe to reuse instances of this class, but there is no benefit in doing so over creating
+ * a fresh instance each time.
  */
 public class AppEngineTimeLimiter {
 
   /**
    * An {@code ExecutorService} that uses a new thread for every task.
-   * <p>
-   * We need to use fresh threads for each request so that we can use App Engine's request threads.
-   * If we cached these threads in a thread pool (and if we were executing on a backend, where there
-   * is no time limit on requests) the caching would cause the thread to keep the task that opened
-   * it alive even after returning an http response, and would also cause the namespace that the
-   * original thread was created in to leak out to later reuses of the thread.
-   * <p>
-   * Since there are no cached resources, this class doesn't have to support being shutdown.
+   *
+   * <p>We need to use fresh threads for each request so that we can use App Engine's request
+   * threads.  If we cached these threads in a thread pool (and if we were executing on a backend,
+   * where there is no time limit on requests) the caching would cause the thread to keep the task
+   * that opened it alive even after returning an http response, and would also cause the namespace
+   * that the original thread was created in to leak out to later reuses of the thread.
+   *
+   * <p>Since there are no cached resources, this class doesn't have to support being shutdown.
    */
   private static class NewRequestThreadExecutorService extends AbstractExecutorService {
 

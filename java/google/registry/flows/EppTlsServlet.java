@@ -28,8 +28,8 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The {@link EppTlsServlet} class establishes a transport for EPP+TLS over* HTTP. All commands and
  * responses are EPP XML according to RFC 5730. Commands must must requested via POST.
- * <p>
- * There are a number of expected headers to this endpoint:
+ *
+ * <p>There are a number of expected headers to this endpoint:
  * <dl>
  *   <dt>{@value #SSL_CLIENT_CERTIFICATE_HASH_FIELD}
  *   <dd>

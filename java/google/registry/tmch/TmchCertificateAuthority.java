@@ -50,9 +50,9 @@ public final class TmchCertificateAuthority {
 
   /**
    * A cached supplier that loads the crl from datastore or chooses a default value.
-   * <p>
-   * We keep the cache here rather than caching TmchCrl in the model, because loading the crl string
-   * into an X509CRL instance is expensive and should itself be cached.
+   *
+   * <p>We keep the cache here rather than caching TmchCrl in the model, because loading the crl
+   * string into an X509CRL instance is expensive and should itself be cached.
    */
   private static final Supplier<X509CRL> CRL_CACHE =
       memoizeWithShortExpiration(new Supplier<X509CRL>() {

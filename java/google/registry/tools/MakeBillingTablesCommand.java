@@ -146,8 +146,8 @@ final class MakeBillingTablesCommand extends BigqueryCommand {
    * Generates a view of registrar credit balance entities that collapses them down to the one
    * 'true' credit balance for a given credit ID and effective time, eliminating any duplicates by
    * choosing the most recently written balance entry of the set.
-   * <p>
-   * The result is a list of the historical balances of each credit (according to the most recent
+   *
+   * <p>The result is a list of the historical balances of each credit (according to the most recent
    * data written) that can be used to find the active balance of a credit at any point in time.
    */
   private void makeCreditBalanceView() throws Exception {

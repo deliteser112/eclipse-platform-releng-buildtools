@@ -90,14 +90,15 @@ public class BigqueryUtils {
   /**
    * A {@code DateTimeFormatter} that defines how to print DateTimes in a string format that
    * BigQuery can interpret and how to parse the string formats that BigQuery emits into DateTimes.
-   * <p>
-   * The general format definition is "YYYY-MM-DD HH:MM:SS.SSS[ ZZ]", where the fractional seconds
-   * portion can have 0-6 decimal places (although we restrict it to 0-3 here since Joda DateTime
-   * only supports up to millisecond precision) and the zone if not specified defaults to UTC.
-   * <p>
-   * Although we expect a zone specification of "UTC" when parsing, we don't emit it when printing
-   * because in some cases BigQuery does not allow any time zone specification (instead it assumes
-   * UTC for whatever input you provide) for input timestamp strings (see b/16380363).
+   *
+   * <p>The general format definition is "YYYY-MM-DD HH:MM:SS.SSS[ ZZ]", where the fractional
+   * seconds portion can have 0-6 decimal places (although we restrict it to 0-3 here since Joda
+   * DateTime only supports up to millisecond precision) and the zone if not specified defaults to
+   * UTC.
+   *
+   * <p>Although we expect a zone specification of "UTC" when parsing, we don't emit it when
+   * printing because in some cases BigQuery does not allow any time zone specification (instead it
+   * assumes UTC for whatever input you provide) for input timestamp strings (see b/16380363).
    *
    * @see "https://developers.google.com/bigquery/timestamp"
    */

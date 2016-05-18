@@ -319,8 +319,8 @@ public abstract class BillingEvent extends ImmutableObject
 
   /**
    * A recurring billable event.
-   * <p>
-   * Unlike {@link OneTime} events, these do not store an explicit cost, since the cost of the
+   *
+   * <p>Unlike {@link OneTime} events, these do not store an explicit cost, since the cost of the
    * recurring event might change and each time we bill for it we need to bill at the current cost,
    * not the value that was in use at the time the recurrence was created.
    */
@@ -346,15 +346,15 @@ public abstract class BillingEvent extends ImmutableObject
     /**
      * The eventTime recurs every year on this [month, day, time] between {@link #eventTime} and
      * {@link #recurrenceEndTime}, inclusive of the start but not of the end.
-     * <p>
-     * This field is denormalized from {@link #eventTime} to allow for an efficient index, but it
+     *
+     * <p>This field is denormalized from {@link #eventTime} to allow for an efficient index, but it
      * always has the same data as that field.
-     * <p>
-     * Note that this is a recurrence of the event time, not the billing time. The billing time can
-     * be calculated by adding the relevant grace period length to this date. The reason for this
-     * requirement is that the event time recurs on a {@link org.joda.time.Period} schedule (same
-     * day of year, which can be 365 or 366 days later) which is what {@link TimeOfYear} can model,
-     * whereas the billing time is a fixed {@link org.joda.time.Duration} later.
+     *
+     * <p>Note that this is a recurrence of the event time, not the billing time. The billing time
+     * can be calculated by adding the relevant grace period length to this date. The reason for
+     * this requirement is that the event time recurs on a {@link org.joda.time.Period} schedule
+     * (same day of year, which can be 365 or 366 days later) which is what {@link TimeOfYear} can
+     * model, whereas the billing time is a fixed {@link org.joda.time.Duration} later.
      */
     @Index
     TimeOfYear recurrenceTimeOfYear;
@@ -401,9 +401,9 @@ public abstract class BillingEvent extends ImmutableObject
 
   /**
    * An event representing a cancellation of one of the other two billable event types.
-   * <p>
-   * This is implemented as a separate event rather than a bit on BillingEvent in order to preserve
-   * the immutability of billing events.
+   *
+   * <p>This is implemented as a separate event rather than a bit on BillingEvent in order to
+   * preserve the immutability of billing events.
    */
   @Entity
   public static class Cancellation extends BillingEvent {

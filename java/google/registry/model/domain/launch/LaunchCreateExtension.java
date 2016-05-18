@@ -34,9 +34,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * An XML data object that represents a launch extension that may be present on EPP domain create
  * commands.
- * <p>
- * This object holds XML data which JAXB will unmarshal from an EPP domain create command extension.
- * The XML will have the following enclosing structure:
+ *
+ * <p>This object holds XML data which JAXB will unmarshal from an EPP domain create command
+ * extension.  The XML will have the following enclosing structure:
  *
  * <pre> {@code
  *   <epp>

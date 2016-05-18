@@ -30,8 +30,9 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 
 /**
  * A greeting, defined in {@link "http://tools.ietf.org/html/rfc5730"}.
- * <p>
- * It would be nice to make this a singleton, but we need the {@link #svDate} field to stay current.
+ *
+ * <p>It would be nice to make this a singleton, but we need the {@link #svDate} field to stay
+ * current.
  */
 public class Greeting extends ImmutableObject implements ResponseOrGreeting {
 

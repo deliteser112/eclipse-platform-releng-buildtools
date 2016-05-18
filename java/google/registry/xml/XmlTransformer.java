@@ -121,9 +121,9 @@ public class XmlTransformer {
 
   /**
    * Validates XML text against {@link #schema} without marshalling.
-   * <p>
-   * You must specify the XML class you expect to receive as the root element.
-   * Validation is performed in accordance with the hard-coded XML schemas.
+   *
+   * <p>You must specify the XML class you expect to receive as the root element.  Validation is
+   * performed in accordance with the hard-coded XML schemas.
    *
    * @throws XmlException if XML input was invalid or root element doesn't match {@code expect}.
    */
@@ -137,8 +137,8 @@ public class XmlTransformer {
 
   /**
    * Turns XML text into an object, validating against {@link #schema}.
-   * <p>
-   * You must specify the XML class you expect to receive as the root element. Validation is
+   *
+   * <p>You must specify the XML class you expect to receive as the root element. Validation is
    * performed in accordance with the hard-coded XML schemas.
    *
    * @throws XmlException if failed to read from {@code bytes}, XML input is invalid, or root
@@ -181,11 +181,11 @@ public class XmlTransformer {
 
   /**
    * Streams {@code root} without XML declaration, optionally validating against the schema.
-   * <p>
-   * The root object must be annotated with {@link javax.xml.bind.annotation.XmlRootElement}. If the
-   * validation parameter is set to {@link ValidationMode#STRICT} this method will verify that your
-   * object strictly conforms to {@link #schema}. Because the output is streamed,
-   * {@link XmlException} will most likely be thrown <i>after</i> output has been written.
+   *
+   * <p>The root object must be annotated with {@link javax.xml.bind.annotation.XmlRootElement}. If
+   * the validation parameter is set to {@link ValidationMode#STRICT} this method will verify that
+   * your object strictly conforms to {@link #schema}. Because the output is streamed, {@link
+   * XmlException} will most likely be thrown <i>after</i> output has been written.
    *
    * @param root the object to write
    * @param writer to write the output to
@@ -206,10 +206,10 @@ public class XmlTransformer {
 
   /**
    * Validates and streams {@code root} as formatted XML bytes with XML declaration.
-   * <p>
-   * The root object must be annotated with {@link javax.xml.bind.annotation.XmlRootElement}. If the
-   * validation parameter is set to {@link ValidationMode#STRICT} this method will verify that your
-   * object strictly conforms to {@link #schema}. Because the output is streamed,
+   *
+   * <p>The root object must be annotated with {@link javax.xml.bind.annotation.XmlRootElement}. If
+   * the validation parameter is set to {@link ValidationMode#STRICT} this method will verify that
+   * your object strictly conforms to {@link #schema}. Because the output is streamed,
    * {@link XmlException} will most likely be thrown <i>after</i> output has been written.
    *
    * @param root the object to write
@@ -233,11 +233,11 @@ public class XmlTransformer {
 
   /**
    * Validates and streams {@code root} as characters, always using strict validation.
-   * <p>
-   * The root object must be annotated with {@link javax.xml.bind.annotation.XmlRootElement}. This
-   * method will verify that your object strictly conforms to {@link #schema}. Because the output is
-   * streamed, {@link XmlException} will most likely be thrown <i>after</i> output has been
-   * written.
+   *
+   * <p>The root object must be annotated with {@link javax.xml.bind.annotation.XmlRootElement}.
+   * This method will verify that your object strictly conforms to {@link #schema}. Because the
+   * output is streamed, {@link XmlException} will most likely be thrown <i>after</i> output has
+   * been written.
    *
    * @param root the object to write
    * @param result to write the output to

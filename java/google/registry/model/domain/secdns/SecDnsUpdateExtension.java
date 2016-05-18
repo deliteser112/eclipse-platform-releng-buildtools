@@ -36,8 +36,8 @@ public class SecDnsUpdateExtension extends ImmutableObject implements CommandExt
 
   /**
    * Specifies whether this update is urgent.
-   * <p>
-   * We don't support urgent updates but we need this to be present to provide appropriate error
+   *
+   * <p>We don't support urgent updates but we need this to be present to provide appropriate error
    * messages if a client requests it.
    */
   @XmlAttribute
@@ -98,8 +98,8 @@ public class SecDnsUpdateExtension extends ImmutableObject implements CommandExt
   public static class Change extends ImmutableObject {
     /**
      * Time in seconds until the signature should expire.
-     * <p>
-     * We do not support expirations, but we need this field to be able to return appropriate
+     *
+     * <p>We do not support expirations, but we need this field to be able to return appropriate
      * errors.
      */
     Long maxSigLife;

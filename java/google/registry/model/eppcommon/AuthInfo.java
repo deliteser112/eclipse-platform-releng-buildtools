@@ -29,8 +29,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * The "authInfoType" complex type.
- * <p>
- * RFCs 5731 and 5732 define this almost identically up to the namespace.
+ *
+ * <p>RFCs 5731 and 5732 define this almost identically up to the namespace.
  */
 @XmlTransient
 public abstract class AuthInfo extends ImmutableObject {

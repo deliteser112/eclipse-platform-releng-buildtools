@@ -28,8 +28,8 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 /**
  * Legacy shell of a "union" type to represent referenced objects as either a foreign key or as a
  * link to another object in the datastore. In its current form it merely wraps a {@link Ref}.
- * <p>
- * This type always marshals as the "foreign key". We no longer use this type for unmarshalling.
+ *
+ * <p>This type always marshals as the "foreign key". We no longer use this type for unmarshalling.
  *
  * @param <T> the type being referenced
  */

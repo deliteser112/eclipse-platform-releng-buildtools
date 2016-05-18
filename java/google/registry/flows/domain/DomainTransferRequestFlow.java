@@ -184,10 +184,10 @@ public class DomainTransferRequestFlow
   /**
    * When a transfer is requested, schedule a billing event and poll message for the automatic
    * approval case.
-   * <p>
-   * Note that the action time is AUTOMATIC_TRANSFER_DAYS in the future, matching the server policy
-   * on automated approval of transfers. There is no equivalent grace period added; if the transfer
-   * is implicitly approved, the resource will project a grace period on itself.
+   *
+   * <p>Note that the action time is AUTOMATIC_TRANSFER_DAYS in the future, matching the server
+   * policy on automated approval of transfers. There is no equivalent grace period added; if the
+   * transfer is implicitly approved, the resource will project a grace period on itself.
    */
   @Override
   protected Set<Key<? extends TransferServerApproveEntity>> getTransferServerApproveEntities() {

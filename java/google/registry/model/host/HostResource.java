@@ -74,9 +74,9 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
 
   /**
    * Fully qualified hostname, which is a unique identifier for this host.
-   * <p>
-   * This is only unique in the sense that for any given lifetime specified as the time range from
-   * (creationTime, deletionTime) there can only be one host in the datastore with this name.
+   *
+   * <p>This is only unique in the sense that for any given lifetime specified as the time range
+   * from (creationTime, deletionTime) there can only be one host in the datastore with this name.
    * However, there can be many hosts with the same name and non-overlapping lifetimes.
    */
   // TODO(b/25644770): Backfill this index. Until that's done, don't rely on it!

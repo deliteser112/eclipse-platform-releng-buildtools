@@ -27,8 +27,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Information about one or more marks.
- * <p>
- * A mark is a term for a label with some sort of legally protected status. The most well known
+ *
+ * <p>A mark is a term for a label with some sort of legally protected status. The most well known
  * version is a registered trademark, but marks can also be derived from court opinions, treaties,
  * or statutes.
  */

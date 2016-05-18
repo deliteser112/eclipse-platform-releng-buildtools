@@ -86,9 +86,9 @@ public class ResourceFlowUtils {
 
   /**
    * Create a pending action notification response indicating the resolution of a transfer.
-   * <p>
-   * The returned object will use the id and type of this resource, the trid of the resource's last
-   * transfer request, and the specified status and date.
+   *
+   * <p>The returned object will use the id and type of this resource, the trid of the resource's
+   * last transfer request, and the specified status and date.
    */
   public static PendingActionNotificationResponse createPendingTransferNotificationResponse(
       EppResource eppResource,

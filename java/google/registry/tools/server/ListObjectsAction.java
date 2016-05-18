@@ -76,8 +76,8 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
 
   /**
    * Returns an {@link ImmutableBiMap} that maps any field name aliases to the actual field names.
-   * <p>
-   * Users can select aliased fields for display using either the original name or the alias.  By
+   *
+   * <p>Users can select aliased fields for display using either the original name or the alias.  By
    * default, aliased fields will use the alias name as the header instead of the original name.
    */
   ImmutableBiMap<String, String> getFieldAliases() {
@@ -89,11 +89,11 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
    * will override, for any overlapping field names, the default behavior of getting the field
    * value by looking up that field name in the map returned by
    * {@link ImmutableObject#toDiffableFieldMap}.
-   * <p>
-   * This can be used to specify customized printing of certain fields (e.g. to print out a boolean
-   * field as "active" or "-" instead of "true" or "false").  It can also be used to add fields to
-   * the data, e.g. for computed fields that can be accessed from the object directly but aren't
-   * stored as simple fields.
+   *
+   * <p>This can be used to specify customized printing of certain fields (e.g. to print out a
+   * boolean field as "active" or "-" instead of "true" or "false").  It can also be used to add
+   * fields to the data, e.g. for computed fields that can be accessed from the object directly but
+   * aren't stored as simple fields.
    */
   ImmutableMap<String, String> getFieldOverrides(@SuppressWarnings("unused") T object) {
     return ImmutableMap.of();
@@ -269,8 +269,8 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
   /**
    * Returns for the given column widths map a row formatting function that converts a row map (of
    * column keys to cell values) into a single string with each column right-padded to that width.
-   * <p>
-   * The resulting strings separate padded fields with two spaces and each end in a newline.
+   *
+   * <p>The resulting strings separate padded fields with two spaces and each end in a newline.
    */
   private static Function<Map<String, String>, String> makeRowFormatter(
       final Map<String, Integer> columnWidths) {

@@ -30,9 +30,9 @@ import javax.annotation.Nullable;
 
 /**
  * A domain grace period with an expiration time.
- * <p>
- * When a grace period expires, it is lazily removed from the {@link DomainResource} the next time
- * the resource is loaded from the datastore.
+ *
+ * <p>When a grace period expires, it is lazily removed from the {@link DomainResource} the next
+ * time the resource is loaded from the datastore.
  */
 @Embed
 public class GracePeriod extends ImmutableObject {

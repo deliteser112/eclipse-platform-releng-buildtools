@@ -49,8 +49,8 @@ public final class TmchCrl extends CrossTldSingleton {
 
   /**
    * Change the datastore singleton to a new ASCII-armored X.509 CRL.
-   * <p>
-   * Please do not call this function unless your CRL is properly formatted, signed by the root,
+   *
+   * <p>Please do not call this function unless your CRL is properly formatted, signed by the root,
    * and actually newer than the one currently in the datastore.
    */
   public static void set(final String crl) {

@@ -144,18 +144,18 @@ public class FlowRunner {
 
   /**
    * Helper for logging in json format.
-   * <p>
-   * This is needed because the usual json outputters perform normalizations that we don't want or
-   * need, since we know that our values never need to be escaped - there are only strings and
+   *
+   * <p>This is needed because the usual json outputters perform normalizations that we don't want
+   * or need, since we know that our values never need to be escaped - there are only strings and
    * numbers, and the strings are not allowed to contain quote characters.
-   * <p>
-   * An example output for an EPP_Mutation:
-   * {"trid":"abc-123", "client":"some_registrar", "tld":"com", "xmlBytes":"abc123DEF"}
-   * <p>
-   * An example output for an EPP_Mutation_Committed that doesn't create a new resource:
+   *
+   * <p>An example output for an EPP_Mutation: {"trid":"abc-123", "client":"some_registrar",
+   * "tld":"com", "xmlBytes":"abc123DEF"}
+   *
+   * <p>An example output for an EPP_Mutation_Committed that doesn't create a new resource:
    * {"trid":"abc-123", "executionTime":123456789}
-   * <p>
-   * An example output for an EPP_Mutation_Committed that creates a new resource:
+   *
+   * <p>An example output for an EPP_Mutation_Committed that creates a new resource:
    * {"trid":"abc-123", "executionRepoId":123, "executionTime":123456789}
    */
   private static class JsonLogStatement {

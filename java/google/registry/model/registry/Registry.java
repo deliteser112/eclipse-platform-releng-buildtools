@@ -263,8 +263,8 @@ public class Registry extends ImmutableObject implements Buildable {
 
   /**
    * The unicode-aware representation of the TLD associated with this {@link Registry}.
-   * <p>
-   * This will be equal to {@link #tldStr} for ASCII TLDs, but will be non-ASCII for IDN TLDs.
+   *
+   * <p>This will be equal to {@link #tldStr} for ASCII TLDs, but will be non-ASCII for IDN TLDs.
    * We store this in a field so that it will be retained upon import into BigQuery.
    */
   String tldUnicode;
@@ -348,10 +348,10 @@ public class Registry extends ImmutableObject implements Buildable {
   /**
    * A property that transitions to different renew billing costs at different times. Stored as a
    * list of BillingCostTransition embedded objects using the @Mapify annotation.
-   * <p>
-   * A given value of this property represents the per-year billing cost for renewing a domain name.
-   * This cost is also used to compute costs for transfers, since each transfer includes a renewal
-   * to ensure transfers have a cost.
+   *
+   * <p>A given value of this property represents the per-year billing cost for renewing a domain
+   * name.  This cost is also used to compute costs for transfers, since each transfer includes a
+   * renewal to ensure transfers have a cost.
    */
   @Mapify(TimedTransitionProperty.TimeMapper.class)
   TimedTransitionProperty<Money, BillingCostTransition> renewBillingCostTransitions =
@@ -388,8 +388,8 @@ public class Registry extends ImmutableObject implements Buildable {
 
   /**
    * Retrieve the TLD state at the given time.  Defaults to {@link TldState#PREDELEGATION}.
-   * <p>
-   * Note that {@link TldState#PDT} TLDs pretend to be in {@link TldState#GENERAL_AVAILABILITY}.
+   *
+   * <p>Note that {@link TldState#PDT} TLDs pretend to be in {@link TldState#GENERAL_AVAILABILITY}.
    */
   public TldState getTldState(DateTime now) {
     TldState state = tldStateTransitions.getValueAtTime(now);
@@ -703,8 +703,8 @@ public class Registry extends ImmutableObject implements Buildable {
 
     /**
      * Sets the renew billing cost to transition to the specified values at the specified times.
-     * <p>
-     * Renew billing costs transitions should only be added at least 5 days (the length of an
+     *
+     * <p>Renew billing costs transitions should only be added at least 5 days (the length of an
      * automatic transfer) in advance, to avoid discrepancies between the cost stored with the
      * billing event (created when the transfer is requested) and the cost at the time when the
      * transfer actually occurs (5 days later).

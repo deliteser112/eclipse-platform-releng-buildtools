@@ -34,8 +34,8 @@ import javax.xml.bind.annotation.XmlValue;
 
 /**
  * The launch phase of the TLD being addressed by this command.
- * <p>
- * The launch phase refers to the various stages that a TLD goes through before entering general
+ *
+ * <p>The launch phase refers to the various stages that a TLD goes through before entering general
  * availability. The various phases are described below (in order that they usually occur).
  */
 @Embed

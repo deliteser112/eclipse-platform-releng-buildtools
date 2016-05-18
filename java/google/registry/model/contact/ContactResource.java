@@ -69,9 +69,9 @@ public class ContactResource extends EppResource implements ForeignKeyedEppResou
 
   /**
    * Unique identifier for this contact.
-   * <p>
-   * This is only unique in the sense that for any given lifetime specified as the time range from
-   * (creationTime, deletionTime) there can only be one contact in the datastore with this id.
+   *
+   * <p>This is only unique in the sense that for any given lifetime specified as the time range
+   * from (creationTime, deletionTime) there can only be one contact in the datastore with this id.
    * However, there can be many contacts with the same id and non-overlapping lifetimes.
    */
   @XmlTransient
@@ -153,8 +153,8 @@ public class ContactResource extends EppResource implements ForeignKeyedEppResou
 
   /**
    * Postal info for the contact.
-   * <p>
-   * The XML marshalling expects the {@link PostalInfo} objects in a list, but we can't actually
+   *
+   * <p>The XML marshalling expects the {@link PostalInfo} objects in a list, but we can't actually
    * persist them to datastore that way because Objectify can't handle collections of embedded
    * objects that themselves contain collections, and there's a list of streets inside. This method
    * transforms the persisted format to the XML format for marshalling.

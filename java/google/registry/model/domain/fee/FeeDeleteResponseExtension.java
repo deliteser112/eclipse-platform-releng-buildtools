@@ -39,8 +39,8 @@ public class FeeDeleteResponseExtension extends ImmutableObject implements Respo
 
   /**
    * The magnitude of the credit(s), in the specified units, with an optional description.
-   * <p>
-   * This is a list because a single delete can receive multiple credits.
+   *
+   * <p>This is a list because a single delete can receive multiple credits.
    */
   @XmlElement(name = "credit")
   List<Credit> credits;

@@ -43,15 +43,15 @@ public class BaseFeeResponse extends ImmutableObject {
 
   /**
    * The magnitude of the fee, in the specified units, with an optional description.
-   * <p>
-   * This is a list because a single operation can involve multiple fees.
+   *
+   * <p>This is a list because a single operation can involve multiple fees.
    */
   List<Fee> fee;
 
   /**
    * The type of the fee.
-   * <p>
-   * We will use "premium" for fees on premium names, and omit the field otherwise.
+   *
+   * <p>We will use "premium" for fees on premium names, and omit the field otherwise.
    */
   @XmlElement(name = "class")
   String feeClass;

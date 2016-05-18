@@ -100,8 +100,8 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
 
   /**
    * The poll message associated with this domain being deleted.
-   * <p>
-   * This field should be null if the domain is not in pending delete. If it is, the field should
+   *
+   * <p>This field should be null if the domain is not in pending delete. If it is, the field should
    * refer to a {@link PollMessage} timed to when the domain is fully deleted. If the domain is
    * restored, the message should be deleted.
    */
@@ -110,9 +110,9 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
 
   /**
    * The recurring billing event associated with this domain's autorenewals.
-   * <p>
-   * The recurrence should be open ended unless the domain is in pending delete or fully deleted, in
-   * which case it should be closed at the time the delete was requested. Whenever the domain's
+   *
+   * <p>The recurrence should be open ended unless the domain is in pending delete or fully deleted,
+   * in which case it should be closed at the time the delete was requested. Whenever the domain's
    * {@link #registrationExpirationTime} is changed the recurrence should be closed, a new one
    * should be created, and this field should be updated to point to the new one.
    */
@@ -121,9 +121,9 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
 
   /**
    * The recurring poll message associated with this domain's autorenewals.
-   * <p>
-   * The recurrence should be open ended unless the domain is in pending delete or fully deleted, in
-   * which case it should be closed at the time the delete was requested. Whenever the domain's
+   *
+   * <p>The recurrence should be open ended unless the domain is in pending delete or fully deleted,
+   * in which case it should be closed at the time the delete was requested. Whenever the domain's
    * {@link #registrationExpirationTime} is changed the recurrence should be closed, a new one
    * should be created, and this field should be updated to point to the new one.
    */
@@ -206,8 +206,8 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
 
   /**
    * Returns the Registry Grace Period Statuses for this domain.
-   * <p>
-   * This collects all statuses from the domain's {@link GracePeriod}s and also adds the
+   *
+   * <p>This collects all statuses from the domain's {@link GracePeriod} entries and also adds the
    * PENDING_DELETE status if needed.
    */
   public ImmutableSet<GracePeriodStatus> getGracePeriodStatuses() {

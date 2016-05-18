@@ -18,10 +18,10 @@ import google.registry.model.eppcommon.Address;
 
 /**
  * Mark Holder/Owner Address
- * <p>
- * This class is embedded inside {@link CommonMarkContactFields} hold the address of a mark contact
- * or holder. The fields are all defined in parent class {@link Address}, but the subclass is still
- * necessary to pick up the mark namespace.
+ *
+ * <p>This class is embedded inside {@link CommonMarkContactFields} hold the address of a mark
+ * contact or holder. The fields are all defined in parent class {@link Address}, but the subclass
+ * is still necessary to pick up the mark namespace.
  *
  * @see CommonMarkContactFields
  */

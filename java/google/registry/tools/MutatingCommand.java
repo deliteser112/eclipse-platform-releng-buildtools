@@ -130,10 +130,10 @@ public abstract class MutatingCommand extends ConfirmingCommand implements Remot
 
   /**
    * Initializes the command.
-   * <p>
-   * Subclasses override this method to populate {@link #changedEntitiesMap} with updated
-   * entities. The old entity is the key and the new entity is the value; the key is null for
-   * newly created entities and the value is null for deleted entities.
+   *
+   * <p>Subclasses override this method to populate {@link #changedEntitiesMap} with updated
+   * entities. The old entity is the key and the new entity is the value; the key is null for newly
+   * created entities and the value is null for deleted entities.
    */
   @Override
   protected abstract void init() throws Exception;

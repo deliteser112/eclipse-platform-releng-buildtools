@@ -202,8 +202,8 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   /**
    * Registrar name. This is a distinct from the client identifier since there are no restrictions
    * on its length.
-   * <p>
-   * NB: We are assuming that this field is unique across all registrar entities. This is not
+   *
+   * <p>NB: We are assuming that this field is unique across all registrar entities. This is not
    * formally enforced in our datastore, but should be enforced by ICANN in that no two registrars
    * will be accredited with the same name.
    *
