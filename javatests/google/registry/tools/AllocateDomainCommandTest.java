@@ -19,7 +19,7 @@ import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.toByteArray;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppServletUtils.APPLICATION_EPP_XML_UTF8;
-import static google.registry.flows.FlowRegistry.getFlowClass;
+import static google.registry.flows.picker.FlowPicker.getFlowClass;
 import static google.registry.model.domain.DesignatedContact.Type.ADMIN;
 import static google.registry.model.domain.DesignatedContact.Type.BILLING;
 import static google.registry.model.domain.DesignatedContact.Type.TECH;

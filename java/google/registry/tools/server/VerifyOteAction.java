@@ -17,7 +17,7 @@ package google.registry.tools.server;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Maps.toMap;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
-import static google.registry.flows.FlowRegistry.getFlowClass;
+import static google.registry.flows.picker.FlowPicker.getFlowClass;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;

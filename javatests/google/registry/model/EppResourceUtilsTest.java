@@ -15,7 +15,7 @@
 package google.registry.model;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.flows.FlowRegistry.getFlowClass;
+import static google.registry.flows.picker.FlowPicker.getFlowClass;
 import static google.registry.model.EppResourceUtils.loadAtPointInTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;

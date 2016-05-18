@@ -32,12 +32,12 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 import google.registry.flows.Flow;
-import google.registry.flows.FlowRegistry;
 import google.registry.flows.FlowRunner;
 import google.registry.flows.FlowRunner.CommitMode;
 import google.registry.flows.FlowRunner.UserPrivileges;
 import google.registry.flows.SessionMetadata;
 import google.registry.flows.TlsCredentials;
+import google.registry.flows.picker.FlowPicker;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.tools.Command.GtechCommand;
@@ -103,7 +103,7 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCo
         .render()
         .getBytes(UTF_8);
     EppInput eppInput = unmarshal(inputXmlBytes);
-    Class<? extends Flow> flowClass = FlowRegistry.getFlowClass(eppInput);
+    Class<? extends Flow> flowClass = FlowPicker.getFlowClass(eppInput);
     System.out.println(runFlow(
         new FlowRunner(
             flowClass,

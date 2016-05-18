@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.flows;
+package google.registry.flows.picker;
 
 import static google.registry.model.domain.launch.LaunchCreateExtension.CreateType.APPLICATION;
 
@@ -22,8 +22,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 
+import google.registry.flows.EppException;
 import google.registry.flows.EppException.SyntaxErrorException;
 import google.registry.flows.EppException.UnimplementedCommandException;
+import google.registry.flows.Flow;
 import google.registry.flows.contact.ContactCheckFlow;
 import google.registry.flows.contact.ContactCreateFlow;
 import google.registry.flows.contact.ContactDeleteFlow;
@@ -87,8 +89,8 @@ import google.registry.model.host.HostCommand;
 import java.util.Map;
 import java.util.Set;
 
-/** Registry that can select a flow to handle a given Epp command. */
-public class FlowRegistry {
+/** Class that picks a flow to handle a given EPP command. */
+public class FlowPicker {
 
   /** Marker class for unimplemented flows. */
   private abstract static class UnimplementedFlow extends Flow {}

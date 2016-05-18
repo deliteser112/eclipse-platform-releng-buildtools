@@ -16,7 +16,7 @@ package google.registry.flows;
 
 import static google.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
-import static google.registry.flows.FlowRegistry.getFlowClass;
+import static google.registry.flows.picker.FlowPicker.getFlowClass;
 
 import com.google.apphosting.api.ApiProxy;
 import com.google.common.annotations.VisibleForTesting;

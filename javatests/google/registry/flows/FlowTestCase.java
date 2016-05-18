@@ -37,6 +37,7 @@ import com.google.common.collect.Maps;
 import google.registry.flows.FlowRunner.CommitMode;
 import google.registry.flows.FlowRunner.UserPrivileges;
 import google.registry.flows.SessionMetadata.SessionSource;
+import google.registry.flows.picker.FlowPicker;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -129,7 +130,7 @@ public abstract class FlowTestCase<F extends Flow> {
   /** Load a flow from an epp object. */
   private FlowRunner createFlowRunner() throws Exception {
     EppInput eppInput = eppLoader.getEpp();
-    flowClass = firstNonNull(flowClass, FlowRegistry.getFlowClass(eppInput));
+    flowClass = firstNonNull(flowClass, FlowPicker.getFlowClass(eppInput));
     Class<?> expectedFlowClass = new TypeInstantiator<F>(getClass()){}.getExactType();
     assertThat(flowClass).isEqualTo(expectedFlowClass);
     return new FlowRunner(

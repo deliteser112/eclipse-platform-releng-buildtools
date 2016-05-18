@@ -103,7 +103,7 @@ public class DomainAllocateFlowTest
   public void initAllocateTest() throws Exception {
     setEppInput("domain_allocate.xml", ImmutableMap.of("APPLICATIONID", "2-TLD"));
     clock.setTo(APPLICATION_TIME);
-    // We must manually set the flow class since this flow is not registered in the flow registry.
+    // We must manually set the flow class since this flow is not registered in the flow picker.
     flowClass = DomainAllocateFlow.class;
   }
 
