@@ -22,6 +22,19 @@
       </domain:update>
     </update>
     <extension>
+      <secDNS:update xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1">
+        <secDNS:rem>
+          <secDNS:all>true</secDNS:all>
+        </secDNS:rem>
+        <secDNS:add>
+          <secDNS:dsData>
+            <secDNS:keyTag>1</secDNS:keyTag>
+            <secDNS:alg>1</secDNS:alg>
+            <secDNS:digestType>1</secDNS:digestType>
+            <secDNS:digest>abc</secDNS:digest>
+          </secDNS:dsData>
+        </secDNS:add>
+      </secDNS:update>
       <metadata:metadata xmlns:metadata="urn:google:params:xml:ns:metadata-1.0">
         <metadata:reason>Uniform Rapid Suspension</metadata:reason>
         <metadata:requestedByRegistrar>false</metadata:requestedByRegistrar>

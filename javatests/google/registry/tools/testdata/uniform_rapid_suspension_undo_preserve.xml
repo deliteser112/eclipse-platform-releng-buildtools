@@ -21,6 +21,11 @@
       </domain:update>
     </update>
     <extension>
+      <secDNS:update xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1">
+        <secDNS:rem>
+          <secDNS:all>true</secDNS:all>
+        </secDNS:rem>
+      </secDNS:update>
       <metadata:metadata xmlns:metadata="urn:google:params:xml:ns:metadata-1.0">
         <metadata:reason>Undo Uniform Rapid Suspension</metadata:reason>
         <metadata:requestedByRegistrar>false</metadata:requestedByRegistrar>

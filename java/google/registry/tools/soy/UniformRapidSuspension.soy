@@ -9,6 +9,7 @@
 {@param hostsToRemove: list<string>}
 {@param locksToApply: list<string>}
 {@param locksToRemove: list<string>}
+{@param newDsData: list<[keyTag:int, alg:int, digestType:int, digest:string]>}
 {@param reason: string}
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
@@ -43,6 +44,23 @@
       </domain:update>
     </update>
     <extension>
+      <secDNS:update xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1">
+        <secDNS:rem>
+          <secDNS:all>true</secDNS:all>
+        </secDNS:rem>
+        {if length($newDsData) > 0}
+        <secDNS:add>
+          {foreach $ds in $newDsData}
+          <secDNS:dsData>
+            <secDNS:keyTag>{$ds.keyTag}</secDNS:keyTag>
+            <secDNS:alg>{$ds.alg}</secDNS:alg>
+            <secDNS:digestType>{$ds.digestType}</secDNS:digestType>
+            <secDNS:digest>{$ds.digest}</secDNS:digest>
+          </secDNS:dsData>
+          {/foreach}
+        </secDNS:add>
+        {/if}
+      </secDNS:update>
       <metadata:metadata xmlns:metadata="urn:google:params:xml:ns:metadata-1.0">
         <metadata:reason>{$reason}</metadata:reason>
         <metadata:requestedByRegistrar>false</metadata:requestedByRegistrar>

@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 import com.beust.jcommander.ParameterException;
 import com.googlecode.objectify.Ref;
 
+import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
@@ -31,16 +32,27 @@ import google.registry.model.registrar.Registrar;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
+
 /** Unit tests for {@link UniformRapidSuspensionCommand}. */
 public class UniformRapidSuspensionCommandTest
     extends EppToolCommandTestCase<UniformRapidSuspensionCommand> {
 
+  HostResource ns1;
+  HostResource ns2;
+  HostResource urs1;
+  HostResource urs2;
+
   @Before
-  public void initRegistrar() {
+  public void initResources() {
     // Since the command's history client ID must be CharlestonRoad, resave TheRegistrar that way.
     persistResource(Registrar.loadByClientId("TheRegistrar").asBuilder()
         .setClientIdentifier("CharlestonRoad")
         .build());
+    ns1 = persistActiveHost("ns1.example.com");
+    ns2 = persistActiveHost("ns2.example.com");
+    urs1 = persistActiveHost("urs1.example.com");
+    urs2 = persistActiveHost("urs2.example.com");
   }
 
   private void persistDomainWithHosts(HostResource... hosts) {
@@ -50,71 +62,70 @@ public class UniformRapidSuspensionCommandTest
     }
     persistResource(newDomainResource("evil.tld").asBuilder()
         .setNameservers(hostRefs.build())
+        .setDsData(ImmutableSet.of(
+            DelegationSignerData.create(1, 2, 3, new HexBinaryAdapter().unmarshal("dead")),
+            DelegationSignerData.create(4, 5, 6, new HexBinaryAdapter().unmarshal("beef"))))
         .build());
   }
 
   @Test
-  public void testCommand_addsLocksReplacesHostsPrintsUndo() throws Exception {
-    persistActiveHost("urs1.example.com");
-    persistActiveHost("urs2.example.com");
-    persistDomainWithHosts(
-        persistActiveHost("ns1.example.com"),
-        persistActiveHost("ns2.example.com"));
-    runCommandForced("--domain_name=evil.tld", "--hosts=urs1.example.com,urs2.example.com");
+  public void testCommand_addsLocksReplacesHostsAndDsDataPrintsUndo() throws Exception {
+    persistDomainWithHosts(ns1, ns2);
+    runCommandForced(
+        "--domain_name=evil.tld",
+        "--hosts=urs1.example.com,urs2.example.com",
+        "--dsdata={\"keyTag\":1,\"alg\":1,\"digestType\":1,\"digest\":\"abc\"}");
     eppVerifier()
         .setClientIdentifier("CharlestonRoad")
         .asSuperuser()
         .verifySent("testdata/uniform_rapid_suspension.xml");
-    assertInStdout("uniform_rapid_suspension "
-        + "--undo "
-        + "--domain_name evil.tld "
-        + "--hosts ns1.example.com,ns2.example.com");
+    assertInStdout("uniform_rapid_suspension --undo");
+    assertInStdout("--domain_name evil.tld");
+    assertInStdout("--hosts ns1.example.com,ns2.example.com");
+    assertInStdout("--dsdata "
+        + "{\"keyTag\":1,\"algorithm\":2,\"digestType\":3,\"digest\":\"DEAD\"},"
+        + "{\"keyTag\":4,\"algorithm\":5,\"digestType\":6,\"digest\":\"BEEF\"}");
+    assertNotInStdout("--locks_to_preserve");
   }
 
   @Test
   public void testCommand_respectsExistingHost() throws Exception {
-    persistActiveHost("urs1.example.com");
-    persistDomainWithHosts(
-        persistActiveHost("urs2.example.com"),
-        persistActiveHost("ns1.example.com"));
+    persistDomainWithHosts(urs2, ns1);
     runCommandForced("--domain_name=evil.tld", "--hosts=urs1.example.com,urs2.example.com");
     eppVerifier()
         .setClientIdentifier("CharlestonRoad")
         .asSuperuser()
         .verifySent("testdata/uniform_rapid_suspension_existing_host.xml");
-    assertInStdout("uniform_rapid_suspension "
-        + "--undo "
-        + "--domain_name evil.tld "
-        + "--hosts ns1.example.com,urs2.example.com");
+    assertInStdout("uniform_rapid_suspension --undo ");
+    assertInStdout("--domain_name evil.tld");
+    assertInStdout("--hosts ns1.example.com,urs2.example.com");
+    assertNotInStdout("--locks_to_preserve");
   }
 
   @Test
   public void testCommand_generatesUndoForUndelegatedDomain() throws Exception {
-    persistActiveHost("urs1.example.com");
-    persistActiveHost("urs2.example.com");
     persistActiveDomain("evil.tld");
     runCommandForced("--domain_name=evil.tld", "--hosts=urs1.example.com,urs2.example.com");
-    assertInStdout("uniform_rapid_suspension --undo --domain_name evil.tld");
+    assertInStdout("uniform_rapid_suspension --undo");
+    assertInStdout("--domain_name evil.tld");
+    assertNotInStdout("--locks_to_preserve");
   }
 
   @Test
-  public void testCommand_generatesUndoWithPreserve() throws Exception {
+  public void testCommand_generatesUndoWithLocksToPreserve() throws Exception {
     persistResource(
         newDomainResource("evil.tld").asBuilder()
           .addStatusValue(StatusValue.SERVER_DELETE_PROHIBITED)
           .build());
     runCommandForced("--domain_name=evil.tld");
-    assertInStdout(
-        "uniform_rapid_suspension --undo --domain_name evil.tld --preserve serverDeleteProhibited");
+    assertInStdout("uniform_rapid_suspension --undo");
+    assertInStdout("--domain_name evil.tld");
+    assertInStdout("--locks_to_preserve serverDeleteProhibited");
   }
 
   @Test
-  public void testUndo_removesLocksReplacesHosts() throws Exception {
-    persistActiveHost("ns1.example.com");
-    persistActiveHost("ns2.example.com");
-    persistDomainWithHosts(
-        persistActiveHost("urs1.example.com"),
-        persistActiveHost("urs2.example.com"));
+  public void testUndo_removesLocksReplacesHostsAndDsData() throws Exception {
+    persistDomainWithHosts(urs1, urs2);
     runCommandForced(
         "--domain_name=evil.tld", "--undo", "--hosts=ns1.example.com,ns2.example.com");
     eppVerifier()
@@ -125,16 +136,12 @@ public class UniformRapidSuspensionCommandTest
   }
 
   @Test
-  public void testUndo_respectsPreserveFlag() throws Exception {
-    persistActiveHost("ns1.example.com");
-    persistActiveHost("ns2.example.com");
-    persistDomainWithHosts(
-        persistActiveHost("urs1.example.com"),
-        persistActiveHost("urs2.example.com"));
+  public void testUndo_respectsLocksToPreserveFlag() throws Exception {
+    persistDomainWithHosts(urs1, urs2);
     runCommandForced(
         "--domain_name=evil.tld",
         "--undo",
-        "--preserve=serverDeleteProhibited",
+        "--locks_to_preserve=serverDeleteProhibited",
         "--hosts=ns1.example.com,ns2.example.com");
     eppVerifier()
         .setClientIdentifier("CharlestonRoad")
@@ -144,18 +151,43 @@ public class UniformRapidSuspensionCommandTest
   }
 
   @Test
-  public void testFailure_preserveWithoutUndo() throws Exception {
+  public void testFailure_locksToPreserveWithoutUndo() throws Exception {
     persistActiveDomain("evil.tld");
     thrown.expect(IllegalArgumentException.class, "--undo");
-    runCommandForced("--domain_name=evil.tld", "--preserve=serverDeleteProhibited");
+    runCommandForced("--domain_name=evil.tld", "--locks_to_preserve=serverDeleteProhibited");
   }
 
   @Test
   public void testFailure_domainNameRequired() throws Exception {
-    persistActiveHost("urs1.example.com");
-    persistActiveHost("urs2.example.com");
     persistActiveDomain("evil.tld");
     thrown.expect(ParameterException.class, "--domain_name");
     runCommandForced("--hosts=urs1.example.com,urs2.example.com");
+  }
+
+  @Test
+  public void testFailure_extraFieldInDsData() throws Exception {
+    persistActiveDomain("evil.tld");
+    thrown.expect(IllegalArgumentException.class, "Incorrect fields on --dsdata JSON");
+    runCommandForced(
+        "--domain_name=evil.tld",
+        "--dsdata={\"keyTag\":1,\"alg\":1,\"digestType\":1,\"digest\":\"abc\",\"foo\":1}");
+  }
+
+  @Test
+  public void testFailure_missingFieldInDsData() throws Exception {
+    persistActiveDomain("evil.tld");
+    thrown.expect(IllegalArgumentException.class, "Incorrect fields on --dsdata JSON");
+    runCommandForced(
+        "--domain_name=evil.tld",
+        "--dsdata={\"keyTag\":1,\"alg\":1,\"digestType\":1}");
+  }
+
+  @Test
+  public void testFailure_malformedDsData() throws Exception {
+    persistActiveDomain("evil.tld");
+    thrown.expect(IllegalArgumentException.class, "Invalid --dsdata JSON");
+    runCommandForced(
+        "--domain_name=evil.tld",
+        "--dsdata=[1,2,3]");
   }
 }
