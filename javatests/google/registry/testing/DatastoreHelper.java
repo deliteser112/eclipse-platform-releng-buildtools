@@ -31,7 +31,7 @@ import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX_REGEX;
-import static google.registry.util.DomainNameUtils.getTldFromSld;
+import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.Arrays.asList;
 import static org.joda.money.CurrencyUnit.USD;
@@ -120,13 +120,13 @@ public class DatastoreHelper {
   }
 
   public static DomainResource newDomainResource(String domainName) {
-    String repoId = generateNewDomainRoid(getTldFromSld(domainName));
+    String repoId = generateNewDomainRoid(getTldFromDomainName(domainName));
     return newDomainResource(domainName, repoId, persistActiveContact("contact1234"));
   }
 
   public static DomainResource newDomainResource(String domainName, ContactResource contact) {
     return newDomainResource(
-        domainName, generateNewDomainRoid(getTldFromSld(domainName)), contact);
+        domainName, generateNewDomainRoid(getTldFromDomainName(domainName)), contact);
   }
 
   public static DomainResource newDomainResource(
@@ -152,7 +152,7 @@ public class DatastoreHelper {
     // contact does, which is usually the applicationId 1.
     return newDomainApplication(
         domainName,
-        generateNewDomainRoid(getTldFromSld(domainName)),
+        generateNewDomainRoid(getTldFromDomainName(domainName)),
         persistActiveContact("contact1234"),
         LaunchPhase.SUNRISE);
   }
@@ -165,7 +165,7 @@ public class DatastoreHelper {
       String domainName, ContactResource contact, LaunchPhase phase) {
     return newDomainApplication(
         domainName,
-        generateNewDomainRoid(getTldFromSld(domainName)),
+        generateNewDomainRoid(getTldFromDomainName(domainName)),
         contact,
         phase);
   }

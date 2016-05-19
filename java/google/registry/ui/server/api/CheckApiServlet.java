@@ -18,15 +18,16 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_6;
+import static google.registry.model.registry.Registries.findTldForNameOrThrow;
 import static google.registry.ui.server.SoyTemplateUtils.createTofuSupplier;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
-import static google.registry.util.DomainNameUtils.getTldFromSld;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.json.simple.JSONValue.toJSONString;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
 import com.google.template.soy.tofu.SoyTofu;
 
@@ -89,9 +90,9 @@ public class CheckApiServlet extends HttpServlet {
     try {
       domainString = canonicalizeDomainName(nullToEmpty(domainString));
       // Validate the TLD.
-      getTldFromSld(domainString);
+      findTldForNameOrThrow(InternetDomainName.from(domainString));
     } catch (IllegalStateException | IllegalArgumentException e) {
-      return fail("Must supply a valid second level domain name");
+      return fail("Must supply a valid domain name on an authoritative TLD");
     }
     try {
       byte[] inputXmlBytes = TOFU_SUPPLIER.get()

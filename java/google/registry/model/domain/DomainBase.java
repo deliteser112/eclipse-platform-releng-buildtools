@@ -23,7 +23,7 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
 import static google.registry.util.CollectionUtils.union;
-import static google.registry.util.DomainNameUtils.getTldFromSld;
+import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Function;
@@ -237,7 +237,7 @@ public abstract class DomainBase extends EppResource {
       checkArgumentNotNull(
           emptyToNull(instance.fullyQualifiedDomainName), "Missing fullyQualifiedDomainName");
       checkArgumentNotNull(instance.registrant, "Missing registrant");
-      instance.tld = getTldFromSld(instance.fullyQualifiedDomainName);
+      instance.tld = getTldFromDomainName(instance.fullyQualifiedDomainName);
       instance.allContacts = union(
               instance.getContacts(),
               DesignatedContact.create(REGISTRANT, instance.registrant.getLinked()));

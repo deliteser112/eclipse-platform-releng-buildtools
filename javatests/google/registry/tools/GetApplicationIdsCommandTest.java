@@ -62,7 +62,7 @@ public class GetApplicationIdsCommandTest extends CommandTestCase<GetApplication
 
   @Test
   public void testFailure_tldDoesNotExist() throws Exception {
-    thrown.expect(NullPointerException.class);
+    thrown.expect(IllegalArgumentException.class, "Domain name is not under a recognized TLD");
     runCommand("example.foo");
   }
 

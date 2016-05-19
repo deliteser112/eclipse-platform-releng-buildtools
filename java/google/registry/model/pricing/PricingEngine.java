@@ -23,9 +23,12 @@ import org.joda.time.DateTime;
 public interface PricingEngine {
 
   /**
-   * Returns the premium price for the given second-level domain name at the given time for the
-   * given registrar, or absent if the domain name isn't premium.
+   * Returns the premium price for the given domain name at the given time for the given registrar,
+   * or absent if the domain name isn't premium.
+   *
+   * <p>Note that fullyQualifiedDomainName must not include any subdomains.  It should be a single
+   * level above the TLD (which may be multi-part).
    */
   public Optional<Money> getPremiumPrice(
-      String secondLevelDomainName, DateTime priceTime, String clientIdentifier);
+      String fullyQualifiedDomainName, DateTime priceTime, String clientIdentifier);
 }

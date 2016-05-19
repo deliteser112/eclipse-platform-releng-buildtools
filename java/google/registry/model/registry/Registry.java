@@ -158,7 +158,10 @@ public class Registry extends ImmutableObject implements Buildable {
      */
     QUIET_PERIOD,
 
-    /** The steady state of a TLD in which all SLDs are available via first-come, first-serve. */
+    /**
+     * The steady state of a TLD in which all domain names are available via first-come,
+     * first-serve.
+     */
     GENERAL_AVAILABILITY,
 
     /** A "fake" state for use in predelegation testing. Acts like {@link #GENERAL_AVAILABILITY}. */

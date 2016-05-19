@@ -17,7 +17,7 @@ package google.registry.pricing;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.registry.Registries.assertTldExists;
-import static google.registry.util.DomainNameUtils.getTldFromSld;
+import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -74,7 +74,7 @@ public final class PricingEngineProxy {
         getPremiumPriceForDomainName(
             InternetDomainName.from(domainName), priceTime, clientIdentifier);
     return annualCost
-        .or(Registry.get(getTldFromSld(domainName)).getStandardCreateCost())
+        .or(Registry.get(getTldFromDomainName(domainName)).getStandardCreateCost())
         .multipliedBy(years);
   }
 
@@ -86,7 +86,7 @@ public final class PricingEngineProxy {
         getPremiumPriceForDomainName(
             InternetDomainName.from(domainName), priceTime, clientIdentifier);
     return annualCost
-        .or(Registry.get(getTldFromSld(domainName)).getStandardRenewCost(priceTime))
+        .or(Registry.get(getTldFromDomainName(domainName)).getStandardRenewCost(priceTime))
         .multipliedBy(years);
   }
 
@@ -96,7 +96,7 @@ public final class PricingEngineProxy {
    */
   private static Optional<Money> getPremiumPriceForDomainName(
       InternetDomainName domainName, DateTime priceTime, String clientIdentifier) {
-    String tld = assertTldExists(getTldFromSld(domainName));
+    String tld = assertTldExists(getTldFromDomainName(domainName));
     String clazz = Registry.get(tld).getPricingEngineClassName();
     PricingEngine engine = pricingEngines.get(clazz);
     checkState(engine != null, "Could not load pricing engine %s for TLD %s", clazz, tld);

@@ -79,7 +79,7 @@ public class CheckApiServletTest {
   public void testFailure_nullDomain() throws Exception {
     doTest(ImmutableMap.of(
         "status", "error",
-        "reason", "Must supply a valid second level domain name"));
+        "reason", "Must supply a valid domain name on an authoritative TLD"));
   }
 
   @Test
@@ -87,7 +87,7 @@ public class CheckApiServletTest {
     when(req.getParameter("domain")).thenReturn("");
     doTest(ImmutableMap.of(
         "status", "error",
-        "reason", "Must supply a valid second level domain name"));
+        "reason", "Must supply a valid domain name on an authoritative TLD"));
   }
 
   @Test
@@ -95,7 +95,7 @@ public class CheckApiServletTest {
     when(req.getParameter("domain")).thenReturn("@#$%^");
     doTest(ImmutableMap.of(
         "status", "error",
-        "reason", "Must supply a valid second level domain name"));
+        "reason", "Must supply a valid domain name on an authoritative TLD"));
   }
 
   @Test
@@ -103,7 +103,7 @@ public class CheckApiServletTest {
     when(req.getParameter("domain")).thenReturn("foo");
     doTest(ImmutableMap.of(
         "status", "error",
-        "reason", "Must supply a valid second level domain name"));
+        "reason", "Must supply a valid domain name on an authoritative TLD"));
   }
 
   @Test
@@ -111,7 +111,7 @@ public class CheckApiServletTest {
     when(req.getParameter("domain")).thenReturn("foo.bar");
     doTest(ImmutableMap.of(
         "status", "error",
-        "reason", "Domain name is under tld bar which doesn't exist"));
+        "reason", "Must supply a valid domain name on an authoritative TLD"));
   }
 
   @Test

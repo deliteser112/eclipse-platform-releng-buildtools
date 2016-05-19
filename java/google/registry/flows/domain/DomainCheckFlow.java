@@ -20,7 +20,7 @@ import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.pricing.PricingEngineProxy.isPremiumName;
 import static google.registry.util.CollectionUtils.nullToEmpty;
-import static google.registry.util.DomainNameUtils.getTldFromSld;
+import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
@@ -116,7 +116,7 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
       }
       FeeCheck.Builder builder = new FeeCheck.Builder();
       handleFeeRequest(
-          domainCheck, builder, domainName, getTldFromSld(domainName), getClientId(), now);
+          domainCheck, builder, domainName, getTldFromDomainName(domainName), getClientId(), now);
       feeChecksBuilder.add(builder.setName(domainName).build());
     }
     return ImmutableList.of(FeeCheckResponseExtension.create(feeChecksBuilder.build()));

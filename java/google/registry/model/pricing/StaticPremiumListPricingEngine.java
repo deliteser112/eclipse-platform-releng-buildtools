@@ -16,7 +16,7 @@ package google.registry.model.pricing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static google.registry.util.DomainNameUtils.getTldFromSld;
+import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
@@ -36,10 +36,10 @@ public final class StaticPremiumListPricingEngine implements PricingEngine {
 
   @Override
   public Optional<Money> getPremiumPrice(
-      String secondLevelDomainName, DateTime priceTime, String clientIdentifier) {
+      String fullyQualifiedDomainName, DateTime priceTime, String clientIdentifier) {
     // Note that clientIdentifier and priceTime are not used for determining premium pricing for
     // static premium lists.
-    String tld = getTldFromSld(secondLevelDomainName);
+    String tld = getTldFromDomainName(fullyQualifiedDomainName);
     Registry registry = Registry.get(checkNotNull(tld, "tld"));
     if (registry.getPremiumList() == null) {
       return Optional.<Money>absent();
@@ -47,7 +47,7 @@ public final class StaticPremiumListPricingEngine implements PricingEngine {
     String listName = registry.getPremiumList().getName();
     Optional<PremiumList> premiumList = PremiumList.get(listName);
     checkState(premiumList.isPresent(), "Could not load premium list: %s", listName);
-    String label = InternetDomainName.from(secondLevelDomainName).parts().get(0);
+    String label = InternetDomainName.from(fullyQualifiedDomainName).parts().get(0);
     return premiumList.get().getPremiumPrice(label);
   }
 }
