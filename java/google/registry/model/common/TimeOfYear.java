@@ -14,12 +14,15 @@
 
 package google.registry.model.common;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.BoundType;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Range;
 
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
@@ -70,16 +73,26 @@ public class TimeOfYear extends ImmutableObject {
 
   /**
    * Returns an {@link ImmutableSet} of {@link DateTime}s of every recurrence of this particular
-   * time of year within a given range (usually a range spanning many years).
+   * time of year within a given {@link Range} (usually one spanning many years).
    */
-  public ImmutableSet<DateTime> getInstancesInRange(DateTime lower, DateTime upper) {
-    checkArgument(isBeforeOrAt(lower, upper), "Lower bound is not before or at upper bound.");
+  public ImmutableSet<DateTime> getInstancesInRange(Range<DateTime> range) {
+    // In registry world, all dates are within START_OF_TIME and END_OF_TIME, so restrict any
+    // ranges without bounds to our notion of zero-to-infinity.
+    Range<DateTime> normalizedRange = Range.range(
+        range.hasLowerBound() ? range.lowerEndpoint() : START_OF_TIME,
+        range.hasLowerBound() ? range.lowerBoundType() : BoundType.CLOSED,
+        range.hasUpperBound() ? range.upperEndpoint() : END_OF_TIME,
+        range.hasUpperBound() ? range.upperBoundType() : BoundType.CLOSED);
     ImmutableSet.Builder<DateTime> instances = ImmutableSet.builder();
-    DateTime firstInstance = getNextInstanceAtOrAfter(lower);
-    for (int year = firstInstance.getYear();
-        year <= getLastInstanceBeforeOrAt(upper).getYear();
+    // This produces a greedy year range, but the edge cases will be handled appropriately via
+    // Range.contains().
+    for (int year = normalizedRange.lowerEndpoint().getYear();
+        year <= normalizedRange.upperEndpoint().getYear();
         year++) {
-      instances.add(firstInstance.withYear(year));
+      DateTime candidate = getDateTimeWithSameYear(normalizedRange.lowerEndpoint()).withYear(year);
+      if (normalizedRange.contains(candidate)) {
+        instances.add(candidate);
+      }
     }
     return instances.build();
   }

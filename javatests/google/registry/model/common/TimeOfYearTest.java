@@ -15,8 +15,11 @@
 package google.registry.model.common;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Range;
 
 import google.registry.testing.ExceptionRule;
 
@@ -63,34 +66,43 @@ public class TimeOfYearTest {
   }
 
   @Test
-  public void testSuccess_getInstancesOfTimeOfYearInRange() {
+  public void testSuccess_getInstancesInRange_closed() {
     DateTime startDate = DateTime.parse("2012-05-01T00:00:00Z");
-    DateTime endDate = DateTime.parse("2016-02-01T00:00:00Z");
-    TimeOfYear timeOfYear = TimeOfYear.fromDateTime(DateTime.parse("2012-10-01T00:00:00Z"));
-    ImmutableSet<DateTime> actual = timeOfYear.getInstancesInRange(startDate, endDate);
+    DateTime endDate = DateTime.parse("2016-05-01T00:00:00Z");
+    TimeOfYear timeOfYear = TimeOfYear.fromDateTime(DateTime.parse("2012-05-01T00:00:00Z"));
+    ImmutableSet<DateTime> actual =
+        timeOfYear.getInstancesInRange(Range.closed(startDate, endDate));
     ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
-        DateTime.parse("2012-10-01T00:00:00Z"),
-        DateTime.parse("2013-10-01T00:00:00Z"),
-        DateTime.parse("2014-10-01T00:00:00Z"),
-        DateTime.parse("2015-10-01T00:00:00Z"));
+        DateTime.parse("2012-05-01T00:00:00Z"),
+        DateTime.parse("2013-05-01T00:00:00Z"),
+        DateTime.parse("2014-05-01T00:00:00Z"),
+        DateTime.parse("2015-05-01T00:00:00Z"),
+        DateTime.parse("2016-05-01T00:00:00Z"));
     assertThat(actual).containsExactlyElementsIn(expected);
   }
 
   @Test
-  public void testSuccess_getInstancesOfTimeOfYearInRange_empty() {
+  public void testSuccess_getInstancesInRange_openClosed() {
     DateTime startDate = DateTime.parse("2012-05-01T00:00:00Z");
-    DateTime endDate = DateTime.parse("2013-02-01T00:00:00Z");
-    TimeOfYear timeOfYear = TimeOfYear.fromDateTime(DateTime.parse("2012-03-01T00:00:00Z"));
-    ImmutableSet<DateTime> actual = timeOfYear.getInstancesInRange(startDate, endDate);
-    assertThat(actual).isEmpty();
+    DateTime endDate = DateTime.parse("2016-05-01T00:00:00Z");
+    TimeOfYear timeOfYear = TimeOfYear.fromDateTime(DateTime.parse("2012-05-01T00:00:00Z"));
+    ImmutableSet<DateTime> actual =
+        timeOfYear.getInstancesInRange(Range.openClosed(startDate, endDate));
+    ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
+        DateTime.parse("2013-05-01T00:00:00Z"),
+        DateTime.parse("2014-05-01T00:00:00Z"),
+        DateTime.parse("2015-05-01T00:00:00Z"),
+        DateTime.parse("2016-05-01T00:00:00Z"));
+    assertThat(actual).containsExactlyElementsIn(expected);
   }
 
   @Test
-  public void testSuccess_getInstancesOfTimeOfYearInRange_inclusive() {
+  public void testSuccess_getInstancesInRange_closedOpen() {
     DateTime startDate = DateTime.parse("2012-05-01T00:00:00Z");
-    DateTime endDate = DateTime.parse("2015-05-01T00:00:00Z");
+    DateTime endDate = DateTime.parse("2016-05-01T00:00:00Z");
     TimeOfYear timeOfYear = TimeOfYear.fromDateTime(DateTime.parse("2012-05-01T00:00:00Z"));
-    ImmutableSet<DateTime> actual = timeOfYear.getInstancesInRange(startDate, endDate);
+    ImmutableSet<DateTime> actual =
+        timeOfYear.getInstancesInRange(Range.closedOpen(startDate, endDate));
     ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
         DateTime.parse("2012-05-01T00:00:00Z"),
         DateTime.parse("2013-05-01T00:00:00Z"),
@@ -100,10 +112,50 @@ public class TimeOfYearTest {
   }
 
   @Test
-  public void testFailure_getInstancesOfTimeOfYearInRange_inverted() {
-    thrown.expect(IllegalArgumentException.class, "Lower bound is not before or at upper bound.");
-    TimeOfYear.fromDateTime(DateTime.parse("2013-10-01T00:00:00Z")).getInstancesInRange(
-        DateTime.parse("2015-10-01T00:00:00Z"),
-        DateTime.parse("2012-10-01T00:00:00Z"));
+  public void testSuccess_getInstancesInRange_open() {
+    DateTime startDate = DateTime.parse("2012-05-01T00:00:00Z");
+    DateTime endDate = DateTime.parse("2016-05-01T00:00:00Z");
+    TimeOfYear timeOfYear = TimeOfYear.fromDateTime(DateTime.parse("2012-05-01T00:00:00Z"));
+    ImmutableSet<DateTime> actual =
+        timeOfYear.getInstancesInRange(Range.open(startDate, endDate));
+    ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
+        DateTime.parse("2013-05-01T00:00:00Z"),
+        DateTime.parse("2014-05-01T00:00:00Z"),
+        DateTime.parse("2015-05-01T00:00:00Z"));
+    assertThat(actual).containsExactlyElementsIn(expected);
+  }
+
+  @Test
+  public void testSuccess_getInstancesInRange_normalizedLowerBound() {
+    TimeOfYear timeOfYear = TimeOfYear.fromDateTime(START_OF_TIME);
+    ImmutableSet<DateTime> actual =
+        timeOfYear.getInstancesInRange(Range.atMost(START_OF_TIME.plusYears(2)));
+    ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
+        START_OF_TIME,
+        START_OF_TIME.plusYears(1),
+        START_OF_TIME.plusYears(2));
+    assertThat(actual).containsExactlyElementsIn(expected);
+  }
+
+  @Test
+  public void testSuccess_getInstancesInRange_normalizedUpperBound() {
+    TimeOfYear timeOfYear = TimeOfYear.fromDateTime(END_OF_TIME);
+    ImmutableSet<DateTime> actual =
+        timeOfYear.getInstancesInRange(Range.atLeast(END_OF_TIME.minusYears(2)));
+    ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
+        END_OF_TIME.minusYears(2),
+        END_OF_TIME.minusYears(1),
+        END_OF_TIME);
+    assertThat(actual).containsExactlyElementsIn(expected);
+  }
+
+  @Test
+  public void testSuccess_getInstancesOfTimeOfYearInRange_empty() {
+    DateTime startDate = DateTime.parse("2012-05-01T00:00:00Z");
+    DateTime endDate = DateTime.parse("2013-02-01T00:00:00Z");
+    TimeOfYear timeOfYear = TimeOfYear.fromDateTime(DateTime.parse("2012-03-01T00:00:00Z"));
+    ImmutableSet<DateTime> actual =
+        timeOfYear.getInstancesInRange(Range.closed(startDate, endDate));
+    assertThat(actual).isEmpty();
   }
 }
