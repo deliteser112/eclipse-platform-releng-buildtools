@@ -85,17 +85,6 @@ public class BillingEventTest extends EntityTestCase {
             .setCost(Money.of(USD, 1))
             .setEventTime(now)
             .setBillingTime(now.plusDays(5))));
-    oneTimeSynthetic = persistResource(commonInit(
-        new BillingEvent.OneTime.Builder()
-            .setParent(historyEntry)
-            .setReason(Reason.CREATE)
-            .setFlags(ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT, BillingEvent.Flag.SYNTHETIC))
-            .setSyntheticCreationTime(now.plusDays(10))
-            .setCancellationTargetId(1L)
-            .setPeriodYears(2)
-            .setCost(Money.of(USD, 1))
-            .setEventTime(now)
-            .setBillingTime(now.plusDays(5))));
     recurring = persistResource(commonInit(
         new BillingEvent.Recurring.Builder()
             .setParent(historyEntry)
@@ -103,6 +92,17 @@ public class BillingEventTest extends EntityTestCase {
             .setReason(Reason.RENEW)
             .setEventTime(now.plusYears(1))
             .setRecurrenceEndTime(END_OF_TIME)));
+    oneTimeSynthetic = persistResource(commonInit(
+        new BillingEvent.OneTime.Builder()
+            .setParent(historyEntry)
+            .setReason(Reason.CREATE)
+            .setFlags(ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT, BillingEvent.Flag.SYNTHETIC))
+            .setSyntheticCreationTime(now.plusDays(10))
+            .setCancellationMatchingBillingEvent(Key.create(recurring))
+            .setPeriodYears(2)
+            .setCost(Money.of(USD, 1))
+            .setEventTime(now)
+            .setBillingTime(now.plusDays(5))));
     cancellationOneTime = persistResource(commonInit(
         new BillingEvent.Cancellation.Builder()
             .setParent(historyEntry2)
@@ -137,6 +137,7 @@ public class BillingEventTest extends EntityTestCase {
   @Test
   public void testPersistence() throws Exception {
     assertThat(ofy().load().entity(oneTime).now()).isEqualTo(oneTime);
+    assertThat(ofy().load().entity(oneTimeSynthetic).now()).isEqualTo(oneTimeSynthetic);
     assertThat(ofy().load().entity(recurring).now()).isEqualTo(recurring);
     assertThat(ofy().load().entity(cancellationOneTime).now()).isEqualTo(cancellationOneTime);
     assertThat(ofy().load().entity(cancellationRecurring).now()).isEqualTo(cancellationRecurring);
@@ -166,6 +167,13 @@ public class BillingEventTest extends EntityTestCase {
   }
 
   @Test
+  public void testCancellationMatching() throws Exception {
+    Key<?> recurringKey = ofy().load().entity(oneTimeSynthetic).now()
+        .getCancellationMatchingBillingEvent();
+    assertThat(ofy().load().key(recurringKey).now()).isEqualTo(recurring);
+  }
+  
+  @Test
   public void testIndexing() throws Exception {
     verifyIndexing(oneTime, "clientId", "eventTime", "billingTime", "syntheticCreationTime");
     verifyIndexing(
@@ -183,6 +191,7 @@ public class BillingEventTest extends EntityTestCase {
         "Synthetic creation time must be set if and only if the SYNTHETIC flag is set.");
     oneTime.asBuilder()
         .setFlags(ImmutableSet.of(BillingEvent.Flag.SYNTHETIC))
+        .setCancellationMatchingBillingEvent(Key.create(recurring))
         .build();
   }
 
@@ -197,22 +206,23 @@ public class BillingEventTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_syntheticFlagWithoutCancellationTargetId() {
+  public void testFailure_syntheticFlagWithoutCancellationMatchingKey() {
     thrown.expect(
         IllegalStateException.class,
-        "Synthetic creation time must be set if and only if the SYNTHETIC flag is set.");
+        "Cancellation matching billing event must be set if and only if the SYNTHETIC flag is set");
     oneTime.asBuilder()
         .setFlags(ImmutableSet.of(BillingEvent.Flag.SYNTHETIC))
+        .setSyntheticCreationTime(END_OF_TIME)
         .build();
   }
 
   @Test
-  public void testFailure_cancellationTargetIdWithoutFlag() {
+  public void testFailure_cancellationMatchingKeyWithoutFlag() {
     thrown.expect(
         IllegalStateException.class,
-        "Cancellation target ID must be set if and only if the SYNTHETIC flag is set");
+        "Cancellation matching billing event must be set if and only if the SYNTHETIC flag is set");
     oneTime.asBuilder()
-        .setCancellationTargetId(2L)
+        .setCancellationMatchingBillingEvent(Key.create(recurring))
         .build();
   }
 

@@ -226,11 +226,11 @@ public abstract class BillingEvent extends ImmutableObject
     DateTime syntheticCreationTime;
 
     /**
-     * For {@link Flag#SYNTHETIC} events, the {@link BillingEvent} from which this OneTime was
-     * created. This is needed in order to properly match billing events against
+     * For {@link Flag#SYNTHETIC} events, a {@link Key} to the {@link BillingEvent} from which this
+     * OneTime was created. This is needed in order to properly match billing events against
      * {@link Cancellation}s.
      */
-    Long cancellationTargetId;
+    Key<? extends BillingEvent> cancellationMatchingBillingEvent;
 
     public Money getCost() {
       return cost;
@@ -248,8 +248,8 @@ public abstract class BillingEvent extends ImmutableObject
       return syntheticCreationTime;
     }
 
-    public Long getCancellationTargetId() {
-      return cancellationTargetId;
+    public Key<? extends BillingEvent> getCancellationMatchingBillingEvent() {
+      return cancellationMatchingBillingEvent;
     }
 
     @Override
@@ -288,8 +288,9 @@ public abstract class BillingEvent extends ImmutableObject
         return this;
       }
 
-      public Builder setCancellationTargetId(Long cancellationTargetId) {
-        getInstance().cancellationTargetId = cancellationTargetId;
+      public Builder setCancellationMatchingBillingEvent(
+          Key<? extends BillingEvent> cancellationMatchingBillingEvent) {
+        getInstance().cancellationMatchingBillingEvent = cancellationMatchingBillingEvent;
         return this;
       }
 
@@ -310,8 +311,9 @@ public abstract class BillingEvent extends ImmutableObject
             "Synthetic creation time must be set if and only if the SYNTHETIC flag is set.");
         checkState(
             instance.getFlags().contains(Flag.SYNTHETIC)
-                == (instance.cancellationTargetId != null),
-            "Cancellation target ID must be set if and only if the SYNTHETIC flag is set.");
+                == (instance.cancellationMatchingBillingEvent != null),
+            "Cancellation matching billing event must be set if and only if the SYNTHETIC flag "
+                + "is set.");
         return super.build();
       }
     }
