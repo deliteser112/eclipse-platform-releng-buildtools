@@ -1,0 +1,17 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <update>
+      <host:update
+       xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+        <host:name>ns1.example.tld</host:name>
+      </host:update>
+    </update>
+    <extension>
+      <metadata:metadata xmlns:metadata="urn:google:params:xml:ns:metadata-1.0">
+        <metadata:reason>host-update-test</metadata:reason>
+        <metadata:requestedByRegistrar>false</metadata:requestedByRegistrar>
+      </metadata:metadata>
+    </extension>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>

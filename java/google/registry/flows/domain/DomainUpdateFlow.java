@@ -28,7 +28,6 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.eppcommon.StatusValue;
@@ -70,7 +69,7 @@ public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Build
 
   @Override
   protected void initDomainUpdateFlow() {
-    registerExtensions(SecDnsUpdateExtension.class, MetadataExtension.class);
+    registerExtensions(SecDnsUpdateExtension.class);
   }
 
   @Override

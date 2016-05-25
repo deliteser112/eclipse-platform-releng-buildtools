@@ -48,6 +48,7 @@ public abstract class ResourceCreateOrMutateFlow
 
   @Override
   protected final void initSingleResourceFlow() throws EppException {
+    registerExtensions(MetadataExtension.class);
     metadataExtension = eppInput.getSingleExtension(MetadataExtension.class);
     initRepoId();
     initHistoryEntry();

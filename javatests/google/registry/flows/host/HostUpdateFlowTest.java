@@ -20,6 +20,7 @@ import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.request.Actions.getPathForAction;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -28,6 +29,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHo
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
+import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
@@ -47,6 +49,7 @@ import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
 import google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException;
+import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
 import google.registry.flows.async.DnsRefreshForHostRenameAction;
 import google.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
@@ -888,5 +891,18 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_ccTldInBailiwick() throws Exception {
     createTld("co.uk");
     doFailingHostNameTest("foo.co.uk", HostNameTooShallowException.class);
+  }
+
+  @Test
+  public void testSuccess_metadata() throws Exception {
+    persistActiveHost("ns1.example.tld");
+    clock.advanceOneMilli();
+    setEppInput("host_update_metadata.xml");
+    sessionMetadata.setSessionSource(SessionSource.TOOL);
+    runFlowAssertResponse(readFile("host_update_response.xml"));
+    assertAboutHistoryEntries()
+        .that(getOnlyHistoryEntryOfType(reloadResourceByUniqueId(), HistoryEntry.Type.HOST_UPDATE))
+        .hasMetadataReason("host-update-test").and()
+        .hasMetadataRequestedByRegistrar(false);
   }
 }

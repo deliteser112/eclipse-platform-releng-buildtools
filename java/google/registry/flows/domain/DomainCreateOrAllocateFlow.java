@@ -33,7 +33,6 @@ import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeCreateResponseExtension;
-import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppoutput.CreateData.DomainCreateData;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.Result;
@@ -49,7 +48,6 @@ public abstract class DomainCreateOrAllocateFlow
 
   @Override
   protected final void initDomainCreateFlow() {
-    registerExtensions(MetadataExtension.class);
     isAnchorTenantViaExtension =
         (metadataExtension != null && metadataExtension.getIsAnchorTenant());
     initDomainCreateOrAllocateFlow();

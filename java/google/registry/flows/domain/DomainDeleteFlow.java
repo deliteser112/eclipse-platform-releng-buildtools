@@ -40,7 +40,6 @@ import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.fee.Credit;
 import google.registry.model.domain.fee.FeeDeleteResponseExtension;
-import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
@@ -76,7 +75,7 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
 
   @Override
   protected void initResourceCreateOrMutateFlow() throws EppException {
-    registerExtensions(SecDnsUpdateExtension.class, MetadataExtension.class);
+    registerExtensions(SecDnsUpdateExtension.class);
   }
 
   @Override
