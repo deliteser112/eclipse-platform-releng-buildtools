@@ -37,6 +37,7 @@ import google.registry.model.domain.launch.LaunchDeleteExtension;
 import google.registry.model.domain.launch.LaunchInfoExtension;
 import google.registry.model.domain.launch.LaunchUpdateExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.domain.regtype.RegTypeCreateExtension;
 import google.registry.model.domain.rgp.RgpUpdateExtension;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
@@ -276,6 +277,7 @@ public class EppInput extends ImmutableObject {
         @XmlElementRef(type = LaunchInfoExtension.class),
         @XmlElementRef(type = LaunchUpdateExtension.class),
         @XmlElementRef(type = MetadataExtension.class),
+        @XmlElementRef(type = RegTypeCreateExtension.class),
         @XmlElementRef(type = RgpUpdateExtension.class),
         @XmlElementRef(type = SecDnsCreateExtension.class),
         @XmlElementRef(type = SecDnsUpdateExtension.class) })

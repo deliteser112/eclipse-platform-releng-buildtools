@@ -32,6 +32,7 @@ import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.fee.FeeCreateExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
+import google.registry.model.domain.regtype.RegTypeCreateExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
@@ -98,6 +99,8 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
   private static final Set<TldState> QLP_SMD_ALLOWED_STATES =
       Sets.immutableEnumSet(TldState.SUNRISE, TldState.SUNRUSH);
 
+  protected RegTypeCreateExtension regTypeExtension;
+
   private boolean isAnchorTenant() {
     return isAnchorTenantViaReservation || isAnchorTenantViaExtension;
   }
@@ -123,7 +126,9 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
 
   @Override
   protected final void initDomainCreateOrAllocateFlow() {
-    registerExtensions(FeeCreateExtension.class, LaunchCreateExtension.class);
+    registerExtensions(
+        FeeCreateExtension.class, LaunchCreateExtension.class, RegTypeCreateExtension.class);
+    regTypeExtension = eppInput.getSingleExtension(RegTypeCreateExtension.class);
   }
 
   @Override
