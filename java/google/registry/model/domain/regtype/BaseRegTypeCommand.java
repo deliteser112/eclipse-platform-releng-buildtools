@@ -32,10 +32,10 @@ public class BaseRegTypeCommand extends ImmutableObject {
 
   /** The registration type (which may be a comma-delimited list of values). */
   @XmlElement(name = "type")
-  String type;
+  String regType;
 
   public List<String> getRegistrationTypes() {
-    return Splitter.on(',').splitToList(type);
+    return Splitter.on(',').splitToList(regType);
   }
 }
 

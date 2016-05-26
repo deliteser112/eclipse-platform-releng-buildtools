@@ -32,6 +32,7 @@ import google.registry.model.domain.fee.FeeUpdateResponseExtension;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension;
 import google.registry.model.domain.launch.LaunchCreateResponseExtension;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
+import google.registry.model.domain.regtype.RegTypeInfoResponseExtension;
 import google.registry.model.domain.rgp.RgpInfoExtension;
 import google.registry.model.domain.secdns.SecDnsInfoExtension;
 import google.registry.model.eppcommon.Trid;
@@ -132,6 +133,7 @@ public class Response extends ImmutableObject implements ResponseOrGreeting {
       @XmlElementRef(type = LaunchCheckResponseExtension.class),
       @XmlElementRef(type = LaunchCreateResponseExtension.class),
       @XmlElementRef(type = LaunchInfoResponseExtension.class),
+      @XmlElementRef(type = RegTypeInfoResponseExtension.class),
       @XmlElementRef(type = RgpInfoExtension.class),
       @XmlElementRef(type = SecDnsInfoExtension.class) })
   @XmlElementWrapper(name = "extension")
