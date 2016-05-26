@@ -1,0 +1,18 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <check>
+      <domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>example1.tld</domain:name>
+        <domain:name>example2.tld</domain:name>
+        <domain:name>example3.tld</domain:name>
+      </domain:check>
+    </check>
+    <extension>
+      <regtype:check
+       xmlns:regtype="urn:ietf:params:xml:ns:regtype-0.2">
+        <regtype:type>foo,bar,baz</regtype:type>
+      </regtype:check>
+    </extension>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>

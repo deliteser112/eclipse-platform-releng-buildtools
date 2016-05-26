@@ -14,28 +14,24 @@
 
 package google.registry.model.domain.regtype;
 
-import com.google.common.base.Splitter;
-
 import google.registry.model.ImmutableObject;
+import google.registry.model.eppinput.EppInput.CommandExtension;
 
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Base class for general domain commands with registration types (create, update, check, and
- * info).
- *
- * @see "https://gitlab.centralnic.com/centralnic/epp-registration-type-extension/tree/master"
+ * A registration type extension that may be present on domain update EPP commands.
  */
-public class BaseRegTypeCommand extends ImmutableObject {
+@XmlRootElement(name = "update")
+public class RegTypeUpdateExtension extends ImmutableObject implements CommandExtension {
 
-  /** The registration type (which may be a comma-delimited list of values). */
-  @XmlElement(name = "type")
-  String type;
+  @XmlElement(name = "chg")
+  protected BaseRegTypeCommand regTypeChg;
 
   public List<String> getRegistrationTypes() {
-    return Splitter.on(',').splitToList(type);
+    return regTypeChg.getRegistrationTypes();
   }
 }
-

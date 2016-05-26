@@ -31,6 +31,7 @@ import google.registry.model.domain.fee.FeeCheckExtension;
 import google.registry.model.domain.fee.FeeCheckResponseExtension;
 import google.registry.model.domain.fee.FeeCheckResponseExtension.FeeCheck;
 import google.registry.model.domain.launch.LaunchCheckExtension;
+import google.registry.model.domain.regtype.RegTypeCheckExtension;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppoutput.CheckData;
 import google.registry.model.eppoutput.CheckData.DomainCheck;
@@ -65,9 +66,13 @@ import java.util.Set;
  */
 public class DomainCheckFlow extends BaseDomainCheckFlow {
 
+  protected RegTypeCheckExtension regTypeExtension;
+
   @Override
   protected void initDomainCheckFlow() throws EppException {
-    registerExtensions(LaunchCheckExtension.class, FeeCheckExtension.class);
+    registerExtensions(
+        LaunchCheckExtension.class, FeeCheckExtension.class, RegTypeCheckExtension.class);
+    regTypeExtension = eppInput.getSingleExtension(RegTypeCheckExtension.class);
   }
 
   private String getMessageForCheck(String targetId, Set<String> existingIds) {

@@ -14,10 +14,12 @@
 
 package google.registry.model.domain.regtype;
 
+import google.registry.model.eppinput.EppInput.CommandExtension;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * A registration type extension that may be present on EPP domain create commands.
+ * A registration type extension that may be present on domain create EPP commands.
  */
 @XmlRootElement(name = "create")
-public class RegTypeCreateExtension extends BaseRegTypeCommand {}
+public class RegTypeCreateExtension extends BaseRegTypeCommand implements CommandExtension {}
