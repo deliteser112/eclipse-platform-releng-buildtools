@@ -71,7 +71,8 @@ public class MapreduceRunner {
   private String jobName;
   private String moduleName;
 
-  // If no reduce shards are set via http params, use this many shards.
+  // Defaults for number of mappers/reducers if not specified in HTTP params.
+  private int defaultMapShards = Integer.MAX_VALUE;
   private int defaultReduceShards = 1;
 
   /**
@@ -105,9 +106,15 @@ public class MapreduceRunner {
     return this;
   }
 
+  /** Set the default number of mappers, if not overriden by the http param. */
+  public MapreduceRunner setDefaultMapShards(int defaultMapShards) {
+    this.defaultMapShards = defaultMapShards;
+    return this;
+  }
+
   /** Set the default number of reducers, if not overriden by the http param. */
   public MapreduceRunner setDefaultReduceShards(int defaultReduceShards) {
-    this.defaultReduceShards = checkNotNull(defaultReduceShards, "defaultReduceShards");
+    this.defaultReduceShards = defaultReduceShards;
     return this;
   }
 
@@ -130,7 +137,7 @@ public class MapreduceRunner {
     return new MapJob<>(
         new MapSpecification.Builder<I, O, R>()
             .setJobName(jobName)
-            .setInput(new ConcatenatingInput<>(inputs, httpParamMapShards.or(Integer.MAX_VALUE)))
+            .setInput(new ConcatenatingInput<>(inputs, httpParamMapShards.or(defaultMapShards)))
             .setMapper(mapper)
             .setOutput(output)
             .build(),
@@ -186,7 +193,7 @@ public class MapreduceRunner {
     return new MapReduceJob<>(
         new MapReduceSpecification.Builder<I, K, V, O, R>()
             .setJobName(jobName)
-            .setInput(new ConcatenatingInput<>(inputs, httpParamMapShards.or(Integer.MAX_VALUE)))
+            .setInput(new ConcatenatingInput<>(inputs, httpParamMapShards.or(defaultMapShards)))
             .setMapper(mapper)
             .setReducer(reducer)
             .setOutput(output)
