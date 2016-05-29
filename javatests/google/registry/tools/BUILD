@@ -10,7 +10,9 @@ load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 
 java_library(
     name = "tools",
-    srcs = glob(["*.java"]),
+    srcs = glob([
+        "*.java",
+    ]),
     resources = glob(["testdata/*.*"]),
     deps = [
         "//java/com/google/common/annotations",

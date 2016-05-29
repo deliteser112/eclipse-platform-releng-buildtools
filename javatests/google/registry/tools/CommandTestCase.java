@@ -93,12 +93,12 @@ public abstract class CommandTestCase<C extends Command> {
     }
   }
 
-  void runCommand(String... args) throws Exception {
+  protected void runCommand(String... args) throws Exception {
     runCommandInEnvironment(RegistryToolEnvironment.UNITTEST, args);
   }
 
   /** Adds "--force" as the first parameter, then runs the command. */
-  void runCommandForced(String... args) throws Exception {
+  protected void runCommandForced(String... args) throws Exception {
     runCommand(ObjectArrays.concat("--force", args));
   }
 
@@ -149,8 +149,10 @@ public abstract class CommandTestCase<C extends Command> {
     return ofy().load().type(PollMessage.class).count();
   }
 
-  void assertInStdout(String expected) throws Exception {
-    assertThat(stdout.toString(UTF_8.toString())).contains(expected);
+  protected void assertInStdout(String... expected) throws Exception {
+    for (String line : expected) {
+      assertThat(stdout.toString(UTF_8.toString())).contains(line);
+    }
   }
 
   void assertNotInStdout(String expected) throws Exception {
