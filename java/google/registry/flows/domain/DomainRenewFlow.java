@@ -110,9 +110,9 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
         existingResource.getRegistrationExpirationTime().toLocalDate())) {
       throw new IncorrectCurrentExpirationDateException();
     }
-    renewCost = getDomainRenewCost(targetId, now, getClientId(), command.getPeriod().getValue());
+    renewCost = getDomainRenewCost(targetId, now, command.getPeriod().getValue());
     validateFeeChallenge(
-        targetId, existingResource.getTld(), now, getClientId(), feeRenew, renewCost);
+        targetId, existingResource.getTld(), now, feeRenew, renewCost);
   }
 
   @Override

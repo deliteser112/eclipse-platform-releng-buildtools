@@ -180,7 +180,6 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
     return createBillingEventForTransfer(
         domain,
         historyEntry,
-        "NewRegistrar",
         TRANSFER_REQUEST_TIME,
         TRANSFER_EXPIRATION_TIME,
         EXTENDED_REGISTRATION_YEARS);

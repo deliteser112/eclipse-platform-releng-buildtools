@@ -72,20 +72,18 @@ public class DomainTransferApproveFlow extends
     String tld = existingResource.getTld();
     int extraYears = transferData.getExtendedRegistrationYears();
     // Bill for the transfer.
-    BillingEvent.OneTime billingEvent = new BillingEvent.OneTime.Builder()
-        .setReason(Reason.TRANSFER)
-        .setTargetId(targetId)
-        .setClientId(gainingClientId)
-        .setPeriodYears(extraYears)
-        .setCost(getDomainRenewCost(
-            targetId,
-            transferData.getTransferRequestTime(),
-            transferData.getGainingClientId(),
-            extraYears))
-        .setEventTime(now)
-        .setBillingTime(now.plus(Registry.get(tld).getTransferGracePeriodLength()))
-        .setParent(historyEntry)
-        .build();
+    BillingEvent.OneTime billingEvent =
+        new BillingEvent.OneTime.Builder()
+            .setReason(Reason.TRANSFER)
+            .setTargetId(targetId)
+            .setClientId(gainingClientId)
+            .setPeriodYears(extraYears)
+            .setCost(
+                getDomainRenewCost(targetId, transferData.getTransferRequestTime(), extraYears))
+            .setEventTime(now)
+            .setBillingTime(now.plus(Registry.get(tld).getTransferGracePeriodLength()))
+            .setParent(historyEntry)
+            .build();
     ofy().save().entity(billingEvent);
     // If we are within an autorenew grace period, cancel the autorenew billing event and reduce
     // the number of years to extend the registration by one.

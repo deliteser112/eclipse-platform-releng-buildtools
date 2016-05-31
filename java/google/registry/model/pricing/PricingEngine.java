@@ -23,12 +23,70 @@ import org.joda.time.DateTime;
 public interface PricingEngine {
 
   /**
-   * Returns the premium price for the given domain name at the given time for the given registrar,
-   * or absent if the domain name isn't premium.
+   * Returns the prices for the given fully qualified domain name at the given time.
    *
-   * <p>Note that fullyQualifiedDomainName must not include any subdomains.  It should be a single
-   * level above the TLD (which may be multi-part).
+   * <p>Note that the fullyQualifiedDomainName must only contain a single part left of the TLD, i.e.
+   * subdomains are not allowed, but multi-part TLDs are.
    */
-  public Optional<Money> getPremiumPrice(
-      String fullyQualifiedDomainName, DateTime priceTime, String clientIdentifier);
+  public DomainPrices getDomainPrices(String fullyQualifiedDomainName, DateTime priceTime);
+
+  /**
+   * A class containing information on prices for a specific domain name.
+   *
+   * <p>Any implementation of PricingEngine is responsible for determining all of these.
+   */
+  public static class DomainPrices {
+
+    private boolean isPremium;
+    // TODO(b/26901539): Refactor return values to support an arbitrary list of costs for each of
+    // create, renew, restore, and transfer.
+    private Money createCost;
+    private Money renewCost;
+    private Optional<Money> oneTimeFee;
+    private Optional<String> feeClass;
+
+    static DomainPrices create(
+        boolean isPremium,
+        Money createCost,
+        Money renewCost,
+        Optional<Money> oneTimeFee,
+        Optional<String> feeClass) {
+      DomainPrices instance = new DomainPrices();
+      instance.isPremium = isPremium;
+      instance.createCost = createCost;
+      instance.renewCost = renewCost;
+      instance.oneTimeFee = oneTimeFee;
+      instance.feeClass = feeClass;
+      return instance;
+    }
+
+    /** Returns whether the domain is premium. */
+    public boolean isPremium() {
+      return isPremium;
+    }
+
+    /** Returns the cost to create the domain. */
+    public Money getCreateCost() {
+      return createCost;
+    }
+
+    /** Returns the cost to renew the domain. */
+    public Money getRenewCost() {
+      return renewCost;
+    }
+
+    /**
+     * Returns the one time fee to register a domain if there is one.
+     *
+     * <p>This is primarily used for EAP registration fees.
+     */
+    public Optional<Money> getOneTimeFee() {
+      return oneTimeFee;
+    }
+
+    /** Returns the fee class of the cost (used for the Fee extension). */
+    public Optional<String> getFeeClass() {
+      return feeClass;
+    }
+  }
 }

@@ -139,7 +139,7 @@ public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainAppl
 
   @Override
   protected void verifyDomainCreateIsAllowed() throws EppException {
-    validateFeeChallenge(targetId, getTld(), now, getClientId(), feeCreate, createCost);
+    validateFeeChallenge(targetId, getTld(), now, feeCreate, createCost);
     if (tldState == TldState.LANDRUSH && !superuser) {
       // Prohibit creating a landrush application in LANDRUSH (but not in SUNRUSH) if there is
       // exactly one sunrise application for the same name.

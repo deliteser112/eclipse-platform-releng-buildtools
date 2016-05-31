@@ -17,7 +17,6 @@ package google.registry.flows.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.equalTo;
-import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.difference;
@@ -25,9 +24,7 @@ import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.label.ReservedList.getReservation;
-import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
-import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
-import static google.registry.pricing.PricingEngineProxy.isPremiumName;
+import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
 import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
@@ -82,6 +79,7 @@ import google.registry.model.mark.Mark;
 import google.registry.model.mark.ProtectedMark;
 import google.registry.model.mark.Trademark;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.pricing.PricingEngine.DomainPrices;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
@@ -286,7 +284,6 @@ public class DomainFlowUtils {
       throw new TooManyNameserversException(String.format(
           "Only %d nameservers are allowed per domain", MAX_NAMESERVERS_PER_DOMAIN));
     }
-
   }
 
   static void validateNoDuplicateContacts(Set<DesignatedContact> contacts)
@@ -388,7 +385,7 @@ public class DomainFlowUtils {
    */
   static void verifyPremiumNameIsNotBlocked(
       String domainName, DateTime priceTime, String clientIdentifier) throws EppException {
-    if (isPremiumName(domainName, priceTime, clientIdentifier)) {
+    if (getPricesForDomainName(domainName, priceTime).isPremium()) {
       // NB: The load of the Registar object is transactionless, which means that it should hit
       // memcache most of the time.
       if (Registrar.loadByClientId(clientIdentifier).getBlockPremiumNames()) {
@@ -563,15 +560,12 @@ public class DomainFlowUtils {
       BaseFeeResponse.Builder<?, ?> builder,
       String domainName,
       String tld,
-      String clientIdentifier,
       DateTime now) throws EppException {
     InternetDomainName domain = InternetDomainName.from(domainName);
     FeeCommandDescriptor feeCommand = feeRequest.getCommand();
     Registry registry = Registry.get(tld);
     int years = verifyUnitIsYears(feeRequest.getPeriod()).getValue();
     boolean isSunrise = registry.getTldState(now).equals(TldState.SUNRISE);
-    boolean isNameCollisionInSunrise =
-        isSunrise && getReservationType(domain) == ReservationType.NAME_COLLISION;
 
     if (feeCommand.getPhase() != null || feeCommand.getSubphase() != null) {
       throw new FeeChecksDontSupportPhasesException();
@@ -581,14 +575,13 @@ public class DomainFlowUtils {
       throw new CurrencyUnitMismatchException();
     }
 
+    DomainPrices prices = getPricesForDomainName(domainName, now);
     builder
         .setCommand(feeCommand)
         .setCurrency(registry.getCurrency())
         .setPeriod(feeRequest.getPeriod())
         // Choose from four classes: premium, premium-collision, collision, or null (standard case).
-        .setClass(emptyToNull(Joiner.on('-').skipNulls().join(
-            isPremiumName(domainName, now, clientIdentifier) ? "premium" : null,
-            isNameCollisionInSunrise ? "collision" : null)));
+        .setClass(prices.getFeeClass().orNull());
 
     switch (feeCommand.getCommand()) {
       case UNKNOWN:
@@ -598,9 +591,7 @@ public class DomainFlowUtils {
           builder.setClass("reserved");  // Override whatever class we've set above.
         } else {
           builder.setFee(
-              Fee.create(
-                  getDomainCreateCost(domainName, now, clientIdentifier, years).getAmount(),
-                  "create"));
+              Fee.create(prices.getCreateCost().multipliedBy(years).getAmount(), "create"));
         }
         break;
       case RESTORE:
@@ -609,17 +600,12 @@ public class DomainFlowUtils {
         }
         // Restores have a "renew" and a "restore" fee.
         builder.setFee(
-            Fee.create(
-                getDomainRenewCost(domainName, now, clientIdentifier, years).getAmount(),
-                "renew"),
+            Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), "renew"),
             Fee.create(registry.getStandardRestoreCost().getAmount(), "restore"));
         break;
       default:
         // Anything else (transfer|renew) will have a "renew" fee.
-        builder.setFee(
-            Fee.create(
-                getDomainRenewCost(domainName, now, clientIdentifier, years).getAmount(),
-                "renew"));
+        builder.setFee(Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), "renew"));
     }
   }
 
@@ -627,14 +613,13 @@ public class DomainFlowUtils {
       String domainName,
       String tld,
       DateTime priceTime,
-      String clientIdentifier,
       final BaseFeeCommand feeCommand,
       Money cost,
       Money... otherCosts)
       throws EppException {
     Registry registry = Registry.get(tld);
     if (registry.getPremiumPriceAckRequired()
-        && isPremiumName(domainName, priceTime, clientIdentifier)
+        && getPricesForDomainName(domainName, priceTime).isPremium()
         && feeCommand == null) {
       throw new FeesRequiredForPremiumNameException();
     }
@@ -1021,4 +1006,3 @@ public class DomainFlowUtils {
     }
   }
 }
-

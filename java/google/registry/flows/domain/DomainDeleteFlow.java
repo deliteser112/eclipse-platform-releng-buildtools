@@ -139,7 +139,7 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
           TimeOfYear recurrenceTimeOfYear =
               checkNotNull(gracePeriod.getRecurringBillingEvent()).get().getRecurrenceTimeOfYear();
           DateTime autoRenewTime = recurrenceTimeOfYear.getLastInstanceBeforeOrAt(now);
-          cost = getDomainRenewCost(targetId, autoRenewTime, getClientId(), 1);
+          cost = getDomainRenewCost(targetId, autoRenewTime, 1);
         } else {
           cost = checkNotNull(gracePeriod.getOneTimeBillingEvent()).get().getCost();
         }

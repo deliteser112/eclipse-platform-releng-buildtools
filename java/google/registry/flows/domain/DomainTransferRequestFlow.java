@@ -115,7 +115,7 @@ public class DomainTransferRequestFlow
     Registry registry = Registry.get(existingResource.getTld());
     automaticTransferTime = now.plus(registry.getAutomaticTransferLength());
     // Note that the gaining registrar is used to calculate the cost of the renewal.
-    renewCost = getDomainRenewCost(targetId, now, getClientId(), command.getPeriod().getValue());
+    renewCost = getDomainRenewCost(targetId, now, command.getPeriod().getValue());
     transferBillingEvent = new BillingEvent.OneTime.Builder()
         .setReason(Reason.TRANSFER)
         .setTargetId(targetId)
@@ -156,7 +156,7 @@ public class DomainTransferRequestFlow
       verifyPremiumNameIsNotBlocked(targetId, now, getClientId());
     }
     validateFeeChallenge(
-        targetId, existingResource.getTld(), now, getClientId(), feeTransfer, renewCost);
+        targetId, existingResource.getTld(), now, feeTransfer, renewCost);
     checkAllowedAccessToTld(getAllowedTlds(), existingResource.getTld());
   }
 

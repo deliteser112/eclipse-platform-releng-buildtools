@@ -16,7 +16,7 @@ package google.registry.flows.domain;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.pricing.PricingEngineProxy.isPremiumName;
+import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteTld;
@@ -180,7 +180,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .setReason(Reason.CREATE)
         .setTargetId(getUniqueIdFromCommand())
         .setClientId("TheRegistrar")
-        .setCost(isPremiumName(getUniqueIdFromCommand(), clock.nowUtc(), "TheRegistrar")
+        .setCost(getPricesForDomainName(getUniqueIdFromCommand(), clock.nowUtc()).isPremium()
             ? Money.of(USD, 200)
             : Money.of(USD, 26))
         .setPeriodYears(2)

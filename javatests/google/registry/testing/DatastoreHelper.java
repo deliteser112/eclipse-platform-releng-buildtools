@@ -428,7 +428,6 @@ public class DatastoreHelper {
   public static BillingEvent.OneTime createBillingEventForTransfer(
       DomainResource domain,
       HistoryEntry historyEntry,
-      String gainingClientId,
       DateTime costLookupTime,
       DateTime eventTime,
       Integer extendedRegistrationYears) {
@@ -440,11 +439,9 @@ public class DatastoreHelper {
             eventTime.plus(Registry.get(domain.getTld()).getTransferGracePeriodLength()))
         .setClientId("NewRegistrar")
         .setPeriodYears(extendedRegistrationYears)
-        .setCost(getDomainRenewCost(
-            domain.getFullyQualifiedDomainName(),
-            costLookupTime,
-            gainingClientId,
-            extendedRegistrationYears))
+        .setCost(
+            getDomainRenewCost(
+                domain.getFullyQualifiedDomainName(), costLookupTime, extendedRegistrationYears))
         .setParent(historyEntry)
         .build();
   }
@@ -505,7 +502,6 @@ public class DatastoreHelper {
     BillingEvent.OneTime transferBillingEvent = persistResource(createBillingEventForTransfer(
             domain,
             historyEntryDomainTransfer,
-            "NewRegistrar",
             requestTime,
             expirationTime,
             extendedRegistrationYears));

@@ -106,8 +106,7 @@ public class DomainAllocateFlow extends DomainCreateOrAllocateFlow {
         .setClientId(getClientId())
         // Note that the cost is calculated as of now, i.e. the event time, not the billing time,
         // which may be some additional days into the future.
-        .setCost(
-            getDomainCreateCost(targetId, now, getClientId(), command.getPeriod().getValue()))
+        .setCost(getDomainCreateCost(targetId, now, command.getPeriod().getValue()))
         .setPeriodYears(command.getPeriod().getValue())
         .setEventTime(now)
         // If there are no nameservers on the domain, then they get the benefit of the sunrush

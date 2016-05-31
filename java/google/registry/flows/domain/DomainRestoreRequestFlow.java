@@ -103,8 +103,8 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
     }
     feeUpdate = eppInput.getSingleExtension(FeeUpdateExtension.class);
     restoreCost = Registry.get(tld).getStandardRestoreCost();
-    renewCost = getDomainRenewCost(targetId, now, getClientId(), 1);
-    validateFeeChallenge(targetId, tld, now, getClientId(), feeUpdate, restoreCost, renewCost);
+    renewCost = getDomainRenewCost(targetId, now, 1);
+    validateFeeChallenge(targetId, tld, now, feeUpdate, restoreCost, renewCost);
   }
 
   @Override

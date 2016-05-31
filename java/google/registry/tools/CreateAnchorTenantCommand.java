@@ -88,9 +88,7 @@ final class CreateAnchorTenantCommand extends MutatingEppToolCommand implements 
 
     Money cost = null;
     if (fee) {
-      cost =
-          getDomainCreateCost(
-              domainName, DateTime.now(UTC), clientIdentifier, DEFAULT_ANCHOR_TENANT_PERIOD_YEARS);
+      cost = getDomainCreateCost(domainName, DateTime.now(UTC), DEFAULT_ANCHOR_TENANT_PERIOD_YEARS);
     }
 
     setSoyTemplate(CreateAnchorTenantSoyInfo.getInstance(),

@@ -18,7 +18,7 @@ import static google.registry.flows.domain.DomainFlowUtils.getReservationType;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
-import static google.registry.pricing.PricingEngineProxy.isPremiumName;
+import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
@@ -83,7 +83,7 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
     ReservationType reservationType = getReservationType(domainName);
     Registry registry = Registry.get(domainName.parent().toString());
     if (reservationType == UNRESERVED
-        && isPremiumName(domainName, now, getClientId())
+        && getPricesForDomainName(domainName.toString(), now).isPremium()
         && registry.getPremiumPriceAckRequired()
         && !nullToEmpty(sessionMetadata.getServiceExtensionUris()).contains(
             ServiceExtension.FEE_0_6.getUri())) {
@@ -121,7 +121,7 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
       }
       FeeCheck.Builder builder = new FeeCheck.Builder();
       handleFeeRequest(
-          domainCheck, builder, domainName, getTldFromDomainName(domainName), getClientId(), now);
+          domainCheck, builder, domainName, getTldFromDomainName(domainName), now);
       feeChecksBuilder.add(builder.setName(domainName).build());
     }
     return ImmutableList.of(FeeCheckResponseExtension.create(feeChecksBuilder.build()));

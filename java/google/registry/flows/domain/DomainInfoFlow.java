@@ -95,7 +95,7 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
     if (feeInfo != null) {  // Fee check was requested.
       FeeInfoResponseExtension.Builder builder = new FeeInfoResponseExtension.Builder();
       handleFeeRequest(
-          feeInfo, builder, getTargetId(), existingResource.getTld(), getClientId(), now);
+          feeInfo, builder, getTargetId(), existingResource.getTld(), now);
       extensions.add(builder.build());
     }
     if (!registrationTypes.isEmpty()) {

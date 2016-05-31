@@ -16,8 +16,13 @@ package google.registry.model.pricing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.emptyToNull;
+import static google.registry.model.registry.Registry.TldState.SUNRISE;
+import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
+import static google.registry.model.registry.label.ReservedList.getReservation;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
 
@@ -35,19 +40,28 @@ public final class StaticPremiumListPricingEngine implements PricingEngine {
   @Inject StaticPremiumListPricingEngine() {}
 
   @Override
-  public Optional<Money> getPremiumPrice(
-      String fullyQualifiedDomainName, DateTime priceTime, String clientIdentifier) {
-    // Note that clientIdentifier and priceTime are not used for determining premium pricing for
-    // static premium lists.
+  public DomainPrices getDomainPrices(String fullyQualifiedDomainName, DateTime priceTime) {
     String tld = getTldFromDomainName(fullyQualifiedDomainName);
-    Registry registry = Registry.get(checkNotNull(tld, "tld"));
-    if (registry.getPremiumList() == null) {
-      return Optional.<Money>absent();
-    }
-    String listName = registry.getPremiumList().getName();
-    Optional<PremiumList> premiumList = PremiumList.get(listName);
-    checkState(premiumList.isPresent(), "Could not load premium list: %s", listName);
     String label = InternetDomainName.from(fullyQualifiedDomainName).parts().get(0);
-    return premiumList.get().getPremiumPrice(label);
+    Registry registry = Registry.get(checkNotNull(tld, "tld"));
+    Optional<Money> premiumPrice = Optional.<Money>absent();
+    if (registry.getPremiumList() != null) {
+      String listName = registry.getPremiumList().getName();
+      Optional<PremiumList> premiumList = PremiumList.get(listName);
+      checkState(premiumList.isPresent(), "Could not load premium list: %s", listName);
+      premiumPrice = premiumList.get().getPremiumPrice(label);
+    }
+    boolean isNameCollisionInSunrise =
+        registry.getTldState(priceTime).equals(SUNRISE)
+            && getReservation(label, tld) == NAME_COLLISION;
+    String feeClass = emptyToNull(Joiner.on('-').skipNulls().join(
+            premiumPrice.isPresent() ? "premium" : null,
+            isNameCollisionInSunrise ? "collision" : null));
+    return DomainPrices.create(
+        premiumPrice.isPresent(),
+        premiumPrice.or(registry.getStandardCreateCost()),
+        premiumPrice.or(registry.getStandardRenewCost(priceTime)),
+        Optional.<Money>absent(),
+        Optional.<String>fromNullable(feeClass));
   }
 }
