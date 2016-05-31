@@ -469,7 +469,7 @@ public class Registry extends ImmutableObject implements Buildable {
   }
 
   /**
-   * Use <code>PricingUtils.getDomainCreateCost</code> instead of this to find the cost for a
+   * Use <code>PricingEngineProxy.getDomainCreateCost</code> instead of this to find the cost for a
    * domain create.
    */
   @VisibleForTesting
@@ -486,8 +486,8 @@ public class Registry extends ImmutableObject implements Buildable {
   }
 
   /**
-   * Use <code>PricingUtils.getDomainRenewCost</code> instead of this to find the cost for a domain
-   * renewal, and all derived costs (i.e. autorenews, transfers, and the per-domain part of a
+   * Use <code>PricingEngineProxy.getDomainRenewCost</code> instead of this to find the cost for a
+   * domain renewal, and all derived costs (i.e. autorenews, transfers, and the per-domain part of a
    * restore cost).
    */
   @VisibleForTesting
