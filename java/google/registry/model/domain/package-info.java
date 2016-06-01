@@ -19,13 +19,9 @@
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlJavaTypeAdapters({
     @XmlJavaTypeAdapter(UtcDateTimeAdapter.class),
-    @XmlJavaTypeAdapter(ContactReferenceUnionAdapter.class),
-    @XmlJavaTypeAdapter(HostReferenceUnionAdapter.class),
     @XmlJavaTypeAdapter(DateAdapter.class)})
 package google.registry.model.domain;
 
-import google.registry.model.domain.ReferenceUnion.ContactReferenceUnionAdapter;
-import google.registry.model.domain.ReferenceUnion.HostReferenceUnionAdapter;
 import google.registry.xml.DateAdapter;
 import google.registry.xml.UtcDateTimeAdapter;
 

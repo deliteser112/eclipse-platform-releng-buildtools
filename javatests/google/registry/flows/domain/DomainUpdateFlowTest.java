@@ -34,6 +34,7 @@ import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntr
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static org.joda.money.CurrencyUnit.USD;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -380,20 +381,19 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         nameservers.add(Ref.create(host));
       }
     }
-    ImmutableSet.Builder<DesignatedContact> contacts = new ImmutableSet.Builder<>();
+    ImmutableList.Builder<DesignatedContact> contactsBuilder = new ImmutableList.Builder<>();
     for (int i = 0; i < 8; i++) {
-      ContactResource contact = persistActiveContact(String.format("max_test_%d", i));
-      if (i < 4) {
-        contacts.add(
-            DesignatedContact.create(
-                DesignatedContact.Type.values()[i],
-                Ref.create(contact)));
-      }
+      contactsBuilder.add(
+          DesignatedContact.create(
+              DesignatedContact.Type.values()[i % 4],
+              Ref.create(persistActiveContact(String.format("max_test_%d", i)))));
     }
+    ImmutableList<DesignatedContact> contacts = contactsBuilder.build();
     persistResource(
         reloadResourceByUniqueId().asBuilder()
             .setNameservers(nameservers.build())
-            .setContacts(contacts.build())
+            .setContacts(ImmutableSet.copyOf(contacts.subList(0, 3)))
+            .setRegistrant(contacts.get(3).getContactRef())
             .build());
     clock.advanceOneMilli();
     assertTransactionalFlow(true);

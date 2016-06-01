@@ -510,20 +510,6 @@ public class DomainCommand {
           }}));
   }
 
-  /**
-   * EPP-inputable version of XML type for contact identifiers associated with a domain, which can
-   * be converted to a storable (and EPP-outputable) {@link DesignatedContact}.
-   *
-   * @see "http://tools.ietf.org/html/rfc5731#section-2.2"
-   */
-  static class ForeignKeyedDesignatedContact extends ImmutableObject {
-    @XmlAttribute(required = true)
-    DesignatedContact.Type type;
-
-    @XmlValue
-    String contactId;
-  }
-
   /** Exception to throw when referenced objects don't exist. */
   public static class InvalidReferencesException extends Exception {
     private final ImmutableSet<String> foreignKeys;

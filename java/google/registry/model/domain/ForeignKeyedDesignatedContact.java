@@ -14,32 +14,28 @@
 
 package google.registry.model.domain;
 
-import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.annotation.Embed;
-import com.googlecode.objectify.annotation.Index;
-
-import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlValue;
+
 /**
- * Legacy shell of a "union" type to represent referenced objects as either a foreign key or as a
- * link to another object in the datastore. In its current form it merely wraps a {@link Ref}.
+ * EPP-compatible version of XML type for contact identifiers associated with a domain, which can
+ * be converted to a storable {@link DesignatedContact}.
  *
- * @param <T> the type being referenced
+ * @see "http://tools.ietf.org/html/rfc5731#section-2.2"
  */
-@Embed
-public class ReferenceUnion<T extends EppResource> extends ImmutableObject {
+class ForeignKeyedDesignatedContact extends ImmutableObject {
+  @XmlAttribute(required = true)
+  DesignatedContact.Type type;
 
-  @Index
-  Ref<T> linked;
+  @XmlValue
+  String contactId;
 
-  public Ref<T> getLinked() {
-    return linked;
-  }
-
-  public static <T extends EppResource> ReferenceUnion<T> create(Ref<T> linked) {
-    ReferenceUnion<T> instance = new ReferenceUnion<>();
-    instance.linked = linked;
+  static ForeignKeyedDesignatedContact create(DesignatedContact.Type type, String contactId) {
+    ForeignKeyedDesignatedContact instance = new ForeignKeyedDesignatedContact();
+    instance.type = type;
+    instance.contactId = contactId;
     return instance;
   }
 }
