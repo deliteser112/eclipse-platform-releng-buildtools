@@ -413,4 +413,25 @@ public class RegistryTest extends EntityTestCase {
     thrown.expect(IllegalArgumentException.class, "cost must be in the registry's currency");
     Registry.get("tld").asBuilder().setServerStatusChangeBillingCost(Money.of(EUR, 42)).build();
   }
+
+  @Test
+  public void testEapFee_undefined() {
+    assertThat(Registry.get("tld").getEapFeeFor(clock.nowUtc())).isEqualTo(Money.of(USD, 0));
+  }
+
+  @Test
+  public void testEapFee_specified() {
+    DateTime a = clock.nowUtc().minusDays(1);
+    DateTime b = clock.nowUtc().plusDays(1);
+    Registry registry =
+        Registry.get("tld").asBuilder().setEapFeeSchedule(
+            ImmutableSortedMap.of(
+                START_OF_TIME, Money.of(USD, 0),
+                a, Money.of(USD, 100),
+                b, Money.of(USD, 50))).build();
+
+    assertThat(registry.getEapFeeFor(clock.nowUtc())).isEqualTo(Money.of(USD, 100));
+    assertThat(registry.getEapFeeFor(clock.nowUtc().minusDays(2))).isEqualTo(Money.of(USD, 0));
+    assertThat(registry.getEapFeeFor(clock.nowUtc().plusDays(2))).isEqualTo(Money.of(USD, 50));
+  }
 }

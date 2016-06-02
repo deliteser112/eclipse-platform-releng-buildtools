@@ -111,6 +111,7 @@ public class Registry extends ImmutableObject implements Buildable {
   public static final Duration DEFAULT_ANCHOR_TENANT_ADD_GRACE_PERIOD = Duration.standardDays(30);
   public static final CurrencyUnit DEFAULT_CURRENCY = USD;
   public static final Money DEFAULT_CREATE_BILLING_COST = Money.of(USD, 8);
+  public static final Money DEFAULT_EAP_BILLING_COST = Money.of(USD, 0);
   public static final Money DEFAULT_RENEW_BILLING_COST = Money.of(USD, 8);
   public static final Money DEFAULT_RESTORE_BILLING_COST = Money.of(USD, 100);
   public static final Money DEFAULT_SERVER_STATUS_CHANGE_BILLING_COST = Money.of(USD, 20);
@@ -360,6 +361,13 @@ public class Registry extends ImmutableObject implements Buildable {
   TimedTransitionProperty<Money, BillingCostTransition> renewBillingCostTransitions =
       TimedTransitionProperty.forMapify(DEFAULT_RENEW_BILLING_COST, BillingCostTransition.class);
 
+  /**
+   * A property that tracks the EAP fee schedule (if any) for the TLD.
+   */
+  @Mapify(TimedTransitionProperty.TimeMapper.class)
+  TimedTransitionProperty<Money, BillingCostTransition> eapFeeSchedule =
+      TimedTransitionProperty.forMapify(DEFAULT_EAP_BILLING_COST, BillingCostTransition.class);
+
   String lordnUsername;
 
   /** The end of the claims period (at or after this time, claims no longer applies). */
@@ -508,6 +516,13 @@ public class Registry extends ImmutableObject implements Buildable {
 
   public ImmutableSortedMap<DateTime, Money> getRenewBillingCostTransitions() {
     return renewBillingCostTransitions.toValueMap();
+  }
+
+  /**
+   * Returns the EAP fee for the registry at the given time.
+   */
+  public Money getEapFeeFor(DateTime now) {
+    return eapFeeSchedule.getValueAtTime(now);
   }
 
   public String getLordnUsername() {
@@ -714,7 +729,7 @@ public class Registry extends ImmutableObject implements Buildable {
      */
     public Builder setRenewBillingCostTransitions(
         ImmutableSortedMap<DateTime, Money> renewCostsMap) {
-      checkNotNull(renewCostsMap, "renew billing costs map cannot be null");
+      checkArgumentNotNull(renewCostsMap, "renew billing costs map cannot be null");
       checkArgument(Iterables.all(
           renewCostsMap.values(),
           new Predicate<Money>() {
@@ -725,6 +740,25 @@ public class Registry extends ImmutableObject implements Buildable {
           "renew billing cost cannot be negative");
       getInstance().renewBillingCostTransitions =
           TimedTransitionProperty.fromValueMap(renewCostsMap, BillingCostTransition.class);
+      return this;
+    }
+
+    /**
+     * Sets the EAP fee schedule for the TLD.
+     */
+    public Builder setEapFeeSchedule(
+        ImmutableSortedMap<DateTime, Money> eapFeeSchedule) {
+      checkArgumentNotNull(eapFeeSchedule, "EAP schedule map cannot be null");
+      checkArgument(Iterables.all(
+          eapFeeSchedule.values(),
+          new Predicate<Money>() {
+            @Override
+            public boolean apply(Money amount) {
+              return amount.isPositiveOrZero();
+            }}),
+          "EAP fee cannot be negative");
+      getInstance().eapFeeSchedule =
+          TimedTransitionProperty.fromValueMap(eapFeeSchedule, BillingCostTransition.class);
       return this;
     }
 
@@ -779,6 +813,7 @@ public class Registry extends ImmutableObject implements Buildable {
       // cloned it into a new builder, to block re-building a Registry in an invalid state.
       instance.tldStateTransitions.checkValidity();
       instance.renewBillingCostTransitions.checkValidity();
+      instance.eapFeeSchedule.checkValidity();
       // All costs must be in the expected currency.
       // TODO(b/21854155): When we move PremiumList into datastore, verify its currency too.
       checkArgument(
