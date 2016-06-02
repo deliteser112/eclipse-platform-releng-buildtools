@@ -15,7 +15,6 @@
 package google.registry.flows;
 
 import static com.google.common.base.Throwables.getStackTraceAsString;
-import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static com.google.common.io.BaseEncoding.base64;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.xml.XmlTransformer.prettyPrint;
@@ -123,7 +122,9 @@ public class FlowRunner {
     } catch (RuntimeException e) {
       logger.warning("EPP_Mutation_Failed " + new JsonLogStatement(trid));
       logger.warning(getStackTraceAsString(e));
-      propagateIfInstanceOf(e.getCause(), EppException.class);
+      if (e.getCause() instanceof EppException) {
+        throw (EppException) e.getCause();
+      }
       throw e;
     }
   }
@@ -182,7 +183,7 @@ public class FlowRunner {
   }
 
   /** Exception for canceling a transaction while capturing what the output would have been. */
-  private class DryRunException extends RuntimeException {
+  private static class DryRunException extends RuntimeException {
     final EppOutput output;
 
     DryRunException(EppOutput output) {
