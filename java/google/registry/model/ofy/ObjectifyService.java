@@ -20,6 +20,8 @@ import static com.google.common.base.Predicates.not;
 import static com.googlecode.objectify.ObjectifyService.factory;
 import static google.registry.util.TypeUtils.hasAnnotation;
 
+import com.google.appengine.api.datastore.AsyncDatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
@@ -99,6 +101,16 @@ public class ObjectifyService {
       @Override
       public Objectify begin() {
         return new SessionKeyExposingObjectify(this);
+      }
+
+      @Override
+      protected AsyncDatastoreService createRawAsyncDatastoreService(DatastoreServiceConfig cfg) {
+        // In the unit test environment, wrap the datastore service in a proxy that can be used to
+        // examine the number of requests sent to datastore.
+        AsyncDatastoreService service = super.createRawAsyncDatastoreService(cfg);
+        return RegistryEnvironment.get().equals(RegistryEnvironment.UNITTEST)
+            ? new RequestCountingAsyncDatastoreService(service)
+            : service;
       }});
 
     // Translators must be registered before any entities can be registered.

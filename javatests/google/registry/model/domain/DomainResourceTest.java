@@ -14,6 +14,7 @@
 
 package google.registry.model.domain;
 
+import static com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig.getLocalMemcacheService;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
@@ -26,6 +27,8 @@ import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
+import com.google.appengine.api.memcache.MemcacheServicePb.MemcacheFlushRequest;
+import com.google.appengine.tools.development.LocalRpcService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
@@ -35,6 +38,7 @@ import com.google.common.collect.Ordering;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
+import google.registry.flows.EppXmlTransformer;
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -45,7 +49,12 @@ import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.Response;
+import google.registry.model.eppoutput.Result;
+import google.registry.model.eppoutput.Result.Code;
 import google.registry.model.host.HostResource;
+import google.registry.model.ofy.RequestCountingAsyncDatastoreService;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
@@ -53,6 +62,7 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.ExceptionRule;
+import google.registry.xml.ValidationMode;
 
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -95,7 +105,7 @@ public class DomainResourceTest extends EntityTestCase {
         .setRepoId("4-COM")
             .setCreationClientId("a registrar")
             .setLastEppUpdateTime(clock.nowUtc())
-            .setLastEppUpdateClientId("another registrar")
+            .setLastEppUpdateClientId("AnotherRegistrar")
             .setLastTransferTime(clock.nowUtc())
             .setStatusValues(ImmutableSet.of(
                 StatusValue.CLIENT_DELETE_PROHIBITED,
@@ -110,7 +120,7 @@ public class DomainResourceTest extends EntityTestCase {
                 Ref.create(contactResource2))))
             .setNameservers(ImmutableSet.of(Ref.create(hostResource)))
             .setSubordinateHosts(ImmutableSet.of("ns1.example.com"))
-            .setCurrentSponsorClientId("a third registrar")
+            .setCurrentSponsorClientId("ThirdRegistrar")
             .setRegistrationExpirationTime(clock.nowUtc().plusYears(1))
             .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("password")))
             .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))
@@ -414,5 +424,22 @@ public class DomainResourceTest extends EntityTestCase {
                 Registry.get("com").getAutoRenewGracePeriodLength()),
             renewedThreeTimes.getCurrentSponsorClientId(),
             Ref.create(renewedThreeTimes.autorenewBillingEvent.key())));
+  }
+
+  @Test
+  public void testMarshalingLoadsResourcesEfficiently() throws Exception {
+    // All of the resources are in memcache because they were put there when initially persisted.
+    // Clear out memcache so that we count actual datastore calls.
+    getLocalMemcacheService().flushAll(
+        new LocalRpcService.Status(), MemcacheFlushRequest.newBuilder().build());
+    int previousReads = RequestCountingAsyncDatastoreService.getReadsCount();
+    EppXmlTransformer.marshal(
+        EppOutput.create(new Response.Builder()
+            .setResult(Result.create(Code.Success))
+            .setResData(ImmutableList.of(domain))
+            .setTrid(Trid.create(null, "abc"))
+            .build()),
+        ValidationMode.STRICT);
+    assertThat(RequestCountingAsyncDatastoreService.getReadsCount() - previousReads).isEqualTo(1);
   }
 }
