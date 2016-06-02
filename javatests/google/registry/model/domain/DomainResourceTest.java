@@ -16,6 +16,7 @@ package google.registry.model.domain;
 
 import static com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig.getLocalMemcacheService;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.Iterables.skip;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
@@ -54,7 +55,7 @@ import google.registry.model.eppoutput.Response;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.eppoutput.Result.Code;
 import google.registry.model.host.HostResource;
-import google.registry.model.ofy.RequestCountingAsyncDatastoreService;
+import google.registry.model.ofy.RequestCapturingAsyncDatastoreService;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
@@ -432,7 +433,7 @@ public class DomainResourceTest extends EntityTestCase {
     // Clear out memcache so that we count actual datastore calls.
     getLocalMemcacheService().flushAll(
         new LocalRpcService.Status(), MemcacheFlushRequest.newBuilder().build());
-    int previousReads = RequestCountingAsyncDatastoreService.getReadsCount();
+    int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
     EppXmlTransformer.marshal(
         EppOutput.create(new Response.Builder()
             .setResult(Result.create(Code.Success))
@@ -440,6 +441,7 @@ public class DomainResourceTest extends EntityTestCase {
             .setTrid(Trid.create(null, "abc"))
             .build()),
         ValidationMode.STRICT);
-    assertThat(RequestCountingAsyncDatastoreService.getReadsCount() - previousReads).isEqualTo(1);
+    // Assert that there was only one call to datastore (that may have loaded many keys).
+    assertThat(skip(RequestCapturingAsyncDatastoreService.getReads(), numPreviousReads)).hasSize(1);
   }
 }

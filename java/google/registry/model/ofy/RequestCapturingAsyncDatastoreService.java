@@ -14,6 +14,8 @@
 
 package google.registry.model.ofy;
 
+import static java.util.Collections.synchronizedList;
+
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreAttributes;
 import com.google.appengine.api.datastore.Entity;
@@ -25,39 +27,41 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
+import com.google.common.collect.ImmutableList;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /** A proxy for {@link AsyncDatastoreService} that exposes call counts. */
-public class RequestCountingAsyncDatastoreService implements AsyncDatastoreService {
+public class RequestCapturingAsyncDatastoreService implements AsyncDatastoreService {
 
   private final AsyncDatastoreService delegate;
 
-  // We use static counters because we care about overall calls to datastore, not calls via a
-  // specific instance of the service.
+  // Each outer lists represents datastore operations, with inner lists representing the keys or
+  // entities involved in that operation. We use static lists because we care about overall calls to
+  // datastore, not calls via a specific instance of the service.
 
-  private static AtomicInteger reads = new AtomicInteger();
-  private static AtomicInteger puts = new AtomicInteger();
-  private static AtomicInteger deletes = new AtomicInteger();
+  private static List<List<Key>> reads = synchronizedList(new ArrayList<List<Key>>());
+  private static List<List<Key>> deletes = synchronizedList(new ArrayList<List<Key>>());
+  private static List<List<Entity>> puts = synchronizedList(new ArrayList<List<Entity>>());
 
-  RequestCountingAsyncDatastoreService(AsyncDatastoreService delegate) {
+  RequestCapturingAsyncDatastoreService(AsyncDatastoreService delegate) {
     this.delegate = delegate;
   }
 
-  public static int getReadsCount() {
-    return reads.get();
+  public static List<List<Key>> getReads() {
+    return reads;
   }
 
-  public static int getPutsCount() {
-    return puts.get();
+  public static List<List<Key>> getDeletes() {
+    return deletes;
   }
 
-  public static int getDeletesCount() {
-    return deletes.get();
+  public static List<List<Entity>> getPuts() {
+    return puts;
   }
 
   @Override
@@ -107,49 +111,49 @@ public class RequestCountingAsyncDatastoreService implements AsyncDatastoreServi
 
   @Override
   public Future<Void> delete(Key... keys) {
-    deletes.incrementAndGet();
+    deletes.add(ImmutableList.copyOf(keys));
     return delegate.delete(keys);
   }
 
   @Override
   public Future<Void> delete(Iterable<Key> keys) {
-    deletes.incrementAndGet();
+    deletes.add(ImmutableList.copyOf(keys));
     return delegate.delete(keys);
   }
 
   @Override
   public Future<Void> delete(Transaction transaction, Key... keys) {
-    deletes.incrementAndGet();
+    deletes.add(ImmutableList.copyOf(keys));
     return delegate.delete(transaction, keys);
   }
 
   @Override
   public Future<Void> delete(Transaction transaction, Iterable<Key> keys) {
-    deletes.incrementAndGet();
+    deletes.add(ImmutableList.copyOf(keys));
     return delegate.delete(transaction, keys);
   }
 
   @Override
   public Future<Entity> get(Key key) {
-    reads.incrementAndGet();
+    reads.add(ImmutableList.of(key));
     return delegate.get(key);
   }
 
   @Override
   public Future<Map<Key, Entity>> get(Iterable<Key> keys) {
-    reads.incrementAndGet();
+    reads.add(ImmutableList.copyOf(keys));
     return delegate.get(keys);
   }
 
   @Override
   public Future<Entity> get(Transaction transaction, Key key) {
-    reads.incrementAndGet();
+    reads.add(ImmutableList.of(key));
     return delegate.get(transaction, key);
   }
 
   @Override
   public Future<Map<Key, Entity>> get(Transaction transaction, Iterable<Key> keys) {
-    reads.incrementAndGet();
+    reads.add(ImmutableList.copyOf(keys));
     return delegate.get(transaction, keys);
   }
 
@@ -165,25 +169,25 @@ public class RequestCountingAsyncDatastoreService implements AsyncDatastoreServi
 
   @Override
   public Future<Key> put(Entity entity) {
-    puts.incrementAndGet();
+    puts.add(ImmutableList.of(entity));
     return delegate.put(entity);
   }
 
   @Override
   public Future<List<Key>> put(Iterable<Entity> entities) {
-    puts.incrementAndGet();
+    puts.add(ImmutableList.copyOf(entities));
     return delegate.put(entities);
   }
 
   @Override
   public Future<Key> put(Transaction transaction, Entity entity) {
-    puts.incrementAndGet();
+    puts.add(ImmutableList.of(entity));
     return delegate.put(transaction, entity);
   }
 
   @Override
   public Future<List<Key>> put(Transaction transaction, Iterable<Entity> entities) {
-    puts.incrementAndGet();
+    puts.add(ImmutableList.copyOf(entities));
     return delegate.put(transaction, entities);
   }
 }

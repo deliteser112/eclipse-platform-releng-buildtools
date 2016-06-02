@@ -109,7 +109,7 @@ public class ObjectifyService {
         // examine the number of requests sent to datastore.
         AsyncDatastoreService service = super.createRawAsyncDatastoreService(cfg);
         return RegistryEnvironment.get().equals(RegistryEnvironment.UNITTEST)
-            ? new RequestCountingAsyncDatastoreService(service)
+            ? new RequestCapturingAsyncDatastoreService(service)
             : service;
       }});
 
