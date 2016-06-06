@@ -17,16 +17,21 @@ package google.registry.flows.domain;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationType;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
+import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
 
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
+import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.fee.FeeCheckExtension;
 import google.registry.model.domain.fee.FeeCheckResponseExtension;
 import google.registry.model.domain.fee.FeeCheckResponseExtension.FeeCheck;
@@ -38,6 +43,7 @@ import google.registry.model.eppoutput.CheckData.DomainCheck;
 import google.registry.model.eppoutput.CheckData.DomainCheckData;
 import google.registry.model.eppoutput.Response.ResponseExtension;
 import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservationType;
 
 import java.util.Set;
@@ -66,6 +72,13 @@ import java.util.Set;
  */
 public class DomainCheckFlow extends BaseDomainCheckFlow {
 
+  /**
+   * The TLD states during which we want to report a domain with pending applications as
+   * unavailable.
+   */
+  private static final Set<TldState> PENDING_ALLOCATION_TLD_STATES =
+      Sets.immutableEnumSet(TldState.GENERAL_AVAILABILITY, TldState.QUIET_PERIOD);
+
   protected RegTypeCheckExtension regTypeExtension;
 
   @Override
@@ -80,8 +93,17 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
       return "In use";
     }
     InternetDomainName domainName = domainNames.get(targetId);
-    ReservationType reservationType = getReservationType(domainName);
     Registry registry = Registry.get(domainName.parent().toString());
+    if (PENDING_ALLOCATION_TLD_STATES.contains(registry.getTldState(now))
+        && FluentIterable.from(loadActiveApplicationsByDomainName(domainName.toString(), now))
+            .anyMatch(new Predicate<DomainApplication>() {
+              @Override
+              public boolean apply(DomainApplication input) {
+                return !input.getApplicationStatus().isFinalStatus();
+              }})) {
+      return "Pending allocation";
+    }
+    ReservationType reservationType = getReservationType(domainName);
     if (reservationType == UNRESERVED
         && getPricesForDomainName(domainName.toString(), now).isPremium()
         && registry.getPremiumPriceAckRequired()

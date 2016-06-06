@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.model.eppoutput.CheckData.DomainCheck.create;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
@@ -46,6 +47,8 @@ import google.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.TrailingDashException;
 import google.registry.flows.domain.DomainFlowUtils.UnknownFeeCommandException;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
@@ -82,7 +85,7 @@ public class DomainCheckFlowTest
   }
 
   @Test
-  public void testNothingExists() throws Exception {
+  public void testSuccess_nothingExists() throws Exception {
     doCheckTest(
         create(true, "example1.tld", null),
         create(true, "example2.tld", null),
@@ -90,7 +93,7 @@ public class DomainCheckFlowTest
   }
 
   @Test
-  public void testOneExists() throws Exception {
+  public void testSuccess_oneExists() throws Exception {
     persistActiveDomain("example1.tld");
     doCheckTest(
         create(false, "example1.tld", "In use"),
@@ -99,7 +102,7 @@ public class DomainCheckFlowTest
   }
 
   @Test
-  public void testOneReserved() throws Exception {
+  public void testSuccess_oneReserved() throws Exception {
     setEppInput("domain_check_one_tld_reserved.xml");
     doCheckTest(
         create(false, "reserved.tld", "Reserved"),
@@ -109,13 +112,13 @@ public class DomainCheckFlowTest
   }
 
   @Test
-  public void testAnchorTenantReserved() throws Exception {
+  public void testSuccess_anchorTenantReserved() throws Exception {
     setEppInput("domain_check_anchor.xml");
     doCheckTest(create(false, "anchor.tld", "Reserved"));
   }
 
   @Test
-  public void testOneReserved_multipartTld() throws Exception {
+  public void testSuccess_multipartTld_oneReserved() throws Exception {
     createTld("tld.foo");
     persistResource(
         Registry.get("tld.foo")
@@ -132,7 +135,7 @@ public class DomainCheckFlowTest
   }
 
   @Test
-  public void testOneExistsButWasDeleted() throws Exception {
+  public void testSuccess_oneExistsButWasDeleted() throws Exception {
     persistDeletedDomain("example1.tld", clock.nowUtc());
     doCheckTest(
         create(true, "example1.tld", null),
@@ -141,7 +144,7 @@ public class DomainCheckFlowTest
   }
 
   @Test
-  public void testDuplicatesAllowed() throws Exception {
+  public void testSuccess_duplicatesAllowed() throws Exception {
     setEppInput("domain_check_duplicates.xml");
     doCheckTest(
         create(true, "example1.tld", null),
@@ -149,27 +152,109 @@ public class DomainCheckFlowTest
   }
 
   @Test
-  public void testXmlMatches() throws Exception {
+  public void testSuccess_xmlMatches() throws Exception {
     persistActiveDomain("example2.tld");
     runFlowAssertResponse(readFile("domain_check_one_tld_response.xml"));
   }
 
   @Test
-  public void test50IdsAllowed() throws Exception {
+  public void testSuccess_50IdsAllowed() throws Exception {
     // Make sure we don't have a regression that reduces the number of allowed checks.
     setEppInput("domain_check_50.xml");
     runFlow();
   }
 
   @Test
-  public void testTooManyIds() throws Exception {
+  public void testSuccess_pendingSunriseApplicationInGeneralAvailability() throws Exception {
+    createTld("tld", TldState.GENERAL_AVAILABILITY);
+    persistResource(newDomainApplication("example2.tld").asBuilder()
+        .build());
+    doCheckTest(
+        create(true, "example1.tld", null),
+        create(false, "example2.tld", "Pending allocation"),
+        create(true, "example3.tld", null));
+  }
+
+  @Test
+  public void testSuccess_pendingLandrushApplicationInGeneralAvailability() throws Exception {
+    createTld("tld", TldState.GENERAL_AVAILABILITY);
+    persistResource(newDomainApplication("example2.tld").asBuilder()
+        .setPhase(LaunchPhase.LANDRUSH)
+        .build());
+    doCheckTest(
+        create(true, "example1.tld", null),
+        create(false, "example2.tld", "Pending allocation"),
+        create(true, "example3.tld", null));
+  }
+
+  @Test
+  public void testSuccess_pendingSunriseApplicationInQuietPeriod() throws Exception {
+    createTld("tld", TldState.QUIET_PERIOD);
+    persistResource(newDomainApplication("example2.tld").asBuilder()
+        .build());
+    doCheckTest(
+        create(true, "example1.tld", null),
+        create(false, "example2.tld", "Pending allocation"),
+        create(true, "example3.tld", null));
+  }
+
+  @Test
+  public void testSuccess_pendingLandrushApplicationInQuietPeriod() throws Exception {
+    createTld("tld", TldState.QUIET_PERIOD);
+    persistResource(newDomainApplication("example2.tld").asBuilder()
+        .setPhase(LaunchPhase.LANDRUSH)
+        .build());
+    doCheckTest(
+        create(true, "example1.tld", null),
+        create(false, "example2.tld", "Pending allocation"),
+        create(true, "example3.tld", null));
+  }
+
+  @Test
+  public void testSuccess_pendingSunriseApplicationInSunrise() throws Exception {
+    createTld("tld", TldState.SUNRISE);
+    persistResource(newDomainApplication("example2.tld").asBuilder()
+        .build());
+    doCheckTest(
+        create(true, "example1.tld", null),
+        create(true, "example2.tld", null),
+        create(true, "example3.tld", null));
+  }
+
+  @Test
+  public void testSuccess_pendingLandrushApplicationInLandrush() throws Exception {
+    createTld("tld", TldState.LANDRUSH);
+    persistResource(newDomainApplication("example2.tld").asBuilder()
+        .setPhase(LaunchPhase.LANDRUSH)
+        .build());
+    doCheckTest(
+        create(true, "example1.tld", null),
+        create(true, "example2.tld", null),
+        create(true, "example3.tld", null));
+  }
+
+  @Test
+  public void testSuccess_rejectedApplication() throws Exception {
+    createTld("tld", TldState.LANDRUSH);
+    persistResource(newDomainApplication("example2.tld").asBuilder()
+        .setPhase(LaunchPhase.LANDRUSH)
+        .setApplicationStatus(ApplicationStatus.REJECTED)
+        .build());
+    doCheckTest(
+        create(true, "example1.tld", null),
+        create(true, "example2.tld", null),
+        create(true, "example3.tld", null));
+  }
+
+  @Test
+  public void testFailure_tooManyIds() throws Exception {
     setEppInput("domain_check_51.xml");
     thrown.expect(TooManyResourceChecksException.class);
     runFlow();
   }
 
   @Test
-  public void testWrongTld() throws Exception {
+  public void testFailure_wrongTld() throws Exception {
     setEppInput("domain_check.xml");
     thrown.expect(TldDoesNotExistException.class);
     runFlow();
@@ -333,7 +418,6 @@ public class DomainCheckFlowTest
   /** Test that create fees are properly omitted/classed on names on reserved lists. */
   @Test
   public void testFeeExtension_reservedName() throws Exception {
-    createTld("tld", TldState.QUIET_PERIOD);
     persistResource(Registry.get("tld").asBuilder()
         .setReservedLists(createReservedList())
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
