@@ -288,7 +288,9 @@ public abstract class FlowTestCase<F extends Flow> {
       CommitMode commitMode, UserPrivileges userPrivileges, String xml, String... ignoredPaths)
       throws Exception {
     EppOutput eppOutput = getFlowRunner().run(commitMode, userPrivileges);
-    assertThat(eppOutput.isSuccess()).isTrue();
+    if (eppOutput.isResponse()) {
+      assertThat(eppOutput.isSuccess()).isTrue();
+    }
     try {
       assertXmlEquals(
           xml, new String(marshal(eppOutput, ValidationMode.STRICT), UTF_8), ignoredPaths);

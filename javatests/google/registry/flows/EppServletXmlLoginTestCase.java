@@ -16,8 +16,6 @@ package google.registry.flows;
 
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
-import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
@@ -27,6 +25,7 @@ import google.registry.model.registry.Registry.TldState;
 import google.registry.util.DateTimeUtils;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 import org.junit.Test;
 
 import javax.servlet.http.HttpServlet;
@@ -41,10 +40,13 @@ public abstract class EppServletXmlLoginTestCase<S extends HttpServlet> extends
 
   @Test
   public void testHello() throws Exception {
-    assertXmlEquals(
-        readResourceUtf8(getClass(), "testdata/greeting_crr.xml"),
-        expectXmlCommand(readResourceUtf8(getClass(), "testdata/hello.xml"), DateTime.now(UTC)),
-        "epp.greeting.svDate");
+    DateTime now = DateTime.now(UTC);
+    assertCommandAndResponse(
+        "hello.xml",
+        null,
+        "greeting_crr.xml",
+        ImmutableMap.of("DATE", now.toString(ISODateTimeFormat.dateTimeNoMillis())),
+        now);
   }
 
   @Test

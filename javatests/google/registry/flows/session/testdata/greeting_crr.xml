@@ -1,7 +1,7 @@
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <greeting>
     <svID>Charleston Road Registry</svID>
-    <svDate>2000-06-08T22:00:00.0Z</svDate>
+    <svDate>%DATE%</svDate>
     <svcMenu>
       <version>1.0</version>
       <lang>en</lang>

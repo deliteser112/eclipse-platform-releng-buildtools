@@ -22,6 +22,6 @@ import google.registry.model.eppoutput.Greeting;
 public class HelloFlow extends Flow {
   @Override
   public EppOutput run() {
-    return EppOutput.create(new Greeting());
+    return EppOutput.create(Greeting.create(now));
   }
 }

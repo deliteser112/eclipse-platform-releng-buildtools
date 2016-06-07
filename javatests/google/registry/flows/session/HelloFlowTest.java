@@ -14,10 +14,10 @@
 
 package google.registry.flows.session;
 
-import static google.registry.flows.EppXmlTransformer.marshal;
-import static google.registry.xml.ValidationMode.STRICT;
-import static google.registry.xml.XmlTestUtils.assertXmlEquals;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static org.joda.time.format.ISODateTimeFormat.dateTimeNoMillis;
+
+import com.google.common.collect.ImmutableMap;
 
 import google.registry.flows.FlowTestCase;
 
@@ -29,8 +29,11 @@ public class HelloFlowTest extends FlowTestCase<HelloFlow> {
   public void testHello() throws Exception {
     setEppInput("hello.xml");
     assertTransactionalFlow(false);
-    assertXmlEquals(readFile("greeting_crr.xml"), new String(marshal(runFlow(), STRICT), UTF_8),
-        "epp.greeting.svDate");
+    runFlowAssertResponse(
+        loadFileWithSubstitutions(
+            getClass(),
+            "greeting_crr.xml",
+            ImmutableMap.of("DATE", clock.nowUtc().toString(dateTimeNoMillis()))));
   }
 
   // Extra methods so the test runner doesn't produce empty shards.
