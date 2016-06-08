@@ -14,11 +14,7 @@
 
 package google.registry.tools;
 
-import static google.registry.flows.EppServletUtils.APPLICATION_EPP_XML_UTF8;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-
-import com.google.common.collect.ImmutableMap;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -55,28 +51,22 @@ public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
 
   @Test
   public void testSuccess_singleXmlCommand() throws Exception {
-    runCommandForced("--client=NewRegistrar", "xml");
-    ImmutableMap<String, Object> params = ImmutableMap.<String, Object>of(
-        "clientIdentifier", "NewRegistrar",
-        "superuser", false,
-        "dryRun", false);
-    verify(connection)
-        .send(eq("/_dr/epptool"), eq(params), eq(APPLICATION_EPP_XML_UTF8), eq("xml".getBytes()));
+    // The choice of xml file is arbitrary.
+    runCommandForced(
+        "--client=NewRegistrar",
+        readResourceUtf8(getClass(), "testdata/contact_create.xml"));
+    eppVerifier().verifySent("contact_create.xml");
   }
 
   @Test
   public void testSuccess_multipleXmlCommands() throws Exception {
-    runCommandForced("--client=NewRegistrar", "one", "two", "three");
-    ImmutableMap<String, Object> params = ImmutableMap.<String, Object>of(
-        "clientIdentifier", "NewRegistrar",
-        "superuser", false,
-        "dryRun", false);
-    verify(connection)
-        .send(eq("/_dr/epptool"), eq(params), eq(APPLICATION_EPP_XML_UTF8), eq("one".getBytes()));
-    verify(connection)
-        .send(eq("/_dr/epptool"), eq(params), eq(APPLICATION_EPP_XML_UTF8), eq("two".getBytes()));
-    verify(connection)
-        .send(eq("/_dr/epptool"), eq(params), eq(APPLICATION_EPP_XML_UTF8), eq("three".getBytes()));
+    // The choice of xml files is arbitrary.
+    runCommandForced(
+        "--client=NewRegistrar",
+        readResourceUtf8(getClass(), "testdata/contact_create.xml"),
+        readResourceUtf8(getClass(), "testdata/domain_check.xml"),
+        readResourceUtf8(getClass(), "testdata/domain_check_fee.xml"));
+    eppVerifier().verifySent("contact_create.xml", "domain_check.xml", "domain_check_fee.xml");
   }
 
   @Test

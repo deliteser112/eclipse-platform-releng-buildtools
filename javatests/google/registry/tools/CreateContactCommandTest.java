@@ -16,14 +16,15 @@ package google.registry.tools;
 
 import com.beust.jcommander.ParameterException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 /** Unit tests for {@link CreateContactCommand}. */
 public class CreateContactCommandTest
     extends EppToolCommandTestCase<CreateContactCommand> {
 
-  @Override
-  void initEppToolCommandTestCase() {
+  @Before
+  public void initCommand() {
     command.passwordGenerator = new FakePasswordGenerator("abcdefghijklmnopqrstuvwxyz");
   }
 
@@ -45,7 +46,7 @@ public class CreateContactCommandTest
         "--fax=+1.7035555556",
         "--email=jdoe@example.com",
         "--password=2fooBAR");
-    eppVerifier().verifySent("testdata/contact_create_complete.xml");
+    eppVerifier().verifySent("contact_create_complete.xml");
   }
 
   @Test
@@ -53,7 +54,7 @@ public class CreateContactCommandTest
     // Will never be the case, but tests that each field can be omitted.
     // Also tests the auto-gen password.
     runCommandForced("--client=NewRegistrar");
-    eppVerifier().verifySent("testdata/contact_create_minimal.xml");
+    eppVerifier().verifySent("contact_create_minimal.xml");
   }
 
   @Test

@@ -15,8 +15,7 @@
 package google.registry.flows;
 
 import static google.registry.flows.EppServletUtils.handleEppCommandAndWriteResponse;
-
-import com.google.common.io.ByteStreams;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.model.eppcommon.ProtocolDefinition;
@@ -42,9 +41,8 @@ public class EppToolServlet extends XsrfProtectedServlet {
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-    byte[] xml = ByteStreams.toByteArray(req.getInputStream());
     handleEppCommandAndWriteResponse(
-        xml, rsp, new StatelessRequestSessionMetadata(
+        req.getParameter("xml").getBytes(UTF_8), rsp, new StatelessRequestSessionMetadata(
             req.getParameter("clientIdentifier"),
             Boolean.parseBoolean(req.getParameter("superuser")),
             Boolean.parseBoolean(req.getParameter("dryRun")),

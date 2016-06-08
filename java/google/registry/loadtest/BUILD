@@ -17,6 +17,7 @@ java_library(
     deps = [
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
+        "//java/com/google/common/net",
         "//third_party/java/appengine:appengine-api",
         "//third_party/java/dagger",
         "//third_party/java/joda_time",
@@ -24,8 +25,6 @@ java_library(
         "//third_party/java/objectify:objectify-v4_1",
         "//third_party/java/servlet/servlet_api",
         "//java/google/registry/config",
-        "//java/google/registry/flows",
-        "//java/google/registry/model",
         "//java/google/registry/request",
         "//java/google/registry/util",
     ],

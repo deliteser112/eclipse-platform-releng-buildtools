@@ -18,7 +18,6 @@ import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.toByteArray;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.flows.EppServletUtils.APPLICATION_EPP_XML_UTF8;
 import static google.registry.flows.picker.FlowPicker.getFlowClass;
 import static google.registry.model.domain.DesignatedContact.Type.ADMIN;
 import static google.registry.model.domain.DesignatedContact.Type.BILLING;
@@ -31,14 +30,8 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
-import static google.registry.xml.XmlTestUtils.assertXmlEquals;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static google.registry.util.ResourceUtils.readResourceBytes;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import com.beust.jcommander.ParameterException;
@@ -58,26 +51,15 @@ import google.registry.tools.ServerSideCommand.Connection;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 
 import java.io.IOException;
-import java.util.List;
 
 /** Unit tests for {@link AllocateDomainCommand}. */
 public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCommand> {
 
-  private static final String EXPECTED_XML_ONE =
-      readResourceUtf8(AllocateDomainCommandTest.class, "testdata/allocate_domain.xml");
-  private static final String EXPECTED_XML_TWO =
-      readResourceUtf8(AllocateDomainCommandTest.class, "testdata/allocate_domain2.xml");
-
   @Mock
   Connection connection;
-
-  @Captor
-  ArgumentCaptor<byte[]> xml;
 
   @Before
   public void init() throws IOException {
@@ -119,7 +101,6 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
                 DateTime.parse("2010-08-16T09:00:00.0Z"),
                 DateTime.parse("2009-08-16T09:00:00.0Z")))
             .build());
-
     persistResource(
         new HistoryEntry.Builder()
             .setParent(application)
@@ -130,40 +111,30 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
             .build());
   }
 
-  private void verifySent(boolean dryRun, String clientId, String... expectedXml) throws Exception {
-    ImmutableMap<String, ?> params = ImmutableMap.of(
-        "dryRun", dryRun,
-        "clientIdentifier", clientId,
-        "superuser", true);
-    verify(connection, times(expectedXml.length))
-        .send(eq("/_dr/epptool"), eq(params), eq(APPLICATION_EPP_XML_UTF8), xml.capture());
-
-    List<byte[]> allCapturedXml = xml.getAllValues();
-    assertThat(allCapturedXml).hasSize(expectedXml.length);
-    int capturedXmlIndex = 0;
-    for (String expected : expectedXml) {
-      assertXmlEquals(expected, new String(allCapturedXml.get(capturedXmlIndex++), UTF_8));
-    }
+  private EppToolVerifier eppVerifier() {
+    return new EppToolVerifier()
+        .withConnection(connection)
+        .withClientIdentifier("TheRegistrar")
+        .asSuperuser();
   }
 
   @Test
   public void testSuccess() throws Exception {
     runCommand("--ids=1-TLD", "--force", "--superuser");
-    // NB: These commands are all sent on behalf of the sponsoring registrar, in this case
-    // "TheRegistrar".
-    verifySent(false, "TheRegistrar", EXPECTED_XML_ONE);
+    // NB: These commands are sent as the sponsoring registrar, in this case "TheRegistrar".
+    eppVerifier().verifySent("allocate_domain.xml");
   }
 
   @Test
   public void testSuccess_multiple() throws Exception {
     runCommand("--ids=1-TLD,2-TLD", "--force", "--superuser");
-    verifySent(false, "TheRegistrar", EXPECTED_XML_ONE, EXPECTED_XML_TWO);
+    eppVerifier().verifySent("allocate_domain.xml", "allocate_domain2.xml");
   }
 
   @Test
   public void testSuccess_dryRun() throws Exception {
     runCommand("--ids=1-TLD", "--dry_run", "--superuser");
-    verifySent(true, "TheRegistrar", EXPECTED_XML_ONE);
+    eppVerifier().asDryRun().verifySent("allocate_domain.xml");
   }
 
   @Test
@@ -187,7 +158,8 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
   @Test
   public void testXmlInstantiatesFlow() throws Exception {
     assertThat(
-        getFlowClass(EppXmlTransformer.<EppInput>unmarshal(EXPECTED_XML_ONE.getBytes(UTF_8))))
-            .isEqualTo(DomainAllocateFlow.class);
+        getFlowClass(EppXmlTransformer.<EppInput>unmarshal(
+            readResourceBytes(getClass(), "testdata/allocate_domain.xml").read())))
+                .isEqualTo(DomainAllocateFlow.class);
   }
 }

@@ -20,7 +20,6 @@ import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Maps.filterValues;
 import static com.google.common.io.Resources.getResource;
-import static google.registry.flows.EppServletUtils.APPLICATION_EPP_XML_UTF8;
 import static google.registry.model.registry.Registries.findTldForNameOrThrow;
 import static google.registry.tools.CommandUtilities.addHeader;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
@@ -29,9 +28,11 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.net.InternetDomainName;
+import com.google.common.net.MediaType;
 import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.data.SoyRecord;
 import com.google.template.soy.parseinfo.SoyFileInfo;
@@ -42,6 +43,7 @@ import com.beust.jcommander.Parameter;
 import google.registry.model.registrar.Registrar;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -144,11 +146,14 @@ abstract class EppToolCommand extends ConfirmingCommand implements ServerSideCom
       params.put("dryRun", dryRun);
       params.put("clientIdentifier", command.clientId);
       params.put("superuser", superuser);
+      params.put("xml", URLEncoder.encode(command.xml, UTF_8.toString()));
+      String requestBody = Joiner.on('&').withKeyValueSeparator('=')
+          .join(filterValues(params, notNull()));
       responses.add(nullToEmpty(connection.send(
           "/_dr/epptool",
-          filterValues(params, notNull()),
-          APPLICATION_EPP_XML_UTF8,
-          command.xml.getBytes(UTF_8))));
+          ImmutableMap.<String, String>of(),
+          MediaType.FORM_DATA,
+          requestBody.getBytes(UTF_8))));
     }
     return responses.build();
   }
