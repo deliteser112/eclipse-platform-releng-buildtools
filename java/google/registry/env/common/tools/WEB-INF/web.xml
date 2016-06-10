@@ -61,17 +61,8 @@
   </servlet-mapping>
 
   <!--  ExecuteEppCommand uses this to execute remotely. -->
-  <servlet>
-    <description>
-      Execute epp from the registry tool.
-    </description>
-    <display-name>Registry tool EPP endpoint</display-name>
-    <servlet-name>epptool</servlet-name>
-    <servlet-class>google.registry.flows.EppToolServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>epptool</servlet-name>
+    <servlet-name>tools-servlet</servlet-name>
     <url-pattern>/_dr/epptool</url-pattern>
   </servlet-mapping>
 

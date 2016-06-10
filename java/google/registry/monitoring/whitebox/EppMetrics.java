@@ -15,12 +15,17 @@
 package google.registry.monitoring.whitebox;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.apphosting.api.ApiProxy;
 import com.google.common.collect.ImmutableList;
 
 import google.registry.bigquery.BigqueryUtils.FieldType;
 import google.registry.model.eppoutput.Result.Code;
+import google.registry.request.RequestScope;
+
+import javax.inject.Inject;
 
 /** The EPP Metrics collector. See {@link Metrics}. */
+@RequestScope
 public class EppMetrics extends Metrics {
 
   static final String EPPMETRICS_TABLE_ID = "eppMetrics";
@@ -37,9 +42,14 @@ public class EppMetrics extends Metrics {
           new TableFieldSchema().setName("eppStatus").setType(FieldType.INTEGER.name()),
           new TableFieldSchema().setName("attempts").setType(FieldType.INTEGER.name()));
 
+  @Inject
   public EppMetrics() {
     setTableId(EPPMETRICS_TABLE_ID);
     fields.put("attempts", 0);
+    fields.put(
+        "requestId",
+        ApiProxy.getCurrentEnvironment().getAttributes()
+            .get("com.google.appengine.runtime.request_log_id").toString());
   }
 
   public void setCommandName(String name) {
@@ -56,10 +66,6 @@ public class EppMetrics extends Metrics {
 
   public void setEppTarget(String eppTarget) {
     fields.put("eppTarget", eppTarget);
-  }
-
-  public void setRequestId(String requestId) {
-    fields.put("requestId", requestId);
   }
 
   public void setEppStatus(Code status) {

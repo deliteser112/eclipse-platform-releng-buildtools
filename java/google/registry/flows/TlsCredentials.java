@@ -16,75 +16,66 @@ package google.registry.flows;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static google.registry.request.RequestParameters.extractOptionalHeader;
+import static google.registry.request.RequestParameters.extractRequiredHeader;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.InetAddresses;
 
+import dagger.Module;
+import dagger.Provides;
+
 import google.registry.flows.EppException.AuthenticationErrorException;
 import google.registry.model.registrar.Registrar;
+import google.registry.request.Header;
 import google.registry.util.CidrAddressBlock;
 import google.registry.util.FormattingLogger;
 
 import java.net.InetAddress;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * Container and validation for TLS certificate and ip-whitelisting.
+ *
+ * <p>Credentials are based on the following headers:
+ * <dl>
+ *   <dt>X-GFE-Requested-Servername-SNI
+ *   <dd>
+ *     This field should contain a base64 encoded digest of the client's TLS certificate. It is
+ *     validated during an EPP login command against a known good value that is transmitted out of
+ *     band.
+ *   <dt>X-Forwarded-For
+ *   <dd>
+ *     This field should contain the host and port of the connecting client. It is validated during
+ *     an EPP login command against an IP whitelist that is transmitted out of band.
+ *   <dt>X-GFE-Requested-Servername-SNI
+ *   <dd>
+ *     This field should contain the servername that the client requested during the TLS handshake.
+ *     It is unused, but expected to be present in the GFE-proxied configuration.
+ * </dl>
  */
-public final class TlsCredentials implements TransportCredentials {
-
-  /** Registrar certificate does not match stored certificate. */
-  public static class BadRegistrarCertificateException extends AuthenticationErrorException {
-    public BadRegistrarCertificateException() {
-      super("Registrar certificate does not match stored certificate");
-    }
-  }
-
-  /** Registrar certificate not present. */
-  public static class MissingRegistrarCertificateException extends AuthenticationErrorException {
-    public MissingRegistrarCertificateException() {
-      super("Registrar certificate not present");
-    }
-  }
-
-  /** SNI header is required. */
-  public static class NoSniException extends AuthenticationErrorException {
-    public NoSniException() {
-      super("SNI header is required");
-    }
-  }
-
-  /** Registrar IP address is not in stored whitelist. */
-  public static class BadRegistrarIpAddressException extends AuthenticationErrorException {
-    public BadRegistrarIpAddressException() {
-      super("Registrar IP address is not in stored whitelist");
-    }
-  }
+public class TlsCredentials implements TransportCredentials {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private final String clientCertificateHash;
-  private final InetAddress clientInetAddr;
   private final String sni;
+  private final InetAddress clientInetAddr;
 
+  @Inject
   @VisibleForTesting
-  public TlsCredentials(String clientCertificateHash, InetAddress clientInetAddr, String sni) {
+  public TlsCredentials(
+      @Header("X-GFE-SSL-Certificate") String clientCertificateHash,
+      @Header("X-Forwarded-For") Optional<String> clientAddress,
+      @Header("X-GFE-Requested-Servername-SNI") String sni) {
     this.clientCertificateHash = clientCertificateHash;
-    this.clientInetAddr = clientInetAddr;
+    this.clientInetAddr = clientAddress.isPresent() ? parseInetAddress(clientAddress.get()) : null;
     this.sni = sni;
-  }
-
-  /**
-   * Extracts the client TLS certificate and source internet address
-   * from the given HTTP request.
-   */
-  TlsCredentials(HttpServletRequest req) {
-    this(req.getHeader(EppTlsServlet.SSL_CLIENT_CERTIFICATE_HASH_FIELD),
-        parseInetAddress(req.getHeader(EppTlsServlet.FORWARDED_FOR_FIELD)),
-        req.getHeader(EppTlsServlet.REQUESTED_SERVERNAME_VIA_SNI_FIELD));
   }
 
   static InetAddress parseInetAddress(String asciiAddr) {
@@ -155,7 +146,7 @@ public final class TlsCredentials implements TransportCredentials {
       if (!hasSni()) {
         throw new NoSniException();
       }
-      logger.infofmt("Request did not include %s", EppTlsServlet.SSL_CLIENT_CERTIFICATE_HASH_FIELD);
+      logger.infofmt("Request did not include %s", "X-GFE-SSL-Certificate");
       throw new MissingRegistrarCertificateException();
     }
     if (!clientCertificateHash.equals(registrar.getClientCertificateHash())
@@ -174,8 +165,58 @@ public final class TlsCredentials implements TransportCredentials {
     return toStringHelper(getClass())
         .add("system hash code", System.identityHashCode(this))
         .add("clientCertificateHash", clientCertificateHash)
-        .add("clientInetAddress", clientInetAddr)
+        .add("clientAddress", clientInetAddr)
         .add("sni", sni)
         .toString();
+  }
+
+  /** Registrar certificate does not match stored certificate. */
+  public static class BadRegistrarCertificateException extends AuthenticationErrorException {
+    public BadRegistrarCertificateException() {
+      super("Registrar certificate does not match stored certificate");
+    }
+  }
+
+  /** Registrar certificate not present. */
+  public static class MissingRegistrarCertificateException extends AuthenticationErrorException {
+    public MissingRegistrarCertificateException() {
+      super("Registrar certificate not present");
+    }
+  }
+
+  /** SNI header is required. */
+  public static class NoSniException extends AuthenticationErrorException {
+    public NoSniException() {
+      super("SNI header is required");
+    }
+  }
+
+  /** Registrar IP address is not in stored whitelist. */
+  public static class BadRegistrarIpAddressException extends AuthenticationErrorException {
+    public BadRegistrarIpAddressException() {
+      super("Registrar IP address is not in stored whitelist");
+    }
+  }
+
+  /** Dagger module for the EPP TLS endpoint. */
+  @Module
+  public static final class EppTlsModule {
+    @Provides
+    @Header("X-GFE-SSL-Certificate")
+    static String provideClientCertificateHash(HttpServletRequest req) {
+      return extractRequiredHeader(req, "X-GFE-SSL-Certificate");
+    }
+
+    @Provides
+    @Header("X-Forwarded-For")
+    static Optional<String> provideForwardedFor(HttpServletRequest req) {
+      return extractOptionalHeader(req, "X-Forwarded-For");
+    }
+
+    @Provides
+    @Header("X-GFE-Requested-Servername-SNI")
+    static String provideRequestedServername(HttpServletRequest req) {
+      return extractRequiredHeader(req, "X-GFE-Requested-Servername-SNI");
+    }
   }
 }

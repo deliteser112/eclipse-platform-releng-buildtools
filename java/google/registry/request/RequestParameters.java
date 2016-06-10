@@ -198,5 +198,14 @@ public final class RequestParameters {
     return result;
   }
 
+  /**
+   * Returns an {@link Optional} of the first HTTP header associated with {@code name}, or empty.
+   *
+   * @param name case insensitive header name
+   */
+  public static Optional<String> extractOptionalHeader(HttpServletRequest req, String name) {
+    return Optional.fromNullable(req.getHeader(name));
+  }
+
   private RequestParameters() {}
 }

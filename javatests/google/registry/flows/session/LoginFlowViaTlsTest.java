@@ -16,6 +16,7 @@ package google.registry.flows.session;
 
 import static google.registry.testing.DatastoreHelper.persistResource;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
 
@@ -30,21 +31,22 @@ import google.registry.util.CidrAddressBlock;
 
 import org.junit.Test;
 
-import java.net.InetAddress;
-
 /** Unit tests for {@link LoginFlow} when accessed via a TLS transport. */
 public class LoginFlowViaTlsTest extends LoginFlowTestCase {
+
   private static final String GOOD_CERT = CertificateSamples.SAMPLE_CERT_HASH;
   private static final String BAD_CERT = CertificateSamples.SAMPLE_CERT2_HASH;
-  private static final InetAddress GOOD_IP = InetAddresses.forString("192.168.1.1");
-  private static final InetAddress BAD_IP = InetAddresses.forString("1.1.1.1");
+  private static final Optional<String> GOOD_IP = Optional.of("192.168.1.1");
+  private static final Optional<String> BAD_IP = Optional.of("1.1.1.1");
+  private static final Optional<String> GOOD_IPV6 = Optional.of("2001:db8::1");
+  private static final Optional<String> BAD_IPV6 = Optional.of("2001:db8::2");
 
   @Override
   protected Registrar.Builder getRegistrarBuilder() {
     return super.getRegistrarBuilder()
         .setClientCertificateHash(GOOD_CERT)
         .setIpAddressWhitelist(ImmutableList.of(
-            CidrAddressBlock.create(GOOD_IP, 32)));
+            CidrAddressBlock.create(InetAddresses.forString(GOOD_IP.get()), 32)));
   }
 
   @Test
@@ -62,7 +64,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create("2001:db8:0:0:0:0:1:1/32")))
             .build());
     sessionMetadata.setTransportCredentials(
-        new TlsCredentials(GOOD_CERT, InetAddresses.forString("2001:db8::1"), "goo.example"));
+        new TlsCredentials(GOOD_CERT, GOOD_IPV6, "goo.example"));
     doSuccessfulTest("login_valid.xml");
   }
 
@@ -74,7 +76,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create("2001:db8:0:0:0:0:1:1/32")))
             .build());
     sessionMetadata.setTransportCredentials(
-        new TlsCredentials(GOOD_CERT, InetAddresses.forString("2001:db8::1"), "goo.example"));
+        new TlsCredentials(GOOD_CERT, GOOD_IPV6, "goo.example"));
     doSuccessfulTest("login_valid.xml");
   }
 
@@ -85,8 +87,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
             .setIpAddressWhitelist(ImmutableList.of(
                 CidrAddressBlock.create("192.168.1.255/24")))
             .build());
-    sessionMetadata.setTransportCredentials(
-        new TlsCredentials(GOOD_CERT, InetAddresses.forString("192.168.1.1"), "goo.example"));
+    sessionMetadata.setTransportCredentials(new TlsCredentials(GOOD_CERT, GOOD_IP, "goo.example"));
     doSuccessfulTest("login_valid.xml");
   }
 
@@ -119,7 +120,8 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create(InetAddresses.forString("192.168.1.1"), 32),
                 CidrAddressBlock.create(InetAddresses.forString("2001:db8::1"), 128)))
             .build());
-    sessionMetadata.setTransportCredentials(new TlsCredentials(GOOD_CERT, null, "goo.example"));
+    sessionMetadata.setTransportCredentials(
+        new TlsCredentials(GOOD_CERT, Optional.<String>empty(), "goo.example"));
     doFailingTest("login_valid.xml", BadRegistrarIpAddressException.class);
   }
 
@@ -143,8 +145,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create(InetAddresses.forString("192.168.1.1"), 32),
                 CidrAddressBlock.create(InetAddresses.forString("2001:db8::1"), 128)))
             .build());
-    sessionMetadata.setTransportCredentials(
-        new TlsCredentials(GOOD_CERT, InetAddresses.forString("2001:db8::2"), "goo.example"));
+    sessionMetadata.setTransportCredentials(new TlsCredentials(GOOD_CERT, BAD_IPV6, "goo.example"));
     doFailingTest("login_valid.xml", BadRegistrarIpAddressException.class);
   }
 }

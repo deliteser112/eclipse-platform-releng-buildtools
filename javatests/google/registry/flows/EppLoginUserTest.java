@@ -14,9 +14,10 @@
 
 package google.registry.flows;
 
-
+import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
+import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableSet;
 
 import google.registry.model.registrar.Registrar;
@@ -28,36 +29,38 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
-/** Tests for {@link EppConsoleServlet}. */
-@RunWith(MockitoJUnitRunner.class)
-public class EppConsoleServletTest extends EppServletXmlLoginTestCase<EppConsoleServlet> {
+/** Test logging in with appengine user credentials, such as via the console. */
+@RunWith(JUnit4.class)
+public class EppLoginUserTest extends EppTestCase {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
-      .withTaskQueue()
-      .withUserService(UserInfo.create(GAE_USER_EMAIL, GAE_USER_ID))
+      .withUserService(UserInfo.create("person@example.com", "12345"))
       .build();
-
-  private static final String GAE_USER_ID = "12345";
-  private static final String GAE_USER_EMAIL = "person@example.com";
 
   @Before
   public void initTest() throws Exception {
-    Registrar registrar = Registrar.loadByClientId("NewRegistrar");
-    RegistrarContact contact = new RegistrarContact.Builder()
-        .setParent(registrar)
-        .setEmailAddress(GAE_USER_EMAIL)
+    User user = getUserService().getCurrentUser();
+    persistResource(new RegistrarContact.Builder()
+        .setParent(Registrar.loadByClientId("NewRegistrar"))
+        .setEmailAddress(user.getEmail())
+        .setGaeUserId(user.getUserId())
         .setTypes(ImmutableSet.of(RegistrarContact.Type.ADMIN))
-        .setGaeUserId(GAE_USER_ID)
-        .build();
-    persistResource(contact);
+        .build());
+    setTransportCredentials(new GaeUserCredentials(user));
   }
 
   @Test
-  public void testNonAuthedLogin() throws Exception {
+  public void testLoginLogout() throws Exception {
+    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
+
+  @Test
+  public void testNonAuthedLogin_fails() throws Exception {
     assertCommandAndResponse("login2_valid.xml", "login_response_unauthorized_role.xml");
   }
 
@@ -68,5 +71,12 @@ public class EppConsoleServletTest extends EppServletXmlLoginTestCase<EppConsole
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     assertCommandAndResponse("logout.xml", "logout_response.xml");
     assertCommandAndResponse("login2_valid.xml", "login_response_unauthorized_role.xml");
+  }
+  
+  @Test
+  public void testLoginLogout_wrongPasswordStillWorks() throws Exception {
+    // For user-based logins the password in the epp xml is ignored.
+    assertCommandAndResponse("login_invalid_wrong_password.xml", "login_response.xml");
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
 }

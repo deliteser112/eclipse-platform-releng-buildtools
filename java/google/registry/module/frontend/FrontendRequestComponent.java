@@ -16,6 +16,9 @@ package google.registry.module.frontend;
 
 import dagger.Subcomponent;
 
+import google.registry.flows.EppConsoleAction;
+import google.registry.flows.EppTlsAction;
+import google.registry.flows.TlsCredentials.EppTlsModule;
 import google.registry.rdap.RdapAutnumAction;
 import google.registry.rdap.RdapDomainAction;
 import google.registry.rdap.RdapDomainSearchAction;
@@ -28,6 +31,8 @@ import google.registry.rdap.RdapNameserverAction;
 import google.registry.rdap.RdapNameserverSearchAction;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
+import google.registry.ui.server.api.CheckApiAction;
+import google.registry.ui.server.api.CheckApiAction.CheckApiModule;
 import google.registry.ui.server.registrar.ConsoleUiAction;
 import google.registry.ui.server.registrar.RegistrarPaymentAction;
 import google.registry.ui.server.registrar.RegistrarPaymentSetupAction;
@@ -40,13 +45,18 @@ import google.registry.whois.WhoisServer;
 @RequestScope
 @Subcomponent(
     modules = {
+        CheckApiModule.class,
+        EppTlsModule.class,
         RdapModule.class,
         RegistrarUserModule.class,
         RequestModule.class,
         WhoisModule.class,
     })
 interface FrontendRequestComponent {
+  CheckApiAction checkApiAction();
   ConsoleUiAction consoleUiAction();
+  EppConsoleAction eppConsoleAction();
+  EppTlsAction eppTlsAction();
   RdapAutnumAction rdapAutnumAction();
   RegistrarPaymentAction registrarPaymentAction();
   RegistrarPaymentSetupAction registrarPaymentSetupAction();

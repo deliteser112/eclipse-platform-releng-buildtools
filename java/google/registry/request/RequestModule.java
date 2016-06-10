@@ -37,6 +37,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /** Dagger module for servlets. */
 @Module
@@ -53,6 +54,11 @@ public final class RequestModule {
   @Provides
   static Response provideResponse(ResponseImpl response) {
     return response;
+  }
+
+  @Provides
+  HttpSession provideHttpSession() {
+    return req.getSession();
   }
 
   @Provides

@@ -29,11 +29,16 @@ public final class RegistryTestServer {
 
   public static final ImmutableMap<String, Path> RUNFILES =
       new ImmutableMap.Builder<String, Path>()
-          .put("/index.html", Paths.get("java/google/registry/ui/html/index.html"))
-          .put("/error.html", Paths.get("java/google/registry/ui/html/error.html"))
+          .put(
+              "/index.html",
+              Paths.get("java/google/registry/ui/html/index.html"))
+          .put(
+              "/error.html",
+              Paths.get("java/google/registry/ui/html/error.html"))
           .put("/assets/js/*", Paths.get("java/google/registry/ui"))
           .put("/assets/css/*", Paths.get("java/google/registry/ui/css"))
-          .put("/assets/sources/deps.js",
+          .put(
+              "/assets/sources/deps.js",
               Paths.get("java/google/registry/ui/deps.js"))
           .put("/assets/sources/*", Paths.get(""))
           .put("/assets/*", Paths.get("java/google/registry/ui/assets"))
@@ -43,11 +48,11 @@ public final class RegistryTestServer {
       // Frontend Services
       route("/whois/*", google.registry.module.frontend.FrontendServlet.class),
       route("/rdap/*", google.registry.module.frontend.FrontendServlet.class),
-      route("/registrar-xhr", google.registry.flows.EppConsoleServlet.class),
-      route("/check", google.registry.ui.server.api.CheckApiServlet.class),
+      route("/registrar-xhr", google.registry.module.frontend.FrontendServlet.class),
+      route("/check", google.registry.module.frontend.FrontendServlet.class),
 
       // Proxy Services
-      route("/_dr/epp", google.registry.flows.EppTlsServlet.class),
+      route("/_dr/epp", google.registry.module.frontend.FrontendServlet.class),
       route("/_dr/whois", google.registry.module.frontend.FrontendServlet.class),
 
       // Registry Data Escrow (RDE)

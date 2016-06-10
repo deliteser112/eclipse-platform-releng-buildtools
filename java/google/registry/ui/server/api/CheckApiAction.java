@@ -31,6 +31,9 @@ import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
 import com.google.template.soy.tofu.SoyTofu;
 
+import dagger.Module;
+import dagger.Provides;
+
 import google.registry.config.RegistryEnvironment;
 import google.registry.flows.EppException;
 import google.registry.flows.EppXmlTransformer;
@@ -47,36 +50,32 @@ import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.CheckData.DomainCheck;
 import google.registry.model.eppoutput.CheckData.DomainCheckData;
 import google.registry.model.eppoutput.Response;
+import google.registry.request.Action;
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
 import google.registry.ui.soy.api.DomainCheckFeeEppSoyInfo;
+import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
 
-import java.io.IOException;
 import java.util.Map;
 
-import javax.servlet.http.HttpServlet;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * A servlet that returns availability and premium checks as json.
  *
- * <p>This servlet returns plain JSON without a safety prefix, so it's vital that the output not be
+ * <p>This action returns plain JSON without a safety prefix, so it's vital that the output not be
  * user controlled, lest it open an XSS vector. Do not modify this to return the domain name in the
  * response.
  */
-public class CheckApiServlet extends HttpServlet {
+@Action(path = "/check")
+public class CheckApiAction implements Runnable {
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private static final Supplier<SoyTofu> TOFU_SUPPLIER =
       createTofuSupplier(DomainCheckFeeEppSoyInfo.getInstance());
-
-  @Override
-  public void doGet(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-    Map<String, ?> response = doCheck(req.getParameter("domain"));
-    rsp.setHeader("Content-Disposition", "attachment");
-    rsp.setHeader("X-Content-Type-Options", "nosniff");
-    rsp.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-    rsp.setContentType(MediaType.JSON_UTF_8.toString());
-    rsp.getWriter().write(toJSONString(response));
-  }
 
   private StatelessRequestSessionMetadata sessionMetadata = new StatelessRequestSessionMetadata(
       RegistryEnvironment.get().config().getCheckApiServletRegistrarClientId(),
@@ -84,6 +83,21 @@ public class CheckApiServlet extends HttpServlet {
       false,
       ImmutableSet.of(FEE_0_6.getUri()),
       SessionSource.HTTP);
+
+  @Inject @Parameter("domain") String domain;
+  @Inject google.registry.request.Response response;
+  @Inject Clock clock;
+  @Inject CheckApiAction() {}
+
+  @Override
+  public void run() {
+    Map<String, ?> checkResponse = doCheck(domain);
+    response.setHeader("Content-Disposition", "attachment");
+    response.setHeader("X-Content-Type-Options", "nosniff");
+    response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+    response.setContentType(MediaType.JSON_UTF_8);
+    response.setPayload(toJSONString(checkResponse));
+  }
 
   // TODO(rgr): add whitebox instrumentation for this?
   private Map<String, ?> doCheck(String domainString) {
@@ -103,10 +117,11 @@ public class CheckApiServlet extends HttpServlet {
       Response response = new FlowRunner(
           DomainCheckFlow.class,
           EppXmlTransformer.<EppInput>unmarshal(inputXmlBytes),
-          Trid.create(CheckApiServlet.class.getSimpleName()),
+          Trid.create(getClass().getSimpleName()),
           sessionMetadata,
           inputXmlBytes,
-          null)
+          null,
+          clock)
               .run(CommitMode.LIVE, UserPrivileges.NORMAL)
               .getResponse();
       DomainCheckData checkData = (DomainCheckData) response.getResponseData().get(0);
@@ -127,7 +142,7 @@ public class CheckApiServlet extends HttpServlet {
     } catch (EppException e) {
       return fail(e.getMessage());
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.warning(e, "Unknown error");
       return fail("Invalid request");
     }
   }
@@ -136,5 +151,15 @@ public class CheckApiServlet extends HttpServlet {
     return ImmutableMap.of(
         "status", "error",
         "reason", reason);
+  }
+
+  /** Dagger module for the check api endpoint. */
+  @Module
+  public static final class CheckApiModule {
+    @Provides
+    @Parameter("domain")
+    static String provideDomain(HttpServletRequest req) {
+      return RequestParameters.extractRequiredParameter(req, "domain");
+    }
   }
 }

@@ -29,8 +29,6 @@ import google.registry.model.eppoutput.EppOutput;
 import google.registry.monitoring.whitebox.EppMetrics;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-import google.registry.util.NonFinalForTesting;
-import google.registry.util.SystemClock;
 import google.registry.util.TypeUtils;
 
 import org.joda.time.DateTime;
@@ -48,15 +46,13 @@ public class FlowRunner {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @NonFinalForTesting
-  private static Clock clock = new SystemClock();
-
   private final Class<? extends Flow> flowClass;
   private final EppInput eppInput;
   private final Trid trid;
   private final SessionMetadata sessionMetadata;
   private final byte[] inputXmlBytes;
   private final EppMetrics metrics;
+  private final Clock clock;
 
   public FlowRunner(
       Class<? extends Flow> flowClass,
@@ -64,13 +60,15 @@ public class FlowRunner {
       Trid trid,
       SessionMetadata sessionMetadata,
       byte[] inputXmlBytes,
-      final EppMetrics metrics) {
+      final EppMetrics metrics,
+      Clock clock) {
     this.flowClass = flowClass;
     this.eppInput = eppInput;
     this.trid = trid;
     this.sessionMetadata = sessionMetadata;
     this.inputXmlBytes = inputXmlBytes;
     this.metrics = metrics;
+    this.clock = clock;
   }
 
   public EppOutput run(

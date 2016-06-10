@@ -56,4 +56,8 @@ public class TestSessionMetadata extends SessionMetadata {
   public void setSessionSource(SessionSource source) {
     sessionSource = source;
   }
+
+  public boolean isValid() {
+    return isValid;
+  }
 }

@@ -99,7 +99,6 @@ public abstract class FlowTestCase<F extends Flow> {
     sessionMetadata.setSessionSource(SessionSource.NONE);
     ofy().saveWithoutBackup().entity(new ClaimsListSingleton()).now();
     inject.setStaticField(Ofy.class, "clock", clock);  // For transactional flows.
-    inject.setStaticField(FlowRunner.class, "clock", clock);  // For non-transactional flows.
   }
 
   protected void removeServiceExtensionUri(String uri) {
@@ -139,7 +138,8 @@ public abstract class FlowTestCase<F extends Flow> {
         getTrid(),
         sessionMetadata,
         "<xml></xml>".getBytes(),
-        null);
+        null,
+        clock);
   }
 
   protected Trid getTrid() throws Exception {

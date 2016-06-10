@@ -19,45 +19,34 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static org.mockito.Mockito.when;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeResponse;
+import google.registry.util.SystemClock;
 
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-/** Tests for {@link CheckApiServlet}. */
-@RunWith(MockitoJUnitRunner.class)
-public class CheckApiServletTest {
+/** Tests for {@link CheckApiAction}. */
+@RunWith(JUnit4.class)
+public class CheckApiActionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
 
-  @Mock HttpServletRequest req;
-  @Mock HttpServletResponse rsp;
-
-  private final StringWriter writer = new StringWriter();
-
-  private final CheckApiServlet servlet = new CheckApiServlet();
+  final CheckApiAction action = new CheckApiAction();
 
   @Before
   public void init() throws Exception {
@@ -67,51 +56,50 @@ public class CheckApiServletTest {
             .asBuilder()
             .setReservedLists(persistReservedList("example-reserved", "foo,FULLY_BLOCKED"))
             .build());
-    when(rsp.getWriter()).thenReturn(new PrintWriter(writer));
   }
 
-  private void doTest(Map<String, ?> expected) throws Exception {
-    servlet.doGet(req, rsp);
-    assertThat(JSONValue.parse(writer.toString())).isEqualTo(expected);
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> getCheckResponse(String domain) {
+    action.domain = domain;
+    action.response = new FakeResponse();
+    action.clock = new SystemClock();
+    action.run();
+    return (Map<String, Object>) JSONValue.parse(((FakeResponse) action.response).getPayload());
   }
 
   @Test
   public void testFailure_nullDomain() throws Exception {
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse(null)).containsExactly(
         "status", "error",
-        "reason", "Must supply a valid domain name on an authoritative TLD"));
+        "reason", "Must supply a valid domain name on an authoritative TLD");
   }
 
   @Test
   public void testFailure_emptyDomain() throws Exception {
-    when(req.getParameter("domain")).thenReturn("");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("")).containsExactly(
         "status", "error",
-        "reason", "Must supply a valid domain name on an authoritative TLD"));
+        "reason", "Must supply a valid domain name on an authoritative TLD");
   }
 
   @Test
   public void testFailure_invalidDomain() throws Exception {
-    when(req.getParameter("domain")).thenReturn("@#$%^");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("@#$%^")).containsExactly(
         "status", "error",
-        "reason", "Must supply a valid domain name on an authoritative TLD"));
+        "reason", "Must supply a valid domain name on an authoritative TLD");
   }
 
   @Test
   public void testFailure_singlePartDomain() throws Exception {
-    when(req.getParameter("domain")).thenReturn("foo");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("foo")).containsExactly(
         "status", "error",
-        "reason", "Must supply a valid domain name on an authoritative TLD"));
+        "reason", "Must supply a valid domain name on an authoritative TLD");
   }
 
   @Test
   public void testFailure_nonExistentTld() throws Exception {
-    when(req.getParameter("domain")).thenReturn("foo.bar");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("foo.bar")).containsExactly(
         "status", "error",
-        "reason", "Must supply a valid domain name on an authoritative TLD"));
+        "reason", "Must supply a valid domain name on an authoritative TLD");
   }
 
   @Test
@@ -122,73 +110,65 @@ public class CheckApiServletTest {
             .asBuilder()
             .setAllowedTlds(ImmutableSet.of("foo"))
             .build());
-    when(req.getParameter("domain")).thenReturn("timmy.example");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("timmy.example")).containsExactly(
         "status", "error",
-        "reason", "Registrar is not authorized to access the TLD example"));
+        "reason", "Registrar is not authorized to access the TLD example");
   }
 
   @Test
   public void testSuccess_availableStandard() throws Exception {
-    when(req.getParameter("domain")).thenReturn("somedomain.example");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("somedomain.example")).containsExactly(
         "status", "success",
         "available", true,
-        "tier", "standard"));
+        "tier", "standard");
   }
 
   @Test
   public void testSuccess_availableCapital() throws Exception {
-    when(req.getParameter("domain")).thenReturn("SOMEDOMAIN.EXAMPLE");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("SOMEDOMAIN.EXAMPLE")).containsExactly(
         "status", "success",
         "available", true,
-        "tier", "standard"));
+        "tier", "standard");
   }
 
   @Test
   public void testSuccess_availableUnicode() throws Exception {
-    when(req.getParameter("domain")).thenReturn("ééé.example");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("ééé.example")).containsExactly(
         "status", "success",
         "available", true,
-        "tier", "standard"));
+        "tier", "standard");
   }
 
   @Test
   public void testSuccess_availablePunycode() throws Exception {
-    when(req.getParameter("domain")).thenReturn("xn--9caaa.example");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("xn--9caaa.example")).containsExactly(
         "status", "success",
         "available", true,
-        "tier", "standard"));
+        "tier", "standard");
   }
 
   @Test
   public void testSuccess_availablePremium() throws Exception {
-    when(req.getParameter("domain")).thenReturn("rich.example");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("rich.example")).containsExactly(
         "status", "success",
         "available", true,
-        "tier", "premium"));
+        "tier", "premium");
   }
 
   @Test
   public void testSuccess_alreadyRegistered() throws Exception {
     persistActiveDomain("somedomain.example");
-    when(req.getParameter("domain")).thenReturn("somedomain.example");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("somedomain.example")).containsExactly(
         "status", "success",
         "available", false,
-        "reason", "In use"));
+        "reason", "In use");
   }
 
   @Test
   public void testSuccess_reserved() throws Exception {
-    when(req.getParameter("domain")).thenReturn("foo.example");
-    doTest(ImmutableMap.of(
+    assertThat(getCheckResponse("foo.example")).containsExactly(
         "status", "success",
         "available", false,
-        "reason", "Reserved"));
+        "reason", "Reserved");
   }
 }

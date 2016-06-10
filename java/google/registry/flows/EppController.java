@@ -18,7 +18,6 @@ import static google.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.flows.picker.FlowPicker.getFlowClass;
 
-import com.google.apphosting.api.ApiProxy;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -34,11 +33,11 @@ import google.registry.model.eppoutput.Result.Code;
 import google.registry.monitoring.whitebox.EppMetrics;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-import google.registry.util.SystemClock;
+
+import javax.inject.Inject;
 
 /**
- * The EppController class, which implements the state machine for the EPP command/response
- * protocol.
+ * An implementation of the EPP command/response protocol.
  *
  * @see "http://tools.ietf.org/html/rfc5730"
  */
@@ -46,18 +45,16 @@ public final class EppController {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  private static final Clock clock = new SystemClock();
+  @Inject Clock clock;
+  @Inject EppMetrics metrics;
+  @Inject EppController() {}
 
   /**
    * Read an EPP envelope from the client, find the matching flow, execute it, and return
    * the response marshalled to a byte array.
    */
-  public static byte[] handleEppCommand(byte[] inputXmlBytes, SessionMetadata sessionMetadata) {
+  public byte[] handleEppCommand(SessionMetadata sessionMetadata, byte[] inputXmlBytes) {
     Trid trid = null;
-    EppMetrics metrics = new EppMetrics();
-    metrics.setRequestId(
-        ApiProxy.getCurrentEnvironment().getAttributes().get(
-            "com.google.appengine.runtime.request_log_id").toString());
     try {
       EppInput eppInput = unmarshal(inputXmlBytes);
       trid = Trid.create(eppInput.getCommandWrapper().getClTrid());
@@ -71,14 +68,14 @@ public final class EppController {
       if (!targetIds.isEmpty()) {
         metrics.setEppTarget(Joiner.on(",").join(targetIds));
       }
-
       FlowRunner flowRunner = new FlowRunner(
           getFlowClass(eppInput),
           eppInput,
           trid,
           sessionMetadata,
           inputXmlBytes,
-          metrics);
+          metrics,
+          clock);
       EppOutput eppOutput = flowRunner.run(
           sessionMetadata.isDryRun() ? CommitMode.DRY_RUN : CommitMode.LIVE,
           sessionMetadata.isSuperuser() ? UserPrivileges.SUPERUSER : UserPrivileges.NORMAL);
@@ -89,12 +86,13 @@ public final class EppController {
     } catch (EppException e) {
       // The command failed. Send the client an error message.
       metrics.setEppStatus(e.getResult().getCode());
-      return marshalWithLenientRetry(getErrorResponse(e.getResult(), trid));
+      return marshalWithLenientRetry(getErrorResponse(clock, e.getResult(), trid));
     } catch (Throwable e) {
       // Something bad and unexpected happened. Send the client a generic error, and log it.
       logger.severe(e, "Unexpected failure");
       metrics.setEppStatus(Code.CommandFailed);
-      return marshalWithLenientRetry(getErrorResponse(Result.create(Code.CommandFailed), trid));
+      return marshalWithLenientRetry(
+          getErrorResponse(clock, Result.create(Code.CommandFailed), trid));
     } finally {
       metrics.export();
     }
@@ -102,7 +100,7 @@ public final class EppController {
 
   /** Create a response indicating an Epp failure. */
   @VisibleForTesting
-  static EppOutput getErrorResponse(Result result, Trid trid) {
+  static EppOutput getErrorResponse(Clock clock, Result result, Trid trid) {
     // Create TRID (without a clTRID) if one hasn't been created yet, as it's necessary to construct
     // a valid response. This can happen if the error occurred before we could even parse out the
     // clTRID (e.g. if a syntax error occurred parsing the supplied XML).

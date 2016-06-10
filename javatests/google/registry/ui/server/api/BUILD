@@ -21,6 +21,7 @@ java_library(
         "//third_party/java/truth",
         "//java/google/registry/model",
         "//java/google/registry/ui/server/api",
+        "//java/google/registry/util",
         "//javatests/google/registry/testing",
     ],
 )

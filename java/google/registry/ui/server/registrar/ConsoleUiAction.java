@@ -28,7 +28,7 @@ import com.google.template.soy.shared.SoyCssRenamingMap;
 import com.google.template.soy.tofu.SoyTofu;
 
 import google.registry.config.ConfigModule.Config;
-import google.registry.flows.EppConsoleServlet;
+import google.registry.flows.EppConsoleAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import google.registry.request.Response;
@@ -92,7 +92,7 @@ public final class ConsoleUiAction implements Runnable {
     }
     Registrar registrar = Registrar.loadByClientId(sessionUtils.getRegistrarClientId(req));
     SoyMapData data = new SoyMapData();
-    data.put("xsrfToken", XsrfTokenManager.generateToken(EppConsoleServlet.XSRF_SCOPE));
+    data.put("xsrfToken", XsrfTokenManager.generateToken(EppConsoleAction.XSRF_SCOPE));
     data.put("clientId", registrar.getClientIdentifier());
     data.put("username", userService.getCurrentUser().getNickname());
     data.put("isAdmin", userService.isUserAdmin());

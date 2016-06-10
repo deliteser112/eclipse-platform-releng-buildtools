@@ -14,10 +14,8 @@
 
 package google.registry.flows;
 
+import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 
-import static google.registry.testing.DatastoreHelper.persistResource;
-
-import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.UserInfo;
 
@@ -25,37 +23,39 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
-/** Tests for {@link EppConsoleServlet} running in admin mode. */
-@RunWith(MockitoJUnitRunner.class)
-public class EppConsoleAsAdminServletTest extends EppServletXmlLoginTestCase<EppConsoleServlet> {
+/** Test logging in with appengine admin user credentials. */
+@RunWith(JUnit4.class)
+public class EppLoginAdminUserTest extends EppTestCase {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
-      .withTaskQueue()
-      .withUserService(UserInfo.createAdmin(GAE_USER_EMAIL, GAE_USER_ID))
+      .withUserService(UserInfo.createAdmin("someone@example.com", "12345"))
       .build();
 
-  private static final String GAE_USER_ID = "12345";
-  private static final String GAE_USER_EMAIL = "someone@example.com";
-
-  // Note that the setup done in EppConsoleServletTest, of allowing
-  // the test user to login as the Registrar, is not done here.
   @Before
-  public void initTest() throws Exception {
-    persistResource(
-        Registrar.loadByClientId("NewRegistrar").asBuilder().setPassword("PwAdminDNKnow").build());
+  public void initTransportCredentials() {
+    setTransportCredentials(new GaeUserCredentials(getUserService().getCurrentUser()));
   }
 
   @Test
-  public void testNonAuthedLogin() throws Exception {
+  public void testNonAuthedLogin_succeedsAsAdmin() throws Exception {
+    // Login succeeds even though this user isn't listed on the registrar.
     assertCommandAndResponse("login2_valid.xml", "login_response.xml");
   }
 
   @Test
-  public void testMultiLogin() throws Exception {
+  public void testLoginLogout_wrongPasswordStillWorks() throws Exception {
+    // For user-based logins the password in the epp xml is ignored.
+    assertCommandAndResponse("login_invalid_wrong_password.xml", "login_response.xml");
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
+
+  @Test
+  public void testNonAuthedMultiLogin_succeedsAsAdmin() throws Exception {
+    // The admin can log in as different registrars.
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     assertCommandAndResponse("logout.xml", "logout_response.xml");
     assertCommandAndResponse("login_valid.xml", "login_response.xml");

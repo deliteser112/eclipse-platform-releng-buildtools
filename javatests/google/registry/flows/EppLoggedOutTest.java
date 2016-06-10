@@ -14,33 +14,41 @@
 
 package google.registry.flows;
 
-import static google.registry.flows.EppXmlTransformer.marshal;
+import static org.joda.time.DateTimeZone.UTC;
+import static org.joda.time.format.ISODateTimeFormat.dateTimeNoMillis;
 
-import google.registry.model.eppcommon.Trid;
-import google.registry.model.eppoutput.Result;
-import google.registry.model.eppoutput.Result.Code;
+import com.google.common.collect.ImmutableMap;
+
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ShardableTestCase;
-import google.registry.util.SystemClock;
-import google.registry.xml.ValidationMode;
 
+import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Unit tests for {@link EppController}. */
+/** Test flows without login. */
 @RunWith(JUnit4.class)
-public class EppControllerTest extends ShardableTestCase {
+public class EppLoggedOutTest extends EppTestCase {
 
   @Rule
-  public AppEngineRule appEngineRule = new AppEngineRule.Builder().build();
+  public final AppEngineRule appEngine = AppEngineRule.builder()
+      .withDatastore()
+      .build();
 
   @Test
-  public void testMarshallingUnknownError() throws Exception {
-    marshal(
-        EppController.getErrorResponse(
-            new SystemClock(), Result.create(Code.CommandFailed), Trid.create(null)),
-        ValidationMode.STRICT);
+  public void testHello() throws Exception {
+    DateTime now = DateTime.now(UTC);
+    assertCommandAndResponse(
+        "hello.xml",
+        null,
+        "greeting_crr.xml",
+        ImmutableMap.of("DATE", now.toString(dateTimeNoMillis())),
+        now);
+  }
+
+  @Test
+  public void testSyntaxError() throws Exception {
+    assertCommandAndResponse("syntax_error.xml", "syntax_error_response.xml");
   }
 }

@@ -14,7 +14,7 @@
 
 package google.registry.testing;
 
-import static google.registry.util.CollectionUtils.isNullOrEmpty;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import java.util.Map;
@@ -32,10 +32,8 @@ public final class TestDataHelper {
   public static String loadFileWithSubstitutions(
       Class<?> context, String filename, Map<String, String> substitutions) {
     String fileContents = readResourceUtf8(context, "testdata/" + filename);
-    if (!isNullOrEmpty(substitutions)) {
-      for (Entry<String, String> entry : substitutions.entrySet()) {
-        fileContents = fileContents.replaceAll("%" + entry.getKey() + "%", entry.getValue());
-      }
+    for (Entry<String, String> entry : nullToEmpty(substitutions).entrySet()) {
+      fileContents = fileContents.replaceAll("%" + entry.getKey() + "%", entry.getValue());
     }
     return fileContents;
   }

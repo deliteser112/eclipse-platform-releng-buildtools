@@ -18,6 +18,7 @@ java_library(
         "//third_party/java/servlet/servlet_api",
         "//java/google/registry/config",
         "//java/google/registry/export",
+        "//java/google/registry/flows",
         "//java/google/registry/gcs",
         "//java/google/registry/groups",
         "//java/google/registry/keyring/api",

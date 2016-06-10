@@ -87,7 +87,8 @@ public class EppResourceUtilsTest {
         Trid.create(null, "server-trid"),
         sessionMetadata,
         "<xml></xml>".getBytes(),
-        null)
+        null,
+        clock)
             .run(CommitMode.LIVE, UserPrivileges.NORMAL);
   }
 

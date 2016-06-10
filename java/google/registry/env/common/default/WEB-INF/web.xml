@@ -4,32 +4,24 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
                              http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
   <!-- Servlets -->
+
+  <!-- Servlet for injected frontend actions -->
   <servlet>
-    <description>
-      This is the primary EPP endpoint for the Registry.  It accepts
-      EPP XHRs from our TLS proxy.
-    </description>
-    <display-name>EPP</display-name>
-    <servlet-name>epp</servlet-name>
-    <servlet-class>google.registry.flows.EppTlsServlet</servlet-class>
+    <display-name>FrontendServlet</display-name>
+    <servlet-name>frontend-servlet</servlet-name>
+    <servlet-class>google.registry.module.frontend.FrontendServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
   </servlet>
+
+  <!-- The primary EPP endpoint for the Registry, which accepts EPP requests from our TLS proxy. -->
   <servlet-mapping>
-    <servlet-name>epp</servlet-name>
+    <servlet-name>frontend-servlet</servlet-name>
     <url-pattern>/_dr/epp</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <description>
-      Registrar Console XHR servlet.  Accepts EPP XHRs from GAE GAIA-authenticated frontend sessions.
-    </description>
-    <display-name>Registrar Console XHR</display-name>
-    <servlet-name>registrar-xhr</servlet-name>
-    <servlet-class>google.registry.flows.EppConsoleServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
+  <!-- Registrar Console endpoint, which accepts EPP XHRs from GAE GAIA-authenticated sessions. -->
   <servlet-mapping>
-    <servlet-name>registrar-xhr</servlet-name>
+    <servlet-name>frontend-servlet</servlet-name>
     <url-pattern>/registrar-xhr</url-pattern>
   </servlet-mapping>
 
@@ -43,14 +35,6 @@
     <servlet-name>registrar-settings</servlet-name>
     <url-pattern>/registrar-settings</url-pattern>
   </servlet-mapping>
-
-  <!-- Servlet for injected frontend actions -->
-  <servlet>
-    <display-name>FrontendServlet</display-name>
-    <servlet-name>frontend-servlet</servlet-name>
-    <servlet-class>google.registry.module.frontend.FrontendServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
 
   <!-- Registrar Console. -->
   <servlet-mapping>
@@ -89,17 +73,8 @@
   </servlet-mapping>
 
   <!-- Public API to do availability checks -->
-  <servlet>
-    <description>
-      Availability Check API.
-    </description>
-    <display-name>Availability Check</display-name>
-    <servlet-name>check</servlet-name>
-    <servlet-class>google.registry.ui.server.api.CheckApiServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>check</servlet-name>
+    <servlet-name>frontend-servlet</servlet-name>
     <url-pattern>/check</url-pattern>
   </servlet-mapping>
 
