@@ -30,7 +30,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.eppoutput.Response.ResponseData;
+import google.registry.model.eppoutput.EppResponse.ResponseData;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.transfer.TransferData;
 

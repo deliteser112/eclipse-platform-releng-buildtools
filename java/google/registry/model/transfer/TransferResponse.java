@@ -17,7 +17,7 @@ package google.registry.model.transfer;
 import com.googlecode.objectify.annotation.Embed;
 
 import google.registry.model.EppResource;
-import google.registry.model.eppoutput.Response.ResponseData;
+import google.registry.model.eppoutput.EppResponse.ResponseData;
 
 import org.joda.time.DateTime;
 

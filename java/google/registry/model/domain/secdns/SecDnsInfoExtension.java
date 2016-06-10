@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.annotation.Embed;
 
 import google.registry.model.ImmutableObject;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

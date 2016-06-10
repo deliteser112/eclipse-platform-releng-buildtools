@@ -14,7 +14,7 @@
 
 package google.registry.model.domain;
 
-import google.registry.model.eppoutput.Response.ResponseData;
+import google.registry.model.eppoutput.EppResponse.ResponseData;
 
 import org.joda.time.DateTime;
 

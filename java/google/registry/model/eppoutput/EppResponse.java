@@ -60,7 +60,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * The Response class represents an EPP response message.
+ * The EppResponse class represents an EPP response message.
  *
  * <p>From the RFC: "An EPP server responds to a client command by returning a response to the
  * client.  EPP commands are atomic, so a command will either succeed completely or fail completely.
@@ -69,7 +69,7 @@ import javax.xml.bind.annotation.XmlType;
  * @see "http://tools.ietf.org/html/rfc5730#section-2.6"
  */
 @XmlType(propOrder = {"result", "messageQueueInfo", "resData", "extensions", "trid"})
-public class Response extends ImmutableObject implements ResponseOrGreeting {
+public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
 
   /** The TRID associated with this response. */
   @XmlElement(name = "trID")
@@ -165,8 +165,8 @@ public class Response extends ImmutableObject implements ResponseOrGreeting {
   /** Marker interface for types that can go in the {@link #extensions} field. */
   public interface ResponseExtension {}
 
-  /** Builder for {@link Response} because it is immutable. */
-  public static class Builder extends Buildable.Builder<Response> {
+  /** Builder for {@link EppResponse} because it is immutable. */
+  public static class Builder extends Buildable.Builder<EppResponse> {
     public Builder setTrid(Trid trid) {
       getInstance().trid = trid;
       return this;

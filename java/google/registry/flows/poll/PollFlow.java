@@ -26,9 +26,9 @@ import google.registry.flows.EppException;
 import google.registry.flows.LoggedInFlow;
 import google.registry.model.eppinput.EppInput.Poll;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.eppoutput.Response;
-import google.registry.model.eppoutput.Response.ResponseData;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse;
+import google.registry.model.eppoutput.EppResponse.ResponseData;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.poll.MessageQueueInfo;
 import google.registry.model.poll.PollMessage;
@@ -79,7 +79,7 @@ public abstract class PollFlow extends LoggedInFlow {
       MessageQueueInfo messageQueueInfo,
       ImmutableList<ResponseData> responseData,
       ImmutableList<ResponseExtension> responseExtensions) {
-    return EppOutput.create(new Response.Builder()
+    return EppOutput.create(new EppResponse.Builder()
         .setTrid(trid)
         .setResult(Result.create(code))
         .setMessageQueueInfo(messageQueueInfo)

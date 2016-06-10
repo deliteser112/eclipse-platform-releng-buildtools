@@ -43,7 +43,7 @@ import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.CreateData.DomainCreateData;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.AbstractSignedMark;

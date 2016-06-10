@@ -18,7 +18,7 @@ import com.google.common.collect.ImmutableList;
 
 import google.registry.model.Buildable.GenericBuilder;
 import google.registry.model.ImmutableObject;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 
 import org.joda.money.CurrencyUnit;
 

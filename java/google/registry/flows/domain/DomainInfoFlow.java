@@ -27,7 +27,7 @@ import google.registry.model.domain.fee.FeeInfoResponseExtension;
 import google.registry.model.domain.regtype.RegTypeInfoResponseExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.rgp.RgpInfoExtension;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 
 import java.util.List;
 

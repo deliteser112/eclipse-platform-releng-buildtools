@@ -21,9 +21,9 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.EppInput.CommandExtension;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.eppoutput.Response;
-import google.registry.model.eppoutput.Response.ResponseData;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse;
+import google.registry.model.eppoutput.EppResponse.ResponseData;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.eppoutput.Result;
 
 import org.joda.time.DateTime;
@@ -83,7 +83,7 @@ public abstract class Flow {
       Result.Code code,
       ResponseData responseData,
       ImmutableList<? extends ResponseExtension> extensions) {
-    return EppOutput.create(new Response.Builder()
+    return EppOutput.create(new EppResponse.Builder()
         .setTrid(trid)
         .setResult(Result.create(code))
         .setExecutionTime(now)

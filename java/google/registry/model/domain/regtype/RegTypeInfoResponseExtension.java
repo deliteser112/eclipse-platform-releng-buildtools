@@ -16,7 +16,7 @@ package google.registry.model.domain.regtype;
 
 import com.google.common.base.Joiner;
 
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 
 import java.util.List;
 

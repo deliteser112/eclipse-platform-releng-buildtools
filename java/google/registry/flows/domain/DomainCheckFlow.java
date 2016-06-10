@@ -41,7 +41,7 @@ import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppoutput.CheckData;
 import google.registry.model.eppoutput.CheckData.DomainCheck;
 import google.registry.model.eppoutput.CheckData.DomainCheckData;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservationType;

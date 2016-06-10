@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "epp")
 public class EppOutput extends ImmutableObject {
   @XmlElements({
-      @XmlElement(name = "response", type = Response.class),
+      @XmlElement(name = "response", type = EppResponse.class),
       @XmlElement(name = "greeting", type = Greeting.class) })
   ResponseOrGreeting responseOrGreeting;
 
@@ -38,15 +38,15 @@ public class EppOutput extends ImmutableObject {
 
   @VisibleForTesting
   public boolean isSuccess() {
-    return ((Response) responseOrGreeting).result.getCode().isSuccess();
+    return ((EppResponse) responseOrGreeting).result.getCode().isSuccess();
   }
 
-  public Response getResponse() {
-    return (Response) responseOrGreeting;
+  public EppResponse getResponse() {
+    return (EppResponse) responseOrGreeting;
   }
 
   public boolean isResponse() {
-    return responseOrGreeting instanceof Response;
+    return responseOrGreeting instanceof EppResponse;
   }
 
   /** Marker interface for types allowed inside of an {@link EppOutput}. */

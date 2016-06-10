@@ -27,7 +27,7 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainApplication.Builder;
 import google.registry.model.domain.launch.LaunchInfoExtension;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.mark.Mark;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;

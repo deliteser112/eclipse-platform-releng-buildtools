@@ -28,7 +28,7 @@ import google.registry.model.domain.launch.LaunchCheckResponseExtension;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension.LaunchCheck;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension.LaunchCheckName;
 import google.registry.model.eppoutput.CheckData;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.tmch.ClaimsListShard;

@@ -49,10 +49,11 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.CheckData.DomainCheck;
 import google.registry.model.eppoutput.CheckData.DomainCheckData;
-import google.registry.model.eppoutput.Response;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
+import google.registry.request.Response;
 import google.registry.ui.soy.api.DomainCheckFeeEppSoyInfo;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
@@ -77,15 +78,16 @@ public class CheckApiAction implements Runnable {
   private static final Supplier<SoyTofu> TOFU_SUPPLIER =
       createTofuSupplier(DomainCheckFeeEppSoyInfo.getInstance());
 
-  private StatelessRequestSessionMetadata sessionMetadata = new StatelessRequestSessionMetadata(
-      RegistryEnvironment.get().config().getCheckApiServletRegistrarClientId(),
-      false,
-      false,
-      ImmutableSet.of(FEE_0_6.getUri()),
-      SessionSource.HTTP);
+  private final StatelessRequestSessionMetadata sessionMetadata =
+      new StatelessRequestSessionMetadata(
+          RegistryEnvironment.get().config().getCheckApiServletRegistrarClientId(),
+          false,
+          false,
+          ImmutableSet.of(FEE_0_6.getUri()),
+          SessionSource.HTTP);
 
   @Inject @Parameter("domain") String domain;
-  @Inject google.registry.request.Response response;
+  @Inject Response response;
   @Inject Clock clock;
   @Inject CheckApiAction() {}
 
@@ -114,7 +116,7 @@ public class CheckApiAction implements Runnable {
           .setData(ImmutableMap.of("domainName", domainString))
           .render()
           .getBytes(UTF_8);
-      Response response = new FlowRunner(
+      EppResponse response = new FlowRunner(
           DomainCheckFlow.class,
           EppXmlTransformer.<EppInput>unmarshal(inputXmlBytes),
           Trid.create(getClass().getSimpleName()),

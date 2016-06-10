@@ -17,7 +17,7 @@ package google.registry.model.eppoutput;
 import com.google.common.collect.ImmutableList;
 
 import google.registry.model.ImmutableObject;
-import google.registry.model.eppoutput.Response.ResponseData;
+import google.registry.model.eppoutput.EppResponse.ResponseData;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;

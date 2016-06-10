@@ -42,7 +42,7 @@ import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeTransferExtension;
 import google.registry.model.domain.fee.FeeTransferResponseExtension;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;

@@ -51,7 +51,7 @@ import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.eppoutput.Response;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.eppoutput.Result.Code;
 import google.registry.model.host.HostResource;
@@ -435,7 +435,7 @@ public class DomainResourceTest extends EntityTestCase {
         new LocalRpcService.Status(), MemcacheFlushRequest.newBuilder().build());
     int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
     EppXmlTransformer.marshal(
-        EppOutput.create(new Response.Builder()
+        EppOutput.create(new EppResponse.Builder()
             .setResult(Result.create(Code.Success))
             .setResData(ImmutableList.of(domain))
             .setTrid(Trid.create(null, "abc"))

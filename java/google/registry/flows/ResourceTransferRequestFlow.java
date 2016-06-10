@@ -33,8 +33,8 @@ import google.registry.model.EppResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.eppoutput.Response.ResponseData;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseData;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
@@ -62,7 +62,7 @@ import java.util.Set;
   private DateTime transferExpirationTime;
 
   /** Helper class to identify the two clients. */
-  protected abstract class Client {
+  protected abstract static class Client {
     public abstract String getId();
   }
 

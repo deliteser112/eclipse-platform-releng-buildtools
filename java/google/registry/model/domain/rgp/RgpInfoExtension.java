@@ -17,7 +17,7 @@ package google.registry.model.domain.rgp;
 import com.google.common.collect.ImmutableSet;
 
 import google.registry.model.ImmutableObject;
-import google.registry.model.eppoutput.Response.ResponseExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

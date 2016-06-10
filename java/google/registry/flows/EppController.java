@@ -27,7 +27,7 @@ import google.registry.flows.FlowRunner.UserPrivileges;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.eppoutput.Response;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.eppoutput.Result.Code;
 import google.registry.monitoring.whitebox.EppMetrics;
@@ -104,7 +104,7 @@ public final class EppController {
     // Create TRID (without a clTRID) if one hasn't been created yet, as it's necessary to construct
     // a valid response. This can happen if the error occurred before we could even parse out the
     // clTRID (e.g. if a syntax error occurred parsing the supplied XML).
-    return EppOutput.create(new Response.Builder()
+    return EppOutput.create(new EppResponse.Builder()
         .setTrid(trid == null ? Trid.create(null) : trid)
         .setResult(result)
         .setExecutionTime(clock.nowUtc())
