@@ -235,7 +235,7 @@ public class DatastoreHelper {
       .setServerStatusChangeBillingCost(Money.of(USD, 19))
       // Always set a default premium list. Tests that don't want it can delete it.
       .setPremiumList(persistPremiumList(tld, DEFAULT_PREMIUM_LIST_CONTENTS.get()))
-      .setPricingEngineClass(StaticPremiumListPricingEngine.class)
+      .setPremiumPricingEngineClass(StaticPremiumListPricingEngine.class)
       .build();
   }
 

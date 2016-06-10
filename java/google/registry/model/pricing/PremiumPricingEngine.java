@@ -19,8 +19,13 @@ import com.google.common.base.Optional;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
-/** A plugin interface for premium pricing engines. */
-public interface PricingEngine {
+/**
+ * A plugin interface for premium pricing engines.
+ *
+ * <p>A premium pricing engine is responsible solely for determining whether a given label is
+ * premium or not, and if it is, how much it should cost.
+ */
+public interface PremiumPricingEngine {
 
   /**
    * Returns the prices for the given fully qualified domain name at the given time.
@@ -31,9 +36,9 @@ public interface PricingEngine {
   public DomainPrices getDomainPrices(String fullyQualifiedDomainName, DateTime priceTime);
 
   /**
-   * A class containing information on prices for a specific domain name.
+   * A class containing information on premium prices for a specific domain name.
    *
-   * <p>Any implementation of PricingEngine is responsible for determining all of these.
+   * <p>Any implementation of PremiumPricingEngine is responsible for determining all of these.
    */
   public static class DomainPrices {
 
@@ -42,20 +47,17 @@ public interface PricingEngine {
     // create, renew, restore, and transfer.
     private Money createCost;
     private Money renewCost;
-    private Optional<Money> oneTimeFee;
     private Optional<String> feeClass;
 
     static DomainPrices create(
         boolean isPremium,
         Money createCost,
         Money renewCost,
-        Optional<Money> oneTimeFee,
         Optional<String> feeClass) {
       DomainPrices instance = new DomainPrices();
       instance.isPremium = isPremium;
       instance.createCost = createCost;
       instance.renewCost = renewCost;
-      instance.oneTimeFee = oneTimeFee;
       instance.feeClass = feeClass;
       return instance;
     }
@@ -73,15 +75,6 @@ public interface PricingEngine {
     /** Returns the cost to renew the domain. */
     public Money getRenewCost() {
       return renewCost;
-    }
-
-    /**
-     * Returns the one time fee to register a domain if there is one.
-     *
-     * <p>This is primarily used for EAP registration fees.
-     */
-    public Optional<Money> getOneTimeFee() {
-      return oneTimeFee;
     }
 
     /** Returns the fee class of the cost (used for the Fee extension). */

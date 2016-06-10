@@ -22,8 +22,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
-import google.registry.model.pricing.PricingEngine;
-import google.registry.model.pricing.PricingEngine.DomainPrices;
+import google.registry.model.pricing.PremiumPricingEngine;
+import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
 import google.registry.model.registry.Registry;
 
 import org.joda.money.Money;
@@ -33,22 +33,22 @@ import java.util.Map;
 
 /**
  * A global proxy providing static methods for getting premium prices that dispatches requests
- * correctly to the relevant {@link PricingEngine} implementation per TLD.
+ * correctly to the relevant {@link PremiumPricingEngine} implementation per TLD.
  */
 public final class PricingEngineProxy {
 
-  private static final Map<Class<? extends PricingEngine>, PricingEngine> pricingEngineClasses =
-      DaggerPricingComponent.create().pricingEngines();
+  private static final Map<Class<? extends PremiumPricingEngine>, PremiumPricingEngine>
+      premiumPricingEngineClasses = DaggerPricingComponent.create().premiumPricingEngines();
 
   // Dagger map keys have to be provided with constant values that are known at compile time, so it
   // can't be done using clazz.getCanonicalName().  So we construct the map by canonical name here,
   // at runtime.
-  private static final ImmutableMap<String, PricingEngine> pricingEngines =
+  private static final ImmutableMap<String, PremiumPricingEngine> premiumPricingEngines =
       Maps.uniqueIndex(
-          pricingEngineClasses.values(),
-          new Function<PricingEngine, String>() {
+          premiumPricingEngineClasses.values(),
+          new Function<PremiumPricingEngine, String>() {
             @Override
-            public String apply(PricingEngine pricingEngine) {
+            public String apply(PremiumPricingEngine pricingEngine) {
               return pricingEngine.getClass().getCanonicalName();
             }});
 
@@ -66,13 +66,13 @@ public final class PricingEngineProxy {
 
   /**
    * Returns the full {@link DomainPrices} details for the given domain name by dispatching to the
-   * appropriate {@link PricingEngine} based on what is configured for the TLD that the domain is
-   * under.
+   * appropriate {@link PremiumPricingEngine} based on what is configured for the TLD that the
+   * domain is under.
    */
   public static DomainPrices getPricesForDomainName(String domainName, DateTime priceTime) {
     String tld = getTldFromDomainName(domainName);
-    String clazz = Registry.get(tld).getPricingEngineClassName();
-    PricingEngine engine = pricingEngines.get(clazz);
+    String clazz = Registry.get(tld).getPremiumPricingEngineClassName();
+    PremiumPricingEngine engine = premiumPricingEngines.get(clazz);
     checkState(engine != null, "Could not load pricing engine %s for TLD %s", clazz, tld);
     return engine.getDomainPrices(domainName, priceTime);
   }

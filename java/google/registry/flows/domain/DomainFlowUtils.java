@@ -79,7 +79,7 @@ import google.registry.model.mark.Mark;
 import google.registry.model.mark.ProtectedMark;
 import google.registry.model.mark.Trademark;
 import google.registry.model.poll.PollMessage;
-import google.registry.model.pricing.PricingEngine.DomainPrices;
+import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;

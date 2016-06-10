@@ -19,29 +19,29 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
 
-import google.registry.model.pricing.PricingEngine;
+import google.registry.model.pricing.PremiumPricingEngine;
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 
 /**
  * Dagger module for injecting pricing engines.
  *
- * <p>To add a new pricing engine, create a new class that implements {@link PricingEngine}, and add
- * a module that provides an instance of PricingEngine with a <code>PricingEngineClassKey</code>
- * annotation with the class of the implementation and also <code>@Provides @IntoMap</code>
- * annotations.
+ * <p>To add a new pricing engine, create a new class that implements {@link PremiumPricingEngine},
+ * and add a module that provides an instance of PricingEngine with a
+ * <code>PricingEngineClassKey</code> annotation with the class of the implementation and also
+ * <code>@Provides @IntoMap</code> annotations.
  */
 @Module
 public class PricingModule {
 
   /** The annotation used for PricingEngine implementation keys. */
   @MapKey
-  @interface PricingEngineClassKey {
-    Class<? extends PricingEngine> value();
+  @interface PremiumPricingEngineClassKey {
+    Class<? extends PremiumPricingEngine> value();
   }
 
   @Provides @IntoMap
-  @PricingEngineClassKey(StaticPremiumListPricingEngine.class)
-  static PricingEngine provideStaticPremiumList(StaticPremiumListPricingEngine engine) {
+  @PremiumPricingEngineClassKey(StaticPremiumListPricingEngine.class)
+  static PremiumPricingEngine provideStaticPremiumList(StaticPremiumListPricingEngine engine) {
     return engine;
   }
 }

@@ -35,7 +35,7 @@ import org.joda.time.DateTime;
 import javax.inject.Inject;
 
 /** A premium list pricing engine that stores static pricing information in Datastore entities. */
-public final class StaticPremiumListPricingEngine implements PricingEngine {
+public final class StaticPremiumListPricingEngine implements PremiumPricingEngine {
 
   @Inject StaticPremiumListPricingEngine() {}
 
@@ -61,7 +61,6 @@ public final class StaticPremiumListPricingEngine implements PricingEngine {
         premiumPrice.isPresent(),
         premiumPrice.or(registry.getStandardCreateCost()),
         premiumPrice.or(registry.getStandardRenewCost(priceTime)),
-        Optional.<Money>absent(),
         Optional.<String>fromNullable(feeClass));
   }
 }

@@ -245,7 +245,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
           oldRegistry == null
               ? new Registry.Builder()
                   .setTldStr(tld)
-                  .setPricingEngineClass(StaticPremiumListPricingEngine.class)
+                  .setPremiumPricingEngineClass(StaticPremiumListPricingEngine.class)
               : oldRegistry.asBuilder();
 
       if (escrow != null) {

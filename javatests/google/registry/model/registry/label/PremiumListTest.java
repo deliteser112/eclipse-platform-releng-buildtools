@@ -74,7 +74,7 @@ public class PremiumListTest {
     persistResource(
         new Registry.Builder()
             .setTldStr("ghost")
-            .setPricingEngineClass(StaticPremiumListPricingEngine.class)
+            .setPremiumPricingEngineClass(StaticPremiumListPricingEngine.class)
             .build());
     assertThat(Registry.get("ghost").getPremiumList()).isNull();
     assertThat(getPremiumPrice("blah", "ghost")).isAbsent();

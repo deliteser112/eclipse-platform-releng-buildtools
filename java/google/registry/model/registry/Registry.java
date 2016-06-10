@@ -57,7 +57,7 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.common.TimedTransitionProperty;
 import google.registry.model.common.TimedTransitionProperty.TimedTransition;
-import google.registry.model.pricing.PricingEngine;
+import google.registry.model.pricing.PremiumPricingEngine;
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservedList;
@@ -533,7 +533,7 @@ public class Registry extends ImmutableObject implements Buildable {
     return claimsPeriodEnd;
   }
 
-  public String getPricingEngineClassName() {
+  public String getPremiumPricingEngineClassName() {
     return pricingEngineClassName;
   }
 
@@ -603,7 +603,8 @@ public class Registry extends ImmutableObject implements Buildable {
       return this;
     }
 
-    public Builder setPricingEngineClass(Class<? extends PricingEngine> pricingEngineClass) {
+    public Builder setPremiumPricingEngineClass(
+        Class<? extends PremiumPricingEngine> pricingEngineClass) {
       getInstance().pricingEngineClassName =
           checkArgumentNotNull(pricingEngineClass).getCanonicalName();
       return this;
