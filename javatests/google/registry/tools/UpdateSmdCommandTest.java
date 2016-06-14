@@ -77,7 +77,7 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
   public void testSuccess() throws Exception {
     DateTime before = new DateTime(UTC);
     String smdFile = writeToTmpFile(ACTIVE_SMD);
-    runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
+    runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile, "--reason=testing");
 
     EncodedSignedMark encodedSignedMark = TmchData.readEncodedSignedMark(ACTIVE_SMD);
     assertAboutApplications().that(reloadDomainApplication())
@@ -86,7 +86,9 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
         .hasLastEppUpdateClientId("TheRegistrar").and()
         .hasOnlyOneHistoryEntryWhich()
             .hasType(HistoryEntry.Type.DOMAIN_APPLICATION_UPDATE).and()
-            .hasClientId("TheRegistrar");
+            .hasClientId("TheRegistrar").and()
+            .hasMetadataReason("UpdateSmdCommand: testing").and()
+            .hasNoXml();
   }
 
   @Test

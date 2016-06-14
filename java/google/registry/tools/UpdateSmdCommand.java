@@ -57,6 +57,11 @@ final class UpdateSmdCommand implements RemoteApiCommand {
       required = true)
   private Path smdFile;
 
+  @Parameter(
+      names = "--reason",
+      description = "Special reason for the SMD update to record in the history entry.")
+  private String reason;
+
   @Override
   public void run() throws Exception {
     final EncodedSignedMark encodedSignedMark =
@@ -66,14 +71,15 @@ final class UpdateSmdCommand implements RemoteApiCommand {
         @Override
         public void vrun() {
           try {
-            updateSmd(id, encodedSignedMark);
+            updateSmd(id, encodedSignedMark, reason);
           } catch (EppException e) {
             throw new RuntimeException(e);
           }
         }});
   }
 
-  private void updateSmd(String applicationId, EncodedSignedMark encodedSignedMark)
+  private static void updateSmd(
+      String applicationId, EncodedSignedMark encodedSignedMark, String reason)
       throws EppException {
     ofy().assertInTransaction();
     DateTime now = ofy().getTransactionTime();
@@ -105,6 +111,7 @@ final class UpdateSmdCommand implements RemoteApiCommand {
         .setModificationTime(now)
         .setClientId(domainApplication.getCurrentSponsorClientId())
         .setBySuperuser(true)
+        .setReason("UpdateSmdCommand" + (reason != null ? ": " + reason : ""))
         .build();
 
     // Save entities to datastore.
