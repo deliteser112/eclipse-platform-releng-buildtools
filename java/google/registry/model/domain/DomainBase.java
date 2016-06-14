@@ -205,7 +205,8 @@ public abstract class DomainBase extends EppResource {
     return FluentIterable
         .from(nullToEmpty(allContacts))
         .filter(IS_REGISTRANT)
-        .getOnlyElement()
+        .first()
+        .get()
         .getContactRef();
   }
 
