@@ -33,7 +33,6 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CRLException;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
@@ -140,12 +139,7 @@ public final class X509Utils {
       X509Certificate rootCert, X509CRL crl, @Tainted X509Certificate cert, Date now)
           throws GeneralSecurityException {
     cert.checkValidity(checkNotNull(now, "now"));
-    try {
-      cert.verify(rootCert.getPublicKey());
-    } catch (CertificateException e) {
-      propagateIfInstanceOf(e, CertificateException.class);
-      throw new CertificateEncodingException(e);  // Coercion by specification.
-    }
+    cert.verify(rootCert.getPublicKey());
     if (crl.isRevoked(cert)) {
       X509CRLEntry entry = crl.getRevokedCertificate(cert);
       throw new CertificateRevokedException(
