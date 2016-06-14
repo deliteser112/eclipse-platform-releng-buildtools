@@ -266,14 +266,21 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
    */
   public PremiumList saveAndUpdateEntries() {
     final Optional<PremiumList> oldPremiumList = get(name);
-    // Save the new child entities in a series of transactions.
-    for (final List<PremiumListEntry> batch
-        : partition(premiumListMap.values(), TRANSACTION_BATCH_SIZE)) {
-      ofy().transactNew(new VoidWork() {
-        @Override
-        public void vrun() {
-          ofy().save().entities(batch);
-        }});
+    // Only update entries if there's actually a new revision of the list to save (which there will
+    // be if the list content changes, vs just the description/metadata).
+    boolean entriesToUpdate =
+        !oldPremiumList.isPresent()
+            || !Objects.equals(oldPremiumList.get().revisionKey, this.revisionKey);
+    // If needed, save the new child entities in a series of transactions.
+    if (entriesToUpdate) {
+      for (final List<PremiumListEntry> batch
+          : partition(premiumListMap.values(), TRANSACTION_BATCH_SIZE)) {
+        ofy().transactNew(new VoidWork() {
+          @Override
+          public void vrun() {
+            ofy().save().entities(batch);
+          }});
+      }
     }
     // Save the new PremiumList itself.
     PremiumList updated = ofy().transactNew(new Work<PremiumList>() {
@@ -296,8 +303,8 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
         }});
     // Update the cache.
     PremiumList.cache.put(name, updated);
-    // Delete the entities under the old PremiumList, if any.
-    if (oldPremiumList.isPresent()) {
+    // If needed and there are any, delete the entities under the old PremiumList.
+    if (entriesToUpdate && oldPremiumList.isPresent()) {
       oldPremiumList.get().deleteEntries();
     }
     return updated;

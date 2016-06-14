@@ -180,6 +180,40 @@ public class PremiumListTest {
   }
 
   @Test
+  public void test_saveAndUpdateEntries_twiceOnUnchangedList() throws Exception {
+    PremiumList pl =
+        new PremiumList.Builder()
+            .setName("pl")
+            .setPremiumListMapFromLines(ImmutableList.of("test,USD 1"))
+            .build()
+            .saveAndUpdateEntries();
+    Map<String, PremiumListEntry> entries = pl.getPremiumListEntries();
+    assertThat(entries.keySet()).containsExactly("test");
+    assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);
+    // Save again with no changes, and clear the cache to force a re-load from datastore.
+    pl.saveAndUpdateEntries();
+    ofy().clearSessionCache();
+    assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);
+  }
+
+  @Test
+  public void test_saveAndUpdateEntries_twiceOnListWithOnlyMetadataChanges() throws Exception {
+    PremiumList pl =
+        new PremiumList.Builder()
+            .setName("pl")
+            .setPremiumListMapFromLines(ImmutableList.of("test,USD 1"))
+            .build()
+            .saveAndUpdateEntries();
+    Map<String, PremiumListEntry> entries = pl.getPremiumListEntries();
+    assertThat(entries.keySet()).containsExactly("test");
+    assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);
+    // Save again with description changed, and clear the cache to force a re-load from datastore.
+    pl.asBuilder().setDescription("foobar").build().saveAndUpdateEntries();
+    ofy().clearSessionCache();
+    assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);
+  }
+
+  @Test
   public void testDelete() throws Exception {
     persistPremiumList("gtld1", "trombone,USD 10");
     assertThat(PremiumList.get("gtld1")).isPresent();
