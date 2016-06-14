@@ -20,8 +20,6 @@ import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -69,7 +67,12 @@ public class Cursor extends ImmutableObject {
      */
     RDE_UPLOAD_SFTP(Registry.class),
 
-    /** Cursor for ensuring rolling transactional isolation of recurring billing expansion. */
+    /**
+     * Cursor for ensuring rolling transactional isolation of recurring billing expansion. The
+     * value of this cursor represents the exclusive upper bound on the range of billing times
+     * for which Recurring billing events have been expanded (i.e. the inclusive first billing time
+     * for the next expansion job).
+     */
     RECURRING_BILLING(EntityGroupRoot.class);
 
     /** See the definition of scope on {@link #getScopeClass}. */
@@ -120,16 +123,14 @@ public class Cursor extends ImmutableObject {
   }
 
   /** Creates a unique key for a given scope and cursor type. */
-  @VisibleForTesting
-  static Key<Cursor> createKey(CursorType cursorType, ImmutableObject scope) {
+  public static Key<Cursor> createKey(CursorType cursorType, ImmutableObject scope) {
     Key<? extends ImmutableObject> scopeKey = Key.create(scope);
     checkValidCursorTypeForScope(cursorType, scopeKey);
     return Key.create(getCrossTldKey(), Cursor.class, generateId(cursorType, scopeKey));
   }
 
   /** Creates a unique key for a given global cursor type. */
-  @VisibleForTesting
-  static Key<Cursor> createGlobalKey(CursorType cursorType) {
+  public static Key<Cursor> createGlobalKey(CursorType cursorType) {
     checkArgument(
         cursorType.getScopeClass().equals(EntityGroupRoot.class),
         "Cursor type is not a global cursor.");

@@ -17,6 +17,7 @@ package google.registry.request;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.RequestParameters.extractBooleanParameter;
 import static google.registry.request.RequestParameters.extractEnumParameter;
+import static google.registry.request.RequestParameters.extractOptionalDatetimeParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
 import static google.registry.request.RequestParameters.extractRequiredMaybeEmptyParameter;
@@ -182,6 +183,26 @@ public class RequestParametersTest {
     when(req.getParameter("timeParam")).thenReturn("Tuesday at three o'clock");
     thrown.expect(BadRequestException.class, "timeParam");
     extractRequiredDatetimeParameter(req, "timeParam");
+  }
+
+  @Test
+  public void testExtractOptionalDatetimeParameter_correctValue_works() throws Exception {
+    when(req.getParameter("timeParam")).thenReturn("2015-08-27T13:25:34.123Z");
+    assertThat(extractOptionalDatetimeParameter(req, "timeParam"))
+        .hasValue(DateTime.parse("2015-08-27T13:25:34.123Z"));
+  }
+
+  @Test
+  public void testExtractOptionalDatetimeParameter_badValue_throwsBadRequest() throws Exception {
+    when(req.getParameter("timeParam")).thenReturn("Tuesday at three o'clock");
+    thrown.expect(BadRequestException.class, "timeParam");
+    extractOptionalDatetimeParameter(req, "timeParam");
+  }
+
+  @Test
+  public void testExtractOptionalDatetimeParameter_empty_returnsAbsent() throws Exception {
+    when(req.getParameter("timeParam")).thenReturn("");
+    assertThat(extractOptionalDatetimeParameter(req, "timeParam")).isAbsent();
   }
 
   @Test

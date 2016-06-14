@@ -15,13 +15,19 @@
 package google.registry.module.backend;
 
 import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.request.RequestParameters.extractOptionalDatetimeParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
+
+import com.google.common.base.Optional;
 
 import dagger.Module;
 import dagger.Provides;
 
+import google.registry.billing.ExpandRecurringBillingEventsAction;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
+
+import org.joda.time.DateTime;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -35,5 +41,12 @@ public class BackendModule {
   @Parameter(RequestParameters.PARAM_TLD)
   static String provideTld(HttpServletRequest req) {
     return assertTldExists(extractRequiredParameter(req, RequestParameters.PARAM_TLD));
+  }
+
+  @Provides
+  @Parameter("cursorTime")
+  static Optional<DateTime> provideCursorTime(HttpServletRequest req) {
+    return extractOptionalDatetimeParameter(
+        req, ExpandRecurringBillingEventsAction.PARAM_CURSOR_TIME);
   }
 }

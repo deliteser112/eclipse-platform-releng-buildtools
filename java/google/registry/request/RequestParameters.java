@@ -161,6 +161,25 @@ public final class RequestParameters {
   }
 
   /**
+   * Returns first request parameter associated with {@code name} parsed as an
+   * <a href="https://goo.gl/pk5Q2k">ISO 8601</a> timestamp, e.g. {@code 1984-12-18TZ},
+   * {@code 2000-01-01T16:20:00Z}.
+   *
+   * @throws BadRequestException if request parameter is present but not a valid {@link DateTime}.
+   */
+  public static Optional<DateTime> extractOptionalDatetimeParameter(
+      HttpServletRequest req, String name) {
+    String stringParam = req.getParameter(name);
+    try {
+      return isNullOrEmpty(stringParam)
+          ? Optional.<DateTime>absent()
+          : Optional.of(DateTime.parse(stringParam));
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestException("Bad ISO 8601 timestamp: " + name);
+    }
+  }
+
+  /**
    * Returns first request parameter associated with {@code name} parsed as an optional
    * {@link InetAddress} (which might be IPv6).
    *
