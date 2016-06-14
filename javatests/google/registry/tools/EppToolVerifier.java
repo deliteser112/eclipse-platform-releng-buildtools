@@ -14,17 +14,14 @@
 
 package google.registry.tools;
 
-import static com.google.common.collect.Iterables.pairUp;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Arrays.asList;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.google.common.base.Pair;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
@@ -82,12 +79,16 @@ public class EppToolVerifier {
         params.capture());
     List<byte[]> capturedParams = params.getAllValues();
     assertThat(capturedParams).hasSize(xmlToMatch.length);
-    for (Pair<String, byte[]> xmlAndParams : pairUp(asList(xmlToMatch), capturedParams)) {
-      Map<String, String> map = Splitter.on('&').withKeyValueSeparator('=')
-          .split(new String(xmlAndParams.getSecond(), UTF_8));
+    for (int i = 0; i < xmlToMatch.length; i++) {
+      String xml = xmlToMatch[i];
+      byte[] capturedParam = capturedParams.get(i);
+      Map<String, String> map =
+          Splitter.on('&')
+              .withKeyValueSeparator('=')
+              .split(new String(capturedParam, UTF_8));
       assertThat(map).hasSize(4);
       assertXmlEquals(
-          readResourceUtf8(getClass(), "testdata/" + xmlAndParams.getFirst()),
+          readResourceUtf8(getClass(), "testdata/" + xml),
           URLDecoder.decode(map.get("xml"), UTF_8.toString()));
       assertThat(map).containsEntry("dryRun", Boolean.toString(dryRun));
       assertThat(map).containsEntry("clientIdentifier", clientIdentifier);

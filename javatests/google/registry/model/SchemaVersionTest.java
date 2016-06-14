@@ -37,7 +37,7 @@ public class SchemaVersionTest {
   private static final String GOLDEN_SCHEMA_FILE = "schema.txt";
 
   private static final String UPDATE_COMMAND =
-      "google.registry.tools.RegistryTool -e localhost "
+      "google.registry.tools.RegistryTool -e localhost get_schema "
       + ">javatests/google/registry/model/schema.txt";
 
   private static final String UPDATE_INSTRUCTIONS = Joiner.on('\n').join(

@@ -286,7 +286,7 @@ public class LoadTestAction implements Runnable {
       tasks.add(TaskOptions.Builder.withUrl("/_dr/epptool")
           .etaMillis(start.getMillis() + offsetMillis)
           .payload(
-              Joiner.on('&').withKeyValueSeparator('=').join(
+              Joiner.on('&').withKeyValueSeparator("=").join(
                   ImmutableMap.of(
                       "clientIdentifier", clientId,
                       "superuser", false,
