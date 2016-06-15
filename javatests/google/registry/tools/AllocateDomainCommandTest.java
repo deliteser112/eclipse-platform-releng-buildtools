@@ -18,6 +18,7 @@ import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.toByteArray;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.flows.picker.FlowPicker.getFlowClass;
 import static google.registry.model.domain.DesignatedContact.Type.ADMIN;
 import static google.registry.model.domain.DesignatedContact.Type.BILLING;
@@ -37,7 +38,6 @@ import com.google.common.collect.ImmutableSet;
 import com.beust.jcommander.ParameterException;
 import com.googlecode.objectify.Ref;
 
-import google.registry.flows.EppXmlTransformer;
 import google.registry.flows.domain.DomainAllocateFlow;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainApplication;
@@ -157,9 +157,8 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
 
   @Test
   public void testXmlInstantiatesFlow() throws Exception {
-    assertThat(
-        getFlowClass(EppXmlTransformer.<EppInput>unmarshal(
-            readResourceBytes(getClass(), "testdata/allocate_domain.xml").read())))
-                .isEqualTo(DomainAllocateFlow.class);
+    byte[] xmlBytes = readResourceBytes(getClass(), "testdata/allocate_domain.xml").read();
+    assertThat(getFlowClass(unmarshal(EppInput.class, xmlBytes)))
+        .isEqualTo(DomainAllocateFlow.class);
   }
 }

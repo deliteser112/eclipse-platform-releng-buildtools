@@ -297,7 +297,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
       if (xmlBytes == null) {
         return;
       }
-      final EppInput eppInput = unmarshal(xmlBytes);
+      final EppInput eppInput = unmarshal(EppInput.class, xmlBytes);
       if (!statCounts.addAll(
           FluentIterable.from(EnumSet.allOf(StatType.class))
               .filter(

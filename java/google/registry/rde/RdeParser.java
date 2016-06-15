@@ -184,7 +184,7 @@ public class RdeParser {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         t.transform(new StAXSource(reader), new StreamResult(bout));
         ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
-        Object element = XjcXmlTransformer.unmarshal(bin);
+        Object element = XjcXmlTransformer.unmarshal(Object.class, bin);
         return element;
       } else {
         throw new IllegalStateException(String.format("Not at element %s:%s", uri, name));

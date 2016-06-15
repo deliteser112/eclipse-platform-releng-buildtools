@@ -200,8 +200,9 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.run();
     executeTasksUntilEmpty("mapreduce", clock);
 
-    XjcRdeDeposit deposit =
-        unmarshal(Ghostryde.decode(readGcsFile(gcsService, XML_FILE), decryptKey).getData());
+    XjcRdeDeposit deposit = unmarshal(
+        XjcRdeDeposit.class,
+        Ghostryde.decode(readGcsFile(gcsService, XML_FILE), decryptKey).getData());
     XjcRdeHeader header = extractAndRemoveContentWithType(XjcRdeHeader.class, deposit);
 
     assertThat(header.getTld()).isEqualTo("lol");
@@ -230,8 +231,9 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.run();
     executeTasksUntilEmpty("mapreduce", clock);
 
-    XjcRdeDeposit deposit =
-        unmarshal(Ghostryde.decode(readGcsFile(gcsService, XML_FILE), decryptKey).getData());
+    XjcRdeDeposit deposit = unmarshal(
+        XjcRdeDeposit.class,
+        Ghostryde.decode(readGcsFile(gcsService, XML_FILE), decryptKey).getData());
     assertThat(deposit.getType()).isEqualTo(XjcRdeDepositTypeType.FULL);
     assertThat(deposit.getId()).isEqualTo(RdeUtil.timestampToId(DateTime.parse("2000-01-01TZ")));
     assertThat(deposit.getWatermark()).isEqualTo(DateTime.parse("2000-01-01TZ"));
@@ -271,8 +273,9 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.run();
     executeTasksUntilEmpty("mapreduce", clock);
 
-    XjcRdeDeposit deposit =
-        unmarshal(Ghostryde.decode(readGcsFile(gcsService, XML_FILE), decryptKey).getData());
+    XjcRdeDeposit deposit = unmarshal(
+        XjcRdeDeposit.class,
+        Ghostryde.decode(readGcsFile(gcsService, XML_FILE), decryptKey).getData());
     XjcRdeRegistrar registrar1 = extractAndRemoveContentWithType(XjcRdeRegistrar.class, deposit);
     XjcRdeRegistrar registrar2 = extractAndRemoveContentWithType(XjcRdeRegistrar.class, deposit);
     XjcRdeHeader header = extractAndRemoveContentWithType(XjcRdeHeader.class, deposit);
@@ -349,8 +352,9 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     for (GcsFilename filename : asList(
         new GcsFilename("rde-bucket", "fop_1971-01-01_full_S1_R0.xml.ghostryde"),
         new GcsFilename("rde-bucket", "fop_1971-01-05_thin_S1_R0.xml.ghostryde"))) {
-      XjcRdeDeposit deposit =
-          unmarshal(Ghostryde.decode(readGcsFile(gcsService, filename), decryptKey).getData());
+      XjcRdeDeposit deposit = unmarshal(
+          XjcRdeDeposit.class,
+          Ghostryde.decode(readGcsFile(gcsService, filename), decryptKey).getData());
       XjcRdeRegistrar registrar1 = extractAndRemoveContentWithType(XjcRdeRegistrar.class, deposit);
       XjcRdeRegistrar registrar2 = extractAndRemoveContentWithType(XjcRdeRegistrar.class, deposit);
       XjcRdeHeader header = extractAndRemoveContentWithType(XjcRdeHeader.class, deposit);
@@ -377,8 +381,9 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     executeTasksUntilEmpty("mapreduce", clock);
 
     GcsFilename filename = new GcsFilename("rde-bucket", "fop_2000-01-01_full_S1_R0.xml.ghostryde");
-    XjcRdeDeposit deposit =
-        unmarshal(Ghostryde.decode(readGcsFile(gcsService, filename), decryptKey).getData());
+    XjcRdeDeposit deposit = unmarshal(
+        XjcRdeDeposit.class,
+        Ghostryde.decode(readGcsFile(gcsService, filename), decryptKey).getData());
     XjcRdeDomain domain = extractAndRemoveContentWithType(XjcRdeDomain.class, deposit);
     XjcRdeIdn firstIdn = extractAndRemoveContentWithType(XjcRdeIdn.class, deposit);
     XjcRdeHeader header = extractAndRemoveContentWithType(XjcRdeHeader.class, deposit);
@@ -494,16 +499,17 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.run();
     executeTasksUntilEmpty("mapreduce", clock);
 
-    XjcRdeDeposit deposit =
-        unmarshal(readXml("fop_2000-01-01_full_S1_R0.xml.ghostryde").getBytes(UTF_8));
+    XjcRdeDeposit deposit = unmarshal(
+        XjcRdeDeposit.class,
+        readXml("fop_2000-01-01_full_S1_R0.xml.ghostryde").getBytes(UTF_8));
     assertThat(deposit.getResend()).isEqualTo(0);
 
     setCursor(Registry.get("fop"), RDE_STAGING, DateTime.parse("2000-01-01TZ"));
     action.response = new FakeResponse();
     action.run();
     executeTasksUntilEmpty("mapreduce", clock);
-
-    deposit = unmarshal(readXml("fop_2000-01-01_full_S1_R1.xml.ghostryde").getBytes(UTF_8));
+    deposit = unmarshal(
+        XjcRdeDeposit.class, readXml("fop_2000-01-01_full_S1_R1.xml.ghostryde").getBytes(UTF_8));
     assertThat(deposit.getResend()).isEqualTo(1);
   }
 
@@ -621,7 +627,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
       }});
   }
 
-  public static <T> T unmarshal(byte[] xml) throws XmlException {
-    return XjcXmlTransformer.unmarshal(new ByteArrayInputStream(xml));
+  public static <T> T unmarshal(Class<T> clazz, byte[] xml) throws XmlException {
+    return XjcXmlTransformer.unmarshal(clazz, new ByteArrayInputStream(xml));
   }
 }

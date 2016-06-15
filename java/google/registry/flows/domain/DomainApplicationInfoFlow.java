@@ -87,7 +87,7 @@ public class DomainApplicationInfoFlow extends BaseDomainInfoFlow<DomainApplicat
     if (includeMarks) {
       for (EncodedSignedMark encodedMark : existingResource.getEncodedSignedMarks()) {
         try {
-          marksBuilder.add(((SignedMark) unmarshal(encodedMark.getBytes())).getMark());
+          marksBuilder.add(unmarshal(SignedMark.class, encodedMark.getBytes()).getMark());
         } catch (EppException e) {
           // This is a serious error; don't let the benign EppException propagate.
           throw new IllegalStateException("Could not decode a stored encoded signed mark");

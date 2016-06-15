@@ -64,8 +64,8 @@ public class XjcXmlTransformer {
     return INSTANCE;
   }
 
-  public static <T> T unmarshal(InputStream stream) throws XmlException {
-    return INSTANCE.unmarshal(stream);
+  public static <T> T unmarshal(Class<T> clazz, InputStream stream) throws XmlException {
+    return INSTANCE.unmarshal(clazz, stream);
   }
 
   public static void marshalLenient(Object root, Writer writer) throws XmlException {

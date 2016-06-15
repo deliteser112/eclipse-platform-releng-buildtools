@@ -69,7 +69,8 @@ public class RdeReporter {
 
   /** Uploads {@code reportBytes} to ICANN. */
   public void send(byte[] reportBytes) throws IOException, XmlException {
-    XjcRdeReportReport report = XjcXmlTransformer.unmarshal(new ByteArrayInputStream(reportBytes));
+    XjcRdeReportReport report = XjcXmlTransformer.unmarshal(
+        XjcRdeReportReport.class, new ByteArrayInputStream(reportBytes));
     XjcRdeHeader header = report.getHeader().getValue();
 
     // Send a PUT request to ICANN's HTTPS server.
@@ -109,8 +110,8 @@ public class RdeReporter {
   private XjcIirdeaResult parseResult(HTTPResponse rsp) throws XmlException {
     byte[] responseBytes = rsp.getContent();
     logger.infofmt("Received response:\n%s", new String(responseBytes, UTF_8));
-    XjcIirdeaResponseElement response =
-        XjcXmlTransformer.unmarshal(new ByteArrayInputStream(responseBytes));
+    XjcIirdeaResponseElement response = XjcXmlTransformer.unmarshal(
+        XjcIirdeaResponseElement.class, new ByteArrayInputStream(responseBytes));
     XjcIirdeaResult result = response.getResult();
     return result;
   }

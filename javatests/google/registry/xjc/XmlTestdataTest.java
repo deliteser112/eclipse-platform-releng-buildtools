@@ -147,13 +147,13 @@ public class XmlTestdataTest {
 
   @Theory
   public void testValid(Good v) throws Exception {
-    XjcObject xml = unmarshal(v.xmlStream);
+    XjcObject xml = unmarshal(XjcObject.class, v.xmlStream);
     assertThat(xml).isInstanceOf(v.clazz);
   }
 
   @Theory
   public void testInvalid(Evil v) throws Exception {
     thrown.expectMessage(v.error);
-    unmarshal(v.xmlStream);
+    unmarshal(XjcObject.class, v.xmlStream);
   }
 }

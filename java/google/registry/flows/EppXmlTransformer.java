@@ -76,9 +76,15 @@ public class EppXmlTransformer  {
     OUTPUT_TRANSFORMER.validate(xml);
   }
 
-  public static <T> T unmarshal(byte[] bytes) throws EppException {
+  /**
+   * Unmarshal bytes into Epp classes.
+   *
+   * @param clazz type to return, specified as a param to enforce typesafe generics
+   * @see "http://errorprone.info/bugpattern/TypeParameterUnusedInFormals"
+   */
+  public static <T> T unmarshal(Class<T> clazz, byte[] bytes) throws EppException {
     try {
-      return INPUT_TRANSFORMER.unmarshal(new ByteArrayInputStream(bytes));
+      return INPUT_TRANSFORMER.unmarshal(clazz, new ByteArrayInputStream(bytes));
     } catch (XmlException e) {
       // If this XmlException is wrapping a known type find it. If not, it's a syntax error.
       FluentIterable<Throwable> causalChain = FluentIterable.from(Throwables.getCausalChain(e));

@@ -230,6 +230,7 @@ public class DatastoreHelper {
       .setTldStateTransitions(tldStates)
       // Set billing costs to distinct small primes to avoid masking bugs in tests.
       .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, 11)))
+      .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(USD)))
       .setCreateBillingCost(Money.of(USD, 13))
       .setRestoreBillingCost(Money.of(USD, 17))
       .setServerStatusChangeBillingCost(Money.of(USD, 19))

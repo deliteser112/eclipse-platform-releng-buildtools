@@ -14,12 +14,12 @@
 
 package google.registry.testing;
 
+import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
 
-import google.registry.flows.EppXmlTransformer;
 import google.registry.model.eppinput.EppInput;
 
 import java.util.Map;
@@ -38,7 +38,7 @@ public class EppLoader {
   }
 
   public EppInput getEpp() throws Exception {
-    return EppXmlTransformer.unmarshal(eppXml.getBytes(UTF_8));
+    return unmarshal(EppInput.class, eppXml.getBytes(UTF_8));
   }
 
   public String getEppXml() {

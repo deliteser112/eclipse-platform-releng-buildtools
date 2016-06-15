@@ -199,6 +199,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
             .setRestoreBillingCost(Money.ofMajor(JPY, 1))
             .setRenewBillingCostTransitions(
                 ImmutableSortedMap.of(START_OF_TIME, Money.ofMajor(JPY, 1)))
+            .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(JPY)))
             .setServerStatusChangeBillingCost(Money.ofMajor(JPY, 1))
             .build());
     runCommandForced(

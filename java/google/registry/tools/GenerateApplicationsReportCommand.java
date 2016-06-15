@@ -138,7 +138,7 @@ final class GenerateApplicationsReportCommand implements RemoteApiCommand, Gtech
 
       SignedMark signedMark;
       try {
-        signedMark = unmarshal(signedMarkData);
+        signedMark = unmarshal(SignedMark.class, signedMarkData);
       } catch (EppException e) {
         return Optional.of(makeLine(domainApplication, "Unparseable SMD"));
       }

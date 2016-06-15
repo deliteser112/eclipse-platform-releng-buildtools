@@ -86,7 +86,7 @@ final class ValidateEscrowDepositCommand implements Command {
   }
 
   private static void validateXmlStream(InputStream inputStream) throws XmlException {
-    XjcRdeDeposit deposit = XjcXmlTransformer.unmarshal(inputStream);
+    XjcRdeDeposit deposit = XjcXmlTransformer.unmarshal(XjcRdeDeposit.class, inputStream);
     System.out.printf("ID: %s\n", deposit.getId());
     System.out.printf("Previous ID: %s\n", deposit.getPrevId());
     System.out.printf("Type: %s\n", deposit.getType());

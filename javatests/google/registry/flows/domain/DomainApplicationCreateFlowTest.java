@@ -1140,6 +1140,7 @@ public class DomainApplicationCreateFlowTest
         .setCreateBillingCost(Money.of(EUR, 13))
         .setRestoreBillingCost(Money.of(EUR, 11))
         .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(EUR, 7)))
+        .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
         .setServerStatusChangeBillingCost(Money.of(EUR, 19))
         .build());
     persistContactsAndHosts();

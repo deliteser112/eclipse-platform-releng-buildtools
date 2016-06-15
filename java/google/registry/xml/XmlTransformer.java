@@ -136,21 +136,19 @@ public class XmlTransformer {
   }
 
   /**
-   * Turns XML text into an object, validating against {@link #schema}.
+   * Turns XML text into an object, validating against hard-coded xml {@link #schema}s.
    *
-   * <p>You must specify the XML class you expect to receive as the root element. Validation is
-   * performed in accordance with the hard-coded XML schemas.
-   *
+   * @param clazz the XML class you expect to receive as the root element
    * @throws XmlException if failed to read from {@code bytes}, XML input is invalid, or root
    *         element doesn't match {@code expect}.
    * @see com.google.common.io.Files#asByteSource
    * @see com.google.common.io.Resources#asByteSource
+   * @see "http://errorprone.info/bugpattern/TypeParameterUnusedInFormals"
    */
-  @SuppressWarnings("unchecked")
-  public <T> T unmarshal(InputStream stream) throws XmlException {
+  public <T> T unmarshal(Class<T> clazz, InputStream stream) throws XmlException {
     try (InputStream autoClosingStream = stream) {
-      return (T) getUnmarshaller().unmarshal(
-          XML_INPUT_FACTORY.createXMLStreamReader(new StreamSource(autoClosingStream, SYSTEM_ID)));
+      return clazz.cast(getUnmarshaller().unmarshal(
+          XML_INPUT_FACTORY.createXMLStreamReader(new StreamSource(autoClosingStream, SYSTEM_ID))));
     } catch (UnmarshalException e) {
       // Plain old parsing exceptions have a SAXParseException with no further cause.
       if (e.getLinkedException() instanceof SAXParseException

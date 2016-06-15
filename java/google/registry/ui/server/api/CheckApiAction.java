@@ -17,6 +17,7 @@ package google.registry.ui.server.api;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
+import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_6;
 import static google.registry.model.registry.Registries.findTldForNameOrThrow;
 import static google.registry.ui.server.SoyTemplateUtils.createTofuSupplier;
@@ -36,7 +37,6 @@ import dagger.Provides;
 
 import google.registry.config.RegistryEnvironment;
 import google.registry.flows.EppException;
-import google.registry.flows.EppXmlTransformer;
 import google.registry.flows.FlowRunner;
 import google.registry.flows.FlowRunner.CommitMode;
 import google.registry.flows.FlowRunner.UserPrivileges;
@@ -118,7 +118,7 @@ public class CheckApiAction implements Runnable {
           .getBytes(UTF_8);
       EppResponse response = new FlowRunner(
           DomainCheckFlow.class,
-          EppXmlTransformer.<EppInput>unmarshal(inputXmlBytes),
+          unmarshal(EppInput.class, inputXmlBytes),
           Trid.create(getClass().getSimpleName()),
           sessionMetadata,
           inputXmlBytes,

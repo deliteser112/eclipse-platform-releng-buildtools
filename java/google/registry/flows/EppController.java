@@ -56,7 +56,7 @@ public final class EppController {
   public byte[] handleEppCommand(SessionMetadata sessionMetadata, byte[] inputXmlBytes) {
     Trid trid = null;
     try {
-      EppInput eppInput = unmarshal(inputXmlBytes);
+      EppInput eppInput = unmarshal(EppInput.class, inputXmlBytes);
       trid = Trid.create(eppInput.getCommandWrapper().getClTrid());
       ImmutableList<String> targetIds = eppInput.getTargetIds();
       metrics.setCommandName(eppInput.getCommandName());

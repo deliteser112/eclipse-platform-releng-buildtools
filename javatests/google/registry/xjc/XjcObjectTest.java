@@ -86,7 +86,7 @@ public class XjcObjectTest {
 
   @Test
   public void testUnmarshalUTF16() throws Exception {
-    XjcRdeDeposit deposit = unmarshal(new ByteArrayInputStream(
+    XjcRdeDeposit deposit = unmarshal(XjcRdeDeposit.class, new ByteArrayInputStream(
         RDE_DEPOSIT_FULL.replaceFirst("UTF-8", "UTF-16").getBytes(UTF_16)));
     assertThat(deposit).isNotNull();
     assertThat(deposit.getType()).isEqualTo(XjcRdeDepositTypeType.FULL);
@@ -96,7 +96,7 @@ public class XjcObjectTest {
   @Test
   public void testUnmarshalValidation() throws Exception {
     thrown.expect(Throwable.class, "pattern '\\w{1,13}' for type 'depositIdType'");
-    unmarshal(new ByteArrayInputStream(
+    unmarshal(XjcRdeDeposit.class, new ByteArrayInputStream(
         RDE_DEPOSIT_FULL.replaceFirst("id=\"[^\"]+\"", "id=\"\"").getBytes(UTF_8)));
   }
 
@@ -115,7 +115,7 @@ public class XjcObjectTest {
 
   @Test
   public void testNamespaceEpp() throws Exception {
-    String xml = unmarshal(new ByteArrayInputStream(readResourceUtf8(
+    String xml = unmarshal(XjcObject.class, new ByteArrayInputStream(readResourceUtf8(
         XjcObjectTest.class, "testdata/greeting.xml").getBytes(UTF_8))).toString();
     assertWithMessage(xml).that(xml).startsWith("<epp:epp ");
     assertWithMessage(xml).that(xml).contains("\"urn:ietf:params:xml:ns:epp-1.0\"");
@@ -124,6 +124,7 @@ public class XjcObjectTest {
 
   /** Unmarshals XML assuming UTF-8 encoding. */
   private static XjcRdeDeposit unmarshalFullDeposit() throws Exception {
-    return unmarshal(new ByteArrayInputStream(RDE_DEPOSIT_FULL.getBytes(UTF_8)));
+    return unmarshal(
+        XjcRdeDeposit.class, new ByteArrayInputStream(RDE_DEPOSIT_FULL.getBytes(UTF_8)));
   }
 }

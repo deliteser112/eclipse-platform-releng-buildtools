@@ -497,7 +497,7 @@ public class DomainFlowUtils {
 
     SignedMark signedMark;
     try {
-      signedMark = unmarshal(signedMarkData);
+      signedMark = unmarshal(SignedMark.class, signedMarkData);
     } catch (EppException e) {
       throw new SignedMarkParsingErrorException();
     }

@@ -38,7 +38,6 @@ import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 
 import google.registry.flows.EppException;
-import google.registry.flows.EppXmlTransformer;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand;
@@ -89,7 +88,7 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
 
   /** Extract the registration period from the XML used to create the domain application. */
   private static Period extractPeriodFromXml(byte[] xmlBytes) throws EppException {
-    EppInput eppInput = unmarshal(xmlBytes);
+    EppInput eppInput = unmarshal(EppInput.class, xmlBytes);
     return ((DomainCommand.Create)
         ((ResourceCommandWrapper) eppInput.getCommandWrapper().getCommand())
             .getResourceCommand()).getPeriod();
@@ -150,8 +149,10 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
                 "contacts", contactsMapBuilder.build(),
                 "authInfo", application.getAuthInfo().getPw().getValue(),
                 "smdId", application.getEncodedSignedMarks().isEmpty()
-                    ? null : EppXmlTransformer.<SignedMark>unmarshal(
-                         application.getEncodedSignedMarks().get(0).getBytes()).getId(),
+                    ? null
+                    : unmarshal(
+                        SignedMark.class,
+                        application.getEncodedSignedMarks().get(0).getBytes()).getId(),
                 "applicationRoid", application.getRepoId(),
                 "applicationTime", application.getCreationTime().toString(),
                 "launchNotice", launchNotice == null ? null : ImmutableMap.of(

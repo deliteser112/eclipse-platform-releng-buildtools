@@ -216,7 +216,7 @@ public class GenerateEscrowDepositCommandTest
   }
 
   public static Object unmarshal(byte[] xml) throws XmlException {
-    return XjcXmlTransformer.unmarshal(new ByteArrayInputStream(xml));
+    return XjcXmlTransformer.unmarshal(Object.class, new ByteArrayInputStream(xml));
   }
 
   private static ImmutableMap<String, Long> mapifyCounts(XjcRdeHeader header) {

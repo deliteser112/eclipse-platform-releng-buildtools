@@ -67,6 +67,7 @@ public final class RegistrarBillingUtilsTest {
             .setCurrency(JPY)
             .setRenewBillingCostTransitions(
                 ImmutableSortedMap.of(START_OF_TIME, Money.parse("JPY 110")))
+            .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.parse("JPY 0")))
             .setCreateBillingCost(Money.parse("JPY 130"))
             .setRestoreBillingCost(Money.parse("JPY 170"))
             .setServerStatusChangeBillingCost(Money.parse("JPY 190"))

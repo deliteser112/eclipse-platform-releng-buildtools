@@ -197,7 +197,7 @@ public class RdeReportActionTest {
 
   private static XjcRdeReportReport parseReport(byte[] data) {
     try {
-      return XjcXmlTransformer.unmarshal(new ByteArrayInputStream(data));
+      return XjcXmlTransformer.unmarshal(XjcRdeReportReport.class, new ByteArrayInputStream(data));
     } catch (XmlException e) {
       throw new RuntimeException(e);
     }
