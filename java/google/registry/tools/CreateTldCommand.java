@@ -30,6 +30,7 @@ import com.beust.jcommander.Parameters;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 
+import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 
 import javax.annotation.Nullable;
@@ -73,9 +74,17 @@ class CreateTldCommand extends CreateOrUpdateTldCommand {
   void setCommandSpecificProperties(Registry.Builder builder) {
     // Pick up the currency from the create cost. Since all costs must be in one currency, and that
     // condition is enforced by the builder, it doesn't matter which cost we choose it from.
-    builder.setCurrency(createBillingCost != null
+    CurrencyUnit currency = createBillingCost != null
         ? createBillingCost.getCurrencyUnit()
-        : Registry.DEFAULT_CURRENCY);
+        : Registry.DEFAULT_CURRENCY;
+
+    builder.setCurrency(currency);
+
+    // If this is a non-default currency, set the EAP fee schedule to a matching currency.
+    // TODO(b/29089413): once we have a flag for this, don't do this check if the flag is set.
+    if (currency != Registry.DEFAULT_CURRENCY) {
+      builder.setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(currency)));
+    }
   }
 
   @Override

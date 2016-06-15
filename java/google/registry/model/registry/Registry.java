@@ -826,15 +826,19 @@ public class Registry extends ImmutableObject implements Buildable {
       checkArgument(
           instance.getServerStatusChangeCost().getCurrencyUnit().equals(instance.currency),
           "Server status change cost must be in the registry's currency");
+      Predicate<Money> currencyCheck = new Predicate<Money>(){
+          @Override
+          public boolean apply(Money money) {
+            return money.getCurrencyUnit().equals(instance.currency);
+          }};
       checkArgument(
           Iterables.all(
-              instance.getRenewBillingCostTransitions().values(),
-              new Predicate<Money>(){
-                @Override
-                public boolean apply(Money money) {
-                  return money.getCurrencyUnit().equals(instance.currency);
-                }}),
+              instance.getRenewBillingCostTransitions().values(), currencyCheck),
           "Renew cost must be in the registry's currency");
+      checkArgument(
+          Iterables.all(
+              instance.eapFeeSchedule.toValueMap().values(), currencyCheck),
+          "All EAP fees must be in the registry's currency");
       checkArgumentNotNull(
           instance.pricingEngineClassName, "All registries must have a configured pricing engine");
       instance.tldStrId = tldName;
