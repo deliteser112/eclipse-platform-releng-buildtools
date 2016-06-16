@@ -80,9 +80,9 @@ class CreateTldCommand extends CreateOrUpdateTldCommand {
 
     builder.setCurrency(currency);
 
-    // If this is a non-default currency, set the EAP fee schedule to a matching currency.
-    // TODO(b/29089413): once we have a flag for this, don't do this check if the flag is set.
-    if (currency != Registry.DEFAULT_CURRENCY) {
+    // If this is a non-default currency and the user hasn't specified an EAP fee schedule, set the
+    // EAP fee schedule to a matching currency.
+    if (currency != Registry.DEFAULT_CURRENCY && eapFeeSchedule.isEmpty()) {
       builder.setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(currency)));
     }
   }

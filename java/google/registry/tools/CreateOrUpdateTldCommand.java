@@ -171,6 +171,15 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
   ImmutableSortedMap<DateTime, Money> renewBillingCostTransitions =
       ImmutableSortedMap.of();
 
+  @Parameter(
+      names = "--eap_fee_schedule",
+      converter = BillingCostTransitions.class,
+      validateWith = BillingCostTransitions.class,
+      description = "Comma-delimited list of EAP fees effective on specific dates, of the form "
+          + "<time>=<money-amount>[,<time>=<money-amount>]* where each amount represents the "
+          + "EAP fee for creating a new domain under the TLD.")
+  ImmutableSortedMap<DateTime, Money> eapFeeSchedule = ImmutableSortedMap.of();
+
   @Nullable
   @Parameter(
       names = "--reserved_lists",
@@ -269,6 +278,10 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
               + "----------------------\n");
         }
         builder.setRenewBillingCostTransitions(renewBillingCostTransitions);
+      }
+
+      if (!eapFeeSchedule.isEmpty()) {
+        builder.setEapFeeSchedule(eapFeeSchedule);
       }
 
       if (addGracePeriod != null) {
