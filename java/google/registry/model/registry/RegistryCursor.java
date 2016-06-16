@@ -73,8 +73,21 @@ public class RegistryCursor extends ImmutableObject {
 
   DateTime date;
 
-  /** Convenience shortcut to load a cursor for a given registry and cursor type. */
+  /**
+   * Convenience shortcut to load a cursor (as an {@link Optional}) for a given registry and cursor
+   * type. Note that this currently reads the new cursor style first, then fails back to the old
+   * RegistryCursor if the corresponding new style cursor does not exist.
+   */
   public static Optional<DateTime> load(Registry registry, CursorType cursorType) {
+    Cursor newStyleCursor =
+        ofy()
+            .load()
+            .key(Cursor.createKey(Cursor.CursorType.valueOf(cursorType.name()), registry))
+            .now();
+    if (newStyleCursor != null) {
+      return Optional.of(newStyleCursor.getCursorTime());
+    }
+    // New cursor style wasn't found for this TLD and cursor type, so load the old style.
     Key<RegistryCursor> key =
         Key.create(Key.create(registry), RegistryCursor.class, cursorType.name());
     RegistryCursor cursor = ofy().load().key(key).now();

@@ -23,6 +23,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import com.googlecode.objectify.VoidWork;
 
 import google.registry.model.EntityTestCase;
+import google.registry.model.common.Cursor;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -31,7 +32,7 @@ import org.junit.Test;
 public class RegistryCursorTest extends EntityTestCase {
 
   @Test
-  public void test_persistence() {
+  public void testPersistence() {
     createTld("tld");
     clock.advanceOneMilli();
     final DateTime time = DateTime.parse("2012-07-12T03:30:00.000Z");
@@ -42,5 +43,44 @@ public class RegistryCursorTest extends EntityTestCase {
       }});
     assertThat(RegistryCursor.load(Registry.get("tld"), BRDA)).isAbsent();
     assertThat(RegistryCursor.load(Registry.get("tld"), RDE_UPLOAD)).hasValue(time);
+  }
+
+  @Test
+  public void testSuccess_dualRead_newOverOld() {
+    createTld("tld");
+    final DateTime newCursorTime = DateTime.parse("2012-07-12T03:30:00.000Z");
+    final DateTime oldCursorTime = DateTime.parse("2012-07-11T03:30:00.000Z");
+    ofy().transact(
+        new VoidWork() {
+          @Override
+          public void vrun() {
+            ofy()
+                .save()
+                .entities(
+                    // We can't use RegistryCursor.save() since dual-writing happens there.
+                    RegistryCursor.create(Registry.get("tld"), RDE_UPLOAD, oldCursorTime),
+                    Cursor.create(
+                        Cursor.CursorType.RDE_UPLOAD, newCursorTime, Registry.get("tld")))
+                .now();
+          }
+        });
+    assertThat(RegistryCursor.load(Registry.get("tld"), RDE_UPLOAD)).hasValue(newCursorTime);
+  }
+
+  @Test
+  public void testSuccess_dualRead_onlyOld() {
+    createTld("tld");
+    final DateTime oldCursorTime = DateTime.parse("2012-07-11T03:30:00.000Z");
+    ofy().transact(
+        new VoidWork() {
+          @Override
+          public void vrun() {
+            ofy()
+                .save()
+                .entity(RegistryCursor.create(Registry.get("tld"), RDE_UPLOAD, oldCursorTime))
+                .now();
+          }
+        });
+    assertThat(RegistryCursor.load(Registry.get("tld"), RDE_UPLOAD)).hasValue(oldCursorTime);
   }
 }
