@@ -12,6 +12,7 @@ java_library(
     name = "pricing",
     srcs = glob(["*Test.java"]),
     deps = [
+        "//java/com/google/common/annotations",
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
         "//java/com/google/common/net",
