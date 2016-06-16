@@ -35,6 +35,8 @@ import org.joda.time.DateTime;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
+import javax.annotation.Nullable;
+
 /**
  * An entity property whose value transitions over time.  Each value it takes on becomes active
  * at a corresponding instant, and remains active until the next transition occurs.  At least one
@@ -202,5 +204,13 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
     // Retrieve the current value by finding the latest transition before or at the given time,
     // where any given time earlier than START_OF_TIME is replaced by START_OF_TIME.
     return backingMap.floorEntry(latestOf(START_OF_TIME, time)).getValue().getValue();
+  }
+
+  /**
+   * Returns the time of the next transition.  Returns null if there is no subsequent transition.
+   */
+  @Nullable
+  public DateTime getNextTransitionAfter(DateTime time) {
+    return backingMap.higherKey(latestOf(START_OF_TIME, time));
   }
 }

@@ -107,6 +107,17 @@ public class TimedTransitionPropertyTest {
   }
 
   @Test
+  public void testSuccess_getNextTransitionAfter() throws Exception {
+    assertThat(timedString.getNextTransitionAfter(A_LONG_TIME_AGO)).isEqualTo(DATE_1);
+    assertThat(timedString.getNextTransitionAfter(START_OF_TIME.plusMillis(1))).isEqualTo(DATE_1);
+    assertThat(timedString.getNextTransitionAfter(DATE_1.minusMillis(1))).isEqualTo(DATE_1);
+    assertThat(timedString.getNextTransitionAfter(DATE_1)).isEqualTo(DATE_2);
+    assertThat(timedString.getNextTransitionAfter(DATE_2.minusMillis(1))).isEqualTo(DATE_2);
+    assertThat(timedString.getNextTransitionAfter(DATE_2)).isEqualTo(DATE_3);
+    assertThat(timedString.getNextTransitionAfter(DATE_3)).isNull();
+  }
+
+  @Test
   public void testSuccess_simulatedLoad() throws Exception {
     // Just for testing, don't extract transitions from a TimedTransitionProperty in real code.
     Set<Map.Entry<DateTime, StringTimedTransition>> transitions = timedString.entrySet();
