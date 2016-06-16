@@ -74,15 +74,21 @@ public abstract class SessionMetadata {
   /** Subclasses can override this to verify that this is a valid session. */
   protected void checkValid() {}
 
-  protected void setPropertyChecked(String key, Object value) {
+  /** Check that the session is valid and set a property. */
+  private void setPropertyChecked(String key, Object value) {
     checkValid();
     setProperty(key, value);
   }
 
-  @SuppressWarnings("unchecked")
-  protected <T> T getPropertyChecked(String key) {
+  /**
+   * Check that the session is valid and get a property as a given type.
+   *
+   * @param clazz type to return, specified as a param to enforce typesafe generics
+   * @see "http://errorprone.info/bugpattern/TypeParameterUnusedInFormals"
+   */
+  private <T> T getProperty(Class<T> clazz, String key) {
     checkValid();
-    return (T) getProperty(key);
+    return clazz.cast(getProperty(key));
   }
 
   public TransportCredentials getTransportCredentials() {
@@ -96,15 +102,16 @@ public abstract class SessionMetadata {
   }
 
   public String getClientId() {
-    return getPropertyChecked(CLIENT_ID_KEY);
+    return getProperty(String.class, CLIENT_ID_KEY);
   }
 
   public boolean isSuperuser() {
-    return Boolean.TRUE.equals(getPropertyChecked(SUPERUSER_KEY));
+    return Boolean.TRUE.equals(getProperty(Boolean.class, SUPERUSER_KEY));
   }
 
+  @SuppressWarnings("unchecked")
   public Set<String> getServiceExtensionUris() {
-    return getPropertyChecked(SERVICE_EXTENSIONS_KEY);
+    return getProperty(Set.class, SERVICE_EXTENSIONS_KEY);
   }
 
   public abstract SessionSource getSessionSource();
@@ -130,7 +137,8 @@ public abstract class SessionMetadata {
   }
 
   public int getFailedLoginAttempts() {
-    return ((Integer) Optional.fromNullable(getPropertyChecked(FAILED_LOGIN_ATTEMPTS_KEY)).or(0));
+    return Optional.fromNullable(getProperty(Integer.class, FAILED_LOGIN_ATTEMPTS_KEY))
+        .or(0);
   }
 
   public void incrementFailedLoginAttempts() {
