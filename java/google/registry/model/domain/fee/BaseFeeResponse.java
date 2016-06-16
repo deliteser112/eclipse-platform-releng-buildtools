@@ -84,9 +84,15 @@ public class BaseFeeResponse extends ImmutableObject {
       return thisCastToDerived();
     }
 
+    public B setFee(List<Fee> fees) {
+      getInstance().fee = forceEmptyToNull(ImmutableList.copyOf(fees));
+      return thisCastToDerived();
+    }
+
     public B setClass(String feeClass) {
       getInstance().feeClass = feeClass;
       return thisCastToDerived();
     }
   }
 }
+
