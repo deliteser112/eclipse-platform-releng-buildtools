@@ -82,18 +82,17 @@ public class UpdateSnapshotViewActionTest {
   public void before() throws Exception {
     when(bigqueryFactory.create(anyString(), anyString())).thenReturn(bigquery);
     when(bigquery.datasets()).thenReturn(bigqueryDatasets);
-    when(bigqueryDatasets.insert(eq("Project-Id"), any(Dataset.class)))
+    when(bigqueryDatasets.insert(anyString(), any(Dataset.class)))
         .thenReturn(bigqueryDatasetsInsert);
     when(bigquery.tables()).thenReturn(bigqueryTables);
-    when(bigqueryTables.update(
-            eq("Project-Id"), anyString(), anyString(), any(Table.class)))
+    when(bigqueryTables.update(anyString(), anyString(), anyString(), any(Table.class)))
         .thenReturn(bigqueryTablesUpdate);
 
     action = new UpdateSnapshotViewAction();
     action.bigqueryFactory = bigqueryFactory;
     action.datasetId = "some_dataset";
     action.kindName = "fookind";
-    action.projectId = "Project-Id";
+    action.projectId = "myproject";
     action.tableId = "12345_fookind";
   }
 
@@ -116,14 +115,14 @@ public class UpdateSnapshotViewActionTest {
 
     // Check that the BigQuery factory was called in such a way that the dataset would be created
     // if it didn't already exist.
-    verify(bigqueryFactory).create("Project-Id", "latest_snapshot");
+    verify(bigqueryFactory).create("myproject", "latest_snapshot");
 
     // Check that we updated the view.
     ArgumentCaptor<Table> tableArg = ArgumentCaptor.forClass(Table.class);
     verify(bigqueryTables).update(
-        eq("Project-Id"), eq("latest_snapshot"), eq("fookind"), tableArg.capture());
+        eq("myproject"), eq("latest_snapshot"), eq("fookind"), tableArg.capture());
     assertThat(tableArg.getValue().getView().getQuery())
-        .isEqualTo("SELECT * FROM [some_dataset.12345_fookind]");
+        .isEqualTo("SELECT * FROM [myproject:some_dataset.12345_fookind]");
   }
 
   @Test
