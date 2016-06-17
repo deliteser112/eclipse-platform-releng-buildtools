@@ -25,31 +25,6 @@ class CommandUtilities {
 
   /** Prompts for yes/no input using promptText, defaulting to no. */
   static boolean promptForYes(String promptText) {
-    return promptForYesOrNo(promptText, false);
-  }
-
-  /**
-   * Prompts for yes/no input using promptText and returns true for yes and false for no, using
-   * defaultResponse as the response for empty input.
-   */
-  static boolean promptForYesOrNo(String promptText, boolean defaultResponse) {
-    String options = defaultResponse ? "Y/n" : "y/N";
-    while (true) {
-      String line = System.console().readLine(String.format("%s (%s): ", promptText, options));
-      if (line.isEmpty()) {
-        return defaultResponse;
-      } else if ("Y".equalsIgnoreCase(line.substring(0, 1))) {
-        return true;
-      } else if ("N".equalsIgnoreCase(line.substring(0, 1))) {
-        return false;
-      }
-    }
-  }
-
-  /** Prints the provided text with a trailing newline, if text is not null or empty. */
-  static void printLineIfNotEmpty(String text) {
-    if (!Strings.isNullOrEmpty(text)) {
-      System.out.println(text);
-    }
+    return System.console().readLine(promptText + " (y/N): ").toUpperCase().startsWith("Y");
   }
 }

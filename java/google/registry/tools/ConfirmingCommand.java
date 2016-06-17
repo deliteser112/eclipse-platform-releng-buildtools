@@ -14,8 +14,9 @@
 
 package google.registry.tools;
 
-import static google.registry.tools.CommandUtilities.printLineIfNotEmpty;
 import static google.registry.tools.CommandUtilities.promptForYes;
+
+import com.google.common.base.Strings;
 
 import com.beust.jcommander.Parameter;
 
@@ -63,5 +64,12 @@ public abstract class ConfirmingCommand implements Command {
    */
   protected String postExecute() throws Exception {
     return "";
+  }
+
+  /** Prints the provided text with a trailing newline, if text is not null or empty. */
+  private static void printLineIfNotEmpty(String text) {
+    if (!Strings.isNullOrEmpty(text)) {
+      System.out.println(text);
+    }
   }
 }
