@@ -78,7 +78,7 @@ public abstract class ResourceCreateOrMutateFlow
         .setTrid(trid)
         .setModificationTime(now)
         .setXmlBytes(storeXmlInHistoryEntry() ? inputXmlBytes : null)
-        .setBySuperuser(superuser)
+        .setBySuperuser(isSuperuser)
         .setReason(getHistoryEntryReason())
         .setRequestedByRegistrar(getHistoryEntryRequestedByRegistrar())
         .setParent(getResourceKey())

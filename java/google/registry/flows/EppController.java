@@ -55,6 +55,7 @@ public final class EppController {
       SessionMetadata sessionMetadata,
       TransportCredentials credentials,
       boolean isDryRun,
+      boolean isSuperuser,
       byte[] inputXmlBytes) {
     Trid trid = null;
     try {
@@ -63,7 +64,7 @@ public final class EppController {
       ImmutableList<String> targetIds = eppInput.getTargetIds();
       metrics.setCommandName(eppInput.getCommandName());
       metrics.setClientId(sessionMetadata.getClientId());
-      metrics.setPrivilegeLevel(sessionMetadata.isSuperuser() ? "SUPERUSER" : "NORMAL");
+      metrics.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
       if (!targetIds.isEmpty()) {
         metrics.setEppTarget(Joiner.on(",").join(targetIds));
       }
@@ -74,6 +75,7 @@ public final class EppController {
           sessionMetadata,
           credentials,
           isDryRun,
+          isSuperuser,
           inputXmlBytes,
           metrics,
           clock);

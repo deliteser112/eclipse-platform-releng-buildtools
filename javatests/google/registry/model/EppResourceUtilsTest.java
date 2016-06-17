@@ -87,6 +87,7 @@ public class EppResourceUtilsTest {
         sessionMetadata,
         new PasswordOnlyTransportCredentials(),
         false,
+        false,
         "<xml></xml>".getBytes(),
         null,
         clock)

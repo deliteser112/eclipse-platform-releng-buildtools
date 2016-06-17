@@ -36,7 +36,7 @@ import org.joda.time.DateTime;
 /** Run a flow, either transactionally or not, with logging and retrying as needed. */
 public class FlowRunner {
 
-  private static final String COMMAND_LOG_FORMAT = "EPP Command" + Strings.repeat("\n\t%s", 6);
+  private static final String COMMAND_LOG_FORMAT = "EPP Command" + Strings.repeat("\n\t%s", 7);
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -45,6 +45,7 @@ public class FlowRunner {
   private final Trid trid;
   private final SessionMetadata sessionMetadata;
   private final boolean isDryRun;
+  private final boolean isSuperuser;
   private final TransportCredentials credentials;
   private final byte[] inputXmlBytes;
   private final EppMetrics metrics;
@@ -57,6 +58,7 @@ public class FlowRunner {
       SessionMetadata sessionMetadata,
       TransportCredentials credentials,
       boolean isDryRun,
+      boolean isSuperuser,
       byte[] inputXmlBytes,
       final EppMetrics metrics,
       Clock clock) {
@@ -67,6 +69,7 @@ public class FlowRunner {
     this.sessionMetadata = sessionMetadata;
     this.credentials = credentials;
     this.isDryRun = isDryRun;
+    this.isSuperuser = isSuperuser;
     this.inputXmlBytes = inputXmlBytes;
     this.metrics = metrics;
     this.clock = clock;
@@ -81,7 +84,8 @@ public class FlowRunner {
         sessionMetadata,
         prettyPrint(inputXmlBytes).replaceAll("\n", "\n\t"),
         credentials,
-        isDryRun ? "DRY_RUN" : "LIVE");
+        isDryRun ? "DRY_RUN" : "LIVE",
+        isSuperuser ? "SUPERUSER" : "NORMAL");
     if (!isTransactional()) {
       if (metrics != null) {
         metrics.incrementAttempts();
@@ -93,7 +97,7 @@ public class FlowRunner {
     // before it could log.
     logger.info("EPP_Mutation " + new JsonLogStatement(trid)
         .add("client", clientId)
-        .add("privileges", sessionMetadata.isSuperuser() ? "SUPERUSER" : "NORMAL")
+        .add("privileges", isSuperuser ? "SUPERUSER" : "NORMAL")
         .add("xmlBytes", base64().encode(inputXmlBytes)));
     try {
       EppOutput flowResult = ofy().transact(new Work<EppOutput>() {
@@ -134,6 +138,7 @@ public class FlowRunner {
           trid,
           sessionMetadata,
           credentials,
+          isSuperuser,
           now,
           inputXmlBytes);
   }

@@ -67,7 +67,7 @@ public abstract class ResourceFlow<R extends EppResource, C extends ResourceComm
    * a domain) is allowed in the registry phase for the specified TLD that the resource is in.
    */
   protected void checkRegistryStateForTld(String tld) throws BadCommandForRegistryPhaseException {
-    if (!superuser && getDisallowedTldStates().contains(Registry.get(tld).getTldState(now))) {
+    if (!isSuperuser && getDisallowedTldStates().contains(Registry.get(tld).getTldState(now))) {
       throw new BadCommandForRegistryPhaseException();
     }
   }

@@ -152,7 +152,7 @@ public class DomainTransferRequestFlow
   @Override
   protected final void verifyTransferRequestIsAllowed() throws EppException {
     verifyUnitIsYears(command.getPeriod());
-    if (!superuser) {
+    if (!isSuperuser) {
       verifyPremiumNameIsNotBlocked(targetId, now, getClientId());
     }
     validateFeeChallenge(

@@ -37,31 +37,23 @@ public class EppTlsActionTest extends ShardableTestCase {
 
   private static final byte[] INPUT_XML_BYTES = "<xml>".getBytes(UTF_8);
 
-  private void doTest(boolean superuser) {
+  @Test
+  public void testPassesArgumentsThrough() {
     EppTlsAction action = new EppTlsAction();
     action.inputXmlBytes = INPUT_XML_BYTES;
     action.tlsCredentials = mock(TlsCredentials.class);
     when(action.tlsCredentials.hasSni()).thenReturn(true);
     action.session = new BasicHttpSession();
     action.session.setAttribute("CLIENT_ID", "ClientIdentifier");
-    action.session.setAttribute("SUPERUSER", superuser);
     action.eppRequestHandler = mock(EppRequestHandler.class);
     action.run();
     ArgumentCaptor<SessionMetadata> captor = ArgumentCaptor.forClass(SessionMetadata.class);
-    verify(action.eppRequestHandler)
-        .executeEpp(captor.capture(), same(action.tlsCredentials), eq(false), eq(INPUT_XML_BYTES));
-    SessionMetadata sessionMetadata = captor.getValue();
-    assertThat(sessionMetadata.getClientId()).isEqualTo("ClientIdentifier");
-    assertThat(sessionMetadata.isSuperuser()).isEqualTo(superuser);
-  }
-
-  @Test
-  public void testSuperuser() throws Exception {
-    doTest(true);
-  }
-
-  @Test
-  public void testNotSuperuser() throws Exception {
-    doTest(false);
+    verify(action.eppRequestHandler).executeEpp(
+        captor.capture(),
+        same(action.tlsCredentials),
+        eq(false),
+        eq(false),
+        eq(INPUT_XML_BYTES));
+    assertThat(captor.getValue().getClientId()).isEqualTo("ClientIdentifier");
   }
 }

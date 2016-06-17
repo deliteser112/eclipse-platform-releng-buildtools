@@ -109,7 +109,7 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
   protected final void verifyDomainCreateIsAllowed() throws EppException {
     String tld = getTld();
     validateFeeChallenge(targetId, tld, now, feeCreate, createCost);
-    if (!superuser) {
+    if (!isSuperuser) {
       // Prohibit creating a domain if there is an open application for the same name.
       for (DomainApplication application : loadActiveApplicationsByDomainName(targetId, now)) {
         if (!application.getApplicationStatus().isFinalStatus()) {

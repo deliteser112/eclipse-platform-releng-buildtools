@@ -61,7 +61,7 @@ public abstract class ResourceUpdateFlow
     for (StatusValue statusValue : Sets.union(
         command.getInnerAdd().getStatusValues(),
         command.getInnerRemove().getStatusValues())) {
-      if (!superuser && !statusValue.isClientSettable()) {  // The superuser can set any status.
+      if (!isSuperuser && !statusValue.isClientSettable()) {  // The superuser can set any status.
         throw new StatusNotClientSettableException(statusValue.getXmlName());
       }
     }
@@ -85,7 +85,7 @@ public abstract class ResourceUpdateFlow
   protected final void verifyNewStateIsAllowed() throws EppException {
     // If the resource is marked with clientUpdateProhibited, and this update did not clear that
     // status, then the update must be disallowed (unless a superuser is requesting the change).
-    if (!superuser
+    if (!isSuperuser
         && existingResource.getStatusValues().contains(StatusValue.CLIENT_UPDATE_PROHIBITED)
         && newResource.getStatusValues().contains(StatusValue.CLIENT_UPDATE_PROHIBITED)) {
       throw new ResourceHasClientUpdateProhibitedException();

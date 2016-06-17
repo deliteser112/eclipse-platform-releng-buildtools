@@ -66,7 +66,7 @@ public class DomainApplicationDeleteFlow
     // Don't allow deleting a sunrise application during landrush.
     if (existingResource.getPhase().equals(LaunchPhase.SUNRISE)
         && Registry.get(existingResource.getTld()).getTldState(now).equals(TldState.LANDRUSH)
-        && !superuser) {
+        && !isSuperuser) {
       throw new SunriseApplicationCannotBeDeletedInLandrushException();
     }
   }

@@ -77,7 +77,7 @@ public class HostDeleteFlow extends ResourceAsyncDeleteFlow<HostResource, Builde
             DeleteEppResourceAction.PARAM_REQUESTING_CLIENT_ID,
             getClientId(),
             DeleteEppResourceAction.PARAM_IS_SUPERUSER,
-            Boolean.toString(superuser)),
+            Boolean.toString(isSuperuser)),
         RegistryEnvironment.get().config().getAsyncDeleteFlowMapreduceDelay());
   }
 

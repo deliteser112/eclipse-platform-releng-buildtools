@@ -369,7 +369,6 @@ public class DomainRestoreRequestFlowTest extends
   @Test
   public void testSuccess_superuserUnauthorizedClient() throws Exception {
     thrown.expect(ResourceNotOwnedException.class);
-    sessionMetadata.setSuperuser(true);
     sessionMetadata.setClientId("NewRegistrar");
     persistPendingDeleteDomain();
     runFlowAssertResponse(readFile("domain_update_response.xml"));

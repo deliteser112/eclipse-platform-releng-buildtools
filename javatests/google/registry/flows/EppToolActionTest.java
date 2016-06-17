@@ -16,8 +16,8 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -30,11 +30,11 @@ import org.mockito.ArgumentCaptor;
 @RunWith(JUnit4.class)
 public class EppToolActionTest {
 
-  private void doTest(boolean dryRun, boolean superuser) {
+  private void doTest(boolean isDryRun, boolean isSuperuser) {
     EppToolAction action = new EppToolAction();
     action.clientIdentifier = "ClientIdentifier";
-    action.dryRun = dryRun;
-    action.superuser = superuser;
+    action.isDryRun = isDryRun;
+    action.isSuperuser = isSuperuser;
     action.eppRequestHandler = mock(EppRequestHandler.class);
     action.xml = "<xml>";
     action.run();
@@ -42,11 +42,10 @@ public class EppToolActionTest {
     verify(action.eppRequestHandler).executeEpp(
         captor.capture(),
         isA(PasswordOnlyTransportCredentials.class),
-        eq(dryRun),
+        eq(isDryRun),
+        eq(isSuperuser),
         eq(action.xml.getBytes(UTF_8)));
-    SessionMetadata sessionMetadata = captor.getValue();
-    assertThat(sessionMetadata.getClientId()).isEqualTo("ClientIdentifier");
-    assertThat(sessionMetadata.isSuperuser()).isEqualTo(superuser);
+    assertThat(captor.getValue().getClientId()).isEqualTo("ClientIdentifier");
   }
 
   @Test

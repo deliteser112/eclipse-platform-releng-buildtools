@@ -39,7 +39,6 @@ import google.registry.model.eppoutput.Result.Code;
 import google.registry.model.registrar.Registrar;
 import google.registry.util.FormattingLogger;
 
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -65,9 +64,6 @@ import java.util.Set;
 public class LoginFlow extends Flow {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
-
-  /** This is the IANA ID used for the internal account of the registry. */
-  private static final long INTERNAL_IANA_REGISTRAR_ID = 9999L;
 
   /** Maximum number of failed login attempts allowed per connection. */
   private static final int MAX_FAILED_LOGIN_ATTEMPTS_PER_CONNECTION = 3;
@@ -134,8 +130,6 @@ public class LoginFlow extends Flow {
     // We are in!
     sessionMetadata.resetFailedLoginAttempts();
     sessionMetadata.setClientId(login.getClientId());
-    sessionMetadata.setSuperuser(
-        Objects.equals(INTERNAL_IANA_REGISTRAR_ID, registrar.getIanaIdentifier()));
     sessionMetadata.setServiceExtensionUris(serviceExtensionUrisBuilder.build());
     return createOutput(Code.Success);
   }

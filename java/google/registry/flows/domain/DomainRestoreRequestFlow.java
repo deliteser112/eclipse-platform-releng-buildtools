@@ -97,7 +97,7 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
 
     String tld = existingResource.getTld();
     checkAllowedAccessToTld(getAllowedTlds(), tld);
-    if (!superuser) {
+    if (!isSuperuser) {
       verifyNotReserved(InternetDomainName.from(targetId), false);
       verifyPremiumNameIsNotBlocked(targetId, now, getClientId());
     }

@@ -31,7 +31,7 @@ public abstract class OwnedResourceMutateFlow
   /** Fail if the object doesn't exist or was deleted. */
   @Override
   protected final void verifyMutationAllowed() throws EppException {
-    if (!superuser) {
+    if (!isSuperuser) {
       verifyResourceOwnership(getClientId(), existingResource);
     }
     verifyMutationOnOwnedResourceAllowed();

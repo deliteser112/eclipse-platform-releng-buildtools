@@ -110,6 +110,7 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCo
                 Optional.of(clientIpAddress),
                 "placeholder"),  // behave as if we have SNI on, since we're validating a cert
             false,
+            false,
             inputXmlBytes,
             null,
             new SystemClock()).run()), UTF_8));

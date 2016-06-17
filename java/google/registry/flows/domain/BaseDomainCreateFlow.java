@@ -187,7 +187,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
         domainLabel, tld, command.getAuthInfo().getPw().getValue());
     // Superusers can create reserved domains, force creations on domains that require a claims
     // notice without specifying a claims key, and override blocks on registering premium domains.
-    if (!superuser) {
+    if (!isSuperuser) {
       boolean isSunriseApplication =
           launchCreate != null && !launchCreate.getSignedMarks().isEmpty();
       if (!isAnchorTenantViaReservation) {
@@ -254,7 +254,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
     if (launchCreate == null) {
       return;
     }
-    if (!superuser) {  // Superusers can ignore the phase.
+    if (!isSuperuser) {  // Superusers can ignore the phase.
       verifyLaunchPhase(getTld(), launchCreate, now);
     }
     if (launchCreate.hasCodeMarks()) {
@@ -269,7 +269,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
       throw new InvalidTrademarkValidatorException();
     }
     // Superuser can force domain creations regardless of the current date.
-    if (!superuser) {
+    if (!isSuperuser) {
       if (notice.getExpirationTime().isBefore(now)) {
         throw new ExpiredClaimException();
       }

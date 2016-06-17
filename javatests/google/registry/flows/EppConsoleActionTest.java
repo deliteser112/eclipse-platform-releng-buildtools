@@ -17,7 +17,7 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.Mockito.eq;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -43,33 +43,25 @@ public class EppConsoleActionTest extends ShardableTestCase {
       .withUserService(UserInfo.create("person@example.com", "12345"))
       .build();
 
-  private void doTest(boolean superuser) {
+  @Test
+  public void testPassesArgumentsThrough() {
     EppConsoleAction action = new EppConsoleAction();
     action.inputXmlBytes = INPUT_XML_BYTES;
     action.session = new BasicHttpSession();
     action.session.setAttribute("CLIENT_ID", "ClientIdentifier");
-    action.session.setAttribute("SUPERUSER", superuser);
     action.eppRequestHandler = mock(EppRequestHandler.class);
     action.run();
     ArgumentCaptor<TransportCredentials> credentialsCaptor =
         ArgumentCaptor.forClass(TransportCredentials.class);
     ArgumentCaptor<SessionMetadata> metadataCaptor = ArgumentCaptor.forClass(SessionMetadata.class);
     verify(action.eppRequestHandler).executeEpp(
-        metadataCaptor.capture(), credentialsCaptor.capture(), eq(false), eq(INPUT_XML_BYTES));
+        metadataCaptor.capture(),
+        credentialsCaptor.capture(),
+        eq(false),
+        eq(false),
+        eq(INPUT_XML_BYTES));
     assertThat(((GaeUserCredentials) credentialsCaptor.getValue()).gaeUser.getEmail())
         .isEqualTo("person@example.com");
-    SessionMetadata sessionMetadata = metadataCaptor.getValue();
-    assertThat(sessionMetadata.getClientId()).isEqualTo("ClientIdentifier");
-    assertThat(sessionMetadata.isSuperuser()).isEqualTo(superuser);
-  }
-
-  @Test
-  public void testSuperuser() throws Exception {
-    doTest(true);
-  }
-
-  @Test
-  public void testNotSuperuser() throws Exception {
-    doTest(false);
+    assertThat(metadataCaptor.getValue().getClientId()).isEqualTo("ClientIdentifier");
   }
 }

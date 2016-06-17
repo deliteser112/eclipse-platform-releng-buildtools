@@ -73,7 +73,7 @@ public class DomainAllocateFlow extends DomainCreateOrAllocateFlow {
 
   @Override
   protected final void verifyDomainCreateIsAllowed() throws EppException {
-    if (!superuser) {
+    if (!isSuperuser) {
       throw new OnlySuperuserCanAllocateException();
     }
     if (allocateCreate == null) {

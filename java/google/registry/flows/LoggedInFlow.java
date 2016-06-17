@@ -95,7 +95,7 @@ public abstract class LoggedInFlow extends Flow {
             getClientId(), getClass().getSimpleName(), undeclaredUris);
       }
     }
-    if (sessionMetadata.isSuperuser()) {
+    if (isSuperuser) {
       allowedTlds = getTlds();
     } else {
       Registrar registrar = verifyNotNull(

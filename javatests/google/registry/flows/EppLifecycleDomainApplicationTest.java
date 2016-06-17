@@ -104,12 +104,12 @@ public class EppLifecycleDomainApplicationTest extends EppTestCase {
         "domain_allocate_testvalidate.xml",
         "domain_allocate_response_testvalidate_only_superuser.xml",
         START_OF_GA.plusDays(1));
-    setSuperuser(true);
+    setIsSuperuser(true);
     assertCommandAndResponse(
         "domain_allocate_testvalidate.xml",
         "domain_allocate_response_testvalidate.xml",
         START_OF_GA.plusDays(1).plusMinutes(1));
-    setSuperuser(false);
+    setIsSuperuser(false);
     assertCommandAndResponse(
         "domain_info_testvalidate.xml",
         "domain_info_response_testvalidate_ok.xml",

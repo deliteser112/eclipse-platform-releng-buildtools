@@ -20,17 +20,14 @@ import java.util.Set;
 public class StatelessRequestSessionMetadata extends SessionMetadata {
 
   private final String clientId;
-  private final boolean isSuperuser;
   private final Set<String> serviceExtensionUris;
   private final SessionSource sessionSource;
 
   public StatelessRequestSessionMetadata(
       String clientId,
-      boolean isSuperuser,
       Set<String> serviceExtensionUris,
       SessionSource source) {
     this.clientId = clientId;
-    this.isSuperuser = isSuperuser;
     this.serviceExtensionUris = serviceExtensionUris;
     this.sessionSource = source;
   }
@@ -38,11 +35,6 @@ public class StatelessRequestSessionMetadata extends SessionMetadata {
   @Override
   public String getClientId() {
     return clientId;
-  }
-
-  @Override
-  public boolean isSuperuser() {
-    return isSuperuser;
   }
 
   @Override

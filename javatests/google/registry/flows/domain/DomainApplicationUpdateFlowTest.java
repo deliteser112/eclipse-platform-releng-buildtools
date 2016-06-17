@@ -565,7 +565,6 @@ public class DomainApplicationUpdateFlowTest
 
   @Test
   public void testSuccess_superuserUnauthorizedClient() throws Exception {
-    sessionMetadata.setSuperuser(true);
     sessionMetadata.setClientId("NewRegistrar");
     persistReferencedEntities();
     persistApplication();

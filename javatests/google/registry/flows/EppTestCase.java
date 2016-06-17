@@ -70,7 +70,7 @@ public class EppTestCase extends ShardableTestCase {
     this.credentials = credentials;
   }
 
-  protected void setSuperuser(boolean isSuperuser) {
+  protected void setIsSuperuser(boolean isSuperuser) {
     this.isSuperuser = isSuperuser;
   }
 
@@ -96,7 +96,6 @@ public class EppTestCase extends ShardableTestCase {
     if (sessionMetadata == null) {
       sessionMetadata = new TestSessionMetadata();
     }
-    sessionMetadata.setSuperuser(isSuperuser);
     String actualOutput = executeXmlCommand(input);
     if (!sessionMetadata.isValid()) {
       sessionMetadata = null;
@@ -118,7 +117,7 @@ public class EppTestCase extends ShardableTestCase {
     handler.eppController = new EppController();
     handler.eppController.clock = clock;
     handler.eppController.metrics = mock(EppMetrics.class);
-    handler.executeEpp(sessionMetadata, credentials, false, inputXml.getBytes(UTF_8));
+    handler.executeEpp(sessionMetadata, credentials, false, isSuperuser, inputXml.getBytes(UTF_8));
     assertThat(response.getStatus()).isEqualTo(SC_OK);
     assertThat(response.getContentType()).isEqualTo(APPLICATION_EPP_XML_UTF8);
     String result = response.getPayload();

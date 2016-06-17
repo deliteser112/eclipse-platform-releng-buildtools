@@ -50,6 +50,7 @@ public class EppTlsAction implements Runnable {
         new HttpSessionMetadata(session),
         tlsCredentials,
         false,  // This endpoint is never a dry run.
+        false,  // This endpoint is never a superuser.
         inputXmlBytes);
   }
 }

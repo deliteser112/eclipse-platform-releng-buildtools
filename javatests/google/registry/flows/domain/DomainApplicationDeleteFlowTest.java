@@ -164,7 +164,6 @@ public class DomainApplicationDeleteFlowTest
 
   @Test
   public void testSuccess_superuserUnauthorizedClient() throws Exception {
-    sessionMetadata.setSuperuser(true);
     sessionMetadata.setClientId("NewRegistrar");
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());

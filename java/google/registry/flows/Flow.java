@@ -48,7 +48,7 @@ public abstract class Flow {
   protected byte[] inputXmlBytes;
 
   /** Whether this flow is being run in a superuser mode that can skip some checks. */
-  protected boolean superuser;
+  protected boolean isSuperuser;
 
   /** The collection of allowed extensions for the flow. */
   private Set<Class<? extends CommandExtension>> validExtensions = new HashSet<>();
@@ -103,6 +103,7 @@ public abstract class Flow {
       Trid trid,
       SessionMetadata sessionMetadata,
       TransportCredentials credentials,
+      boolean isSuperuser,
       DateTime now,
       byte[] inputXmlBytes) throws EppException {
     this.eppInput = eppInput;
@@ -110,7 +111,7 @@ public abstract class Flow {
     this.sessionMetadata = sessionMetadata;
     this.credentials = credentials;
     this.now = now;
-    this.superuser = sessionMetadata.isSuperuser();
+    this.isSuperuser = isSuperuser;
     this.inputXmlBytes = inputXmlBytes;
     initFlow();
     validExtensions = ImmutableSet.copyOf(validExtensions);

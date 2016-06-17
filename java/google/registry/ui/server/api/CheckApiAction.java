@@ -80,7 +80,6 @@ public class CheckApiAction implements Runnable {
   private final StatelessRequestSessionMetadata sessionMetadata =
       new StatelessRequestSessionMetadata(
           RegistryEnvironment.get().config().getCheckApiServletRegistrarClientId(),
-          false,
           ImmutableSet.of(FEE_0_6.getUri()),
           SessionSource.HTTP);
 
@@ -120,6 +119,7 @@ public class CheckApiAction implements Runnable {
           Trid.create(getClass().getSimpleName()),
           sessionMetadata,
           new PasswordOnlyTransportCredentials(),
+          false,
           false,
           inputXmlBytes,
           null,

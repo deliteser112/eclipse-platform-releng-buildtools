@@ -14,7 +14,6 @@
 
 package google.registry.flows.session;
 
-import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
@@ -76,21 +75,6 @@ public abstract class LoginFlowTestCase extends FlowTestCase<LoginFlow> {
   @Test
   public void testSuccess() throws Exception {
     doSuccessfulTest("login_valid.xml");
-    assertThat(sessionMetadata.isSuperuser()).isFalse();
-  }
-
-  @Test
-  public void testSuccess_superuser() throws Exception {
-    persistResource(getRegistrarBuilder().setIanaIdentifier(9999L).build());
-    doSuccessfulTest("login_valid.xml");
-    assertThat(sessionMetadata.isSuperuser()).isTrue();
-  }
-
-  @Test
-  public void testSuccess_notSuperuser() throws Exception {
-    persistResource(getRegistrarBuilder().setIanaIdentifier(15L).build());
-    doSuccessfulTest("login_valid.xml");
-    assertThat(sessionMetadata.isSuperuser()).isFalse();
   }
 
   @Test

@@ -49,9 +49,6 @@ public abstract class SessionMetadata {
   /** The key used for looking up the current client id on the session object. */
   protected static final String CLIENT_ID_KEY = "CLIENT_ID";
 
-  /** The key used for looking up the superuser bit on the session object. */
-  protected static final String SUPERUSER_KEY = "SUPERUSER";
-
   /** The key used for looking up the service extensions on the session object. */
   protected static final String SERVICE_EXTENSIONS_KEY = "SERVICE_EXTENSIONS";
 
@@ -93,10 +90,6 @@ public abstract class SessionMetadata {
     return getProperty(String.class, CLIENT_ID_KEY);
   }
 
-  public boolean isSuperuser() {
-    return Boolean.TRUE.equals(getProperty(Boolean.class, SUPERUSER_KEY));
-  }
-
   @SuppressWarnings("unchecked")
   public Set<String> getServiceExtensionUris() {
     return getProperty(Set.class, SERVICE_EXTENSIONS_KEY);
@@ -114,10 +107,6 @@ public abstract class SessionMetadata {
 
   public void setClientId(String clientId) {
     setPropertyChecked(CLIENT_ID_KEY, clientId);
-  }
-
-  public void setSuperuser(boolean superuser) {
-    setPropertyChecked(SUPERUSER_KEY, superuser);
   }
 
   public void setServiceExtensionUris(Set<String> serviceExtensionUris) {
@@ -142,7 +131,6 @@ public abstract class SessionMetadata {
     return toStringHelper(getClass())
         .add("system hash code", System.identityHashCode(this))
         .add("clientId", getClientId())
-        .add("isSuperuser", isSuperuser())
         .add("failedLoginAttempts", getFailedLoginAttempts())
         .add("sessionSource", getSessionSource())
         .add("serviceExtensionUris", Joiner.on('.').join(nullToEmpty(getServiceExtensionUris())))
