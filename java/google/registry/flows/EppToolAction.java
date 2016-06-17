@@ -51,10 +51,10 @@ public class EppToolAction implements Runnable {
         new StatelessRequestSessionMetadata(
             clientIdentifier,
             superuser,
-            dryRun,
             ProtocolDefinition.getVisibleServiceExtensionUris(),
             SessionSource.TOOL),
         new PasswordOnlyTransportCredentials(),
+        dryRun,
         xml.getBytes(UTF_8));
   }
 

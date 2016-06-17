@@ -46,7 +46,11 @@ public class EppTlsAction implements Runnable {
     if (!tlsCredentials.hasSni()) {
       logger.warning("Request did not include required SNI header.");
     }
-    eppRequestHandler.executeEpp(new HttpSessionMetadata(session), tlsCredentials, inputXmlBytes);
+    eppRequestHandler.executeEpp(
+        new HttpSessionMetadata(session),
+        tlsCredentials,
+        false,  // This endpoint is never a dry run.
+        inputXmlBytes);
   }
 }
 

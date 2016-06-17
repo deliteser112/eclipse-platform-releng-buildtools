@@ -42,10 +42,10 @@ public class EppToolActionTest {
     verify(action.eppRequestHandler).executeEpp(
         captor.capture(),
         isA(PasswordOnlyTransportCredentials.class),
+        eq(dryRun),
         eq(action.xml.getBytes(UTF_8)));
     SessionMetadata sessionMetadata = captor.getValue();
     assertThat(sessionMetadata.getClientId()).isEqualTo("ClientIdentifier");
-    assertThat(sessionMetadata.isDryRun()).isEqualTo(dryRun);
     assertThat(sessionMetadata.isSuperuser()).isEqualTo(superuser);
   }
 

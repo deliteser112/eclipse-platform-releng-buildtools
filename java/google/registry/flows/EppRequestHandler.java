@@ -42,10 +42,12 @@ public class EppRequestHandler {
   public void executeEpp(
       SessionMetadata sessionMetadata,
       TransportCredentials credentials,
+      boolean isDryRun,
       byte[] inputXmlBytes) {
     try {
       response.setPayload(new String(
-          eppController.handleEppCommand(sessionMetadata, credentials, inputXmlBytes), UTF_8));
+          eppController.handleEppCommand(
+              sessionMetadata, credentials, isDryRun, inputXmlBytes), UTF_8));
       response.setContentType(APPLICATION_EPP_XML);
       // Note that we always return 200 (OK) even if the EppController returns an error response.
       // This is because returning an non-OK HTTP status code will cause the proxy server to

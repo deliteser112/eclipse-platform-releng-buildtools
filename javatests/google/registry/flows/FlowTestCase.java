@@ -87,8 +87,6 @@ public abstract class FlowTestCase<F extends Flow> {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  private FlowRunner flowRunner;
-
   protected EppLoader eppLoader;
   protected Class<? extends Flow> flowClass;
   protected TestSessionMetadata sessionMetadata;
@@ -97,7 +95,6 @@ public abstract class FlowTestCase<F extends Flow> {
 
   @Before
   public void init() throws Exception {
-    flowRunner = null;
     sessionMetadata = new TestSessionMetadata();
     sessionMetadata.setClientId("TheRegistrar");
     sessionMetadata.setServiceExtensionUris(ProtocolDefinition.getVisibleServiceExtensionUris());
@@ -123,16 +120,8 @@ public abstract class FlowTestCase<F extends Flow> {
     return readResourceUtf8(getClass(), "testdata/" + filename);
   }
 
-  /** Lazily load the flow, since it may fail to initialize if the environment isn't set up yet. */
-  public FlowRunner getFlowRunner() throws Exception {
-    if (flowRunner == null) {
-      flowRunner = createFlowRunner();
-    }
-    return flowRunner;
-  }
-
   /** Load a flow from an epp object. */
-  private FlowRunner createFlowRunner() throws Exception {
+  private FlowRunner getFlowRunner(CommitMode commitMode) throws Exception {
     EppInput eppInput = eppLoader.getEpp();
     flowClass = firstNonNull(flowClass, FlowPicker.getFlowClass(eppInput));
     Class<?> expectedFlowClass = new TypeInstantiator<F>(getClass()){}.getExactType();
@@ -143,6 +132,7 @@ public abstract class FlowTestCase<F extends Flow> {
         getTrid(),
         sessionMetadata,
         credentials,
+        commitMode.equals(CommitMode.DRY_RUN),
         "<xml></xml>".getBytes(),
         null,
         clock);
@@ -163,7 +153,7 @@ public abstract class FlowTestCase<F extends Flow> {
   }
 
   public void assertTransactionalFlow(boolean isTransactional) throws Exception {
-    assertThat(getFlowRunner().isTransactional()).isEqualTo(isTransactional);
+    assertThat(getFlowRunner(CommitMode.LIVE).isTransactional()).isEqualTo(isTransactional);
   }
 
   public void assertNoHistory() throws Exception {
@@ -282,8 +272,7 @@ public abstract class FlowTestCase<F extends Flow> {
   /** Run a flow, and attempt to marshal the result to EPP or throw if it doesn't validate. */
   public EppOutput runFlow(CommitMode commitMode, UserPrivileges userPrivileges) throws Exception {
     sessionMetadata.setSuperuser(userPrivileges.equals(UserPrivileges.SUPERUSER));
-    sessionMetadata.setIsDryRun(commitMode.equals(CommitMode.DRY_RUN));
-    EppOutput output = getFlowRunner().run();
+    EppOutput output = getFlowRunner(commitMode).run();
     marshal(output, ValidationMode.STRICT);
     return output;
   }
@@ -296,8 +285,7 @@ public abstract class FlowTestCase<F extends Flow> {
       CommitMode commitMode, UserPrivileges userPrivileges, String xml, String... ignoredPaths)
       throws Exception {
     sessionMetadata.setSuperuser(userPrivileges.equals(UserPrivileges.SUPERUSER));
-    sessionMetadata.setIsDryRun(commitMode.equals(CommitMode.DRY_RUN));
-    EppOutput eppOutput = getFlowRunner().run();
+    EppOutput eppOutput = getFlowRunner(commitMode).run();
     if (eppOutput.isResponse()) {
       assertThat(eppOutput.isSuccess()).isTrue();
     }

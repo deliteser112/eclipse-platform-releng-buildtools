@@ -21,19 +21,16 @@ public class StatelessRequestSessionMetadata extends SessionMetadata {
 
   private final String clientId;
   private final boolean isSuperuser;
-  private final boolean isDryRun;
   private final Set<String> serviceExtensionUris;
   private final SessionSource sessionSource;
 
   public StatelessRequestSessionMetadata(
       String clientId,
       boolean isSuperuser,
-      boolean isDryRun,
       Set<String> serviceExtensionUris,
       SessionSource source) {
     this.clientId = clientId;
     this.isSuperuser = isSuperuser;
-    this.isDryRun = isDryRun;
     this.serviceExtensionUris = serviceExtensionUris;
     this.sessionSource = source;
   }
@@ -46,11 +43,6 @@ public class StatelessRequestSessionMetadata extends SessionMetadata {
   @Override
   public boolean isSuperuser() {
     return isSuperuser;
-  }
-
-  @Override
-  public boolean isDryRun() {
-    return isDryRun;
   }
 
   @Override

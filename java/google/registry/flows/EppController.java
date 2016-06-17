@@ -54,6 +54,7 @@ public final class EppController {
   public byte[] handleEppCommand(
       SessionMetadata sessionMetadata,
       TransportCredentials credentials,
+      boolean isDryRun,
       byte[] inputXmlBytes) {
     Trid trid = null;
     try {
@@ -72,6 +73,7 @@ public final class EppController {
           trid,
           sessionMetadata,
           credentials,
+          isDryRun,
           inputXmlBytes,
           metrics,
           clock);

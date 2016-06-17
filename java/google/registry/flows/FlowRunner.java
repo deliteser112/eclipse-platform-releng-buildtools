@@ -36,7 +36,7 @@ import org.joda.time.DateTime;
 /** Run a flow, either transactionally or not, with logging and retrying as needed. */
 public class FlowRunner {
 
-  private static final String COMMAND_LOG_FORMAT = "EPP Command" + Strings.repeat("\n\t%s", 5);
+  private static final String COMMAND_LOG_FORMAT = "EPP Command" + Strings.repeat("\n\t%s", 6);
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -44,6 +44,7 @@ public class FlowRunner {
   private final EppInput eppInput;
   private final Trid trid;
   private final SessionMetadata sessionMetadata;
+  private final boolean isDryRun;
   private final TransportCredentials credentials;
   private final byte[] inputXmlBytes;
   private final EppMetrics metrics;
@@ -55,6 +56,7 @@ public class FlowRunner {
       Trid trid,
       SessionMetadata sessionMetadata,
       TransportCredentials credentials,
+      boolean isDryRun,
       byte[] inputXmlBytes,
       final EppMetrics metrics,
       Clock clock) {
@@ -64,6 +66,7 @@ public class FlowRunner {
     this.trid = trid;
     this.sessionMetadata = sessionMetadata;
     this.credentials = credentials;
+    this.isDryRun = isDryRun;
     this.inputXmlBytes = inputXmlBytes;
     this.metrics = metrics;
     this.clock = clock;
@@ -77,7 +80,8 @@ public class FlowRunner {
         clientId,
         sessionMetadata,
         prettyPrint(inputXmlBytes).replaceAll("\n", "\n\t"),
-        credentials);
+        credentials,
+        isDryRun ? "DRY_RUN" : "LIVE");
     if (!isTransactional()) {
       if (metrics != null) {
         metrics.incrementAttempts();
@@ -100,7 +104,7 @@ public class FlowRunner {
           }
           try {
             EppOutput output = createAndInitFlow(ofy().getTransactionTime()).run();
-            if (sessionMetadata.isDryRun()) {
+            if (isDryRun) {
               throw new DryRunException(output);
             }
             return output;

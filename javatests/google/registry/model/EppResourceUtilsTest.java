@@ -86,6 +86,7 @@ public class EppResourceUtilsTest {
         Trid.create(null, "server-trid"),
         sessionMetadata,
         new PasswordOnlyTransportCredentials(),
+        false,
         "<xml></xml>".getBytes(),
         null,
         clock)

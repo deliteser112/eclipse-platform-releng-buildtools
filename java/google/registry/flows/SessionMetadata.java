@@ -137,12 +137,6 @@ public abstract class SessionMetadata {
     setPropertyChecked(FAILED_LOGIN_ATTEMPTS_KEY, null);
   }
 
-  // These three methods are here to allow special permissions if a derived class overrides them.
-
-  public boolean isDryRun() {
-    return false;
-  }
-
   @Override
   public String toString() {
     return toStringHelper(getClass())

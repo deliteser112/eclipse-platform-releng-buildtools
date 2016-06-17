@@ -49,10 +49,9 @@ public class EppTlsActionTest extends ShardableTestCase {
     action.run();
     ArgumentCaptor<SessionMetadata> captor = ArgumentCaptor.forClass(SessionMetadata.class);
     verify(action.eppRequestHandler)
-        .executeEpp(captor.capture(), same(action.tlsCredentials), eq(INPUT_XML_BYTES));
+        .executeEpp(captor.capture(), same(action.tlsCredentials), eq(false), eq(INPUT_XML_BYTES));
     SessionMetadata sessionMetadata = captor.getValue();
     assertThat(sessionMetadata.getClientId()).isEqualTo("ClientIdentifier");
-    assertThat(sessionMetadata.isDryRun()).isFalse();  // Should always be false for TLS.
     assertThat(sessionMetadata.isSuperuser()).isEqualTo(superuser);
   }
 

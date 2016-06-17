@@ -55,12 +55,11 @@ public class EppConsoleActionTest extends ShardableTestCase {
         ArgumentCaptor.forClass(TransportCredentials.class);
     ArgumentCaptor<SessionMetadata> metadataCaptor = ArgumentCaptor.forClass(SessionMetadata.class);
     verify(action.eppRequestHandler).executeEpp(
-        metadataCaptor.capture(), credentialsCaptor.capture(), eq(INPUT_XML_BYTES));
+        metadataCaptor.capture(), credentialsCaptor.capture(), eq(false), eq(INPUT_XML_BYTES));
     assertThat(((GaeUserCredentials) credentialsCaptor.getValue()).gaeUser.getEmail())
         .isEqualTo("person@example.com");
     SessionMetadata sessionMetadata = metadataCaptor.getValue();
     assertThat(sessionMetadata.getClientId()).isEqualTo("ClientIdentifier");
-    assertThat(sessionMetadata.isDryRun()).isFalse();  // Should always be false for console.
     assertThat(sessionMetadata.isSuperuser()).isEqualTo(superuser);
   }
 

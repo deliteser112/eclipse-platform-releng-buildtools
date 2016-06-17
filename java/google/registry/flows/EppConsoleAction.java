@@ -43,6 +43,7 @@ public class EppConsoleAction implements Runnable {
     eppRequestHandler.executeEpp(
         new HttpSessionMetadata(session),
         new GaeUserCredentials(getUserService().getCurrentUser()),
+        false,  // This endpoint is never a dry run.
         inputXmlBytes);
   }
 }
