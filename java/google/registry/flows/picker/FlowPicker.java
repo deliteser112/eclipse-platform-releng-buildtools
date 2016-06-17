@@ -326,10 +326,7 @@ public class FlowPicker {
       }
     }
     // Nothing usable was found, so throw an exception.
-    throw new UnimplementedCommandException(
-        innerCommand,
-        innerCommand instanceof ResourceCommandWrapper
-            ? ((ResourceCommandWrapper) innerCommand).getResourceCommand() : null);
+    throw new UnimplementedCommandException(innerCommand);
   }
 
   /** Command missing. */
