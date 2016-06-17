@@ -101,14 +101,13 @@ public abstract class Flow {
       EppInput eppInput,
       Trid trid,
       SessionMetadata sessionMetadata,
-      boolean superuser,
       DateTime now,
       byte[] inputXmlBytes) throws EppException {
     this.eppInput = eppInput;
     this.trid = trid;
     this.sessionMetadata = sessionMetadata;
     this.now = now;
-    this.superuser = superuser;
+    this.superuser = sessionMetadata.isSuperuser();
     this.inputXmlBytes = inputXmlBytes;
     initFlow();
     validExtensions = ImmutableSet.copyOf(validExtensions);

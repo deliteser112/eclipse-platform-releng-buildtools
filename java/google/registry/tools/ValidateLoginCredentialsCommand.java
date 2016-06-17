@@ -17,8 +17,8 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Resources.getResource;
+import static google.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
-import static google.registry.tools.CommandUtilities.runFlow;
 import static google.registry.util.X509Utils.getCertificateHash;
 import static google.registry.util.X509Utils.loadCertificate;
 import static java.nio.charset.StandardCharsets.US_ASCII;
@@ -32,8 +32,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 import google.registry.flows.FlowRunner;
-import google.registry.flows.FlowRunner.CommitMode;
-import google.registry.flows.FlowRunner.UserPrivileges;
 import google.registry.flows.HttpSessionMetadata;
 import google.registry.flows.TlsCredentials;
 import google.registry.flows.session.LoginFlow;
@@ -101,7 +99,7 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCo
         .setData(new SoyMapData("clientIdentifier", clientIdentifier, "password", password))
         .render()
         .getBytes(UTF_8);
-    System.out.println(runFlow(
+    System.out.println(new String(marshalWithLenientRetry(
         new FlowRunner(
             LoginFlow.class,
             unmarshal(EppInput.class, inputXmlBytes),
@@ -114,8 +112,6 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCo
                 new BasicHttpSession()),
             inputXmlBytes,
             null,
-            new SystemClock()),
-        CommitMode.DRY_RUN,
-        UserPrivileges.NORMAL));
+            new SystemClock()).run()), UTF_8));
   }
 }

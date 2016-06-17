@@ -22,8 +22,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
-import google.registry.flows.FlowRunner.CommitMode;
-import google.registry.flows.FlowRunner.UserPrivileges;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
@@ -61,10 +59,7 @@ public final class EppController {
       ImmutableList<String> targetIds = eppInput.getTargetIds();
       metrics.setCommandName(eppInput.getCommandName());
       metrics.setClientId(sessionMetadata.getClientId());
-      metrics.setPrivilegeLevel(
-          sessionMetadata.isSuperuser()
-              ? UserPrivileges.SUPERUSER.toString()
-              : UserPrivileges.NORMAL.toString());
+      metrics.setPrivilegeLevel(sessionMetadata.isSuperuser() ? "SUPERUSER" : "NORMAL");
       if (!targetIds.isEmpty()) {
         metrics.setEppTarget(Joiner.on(",").join(targetIds));
       }
@@ -76,9 +71,7 @@ public final class EppController {
           inputXmlBytes,
           metrics,
           clock);
-      EppOutput eppOutput = flowRunner.run(
-          sessionMetadata.isDryRun() ? CommitMode.DRY_RUN : CommitMode.LIVE,
-          sessionMetadata.isSuperuser() ? UserPrivileges.SUPERUSER : UserPrivileges.NORMAL);
+      EppOutput eppOutput = flowRunner.run();
       if (eppOutput.isResponse()) {
         metrics.setEppStatus(eppOutput.getResponse().getResult().getCode());
       }

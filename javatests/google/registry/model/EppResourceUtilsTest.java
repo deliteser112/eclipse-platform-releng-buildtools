@@ -31,8 +31,6 @@ import static org.joda.time.Duration.standardDays;
 import com.googlecode.objectify.Key;
 
 import google.registry.flows.FlowRunner;
-import google.registry.flows.FlowRunner.CommitMode;
-import google.registry.flows.FlowRunner.UserPrivileges;
 import google.registry.flows.SessionMetadata;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.Trid;
@@ -89,7 +87,7 @@ public class EppResourceUtilsTest {
         "<xml></xml>".getBytes(),
         null,
         clock)
-            .run(CommitMode.LIVE, UserPrivileges.NORMAL);
+            .run();
   }
 
   /** Test that update flow creates commit logs needed to reload at any arbitrary time. */

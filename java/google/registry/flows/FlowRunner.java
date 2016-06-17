@@ -38,12 +38,6 @@ public class FlowRunner {
 
   private static final String COMMAND_LOG_FORMAT = "EPP Command" + Strings.repeat("\n\t%s", 4);
 
-  /** Whether to actually write to the datastore or just simulate. */
-  public enum CommitMode { LIVE, DRY_RUN }
-
-  /** Whether to run in normal or superuser mode. */
-  public enum UserPrivileges { NORMAL, SUPERUSER }
-
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private final Class<? extends Flow> flowClass;
@@ -71,10 +65,8 @@ public class FlowRunner {
     this.clock = clock;
   }
 
-  public EppOutput run(
-      final CommitMode commitMode, final UserPrivileges userPrivileges) throws EppException {
+  public EppOutput run() throws EppException {
     String clientId = sessionMetadata.getClientId();
-    final boolean isSuperuser = UserPrivileges.SUPERUSER.equals(userPrivileges);
     logger.infofmt(
         COMMAND_LOG_FORMAT,
         trid.getServerTransactionId(),
@@ -85,14 +77,14 @@ public class FlowRunner {
       if (metrics != null) {
         metrics.incrementAttempts();
       }
-      return createAndInitFlow(isSuperuser, clock.nowUtc()).run();
+      return createAndInitFlow(clock.nowUtc()).run();
     }
     // We log the command in a structured format. Note that we do this before the transaction;
     // if we did it after, we might miss a transaction that committed successfully but then crashed
     // before it could log.
     logger.info("EPP_Mutation " + new JsonLogStatement(trid)
         .add("client", clientId)
-        .add("privileges", userPrivileges.toString())
+        .add("privileges", sessionMetadata.isSuperuser() ? "SUPERUSER" : "NORMAL")
         .add("xmlBytes", base64().encode(inputXmlBytes)));
     try {
       EppOutput flowResult = ofy().transact(new Work<EppOutput>() {
@@ -102,8 +94,8 @@ public class FlowRunner {
             metrics.incrementAttempts();
           }
           try {
-            EppOutput output = createAndInitFlow(isSuperuser, ofy().getTransactionTime()).run();
-            if (CommitMode.DRY_RUN.equals(commitMode)) {
+            EppOutput output = createAndInitFlow(ofy().getTransactionTime()).run();
+            if (sessionMetadata.isDryRun()) {
               throw new DryRunException(output);
             }
             return output;
@@ -127,12 +119,11 @@ public class FlowRunner {
     }
   }
 
-  private Flow createAndInitFlow(boolean superuser, DateTime now) throws EppException {
+  private Flow createAndInitFlow(DateTime now) throws EppException {
       return TypeUtils.<Flow>instantiate(flowClass).init(
           eppInput,
           trid,
           sessionMetadata,
-          superuser,
           now,
           inputXmlBytes);
   }

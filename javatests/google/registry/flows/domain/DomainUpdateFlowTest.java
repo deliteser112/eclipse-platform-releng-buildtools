@@ -42,8 +42,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
 import google.registry.flows.EppException.UnimplementedExtensionException;
-import google.registry.flows.FlowRunner.CommitMode;
-import google.registry.flows.FlowRunner.UserPrivileges;
 import google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;

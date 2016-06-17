@@ -34,8 +34,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
-import google.registry.flows.FlowRunner.CommitMode;
-import google.registry.flows.FlowRunner.UserPrivileges;
 import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.flows.picker.FlowPicker;
 import google.registry.model.billing.BillingEvent;
@@ -74,6 +72,12 @@ import java.util.Map;
 @RunWith(MockitoJUnitRunner.class)
 public abstract class FlowTestCase<F extends Flow> {
 
+  /** Whether to actually write to the datastore or just simulate. */
+  public enum CommitMode { LIVE, DRY_RUN }
+
+  /** Whether to run in normal or superuser mode. */
+  public enum UserPrivileges { NORMAL, SUPERUSER }
+
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
@@ -87,7 +91,7 @@ public abstract class FlowTestCase<F extends Flow> {
 
   protected EppLoader eppLoader;
   protected Class<? extends Flow> flowClass;
-  protected SessionMetadata sessionMetadata;
+  protected TestSessionMetadata sessionMetadata;
   protected FakeClock clock = new FakeClock(DateTime.now(UTC));
 
   @Before
@@ -275,7 +279,9 @@ public abstract class FlowTestCase<F extends Flow> {
 
   /** Run a flow, and attempt to marshal the result to EPP or throw if it doesn't validate. */
   public EppOutput runFlow(CommitMode commitMode, UserPrivileges userPrivileges) throws Exception {
-    EppOutput output = getFlowRunner().run(commitMode, userPrivileges);
+    sessionMetadata.setSuperuser(userPrivileges.equals(UserPrivileges.SUPERUSER));
+    sessionMetadata.setIsDryRun(commitMode.equals(CommitMode.DRY_RUN));
+    EppOutput output = getFlowRunner().run();
     marshal(output, ValidationMode.STRICT);
     return output;
   }
@@ -287,7 +293,9 @@ public abstract class FlowTestCase<F extends Flow> {
   public void runFlowAssertResponse(
       CommitMode commitMode, UserPrivileges userPrivileges, String xml, String... ignoredPaths)
       throws Exception {
-    EppOutput eppOutput = getFlowRunner().run(commitMode, userPrivileges);
+    sessionMetadata.setSuperuser(userPrivileges.equals(UserPrivileges.SUPERUSER));
+    sessionMetadata.setIsDryRun(commitMode.equals(CommitMode.DRY_RUN));
+    EppOutput eppOutput = getFlowRunner().run();
     if (eppOutput.isResponse()) {
       assertThat(eppOutput.isSuccess()).isTrue();
     }

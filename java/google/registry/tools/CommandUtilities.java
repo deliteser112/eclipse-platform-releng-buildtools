@@ -14,15 +14,7 @@
 
 package google.registry.tools;
 
-import static google.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.google.common.base.Strings;
-
-import google.registry.flows.EppException;
-import google.registry.flows.FlowRunner;
-import google.registry.flows.FlowRunner.CommitMode;
-import google.registry.flows.FlowRunner.UserPrivileges;
 
 /** Container class for static utility methods. */
 class CommandUtilities {
@@ -59,11 +51,5 @@ class CommandUtilities {
     if (!Strings.isNullOrEmpty(text)) {
       System.out.println(text);
     }
-  }
-
-  static String runFlow(
-      FlowRunner flowRunner, CommitMode commitMode, UserPrivileges userPrivileges)
-          throws EppException {
-    return new String(marshalWithLenientRetry(flowRunner.run(commitMode, userPrivileges)), UTF_8);
   }
 }

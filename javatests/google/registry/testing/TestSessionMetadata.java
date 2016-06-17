@@ -25,6 +25,7 @@ public class TestSessionMetadata extends SessionMetadata {
 
   private final Map<String, Object> properties = new HashMap<>();
   private boolean isValid = true;
+  private boolean isDryRun = false;
   private SessionSource sessionSource = SessionSource.NONE;
 
   @Override
@@ -55,6 +56,15 @@ public class TestSessionMetadata extends SessionMetadata {
   @Override
   public void setSessionSource(SessionSource source) {
     sessionSource = source;
+  }
+
+  public void setIsDryRun(boolean isDryRun) {
+    this.isDryRun = isDryRun;
+  }
+
+  @Override
+  public boolean isDryRun() {
+    return isDryRun;
   }
 
   public boolean isValid() {

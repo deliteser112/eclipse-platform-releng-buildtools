@@ -30,8 +30,6 @@ import com.google.common.collect.ImmutableSet;
 
 import com.googlecode.objectify.Key;
 
-import google.registry.flows.FlowRunner.CommitMode;
-import google.registry.flows.FlowRunner.UserPrivileges;
 import google.registry.flows.ResourceAsyncDeleteFlow.ResourceToDeleteIsReferencedException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;

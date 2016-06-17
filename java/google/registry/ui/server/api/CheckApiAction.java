@@ -38,8 +38,6 @@ import dagger.Provides;
 import google.registry.config.RegistryEnvironment;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowRunner;
-import google.registry.flows.FlowRunner.CommitMode;
-import google.registry.flows.FlowRunner.UserPrivileges;
 import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.flows.StatelessRequestSessionMetadata;
 import google.registry.flows.domain.DomainCheckFlow;
@@ -124,7 +122,7 @@ public class CheckApiAction implements Runnable {
           inputXmlBytes,
           null,
           clock)
-              .run(CommitMode.LIVE, UserPrivileges.NORMAL)
+              .run()
               .getResponse();
       DomainCheckData checkData = (DomainCheckData) response.getResponseData().get(0);
       DomainCheck check = (DomainCheck) checkData.getChecks().get(0);

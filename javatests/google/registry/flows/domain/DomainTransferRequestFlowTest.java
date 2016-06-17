@@ -38,8 +38,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 
-import google.registry.flows.FlowRunner.CommitMode;
-import google.registry.flows.FlowRunner.UserPrivileges;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
 import google.registry.flows.ResourceTransferRequestFlow.AlreadyPendingTransferException;
