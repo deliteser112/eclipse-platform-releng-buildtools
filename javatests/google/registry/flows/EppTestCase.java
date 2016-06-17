@@ -50,8 +50,8 @@ public class EppTestCase extends ShardableTestCase {
   private final FakeClock clock = new FakeClock();
 
   private TestSessionMetadata sessionMetadata;
-  private TransportCredentials credentials;
-  private boolean superuser;
+  private TransportCredentials credentials = new PasswordOnlyTransportCredentials();
+  private boolean isSuperuser;
 
   @Before
   public void initTestCase() {
@@ -70,8 +70,8 @@ public class EppTestCase extends ShardableTestCase {
     this.credentials = credentials;
   }
 
-  protected void setSuperuser(boolean superuser) {
-    this.superuser = superuser;
+  protected void setSuperuser(boolean isSuperuser) {
+    this.isSuperuser = isSuperuser;
   }
 
   String assertCommandAndResponse(String inputFilename, String outputFilename) throws Exception {
@@ -95,9 +95,8 @@ public class EppTestCase extends ShardableTestCase {
         loadFileWithSubstitutions(getClass(), outputFilename, outputSubstitutions);
     if (sessionMetadata == null) {
       sessionMetadata = new TestSessionMetadata();
-      sessionMetadata.setTransportCredentials(credentials);
     }
-    sessionMetadata.setSuperuser(superuser);
+    sessionMetadata.setSuperuser(isSuperuser);
     String actualOutput = executeXmlCommand(input);
     if (!sessionMetadata.isValid()) {
       sessionMetadata = null;
@@ -119,7 +118,7 @@ public class EppTestCase extends ShardableTestCase {
     handler.eppController = new EppController();
     handler.eppController.clock = clock;
     handler.eppController.metrics = mock(EppMetrics.class);
-    handler.executeEpp(sessionMetadata, inputXml.getBytes(UTF_8));
+    handler.executeEpp(sessionMetadata, credentials, inputXml.getBytes(UTF_8));
     assertThat(response.getStatus()).isEqualTo(SC_OK);
     assertThat(response.getContentType()).isEqualTo(APPLICATION_EPP_XML_UTF8);
     String result = response.getPayload();

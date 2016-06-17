@@ -42,6 +42,7 @@ public abstract class Flow {
 
   protected EppInput eppInput;
   protected SessionMetadata sessionMetadata;
+  protected TransportCredentials credentials;
   protected Trid trid;
   protected DateTime now;
   protected byte[] inputXmlBytes;
@@ -101,11 +102,13 @@ public abstract class Flow {
       EppInput eppInput,
       Trid trid,
       SessionMetadata sessionMetadata,
+      TransportCredentials credentials,
       DateTime now,
       byte[] inputXmlBytes) throws EppException {
     this.eppInput = eppInput;
     this.trid = trid;
     this.sessionMetadata = sessionMetadata;
+    this.credentials = credentials;
     this.now = now;
     this.superuser = sessionMetadata.isSuperuser();
     this.inputXmlBytes = inputXmlBytes;

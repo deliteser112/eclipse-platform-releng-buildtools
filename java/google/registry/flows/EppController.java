@@ -51,7 +51,10 @@ public final class EppController {
    * Read an EPP envelope from the client, find the matching flow, execute it, and return
    * the response marshalled to a byte array.
    */
-  public byte[] handleEppCommand(SessionMetadata sessionMetadata, byte[] inputXmlBytes) {
+  public byte[] handleEppCommand(
+      SessionMetadata sessionMetadata,
+      TransportCredentials credentials,
+      byte[] inputXmlBytes) {
     Trid trid = null;
     try {
       EppInput eppInput = unmarshal(EppInput.class, inputXmlBytes);
@@ -68,6 +71,7 @@ public final class EppController {
           eppInput,
           trid,
           sessionMetadata,
+          credentials,
           inputXmlBytes,
           metrics,
           clock);

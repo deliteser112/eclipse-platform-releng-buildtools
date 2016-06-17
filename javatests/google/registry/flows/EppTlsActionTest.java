@@ -17,7 +17,8 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.Mockito.eq;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,12 +48,12 @@ public class EppTlsActionTest extends ShardableTestCase {
     action.eppRequestHandler = mock(EppRequestHandler.class);
     action.run();
     ArgumentCaptor<SessionMetadata> captor = ArgumentCaptor.forClass(SessionMetadata.class);
-    verify(action.eppRequestHandler).executeEpp(captor.capture(), eq(INPUT_XML_BYTES));
+    verify(action.eppRequestHandler)
+        .executeEpp(captor.capture(), same(action.tlsCredentials), eq(INPUT_XML_BYTES));
     SessionMetadata sessionMetadata = captor.getValue();
     assertThat(sessionMetadata.getClientId()).isEqualTo("ClientIdentifier");
     assertThat(sessionMetadata.isDryRun()).isFalse();  // Should always be false for TLS.
     assertThat(sessionMetadata.isSuperuser()).isEqualTo(superuser);
-    assertThat(sessionMetadata.getTransportCredentials()).isSameAs(action.tlsCredentials);
   }
 
   @Test

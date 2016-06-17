@@ -104,12 +104,11 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCo
             LoginFlow.class,
             unmarshal(EppInput.class, inputXmlBytes),
             Trid.create(null),
-            new HttpSessionMetadata(
-                new TlsCredentials(
-                    clientCertificateHash,
-                    Optional.of(clientIpAddress),
-                    "placeholder"),  // behave as if we have SNI on, since we're validating a cert
-                new BasicHttpSession()),
+            new HttpSessionMetadata(new BasicHttpSession()),
+            new TlsCredentials(
+                clientCertificateHash,
+                Optional.of(clientIpAddress),
+                "placeholder"),  // behave as if we have SNI on, since we're validating a cert
             inputXmlBytes,
             null,
             new SystemClock()).run()), UTF_8));

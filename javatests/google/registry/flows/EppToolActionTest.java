@@ -16,7 +16,8 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.Mockito.eq;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -38,7 +39,10 @@ public class EppToolActionTest {
     action.xml = "<xml>";
     action.run();
     ArgumentCaptor<SessionMetadata> captor = ArgumentCaptor.forClass(SessionMetadata.class);
-    verify(action.eppRequestHandler).executeEpp(captor.capture(), eq(action.xml.getBytes(UTF_8)));
+    verify(action.eppRequestHandler).executeEpp(
+        captor.capture(),
+        isA(PasswordOnlyTransportCredentials.class),
+        eq(action.xml.getBytes(UTF_8)));
     SessionMetadata sessionMetadata = captor.getValue();
     assertThat(sessionMetadata.getClientId()).isEqualTo("ClientIdentifier");
     assertThat(sessionMetadata.isDryRun()).isEqualTo(dryRun);

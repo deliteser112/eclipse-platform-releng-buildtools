@@ -24,9 +24,8 @@ public class HttpSessionMetadata extends SessionMetadata {
   private final HttpSession session;
   private boolean isValid = true;
 
-  public HttpSessionMetadata(TransportCredentials credentials, HttpSession session) {
+  public HttpSessionMetadata(HttpSession session) {
     this.session = session;
-    setTransportCredentials(credentials);
   }
 
   @Override

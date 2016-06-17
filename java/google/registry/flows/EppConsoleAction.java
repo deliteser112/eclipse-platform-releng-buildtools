@@ -41,7 +41,8 @@ public class EppConsoleAction implements Runnable {
   @Override
   public void run() {
     eppRequestHandler.executeEpp(
-        new HttpSessionMetadata(new GaeUserCredentials(getUserService().getCurrentUser()), session),
+        new HttpSessionMetadata(session),
+        new GaeUserCredentials(getUserService().getCurrentUser()),
         inputXmlBytes);
   }
 }

@@ -54,6 +54,7 @@ public class EppToolAction implements Runnable {
             dryRun,
             ProtocolDefinition.getVisibleServiceExtensionUris(),
             SessionSource.TOOL),
+        new PasswordOnlyTransportCredentials(),
         xml.getBytes(UTF_8));
   }
 
@@ -61,7 +62,7 @@ public class EppToolAction implements Runnable {
   @Module
   public static final class EppToolModule {
 
-    // TODO(b/29139545): Make parameters consistent across the graph. @Parameter("dryRun") is 
+    // TODO(b/29139545): Make parameters consistent across the graph. @Parameter("dryRun") is
     // already provided elsewhere in the graph and happens to work for us but that's just luck.
 
     @Provides

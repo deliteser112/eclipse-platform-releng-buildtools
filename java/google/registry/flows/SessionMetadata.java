@@ -46,9 +46,7 @@ public abstract class SessionMetadata {
     NONE
   }
 
-  private TransportCredentials credentials;
-
-   /** The key used for looking up the current client id on the session object. */
+  /** The key used for looking up the current client id on the session object. */
   protected static final String CLIENT_ID_KEY = "CLIENT_ID";
 
   /** The key used for looking up the superuser bit on the session object. */
@@ -89,16 +87,6 @@ public abstract class SessionMetadata {
   private <T> T getProperty(Class<T> clazz, String key) {
     checkValid();
     return clazz.cast(getProperty(key));
-  }
-
-  public TransportCredentials getTransportCredentials() {
-    checkValid();
-    return credentials;
-  }
-
-  public void setTransportCredentials(TransportCredentials credentials) {
-    checkValid();
-    this.credentials = credentials;
   }
 
   public String getClientId() {
@@ -164,7 +152,6 @@ public abstract class SessionMetadata {
         .add("failedLoginAttempts", getFailedLoginAttempts())
         .add("sessionSource", getSessionSource())
         .add("serviceExtensionUris", Joiner.on('.').join(nullToEmpty(getServiceExtensionUris())))
-        .add("transportCredentials", getTransportCredentials())
         .toString();
   }
 }

@@ -36,7 +36,7 @@ import org.joda.time.DateTime;
 /** Run a flow, either transactionally or not, with logging and retrying as needed. */
 public class FlowRunner {
 
-  private static final String COMMAND_LOG_FORMAT = "EPP Command" + Strings.repeat("\n\t%s", 4);
+  private static final String COMMAND_LOG_FORMAT = "EPP Command" + Strings.repeat("\n\t%s", 5);
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -44,6 +44,7 @@ public class FlowRunner {
   private final EppInput eppInput;
   private final Trid trid;
   private final SessionMetadata sessionMetadata;
+  private final TransportCredentials credentials;
   private final byte[] inputXmlBytes;
   private final EppMetrics metrics;
   private final Clock clock;
@@ -53,13 +54,16 @@ public class FlowRunner {
       EppInput eppInput,
       Trid trid,
       SessionMetadata sessionMetadata,
+      TransportCredentials credentials,
       byte[] inputXmlBytes,
       final EppMetrics metrics,
       Clock clock) {
+    credentials.toString();
     this.flowClass = flowClass;
     this.eppInput = eppInput;
     this.trid = trid;
     this.sessionMetadata = sessionMetadata;
+    this.credentials = credentials;
     this.inputXmlBytes = inputXmlBytes;
     this.metrics = metrics;
     this.clock = clock;
@@ -72,7 +76,8 @@ public class FlowRunner {
         trid.getServerTransactionId(),
         clientId,
         sessionMetadata,
-        prettyPrint(inputXmlBytes).replaceAll("\n", "\n\t"));
+        prettyPrint(inputXmlBytes).replaceAll("\n", "\n\t"),
+        credentials);
     if (!isTransactional()) {
       if (metrics != null) {
         metrics.incrementAttempts();
@@ -124,6 +129,7 @@ public class FlowRunner {
           eppInput,
           trid,
           sessionMetadata,
+          credentials,
           now,
           inputXmlBytes);
   }

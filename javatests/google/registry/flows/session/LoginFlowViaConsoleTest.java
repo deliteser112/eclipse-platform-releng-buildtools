@@ -15,9 +15,9 @@
 package google.registry.flows.session;
 
 
+import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.appengine.api.users.UserServiceFactory;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.Environment;
 import com.google.common.collect.ImmutableSet;
@@ -150,15 +150,13 @@ public class LoginFlowViaConsoleTest extends LoginFlowTestCase {
         return envAttr;
       }
     });
-    sessionMetadata.setTransportCredentials(new GaeUserCredentials(
-        UserServiceFactory.getUserService().getCurrentUser()));
+    credentials = new GaeUserCredentials(getUserService().getCurrentUser());
     return oldEnv;
   }
 
   void noLogin() {
     oldEnv = ApiProxy.getCurrentEnvironment();
-    sessionMetadata.setTransportCredentials(new GaeUserCredentials(
-        UserServiceFactory.getUserService().getCurrentUser()));
+    credentials = new GaeUserCredentials(getUserService().getCurrentUser());
   }
 
   void persistLinkedAccount(String email, String gaeUserId) {

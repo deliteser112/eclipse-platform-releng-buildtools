@@ -52,7 +52,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
   @Test
   public void testSuccess_withGoodCredentials() throws Exception {
     persistResource(getRegistrarBuilder().build());
-    sessionMetadata.setTransportCredentials(new TlsCredentials(GOOD_CERT, GOOD_IP, "goo.example"));
+    credentials = new TlsCredentials(GOOD_CERT, GOOD_IP, "goo.example");
     doSuccessfulTest("login_valid.xml");
   }
 
@@ -63,8 +63,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
             .setIpAddressWhitelist(ImmutableList.of(
                 CidrAddressBlock.create("2001:db8:0:0:0:0:1:1/32")))
             .build());
-    sessionMetadata.setTransportCredentials(
-        new TlsCredentials(GOOD_CERT, GOOD_IPV6, "goo.example"));
+    credentials = new TlsCredentials(GOOD_CERT, GOOD_IPV6, "goo.example");
     doSuccessfulTest("login_valid.xml");
   }
 
@@ -75,8 +74,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
             .setIpAddressWhitelist(ImmutableList.of(
                 CidrAddressBlock.create("2001:db8:0:0:0:0:1:1/32")))
             .build());
-    sessionMetadata.setTransportCredentials(
-        new TlsCredentials(GOOD_CERT, GOOD_IPV6, "goo.example"));
+    credentials = new TlsCredentials(GOOD_CERT, GOOD_IPV6, "goo.example");
     doSuccessfulTest("login_valid.xml");
   }
 
@@ -87,28 +85,28 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
             .setIpAddressWhitelist(ImmutableList.of(
                 CidrAddressBlock.create("192.168.1.255/24")))
             .build());
-    sessionMetadata.setTransportCredentials(new TlsCredentials(GOOD_CERT, GOOD_IP, "goo.example"));
+    credentials = new TlsCredentials(GOOD_CERT, GOOD_IP, "goo.example");
     doSuccessfulTest("login_valid.xml");
   }
 
   @Test
   public void testFailure_incorrectClientCertificateHash() throws Exception {
     persistResource(getRegistrarBuilder().build());
-    sessionMetadata.setTransportCredentials(new TlsCredentials(BAD_CERT, GOOD_IP, "goo.example"));
+    credentials = new TlsCredentials(BAD_CERT, GOOD_IP, "goo.example");
     doFailingTest("login_valid.xml", BadRegistrarCertificateException.class);
   }
 
   @Test
   public void testFailure_missingClientCertificateHash() throws Exception {
     persistResource(getRegistrarBuilder().build());
-    sessionMetadata.setTransportCredentials(new TlsCredentials(null, GOOD_IP, "goo.example"));
+    credentials = new TlsCredentials(null, GOOD_IP, "goo.example");
     doFailingTest("login_valid.xml", MissingRegistrarCertificateException.class);
   }
 
   @Test
   public void testFailure_noSniAndCertRequired() throws Exception {
     persistResource(getRegistrarBuilder().build());
-    sessionMetadata.setTransportCredentials(new TlsCredentials(null, GOOD_IP, null));
+    credentials = new TlsCredentials(null, GOOD_IP, null);
     doFailingTest("login_valid.xml", NoSniException.class);
   }
 
@@ -120,8 +118,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create(InetAddresses.forString("192.168.1.1"), 32),
                 CidrAddressBlock.create(InetAddresses.forString("2001:db8::1"), 128)))
             .build());
-    sessionMetadata.setTransportCredentials(
-        new TlsCredentials(GOOD_CERT, Optional.<String>absent(), "goo.example"));
+    credentials = new TlsCredentials(GOOD_CERT, Optional.<String>absent(), "goo.example");
     doFailingTest("login_valid.xml", BadRegistrarIpAddressException.class);
   }
 
@@ -133,7 +130,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create(InetAddresses.forString("192.168.1.1"), 32),
                 CidrAddressBlock.create(InetAddresses.forString("2001:db8::1"), 128)))
             .build());
-    sessionMetadata.setTransportCredentials(new TlsCredentials(GOOD_CERT, BAD_IP, "goo.example"));
+    credentials = new TlsCredentials(GOOD_CERT, BAD_IP, "goo.example");
     doFailingTest("login_valid.xml", BadRegistrarIpAddressException.class);
   }
 
@@ -145,7 +142,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create(InetAddresses.forString("192.168.1.1"), 32),
                 CidrAddressBlock.create(InetAddresses.forString("2001:db8::1"), 128)))
             .build());
-    sessionMetadata.setTransportCredentials(new TlsCredentials(GOOD_CERT, BAD_IPV6, "goo.example"));
+    credentials = new TlsCredentials(GOOD_CERT, BAD_IPV6, "goo.example");
     doFailingTest("login_valid.xml", BadRegistrarIpAddressException.class);
   }
 }

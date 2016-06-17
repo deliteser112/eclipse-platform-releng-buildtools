@@ -93,6 +93,7 @@ public abstract class FlowTestCase<F extends Flow> {
   protected Class<? extends Flow> flowClass;
   protected TestSessionMetadata sessionMetadata;
   protected FakeClock clock = new FakeClock(DateTime.now(UTC));
+  protected TransportCredentials credentials = new PasswordOnlyTransportCredentials();
 
   @Before
   public void init() throws Exception {
@@ -141,6 +142,7 @@ public abstract class FlowTestCase<F extends Flow> {
         eppInput,
         getTrid(),
         sessionMetadata,
+        credentials,
         "<xml></xml>".getBytes(),
         null,
         clock);

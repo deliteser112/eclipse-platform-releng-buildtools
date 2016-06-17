@@ -38,6 +38,7 @@ import dagger.Provides;
 import google.registry.config.RegistryEnvironment;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowRunner;
+import google.registry.flows.PasswordOnlyTransportCredentials;
 import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.flows.StatelessRequestSessionMetadata;
 import google.registry.flows.domain.DomainCheckFlow;
@@ -119,6 +120,7 @@ public class CheckApiAction implements Runnable {
           unmarshal(EppInput.class, inputXmlBytes),
           Trid.create(getClass().getSimpleName()),
           sessionMetadata,
+          new PasswordOnlyTransportCredentials(),
           inputXmlBytes,
           null,
           clock)

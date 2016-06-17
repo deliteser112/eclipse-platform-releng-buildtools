@@ -38,12 +38,8 @@ public class GaeUserCredentials implements TransportCredentials {
   }
 
   @Override
-  public boolean performsLoginCheck() {
-    return true;
-  }
-
-  @Override
-  public void validate(Registrar r) throws AuthenticationErrorException {
+  public void validate(Registrar registrar, String ignoredPassword)
+      throws AuthenticationErrorException {
     if (gaeUser == null) {
       throw new UserNotLoggedInException();
     }
@@ -53,7 +49,7 @@ public class GaeUserCredentials implements TransportCredentials {
     }
     // Check Registrar's contacts to see if any are associated with this gaeUserId.
     final String gaeUserId = gaeUser.getUserId();
-    for (RegistrarContact rc : r.getContacts()) {
+    for (RegistrarContact rc : registrar.getContacts()) {
       if (gaeUserId.equals(rc.getGaeUserId())) {
         return;
       }

@@ -86,20 +86,16 @@ public class TlsCredentials implements TransportCredentials {
     }
   }
 
-  @Override
-  public boolean performsLoginCheck() {
-    return false;
-  }
-
   /** Returns {@code true} if frontend passed us the requested server name. */
   boolean hasSni() {
     return !isNullOrEmpty(sni);
   }
 
   @Override
-  public void validate(Registrar registrar) throws AuthenticationErrorException {
+  public void validate(Registrar registrar, String password) throws AuthenticationErrorException {
     validateIp(registrar);
     validateCertificate(registrar);
+    validatePassword(registrar, password);
   }
 
   /**
@@ -157,6 +153,13 @@ public class TlsCredentials implements TransportCredentials {
           registrar.getClientCertificateHash(),
           registrar.getFailoverClientCertificateHash());
       throw new BadRegistrarCertificateException();
+    }
+  }
+
+  private void validatePassword(Registrar registrar, String password)
+      throws BadRegistrarPasswordException {
+    if (!registrar.testPassword(password)) {
+      throw new BadRegistrarPasswordException();
     }
   }
 

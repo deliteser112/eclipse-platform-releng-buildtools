@@ -69,11 +69,6 @@ public class StatelessRequestSessionMetadata extends SessionMetadata {
   }
 
   @Override
-  public void setTransportCredentials(TransportCredentials credentials) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   protected void setProperty(String key, Object value) {
     throw new UnsupportedOperationException();
   }
