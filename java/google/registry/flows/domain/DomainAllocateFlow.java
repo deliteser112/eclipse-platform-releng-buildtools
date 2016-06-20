@@ -29,7 +29,6 @@ import com.googlecode.objectify.Ref;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
-import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -52,11 +51,9 @@ import google.registry.tmch.LordnTask;
 /**
  * An EPP flow that allocates a new domain resource from a domain application.
  *
- * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException}
  * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainAllocateFlow.HasFinalStatusException}
- * @error {@link DomainAllocateFlow.MissingAllocateCreateExtensionException}
  * @error {@link DomainAllocateFlow.MissingApplicationException}
  * @error {@link DomainAllocateFlow.OnlySuperuserCanAllocateException}
  */
@@ -75,9 +72,6 @@ public class DomainAllocateFlow extends DomainCreateOrAllocateFlow {
   protected final void verifyDomainCreateIsAllowed() throws EppException {
     if (!isSuperuser) {
       throw new OnlySuperuserCanAllocateException();
-    }
-    if (allocateCreate == null) {
-      throw new MissingAllocateCreateExtensionException();
     }
     String applicationRoid = allocateCreate.getApplicationRoid();
     application = loadByUniqueId(DomainApplication.class, applicationRoid, now);
@@ -197,13 +191,6 @@ public class DomainAllocateFlow extends DomainCreateOrAllocateFlow {
   @Override
   protected final HistoryEntry.Type getHistoryEntryType() {
     return HistoryEntry.Type.DOMAIN_ALLOCATE;
-  }
-
-  /** The allocate create extension is required to allocate a domain. */
-  static class MissingAllocateCreateExtensionException extends RequiredParameterMissingException {
-    public MissingAllocateCreateExtensionException() {
-      super("The allocate create extension is required to allocate a domain");
-    }
   }
 
   /** Domain application with specific ROID does not exist. */

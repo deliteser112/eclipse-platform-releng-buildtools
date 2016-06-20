@@ -86,8 +86,9 @@ public abstract class FlowTestCase<F extends Flow> {
   @Rule
   public final InjectRule inject = new InjectRule();
 
+  private Class<? extends Flow> flowClass;
+
   protected EppLoader eppLoader;
-  protected Class<? extends Flow> flowClass;
   protected SessionMetadata sessionMetadata;
   protected FakeClock clock = new FakeClock(DateTime.now(UTC));
   protected TransportCredentials credentials = new PasswordOnlyTransportCredentials();
