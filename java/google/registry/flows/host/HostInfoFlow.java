@@ -18,9 +18,13 @@ import google.registry.flows.ResourceInfoFlow;
 import google.registry.model.host.HostCommand;
 import google.registry.model.host.HostResource;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that reads a host.
  *
  * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
  */
-public class HostInfoFlow extends ResourceInfoFlow<HostResource, HostCommand.Info> {}
+public class HostInfoFlow extends ResourceInfoFlow<HostResource, HostCommand.Info> {
+  @Inject HostInfoFlow() {}
+}

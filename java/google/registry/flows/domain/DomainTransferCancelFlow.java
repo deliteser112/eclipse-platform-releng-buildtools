@@ -25,6 +25,8 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.reporting.HistoryEntry;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that cancels a pending transfer on a {@link DomainResource}.
  *
@@ -36,6 +38,8 @@ import google.registry.model.reporting.HistoryEntry;
  */
 public class DomainTransferCancelFlow
     extends ResourceTransferCancelFlow<DomainResource, Builder, Transfer> {
+
+  @Inject DomainTransferCancelFlow() {}
 
   /**
    * Reopen the autorenew event and poll message that we closed for the implicit transfer.

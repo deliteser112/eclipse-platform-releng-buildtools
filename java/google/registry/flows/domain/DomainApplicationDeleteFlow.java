@@ -36,6 +36,8 @@ import google.registry.model.reporting.HistoryEntry;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that deletes a domain application.
  *
@@ -50,6 +52,8 @@ import java.util.Set;
  */
 public class DomainApplicationDeleteFlow
     extends ResourceSyncDeleteFlow<DomainApplication, Builder, Delete> {
+
+  @Inject DomainApplicationDeleteFlow() {}
 
   @Override
   protected void initResourceCreateOrMutateFlow() throws EppException {

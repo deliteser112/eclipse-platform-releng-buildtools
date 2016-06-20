@@ -41,6 +41,8 @@ import google.registry.tmch.LordnTask;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that creates a new domain resource.
  *
@@ -100,6 +102,8 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
       Sets.immutableEnumSet(TldState.SUNRISE, TldState.SUNRUSH);
 
   protected RegTypeCreateExtension regTypeExtension;
+
+  @Inject DomainCreateFlow() {}
 
   private boolean isAnchorTenant() {
     return isAnchorTenantViaReservation || isAnchorTenantViaExtension;

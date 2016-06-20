@@ -39,6 +39,8 @@ import org.joda.time.DateTime;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that updates a domain resource.
  *
@@ -69,6 +71,8 @@ import java.util.Set;
 public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Builder> {
 
   protected RegTypeUpdateExtension regTypeExtension;
+
+  @Inject DomainUpdateFlow() {}
 
   @Override
   protected void initDomainUpdateFlow() {

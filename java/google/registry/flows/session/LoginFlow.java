@@ -41,6 +41,8 @@ import google.registry.util.FormattingLogger;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow for login.
  *
@@ -67,6 +69,8 @@ public class LoginFlow extends Flow {
 
   /** Maximum number of failed login attempts allowed per connection. */
   private static final int MAX_FAILED_LOGIN_ATTEMPTS_PER_CONNECTION = 3;
+
+  @Inject LoginFlow() {}
 
   /** Run the flow and log errors. */
   @Override

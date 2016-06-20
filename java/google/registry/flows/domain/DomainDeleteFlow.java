@@ -55,6 +55,8 @@ import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that deletes a domain resource.
  *
@@ -72,6 +74,8 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
   CurrencyUnit creditsCurrencyUnit;
 
   ImmutableList<Credit> credits;
+
+  @Inject DomainDeleteFlow() {}
 
   @Override
   protected void initResourceCreateOrMutateFlow() throws EppException {

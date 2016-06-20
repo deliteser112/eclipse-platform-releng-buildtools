@@ -51,6 +51,8 @@ import google.registry.model.smd.EncodedSignedMark;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that creates a new application for a domain resource.
  *
@@ -113,6 +115,8 @@ import java.util.List;
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  */
 public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainApplication, Builder> {
+
+  @Inject DomainApplicationCreateFlow() {}
 
   @Override
   protected void initDomainCreateFlow() {

@@ -12,20 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.flows.contact;
+package google.registry.flows;
 
-import google.registry.flows.ResourceInfoFlow;
-import google.registry.model.contact.ContactCommand.Info;
-import google.registry.model.contact.ContactResource;
+import dagger.Subcomponent;
 
-import javax.inject.Inject;
+import google.registry.model.eppcommon.Trid;
 
-/**
- * An EPP flow that reads a contact.
- *
- * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
- */
-public class ContactInfoFlow extends ResourceInfoFlow<ContactResource, Info> {
-  @Inject ContactInfoFlow() {}
+/** Dagger component for flow classes. */
+@FlowScope
+@Subcomponent(modules = FlowModule.class)
+public interface FlowComponent {
+
+  Trid trid();
+  FlowRunner flowRunner();
+
+  /** Dagger-implemented builder for this subcomponent. */
+  @Subcomponent.Builder
+  interface Builder {
+    Builder flowModule(FlowModule flowModule);
+    FlowComponent build();
+  }
 }
-

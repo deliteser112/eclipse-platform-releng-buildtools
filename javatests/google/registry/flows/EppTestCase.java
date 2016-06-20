@@ -21,12 +21,11 @@ import static google.registry.xml.XmlTestUtils.assertXmlEqualsWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.joda.time.DateTimeZone.UTC;
-import static org.mockito.Mockito.mock;
 
 import com.google.common.net.MediaType;
 
+import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.ofy.Ofy;
-import google.registry.monitoring.whitebox.EppMetrics;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeHttpSession;
 import google.registry.testing.FakeResponse;
@@ -100,8 +99,7 @@ public class EppTestCase extends ShardableTestCase {
           // When a session is invalidated, reset the sessionMetadata field.
           super.invalidate();
           EppTestCase.this.sessionMetadata = null;
-        }
-      };
+        }};
     }
     String actualOutput = executeXmlCommand(input);
     assertXmlEqualsWithMessage(
@@ -118,14 +116,16 @@ public class EppTestCase extends ShardableTestCase {
     EppRequestHandler handler = new EppRequestHandler();
     FakeResponse response = new FakeResponse();
     handler.response = response;
-    handler.eppController = new EppController();
-    handler.eppController.clock = clock;
-    handler.eppController.metrics = mock(EppMetrics.class);
+    handler.eppController = DaggerEppTestComponent.builder()
+        .fakesAndMocksModule(new FakesAndMocksModule(clock))
+        .build()
+        .startRequest()
+        .eppController();
     handler.executeEpp(
         sessionMetadata,
         credentials,
         EppRequestSource.UNIT_TEST,
-        false,
+        false,  // Not dryRun.
         isSuperuser,
         inputXml.getBytes(UTF_8));
     assertThat(response.getStatus()).isEqualTo(SC_OK);

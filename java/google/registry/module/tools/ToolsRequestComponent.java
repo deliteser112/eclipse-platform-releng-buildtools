@@ -19,6 +19,7 @@ import dagger.Subcomponent;
 import google.registry.export.PublishDetailReportAction;
 import google.registry.flows.EppToolAction;
 import google.registry.flows.EppToolAction.EppToolModule;
+import google.registry.flows.FlowComponent;
 import google.registry.loadtest.LoadTestAction;
 import google.registry.loadtest.LoadTestModule;
 import google.registry.mapreduce.MapreduceModule;
@@ -62,6 +63,7 @@ interface ToolsRequestComponent {
   DeleteEntityAction deleteEntityAction();
   DeleteProberDataAction deleteProberDataAction();
   EppToolAction eppToolAction();
+  FlowComponent.Builder flowComponentBuilder();
   GenerateZoneFilesAction generateZoneFilesAction();
   KillAllCommitLogsAction killAllCommitLogsAction();
   KillAllEppResourcesAction killAllEppResourcesAction();

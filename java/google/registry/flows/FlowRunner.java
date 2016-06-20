@@ -23,15 +23,23 @@ import com.google.common.base.Strings;
 
 import com.googlecode.objectify.Work;
 
+import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.DryRun;
+import google.registry.flows.FlowModule.InputXml;
+import google.registry.flows.FlowModule.Superuser;
+import google.registry.flows.FlowModule.Transactional;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.monitoring.whitebox.EppMetrics;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-import google.registry.util.TypeUtils;
 
 import org.joda.time.DateTime;
+
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
 /** Run a flow, either transactionally or not, with logging and retrying as needed. */
 public class FlowRunner {
@@ -40,43 +48,20 @@ public class FlowRunner {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  private final Class<? extends Flow> flowClass;
-  private final EppInput eppInput;
-  private final Trid trid;
-  private final SessionMetadata sessionMetadata;
-  private final TransportCredentials credentials;
-  private final EppRequestSource eppRequestSource;
-  private final boolean isDryRun;
-  private final boolean isSuperuser;
-  private final byte[] inputXmlBytes;
-  private final EppMetrics metrics;
-  private final Clock clock;
-
-
-  public FlowRunner(
-      Class<? extends Flow> flowClass,
-      EppInput eppInput,
-      Trid trid,
-      SessionMetadata sessionMetadata,
-      TransportCredentials credentials,
-      EppRequestSource eppRequestSource,
-      boolean isDryRun,
-      boolean isSuperuser,
-      byte[] inputXmlBytes,
-      final EppMetrics metrics,
-      Clock clock) {
-    this.flowClass = flowClass;
-    this.eppInput = eppInput;
-    this.trid = trid;
-    this.sessionMetadata = sessionMetadata;
-    this.credentials = credentials;
-    this.eppRequestSource = eppRequestSource;
-    this.isDryRun = isDryRun;
-    this.isSuperuser = isSuperuser;
-    this.inputXmlBytes = inputXmlBytes;
-    this.metrics = metrics;
-    this.clock = clock;
-  }
+  @Inject @Nullable @ClientId String clientId;
+  @Inject Clock clock;
+  @Inject TransportCredentials credentials;
+  @Inject EppInput eppInput;
+  @Inject EppRequestSource eppRequestSource;
+  @Inject Provider<Flow> flowProvider;
+  @Inject @InputXml byte[] inputXmlBytes;
+  @Inject @DryRun boolean isDryRun;
+  @Inject @Superuser boolean isSuperuser;
+  @Inject @Transactional boolean isTransactional;
+  @Inject EppMetrics metrics;
+  @Inject SessionMetadata sessionMetadata;
+  @Inject Trid trid;
+  @Inject FlowRunner() {}
 
   public EppOutput run() throws EppException {
     String clientId = sessionMetadata.getClientId();
@@ -90,10 +75,8 @@ public class FlowRunner {
         eppRequestSource,
         isDryRun ? "DRY_RUN" : "LIVE",
         isSuperuser ? "SUPERUSER" : "NORMAL");
-    if (!isTransactional()) {
-      if (metrics != null) {
-        metrics.incrementAttempts();
-      }
+    if (!isTransactional) {
+      metrics.incrementAttempts();
       return createAndInitFlow(clock.nowUtc()).run();
     }
     // We log the command in a structured format. Note that we do this before the transaction;
@@ -107,9 +90,7 @@ public class FlowRunner {
       EppOutput flowResult = ofy().transact(new Work<EppOutput>() {
         @Override
         public EppOutput run() {
-          if (metrics != null) {
-            metrics.incrementAttempts();
-          }
+          metrics.incrementAttempts();
           try {
             EppOutput output = createAndInitFlow(ofy().getTransactionTime()).run();
             if (isDryRun) {
@@ -137,7 +118,7 @@ public class FlowRunner {
   }
 
   private Flow createAndInitFlow(DateTime now) throws EppException {
-      return TypeUtils.<Flow>instantiate(flowClass).init(
+      return flowProvider.get().init(
           eppInput,
           trid,
           sessionMetadata,
@@ -146,10 +127,6 @@ public class FlowRunner {
           isSuperuser,
           now,
           inputXmlBytes);
-  }
-
-  public boolean isTransactional() {
-    return TransactionalFlow.class.isAssignableFrom(flowClass);
   }
 
   /**

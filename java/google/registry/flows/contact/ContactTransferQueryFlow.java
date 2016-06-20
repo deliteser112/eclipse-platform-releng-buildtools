@@ -18,6 +18,8 @@ import google.registry.flows.ResourceTransferQueryFlow;
 import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that queries a pending transfer on a {@link ContactResource}.
  *
@@ -27,4 +29,5 @@ import google.registry.model.contact.ContactResource;
  * @error {@link google.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException}
  */
 public class ContactTransferQueryFlow extends ResourceTransferQueryFlow<ContactResource, Transfer> {
+  @Inject ContactTransferQueryFlow() {}
 }

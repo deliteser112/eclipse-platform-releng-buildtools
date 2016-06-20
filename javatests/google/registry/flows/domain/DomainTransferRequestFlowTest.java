@@ -64,7 +64,6 @@ import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
@@ -95,7 +94,7 @@ public class DomainTransferRequestFlowTest
         .hasTransferStatus(TransferStatus.PENDING).and()
         .hasTransferGainingClientId("NewRegistrar").and()
         .hasTransferLosingClientId("TheRegistrar").and()
-        .hasTransferRequestTrid(getTrid()).and()
+        .hasTransferRequestClientTrid(getClientTrid()).and()
         .hasCurrentSponsorClientId("TheRegistrar").and()
         .hasPendingTransferExpirationTime(
             clock.nowUtc().plus(Registry.get("tld").getAutomaticTransferLength())).and()
@@ -228,8 +227,7 @@ public class DomainTransferRequestFlowTest
     PendingActionNotificationResponse panData = Iterables.getOnlyElement(FluentIterable
         .from(transferApprovedPollMessage.getResponseData())
         .filter(PendingActionNotificationResponse.class));
-    assertThat(panData.getTrid())
-        .isEqualTo(Trid.create("ABC-12345", "server-trid"));
+    assertThat(panData.getTrid().getClientTransactionId()).isEqualTo("ABC-12345");
     assertThat(panData.getActionResult()).isTrue();
 
     // Two poll messages on the losing registrar's side at the implicit transfer time: a

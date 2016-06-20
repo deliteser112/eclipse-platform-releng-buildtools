@@ -36,6 +36,8 @@ import google.registry.model.host.HostResource;
 import google.registry.model.host.HostResource.Builder;
 import google.registry.model.reporting.HistoryEntry;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that deletes a host resource.
  *
@@ -48,6 +50,8 @@ public class HostDeleteFlow extends ResourceAsyncDeleteFlow<HostResource, Builde
 
   /** In {@link #isLinkedForFailfast}, check this (arbitrary) number of resources from the query. */
   private static final int FAILFAST_CHECK_COUNT = 5;
+
+  @Inject HostDeleteFlow() {}
 
   @Override
   protected boolean isLinkedForFailfast(final Ref<HostResource> ref) {

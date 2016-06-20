@@ -59,6 +59,8 @@ import org.joda.time.DateTime;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that updates a domain resource.
  *
@@ -85,6 +87,8 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
 
   protected FeeRenewExtension feeRenew;
   protected Money renewCost;
+
+  @Inject DomainRenewFlow() {}
 
   @Override
   protected Set<StatusValue> getDisallowedStatuses() {

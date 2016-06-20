@@ -35,6 +35,8 @@ import google.registry.model.tmch.ClaimsListShard;
 
 import java.util.Map.Entry;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that checks whether strings are trademarked.
  *
@@ -47,6 +49,8 @@ public class ClaimsCheckFlow extends BaseDomainCheckFlow {
 
   public static final ImmutableSet<TldState> DISALLOWED_TLD_STATES = Sets.immutableEnumSet(
       TldState.PREDELEGATION, TldState.SUNRISE);
+
+  @Inject ClaimsCheckFlow() {}
 
   @Override
   protected void initDomainCheckFlow() throws EppException {

@@ -24,6 +24,8 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.ContactResource.Builder;
 import google.registry.model.reporting.HistoryEntry;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that updates a contact resource.
  *
@@ -36,6 +38,9 @@ import google.registry.model.reporting.HistoryEntry;
  * @error {@link ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException}
  */
 public class ContactUpdateFlow extends ResourceUpdateFlow<ContactResource, Builder, Update> {
+
+  @Inject ContactUpdateFlow() {}
+
   @Override
   protected void verifyNewUpdatedStateIsAllowed() throws EppException {
     validateAsciiPostalInfo(newResource.getInternationalizedPostalInfo());

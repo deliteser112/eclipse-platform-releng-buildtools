@@ -35,6 +35,8 @@ import google.registry.model.poll.PollMessageExternalKeyConverter.PollMessageExt
 
 import org.joda.time.DateTime;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow for acknowledging poll messages.
  *
@@ -44,6 +46,8 @@ import org.joda.time.DateTime;
  * @error {@link PollAckFlow.NotAuthorizedToAckMessageException}
  */
 public class PollAckFlow extends PollFlow implements TransactionalFlow {
+
+  @Inject PollAckFlow() {}
 
   @Override
   public final EppOutput run() throws EppException {

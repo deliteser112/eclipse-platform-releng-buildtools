@@ -31,6 +31,8 @@ import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that reads a domain.
  *
@@ -44,6 +46,8 @@ import java.util.List;
 public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> {
 
   protected List<String> registrationTypes;
+
+  @Inject DomainInfoFlow() {}
 
   @Override
   protected void initSingleResourceFlow() throws EppException {

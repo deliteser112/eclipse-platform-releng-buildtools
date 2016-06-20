@@ -54,6 +54,8 @@ import google.registry.model.reporting.HistoryEntry;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that requests that a deleted domain be restored.
  *
@@ -76,6 +78,8 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
   protected FeeUpdateExtension feeUpdate;
   protected Money restoreCost;
   protected Money renewCost;
+
+  @Inject DomainRestoreRequestFlow() {}
 
   @Override
   protected final void initResourceCreateOrMutateFlow() throws EppException {

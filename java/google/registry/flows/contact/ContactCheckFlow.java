@@ -27,12 +27,17 @@ import google.registry.model.eppoutput.CheckData.ContactCheckData;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that checks whether a contact can be provisioned.
  *
  * @error {@link google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException}
  */
 public class ContactCheckFlow extends ResourceCheckFlow<ContactResource, Check> {
+
+  @Inject ContactCheckFlow() {}
+
   @Override
   protected CheckData getCheckData() {
     Set<String> existingIds = checkResourcesExist(resourceClass, targetIds, now);

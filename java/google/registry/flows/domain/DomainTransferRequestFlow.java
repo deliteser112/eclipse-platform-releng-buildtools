@@ -56,6 +56,8 @@ import org.joda.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that requests a transfer on a {@link DomainResource}.
  *
@@ -96,6 +98,8 @@ public class DomainTransferRequestFlow
    * An optional extension from the client specifying how much they think the transfer should cost.
    */
   private FeeTransferExtension feeTransfer;
+
+  @Inject DomainTransferRequestFlow() {}
 
   @Override
   protected Duration getAutomaticTransferLength() {

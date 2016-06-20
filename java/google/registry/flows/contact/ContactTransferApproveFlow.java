@@ -20,6 +20,8 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.ContactResource.Builder;
 import google.registry.model.reporting.HistoryEntry;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that approves a pending transfer on a {@link ContactResource}.
  *
@@ -30,6 +32,9 @@ import google.registry.model.reporting.HistoryEntry;
  */
 public class ContactTransferApproveFlow
     extends ResourceTransferApproveFlow<ContactResource, Builder, Transfer> {
+
+  @Inject ContactTransferApproveFlow() {}
+
   @Override
   protected final HistoryEntry.Type getHistoryEntryType() {
     return HistoryEntry.Type.CONTACT_TRANSFER_APPROVE;

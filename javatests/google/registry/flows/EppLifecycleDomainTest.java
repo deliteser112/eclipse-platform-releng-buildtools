@@ -15,6 +15,7 @@
 package google.registry.flows;
 
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
@@ -44,7 +45,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
   @Before
   public void initTld() {
-    createTld("example");
+    createTlds("example", "tld");
   }
 
   /** Create the two administrative contacts and two hosts. */
@@ -129,7 +130,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "domain_create_response.xml",
         DateTime.parse("2000-06-01T00:02:00Z"));
 
-    // Delete domain example.com after its add grace period has expired.
+    // Delete domain example.tld after its add grace period has expired.
     assertCommandAndResponse(
         "domain_delete.xml",
         "generic_success_action_pending_response.xml",
@@ -338,7 +339,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         DateTime.parse("2001-01-01T00:01:00Z"));
     assertCommandAndResponse(
         "poll_ack.xml",
-        ImmutableMap.of("ID", "1-A-EXAMPLE-16-20"),
+        ImmutableMap.of("ID", "1-B-EXAMPLE-17-21"),
         "poll_ack_response_empty.xml",
         null,
     DateTime.parse("2001-01-01T00:01:00Z"));
@@ -350,7 +351,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         DateTime.parse("2001-01-06T00:01:00Z"));
     assertCommandAndResponse(
         "poll_ack.xml",
-        ImmutableMap.of("ID", "1-A-EXAMPLE-16-22"),
+        ImmutableMap.of("ID", "1-B-EXAMPLE-17-23"),
         "poll_ack_response_empty.xml",
         null,
         DateTime.parse("2001-01-06T00:01:00Z"));
@@ -366,7 +367,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         DateTime.parse("2001-01-06T00:02:00Z"));
     assertCommandAndResponse(
         "poll_ack.xml",
-        ImmutableMap.of("ID", "1-A-EXAMPLE-16-21"),
+        ImmutableMap.of("ID", "1-B-EXAMPLE-17-22"),
         "poll_ack_response_empty.xml",
         null,
         DateTime.parse("2001-01-06T00:02:00Z"));

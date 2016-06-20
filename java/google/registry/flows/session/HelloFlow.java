@@ -18,8 +18,13 @@ import google.registry.flows.Flow;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.Greeting;
 
+import javax.inject.Inject;
+
 /** A flow for an Epp "hello". */
 public class HelloFlow extends Flow {
+
+  @Inject HelloFlow() {}
+
   @Override
   public EppOutput run() {
     return EppOutput.create(Greeting.create(now));

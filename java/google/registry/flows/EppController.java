@@ -15,12 +15,11 @@
 package google.registry.flows;
 
 import static google.registry.flows.EppXmlTransformer.unmarshal;
-import static google.registry.flows.picker.FlowPicker.getFlowClass;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 
+import google.registry.flows.FlowModule.EppExceptionInProviderException;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
@@ -43,6 +42,7 @@ public final class EppController {
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Inject Clock clock;
+  @Inject FlowComponent.Builder flowComponentBuilder;
   @Inject EppMetrics metrics;
   @Inject EppController() {}
 
@@ -54,57 +54,62 @@ public final class EppController {
       boolean isDryRun,
       boolean isSuperuser,
       byte[] inputXmlBytes) {
-    Trid trid = null;
+    metrics.setClientId(sessionMetadata.getClientId());
+    metrics.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
     try {
-      EppInput eppInput = unmarshal(EppInput.class, inputXmlBytes);
-      trid = Trid.create(eppInput.getCommandWrapper().getClTrid());
-      ImmutableList<String> targetIds = eppInput.getTargetIds();
+      EppInput eppInput;
+      try {
+        eppInput = unmarshal(EppInput.class, inputXmlBytes);
+      } catch (EppException e) {
+        // Send the client an error message, with no clTRID since we couldn't unmarshal it.
+        metrics.setEppStatus(e.getResult().getCode());
+        return getErrorResponse(clock, e.getResult(), Trid.create(null));
+      }
       metrics.setCommandName(eppInput.getCommandName());
-      metrics.setClientId(sessionMetadata.getClientId());
-      metrics.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
-      if (!targetIds.isEmpty()) {
-        metrics.setEppTarget(Joiner.on(",").join(targetIds));
+      if (!eppInput.getTargetIds().isEmpty()) {
+        metrics.setEppTarget(Joiner.on(',').join(eppInput.getTargetIds()));
       }
-      FlowRunner flowRunner = new FlowRunner(
-          getFlowClass(eppInput),
-          eppInput,
-          trid,
-          sessionMetadata,
-          credentials,
-          eppRequestSource,
-          isDryRun,
-          isSuperuser,
-          inputXmlBytes,
-          metrics,
-          clock);
-      EppOutput eppOutput = flowRunner.run();
-      if (eppOutput.isResponse()) {
-        metrics.setEppStatus(eppOutput.getResponse().getResult().getCode());
+      EppOutput output = runFlowConvertEppErrors(flowComponentBuilder
+          .flowModule(new FlowModule.Builder()
+              .setSessionMetadata(sessionMetadata)
+              .setCredentials(credentials)
+              .setEppRequestSource(eppRequestSource)
+              .setIsDryRun(isDryRun)
+              .setIsSuperuser(isSuperuser)
+              .setInputXmlBytes(inputXmlBytes)
+              .setEppInput(eppInput)
+              .build())
+          .build());
+      if (output.isResponse()) {
+        metrics.setEppStatus(output.getResponse().getResult().getCode());
       }
-      return eppOutput;
-    } catch (EppException e) {
-      // The command failed. Send the client an error message.
-      metrics.setEppStatus(e.getResult().getCode());
-      return getErrorResponse(clock, e.getResult(), trid);
-    } catch (Throwable e) {
-      // Something bad and unexpected happened. Send the client a generic error, and log it.
-      logger.severe(e, "Unexpected failure");
-      metrics.setEppStatus(Code.CommandFailed);
-      return getErrorResponse(clock, Result.create(Code.CommandFailed), trid);
+      return output;
     } finally {
       metrics.export();
     }
   }
 
-  /** Create a response indicating an Epp failure. */
+  /** Run an EPP flow and convert known exceptions into EPP error responses. */
+  private EppOutput runFlowConvertEppErrors(FlowComponent flowComponent) {
+    try {
+      return flowComponent.flowRunner().run();
+    } catch (EppException | EppExceptionInProviderException e) {
+      // The command failed. Send the client an error message.
+      EppException eppEx = (EppException) (e instanceof EppException ? e : e.getCause());
+      return getErrorResponse(clock, eppEx.getResult(), flowComponent.trid());
+    } catch (Throwable e) {
+      // Something bad and unexpected happened. Send the client a generic error, and log it.
+      logger.severe(e, "Unexpected failure");
+      return getErrorResponse(clock, Result.create(Code.CommandFailed), flowComponent.trid());
+    }
+  }
+
+  /** Create a response indicating an EPP failure. */
   @VisibleForTesting
   static EppOutput getErrorResponse(Clock clock, Result result, Trid trid) {
-    // Create TRID (without a clTRID) if one hasn't been created yet, as it's necessary to construct
-    // a valid response. This can happen if the error occurred before we could even parse out the
-    // clTRID (e.g. if a syntax error occurred parsing the supplied XML).
     return EppOutput.create(new EppResponse.Builder()
-        .setTrid(trid == null ? Trid.create(null) : trid)
         .setResult(result)
+        .setTrid(trid)
         .setExecutionTime(clock.nowUtc())
         .build());
   }

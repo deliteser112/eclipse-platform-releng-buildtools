@@ -48,6 +48,8 @@ import google.registry.model.registry.label.ReservationType;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tmch.LordnTask;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that allocates a new domain resource from a domain application.
  *
@@ -61,6 +63,8 @@ public class DomainAllocateFlow extends DomainCreateOrAllocateFlow {
 
   protected AllocateCreateExtension allocateCreate;
   protected DomainApplication application;
+
+  @Inject DomainAllocateFlow() {}
 
   @Override
   protected final void initDomainCreateOrAllocateFlow() {

@@ -45,6 +45,8 @@ import google.registry.model.transfer.TransferData;
 
 import org.joda.time.DateTime;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that approves a pending transfer on a {@link DomainResource}.
  *
@@ -59,6 +61,8 @@ import org.joda.time.DateTime;
  */
 public class DomainTransferApproveFlow extends
     ResourceTransferApproveFlow<DomainResource, Builder, Transfer> {
+
+  @Inject DomainTransferApproveFlow() {}
 
   @Override
   protected void verifyOwnedResourcePendingTransferMutationAllowed() throws EppException {

@@ -25,6 +25,8 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.reporting.HistoryEntry;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that rejects a pending transfer on a {@link DomainResource}.
  *
@@ -36,6 +38,8 @@ import google.registry.model.reporting.HistoryEntry;
  */
 public class DomainTransferRejectFlow
     extends ResourceTransferRejectFlow<DomainResource, Builder, Transfer> {
+
+  @Inject DomainTransferRejectFlow() {}
 
   @Override
   protected void verifyOwnedResourcePendingTransferMutationAllowed() throws EppException {

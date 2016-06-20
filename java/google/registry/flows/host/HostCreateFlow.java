@@ -40,6 +40,8 @@ import google.registry.model.host.HostResource.Builder;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.model.reporting.HistoryEntry;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that creates a new host resource.
  *
@@ -66,6 +68,8 @@ public class HostCreateFlow extends ResourceCreateFlow<HostResource, Builder, Cr
    * domain ahead of time.
    */
   private Optional<Ref<DomainResource>> superordinateDomain;
+
+  @Inject HostCreateFlow() {}
 
   @Override
   protected void initResourceCreateOrMutateFlow() throws EppException {

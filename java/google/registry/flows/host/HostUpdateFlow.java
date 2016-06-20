@@ -47,6 +47,8 @@ import org.joda.time.Duration;
 
 import java.util.Objects;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that updates a host resource.
  *
@@ -71,6 +73,8 @@ public class HostUpdateFlow extends ResourceUpdateFlow<HostResource, Builder, Up
   private String oldHostName;
   private String newHostName;
   private boolean isHostRename;
+
+  @Inject HostUpdateFlow() {}
 
   @Override
   protected void initResourceCreateOrMutateFlow() throws EppException {

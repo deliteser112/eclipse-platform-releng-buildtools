@@ -71,7 +71,7 @@ public class ContactTransferRequestFlowTest
         .hasTransferStatus(TransferStatus.PENDING).and()
         .hasTransferGainingClientId("NewRegistrar").and()
         .hasTransferLosingClientId("TheRegistrar").and()
-        .hasTransferRequestTrid(getTrid()).and()
+        .hasTransferRequestClientTrid(getClientTrid()).and()
         .hasCurrentSponsorClientId("TheRegistrar").and()
         .hasPendingTransferExpirationTime(afterTransfer).and()
         .hasOnlyOneHistoryEntryWhich()

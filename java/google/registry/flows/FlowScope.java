@@ -12,20 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.flows.contact;
+package google.registry.flows;
 
-import google.registry.flows.ResourceInfoFlow;
-import google.registry.model.contact.ContactCommand.Info;
-import google.registry.model.contact.ContactResource;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import javax.inject.Inject;
+import javax.inject.Scope;
 
 /**
- * An EPP flow that reads a contact.
+ * Dagger annotation for flow-scoped components.
  *
- * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
+ * <p>Note that this scope survives across transactional retries of a flow. That is, it is scoped to
+ * the overall execution of a flow, and not to a specific attempt.
  */
-public class ContactInfoFlow extends ResourceInfoFlow<ContactResource, Info> {
-  @Inject ContactInfoFlow() {}
-}
-
+@Scope
+@Documented
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface FlowScope {}

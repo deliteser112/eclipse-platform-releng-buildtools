@@ -31,6 +31,7 @@ java_library(
         "//java/com/google/common/net",
         "//third_party/java/appengine:appengine-api-testonly",
         "//third_party/java/appengine:appengine-testing",
+        "//third_party/java/dagger",
         "//third_party/java/joda_money",
         "//third_party/java/joda_time",
         "//third_party/java/json_simple",

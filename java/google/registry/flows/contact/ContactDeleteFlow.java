@@ -36,6 +36,8 @@ import google.registry.model.contact.ContactResource.Builder;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.reporting.HistoryEntry;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that deletes a contact resource.
  *
@@ -48,6 +50,8 @@ public class ContactDeleteFlow extends ResourceAsyncDeleteFlow<ContactResource, 
 
   /** In {@link #isLinkedForFailfast}, check this (arbitrary) number of resources from the query. */
   private static final int FAILFAST_CHECK_COUNT = 5;
+
+  @Inject ContactDeleteFlow() {}
 
   @Override
   protected boolean isLinkedForFailfast(final Ref<ContactResource> ref) {

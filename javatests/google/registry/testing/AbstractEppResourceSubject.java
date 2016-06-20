@@ -26,7 +26,6 @@ import com.google.common.truth.Subject;
 
 import google.registry.model.EppResource;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.eppcommon.Trid;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.TruthChainer.And;
@@ -205,10 +204,10 @@ abstract class AbstractEppResourceSubject
         "has transferStatus");
   }
 
-  public And<S> hasTransferRequestTrid(Trid trid) {
+  public And<S> hasTransferRequestClientTrid(String clTrid) {
     return hasValue(
-        trid,
-        getSubject().getTransferData().getTransferRequestTrid(),
+        clTrid,
+        getSubject().getTransferData().getTransferRequestTrid().getClientTransactionId(),
         "has trid");
   }
 

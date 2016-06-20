@@ -48,6 +48,8 @@ import google.registry.model.registry.label.ReservationType;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that checks whether a domain can be provisioned.
  *
@@ -80,6 +82,8 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
       Sets.immutableEnumSet(TldState.GENERAL_AVAILABILITY, TldState.QUIET_PERIOD);
 
   protected RegTypeCheckExtension regTypeExtension;
+
+  @Inject DomainCheckFlow() {}
 
   @Override
   protected void initDomainCheckFlow() throws EppException {

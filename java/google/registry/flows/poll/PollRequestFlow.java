@@ -29,12 +29,16 @@ import google.registry.model.poll.PollMessage;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow for requesting poll messages.
  *
  * @error {@link PollRequestFlow.UnexpectedMessageIdException}
  */
 public class PollRequestFlow extends PollFlow {
+
+  @Inject PollRequestFlow() {}
 
   @Override
   public final EppOutput run() throws EppException {

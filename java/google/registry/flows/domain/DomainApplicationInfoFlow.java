@@ -32,6 +32,8 @@ import google.registry.model.mark.Mark;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that reads a domain application.
  *
@@ -44,6 +46,8 @@ import google.registry.model.smd.SignedMark;
 public class DomainApplicationInfoFlow extends BaseDomainInfoFlow<DomainApplication, Builder> {
 
   private boolean includeMarks;
+
+  @Inject DomainApplicationInfoFlow() {}
 
   @Override
   protected final void initSingleResourceFlow() throws EppException {

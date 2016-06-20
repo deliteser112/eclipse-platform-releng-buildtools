@@ -19,17 +19,16 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static org.mockito.Mockito.mock;
 
 import com.google.common.collect.ImmutableSet;
 
 import google.registry.config.RegistryEnvironment;
+import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
-import google.registry.monitoring.whitebox.EppMetrics;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
-import google.registry.util.SystemClock;
 
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -66,9 +65,11 @@ public class CheckApiActionTest {
     action.domain = domain;
     action.response = new FakeResponse();
     action.config = RegistryEnvironment.UNITTEST.config();
-    action.eppController = new EppController();
-    action.eppController.clock = new SystemClock();
-    action.eppController.metrics = mock(EppMetrics.class);
+    action.eppController = DaggerEppTestComponent.builder()
+        .fakesAndMocksModule(new FakesAndMocksModule(new FakeClock()))
+        .build()
+        .startRequest()
+        .eppController();
     action.run();
     return (Map<String, Object>) JSONValue.parse(((FakeResponse) action.response).getPayload());
   }

@@ -22,6 +22,8 @@ import google.registry.model.reporting.HistoryEntry;
 
 import org.joda.time.Duration;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that requests a transfer on a {@link ContactResource}.
  *
@@ -33,6 +35,8 @@ import org.joda.time.Duration;
  */
 public class ContactTransferRequestFlow
     extends ResourceTransferRequestFlow<ContactResource, Transfer> {
+
+  @Inject ContactTransferRequestFlow() {}
 
   @Override
   protected final HistoryEntry.Type getHistoryEntryType() {

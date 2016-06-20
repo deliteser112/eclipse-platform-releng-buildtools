@@ -30,6 +30,8 @@ import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 
+import javax.inject.Inject;
+
 /**
  * An EPP flow that updates a domain resource.
  *
@@ -58,6 +60,8 @@ import google.registry.model.reporting.HistoryEntry;
  */
 public class DomainApplicationUpdateFlow
     extends BaseDomainUpdateFlow<DomainApplication, Builder> {
+
+  @Inject DomainApplicationUpdateFlow() {}
 
   @Override
   protected void initDomainUpdateFlow() throws EppException {

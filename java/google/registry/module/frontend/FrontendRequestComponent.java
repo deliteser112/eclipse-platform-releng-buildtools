@@ -20,6 +20,7 @@ import google.registry.flows.CheckApiAction;
 import google.registry.flows.CheckApiAction.CheckApiModule;
 import google.registry.flows.EppConsoleAction;
 import google.registry.flows.EppTlsAction;
+import google.registry.flows.FlowComponent;
 import google.registry.flows.TlsCredentials.EppTlsModule;
 import google.registry.rdap.RdapAutnumAction;
 import google.registry.rdap.RdapDomainAction;
@@ -57,6 +58,7 @@ interface FrontendRequestComponent {
   ConsoleUiAction consoleUiAction();
   EppConsoleAction eppConsoleAction();
   EppTlsAction eppTlsAction();
+  FlowComponent.Builder flowComponentBuilder();
   RdapAutnumAction rdapAutnumAction();
   RegistrarPaymentAction registrarPaymentAction();
   RegistrarPaymentSetupAction registrarPaymentSetupAction();
