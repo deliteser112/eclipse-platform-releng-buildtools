@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 import com.beust.jcommander.ParameterException;
 
 import google.registry.flows.EppException;
+import google.registry.flows.TransportCredentials.BadRegistrarPasswordException;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.CertificateSamples;
 import google.registry.util.CidrAddressBlock;
@@ -62,7 +63,7 @@ public class ValidateLoginCredentialsCommandTest
 
   @Test
   public void testFailure_loginWithBadPassword() throws Exception {
-    thrown.expect(EppException.class);
+    thrown.expect(BadRegistrarPasswordException.class);
     runCommand(
         "--client=NewRegistrar",
         "--password=" + new StringBuffer(PASSWORD).reverse(),

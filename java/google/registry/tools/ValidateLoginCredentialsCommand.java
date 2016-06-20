@@ -15,42 +15,29 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.io.Resources.getResource;
-import static google.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
-import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.util.X509Utils.getCertificateHash;
 import static google.registry.util.X509Utils.loadCertificate;
 import static java.nio.charset.StandardCharsets.US_ASCII;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Optional;
-import com.google.template.soy.SoyFileSet;
-import com.google.template.soy.data.SoyMapData;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
-import google.registry.flows.EppRequestSource;
-import google.registry.flows.FlowRunner;
-import google.registry.flows.SessionMetadata;
 import google.registry.flows.TlsCredentials;
-import google.registry.flows.session.LoginFlow;
-import google.registry.model.eppcommon.Trid;
-import google.registry.model.eppinput.EppInput;
+import google.registry.model.registrar.Registrar;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
-import google.registry.tools.soy.LoginSoyInfo;
-import google.registry.util.SystemClock;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
-/** A command to execute an epp command. */
+/** A command to test registrar login credentials. */
 @Parameters(separators = " =", commandDescription = "Test registrar login credentials")
 final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCommand {
 
@@ -86,70 +73,16 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCo
 
   @Override
   public void run() throws Exception {
-    checkArgument(clientCertificatePath == null || isNullOrEmpty(clientCertificateHash),
+    checkArgument(
+        clientCertificatePath == null || isNullOrEmpty(clientCertificateHash),
         "Can't specify both --cert_hash and --cert_file");
     if (clientCertificatePath != null) {
-      String asciiCrt = new String(Files.readAllBytes(clientCertificatePath), US_ASCII);
-      clientCertificateHash = getCertificateHash(loadCertificate(asciiCrt));
+      clientCertificateHash = getCertificateHash(
+          loadCertificate(new String(Files.readAllBytes(clientCertificatePath), US_ASCII)));
     }
-    byte[] inputXmlBytes = SoyFileSet.builder()
-        .add(getResource(LoginSoyInfo.class, LoginSoyInfo.getInstance().getFileName()))
-        .build()
-        .compileToTofu()
-        .newRenderer(LoginSoyInfo.LOGIN)
-        .setData(new SoyMapData("clientIdentifier", clientIdentifier, "password", password))
-        .render()
-        .getBytes(UTF_8);
-
-    System.out.println(new String(marshalWithLenientRetry(
-        new FlowRunner(
-            LoginFlow.class,
-            unmarshal(EppInput.class, inputXmlBytes),
-            Trid.create(null),
-            new StubSessionMetadata(),
-            new TlsCredentials(
-                clientCertificateHash,
-                Optional.of(clientIpAddress),
-                "placeholder"),  // behave as if we have SNI on, since we're validating a cert
-            EppRequestSource.TOOL,
-            false,
-            false,
-            inputXmlBytes,
-            null,
-            new SystemClock()).run()), UTF_8));
-  }
-
-  /** A {@link SessionMetadata} that ignores setters rather than throwing exceptions. */
-  private static class StubSessionMetadata implements SessionMetadata {
-
-    @Override
-    public void setClientId(String clientId) {}
-
-    @Override
-    public void setServiceExtensionUris(Set<String> serviceExtensionUris) {}
-
-    @Override
-    public void incrementFailedLoginAttempts() {}
-
-    @Override
-    public void resetFailedLoginAttempts() {}
-
-    @Override
-    public void invalidate() {}
-
-    @Override
-    public String getClientId() {
-      return null;
-    }
-
-    @Override
-    public Set<String> getServiceExtensionUris() {
-      return null;
-    }
-
-    @Override
-    public int getFailedLoginAttempts() {
-      return 0;
-    }
+    Registrar registrar = Registrar.loadByClientId(clientIdentifier);
+    new TlsCredentials(clientCertificateHash, Optional.of(clientIpAddress), null)
+        .validate(registrar, password);
+    checkState(!registrar.getState().equals(Registrar.State.PENDING), "Account pending");
   }
 }
