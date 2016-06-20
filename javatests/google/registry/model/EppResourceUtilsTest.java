@@ -32,6 +32,7 @@ import com.googlecode.objectify.Key;
 
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.FlowRunner;
+import google.registry.flows.HttpSessionMetadata;
 import google.registry.flows.PasswordOnlyTransportCredentials;
 import google.registry.flows.SessionMetadata;
 import google.registry.model.domain.DomainResource;
@@ -42,8 +43,8 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.EppLoader;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeHttpSession;
 import google.registry.testing.InjectRule;
-import google.registry.testing.TestSessionMetadata;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -79,7 +80,7 @@ public class EppResourceUtilsTest {
   }
 
   private void runFlow() throws Exception {
-    SessionMetadata sessionMetadata = new TestSessionMetadata();
+    SessionMetadata sessionMetadata = new HttpSessionMetadata(new FakeHttpSession());
     sessionMetadata.setClientId("TheRegistrar");
     new FlowRunner(
         getFlowClass(eppLoader.getEpp()),

@@ -33,7 +33,7 @@ import com.beust.jcommander.Parameters;
 
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.FlowRunner;
-import google.registry.flows.HttpSessionMetadata;
+import google.registry.flows.SessionMetadata;
 import google.registry.flows.TlsCredentials;
 import google.registry.flows.session.LoginFlow;
 import google.registry.model.eppcommon.Trid;
@@ -42,11 +42,11 @@ import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import google.registry.tools.soy.LoginSoyInfo;
-import google.registry.util.BasicHttpSession;
 import google.registry.util.SystemClock;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -100,12 +100,13 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCo
         .setData(new SoyMapData("clientIdentifier", clientIdentifier, "password", password))
         .render()
         .getBytes(UTF_8);
+
     System.out.println(new String(marshalWithLenientRetry(
         new FlowRunner(
             LoginFlow.class,
             unmarshal(EppInput.class, inputXmlBytes),
             Trid.create(null),
-            new HttpSessionMetadata(new BasicHttpSession()),
+            new StubSessionMetadata(),
             new TlsCredentials(
                 clientCertificateHash,
                 Optional.of(clientIpAddress),
@@ -116,5 +117,39 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCo
             inputXmlBytes,
             null,
             new SystemClock()).run()), UTF_8));
+  }
+
+  /** A {@link SessionMetadata} that ignores setters rather than throwing exceptions. */
+  private static class StubSessionMetadata implements SessionMetadata {
+
+    @Override
+    public void setClientId(String clientId) {}
+
+    @Override
+    public void setServiceExtensionUris(Set<String> serviceExtensionUris) {}
+
+    @Override
+    public void incrementFailedLoginAttempts() {}
+
+    @Override
+    public void resetFailedLoginAttempts() {}
+
+    @Override
+    public void invalidate() {}
+
+    @Override
+    public String getClientId() {
+      return null;
+    }
+
+    @Override
+    public Set<String> getServiceExtensionUris() {
+      return null;
+    }
+
+    @Override
+    public int getFailedLoginAttempts() {
+      return 0;
+    }
   }
 }

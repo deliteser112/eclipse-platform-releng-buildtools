@@ -22,9 +22,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeHttpSession;
 import google.registry.testing.ShardableTestCase;
 import google.registry.testing.UserInfo;
-import google.registry.util.BasicHttpSession;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,7 +47,7 @@ public class EppConsoleActionTest extends ShardableTestCase {
   public void doTest() {
     EppConsoleAction action = new EppConsoleAction();
     action.inputXmlBytes = INPUT_XML_BYTES;
-    action.session = new BasicHttpSession();
+    action.session = new FakeHttpSession();
     action.session.setAttribute("CLIENT_ID", "ClientIdentifier");
     action.eppRequestHandler = mock(EppRequestHandler.class);
     action.run();

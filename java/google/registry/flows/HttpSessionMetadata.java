@@ -14,42 +14,77 @@
 
 package google.registry.flows;
 
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static google.registry.util.CollectionUtils.nullToEmpty;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+
+import java.util.Set;
 
 import javax.servlet.http.HttpSession;
 
 /** A metadata class that is a wrapper around {@link HttpSession}. */
-public class HttpSessionMetadata extends SessionMetadata {
+public class HttpSessionMetadata implements SessionMetadata {
+
+  private static final String CLIENT_ID = "CLIENT_ID";
+  private static final String SERVICE_EXTENSIONS = "SERVICE_EXTENSIONS";
+  private static final String FAILED_LOGIN_ATTEMPTS = "FAILED_LOGIN_ATTEMPTS";
 
   private final HttpSession session;
-  private boolean isValid = true;
 
   public HttpSessionMetadata(HttpSession session) {
     this.session = session;
   }
 
   @Override
-  protected void checkValid() {
-    checkState(isValid, "This session has been invalidated.");
-  }
-
-  @Override
   public void invalidate() {
     session.invalidate();
-    isValid = false;
   }
 
   @Override
-  protected void setProperty(String key, Object value) {
-    if (value == null) {
-      session.removeAttribute(key);
-    } else {
-      session.setAttribute(key, value);
-    }
+  public String getClientId() {
+    return (String) session.getAttribute(CLIENT_ID);
   }
 
   @Override
-  protected Object getProperty(String key) {
-    return session.getAttribute(key);
+  @SuppressWarnings("unchecked")
+  public Set<String> getServiceExtensionUris() {
+    return (Set<String>) session.getAttribute(SERVICE_EXTENSIONS);
+  }
+
+  @Override
+  public void setClientId(String clientId) {
+    session.setAttribute(CLIENT_ID, clientId);
+  }
+
+  @Override
+  public void setServiceExtensionUris(Set<String> serviceExtensionUris) {
+    session.setAttribute(SERVICE_EXTENSIONS, serviceExtensionUris);
+  }
+
+  @Override
+  public int getFailedLoginAttempts() {
+    return Optional.fromNullable((Integer) session.getAttribute(FAILED_LOGIN_ATTEMPTS)).or(0);
+  }
+
+  @Override
+  public void incrementFailedLoginAttempts() {
+    session.setAttribute(FAILED_LOGIN_ATTEMPTS, getFailedLoginAttempts() + 1);
+  }
+
+  @Override
+  public void resetFailedLoginAttempts() {
+    session.removeAttribute(FAILED_LOGIN_ATTEMPTS);
+  }
+
+  @Override
+  public String toString() {
+    return toStringHelper(getClass())
+        .add("system hash code", System.identityHashCode(this))
+        .add("clientId", getClientId())
+        .add("failedLoginAttempts", getFailedLoginAttempts())
+        .add("serviceExtensionUris", Joiner.on('.').join(nullToEmpty(getServiceExtensionUris())))
+        .toString();
   }
 }

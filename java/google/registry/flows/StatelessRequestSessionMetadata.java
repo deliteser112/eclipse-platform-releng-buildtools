@@ -14,19 +14,25 @@
 
 package google.registry.flows;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static dagger.internal.Preconditions.checkNotNull;
+import static google.registry.util.CollectionUtils.nullToEmpty;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
+
 import java.util.Set;
 
 /** A read-only {@link SessionMetadata} that doesn't support login/logout. */
-public class StatelessRequestSessionMetadata extends SessionMetadata {
+public class StatelessRequestSessionMetadata implements SessionMetadata {
 
   private final String clientId;
-  private final Set<String> serviceExtensionUris;
+  private final ImmutableSet<String> serviceExtensionUris;
 
   public StatelessRequestSessionMetadata(
-      String clientId,
-      Set<String> serviceExtensionUris) {
-    this.clientId = clientId;
-    this.serviceExtensionUris = serviceExtensionUris;
+      String clientId, ImmutableSet<String> serviceExtensionUris) {
+    this.clientId = checkNotNull(clientId);
+    this.serviceExtensionUris = checkNotNull(serviceExtensionUris);
   }
 
   @Override
@@ -45,14 +51,38 @@ public class StatelessRequestSessionMetadata extends SessionMetadata {
   }
 
   @Override
-  protected void setProperty(String key, Object value) {
+  public void setClientId(String clientId) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  protected Object getProperty(String key) {
-    // We've overridden the getters of all of the properties that we care about. Return null for
-    // everything else so that toString() continues to work.
-    return null;
+  public void setServiceExtensionUris(Set<String> serviceExtensionUris) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int getFailedLoginAttempts() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void incrementFailedLoginAttempts() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void resetFailedLoginAttempts() {
+    throw new UnsupportedOperationException();
+  }
+
+
+  @Override
+  public String toString() {
+    return toStringHelper(getClass())
+        .add("system hash code", System.identityHashCode(this))
+        .add("clientId", getClientId())
+        .add("serviceExtensionUris", Joiner.on('.').join(nullToEmpty(getServiceExtensionUris())))
+        .toString();
   }
 }
+

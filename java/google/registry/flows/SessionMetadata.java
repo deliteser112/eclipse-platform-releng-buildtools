@@ -14,95 +14,29 @@
 
 package google.registry.flows;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static google.registry.util.CollectionUtils.nullToEmpty;
-
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-
 import java.util.Set;
 
-/** Class to allow setting and retrieving session information in flows. */
-public abstract class SessionMetadata {
-
-  /** The key used for looking up the current client id on the session object. */
-  protected static final String CLIENT_ID_KEY = "CLIENT_ID";
-
-  /** The key used for looking up the service extensions on the session object. */
-  protected static final String SERVICE_EXTENSIONS_KEY = "SERVICE_EXTENSIONS";
-
-  /** The key used for looking up the number of failed login attempts. */
-  protected static final String FAILED_LOGIN_ATTEMPTS_KEY = "FAILED_LOGIN_ATTEMPTS";
-
-  protected abstract void setProperty(String key, Object value);
-
-  protected abstract Object getProperty(String key);
+/** Object to allow setting and retrieving session information in flows. */
+public interface SessionMetadata {
 
   /**
    * Invalidates the session. A new instance must be created after this for future sessions.
    * Attempts to invoke methods of this class after this method has been called will throw
    * {@code IllegalStateException}.
    */
-  public abstract void invalidate();
+  void invalidate();
 
-  /** Subclasses can override this to verify that this is a valid session. */
-  protected void checkValid() {}
+  String getClientId();
 
-  /** Check that the session is valid and set a property. */
-  private void setPropertyChecked(String key, Object value) {
-    checkValid();
-    setProperty(key, value);
-  }
+  Set<String> getServiceExtensionUris();
 
-  /**
-   * Check that the session is valid and get a property as a given type.
-   *
-   * @param clazz type to return, specified as a param to enforce typesafe generics
-   * @see "http://errorprone.info/bugpattern/TypeParameterUnusedInFormals"
-   */
-  private <T> T getProperty(Class<T> clazz, String key) {
-    checkValid();
-    return clazz.cast(getProperty(key));
-  }
+  void setClientId(String clientId);
 
-  public String getClientId() {
-    return getProperty(String.class, CLIENT_ID_KEY);
-  }
+  void setServiceExtensionUris(Set<String> serviceExtensionUris);
 
-  @SuppressWarnings("unchecked")
-  public Set<String> getServiceExtensionUris() {
-    return getProperty(Set.class, SERVICE_EXTENSIONS_KEY);
-  }
+  int getFailedLoginAttempts();
 
-  public void setClientId(String clientId) {
-    setPropertyChecked(CLIENT_ID_KEY, clientId);
-  }
+  void incrementFailedLoginAttempts();
 
-  public void setServiceExtensionUris(Set<String> serviceExtensionUris) {
-    setPropertyChecked(SERVICE_EXTENSIONS_KEY, checkNotNull(serviceExtensionUris));
-  }
-
-  public int getFailedLoginAttempts() {
-    return Optional.fromNullable(getProperty(Integer.class, FAILED_LOGIN_ATTEMPTS_KEY))
-        .or(0);
-  }
-
-  public void incrementFailedLoginAttempts() {
-    setPropertyChecked(FAILED_LOGIN_ATTEMPTS_KEY, getFailedLoginAttempts() + 1);
-  }
-
-  public void resetFailedLoginAttempts() {
-    setPropertyChecked(FAILED_LOGIN_ATTEMPTS_KEY, null);
-  }
-
-  @Override
-  public String toString() {
-    return toStringHelper(getClass())
-        .add("system hash code", System.identityHashCode(this))
-        .add("clientId", getClientId())
-        .add("failedLoginAttempts", getFailedLoginAttempts())
-        .add("serviceExtensionUris", Joiner.on('.').join(nullToEmpty(getServiceExtensionUris())))
-        .toString();
-  }
+  void resetFailedLoginAttempts();
 }

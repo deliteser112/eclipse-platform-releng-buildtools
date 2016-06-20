@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.util;
+package google.registry.testing;
+
+import static com.google.common.base.Preconditions.checkState;
 
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -23,11 +25,12 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 
-/** An {@link HttpSession} that only provides support for getting/setting attributes. */
+/** A fake {@link HttpSession} that only provides support for getting/setting attributes. */
 @SuppressWarnings("deprecation")
-public class BasicHttpSession implements HttpSession {
+public class FakeHttpSession implements HttpSession {
 
   private final Map<String, Object> map = new HashMap<>();
+
   boolean isValid = true;
 
   @Override
@@ -67,7 +70,7 @@ public class BasicHttpSession implements HttpSession {
 
   @Override
   public Object getAttribute(@Nullable String name) {
-    checkValid();
+    checkState(isValid, "This session has been invalidated.");
     return map.get(name);
   }
 
@@ -88,7 +91,7 @@ public class BasicHttpSession implements HttpSession {
 
   @Override
   public void setAttribute(@Nullable String name, @Nullable Object value) {
-    checkValid();
+    checkState(isValid, "This session has been invalidated.");
     map.put(name, value);
   }
 
@@ -99,7 +102,7 @@ public class BasicHttpSession implements HttpSession {
 
   @Override
   public void removeAttribute(@Nullable String name) {
-    checkValid();
+    checkState(isValid, "This session has been invalidated.");
     map.remove(name);
   }
 
@@ -117,11 +120,5 @@ public class BasicHttpSession implements HttpSession {
   @Override
   public boolean isNew() {
     throw new UnsupportedOperationException();
-  }
-
-  private void checkValid() {
-    if (!isValid) {
-      throw new IllegalStateException("This session has been invalidated.");
-    }
   }
 }

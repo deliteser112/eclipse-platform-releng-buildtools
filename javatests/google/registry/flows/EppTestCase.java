@@ -28,10 +28,10 @@ import com.google.common.net.MediaType;
 import google.registry.model.ofy.Ofy;
 import google.registry.monitoring.whitebox.EppMetrics;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeHttpSession;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.testing.ShardableTestCase;
-import google.registry.testing.TestSessionMetadata;
 
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -49,7 +49,7 @@ public class EppTestCase extends ShardableTestCase {
 
   private final FakeClock clock = new FakeClock();
 
-  private TestSessionMetadata sessionMetadata;
+  private SessionMetadata sessionMetadata;
   private TransportCredentials credentials = new PasswordOnlyTransportCredentials();
   private boolean isSuperuser;
 
@@ -94,12 +94,16 @@ public class EppTestCase extends ShardableTestCase {
     String expectedOutput =
         loadFileWithSubstitutions(getClass(), outputFilename, outputSubstitutions);
     if (sessionMetadata == null) {
-      sessionMetadata = new TestSessionMetadata();
+      sessionMetadata = new HttpSessionMetadata(new FakeHttpSession()) {
+        @Override
+        public void invalidate() {
+          // When a session is invalidated, reset the sessionMetadata field.
+          super.invalidate();
+          EppTestCase.this.sessionMetadata = null;
+        }
+      };
     }
     String actualOutput = executeXmlCommand(input);
-    if (!sessionMetadata.isValid()) {
-      sessionMetadata = null;
-    }
     assertXmlEqualsWithMessage(
         expectedOutput,
         actualOutput,

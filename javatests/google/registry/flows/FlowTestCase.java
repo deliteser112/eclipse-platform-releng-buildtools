@@ -49,8 +49,8 @@ import google.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.EppLoader;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeHttpSession;
 import google.registry.testing.InjectRule;
-import google.registry.testing.TestSessionMetadata;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import google.registry.xml.ValidationMode;
 
@@ -95,7 +95,7 @@ public abstract class FlowTestCase<F extends Flow> {
 
   @Before
   public void init() throws Exception {
-    sessionMetadata = new TestSessionMetadata();
+    sessionMetadata = new HttpSessionMetadata(new FakeHttpSession());
     sessionMetadata.setClientId("TheRegistrar");
     sessionMetadata.setServiceExtensionUris(ProtocolDefinition.getVisibleServiceExtensionUris());
     ofy().saveWithoutBackup().entity(new ClaimsListSingleton()).now();

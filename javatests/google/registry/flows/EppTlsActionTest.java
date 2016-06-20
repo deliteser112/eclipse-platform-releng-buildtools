@@ -23,8 +23,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import google.registry.testing.FakeHttpSession;
 import google.registry.testing.ShardableTestCase;
-import google.registry.util.BasicHttpSession;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +43,7 @@ public class EppTlsActionTest extends ShardableTestCase {
     action.inputXmlBytes = INPUT_XML_BYTES;
     action.tlsCredentials = mock(TlsCredentials.class);
     when(action.tlsCredentials.hasSni()).thenReturn(true);
-    action.session = new BasicHttpSession();
+    action.session = new FakeHttpSession();
     action.session.setAttribute("CLIENT_ID", "ClientIdentifier");
     action.eppRequestHandler = mock(EppRequestHandler.class);
     action.run();
