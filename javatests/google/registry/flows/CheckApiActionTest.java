@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.ui.server.api;
+package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static org.mockito.Mockito.mock;
 
 import com.google.common.collect.ImmutableSet;
 
+import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
+import google.registry.monitoring.whitebox.EppMetrics;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
 import google.registry.util.SystemClock;
@@ -62,7 +65,10 @@ public class CheckApiActionTest {
   private Map<String, Object> getCheckResponse(String domain) {
     action.domain = domain;
     action.response = new FakeResponse();
-    action.clock = new SystemClock();
+    action.config = RegistryEnvironment.UNITTEST.config();
+    action.eppController = new EppController();
+    action.eppController.clock = new SystemClock();
+    action.eppController.metrics = mock(EppMetrics.class);
     action.run();
     return (Map<String, Object>) JSONValue.parse(((FakeResponse) action.response).getPayload());
   }

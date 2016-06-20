@@ -16,6 +16,8 @@ package google.registry.module.frontend;
 
 import dagger.Subcomponent;
 
+import google.registry.flows.CheckApiAction;
+import google.registry.flows.CheckApiAction.CheckApiModule;
 import google.registry.flows.EppConsoleAction;
 import google.registry.flows.EppTlsAction;
 import google.registry.flows.TlsCredentials.EppTlsModule;
@@ -31,8 +33,6 @@ import google.registry.rdap.RdapNameserverAction;
 import google.registry.rdap.RdapNameserverSearchAction;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
-import google.registry.ui.server.api.CheckApiAction;
-import google.registry.ui.server.api.CheckApiAction.CheckApiModule;
 import google.registry.ui.server.registrar.ConsoleUiAction;
 import google.registry.ui.server.registrar.RegistrarPaymentAction;
 import google.registry.ui.server.registrar.RegistrarPaymentSetupAction;

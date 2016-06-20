@@ -14,7 +14,6 @@
 
 package google.registry.flows;
 
-import static google.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.flows.picker.FlowPicker.getFlowClass;
 
@@ -47,11 +46,8 @@ public final class EppController {
   @Inject EppMetrics metrics;
   @Inject EppController() {}
 
-  /**
-   * Read an EPP envelope from the client, find the matching flow, execute it, and return
-   * the response marshalled to a byte array.
-   */
-  public byte[] handleEppCommand(
+  /** Read EPP XML, execute the matching flow, and return an {@link EppOutput}. */
+  public EppOutput handleEppCommand(
       SessionMetadata sessionMetadata,
       TransportCredentials credentials,
       EppRequestSource eppRequestSource,
@@ -85,17 +81,16 @@ public final class EppController {
       if (eppOutput.isResponse()) {
         metrics.setEppStatus(eppOutput.getResponse().getResult().getCode());
       }
-      return marshalWithLenientRetry(eppOutput);
+      return eppOutput;
     } catch (EppException e) {
       // The command failed. Send the client an error message.
       metrics.setEppStatus(e.getResult().getCode());
-      return marshalWithLenientRetry(getErrorResponse(clock, e.getResult(), trid));
+      return getErrorResponse(clock, e.getResult(), trid);
     } catch (Throwable e) {
       // Something bad and unexpected happened. Send the client a generic error, and log it.
       logger.severe(e, "Unexpected failure");
       metrics.setEppStatus(Code.CommandFailed);
-      return marshalWithLenientRetry(
-          getErrorResponse(clock, Result.create(Code.CommandFailed), trid));
+      return getErrorResponse(clock, Result.create(Code.CommandFailed), trid);
     } finally {
       metrics.export();
     }

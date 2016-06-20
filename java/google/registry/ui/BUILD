@@ -18,7 +18,6 @@ filegroup(
         "//java/google/registry/ui/js:js_files",
         "//java/google/registry/ui/js/registrar:js_files",
         "//java/google/registry/ui/soy:js_files",
-        "//java/google/registry/ui/soy/api:js_files",
         "//java/google/registry/ui/soy/registrar:js_files",
     ],
 )

@@ -24,7 +24,6 @@ java_library(
         "//java/google/registry/request",
         "//java/google/registry/request:modules",
         "//java/google/registry/ui",
-        "//java/google/registry/ui/server/api",
         "//java/google/registry/ui/server/registrar",
         "//java/google/registry/util",
         "//java/google/registry/whois",
@@ -40,7 +39,6 @@ java_binary(
     create_executable = 0,
     runtime_deps = [
         ":frontend",
-        "//java/google/registry/ui/server/api",  # CheckApiServlet
         "//java/google/registry/ui/server/registrar",  # ResourceServlet
     ],
 )

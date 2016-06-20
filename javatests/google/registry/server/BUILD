@@ -54,10 +54,8 @@ java_library(
         "//java/com/google/common/net",
         "//third_party/java/jsr305_annotations",
         "//third_party/java/servlet/servlet_api",
-        "//java/google/registry/flows",
         "//java/google/registry/module/backend",
         "//java/google/registry/module/frontend",
-        "//java/google/registry/ui/server/api",
         "//java/google/registry/ui/server/registrar",
     ],
 )

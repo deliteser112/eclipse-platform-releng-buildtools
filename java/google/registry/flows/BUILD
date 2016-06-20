@@ -4,6 +4,8 @@ package(
 
 licenses(["notice"])  # Apache 2.0
 
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_template_java_library")
+
 
 filegroup(
     name = "flows_files",
@@ -21,6 +23,7 @@ java_library(
     ]),
     visibility = ["//visibility:public"],
     deps = [
+        ":soy_java_wrappers",
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
@@ -31,6 +34,7 @@ java_library(
         "//third_party/java/dagger",
         "//third_party/java/joda_money",
         "//third_party/java/joda_time",
+        "//third_party/java/json_simple",
         "//third_party/java/jsr305_annotations",
         "//third_party/java/jsr330_inject",
         "//third_party/java/objectify:objectify-v4_1",
@@ -47,5 +51,14 @@ java_library(
         "//java/google/registry/tmch",
         "//java/google/registry/util",
         "//java/google/registry/xml",
+        "//third_party/java_src/soy/java/com/google/template/soy",
+
+        "@io_bazel_rules_closure//closure/templates",
     ],
+)
+
+closure_template_java_library(
+    name = "soy_java_wrappers",
+    srcs = glob(["soy/*.soy"]),
+    java_package = "google.registry.flows.soy",
 )
