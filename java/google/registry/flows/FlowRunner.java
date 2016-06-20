@@ -44,12 +44,14 @@ public class FlowRunner {
   private final EppInput eppInput;
   private final Trid trid;
   private final SessionMetadata sessionMetadata;
+  private final TransportCredentials credentials;
+  private final EppRequestSource eppRequestSource;
   private final boolean isDryRun;
   private final boolean isSuperuser;
-  private final TransportCredentials credentials;
   private final byte[] inputXmlBytes;
   private final EppMetrics metrics;
   private final Clock clock;
+
 
   public FlowRunner(
       Class<? extends Flow> flowClass,
@@ -57,17 +59,18 @@ public class FlowRunner {
       Trid trid,
       SessionMetadata sessionMetadata,
       TransportCredentials credentials,
+      EppRequestSource eppRequestSource,
       boolean isDryRun,
       boolean isSuperuser,
       byte[] inputXmlBytes,
       final EppMetrics metrics,
       Clock clock) {
-    credentials.toString();
     this.flowClass = flowClass;
     this.eppInput = eppInput;
     this.trid = trid;
     this.sessionMetadata = sessionMetadata;
     this.credentials = credentials;
+    this.eppRequestSource = eppRequestSource;
     this.isDryRun = isDryRun;
     this.isSuperuser = isSuperuser;
     this.inputXmlBytes = inputXmlBytes;
@@ -84,6 +87,7 @@ public class FlowRunner {
         sessionMetadata,
         prettyPrint(inputXmlBytes).replaceAll("\n", "\n\t"),
         credentials,
+        eppRequestSource,
         isDryRun ? "DRY_RUN" : "LIVE",
         isSuperuser ? "SUPERUSER" : "NORMAL");
     if (!isTransactional()) {
@@ -138,6 +142,7 @@ public class FlowRunner {
           trid,
           sessionMetadata,
           credentials,
+          eppRequestSource,
           isSuperuser,
           now,
           inputXmlBytes);

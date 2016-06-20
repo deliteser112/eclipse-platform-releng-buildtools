@@ -47,12 +47,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 
 import google.registry.flows.EppException.UnimplementedExtensionException;
+import google.registry.flows.EppRequestSource;
 import google.registry.flows.LoggedInFlow.UndeclaredServiceExtensionException;
 import google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
 import google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException;
 import google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
 import google.registry.flows.ResourceFlowTestCase;
-import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.flows.domain.BaseDomainCreateFlow.AcceptedTooLongAgoException;
 import google.registry.flows.domain.BaseDomainCreateFlow.ClaimsPeriodEndedException;
 import google.registry.flows.domain.BaseDomainCreateFlow.ExpiredClaimException;
@@ -287,7 +287,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_anchorTenantViaExtension() throws Exception {
-    sessionMetadata.setSessionSource(SessionSource.TOOL);
+    eppRequestSource = EppRequestSource.TOOL;
     setEppInput("domain_create_anchor_tenant.xml");
     persistContactsAndHosts();
     runFlowAssertResponse(readFile("domain_create_response.xml"));
@@ -335,7 +335,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_metadata() throws Exception {
-    sessionMetadata.setSessionSource(SessionSource.TOOL);
+    eppRequestSource = EppRequestSource.TOOL;
     setEppInput("domain_create_metadata.xml");
     persistContactsAndHosts();
     doSuccessfulTest();
@@ -1086,7 +1086,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_qlpSunriseRegistration() throws Exception {
     createTld("tld", TldState.SUNRISE);
     setEppInput("domain_create_registration_qlp_sunrise.xml");
-    sessionMetadata.setSessionSource(SessionSource.TOOL);  // Only tools can pass in metadata.
+    eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(readFile("domain_create_response.xml"));
     assertSuccessfulCreate("tld", true);
@@ -1098,7 +1098,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.SUNRISE);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput("domain_create_registration_qlp_sunrise_encoded_signed_mark.xml");
-    sessionMetadata.setSessionSource(SessionSource.TOOL);  // Only tools can pass in metadata.
+    eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(readFile("domain_create_response_encoded_signed_mark_name.xml"));
     assertSuccessfulCreate("tld", true);
@@ -1110,7 +1110,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.SUNRISE);
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     setEppInput("domain_create_registration_qlp_sunrise_claims_notice.xml");
-    sessionMetadata.setSessionSource(SessionSource.TOOL);  // Only tools can pass in metadata.
+    eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(readFile("domain_create_response_claims.xml"));
     assertSuccessfulCreate("tld", true);
@@ -1151,7 +1151,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_qlpSunrushRegistration() throws Exception {
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_registration_qlp_sunrush.xml");
-    sessionMetadata.setSessionSource(SessionSource.TOOL);  // Only tools can pass in metadata.
+    eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(readFile("domain_create_response.xml"));
     assertSuccessfulCreate("tld", true);
@@ -1163,7 +1163,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.SUNRUSH);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput("domain_create_registration_qlp_sunrush_encoded_signed_mark.xml");
-    sessionMetadata.setSessionSource(SessionSource.TOOL);  // Only tools can pass in metadata.
+    eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(readFile("domain_create_response_encoded_signed_mark_name.xml"));
     assertSuccessfulCreate("tld", true);
@@ -1175,7 +1175,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.SUNRUSH);
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     setEppInput("domain_create_registration_qlp_sunrush_claims_notice.xml");
-    sessionMetadata.setSessionSource(SessionSource.TOOL);  // Only tools can pass in metadata.
+    eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(readFile("domain_create_response_claims.xml"));
     assertSuccessfulCreate("tld", true);
@@ -1203,7 +1203,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_qlpLandrushRegistration() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_registration_qlp_landrush.xml");
-    sessionMetadata.setSessionSource(SessionSource.TOOL);  // Only tools can pass in metadata.
+    eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(readFile("domain_create_response.xml"));
     assertSuccessfulCreate("tld", true);
@@ -1216,7 +1216,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.LANDRUSH);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput("domain_create_registration_qlp_landrush_encoded_signed_mark.xml");
-    sessionMetadata.setSessionSource(SessionSource.TOOL);  // Only tools can pass in metadata.
+    eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlow();
   }
@@ -1226,7 +1226,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.LANDRUSH);
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     setEppInput("domain_create_registration_qlp_landrush_claims_notice.xml");
-    sessionMetadata.setSessionSource(SessionSource.TOOL);  // Only tools can pass in metadata.
+    eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(readFile("domain_create_response_claims.xml"));
     assertSuccessfulCreate("tld", true);

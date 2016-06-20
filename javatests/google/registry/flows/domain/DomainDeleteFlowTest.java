@@ -44,11 +44,11 @@ import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
+import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
-import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
 import google.registry.flows.domain.DomainDeleteFlow.DomainToDeleteHasHostsException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
@@ -582,7 +582,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Test
   public void testSuccess_metadata() throws Exception {
-    sessionMetadata.setSessionSource(SessionSource.TOOL);
+    eppRequestSource = EppRequestSource.TOOL;
     setEppInput("domain_delete_metadata.xml");
     setupSuccessfulTest();
     clock.advanceOneMilli();

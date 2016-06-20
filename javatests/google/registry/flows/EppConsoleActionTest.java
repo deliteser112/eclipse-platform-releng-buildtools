@@ -44,7 +44,7 @@ public class EppConsoleActionTest extends ShardableTestCase {
       .build();
 
   @Test
-  public void testPassesArgumentsThrough() {
+  public void doTest() {
     EppConsoleAction action = new EppConsoleAction();
     action.inputXmlBytes = INPUT_XML_BYTES;
     action.session = new BasicHttpSession();
@@ -57,6 +57,7 @@ public class EppConsoleActionTest extends ShardableTestCase {
     verify(action.eppRequestHandler).executeEpp(
         metadataCaptor.capture(),
         credentialsCaptor.capture(),
+        eq(EppRequestSource.CONSOLE),
         eq(false),
         eq(false),
         eq(INPUT_XML_BYTES));

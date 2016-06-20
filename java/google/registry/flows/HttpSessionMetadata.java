@@ -52,9 +52,4 @@ public class HttpSessionMetadata extends SessionMetadata {
   protected Object getProperty(String key) {
     return session.getAttribute(key);
   }
-
-  @Override
-  public SessionSource getSessionSource() {
-    return SessionSource.HTTP;
-  }
 }

@@ -21,15 +21,12 @@ public class StatelessRequestSessionMetadata extends SessionMetadata {
 
   private final String clientId;
   private final Set<String> serviceExtensionUris;
-  private final SessionSource sessionSource;
 
   public StatelessRequestSessionMetadata(
       String clientId,
-      Set<String> serviceExtensionUris,
-      SessionSource source) {
+      Set<String> serviceExtensionUris) {
     this.clientId = clientId;
     this.serviceExtensionUris = serviceExtensionUris;
-    this.sessionSource = source;
   }
 
   @Override
@@ -40,11 +37,6 @@ public class StatelessRequestSessionMetadata extends SessionMetadata {
   @Override
   public Set<String> getServiceExtensionUris() {
     return serviceExtensionUris;
-  }
-
-  @Override
-  public SessionSource getSessionSource() {
-    return sessionSource;
   }
 
   @Override

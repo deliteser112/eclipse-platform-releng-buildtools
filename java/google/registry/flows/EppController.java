@@ -54,6 +54,7 @@ public final class EppController {
   public byte[] handleEppCommand(
       SessionMetadata sessionMetadata,
       TransportCredentials credentials,
+      EppRequestSource eppRequestSource,
       boolean isDryRun,
       boolean isSuperuser,
       byte[] inputXmlBytes) {
@@ -74,6 +75,7 @@ public final class EppController {
           trid,
           sessionMetadata,
           credentials,
+          eppRequestSource,
           isDryRun,
           isSuperuser,
           inputXmlBytes,

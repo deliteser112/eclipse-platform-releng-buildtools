@@ -42,6 +42,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
 import google.registry.flows.EppException.UnimplementedExtensionException;
+import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -49,7 +50,6 @@ import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistExce
 import google.registry.flows.ResourceUpdateFlow.AddRemoveSameValueEppException;
 import google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException;
-import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
 import google.registry.flows.domain.BaseDomainUpdateFlow.EmptySecDnsUpdateException;
 import google.registry.flows.domain.BaseDomainUpdateFlow.MaxSigLifeChangeNotSupportedException;
@@ -411,7 +411,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testSuccess_metadata() throws Exception {
-    sessionMetadata.setSessionSource(SessionSource.TOOL);
+    eppRequestSource = EppRequestSource.TOOL;
     setEppInput("domain_update_metadata.xml");
     persistReferencedEntities();
     persistDomain();
@@ -664,7 +664,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testSuccess_addServerStatusBillingEvent() throws Exception {
-    sessionMetadata.setSessionSource(SessionSource.TOOL);
+    eppRequestSource = EppRequestSource.TOOL;
     persistReferencedEntities();
     persistDomain();
     doServerStatusBillingTest("domain_update_add_server_status.xml", true);
@@ -672,7 +672,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testSuccess_noBillingOnPreExistingServerStatus() throws Exception {
-    sessionMetadata.setSessionSource(SessionSource.TOOL);
+    eppRequestSource = EppRequestSource.TOOL;
     DomainResource addStatusDomain = persistActiveDomain(getUniqueIdFromCommand());
     persistResource(
         addStatusDomain.asBuilder()
@@ -683,7 +683,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testSuccess_removeServerStatusBillingEvent() throws Exception {
-    sessionMetadata.setSessionSource(SessionSource.TOOL);
+    eppRequestSource = EppRequestSource.TOOL;
     persistReferencedEntities();
     DomainResource removeStatusDomain = persistDomain();
     persistResource(
@@ -695,7 +695,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testSuccess_changeServerStatusBillingEvent() throws Exception {
-    sessionMetadata.setSessionSource(SessionSource.TOOL);
+    eppRequestSource = EppRequestSource.TOOL;
     persistReferencedEntities();
     DomainResource changeStatusDomain = persistDomain();
     persistResource(
@@ -719,7 +719,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testSuccess_noBillingEventOnServerStatusChangeNotFromRegistrar() throws Exception {
-    sessionMetadata.setSessionSource(SessionSource.TOOL);
+    eppRequestSource = EppRequestSource.TOOL;
     persistActiveDomain(getUniqueIdFromCommand());
     doServerStatusBillingTest("domain_update_add_server_status_non_registrar.xml", false);
   }

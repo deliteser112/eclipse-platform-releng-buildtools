@@ -21,7 +21,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import dagger.Module;
 import dagger.Provides;
 
-import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.model.eppcommon.ProtocolDefinition;
 import google.registry.request.Action;
 import google.registry.request.Action.Method;
@@ -50,9 +49,9 @@ public class EppToolAction implements Runnable {
     eppRequestHandler.executeEpp(
         new StatelessRequestSessionMetadata(
             clientIdentifier,
-            ProtocolDefinition.getVisibleServiceExtensionUris(),
-            SessionSource.TOOL),
+            ProtocolDefinition.getVisibleServiceExtensionUris()),
         new PasswordOnlyTransportCredentials(),
+        EppRequestSource.TOOL,
         isDryRun,
         isSuperuser,
         xml.getBytes(UTF_8));

@@ -37,9 +37,9 @@ import dagger.Provides;
 
 import google.registry.config.RegistryEnvironment;
 import google.registry.flows.EppException;
+import google.registry.flows.EppRequestSource;
 import google.registry.flows.FlowRunner;
 import google.registry.flows.PasswordOnlyTransportCredentials;
-import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.flows.StatelessRequestSessionMetadata;
 import google.registry.flows.domain.DomainCheckFlow;
 import google.registry.model.domain.fee.FeeCheckResponseExtension;
@@ -80,8 +80,7 @@ public class CheckApiAction implements Runnable {
   private final StatelessRequestSessionMetadata sessionMetadata =
       new StatelessRequestSessionMetadata(
           RegistryEnvironment.get().config().getCheckApiServletRegistrarClientId(),
-          ImmutableSet.of(FEE_0_6.getUri()),
-          SessionSource.HTTP);
+          ImmutableSet.of(FEE_0_6.getUri()));
 
   @Inject @Parameter("domain") String domain;
   @Inject Response response;
@@ -119,6 +118,7 @@ public class CheckApiAction implements Runnable {
           Trid.create(getClass().getSimpleName()),
           sessionMetadata,
           new PasswordOnlyTransportCredentials(),
+          EppRequestSource.CHECK_API,
           false,
           false,
           inputXmlBytes,

@@ -25,7 +25,6 @@ public class TestSessionMetadata extends SessionMetadata {
 
   private final Map<String, Object> properties = new HashMap<>();
   private boolean isValid = true;
-  private SessionSource sessionSource = SessionSource.NONE;
 
   @Override
   protected void setProperty(String key, Object value) {
@@ -45,16 +44,6 @@ public class TestSessionMetadata extends SessionMetadata {
   @Override
   public void invalidate() {
     isValid = false;
-  }
-
-  @Override
-  public SessionSource getSessionSource() {
-    return sessionSource;
-  }
-
-  @Override
-  public void setSessionSource(SessionSource source) {
-    sessionSource = source;
   }
 
   public boolean isValid() {

@@ -51,6 +51,7 @@ public class EppTlsActionTest extends ShardableTestCase {
     verify(action.eppRequestHandler).executeEpp(
         captor.capture(),
         same(action.tlsCredentials),
+        eq(EppRequestSource.TLS),
         eq(false),
         eq(false),
         eq(INPUT_XML_BYTES));

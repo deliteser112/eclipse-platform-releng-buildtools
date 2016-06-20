@@ -34,7 +34,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
-import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.flows.picker.FlowPicker;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.GracePeriod;
@@ -92,13 +91,13 @@ public abstract class FlowTestCase<F extends Flow> {
   protected SessionMetadata sessionMetadata;
   protected FakeClock clock = new FakeClock(DateTime.now(UTC));
   protected TransportCredentials credentials = new PasswordOnlyTransportCredentials();
+  protected EppRequestSource eppRequestSource = EppRequestSource.UNIT_TEST;
 
   @Before
   public void init() throws Exception {
     sessionMetadata = new TestSessionMetadata();
     sessionMetadata.setClientId("TheRegistrar");
     sessionMetadata.setServiceExtensionUris(ProtocolDefinition.getVisibleServiceExtensionUris());
-    sessionMetadata.setSessionSource(SessionSource.NONE);
     ofy().saveWithoutBackup().entity(new ClaimsListSingleton()).now();
     inject.setStaticField(Ofy.class, "clock", clock);  // For transactional flows.
   }
@@ -133,6 +132,7 @@ public abstract class FlowTestCase<F extends Flow> {
         getTrid(),
         sessionMetadata,
         credentials,
+        eppRequestSource,
         commitMode.equals(CommitMode.DRY_RUN),
         userPrivileges.equals(UserPrivileges.SUPERUSER),
         "<xml></xml>".getBytes(),

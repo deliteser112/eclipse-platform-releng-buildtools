@@ -20,7 +20,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.googlecode.objectify.Key;
 
 import google.registry.flows.EppException.AuthorizationErrorException;
-import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.model.EppResource;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -124,8 +123,7 @@ public abstract class ResourceCreateOrMutateFlow
 
   /** Ensure that, if a metadata command exists, it is being passed from a tool-created session. */
   void validateMetadataExtension() throws EppException {
-    if (!(metadataExtension == null
-        || sessionMetadata.getSessionSource().equals(SessionSource.TOOL))) {
+    if (!(metadataExtension == null || eppRequestSource.equals(EppRequestSource.TOOL))) {
       throw new OnlyToolCanPassMetadataException();
     }
   }

@@ -26,26 +26,6 @@ import java.util.Set;
 /** Class to allow setting and retrieving session information in flows. */
 public abstract class SessionMetadata {
 
-  /**
-   * An enum that identifies the origin of the session.
-   */
-  public enum SessionSource {
-    /** e.g. {@code EppConsoleServlet} */
-    CONSOLE,
-
-    /** e.g. {@code EppTlsServlet} */
-    HTTP,
-
-    /** e.g. {@code EppToolServlet} */
-    TOOL,
-
-    /** e.g. {@code LoadTestAction} */
-    LOADTEST,
-
-    /** Direct flow runs (default for e.g. testing) */
-    NONE
-  }
-
   /** The key used for looking up the current client id on the session object. */
   protected static final String CLIENT_ID_KEY = "CLIENT_ID";
 
@@ -95,16 +75,6 @@ public abstract class SessionMetadata {
     return getProperty(Set.class, SERVICE_EXTENSIONS_KEY);
   }
 
-  public abstract SessionSource getSessionSource();
-
-  /**
-   * Subclasses can override if they present a need to change the session
-   * source at runtime (e.g. anonymous classes created for testing)
-   */
-  public void setSessionSource(@SuppressWarnings("unused") SessionSource source) {
-    throw new UnsupportedOperationException();
-  }
-
   public void setClientId(String clientId) {
     setPropertyChecked(CLIENT_ID_KEY, clientId);
   }
@@ -132,7 +102,6 @@ public abstract class SessionMetadata {
         .add("system hash code", System.identityHashCode(this))
         .add("clientId", getClientId())
         .add("failedLoginAttempts", getFailedLoginAttempts())
-        .add("sessionSource", getSessionSource())
         .add("serviceExtensionUris", Joiner.on('.').join(nullToEmpty(getServiceExtensionUris())))
         .toString();
   }

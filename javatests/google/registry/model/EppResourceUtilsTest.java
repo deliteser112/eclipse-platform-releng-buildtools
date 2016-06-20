@@ -30,6 +30,7 @@ import static org.joda.time.Duration.standardDays;
 
 import com.googlecode.objectify.Key;
 
+import google.registry.flows.EppRequestSource;
 import google.registry.flows.FlowRunner;
 import google.registry.flows.PasswordOnlyTransportCredentials;
 import google.registry.flows.SessionMetadata;
@@ -86,6 +87,7 @@ public class EppResourceUtilsTest {
         Trid.create(null, "server-trid"),
         sessionMetadata,
         new PasswordOnlyTransportCredentials(),
+        EppRequestSource.UNIT_TEST,
         false,
         false,
         "<xml></xml>".getBytes(),

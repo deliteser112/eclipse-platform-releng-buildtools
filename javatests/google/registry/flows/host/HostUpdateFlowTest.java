@@ -42,12 +42,12 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
+import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
 import google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException;
-import google.registry.flows.SessionMetadata.SessionSource;
 import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
 import google.registry.flows.async.DnsRefreshForHostRenameAction;
 import google.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
@@ -895,7 +895,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     persistActiveHost("ns1.example.tld");
     clock.advanceOneMilli();
     setEppInput("host_update_metadata.xml");
-    sessionMetadata.setSessionSource(SessionSource.TOOL);
+    eppRequestSource = EppRequestSource.TOOL;
     runFlowAssertResponse(readFile("host_update_response.xml"));
     assertAboutHistoryEntries()
         .that(getOnlyHistoryEntryOfType(reloadResourceByUniqueId(), HistoryEntry.Type.HOST_UPDATE))

@@ -31,6 +31,7 @@ import com.google.template.soy.data.SoyMapData;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
+import google.registry.flows.EppRequestSource;
 import google.registry.flows.FlowRunner;
 import google.registry.flows.HttpSessionMetadata;
 import google.registry.flows.TlsCredentials;
@@ -109,6 +110,7 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCo
                 clientCertificateHash,
                 Optional.of(clientIpAddress),
                 "placeholder"),  // behave as if we have SNI on, since we're validating a cert
+            EppRequestSource.TOOL,
             false,
             false,
             inputXmlBytes,

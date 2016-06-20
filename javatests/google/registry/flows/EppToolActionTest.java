@@ -42,6 +42,7 @@ public class EppToolActionTest {
     verify(action.eppRequestHandler).executeEpp(
         captor.capture(),
         isA(PasswordOnlyTransportCredentials.class),
+        eq(EppRequestSource.TOOL),
         eq(isDryRun),
         eq(isSuperuser),
         eq(action.xml.getBytes(UTF_8)));
