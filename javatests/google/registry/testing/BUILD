@@ -22,6 +22,7 @@ java_library(
     ] + glob(["*.csv"]),
     visibility = ["//visibility:public"],
     deps = [
+        "//java/com/google/common/annotations",
         "//java/com/google/common/base",
         "//java/com/google/common/cache",
         "//java/com/google/common/collect",

@@ -9,6 +9,7 @@ java_library(
     name = "backend",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/common/annotations",
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
         "//java/com/google/common/net",
