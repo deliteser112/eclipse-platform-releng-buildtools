@@ -51,7 +51,6 @@ java_library(
         "//java/google/registry/tmch",
         "//java/google/registry/util",
         "//java/google/registry/xml",
-        "//third_party/java_src/soy/java/com/google/template/soy",
 
         "@io_bazel_rules_closure//closure/templates",
     ],
