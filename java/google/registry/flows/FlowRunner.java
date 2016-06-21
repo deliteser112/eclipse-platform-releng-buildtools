@@ -65,6 +65,7 @@ public class FlowRunner {
 
   public EppOutput run() throws EppException {
     String clientId = sessionMetadata.getClientId();
+    // This log is very fragile since it's used for ICANN reporting.
     logger.infofmt(
         COMMAND_LOG_FORMAT,
         trid.getServerTransactionId(),
@@ -123,10 +124,8 @@ public class FlowRunner {
           trid,
           sessionMetadata,
           credentials,
-          eppRequestSource,
           isSuperuser,
-          now,
-          inputXmlBytes);
+          now);
   }
 
   /**

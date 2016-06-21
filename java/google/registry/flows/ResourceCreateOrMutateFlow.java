@@ -20,6 +20,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.googlecode.objectify.Key;
 
 import google.registry.flows.EppException.AuthorizationErrorException;
+import google.registry.flows.FlowModule.InputXml;
 import google.registry.model.EppResource;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -27,6 +28,8 @@ import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.util.TypeUtils.TypeInstantiator;
+
+import javax.inject.Inject;
 
 /**
  * An EPP flow that creates or mutates a single stored resource.
@@ -39,6 +42,9 @@ import google.registry.util.TypeUtils.TypeInstantiator;
 public abstract class ResourceCreateOrMutateFlow
     <R extends EppResource, C extends SingleResourceCommand> extends SingleResourceFlow<R, C>
     implements TransactionalFlow {
+
+  @Inject EppRequestSource eppRequestSource;
+  @Inject @InputXml byte[] inputXmlBytes;
 
   String repoId;
   protected R newResource;

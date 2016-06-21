@@ -43,10 +43,8 @@ public abstract class Flow {
   protected EppInput eppInput;
   protected SessionMetadata sessionMetadata;
   protected TransportCredentials credentials;
-  protected EppRequestSource eppRequestSource;
   protected Trid trid;
   protected DateTime now;
-  protected byte[] inputXmlBytes;
 
   /** Whether this flow is being run in a superuser mode that can skip some checks. */
   protected boolean isSuperuser;
@@ -104,18 +102,14 @@ public abstract class Flow {
       Trid trid,
       SessionMetadata sessionMetadata,
       TransportCredentials credentials,
-      EppRequestSource eppRequestSource,
       boolean isSuperuser,
-      DateTime now,
-      byte[] inputXmlBytes) throws EppException {
+      DateTime now) throws EppException {
     this.eppInput = eppInput;
     this.trid = trid;
     this.sessionMetadata = sessionMetadata;
     this.credentials = credentials;
-    this.eppRequestSource = eppRequestSource;
     this.now = now;
     this.isSuperuser = isSuperuser;
-    this.inputXmlBytes = inputXmlBytes;
     initFlow();
     validExtensions = ImmutableSet.copyOf(validExtensions);
     return this;
