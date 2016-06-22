@@ -23,9 +23,9 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.collect.ImmutableList;
 
 import dagger.Module;
-import dagger.Multibindings;
 import dagger.Provides;
 import dagger.multibindings.ElementsIntoSet;
+import dagger.multibindings.Multibinds;
 
 import google.registry.config.ConfigModule.Config;
 import google.registry.request.OAuthScopes;
@@ -43,14 +43,11 @@ import java.util.Set;
  * @see google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule
  */
 @Module
-public final class BigqueryModule {
+public abstract class BigqueryModule {
 
-  @Multibindings
-  interface BigQueryMultibindings {
-
-    /** Provides a map of BigQuery table names to field names. */
-    Map<String, ImmutableList<TableFieldSchema>> bigquerySchemas();
-  }
+  /** Provides a map of BigQuery table names to field names. */
+  @Multibinds
+  abstract Map<String, ImmutableList<TableFieldSchema>> bigquerySchemas();
 
   /** Provides OAuth2 scopes for the Bigquery service needed by Domain Registry. */
   @Provides
@@ -70,4 +67,7 @@ public final class BigqueryModule {
         .setApplicationName(projectId)
         .build();
   }
+
+  // No subclasses.
+  private BigqueryModule() {}
 }
