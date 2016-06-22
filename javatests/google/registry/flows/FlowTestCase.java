@@ -298,7 +298,8 @@ public abstract class FlowTestCase<F extends Flow> {
       CommitMode commitMode, UserPrivileges userPrivileges, String xml, String... ignoredPaths)
       throws Exception {
     // Always ignore the server trid, since it's generated and meaningless to flow correctness.
-    String[] ignoredPathsPlusTrid = FluentIterable.from(ignoredPaths)
+    // TODO(user): Remove asList()
+    String[] ignoredPathsPlusTrid = FluentIterable.from(asList(ignoredPaths))
         .append("epp.response.trID.svTRID")
         .toArray(String.class);
     EppOutput output = runFlowInternal(commitMode, userPrivileges);
