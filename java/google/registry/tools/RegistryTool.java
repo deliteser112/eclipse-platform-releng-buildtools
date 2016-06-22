@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 
 import google.registry.tools.javascrap.LoadAndResaveCommand;
 import google.registry.tools.javascrap.RemoveIpAddressCommand;
+import google.registry.tools.javascrap.VerifyDualWrittenCursorsCommand;
 
 /** Container class to create and run remote commands against a datastore instance. */
 public final class RegistryTool {
@@ -75,6 +76,7 @@ public final class RegistryTool {
           .put("update_tld", UpdateTldCommand.class)
           .put("upload_claims_list", UploadClaimsListCommand.class)
           .put("validate_escrow_deposit", ValidateEscrowDepositCommand.class)
+          .put("verify_dual_written_cursors", VerifyDualWrittenCursorsCommand.class)
           .build();
 
   public static void main(String[] args) throws Exception {
