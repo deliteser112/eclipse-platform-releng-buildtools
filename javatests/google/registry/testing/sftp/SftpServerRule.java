@@ -20,7 +20,6 @@ import google.registry.util.NetworkUtils;
 
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.sshd.server.session.SessionFactory;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
@@ -60,8 +59,7 @@ public final class SftpServerRule extends ExternalResource {
 
   private static FtpServer createSftpServer(String user, String pass, File home, int port)
       throws FtpException {
-    FtpServer server =
-        TestSftpServer.createSftpServer(user, pass, null, port, home, new SessionFactory());
+    FtpServer server = TestSftpServer.createSftpServer(user, pass, null, port, home);
     server.start();
     return server;
   }

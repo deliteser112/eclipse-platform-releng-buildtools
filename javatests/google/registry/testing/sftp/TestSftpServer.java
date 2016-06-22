@@ -15,49 +15,22 @@
 package google.registry.testing.sftp;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.sshd.SshServer;
-import org.apache.sshd.common.Channel;
-import org.apache.sshd.common.Cipher;
-import org.apache.sshd.common.Compression;
-import org.apache.sshd.common.KeyPairProvider;
-import org.apache.sshd.common.Mac;
 import org.apache.sshd.common.NamedFactory;
-import org.apache.sshd.common.Session;
-import org.apache.sshd.common.Signature;
-import org.apache.sshd.common.cipher.AES128CBC;
-import org.apache.sshd.common.cipher.AES192CBC;
-import org.apache.sshd.common.cipher.AES256CBC;
-import org.apache.sshd.common.cipher.BlowfishCBC;
-import org.apache.sshd.common.cipher.TripleDESCBC;
-import org.apache.sshd.common.compression.CompressionNone;
-import org.apache.sshd.common.mac.HMACMD5;
-import org.apache.sshd.common.mac.HMACMD596;
-import org.apache.sshd.common.mac.HMACSHA1;
-import org.apache.sshd.common.mac.HMACSHA196;
-import org.apache.sshd.common.random.BouncyCastleRandom;
+import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
+import org.apache.sshd.common.keyprovider.KeyPairProvider;
 import org.apache.sshd.common.random.SingletonRandomFactory;
-import org.apache.sshd.common.signature.SignatureDSA;
-import org.apache.sshd.common.signature.SignatureRSA;
 import org.apache.sshd.server.Command;
-import org.apache.sshd.server.FileSystemFactory;
-import org.apache.sshd.server.FileSystemView;
-import org.apache.sshd.server.ForwardingAcceptorFactory;
-import org.apache.sshd.server.PasswordAuthenticator;
-import org.apache.sshd.server.PublickeyAuthenticator;
-import org.apache.sshd.server.SshFile;
-import org.apache.sshd.server.channel.ChannelDirectTcpip;
-import org.apache.sshd.server.channel.ChannelSession;
-import org.apache.sshd.server.filesystem.NativeFileSystemFactory;
-import org.apache.sshd.server.filesystem.NativeSshFile;
-import org.apache.sshd.server.kex.DHG1;
-import org.apache.sshd.server.kex.DHG14;
-import org.apache.sshd.server.session.DefaultForwardingAcceptorFactory;
+import org.apache.sshd.server.ServerBuilder;
+import org.apache.sshd.server.SshServer;
+import org.apache.sshd.server.auth.password.PasswordAuthenticator;
+import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
+import org.apache.sshd.server.scp.ScpCommandFactory;
 import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.session.SessionFactory;
-import org.apache.sshd.server.sftp.SftpSubsystem;
+import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -70,9 +43,6 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.security.Security;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,7 +57,6 @@ public class TestSftpServer implements FtpServer {
 
   static {
     Security.addProvider(new BouncyCastleProvider());
-    secureRandomFactory = new SingletonRandomFactory(new BouncyCastleRandom.Factory());
   }
 
   private static final String HOST_KEY = ""
@@ -136,98 +105,69 @@ public class TestSftpServer implements FtpServer {
     }
   }
 
-  // Apache provides a NativeFileSystemView, but it assumes that the root
-  // directory you want is /home/username.  Yep.
-  // So reuse as much as we can.
-  private static class TestFileSystemView implements FileSystemView {
-    private final String userName;
-    private final File home;
-
-    public TestFileSystemView(String userName, File home) {
-      this.userName = userName;
-      this.home = home;
-    }
-
-    @Override
-    public SshFile getFile(SshFile arg1, String arg2) {
-      return null;
-    }
-
-    @Override
-    public SshFile getFile(String fileName) {
-      File file = new File(home, fileName);
-      // Work around demands of NativeSshFile constructor.
-      String absolutePath = fileName.equals(".") ? "/" : fileName;
-      return new TestSshFile(absolutePath, file, userName, home);
-    }
-  }
-
-  private static class TestSshFile extends NativeSshFile {
-    // Purely an end-run around the protected constructor
-    @SuppressWarnings("unused")
-    TestSshFile(String fileName, File file, String userName, File home) {
-      super(fileName, file, userName);
-    }
-  }
-
   public static FtpServer createSftpServer(
       final String authorizedUser,
       @Nullable final String authorizedPassword,
       @Nullable final PublicKey authorizedPublicKey,
       int port,
-      final File home,
-      SessionFactory sessionFactory) {
+      final File home) {
 
-    final SshServer server = setUpDefaultServer();
+    ServerBuilder serverBuilder = ServerBuilder.builder();
+    serverBuilder.randomFactory(secureRandomFactory);
+
+    if (authorizedPublicKey != null) {
+      // This authenticator checks that the user is presenting the right key. If authenticate
+      // returns true, then the server will make sure that the user can prove they have that key.
+      // Not that you would know this from the Apache javadocs.
+      serverBuilder.publickeyAuthenticator(
+          new PublickeyAuthenticator() {
+            @Override
+            public boolean authenticate(
+                String username, PublicKey publicKey, ServerSession session) {
+              return Arrays.equals(publicKey.getEncoded(), authorizedPublicKey.getEncoded());
+            }
+          });
+    }
+
+    serverBuilder.fileSystemFactory(new VirtualFileSystemFactory(home.toPath()));
+
+    SshServer server = serverBuilder.build();
+    server.setCommandFactory(new ScpCommandFactory());
     server.setPort(port);
-    server.setSessionFactory(sessionFactory);
 
-    NamedFactory<Command> sftpSubsystemFactory = new SftpSubsystem.Factory();
+    NamedFactory<Command> sftpSubsystemFactory = new SftpSubsystemFactory.Builder().build();
     server.setSubsystemFactories(ImmutableList.of(sftpSubsystemFactory));
 
     if (authorizedPassword != null) {
-      PasswordAuthenticator passwordAuthenticator = new PasswordAuthenticator() {
-        @Override
-        public boolean authenticate(String username, String password, ServerSession session) {
-          return username.equals(authorizedUser) && password.equals(authorizedPassword);
-        }
-      };
-      server.setPasswordAuthenticator(passwordAuthenticator);
+      server.setPasswordAuthenticator(
+          new PasswordAuthenticator() {
+            @Override
+            public boolean authenticate(String username, String password, ServerSession session) {
+              return username.equals(authorizedUser) && password.equals(authorizedPassword);
+            }
+          });
     }
 
-    // This authenticator checks that the user is presenting the right key. If authenticate
-    // returns true, then the server will make sure that the user can prove they have that key.
-    // Not that you would know this from the Apache javadocs.
-    if (authorizedPublicKey != null) {
-      PublickeyAuthenticator publicKeyAuthenticator = new PublickeyAuthenticator() {
-        @Override
-        public boolean authenticate(String username, PublicKey publicKey, ServerSession session) {
-          return Arrays.equals(publicKey.getEncoded(), authorizedPublicKey.getEncoded());
-        }
-      };
-      server.setPublickeyAuthenticator(publicKeyAuthenticator);
-    }
+    KeyPairProvider keyPairProvider =
+        new KeyPairProvider() {
+          final ImmutableMap<String, KeyPair> keyPairByTypeMap =
+              ImmutableMap.of(KEY_TYPE, HOST_KEY_PAIR);
 
-    FileSystemFactory fileSystemFactory = new FileSystemFactory() {
-      @Override
-      public FileSystemView createFileSystemView(Session session) {
-        return new TestFileSystemView("anyone", home);
-      }
-    };
-    server.setFileSystemFactory(fileSystemFactory);
+          @Override
+          public Iterable<KeyPair> loadKeys() {
+            return keyPairByTypeMap.values();
+          }
 
+          @Override
+          public Iterable<String> getKeyTypes() {
+            return keyPairByTypeMap.keySet();
+          }
 
-    KeyPairProvider keyPairProvider = new KeyPairProvider() {
-      @Override
-      public KeyPair loadKey(String type) {
-        return (type.equals(KEY_TYPE)) ? HOST_KEY_PAIR : null;
-      }
-
-      @Override
-      public String getKeyTypes() {
-        return KEY_TYPE;
-      }
-    };
+          @Override
+          public KeyPair loadKey(final String type) {
+            return keyPairByTypeMap.get(type);
+          }
+        };
     server.setKeyPairProvider(keyPairProvider);
 
     return new TestSftpServer(server);
@@ -250,10 +190,10 @@ public class TestSftpServer implements FtpServer {
   public synchronized void stop() {
     try {
       logger.info("Stopping server");
-      server.stop();
+      server.stop(true);
       stopped = true;
-    } catch (InterruptedException e) {
-      logger.log(Level.WARNING, "Server shutdown interrupted", e);
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Error shutting down server", e);
     }
   }
 
@@ -282,68 +222,5 @@ public class TestSftpServer implements FtpServer {
   @Override
   public boolean isStopped() {
     return stopped;
-  }
-
-  // More almost-cut-and-paste from Apache.  Their version of this method
-  // creates a new "singleton" random number generator each time it's called,
-  // which in turn waits for enough securely random bits to be available from
-  // the system.  Certainly for test purposes it's good enough for everyone
-  // to share the same random seed.  SuppressWarnings because Apache is a bit
-  // more lax about generics than we are.
-  private static SshServer setUpDefaultServer() {
-    SshServer sshd = new SshServer();
-    // DHG14 uses 2048 bits key which are not supported by the default JCE provider
-    sshd.setKeyExchangeFactories(Arrays.asList(
-        new DHG14.Factory(),
-        new DHG1.Factory()));
-    sshd.setRandomFactory(secureRandomFactory);
-    setUpDefaultCiphers(sshd);
-    // Compression is not enabled by default
-    // sshd.setCompressionFactories(Arrays.<NamedFactory<Compression>>asList(
-    //         new CompressionNone.Factory(),
-    //         new CompressionZlib.Factory(),
-    //         new CompressionDelayedZlib.Factory()));
-    sshd.setCompressionFactories(Arrays.<NamedFactory<Compression>>asList(
-        new CompressionNone.Factory()));
-    sshd.setMacFactories(Arrays.<NamedFactory<Mac>>asList(
-        new HMACMD5.Factory(),
-        new HMACSHA1.Factory(),
-        new HMACMD596.Factory(),
-        new HMACSHA196.Factory()));
-    sshd.setChannelFactories(Arrays.<NamedFactory<Channel>>asList(
-        new ChannelSession.Factory(),
-        new ChannelDirectTcpip.Factory()));
-    sshd.setSignatureFactories(Arrays.<NamedFactory<Signature>>asList(
-        new SignatureDSA.Factory(),
-        new SignatureRSA.Factory()));
-    sshd.setFileSystemFactory(new NativeFileSystemFactory());
-
-    ForwardingAcceptorFactory faf = new DefaultForwardingAcceptorFactory();
-    sshd.setTcpipForwardNioSocketAcceptorFactory(faf);
-    sshd.setX11ForwardNioSocketAcceptorFactory(faf);
-
-    return sshd;
-  }
-
-  private static void setUpDefaultCiphers(SshServer sshd) {
-    List<NamedFactory<Cipher>> avail = new LinkedList<>();
-    avail.add(new AES128CBC.Factory());
-    avail.add(new TripleDESCBC.Factory());
-    avail.add(new BlowfishCBC.Factory());
-    avail.add(new AES192CBC.Factory());
-    avail.add(new AES256CBC.Factory());
-
-    for (Iterator<NamedFactory<Cipher>> i = avail.iterator(); i.hasNext();) {
-      final NamedFactory<Cipher> f = i.next();
-      try {
-        final Cipher c = f.create();
-        final byte[] key = new byte[c.getBlockSize()];
-        final byte[] iv = new byte[c.getIVSize()];
-        c.init(Cipher.Mode.Encrypt, key, iv);
-      } catch (Exception e) {
-        i.remove();
-      }
-    }
-    sshd.setCipherFactories(avail);
   }
 }

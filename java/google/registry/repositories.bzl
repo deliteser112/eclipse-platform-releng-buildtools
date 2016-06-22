@@ -446,8 +446,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "sshd_core",
-      artifact = "org.apache.sshd:sshd-core:0.7.0",
-      sha1 = "ef5d0cae23845dead3fc53ecd61bd990ed42f60f",
+      artifact = "org.apache.sshd:sshd-core:1.2.0",
+      sha1 = "4bc24a8228ba83dac832680366cf219da71dae8e",
   )
 
   native.maven_jar(

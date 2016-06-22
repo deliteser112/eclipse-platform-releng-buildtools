@@ -16,16 +16,13 @@ package google.registry.testing;
 
 import javax.inject.Provider;
 
-/** Helper functions for {@link Provider} */
+/** Helper functions for {@link Provider}. */
 public final class Providers {
 
   /**
    * Returns a {@link Provider} that supplies a constant value.
    *
-   * @deprecated Add {@code //third_party/java/inject_common} as a dependency and then use
-   *     {@link com.google.common.inject.Providers#of} instead.
    */
-  @Deprecated
   public static <T> Provider<T> of(final T instance) {
     return new Provider<T>() {
       @Override
