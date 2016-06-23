@@ -30,11 +30,11 @@ public interface SessionMetadata {
 
   Set<String> getServiceExtensionUris();
 
+  int getFailedLoginAttempts();
+
   void setClientId(String clientId);
 
   void setServiceExtensionUris(Set<String> serviceExtensionUris);
-
-  int getFailedLoginAttempts();
 
   void incrementFailedLoginAttempts();
 

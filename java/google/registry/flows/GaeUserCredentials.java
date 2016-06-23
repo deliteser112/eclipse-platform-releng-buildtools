@@ -15,8 +15,8 @@
 package google.registry.flows;
 
 import static com.google.appengine.api.users.UserServiceFactory.getUserService;
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Strings.nullToEmpty;
-import static java.lang.System.identityHashCode;
 
 import com.google.appengine.api.users.User;
 import com.google.common.annotations.VisibleForTesting;
@@ -59,7 +59,9 @@ public class GaeUserCredentials implements TransportCredentials {
 
   @Override
   public String toString() {
-    return String.format("GaeUserCredentials@%s{gaeUser: %s}", identityHashCode(this), gaeUser);
+    return toStringHelper(getClass())
+        .add("gaeUser", gaeUser)
+        .toString();
   }
 
   /** User is not logged in as a GAE user. */

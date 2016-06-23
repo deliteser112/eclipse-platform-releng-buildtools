@@ -54,6 +54,11 @@ public class HttpSessionMetadata implements SessionMetadata {
   }
 
   @Override
+  public int getFailedLoginAttempts() {
+    return Optional.fromNullable((Integer) session.getAttribute(FAILED_LOGIN_ATTEMPTS)).or(0);
+  }
+
+  @Override
   public void setClientId(String clientId) {
     session.setAttribute(CLIENT_ID, clientId);
   }
@@ -61,11 +66,6 @@ public class HttpSessionMetadata implements SessionMetadata {
   @Override
   public void setServiceExtensionUris(Set<String> serviceExtensionUris) {
     session.setAttribute(SERVICE_EXTENSIONS, serviceExtensionUris);
-  }
-
-  @Override
-  public int getFailedLoginAttempts() {
-    return Optional.fromNullable((Integer) session.getAttribute(FAILED_LOGIN_ATTEMPTS)).or(0);
   }
 
   @Override
@@ -81,7 +81,6 @@ public class HttpSessionMetadata implements SessionMetadata {
   @Override
   public String toString() {
     return toStringHelper(getClass())
-        .add("system hash code", System.identityHashCode(this))
         .add("clientId", getClientId())
         .add("failedLoginAttempts", getFailedLoginAttempts())
         .add("serviceExtensionUris", Joiner.on('.').join(nullToEmpty(getServiceExtensionUris())))

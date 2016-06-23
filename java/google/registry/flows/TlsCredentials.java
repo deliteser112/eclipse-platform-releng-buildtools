@@ -166,7 +166,6 @@ public class TlsCredentials implements TransportCredentials {
   @Override
   public String toString() {
     return toStringHelper(getClass())
-        .add("system hash code", System.identityHashCode(this))
         .add("clientCertificateHash", clientCertificateHash)
         .add("clientAddress", clientInetAddr)
         .add("sni", sni)

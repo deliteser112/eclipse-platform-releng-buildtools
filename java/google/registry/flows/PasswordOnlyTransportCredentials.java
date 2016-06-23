@@ -14,6 +14,8 @@
 
 package google.registry.flows;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import google.registry.flows.EppException.AuthenticationErrorException;
 import google.registry.model.registrar.Registrar;
 
@@ -24,5 +26,10 @@ public class PasswordOnlyTransportCredentials implements TransportCredentials {
     if (!r.testPassword(password)) {
       throw new BadRegistrarPasswordException();
     }
+  }
+
+  @Override
+  public String toString() {
+    return toStringHelper(getClass()).toString();
   }
 }

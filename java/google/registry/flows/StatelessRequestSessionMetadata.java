@@ -36,6 +36,11 @@ public class StatelessRequestSessionMetadata implements SessionMetadata {
   }
 
   @Override
+  public void invalidate() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public String getClientId() {
     return clientId;
   }
@@ -46,8 +51,8 @@ public class StatelessRequestSessionMetadata implements SessionMetadata {
   }
 
   @Override
-  public void invalidate() {
-    throw new UnsupportedOperationException();
+  public int getFailedLoginAttempts() {
+    return 0;
   }
 
   @Override
@@ -61,11 +66,6 @@ public class StatelessRequestSessionMetadata implements SessionMetadata {
   }
 
   @Override
-  public int getFailedLoginAttempts() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public void incrementFailedLoginAttempts() {
     throw new UnsupportedOperationException();
   }
@@ -75,12 +75,11 @@ public class StatelessRequestSessionMetadata implements SessionMetadata {
     throw new UnsupportedOperationException();
   }
 
-
   @Override
   public String toString() {
     return toStringHelper(getClass())
-        .add("system hash code", System.identityHashCode(this))
         .add("clientId", getClientId())
+        .add("failedLoginAttempts", getFailedLoginAttempts())
         .add("serviceExtensionUris", Joiner.on('.').join(nullToEmpty(getServiceExtensionUris())))
         .toString();
   }
