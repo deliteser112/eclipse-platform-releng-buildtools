@@ -161,6 +161,13 @@ public class Cursor extends ImmutableObject {
     return create(cursorType, cursorTime, Key.create(scope));
   }
 
+  /**
+   * Returns the current time for a given cursor, or {@code START_OF_TIME} if the cursor is null. 
+   */
+  public static DateTime getCursorTimeOrStartOfTime(Cursor cursor) {
+    return cursor != null ? cursor.getCursorTime() : START_OF_TIME;
+  }
+  
   public DateTime getCursorTime() {
     return cursorTime;
   }

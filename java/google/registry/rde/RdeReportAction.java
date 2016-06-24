@@ -16,9 +16,10 @@ package google.registry.rde;
 
 import static com.google.common.base.Verify.verify;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
+import static google.registry.model.common.Cursor.getCursorTimeOrStartOfTime;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.rde.RdeMode.FULL;
 import static google.registry.request.Action.Method.POST;
-import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.io.ByteStreams;
@@ -26,10 +27,10 @@ import com.google.common.io.ByteStreams;
 import google.registry.config.ConfigModule.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule.Key;
+import google.registry.model.common.Cursor;
+import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.rde.RdeNamingUtils;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.RegistryCursor;
-import google.registry.model.registry.RegistryCursor.CursorType;
 import google.registry.rde.EscrowTaskRunner.EscrowTask;
 import google.registry.request.Action;
 import google.registry.request.HttpException.NoContentException;
@@ -77,10 +78,11 @@ public final class RdeReportAction implements Runnable, EscrowTask {
 
   @Override
   public void runWithLock(DateTime watermark) throws Exception {
-    DateTime stagingCursor =
-        RegistryCursor.load(Registry.get(tld), CursorType.RDE_UPLOAD).or(START_OF_TIME);
-    if (!stagingCursor.isAfter(watermark)) {
-      logger.infofmt("tld=%s reportCursor=%s uploadCursor=%s", tld, watermark, stagingCursor);
+    DateTime cursorTime =
+        getCursorTimeOrStartOfTime(
+            ofy().load().key(Cursor.createKey(CursorType.RDE_UPLOAD, Registry.get(tld))).now());
+    if (!cursorTime.isAfter(watermark)) {
+      logger.infofmt("tld=%s reportCursor=%s uploadCursor=%s", tld, watermark, cursorTime);
       throw new NoContentException("Waiting for RdeUploadAction to complete");
     }
     String prefix = RdeNamingUtils.makeRydeFilename(tld, watermark, FULL, 1, 0);

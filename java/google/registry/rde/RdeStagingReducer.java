@@ -18,6 +18,7 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
 import static com.google.common.base.Verify.verify;
+import static google.registry.model.common.Cursor.getCursorTimeOrStartOfTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -33,11 +34,11 @@ import google.registry.config.ConfigModule.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.api.PgpHelper;
+import google.registry.model.common.Cursor;
 import google.registry.model.rde.RdeMode;
 import google.registry.model.rde.RdeNamingUtils;
 import google.registry.model.rde.RdeRevision;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.RegistryCursor;
 import google.registry.model.server.Lock;
 import google.registry.request.RequestParameters;
 import google.registry.tldconfig.idn.IdnTableEnum;
@@ -201,7 +202,8 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       @Override
       public void vrun() {
         Registry registry = Registry.get(tld);
-        DateTime position = RegistryCursor.load(registry, key.cursor()).get();
+        DateTime position = getCursorTimeOrStartOfTime(
+            ofy().load().key(Cursor.createKey(key.cursor(), registry)).now());
         DateTime newPosition = key.watermark().plus(key.interval());
         if (!position.isBefore(newPosition)) {
           logger.warning("Cursor has already been rolled forward.");
@@ -209,7 +211,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
         }
         verify(position.equals(key.watermark()),
             "Partial ordering of RDE deposits broken: %s %s", position, key);
-        RegistryCursor.save(registry, key.cursor(), newPosition);
+        ofy().save().entity(Cursor.create(key.cursor(), newPosition, registry)).now();
         logger.infofmt("Rolled forward %s on %s cursor to %s", key.cursor(), tld, newPosition);
         RdeRevision.saveRevision(tld, watermark, mode, revision);
         if (mode == RdeMode.FULL) {

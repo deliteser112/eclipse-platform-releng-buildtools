@@ -15,11 +15,11 @@
 package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.common.Cursor.CursorType.BRDA;
+import static google.registry.model.common.Cursor.CursorType.RDE_STAGING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.rde.RdeMode.FULL;
 import static google.registry.model.rde.RdeMode.THIN;
-import static google.registry.model.registry.RegistryCursor.CursorType.BRDA;
-import static google.registry.model.registry.RegistryCursor.CursorType.RDE_STAGING;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeConstants.TUESDAY;
@@ -29,10 +29,10 @@ import com.google.common.collect.ImmutableSetMultimap;
 
 import com.googlecode.objectify.VoidWork;
 
+import google.registry.model.common.Cursor;
+import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.RegistryCursor;
-import google.registry.model.registry.RegistryCursor.CursorType;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
@@ -107,10 +107,10 @@ public class PendingDepositCheckerTest {
     createTldWithEscrowEnabled("lol");
     clock.advanceOneMilli();
     Registry registry = Registry.get("lol");
-    assertThat(RegistryCursor.load(registry, RDE_STAGING)).isAbsent();
+    assertThat(ofy().load().key(Cursor.createKey(RDE_STAGING, registry)).now()).isNull();
     checker.getTldsAndWatermarksPendingDepositForRdeAndBrda();
-    assertThat(RegistryCursor.load(registry, RDE_STAGING))
-        .hasValue(DateTime.parse("2000-01-01TZ"));
+    assertThat(ofy().load().key(Cursor.createKey(RDE_STAGING, registry)).now().getCursorTime())
+        .isEqualTo(DateTime.parse("2000-01-01TZ"));
   }
 
   @Test
@@ -122,7 +122,8 @@ public class PendingDepositCheckerTest {
     setCursor(Registry.get("lol"), RDE_STAGING, yesterday);
     clock.advanceOneMilli();
     checker.getTldsAndWatermarksPendingDepositForRdeAndBrda();
-    assertThat(RegistryCursor.load(Registry.get("lol"), RDE_STAGING)).hasValue(yesterday);
+    Cursor cursor = ofy().load().key(Cursor.createKey(RDE_STAGING, Registry.get("lol"))).now();
+    assertThat(cursor.getCursorTime()).isEqualTo(yesterday);
   }
 
   @Test
@@ -134,9 +135,9 @@ public class PendingDepositCheckerTest {
     clock.advanceOneMilli();
     setCursor(registry, RDE_STAGING, DateTime.parse("2000-01-02TZ")); // assume rde is already done
     clock.advanceOneMilli();
-    assertThat(RegistryCursor.load(registry, BRDA)).isAbsent();
+    assertThat(ofy().load().key(Cursor.createKey(BRDA, registry)).now()).isNull();
     assertThat(checker.getTldsAndWatermarksPendingDepositForRdeAndBrda()).isEmpty();
-    assertThat(RegistryCursor.load(registry, BRDA)).isAbsent();
+    assertThat(ofy().load().key(Cursor.createKey(BRDA, registry)).now()).isNull();
   }
 
   @Test
@@ -173,7 +174,7 @@ public class PendingDepositCheckerTest {
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
-        RegistryCursor.save(registry, cursorType, value);
+        ofy().save().entity(Cursor.create(cursorType, value, registry));
       }});
   }
 

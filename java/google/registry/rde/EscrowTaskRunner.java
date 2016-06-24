@@ -18,9 +18,9 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.VoidWork;
 
+import google.registry.model.common.Cursor;
+import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.RegistryCursor;
-import google.registry.model.registry.RegistryCursor.CursorType;
 import google.registry.model.server.Lock;
 import google.registry.request.HttpException.NoContentException;
 import google.registry.request.HttpException.ServiceUnavailableException;
@@ -50,13 +50,13 @@ import javax.inject.Inject;
  * {@link NoContentException} is thrown to cancel the task.
  *
  * <p>The specific date for which the deposit is generated depends on the current position of the
- * {@link RegistryCursor}. If the cursor is set to tomorrow, we do nothing and return 204 No
- * Content. If the cursor is set to today, then we create a deposit for today and advance the
- * cursor. If the cursor is set to yesterday or earlier, then we create a deposit for that date,
- * advance the cursor, but we <i>do not</i> make any attempt to catch the cursor up to the current
- * time. Therefore <b>you must</b> set the cron interval to something less than the desired
- * interval, so the cursor can catch up. For example, if the task is supposed to run daily, you
- * should configure cron to execute it every twelve hours, or possibly less.
+ * {@link Cursor}. If the cursor is set to tomorrow, we do nothing and return 204 No Content. If the
+ * cursor is set to today, then we create a deposit for today and advance the cursor. If the cursor
+ * is set to yesterday or earlier, then we create a deposit for that date, advance the cursor, but
+ * we <i>do not</i> make any attempt to catch the cursor up to the current time. Therefore <b>you
+ * must</b> set the cron interval to something less than the desired interval, so the cursor can
+ * catch up. For example, if the task is supposed to run daily, you should configure cron to execute
+ * it every twelve hours, or possibly less.
  */
 class EscrowTaskRunner {
 
@@ -97,7 +97,8 @@ class EscrowTaskRunner {
       public Void call() throws Exception {
         logger.info("tld=" + registry.getTld());
         DateTime startOfToday = clock.nowUtc().withTimeAtStartOfDay();
-        final DateTime nextRequiredRun = RegistryCursor.load(registry, cursorType).or(startOfToday);
+        Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
+        final DateTime nextRequiredRun = (cursor == null ? startOfToday : cursor.getCursorTime());
         if (nextRequiredRun.isAfter(startOfToday)) {
           throw new NoContentException("Already completed");
         }
@@ -106,7 +107,8 @@ class EscrowTaskRunner {
         ofy().transact(new VoidWork() {
           @Override
           public void vrun() {
-            RegistryCursor.save(registry, cursorType, nextRequiredRun.plus(interval));
+            ofy().save().entity(
+                Cursor.create(cursorType, nextRequiredRun.plus(interval), registry));
           }});
         return null;
       }};

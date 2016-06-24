@@ -47,10 +47,10 @@ import com.googlecode.objectify.VoidWork;
 
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.Keyring;
+import google.registry.model.common.Cursor;
+import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.rde.RdeRevision;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.RegistryCursor;
-import google.registry.model.registry.RegistryCursor.CursorType;
 import google.registry.rde.JSchSshSession.JSchSshSessionFactory;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.RequestParameters;
@@ -264,7 +264,7 @@ public class RdeUploadActionTest {
     DateTime stagingCursor = DateTime.parse("2010-10-18TZ");
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
-        RegistryCursor.create(Registry.get("tld"), CursorType.RDE_STAGING, stagingCursor));
+        Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
     createAction(uploadUrl).runWithLock(uploadCursor);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
@@ -283,7 +283,7 @@ public class RdeUploadActionTest {
     DateTime stagingCursor = DateTime.parse("2010-10-18TZ");
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
-        RegistryCursor.create(Registry.get("tld"), CursorType.RDE_STAGING, stagingCursor));
+        Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
     createAction(uploadUrl).runWithLock(uploadCursor);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
@@ -311,7 +311,7 @@ public class RdeUploadActionTest {
     DateTime stagingCursor = DateTime.parse("2010-10-18TZ");
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistSimpleResource(
-        RegistryCursor.create(Registry.get("tld"), CursorType.RDE_STAGING, stagingCursor));
+        Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
     createAction(uploadUrl).runWithLock(uploadCursor);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
@@ -331,7 +331,7 @@ public class RdeUploadActionTest {
     DateTime stagingCursor = DateTime.parse("2010-10-18TZ");
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
-        RegistryCursor.create(Registry.get("tld"), CursorType.RDE_STAGING, stagingCursor));
+        Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
     createAction(uploadUrl).runWithLock(uploadCursor);
     // Only verify signature for SFTP versions, since we check elsewhere that the GCS files are
     // identical to the ones sent over SFTP.
@@ -349,7 +349,7 @@ public class RdeUploadActionTest {
     DateTime stagingCursor = DateTime.parse("2010-10-17TZ");
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
-        RegistryCursor.create(Registry.get("tld"), CursorType.RDE_STAGING, stagingCursor));
+        Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
     thrown.expect(ServiceUnavailableException.class, "Waiting for RdeStagingAction to complete");
     createAction(null).runWithLock(uploadCursor);
   }

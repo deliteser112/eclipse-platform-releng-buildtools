@@ -20,9 +20,9 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.beust.jcommander.ParameterException;
 
+import google.registry.model.common.Cursor;
+import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.RegistryCursor;
-import google.registry.model.registry.RegistryCursor.CursorType;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -39,8 +39,8 @@ public class ListCursorsCommandTest extends CommandTestCase<ListCursorsCommand> 
   @Test
   public void testListCursors_twoTldsOneAbsent_printsAbsentAndTimestampSorted() throws Exception {
     createTlds("foo", "bar");
-    persistResource(RegistryCursor.create(
-        Registry.get("bar"), CursorType.BRDA, DateTime.parse("1984-12-18TZ")));
+    persistResource(
+        Cursor.create(CursorType.BRDA, DateTime.parse("1984-12-18TZ"), Registry.get("bar")));
     runCommand("--type=BRDA");
     assertThat(getStdoutAsLines())
         .containsExactly(

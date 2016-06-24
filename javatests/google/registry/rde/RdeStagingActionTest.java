@@ -15,9 +15,9 @@
 package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.common.Cursor.CursorType.BRDA;
+import static google.registry.model.common.Cursor.CursorType.RDE_STAGING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.registry.RegistryCursor.CursorType.BRDA;
-import static google.registry.model.registry.RegistryCursor.CursorType.RDE_STAGING;
 import static google.registry.rde.RdeFixtures.makeContactResource;
 import static google.registry.rde.RdeFixtures.makeDomainResource;
 import static google.registry.rde.RdeFixtures.makeHostResource;
@@ -46,11 +46,11 @@ import com.googlecode.objectify.VoidWork;
 import google.registry.keyring.api.Keyring;
 import google.registry.keyring.api.PgpHelper;
 import google.registry.mapreduce.MapreduceRunner;
+import google.registry.model.common.Cursor;
+import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.RegistryCursor;
-import google.registry.model.registry.RegistryCursor.CursorType;
 import google.registry.request.RequestParameters;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
@@ -295,10 +295,15 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     clock.setTo(DateTime.parse("2000-01-01TZ")); // Saturday
     action.run();
     executeTasksUntilEmpty("mapreduce", clock);
-    assertThat(RegistryCursor.load(Registry.get("lol"), RDE_STAGING))
-        .hasValue(DateTime.parse("2000-01-02TZ"));
-    assertThat(RegistryCursor.load(Registry.get("lol"), BRDA))
-        .hasValue(DateTime.parse("2000-01-04TZ"));
+    assertThat(
+            ofy()
+                .load()
+                .key(Cursor.createKey(RDE_STAGING, Registry.get("lol")))
+                .now()
+                .getCursorTime())
+        .isEqualTo(DateTime.parse("2000-01-02TZ"));
+    assertThat(ofy().load().key(Cursor.createKey(BRDA, Registry.get("lol"))).now().getCursorTime())
+        .isEqualTo(DateTime.parse("2000-01-04TZ"));
   }
 
   @Test
@@ -311,10 +316,15 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     clock.setTo(DateTime.parse("2000-01-04TZ")); // Tuesday
     action.run();
     executeTasksUntilEmpty("mapreduce", clock);
-    assertThat(RegistryCursor.load(Registry.get("lol"), RDE_STAGING))
-        .hasValue(DateTime.parse("2000-01-05TZ"));
-    assertThat(RegistryCursor.load(Registry.get("lol"), BRDA))
-        .hasValue(DateTime.parse("2000-01-11TZ"));
+    assertThat(
+            ofy()
+                .load()
+                .key(Cursor.createKey(RDE_STAGING, Registry.get("lol")))
+                .now()
+                .getCursorTime())
+        .isEqualTo(DateTime.parse("2000-01-05TZ"));
+    assertThat(ofy().load().key(Cursor.createKey(BRDA, Registry.get("lol"))).now().getCursorTime())
+        .isEqualTo(DateTime.parse("2000-01-11TZ"));
   }
 
   @Test
@@ -363,11 +373,14 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
           .containsExactly("New Registrar", "The Registrar");
       assertThat(mapifyCounts(header)).containsEntry(RdeResourceType.REGISTRAR.getUri(), 2L);
     }
+    
+    assertThat(
+            ofy().load().key(Cursor.createKey(RDE_STAGING, Registry.get("fop"))).now()
+                .getCursorTime())
+        .isEqualTo(DateTime.parse("1971-01-02TZ"));
 
-    assertThat(RegistryCursor.load(Registry.get("fop"), RDE_STAGING))
-        .hasValue(DateTime.parse("1971-01-02TZ"));
-    assertThat(RegistryCursor.load(Registry.get("fop"), BRDA))
-        .hasValue(DateTime.parse("1971-01-12TZ"));
+    assertThat(ofy().load().key(Cursor.createKey(BRDA, Registry.get("fop"))).now().getCursorTime())
+        .isEqualTo(DateTime.parse("1971-01-12TZ"));
   }
 
   @Test
@@ -561,8 +574,13 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     executeTasksUntilEmpty("mapreduce", clock);
     String firstDeposit = readXml("lol_1984-12-18_full_S1_R0.xml.ghostryde");
     assertThat(firstDeposit).doesNotContain("ns1.justine.lol");
-    assertThat(RegistryCursor.load(Registry.get("lol"), RDE_STAGING))
-        .hasValue(DateTime.parse("1984-12-19TZ"));
+    assertThat(
+            ofy()
+                .load()
+                .key(Cursor.createKey(RDE_STAGING, Registry.get("lol")))
+                .now()
+                .getCursorTime())
+        .isEqualTo(DateTime.parse("1984-12-19TZ"));
 
     // Second mapreduce should emit the old version of host.
     action.response = new FakeResponse();
@@ -572,8 +590,14 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     assertThat(secondDeposit).contains("ns1.justine.lol");
     assertThat(secondDeposit).contains("feed::a:bee");
     assertThat(secondDeposit).doesNotContain("dead:beef::cafe");
-    assertThat(RegistryCursor.load(Registry.get("lol"), RDE_STAGING))
-        .hasValue(DateTime.parse("1984-12-20TZ"));
+
+    assertThat(
+            ofy()
+                .load()
+                .key(Cursor.createKey(RDE_STAGING, Registry.get("lol")))
+                .now()
+                .getCursorTime())
+        .isEqualTo(DateTime.parse("1984-12-20TZ"));
 
     // Third mapreduce emits current version of host.
     action.response = new FakeResponse();
@@ -583,8 +607,13 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     assertThat(thirdDeposit).contains("ns1.justine.lol");
     assertThat(thirdDeposit).doesNotContain("feed::a:bee");
     assertThat(thirdDeposit).contains("dead:beef::cafe");
-    assertThat(RegistryCursor.load(Registry.get("lol"), RDE_STAGING))
-        .hasValue(DateTime.parse("1984-12-21TZ"));
+    assertThat(
+            ofy()
+                .load()
+                .key(Cursor.createKey(RDE_STAGING, Registry.get("lol")))
+                .now()
+                .getCursorTime())
+        .isEqualTo(DateTime.parse("1984-12-21TZ"));
   }
 
   private String readXml(String objectName) throws IOException, PGPException {
@@ -623,7 +652,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
-        RegistryCursor.save(registry, cursorType, value);
+        ofy().save().entity(Cursor.create(cursorType, value, registry)).now();
       }});
   }
 

@@ -15,12 +15,13 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
+import google.registry.model.common.Cursor;
+import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.RegistryCursor;
-import google.registry.model.registry.RegistryCursor.CursorType;
 
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -39,20 +40,19 @@ public class UpdateCursorsCommandTest extends CommandTestCase<UpdateCursorsComma
 
   void doUpdateTest() throws Exception {
     runCommandForced("--type=brda", "--timestamp=1984-12-18T00:00:00Z", "foo");
-    assertThat(RegistryCursor.load(registry, CursorType.BRDA))
-        .hasValue(DateTime.parse("1984-12-18TZ"));
+    assertThat(ofy().load().key(Cursor.createKey(CursorType.BRDA, registry)).now().getCursorTime())
+        .isEqualTo(DateTime.parse("1984-12-18TZ"));
   }
 
   @Test
   public void testUpdateCursors_oldValueIsAbsent() throws Exception {
-    assertThat(RegistryCursor.load(registry, CursorType.BRDA)).isAbsent();
+    assertThat(ofy().load().key(Cursor.createKey(CursorType.BRDA, registry)).now()).isNull();
     doUpdateTest();
  }
 
   @Test
   public void testUpdateCursors_hasOldValue() throws Exception {
-    persistResource(
-        RegistryCursor.create(registry, CursorType.BRDA, DateTime.parse("1950-12-18TZ")));
+    persistResource(Cursor.create(CursorType.BRDA, DateTime.parse("1950-12-18TZ"), registry));
     doUpdateTest();
   }
 }

@@ -17,6 +17,7 @@ package google.registry.rde;
 import static com.google.appengine.api.urlfetch.HTTPMethod.PUT;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
@@ -43,9 +44,9 @@ import com.google.common.io.ByteSource;
 import google.registry.config.RegistryConfig;
 import google.registry.config.RegistryEnvironment;
 import google.registry.gcs.GcsUtils;
+import google.registry.model.common.Cursor;
+import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.RegistryCursor;
-import google.registry.model.registry.RegistryCursor.CursorType;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
@@ -121,11 +122,13 @@ public class RdeReportActionTest {
   public void before() throws Exception {
     PGPPublicKey encryptKey = new RdeKeyringModule().get().getRdeStagingEncryptionKey();
     createTld("test");
-    persistResource(RegistryCursor.create(
-        Registry.get("test"), CursorType.RDE_REPORT, DateTime.parse("2006-06-06TZ")));
-    persistResource(RegistryCursor.create(
-        Registry.get("test"), CursorType.RDE_UPLOAD, DateTime.parse("2006-06-07TZ")));
-    writeGcsFile(gcsService, reportFile,
+    persistResource(
+        Cursor.create(CursorType.RDE_REPORT, DateTime.parse("2006-06-06TZ"), Registry.get("test")));
+    persistResource(
+        Cursor.create(CursorType.RDE_UPLOAD, DateTime.parse("2006-06-07TZ"), Registry.get("test")));
+    writeGcsFile(
+        gcsService,
+        reportFile,
         Ghostryde.encode(REPORT_XML.read(), encryptKey, "darkside.xml", DateTime.now()));
   }
 
@@ -184,7 +187,11 @@ public class RdeReportActionTest {
   }
 
   private DateTime loadRdeReportCursor() {
-    return RegistryCursor.load(Registry.get("test"), CursorType.RDE_REPORT).get();
+    return ofy()
+        .load()
+        .key(Cursor.createKey(CursorType.RDE_REPORT, Registry.get("test")))
+        .now()
+        .getCursorTime();
   }
 
   private static ImmutableMap<String, String> mapifyHeaders(Iterable<HTTPHeader> headers) {

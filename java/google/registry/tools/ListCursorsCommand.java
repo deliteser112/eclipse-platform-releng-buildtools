@@ -14,25 +14,24 @@
 
 package google.registry.tools;
 
-import com.google.common.base.Optional;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+
 import com.google.common.collect.Ordering;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
+import google.registry.model.common.Cursor;
+import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registries;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
-import google.registry.model.registry.RegistryCursor;
-import google.registry.model.registry.RegistryCursor.CursorType;
 import google.registry.tools.Command.RemoteApiCommand;
-
-import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** Lists {@link RegistryCursor} timestamps used by locking rolling cursor tasks, like in RDE. */
+/** Lists {@link Cursor} timestamps used by locking rolling cursor tasks, like in RDE. */
 @Parameters(separators = " =", commandDescription = "Lists cursor timestamps used by LRC tasks")
 final class ListCursorsCommand implements RemoteApiCommand {
 
@@ -63,8 +62,8 @@ final class ListCursorsCommand implements RemoteApiCommand {
       if (filterEscrowEnabled && !registry.getEscrowEnabled()) {
         continue;
       }
-      Optional<DateTime> cursor = RegistryCursor.load(registry, cursorType);
-      lines.add(String.format("%-25s%s", cursor.isPresent() ? cursor.get() : "absent", tld));
+      Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
+      lines.add(String.format("%-25s%s", cursor != null ? cursor.getCursorTime() : "absent", tld));
     }
     for (String line : Ordering.natural().sortedCopy(lines)) {
       System.out.println(line);

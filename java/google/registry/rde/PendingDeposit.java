@@ -16,8 +16,8 @@ package google.registry.rde;
 
 import com.google.auto.value.AutoValue;
 
+import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.rde.RdeMode;
-import google.registry.model.registry.RegistryCursor.CursorType;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

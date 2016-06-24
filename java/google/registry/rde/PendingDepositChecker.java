@@ -18,18 +18,17 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSetMultimap;
 
 import com.googlecode.objectify.Work;
 
 import google.registry.config.ConfigModule.Config;
+import google.registry.model.common.Cursor;
+import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.rde.RdeMode;
 import google.registry.model.registry.Registries;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
-import google.registry.model.registry.RegistryCursor;
-import google.registry.model.registry.RegistryCursor.CursorType;
 import google.registry.util.Clock;
 
 import org.joda.time.DateTime;
@@ -83,7 +82,7 @@ public final class PendingDepositChecker {
   }
 
   private ImmutableSetMultimap<String, PendingDeposit> getTldsAndWatermarksPendingDeposit(
-      RdeMode mode, CursorType cursor, Duration interval, DateTime startingPoint) {
+      RdeMode mode, CursorType cursorType, Duration interval, DateTime startingPoint) {
     checkArgument(interval.isLongerThan(Duration.ZERO));
     ImmutableSetMultimap.Builder<String, PendingDeposit> builder =
         new ImmutableSetMultimap.Builder<>();
@@ -94,16 +93,14 @@ public final class PendingDepositChecker {
         continue;
       }
       // Avoid creating a transaction unless absolutely necessary.
-      Optional<DateTime> cursorValue = RegistryCursor.load(registry, cursor);
-      if (isBeforeOrAt(cursorValue.or(startingPoint), now)) {
-        DateTime watermark;
-        if (cursorValue.isPresent()) {
-          watermark = cursorValue.get();
-        } else {
-          watermark = transactionallyInitializeCursor(registry, cursor, startingPoint);
-        }
+      Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
+      DateTime cursorValue = (cursor != null ? cursor.getCursorTime() : startingPoint);
+      if (isBeforeOrAt(cursorValue, now)) {
+        DateTime watermark = (cursor != null
+            ? cursor.getCursorTime()
+            : transactionallyInitializeCursor(registry, cursorType, startingPoint));
         if (isBeforeOrAt(watermark, now)) {
-          builder.put(tld, PendingDeposit.create(tld, watermark, mode, cursor, interval));
+          builder.put(tld, PendingDeposit.create(tld, watermark, mode, cursorType, interval));
         }
       }
     }
@@ -112,15 +109,16 @@ public final class PendingDepositChecker {
 
   private DateTime transactionallyInitializeCursor(
       final Registry registry,
-      final CursorType cursor,
+      final CursorType cursorType,
       final DateTime initialValue) {
     return ofy().transact(new Work<DateTime>() {
       @Override
       public DateTime run() {
-        for (DateTime value : RegistryCursor.load(registry, cursor).asSet()) {
-          return value;
+        Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
+        if (cursor != null) {
+          return cursor.getCursorTime();
         }
-        RegistryCursor.save(registry, cursor, initialValue);
+        ofy().save().entity(Cursor.create(cursorType, initialValue, registry));
         return initialValue;
       }});
   }
