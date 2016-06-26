@@ -14,12 +14,14 @@
 
 package google.registry.flows;
 
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static com.google.common.io.BaseEncoding.base64;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.xml.XmlTransformer.prettyPrint;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 
 import com.googlecode.objectify.Work;
 
@@ -36,6 +38,7 @@ import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 
 import org.joda.time.DateTime;
+import org.json.simple.JSONValue;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -44,7 +47,17 @@ import javax.inject.Provider;
 /** Run a flow, either transactionally or not, with logging and retrying as needed. */
 public class FlowRunner {
 
+  /** Log format used by legacy ICANN reporting parsing - DO NOT CHANGE. */
+  // TODO(b/20725722): remove this log format entirely once we've transitioned to using the
+  //   JSON log line below instead, or change this one to be for human consumption only.
   private static final String COMMAND_LOG_FORMAT = "EPP Command" + Strings.repeat("\n\t%s", 7);
+
+  /**
+   * Log signature used by reporting pipelines to extract matching log lines.
+   *
+   * <p><b>WARNING:<b/> DO NOT CHANGE this value unless you want to break reporting.
+   */
+  private static final String REPORTING_LOG_SIGNATURE = "EPP-REPORTING-LOG-SIGNATURE";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -64,18 +77,32 @@ public class FlowRunner {
   @Inject FlowRunner() {}
 
   public EppOutput run() throws EppException {
-    String clientId = sessionMetadata.getClientId();
-    // This log is very fragile since it's used for ICANN reporting.
+    String prettyXml = prettyPrint(inputXmlBytes);
+    String xmlBase64 = base64().encode(inputXmlBytes);
+    // This log line is very fragile since it's used for ICANN reporting - DO NOT CHANGE.
+    // New data to be logged should be added only to the JSON log statement below.
+    // TODO(b/20725722): remove this log statement entirely once we've transitioned to using the
+    //   log line below instead, or change this one to be for human consumption only.
     logger.infofmt(
         COMMAND_LOG_FORMAT,
         trid.getServerTransactionId(),
         clientId,
         sessionMetadata,
-        prettyPrint(inputXmlBytes).replaceAll("\n", "\n\t"),
+        prettyXml.replaceAll("\n", "\n\t"),
         credentials,
         eppRequestSource,
         isDryRun ? "DRY_RUN" : "LIVE",
         isSuperuser ? "SUPERUSER" : "NORMAL");
+    // WARNING: This JSON log statement is parsed by reporting pipelines - be careful when changing.
+    // It should be safe to add new keys, but be very cautious in changing existing keys.
+    logger.infofmt(
+        "%s: %s",
+        REPORTING_LOG_SIGNATURE,
+        JSONValue.toJSONString(ImmutableMap.<String, Object>of(
+            "trid", trid.getServerTransactionId(),
+            "clientId", nullToEmpty(clientId),
+            "xml", prettyXml,
+            "xmlBytes", xmlBase64)));
     if (!isTransactional) {
       metrics.incrementAttempts();
       return createAndInitFlow(clock.nowUtc()).run();
@@ -86,7 +113,7 @@ public class FlowRunner {
     logger.info("EPP_Mutation " + new JsonLogStatement(trid)
         .add("client", clientId)
         .add("privileges", isSuperuser ? "SUPERUSER" : "NORMAL")
-        .add("xmlBytes", base64().encode(inputXmlBytes)));
+        .add("xmlBytes", xmlBase64));
     try {
       EppOutput flowResult = ofy().transact(new Work<EppOutput>() {
         @Override

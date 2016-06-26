@@ -29,6 +29,7 @@ java_library(
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
         "//java/com/google/common/net",
+        "//java/com/google/common/testing",
         "//third_party/java/appengine:appengine-api-testonly",
         "//third_party/java/appengine:appengine-testing",
         "//third_party/java/dagger",
