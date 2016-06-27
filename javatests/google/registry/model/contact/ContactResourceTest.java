@@ -20,6 +20,7 @@ import static google.registry.testing.ContactResourceSubject.assertAboutContacts
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -221,5 +222,11 @@ public class ContactResourceTest extends EntityTestCase {
         TransferStatus.SERVER_APPROVED);
     assertThat(afterTransfer.getCurrentSponsorClientId()).isEqualTo("winner");
     assertThat(afterTransfer.getLastTransferTime()).isEqualTo(clock.nowUtc().plusDays(1));
+  }
+
+  @Test
+  public void testSetCreationTime_cantBeCalledTwice() {
+    thrown.expect(IllegalStateException.class, "creationTime can only be set once");
+    contactResource.asBuilder().setCreationTime(END_OF_TIME);
   }
 }

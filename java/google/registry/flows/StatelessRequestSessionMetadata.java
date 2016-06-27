@@ -15,7 +15,7 @@
 package google.registry.flows;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static dagger.internal.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Joiner;
