@@ -14,15 +14,13 @@
 
 package google.registry.groups;
 
+import dagger.Binds;
 import dagger.Module;
-import dagger.Provides;
 
 /** Dagger module for groups package. */
 @Module
-public final class GroupsModule {
+public abstract class GroupsModule {
 
-  @Provides
-  static GroupsConnection provideGroupsConnection(DirectoryGroupsConnection connection) {
-    return connection;
-  }
+  @Binds
+  abstract GroupsConnection provideGroupsConnection(DirectoryGroupsConnection connection);
 }

@@ -14,6 +14,7 @@
 
 package google.registry.dns.writer.dnsupdate;
 
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 
@@ -23,12 +24,10 @@ import javax.net.SocketFactory;
 
 /** Dagger module that provides a DnsUpdateWriter. */
 @Module
-public final class DnsUpdateWriterModule {
+public abstract class DnsUpdateWriterModule {
 
-  @Provides
-  static DnsWriter provideDnsWriter(DnsUpdateWriter dnsWriter) {
-    return dnsWriter;
-  }
+  @Binds
+  abstract DnsWriter provideDnsWriter(DnsUpdateWriter dnsWriter);
 
   @Provides
   static SocketFactory provideSocketFactory() {

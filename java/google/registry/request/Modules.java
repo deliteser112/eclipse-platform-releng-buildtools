@@ -32,6 +32,7 @@ import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 
@@ -138,11 +139,9 @@ public final class Modules {
    * <p>You must also use the {@link AppIdentityCredential} module.
    */
   @Module
-  public static final class UseAppIdentityCredentialForGoogleApisModule {
-    @Provides
-    static HttpRequestInitializer provideHttpRequestInitializer(AppIdentityCredential credential) {
-      return credential;
-    }
+  public abstract static class UseAppIdentityCredentialForGoogleApisModule {
+    @Binds
+    abstract HttpRequestInitializer provideHttpRequestInitializer(AppIdentityCredential credential);
   }
 
   /**
