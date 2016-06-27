@@ -14,7 +14,7 @@
 
 package google.registry.util;
 
-import static com.google.appengine.api.search.checkers.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.math.IntMath.pow;
 import static google.registry.util.PredicateUtils.supertypeOf;
