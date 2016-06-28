@@ -203,7 +203,12 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
         getContext().incrementCounter("error: " + t.getClass().getSimpleName());
         getContext().incrementCounter(ERROR_COUNTER);
       }
-      getContext().incrementCounter("Saved OneTime billing events", billingEventsSaved);
+      if (!isDryRun) {
+        getContext().incrementCounter("Saved OneTime billing events", billingEventsSaved);
+      } else {
+        getContext().incrementCounter(
+            "Generated OneTime billing events (dry run)", billingEventsSaved);
+      }
     }
 
     /**
@@ -236,8 +241,11 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
           .filter(new Predicate<BillingEvent.OneTime>() {
             @Override
             public boolean apply(OneTime billingEvent) {
-              return billingEvent.getCancellationMatchingBillingEvent().equals(
-                  Key.create(recurringEvent));
+              Key<? extends BillingEvent> cancellationMatchingBillingEvent =
+                  billingEvent.getCancellationMatchingBillingEvent();
+              return cancellationMatchingBillingEvent != null
+                  && billingEvent.getCancellationMatchingBillingEvent().equals(
+                      Key.create(recurringEvent));
             }})
           .transform(new Function<OneTime, DateTime>() {
             @Override

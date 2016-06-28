@@ -21,6 +21,7 @@ import google.registry.backup.CommitLogCheckpointAction;
 import google.registry.backup.DeleteOldCommitLogsAction;
 import google.registry.backup.ExportCommitLogDiffAction;
 import google.registry.backup.RestoreCommitLogsAction;
+import google.registry.billing.ExpandRecurringBillingEventsAction;
 import google.registry.cron.CommitLogFanoutAction;
 import google.registry.cron.CronModule;
 import google.registry.cron.TldFanoutAction;
@@ -87,6 +88,7 @@ interface BackendRequestComponent {
   DeleteHostResourceAction deleteHostResourceAction();
   DeleteOldCommitLogsAction deleteOldCommitLogsAction();
   DnsRefreshForHostRenameAction dnsRefreshForHostRenameAction();
+  ExpandRecurringBillingEventsAction expandRecurringBillingEventsAction();
   ExportCommitLogDiffAction exportCommitLogDiffAction();
   ExportDomainListsAction exportDomainListsAction();
   ExportReservedTermsAction exportReservedTermsAction();
