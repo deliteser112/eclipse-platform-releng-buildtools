@@ -590,8 +590,9 @@ public class DomainFlowUtils {
         if (isReserved(domain, isSunrise)) {  // Don't return a create price for reserved names.
           builder.setClass("reserved");  // Override whatever class we've set above.
         } else {
-          builder.setFee(
-              Fee.create(prices.getCreateCost().multipliedBy(years).getAmount(), "create"));
+          builder.setFees(
+              ImmutableList.of(
+                  Fee.create(prices.getCreateCost().multipliedBy(years).getAmount(), "create")));
         }
         break;
       case RESTORE:
@@ -599,13 +600,16 @@ public class DomainFlowUtils {
           throw new RestoresAreAlwaysForOneYearException();
         }
         // Restores have a "renew" and a "restore" fee.
-        builder.setFee(
-            Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), "renew"),
-            Fee.create(registry.getStandardRestoreCost().getAmount(), "restore"));
+        builder.setFees(
+            ImmutableList.of(
+                Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), "renew"),
+                Fee.create(registry.getStandardRestoreCost().getAmount(), "restore")));
         break;
       default:
         // Anything else (transfer|renew) will have a "renew" fee.
-        builder.setFee(Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), "renew"));
+        builder.setFees(
+            ImmutableList.of(
+                Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), "renew")));
     }
   }
 

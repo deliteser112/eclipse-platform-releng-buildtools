@@ -78,13 +78,8 @@ public class BaseFeeResponse extends ImmutableObject {
       return thisCastToDerived();
     }
 
-    public B setFee(Fee... fee) {
+    public B setFees(List<Fee> fees) {
       // If there are no fees, set the field to null to suppress the 'fee' section in the xml.
-      getInstance().fee = forceEmptyToNull(ImmutableList.copyOf(fee));
-      return thisCastToDerived();
-    }
-
-    public B setFee(List<Fee> fees) {
       getInstance().fee = forceEmptyToNull(ImmutableList.copyOf(fees));
       return thisCastToDerived();
     }
