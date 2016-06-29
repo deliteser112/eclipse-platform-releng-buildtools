@@ -118,8 +118,10 @@ public interface FlowComponent {
   /** Module to delegate injection of a desired {@link Flow}. */
   @Module
   static class FlowComponentModule {
+    // WARNING: @FlowScope is intentionally omitted here so that we get a fresh Flow instance on
+    // each call to Provider<Flow>.get(), to avoid Flow instance re-use upon transaction retries.
+    // TODO(b/29874464): fix this in a cleaner way.
     @Provides
-    @FlowScope
     static Flow provideFlow(FlowComponent flows, Class<? extends Flow> clazz) {
       return clazz.equals(ContactCheckFlow.class) ? flows.contactCheckFlow()
           : clazz.equals(ContactCreateFlow.class) ? flows.contactCreateFlow()
