@@ -23,6 +23,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.money.CurrencyUnit.USD;
@@ -37,6 +38,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Range;
 import com.google.common.net.InternetDomainName;
 
 import com.googlecode.objectify.Key;
@@ -57,6 +59,7 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.common.TimedTransitionProperty;
 import google.registry.model.common.TimedTransitionProperty.TimedTransition;
+import google.registry.model.domain.fee.EapFee;
 import google.registry.model.pricing.PremiumPricingEngine;
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.label.PremiumList;
@@ -521,8 +524,15 @@ public class Registry extends ImmutableObject implements Buildable {
   /**
    * Returns the EAP fee for the registry at the given time.
    */
-  public Money getEapFeeFor(DateTime now) {
-    return eapFeeSchedule.getValueAtTime(now);
+  public EapFee getEapFeeFor(DateTime now) {
+    ImmutableSortedMap<DateTime, Money> valueMap = eapFeeSchedule.toValueMap();
+    DateTime periodStart = valueMap.floorKey(now);
+    DateTime periodEnd = valueMap.ceilingKey(now);
+    return EapFee.create(
+        eapFeeSchedule.getValueAtTime(now),
+        Range.closedOpen(
+            periodStart != null ? periodStart : START_OF_TIME,
+            periodEnd != null ? periodEnd : END_OF_TIME));
   }
 
   public String getLordnUsername() {

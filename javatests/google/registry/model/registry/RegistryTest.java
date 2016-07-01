@@ -416,7 +416,8 @@ public class RegistryTest extends EntityTestCase {
 
   @Test
   public void testEapFee_undefined() {
-    assertThat(Registry.get("tld").getEapFeeFor(clock.nowUtc())).isEqualTo(Money.of(USD, 0));
+    assertThat(Registry.get("tld").getEapFeeFor(clock.nowUtc()).getCost())
+        .isEqualTo(Money.of(USD, 0));
   }
 
   @Test
@@ -430,9 +431,11 @@ public class RegistryTest extends EntityTestCase {
                 a, Money.of(USD, 100),
                 b, Money.of(USD, 50))).build();
 
-    assertThat(registry.getEapFeeFor(clock.nowUtc())).isEqualTo(Money.of(USD, 100));
-    assertThat(registry.getEapFeeFor(clock.nowUtc().minusDays(2))).isEqualTo(Money.of(USD, 0));
-    assertThat(registry.getEapFeeFor(clock.nowUtc().plusDays(2))).isEqualTo(Money.of(USD, 50));
+    assertThat(registry.getEapFeeFor(clock.nowUtc()).getCost()).isEqualTo(Money.of(USD, 100));
+    assertThat(registry.getEapFeeFor(clock.nowUtc().minusDays(2)).getCost())
+        .isEqualTo(Money.of(USD, 0));
+    assertThat(registry.getEapFeeFor(clock.nowUtc().plusDays(2)).getCost())
+        .isEqualTo(Money.of(USD, 50));
   }
 
   @Test

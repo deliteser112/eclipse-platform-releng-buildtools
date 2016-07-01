@@ -107,9 +107,10 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "xn--q9jyb4c");
 
     Registry registry = Registry.get("xn--q9jyb4c");
-    assertThat(registry.getEapFeeFor(now.minusHours(1))).isEqualTo(Money.zero(USD));
-    assertThat(registry.getEapFeeFor(now.plusHours(1))).isEqualTo(Money.of(USD, 50));
-    assertThat(registry.getEapFeeFor(now.plusDays(1).plusHours(1))).isEqualTo(Money.of(USD, 10));
+    assertThat(registry.getEapFeeFor(now.minusHours(1)).getCost()).isEqualTo(Money.zero(USD));
+    assertThat(registry.getEapFeeFor(now.plusHours(1)).getCost()).isEqualTo(Money.of(USD, 50));
+    assertThat(registry.getEapFeeFor(now.plusDays(1).plusHours(1)).getCost())
+        .isEqualTo(Money.of(USD, 10));
   }
 
   @Test
