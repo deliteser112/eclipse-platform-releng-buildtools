@@ -33,7 +33,6 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainApplication.Builder;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
-import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeCreateExtension;
 import google.registry.model.domain.fee.FeeCreateResponseExtension;
 import google.registry.model.domain.launch.ApplicationStatus;
@@ -143,7 +142,8 @@ public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainAppl
 
   @Override
   protected void verifyDomainCreateIsAllowed() throws EppException {
-    validateFeeChallenge(targetId, getTld(), now, feeCreate, createCost);
+    validateFeeChallenge(
+        targetId, getTld(), now, feeCreate, commandOperations.getTotalCost());
     if (tldState == TldState.LANDRUSH && !isSuperuser) {
       // Prohibit creating a landrush application in LANDRUSH (but not in SUNRUSH) if there is
       // exactly one sunrise application for the same name.
@@ -214,8 +214,8 @@ public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainAppl
         .build());
     if (feeCreate != null) {
       responseExtensionsBuilder.add(new FeeCreateResponseExtension.Builder()
-          .setCurrency(createCost.getCurrencyUnit())
-          .setFee(ImmutableList.of(Fee.create(createCost.getAmount(), "create")))
+          .setCurrency(commandOperations.getCurrency())
+          .setFee(commandOperations.getFees())
           .build());
     }
 

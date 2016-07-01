@@ -14,7 +14,6 @@
 
 package google.registry.flows.domain;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -112,7 +111,7 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
   @Override
   protected final void verifyDomainCreateIsAllowed() throws EppException {
     String tld = getTld();
-    validateFeeChallenge(targetId, tld, now, feeCreate, createCost);
+    validateFeeChallenge(targetId, tld, now, feeCreate, commandOperations.getTotalCost());
     if (!isSuperuser) {
       // Prohibit creating a domain if there is an open application for the same name.
       for (DomainApplication application : loadActiveApplicationsByDomainName(targetId, now)) {
@@ -151,13 +150,15 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
   @Override
   protected final void setDomainCreateOrAllocateProperties(Builder builder) throws EppException {
     Registry registry = Registry.get(getTld());
+
     // Bill for the create.
     BillingEvent.OneTime createEvent = new BillingEvent.OneTime.Builder()
         .setReason(Reason.CREATE)
         .setTargetId(targetId)
         .setClientId(getClientId())
         .setPeriodYears(command.getPeriod().getValue())
-        .setCost(checkNotNull(createCost))
+        // TODO(b/29089413): the EAP fee needs to be a separate billing event.
+        .setCost(commandOperations.getTotalCost())
         .setEventTime(now)
         .setBillingTime(now.plus(isAnchorTenant()
             ? registry.getAnchorTenantAddGracePeriodLength()

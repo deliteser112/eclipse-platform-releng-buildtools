@@ -161,6 +161,16 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   private void assertSuccessfulCreate(String domainTld, boolean isAnchorTenant) throws Exception {
     DomainResource domain = reloadResourceByUniqueId();
+
+    // Calculate the total cost.
+    Money cost = getPricesForDomainName(getUniqueIdFromCommand(), clock.nowUtc()).isPremium()
+        ? Money.of(USD, 200)
+        : Money.of(USD, 26);
+    Money eapFee = Registry.get(domainTld).getEapFeeFor(clock.nowUtc()).getCost();
+    if (!eapFee.isZero()) {
+        cost = Money.total(cost, eapFee);
+    }
+
     DateTime billingTime = isAnchorTenant
         ? clock.nowUtc().plus(Registry.get(domainTld).getAnchorTenantAddGracePeriodLength())
         : clock.nowUtc().plus(Registry.get(domainTld).getAddGracePeriodLength());
@@ -178,9 +188,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .setReason(Reason.CREATE)
         .setTargetId(getUniqueIdFromCommand())
         .setClientId("TheRegistrar")
-        .setCost(getPricesForDomainName(getUniqueIdFromCommand(), clock.nowUtc()).isPremium()
-            ? Money.of(USD, 200)
-            : Money.of(USD, 26))
+        .setCost(cost)
         .setPeriodYears(2)
         .setEventTime(clock.nowUtc())
         .setBillingTime(billingTime)
@@ -1278,6 +1286,43 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_regTypeExtensionValidates() throws Exception {
     setEppInput("domain_create_regtype.xml");
     persistContactsAndHosts();
+    doSuccessfulTest("tld", "domain_create_response.xml");
+  }
+
+  @Test
+  public void testSuccess_eapFeeApplied() throws Exception {
+    setEppInput("domain_create_eap_fee.xml");
+    persistContactsAndHosts();
+    persistResource(Registry.get("tld").asBuilder()
+        .setEapFeeSchedule(ImmutableSortedMap.of(
+            START_OF_TIME, Money.of(USD, 0),
+            clock.nowUtc().minusDays(1), Money.of(USD, 100),
+            clock.nowUtc().plusDays(1), Money.of(USD, 0)))
+        .build());
+    doSuccessfulTest("tld", "domain_create_response_eap_fee.xml");
+  }
+
+  @Test
+  public void testSuccess_eapFee_beforeEntireSchedule() throws Exception {
+    persistContactsAndHosts();
+    persistResource(Registry.get("tld").asBuilder()
+        .setEapFeeSchedule(ImmutableSortedMap.of(
+            START_OF_TIME, Money.of(USD, 0),
+            clock.nowUtc().plusDays(1), Money.of(USD, 10),
+            clock.nowUtc().plusDays(2), Money.of(USD, 0)))
+        .build());
+    doSuccessfulTest("tld", "domain_create_response.xml");
+  }
+
+  @Test
+  public void testSuccess_eapFee_afterEntireSchedule() throws Exception {
+    persistContactsAndHosts();
+    persistResource(Registry.get("tld").asBuilder()
+        .setEapFeeSchedule(ImmutableSortedMap.of(
+            START_OF_TIME, Money.of(USD, 0),
+            clock.nowUtc().minusDays(2), Money.of(USD, 100),
+            clock.nowUtc().minusDays(1), Money.of(USD, 0)))
+        .build());
     doSuccessfulTest("tld", "domain_create_response.xml");
   }
 }

@@ -36,7 +36,6 @@ import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
-import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Optional;
@@ -66,8 +65,8 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.smd.SignedMark;
 import google.registry.model.tmch.ClaimsListShard;
-
-import org.joda.money.Money;
+import google.registry.pricing.TldSpecificLogicEngine;
+import google.registry.pricing.TldSpecificLogicEngine.EppCommandOperations;
 
 import java.util.Set;
 
@@ -89,7 +88,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
   protected InternetDomainName domainName;
   protected String idnTableName;
   protected FeeCreateExtension feeCreate;
-  protected Money createCost;
+  protected EppCommandOperations commandOperations;
   protected boolean hasSignedMarks;
   protected SignedMark signedMark;
   protected boolean isAnchorTenantViaReservation;
@@ -181,7 +180,8 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
     tldState = registry.getTldState(now);
     checkRegistryStateForTld(tld);
     domainLabel = domainName.parts().get(0);
-    createCost = getDomainCreateCost(targetId, now, command.getPeriod().getValue());
+    commandOperations = TldSpecificLogicEngine.getCreatePrice(
+        registry, domainName.toString(), now, command.getPeriod().getValue());
     // The TLD should always be the parent of the requested domain name.
     isAnchorTenantViaReservation = matchesAnchorTenantReservation(
         domainLabel, tld, command.getAuthInfo().getPw().getValue());
