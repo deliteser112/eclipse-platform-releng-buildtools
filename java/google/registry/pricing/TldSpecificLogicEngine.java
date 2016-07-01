@@ -114,7 +114,6 @@ public final class TldSpecificLogicEngine {
    */
   public static EppCommandOperations getRenewPrice(
       Registry registry, String domainName, DateTime date, int years) {
-    // TODO(mmuller): add registration type.
     DomainPrices prices = getPricesForDomainName(domainName, date);
     return new EppCommandOperations(
         registry.getCurrency(),
