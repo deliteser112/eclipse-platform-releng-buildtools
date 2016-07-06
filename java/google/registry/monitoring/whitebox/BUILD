@@ -10,6 +10,9 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//apiserving/discoverydata/bigquery:bigqueryv2",
+        "//google/monitoring:monitoring_java_lib",
+        "//java/com/google/api/client/http",
+        "//java/com/google/api/client/json",
         "//java/com/google/api/client/util",
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",

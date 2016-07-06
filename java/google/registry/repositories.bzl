@@ -211,6 +211,12 @@ def domain_registry_repositories():
   )
 
   native.maven_jar(
+      name = "google_api_services_monitoring",
+      artifact = "com.google.apis:google-api-services-monitoring:v3-rev6-1.21.0",
+      sha1 = "d8490745206ca5b1bfedad650dd64a69737a4b20",
+  )
+
+  native.maven_jar(
       name = "google_api_services_storage",
       artifact = "com.google.apis:google-api-services-storage:v1-rev15-1.19.0",
       sha1 = "91f40f13ab4c24ac33d505695433ba842690bf40",
