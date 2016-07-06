@@ -14,11 +14,12 @@ It provides a human-friendly query interface, generified key, query, and
 prepared query classes, GWT-able entity objects, and transactions in one
 lightweight jar file with no dependencies.
 
-NOTE: this library includes custom serializers for AppEngine classes in
-com.google.appengine.api.* packages.  This is necessary because serializers
-are discovered by AppEngine using a naming pattern that requires that the
-data and serializer classes be in the same package (similar to how the Java
-Beans introspector finds BeanInfo classes).
+Local Modifications:
+This library includes custom serializers for AppEngine classes in
+com.google.appengine.api.* packages.  This is necessary because serializers are
+discovered by AppEngine using a naming pattern that requires that the data and
+serializer classes be in the same package (similar to how the Java Beans
+introspector finds BeanInfo classes).
 
 In Objectify versions 4.1 and later, the GWT emulation classes were broken
 out into a separate versioned jar. Since we are jarjar repackaging the
