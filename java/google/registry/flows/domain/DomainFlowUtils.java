@@ -318,8 +318,9 @@ public class DomainFlowUtils {
   static void validateRegistrantAllowedOnTld(String tld, String registrantContactId)
       throws RegistrantNotAllowedException {
     ImmutableSet<String> whitelist = Registry.get(tld).getAllowedRegistrantContactIds();
-    // Empty whitelists are ignored.
-    if (!whitelist.isEmpty() && !whitelist.contains(registrantContactId)) {
+    // Empty whitelists or null registrantContactId are ignored.
+    if (registrantContactId != null && !whitelist.isEmpty() 
+        && !whitelist.contains(registrantContactId)) {
       throw new RegistrantNotAllowedException(registrantContactId);
     }
   }

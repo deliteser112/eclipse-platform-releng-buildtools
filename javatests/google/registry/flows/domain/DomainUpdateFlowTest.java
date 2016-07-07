@@ -1095,6 +1095,24 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   @Test
+  public void testSuccess_newNameserverWhitelisted() throws Exception {
+    setEppInput("domain_update_add_nameserver.xml");
+    persistReferencedEntities();
+    persistDomain();
+    // No registrant is given but both nameserver and registrant whitelist exist.
+    persistResource(
+        Registry.get("tld").asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("sh8013"))
+            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.foo"))
+            .build());
+    assertThat(reloadResourceByUniqueId().getNameservers()).doesNotContain(
+        Ref.create(loadByUniqueId(HostResource.class, "ns2.example.foo", clock.nowUtc())));
+    runFlow();
+    assertThat(reloadResourceByUniqueId().getNameservers()).contains(
+        Ref.create(loadByUniqueId(HostResource.class, "ns2.example.foo", clock.nowUtc())));
+  }
+
+  @Test
   public void testSuccess_nameserverAndRegistrantWhitelisted() throws Exception {
     persistReferencedEntities();
     persistDomain();
