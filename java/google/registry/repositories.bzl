@@ -422,8 +422,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "protobuf_java",
-      artifact = "com.google.protobuf:protobuf-java:2.6.1",
-      sha1 = "d9521f2aecb909835746b7a5facf612af5e890e8",
+      artifact = "com.google.protobuf:protobuf-java:3.0.0-beta-3",
+      sha1 = "ed8c2f9a63cfa770292f8173fd0172bdaa014fe3",
   )
 
   native.maven_jar(

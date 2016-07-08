@@ -22,9 +22,11 @@ closure_js_test(
     size = "medium",
     timeout = "short",
     srcs = glob(["*_test.js"]),
+    compilation_level = "WHITESPACE_ONLY",
     deps = [
         ":testing",
         "//javascript/closure",
         "//java/google/registry/ui/js",
+        "//javascript/closure:testing",
     ],
 )

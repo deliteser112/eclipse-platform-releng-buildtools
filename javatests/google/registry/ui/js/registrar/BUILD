@@ -24,6 +24,7 @@ closure_js_test(
     size = "medium",
     timeout = "short",
     srcs = glob(["*_test.js"]),
+    compilation_level = "WHITESPACE_ONLY",
     deps = [
         ":console_test_util",
         "//javascript/closure",
@@ -31,5 +32,6 @@ closure_js_test(
         "//java/google/registry/ui/js/registrar",
         "//java/google/registry/ui/soy/registrar:Console",
         "//javatests/google/registry/ui/js:testing",
+        "//javascript/closure:testing",
     ],
 )
