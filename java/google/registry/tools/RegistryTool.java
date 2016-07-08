@@ -18,10 +18,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 
-import google.registry.tools.javascrap.DeleteOldCursorsCommand;
 import google.registry.tools.javascrap.LoadAndResaveCommand;
 import google.registry.tools.javascrap.RemoveIpAddressCommand;
-import google.registry.tools.javascrap.VerifyDualWrittenCursorsCommand;
 
 /** Container class to create and run remote commands against a datastore instance. */
 public final class RegistryTool {
@@ -45,7 +43,6 @@ public final class RegistryTool {
           .put("delete_credit", DeleteCreditCommand.class)
           .put("delete_entity", DeleteEntityCommand.class)
           .put("delete_epp_resource", DeleteEppResourceCommand.class)
-          .put("delete_old_cursors", DeleteOldCursorsCommand.class)
           .put("delete_premium_list", DeletePremiumListCommand.class)
           .put("delete_reserved_list", DeleteReservedListCommand.class)
           .put("encrypt_escrow_deposit", EncryptEscrowDepositCommand.class)
@@ -78,7 +75,6 @@ public final class RegistryTool {
           .put("update_tld", UpdateTldCommand.class)
           .put("upload_claims_list", UploadClaimsListCommand.class)
           .put("validate_escrow_deposit", ValidateEscrowDepositCommand.class)
-          .put("verify_dual_written_cursors", VerifyDualWrittenCursorsCommand.class)
           .build();
 
   public static void main(String[] args) throws Exception {
