@@ -186,8 +186,8 @@ public class MapreduceRunner {
       createMapreduceJob(
           Mapper<I, K, V> mapper,
           Reducer<K, V, O> reducer,
-          Output<O, R> output,
-          Iterable<? extends Input<? extends I>> inputs) {
+          Iterable<? extends Input<? extends I>> inputs,
+          Output<O, R> output) {
     checkCommonRequiredFields(inputs, mapper);
     checkArgumentNotNull(reducer, "reducer");
     return new MapReduceJob<>(
@@ -229,8 +229,30 @@ public class MapreduceRunner {
       Mapper<I, K, V> mapper,
       Reducer<K, V, Void> reducer,
       Iterable<? extends Input<? extends I>> inputs) {
-    return runAsPipeline(
-        createMapreduceJob(mapper, reducer, new NoOutput<Void, Void>(), inputs));
+    return runMapreduce(mapper, reducer, inputs, new NoOutput<Void, Void>());
+  }
+
+  /**
+   * Kick off a mapreduce job with specified Output handler.
+   *
+   * @see #createMapreduceJob for creating and running a mapreduce as part of a pipeline
+   *
+   * @param mapper instance of a mapper class
+   * @param reducer instance of a reducer class
+   * @param inputs input sources for the mapper
+   * @param <I> mapper input type
+   * @param <K> emitted key type
+   * @param <V> emitted value type
+   * @param <O> emitted output type
+   * @param <R> return value of output
+   * @return the job id
+   */
+  public final <I, K extends Serializable, V extends Serializable, O, R> String runMapreduce(
+      Mapper<I, K, V> mapper,
+      Reducer<K, V, O> reducer,
+      Iterable<? extends Input<? extends I>> inputs,
+      Output<O, R> output) {
+    return runAsPipeline(createMapreduceJob(mapper, reducer, inputs, output));
   }
 
   private void checkCommonRequiredFields(Iterable<?> inputs, Mapper<?, ?, ?> mapper) {
