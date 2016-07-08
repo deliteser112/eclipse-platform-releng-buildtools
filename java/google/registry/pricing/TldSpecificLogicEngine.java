@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 import google.registry.model.ImmutableObject;
@@ -122,9 +123,7 @@ public final class TldSpecificLogicEngine {
   }
 
   /**
-   * Returns a new restore price for the pricer.
-   *
-   * <p>TODO: This probably needs to include the renew price.
+   * Returns a new restore price (including the renew price) for the pricer.
    *
    * <p>domain name, number of years and date must be defined before calling this.
    */
@@ -136,6 +135,13 @@ public final class TldSpecificLogicEngine {
         ImmutableList.of(
             Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), "renew"),
             Fee.create(registry.getStandardRestoreCost().getAmount(), "restore")));
+  }
+
+  /**
+   * Returns the fee class for a given domain and date.
+   */
+  public static Optional<String> getFeeClass(String domainName, DateTime date) {
+    return getPricesForDomainName(domainName, date).getFeeClass();
   }
 
   // TODO(b/29089413): Add support for transfer prices once this is plumbed through the flows.

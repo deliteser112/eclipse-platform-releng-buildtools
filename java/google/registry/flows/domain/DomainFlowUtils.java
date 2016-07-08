@@ -79,7 +79,6 @@ import google.registry.model.mark.Mark;
 import google.registry.model.mark.ProtectedMark;
 import google.registry.model.mark.Trademark;
 import google.registry.model.poll.PollMessage;
-import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
@@ -89,6 +88,7 @@ import google.registry.model.smd.AbstractSignedMark;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
 import google.registry.model.smd.SignedMarkRevocationList;
+import google.registry.pricing.TldSpecificLogicEngine;
 import google.registry.tmch.TmchXmlSignature;
 import google.registry.tmch.TmchXmlSignature.CertificateSignatureException;
 import google.registry.util.Idn;
@@ -576,13 +576,11 @@ public class DomainFlowUtils {
       throw new CurrencyUnitMismatchException();
     }
 
-    DomainPrices prices = getPricesForDomainName(domainName, now);
     builder
         .setCommand(feeCommand)
         .setCurrency(registry.getCurrency())
         .setPeriod(feeRequest.getPeriod())
-        // Choose from four classes: premium, premium-collision, collision, or null (standard case).
-        .setClass(prices.getFeeClass().orNull());
+        .setClass(TldSpecificLogicEngine.getFeeClass(domainName, now).orNull());
 
     switch (feeCommand.getCommand()) {
       case UNKNOWN:
@@ -592,25 +590,20 @@ public class DomainFlowUtils {
           builder.setClass("reserved");  // Override whatever class we've set above.
         } else {
           builder.setFees(
-              ImmutableList.of(
-                  Fee.create(prices.getCreateCost().multipliedBy(years).getAmount(), "create")));
+              TldSpecificLogicEngine.getCreatePrice(registry, domainName, now, years).getFees());
         }
         break;
       case RESTORE:
         if (years != 1) {
           throw new RestoresAreAlwaysForOneYearException();
         }
-        // Restores have a "renew" and a "restore" fee.
         builder.setFees(
-            ImmutableList.of(
-                Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), "renew"),
-                Fee.create(registry.getStandardRestoreCost().getAmount(), "restore")));
+            TldSpecificLogicEngine.getRestorePrice(registry, domainName, now, years).getFees());
         break;
       default:
         // Anything else (transfer|renew) will have a "renew" fee.
         builder.setFees(
-            ImmutableList.of(
-                Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), "renew")));
+            TldSpecificLogicEngine.getRenewPrice(registry, domainName, now, years).getFees());
     }
   }
 

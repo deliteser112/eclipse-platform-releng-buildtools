@@ -22,10 +22,13 @@ import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 
 import google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
 import google.registry.flows.ResourceCheckFlowTestCase;
@@ -57,6 +60,7 @@ import google.registry.testing.DatastoreHelper;
 
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -501,5 +505,19 @@ public class DomainCheckFlowTest
         create(false, "example1.tld", "In use"),
         create(true, "example2.tld", null),
         create(true, "example3.tld", null));
+  }
+
+  @Test
+  public void testSuccess_eapFeeCheck() throws Exception {
+    clock.setTo(DateTime.parse("2010-01-01T10:00:00Z"));
+    persistActiveDomain("example1.tld");
+    persistResource(Registry.get("tld").asBuilder()
+        .setEapFeeSchedule(ImmutableSortedMap.of(
+            START_OF_TIME, Money.of(USD, 0),
+            clock.nowUtc().minusDays(1), Money.of(USD, 100),
+            clock.nowUtc().plusDays(1), Money.of(USD, 0)))
+        .build());
+    setEppInput("domain_check_fee.xml");
+    runFlowAssertResponse(readFile("domain_check_eap_fee_response.xml"));
   }
 }
