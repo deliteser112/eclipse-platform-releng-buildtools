@@ -110,8 +110,6 @@ public final class TldSpecificLogicEngine {
 
   /**
    * Returns a new renew price for the pricer.
-   *
-   * <p>domain name, number of years and date must be defined before calling this.
    */
   public static EppCommandOperations getRenewPrice(
       Registry registry, String domainName, DateTime date, int years) {
@@ -123,9 +121,7 @@ public final class TldSpecificLogicEngine {
   }
 
   /**
-   * Returns a new restore price (including the renew price) for the pricer.
-   *
-   * <p>domain name, number of years and date must be defined before calling this.
+   * Returns a new restore price for the pricer.
    */
   public static EppCommandOperations getRestorePrice(
       Registry registry, String domainName, DateTime date, int years) {
@@ -138,11 +134,18 @@ public final class TldSpecificLogicEngine {
   }
 
   /**
+   * Returns a new transfer price for the pricer.
+   */
+  public static EppCommandOperations getTransferPrice(
+      Registry registry, String domainName, DateTime transferDate, int additionalYears) {
+    // Currently, all transfer prices = renew prices, so just pass through.
+    return getRenewPrice(registry, domainName, transferDate, additionalYears);
+  }
+
+  /**
    * Returns the fee class for a given domain and date.
    */
   public static Optional<String> getFeeClass(String domainName, DateTime date) {
     return getPricesForDomainName(domainName, date).getFeeClass();
   }
-
-  // TODO(b/29089413): Add support for transfer prices once this is plumbed through the flows.
 }
