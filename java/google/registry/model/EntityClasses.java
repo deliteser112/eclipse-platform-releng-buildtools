@@ -46,7 +46,6 @@ import google.registry.model.rde.RdeRevision;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.RegistryCursor;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.reporting.HistoryEntry;
@@ -107,7 +106,6 @@ public final class EntityClasses {
           RegistrarCredit.class,
           RegistrarCreditBalance.class,
           Registry.class,
-          RegistryCursor.class,
           ReservedList.class,
           ServerSecret.class,
           SignedMarkRevocationList.class,

@@ -25,5 +25,4 @@ RegistrarContact
 RegistrarCredit
 RegistrarCreditBalance
 Registry
-RegistryCursor
 ReservedList
