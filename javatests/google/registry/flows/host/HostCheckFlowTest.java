@@ -18,8 +18,8 @@ import static google.registry.model.eppoutput.CheckData.HostCheck.create;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 
-import google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
 import google.registry.flows.ResourceCheckFlowTestCase;
+import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.host.HostResource;
 import org.junit.Test;
 

@@ -15,34 +15,46 @@
 package google.registry.flows.host;
 
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
+import static google.registry.model.eppoutput.Result.Code.Success;
 
 import com.google.common.collect.ImmutableList;
-import google.registry.flows.ResourceCheckFlow;
-import google.registry.model.eppoutput.CheckData;
+import google.registry.config.ConfigModule.Config;
+import google.registry.flows.EppException;
+import google.registry.flows.LoggedInFlow;
+import google.registry.flows.exceptions.TooManyResourceChecksException;
+import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CheckData.HostCheck;
 import google.registry.model.eppoutput.CheckData.HostCheckData;
+import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.host.HostCommand.Check;
 import google.registry.model.host.HostResource;
+import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
 
 /**
  * An EPP flow that checks whether a host can be provisioned.
  *
- * @error {@link google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException}
+ * @error {@link google.registry.flows.exceptions.TooManyResourceChecksException}
  */
-public class HostCheckFlow extends ResourceCheckFlow<HostResource, Check> {
+public class HostCheckFlow extends LoggedInFlow {
 
+  @Inject ResourceCommand resourceCommand;
+  @Inject @Config("maxChecks") int maxChecks;
   @Inject HostCheckFlow() {}
 
   @Override
-  protected CheckData getCheckData() {
-    Set<String> existingIds = checkResourcesExist(resourceClass, targetIds, now);
+  protected final EppOutput run() throws EppException {
+    List<String> targetIds = ((Check) resourceCommand).getTargetIds();
+    if (targetIds.size() > maxChecks) {
+      throw new TooManyResourceChecksException(maxChecks);
+    }
+    Set<String> existingIds = checkResourcesExist(HostResource.class, targetIds, now);
     ImmutableList.Builder<HostCheck> checks = new ImmutableList.Builder<>();
     for (String id : targetIds) {
       boolean unused = !existingIds.contains(id);
       checks.add(HostCheck.create(unused, id, unused ? null : "In use"));
     }
-    return HostCheckData.create(checks.build());
+    return createOutput(Success, HostCheckData.create(checks.build()));
   }
 }

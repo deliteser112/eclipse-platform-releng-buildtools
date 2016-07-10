@@ -16,14 +16,12 @@ package google.registry.flows.host;
 
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
-import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
-import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
@@ -76,23 +74,21 @@ public class HostFlowUtils {
   }
 
   /** Return the {@link DomainResource} this host is subordinate to, or null for external hosts. */
-  static Key<DomainResource> lookupSuperordinateDomain(
+  static DomainResource lookupSuperordinateDomain(
       InternetDomainName hostName, DateTime now) throws EppException {
-    Optional<InternetDomainName> tldParsed = findTldForName(hostName);
-    if (!tldParsed.isPresent()) {
+    Optional<InternetDomainName> tld = findTldForName(hostName);
+    if (!tld.isPresent()) {
       // This is an host on a TLD we don't run, therefore obviously external, so we are done.
       return null;
     }
-
     // This is a subordinate host
-    @SuppressWarnings("deprecation")
     String domainName = Joiner.on('.').join(Iterables.skip(
-        hostName.parts(), hostName.parts().size() - (tldParsed.get().parts().size() + 1)));
+        hostName.parts(), hostName.parts().size() - (tld.get().parts().size() + 1)));
     DomainResource superordinateDomain = loadByUniqueId(DomainResource.class, domainName, now);
     if (superordinateDomain == null || !isActive(superordinateDomain, now)) {
       throw new SuperordinateDomainDoesNotExistException(domainName);
     }
-    return Key.create(superordinateDomain);
+    return superordinateDomain;
   }
 
   /** Superordinate domain for this hostname does not exist. */
@@ -104,11 +100,10 @@ public class HostFlowUtils {
 
   /** Ensure that the superordinate domain is sponsored by the provided clientId. */
   static void verifyDomainIsSameRegistrar(
-      Key<DomainResource> superordinateDomain,
+      DomainResource superordinateDomain,
       String clientId) throws EppException {
     if (superordinateDomain != null
-        && !clientId.equals(
-            ofy().load().key(superordinateDomain).now().getCurrentSponsorClientId())) {
+        && !clientId.equals(superordinateDomain.getCurrentSponsorClientId())) {
       throw new HostDomainNotOwnedException();
     }
   }

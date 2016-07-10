@@ -64,6 +64,13 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
       StatusValue.PENDING_DELETE,
       StatusValue.SERVER_DELETE_PROHIBITED);
 
+  private static final Function<DomainBase, ImmutableSet<?>> GET_REFERENCED_CONTACTS =
+      new Function<DomainBase, ImmutableSet<?>>() {
+        @Override
+        public ImmutableSet<?> apply(DomainBase domain) {
+          return domain.getReferencedContacts();
+        }};
+
   @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -79,15 +86,7 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
 
   @Override
   public final EppOutput run() throws EppException {
-    failfastForAsyncDelete(
-        targetId,
-        now,
-        ContactResource.class,
-        new Function<DomainBase, ImmutableSet<?>>() {
-          @Override
-          public ImmutableSet<?> apply(DomainBase domain) {
-            return domain.getReferencedContacts();
-          }});
+    failfastForAsyncDelete(targetId, now, ContactResource.class, GET_REFERENCED_CONTACTS);
     ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
     if (existingResource == null) {
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
