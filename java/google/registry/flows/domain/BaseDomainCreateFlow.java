@@ -65,8 +65,8 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.smd.SignedMark;
 import google.registry.model.tmch.ClaimsListShard;
-import google.registry.pricing.TldSpecificLogicEngine;
-import google.registry.pricing.TldSpecificLogicEngine.EppCommandOperations;
+import google.registry.pricing.TldSpecificLogicProxy;
+import google.registry.pricing.TldSpecificLogicProxy.EppCommandOperations;
 
 import java.util.Set;
 
@@ -180,7 +180,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
     tldState = registry.getTldState(now);
     checkRegistryStateForTld(tld);
     domainLabel = domainName.parts().get(0);
-    commandOperations = TldSpecificLogicEngine.getCreatePrice(
+    commandOperations = TldSpecificLogicProxy.getCreatePrice(
         registry, domainName.toString(), now, command.getPeriod().getValue());
     // The TLD should always be the parent of the requested domain name.
     isAnchorTenantViaReservation = matchesAnchorTenantReservation(

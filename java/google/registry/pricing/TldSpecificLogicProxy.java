@@ -33,10 +33,10 @@ import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /**
- * Provides specialized pricing, billing and update logic per TLD.  TODO: consider making these
- * methods of Registry.
+ * Provides pricing, billing, and update logic, with call-outs that can be customized by providing
+ * implementations on a per-TLD basis.
  */
-public final class TldSpecificLogicEngine {
+public final class TldSpecificLogicProxy {
 
   private static final String EAP_DESCRIPTION_FORMAT = "Early Access Period, fee expires: %s";
 
@@ -80,7 +80,7 @@ public final class TldSpecificLogicEngine {
     }
   }
 
-  private TldSpecificLogicEngine() {}
+  private TldSpecificLogicProxy() {}
 
   /**
    * Returns a new "create" price for the Pricer.

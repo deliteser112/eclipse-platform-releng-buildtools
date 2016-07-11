@@ -88,7 +88,7 @@ import google.registry.model.smd.AbstractSignedMark;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
 import google.registry.model.smd.SignedMarkRevocationList;
-import google.registry.pricing.TldSpecificLogicEngine;
+import google.registry.pricing.TldSpecificLogicProxy;
 import google.registry.tmch.TmchXmlSignature;
 import google.registry.tmch.TmchXmlSignature.CertificateSignatureException;
 import google.registry.util.Idn;
@@ -580,7 +580,7 @@ public class DomainFlowUtils {
         .setCommand(feeCommand)
         .setCurrency(registry.getCurrency())
         .setPeriod(feeRequest.getPeriod())
-        .setClass(TldSpecificLogicEngine.getFeeClass(domainName, now).orNull());
+        .setClass(TldSpecificLogicProxy.getFeeClass(domainName, now).orNull());
 
     switch (feeCommand.getCommand()) {
       case UNKNOWN:
@@ -590,7 +590,7 @@ public class DomainFlowUtils {
           builder.setClass("reserved");  // Override whatever class we've set above.
         } else {
           builder.setFees(
-              TldSpecificLogicEngine.getCreatePrice(registry, domainName, now, years).getFees());
+              TldSpecificLogicProxy.getCreatePrice(registry, domainName, now, years).getFees());
         }
         break;
       case RESTORE:
@@ -598,12 +598,12 @@ public class DomainFlowUtils {
           throw new RestoresAreAlwaysForOneYearException();
         }
         builder.setFees(
-            TldSpecificLogicEngine.getRestorePrice(registry, domainName, now, years).getFees());
+            TldSpecificLogicProxy.getRestorePrice(registry, domainName, now, years).getFees());
         break;
       default:
         // Anything else (transfer|renew) will have a "renew" fee.
         builder.setFees(
-            TldSpecificLogicEngine.getRenewPrice(registry, domainName, now, years).getFees());
+            TldSpecificLogicProxy.getRenewPrice(registry, domainName, now, years).getFees());
     }
   }
 
