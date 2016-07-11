@@ -26,7 +26,6 @@ import google.registry.model.domain.allocate.AllocateCreateExtension;
 import google.registry.model.domain.fee.FeeCheckExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
-import google.registry.model.domain.regtype.RegTypeCreateExtension;
 import google.registry.model.domain.rgp.RgpUpdateExtension;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.eppinput.EppInput.CommandExtension;
@@ -54,8 +53,7 @@ public class ProtocolDefinition {
     SECURE_DNS_1_1(SecDnsCreateExtension.class, true),
     FEE_0_6(FeeCheckExtension.class, true),
     ALLOCATE_1_0(AllocateCreateExtension.class, false),
-    METADATA_1_0(MetadataExtension.class, false),
-    REGTYPE_0_2(RegTypeCreateExtension.class, true);
+    METADATA_1_0(MetadataExtension.class, false);
 
     private String uri;
     private boolean visible;

@@ -1123,12 +1123,4 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .build());
     doSuccessfulTest();
   }
-
-  @Test
-  public void testSuccess_regTypeExtensionValidates() throws Exception {
-    setEppInput("domain_update_regtype.xml");
-    persistReferencedEntities();
-    persistDomain();
-    doSuccessfulTest();
-  }
 }

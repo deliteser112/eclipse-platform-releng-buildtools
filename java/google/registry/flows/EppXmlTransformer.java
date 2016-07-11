@@ -63,8 +63,7 @@ public class EppXmlTransformer  {
       "dsig.xsd",
       "smd.xsd",
       "launch.xsd",
-      "allocate.xsd",
-      "regtype.xsd");
+      "allocate.xsd");
 
   private static final XmlTransformer INPUT_TRANSFORMER =
       new XmlTransformer(SCHEMAS, EppInput.class);

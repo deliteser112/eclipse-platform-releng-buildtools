@@ -1283,13 +1283,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_regTypeExtensionValidates() throws Exception {
-    setEppInput("domain_create_regtype.xml");
-    persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response.xml");
-  }
-
-  @Test
   public void testSuccess_eapFeeApplied() throws Exception {
     setEppInput("domain_create_eap_fee.xml");
     persistContactsAndHosts();

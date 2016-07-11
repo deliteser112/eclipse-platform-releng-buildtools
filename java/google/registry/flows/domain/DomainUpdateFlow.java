@@ -28,7 +28,6 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.regtype.RegTypeUpdateExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.eppcommon.StatusValue;
@@ -70,14 +69,11 @@ import javax.inject.Inject;
  */
 public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Builder> {
 
-  protected RegTypeUpdateExtension regTypeExtension;
-
   @Inject DomainUpdateFlow() {}
 
   @Override
   protected void initDomainUpdateFlow() {
-    registerExtensions(SecDnsUpdateExtension.class, RegTypeUpdateExtension.class);
-    regTypeExtension = eppInput.getSingleExtension(RegTypeUpdateExtension.class);
+    registerExtensions(SecDnsUpdateExtension.class);
   }
 
   @Override

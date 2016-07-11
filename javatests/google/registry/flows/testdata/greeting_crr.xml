@@ -13,7 +13,6 @@
         <extURI>urn:ietf:params:xml:ns:rgp-1.0</extURI>
         <extURI>urn:ietf:params:xml:ns:secDNS-1.1</extURI>
         <extURI>urn:ietf:params:xml:ns:fee-0.6</extURI>
-        <extURI>urn:ietf:params:xml:ns:regtype-0.2</extURI>
       </svcExtension>
     </svcMenu>
     <dcp>

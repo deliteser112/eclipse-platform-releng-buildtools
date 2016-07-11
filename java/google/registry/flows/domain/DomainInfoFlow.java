@@ -24,12 +24,9 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.fee.FeeInfoExtension;
 import google.registry.model.domain.fee.FeeInfoResponseExtension;
-import google.registry.model.domain.regtype.RegTypeInfoResponseExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.rgp.RgpInfoExtension;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
-
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -45,14 +42,11 @@ import javax.inject.Inject;
  */
 public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> {
 
-  protected List<String> registrationTypes;
-
   @Inject DomainInfoFlow() {}
 
   @Override
   protected void initSingleResourceFlow() throws EppException {
     registerExtensions(FeeInfoExtension.class);
-    registrationTypes = ImmutableList.of();
   }
 
   @Override
@@ -101,9 +95,6 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
       handleFeeRequest(
           feeInfo, builder, getTargetId(), existingResource.getTld(), now);
       extensions.add(builder.build());
-    }
-    if (!registrationTypes.isEmpty()) {
-      extensions.add(RegTypeInfoResponseExtension.create(registrationTypes));
     }
     return extensions.build();
   }

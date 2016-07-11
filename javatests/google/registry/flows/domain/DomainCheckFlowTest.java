@@ -498,16 +498,6 @@ public class DomainCheckFlowTest
   }
 
   @Test
-  public void testSuccess_regTypeExtensionValidates() throws Exception {
-    setEppInput("domain_check_regtype.xml");
-    persistActiveDomain("example1.tld");
-    doCheckTest(
-        create(false, "example1.tld", "In use"),
-        create(true, "example2.tld", null),
-        create(true, "example3.tld", null));
-  }
-
-  @Test
   public void testSuccess_eapFeeCheck() throws Exception {
     clock.setTo(DateTime.parse("2010-01-01T10:00:00Z"));
     persistActiveDomain("example1.tld");
