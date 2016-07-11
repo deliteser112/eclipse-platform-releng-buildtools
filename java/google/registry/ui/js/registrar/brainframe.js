@@ -25,6 +25,8 @@ goog.require('goog.json');
 goog.require('goog.object');
 goog.require('goog.style');
 
+goog.forwardDeclare('goog.events.BrowserEvent');
+
 
 
 /**

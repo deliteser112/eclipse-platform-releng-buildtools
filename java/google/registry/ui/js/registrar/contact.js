@@ -19,6 +19,8 @@ goog.require('registry.registrar.XmlResourceComponent');
 goog.require('registry.soy.registrar.contact');
 goog.require('registry.soy.registrar.contactepp');
 
+goog.forwardDeclare('registry.registrar.Console');
+
 
 
 /**

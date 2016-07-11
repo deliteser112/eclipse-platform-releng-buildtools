@@ -32,6 +32,8 @@ goog.require('registry.registrar.SecuritySettings');
 goog.require('registry.registrar.WhoisSettings');
 goog.require('registry.util');
 
+goog.forwardDeclare('registry.Component');
+
 
 
 /**

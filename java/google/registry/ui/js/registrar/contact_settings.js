@@ -26,6 +26,8 @@ goog.require('registry.ResourceComponent');
 goog.require('registry.soy.registrar.contacts');
 goog.require('registry.util');
 
+goog.forwardDeclare('registry.registrar.Console');
+
 
 
 /**

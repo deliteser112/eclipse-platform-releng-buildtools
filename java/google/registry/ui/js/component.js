@@ -23,6 +23,8 @@ goog.require('goog.events.EventType');
 goog.require('registry.soy.forms');
 goog.require('registry.util');
 
+goog.forwardDeclare('registry.Console');
+
 
 
 /**

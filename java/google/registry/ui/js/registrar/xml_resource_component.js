@@ -20,6 +20,8 @@ goog.require('goog.dom.classlist');
 goog.require('registry.EditItem');
 goog.require('registry.util');
 
+goog.forwardDeclare('registry.registrar.Console');
+
 
 
 /**

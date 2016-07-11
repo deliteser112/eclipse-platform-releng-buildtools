@@ -31,6 +31,9 @@ goog.require('registry.soy.registrar.console');
 goog.require('registry.soy.registrar.payment');
 goog.require('registry.util');
 
+goog.forwardDeclare('goog.events.BrowserEvent');
+goog.forwardDeclare('registry.registrar.Console');
+
 
 
 /**

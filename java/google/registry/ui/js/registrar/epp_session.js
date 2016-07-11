@@ -20,6 +20,8 @@ goog.require('registry.soy.registrar.epp');
 goog.require('registry.util');
 goog.require('registry.xml');
 
+goog.forwardDeclare('registry.registrar.Console');
+
 
 
 /**

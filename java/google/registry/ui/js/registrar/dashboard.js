@@ -23,6 +23,8 @@ goog.require('goog.style');
 goog.require('registry.Component');
 goog.require('registry.soy.registrar.console');
 
+goog.forwardDeclare('registry.registrar.Console');
+
 
 
 /**

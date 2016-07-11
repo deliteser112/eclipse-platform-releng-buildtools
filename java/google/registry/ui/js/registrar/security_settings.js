@@ -25,6 +25,8 @@ goog.require('registry.Resource');
 goog.require('registry.ResourceComponent');
 goog.require('registry.soy.registrar.security');
 
+goog.forwardDeclare('registry.registrar.Console');
+
 
 
 /**

@@ -19,6 +19,8 @@ goog.require('goog.net.XhrIo');
 goog.require('goog.structs.Map');
 goog.require('registry.util');
 
+goog.forwardDeclare('goog.Uri');
+
 
 
 /**

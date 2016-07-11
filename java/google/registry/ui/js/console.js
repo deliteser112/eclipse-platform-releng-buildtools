@@ -23,6 +23,9 @@ goog.require('goog.events.KeyCodes');
 goog.require('goog.history.EventType');
 goog.require('registry.util');
 
+goog.forwardDeclare('goog.events.KeyEvent');
+goog.forwardDeclare('registry.Session');
+
 
 
 /**

@@ -22,6 +22,8 @@ goog.require('goog.events');
 goog.require('goog.events.EventHandler');
 goog.require('goog.events.EventType');
 
+goog.forwardDeclare('goog.events.BrowserEvent');
+
 
 
 /**

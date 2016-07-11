@@ -18,6 +18,8 @@ goog.require('registry.registrar.XmlResourceComponent');
 goog.require('registry.soy.registrar.host');
 goog.require('registry.soy.registrar.hostepp');
 
+goog.forwardDeclare('registry.registrar.Console');
+
 
 
 /**

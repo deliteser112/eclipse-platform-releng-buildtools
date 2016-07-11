@@ -17,6 +17,8 @@ goog.provide('registry.Resource');
 goog.require('goog.json');
 goog.require('registry.Session');
 
+goog.forwardDeclare('goog.Uri');
+
 
 
 /**

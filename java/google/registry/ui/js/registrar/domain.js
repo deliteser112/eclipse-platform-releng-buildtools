@@ -21,6 +21,8 @@ goog.require('registry.soy.registrar.domain');
 goog.require('registry.soy.registrar.domainepp');
 goog.require('registry.util');
 
+goog.forwardDeclare('registry.registrar.Console');
+
 
 
 /**

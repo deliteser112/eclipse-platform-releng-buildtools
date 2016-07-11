@@ -20,6 +20,8 @@ goog.require('registry.Resource');
 goog.require('registry.ResourceComponent');
 goog.require('registry.soy.registrar.whois');
 
+goog.forwardDeclare('registry.registrar.Console');
+
 
 
 /**

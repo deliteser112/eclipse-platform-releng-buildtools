@@ -24,6 +24,8 @@ goog.require('goog.events.EventType');
 goog.require('goog.events.KeyCodes');
 goog.require('registry.util');
 
+goog.forwardDeclare('goog.events.KeyEvent');
+
 
 /**
  * Sets the focus on a form field (if it exists).
