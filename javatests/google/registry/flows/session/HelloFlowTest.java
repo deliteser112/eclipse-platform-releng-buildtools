@@ -25,6 +25,7 @@ import org.junit.Test;
 
 /** Unit tests for {@link HelloFlow}. */
 public class HelloFlowTest extends FlowTestCase<HelloFlow> {
+
   @Test
   public void testHello() throws Exception {
     setEppInput("hello.xml");
@@ -35,15 +36,4 @@ public class HelloFlowTest extends FlowTestCase<HelloFlow> {
             "greeting_crr.xml",
             ImmutableMap.of("DATE", clock.nowUtc().toString(dateTimeNoMillis()))));
   }
-
-  // Extra methods so the test runner doesn't produce empty shards.
-
-  @Test
-  public void testNothing1() {}
-
-  @Test
-  public void testNothing2() {}
-
-  @Test
-  public void testNothing3() {}
 }

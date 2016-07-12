@@ -241,11 +241,8 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
           .filter(new Predicate<BillingEvent.OneTime>() {
             @Override
             public boolean apply(OneTime billingEvent) {
-              Key<? extends BillingEvent> cancellationMatchingBillingEvent =
-                  billingEvent.getCancellationMatchingBillingEvent();
-              return cancellationMatchingBillingEvent != null
-                  && billingEvent.getCancellationMatchingBillingEvent().equals(
-                      Key.create(recurringEvent));
+              return Key.create(recurringEvent)
+                  .equals(billingEvent.getCancellationMatchingBillingEvent());
             }})
           .transform(new Function<OneTime, DateTime>() {
             @Override

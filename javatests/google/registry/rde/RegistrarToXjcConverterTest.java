@@ -27,6 +27,7 @@ import google.registry.model.registrar.RegistrarAddress;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
+import google.registry.testing.ShardableTestCase;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrarAddrType;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrarPostalInfoEnumType;
@@ -49,7 +50,7 @@ import java.io.ByteArrayOutputStream;
  * some exceptional conditions.
  */
 @RunWith(JUnit4.class)
-public class RegistrarToXjcConverterTest {
+public class RegistrarToXjcConverterTest extends ShardableTestCase {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -147,6 +148,4 @@ public class RegistrarToXjcConverterTest {
   public void testMarshal() throws Exception {
     marshalStrict(RegistrarToXjcConverter.convert(registrar), new ByteArrayOutputStream(), UTF_8);
   }
-
-  @Test public void makeShardingWork1() {}
 }

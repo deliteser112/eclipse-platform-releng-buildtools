@@ -27,13 +27,13 @@ import google.registry.keyring.api.Keyring;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.Providers;
+import google.registry.testing.ShardableTestCase;
 import google.registry.util.FormattingLogger;
 
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.joda.time.DateTime;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
@@ -51,7 +51,7 @@ import java.io.OutputStream;
 /** GPG combinatorial integration tests for the Ryde classes. */
 @RunWith(Theories.class)
 @SuppressWarnings("resource")
-public class RydeGpgIntegrationTest {
+public class RydeGpgIntegrationTest extends ShardableTestCase {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -281,7 +281,4 @@ public class RydeGpgIntegrationTest {
       return value;
     }
   }
-
-  @Test public void makeShardingWork1() {}
-  @Test public void makeShardingWork2() {}
 }

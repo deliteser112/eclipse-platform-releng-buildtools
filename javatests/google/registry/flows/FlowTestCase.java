@@ -50,6 +50,7 @@ import google.registry.testing.EppLoader;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeHttpSession;
 import google.registry.testing.InjectRule;
+import google.registry.testing.ShardableTestCase;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import google.registry.xml.ValidationMode;
 
@@ -68,7 +69,7 @@ import java.util.Map;
  * @param <F> the flow type
  */
 @RunWith(MockitoJUnitRunner.class)
-public abstract class FlowTestCase<F extends Flow> {
+public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
 
   /** Whether to actually write to the datastore or just simulate. */
   public enum CommitMode { LIVE, DRY_RUN }

@@ -23,6 +23,7 @@ import org.junit.Test;
  * sure that we never produces empty shards.
  */
 public abstract class ShardableTestCase {
+
   @Test
   public void testNothing1() {}
 

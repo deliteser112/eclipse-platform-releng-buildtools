@@ -136,7 +136,4 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
     persistContactResource(false);
     runFlow();
   }
-
-  // Extra methods so the test runner doesn't produce empty shards.
-  @Test public void testNothing1() {}
 }

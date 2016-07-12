@@ -26,11 +26,11 @@ import com.google.common.io.CharStreams;
 import google.registry.keyring.api.Keyring;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.GpgSystemCommandRule;
+import google.registry.testing.ShardableTestCase;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.joda.time.DateTime;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
@@ -47,7 +47,7 @@ import java.io.OutputStream;
 /** GnuPG integration tests for {@link Ghostryde}. */
 @RunWith(Theories.class)
 @SuppressWarnings("resource")
-public class GhostrydeGpgIntegrationTest {
+public class GhostrydeGpgIntegrationTest extends ShardableTestCase {
 
   @Rule
   public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
@@ -170,7 +170,4 @@ public class GhostrydeGpgIntegrationTest {
       return value;
     }
   }
-
-  @Test public void makeShardingWork1() {}
-  @Test public void makeShardingWork2() {}
 }
