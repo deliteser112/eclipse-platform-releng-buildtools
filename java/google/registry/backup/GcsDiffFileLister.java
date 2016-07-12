@@ -30,21 +30,17 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-
 import google.registry.backup.BackupModule.Backups;
 import google.registry.config.ConfigModule.Config;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** Utility class to list commit logs diff files stored on GCS. */
 class GcsDiffFileLister {

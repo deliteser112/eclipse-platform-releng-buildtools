@@ -26,16 +26,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
-
+import javax.mail.internet.InternetAddress;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.mail.internet.InternetAddress;
 
 /** Tests for {@link RegistrarServlet}. */
 @RunWith(MockitoJUnitRunner.class)

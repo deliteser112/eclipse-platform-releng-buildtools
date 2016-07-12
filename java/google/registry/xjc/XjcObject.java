@@ -15,11 +15,9 @@
 package google.registry.xjc;
 
 import google.registry.xml.XmlException;
-
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;

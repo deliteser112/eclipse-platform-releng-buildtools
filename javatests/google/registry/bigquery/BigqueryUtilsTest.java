@@ -23,17 +23,14 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.api.services.bigquery.model.JobReference;
-
 import google.registry.testing.ExceptionRule;
-
+import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.concurrent.TimeUnit;
 
 /** Unit tests for {@link BigqueryUtils}. */
 @RunWith(JUnit4.class)

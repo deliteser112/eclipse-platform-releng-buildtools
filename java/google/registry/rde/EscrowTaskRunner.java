@@ -17,7 +17,6 @@ package google.registry.rde;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
@@ -28,13 +27,10 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-
+import java.util.concurrent.Callable;
+import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-
-import java.util.concurrent.Callable;
-
-import javax.inject.Inject;
 
 /**
  * Runner applying guaranteed reliability to an {@link EscrowTask}.

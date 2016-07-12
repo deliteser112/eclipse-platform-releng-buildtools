@@ -17,13 +17,10 @@ package google.registry.rde;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.api.ThreadManager;
-
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
-
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.keyring.api.KeyModule.Key;
 
 /** Dagger module for {@link JSch} which provides SSH/SFTP connectivity. */

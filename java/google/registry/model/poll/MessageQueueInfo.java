@@ -15,11 +15,9 @@
 package google.registry.model.poll;
 
 import google.registry.model.ImmutableObject;
-
-import org.joda.time.DateTime;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import org.joda.time.DateTime;
 
 /** Information about the message queue for the currently logged in registrar. */
 public class MessageQueueInfo extends ImmutableObject {

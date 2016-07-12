@@ -25,10 +25,8 @@ import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
@@ -50,7 +48,6 @@ import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.testing.AppEngineRule;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

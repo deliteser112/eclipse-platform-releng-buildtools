@@ -23,17 +23,14 @@ import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.appengine.tools.mapreduce.ShardContext;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.cmd.Query;
-
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.EppResourceIndexBucket;
 import google.registry.util.FormattingLogger;
-
 import java.io.IOException;
 import java.util.NoSuchElementException;
 

@@ -17,25 +17,21 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.tools.Injector.injectReflectively;
 
-import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
-import com.google.appengine.tools.remoteapi.RemoteApiOptions;
-import com.google.common.collect.ImmutableMap;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
-
+import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
+import com.google.appengine.tools.remoteapi.RemoteApiOptions;
+import com.google.common.collect.ImmutableMap;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.ParameterFactory;
-
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /** Container class to create and run remote commands against a datastore instance. */
 @Parameters(separators = " =", commandDescription = "Command-line interface to the registry")

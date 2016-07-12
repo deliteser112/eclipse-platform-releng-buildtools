@@ -18,15 +18,12 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
 import google.registry.tools.params.DateTimeParameter;
-
-import org.joda.time.DateTime;
-
 import java.util.List;
+import org.joda.time.DateTime;
 
 /** Modifies {@link Cursor} timestamps used by locking rolling cursor tasks, like in RDE. */
 @Parameters(separators = " =", commandDescription = "Modifies cursor timestamps used by LRC tasks")

@@ -34,16 +34,13 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.ParameterMap;
 import google.registry.request.RequestParameters;
 import google.registry.util.TaskEnqueuer;
-
 import java.util.Random;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 /**

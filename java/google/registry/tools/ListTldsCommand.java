@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
-
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.server.ListTldsAction;
 

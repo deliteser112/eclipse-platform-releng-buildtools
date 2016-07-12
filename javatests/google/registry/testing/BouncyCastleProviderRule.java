@@ -14,10 +14,9 @@
 
 package google.registry.testing;
 
+import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.rules.ExternalResource;
-
-import java.security.Security;
 
 /**
  * JUnit Rule for registering {@link BouncyCastleProvider} with Java Security.

@@ -19,19 +19,16 @@ import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Verify.verifyNotNull;
 import static google.registry.model.registrar.Registrar.loadByClientId;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.server.VerifyOteAction;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;

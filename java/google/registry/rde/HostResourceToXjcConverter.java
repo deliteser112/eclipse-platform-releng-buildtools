@@ -15,7 +15,6 @@
 package google.registry.rde;
 
 import com.google.common.net.InetAddresses;
-
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.xjc.host.XjcHostAddrType;
@@ -24,7 +23,6 @@ import google.registry.xjc.host.XjcHostStatusType;
 import google.registry.xjc.host.XjcHostStatusValueType;
 import google.registry.xjc.rdehost.XjcRdeHost;
 import google.registry.xjc.rdehost.XjcRdeHostElement;
-
 import java.net.Inet6Address;
 import java.net.InetAddress;
 

@@ -19,13 +19,10 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableMap;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.model.EntityTestCase;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.ExceptionRule;
-
 import org.joda.money.CurrencyMismatchException;
 import org.joda.money.Money;
 import org.joda.time.DateTime;

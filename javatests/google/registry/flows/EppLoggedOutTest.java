@@ -18,9 +18,7 @@ import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.format.ISODateTimeFormat.dateTimeNoMillis;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.testing.AppEngineRule;
-
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;

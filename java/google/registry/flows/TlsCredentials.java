@@ -24,18 +24,14 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.InetAddresses;
-
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.flows.EppException.AuthenticationErrorException;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Header;
 import google.registry.util.CidrAddressBlock;
 import google.registry.util.FormattingLogger;
-
 import java.net.InetAddress;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 

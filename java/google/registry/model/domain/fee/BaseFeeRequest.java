@@ -15,13 +15,10 @@
 package google.registry.model.domain.fee;
 
 import com.google.common.base.Optional;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.Period;
-
-import org.joda.money.CurrencyUnit;
-
 import javax.xml.bind.annotation.XmlTransient;
+import org.joda.money.CurrencyUnit;
 
 /** Base class for the fee requests on check and info. */
 @XmlTransient

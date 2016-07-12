@@ -28,9 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.net.InetAddresses;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
@@ -46,17 +44,14 @@ import google.registry.model.registrar.RegistrarAddress;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.util.Idn;
-
-import org.joda.time.DateTime;
-
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.Locale;
 import java.util.Map;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /**
  * Helper class to create RDAP JSON objects for various registry entities and objects.

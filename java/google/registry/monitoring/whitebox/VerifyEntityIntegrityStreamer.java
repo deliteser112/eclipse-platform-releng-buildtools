@@ -36,19 +36,15 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.config.RegistryEnvironment;
 import google.registry.util.Retrier;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /**
  * An injected utility class used to check entity integrity and stream violations to BigQuery.

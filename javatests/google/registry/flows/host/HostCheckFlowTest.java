@@ -21,7 +21,6 @@ import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
 import google.registry.flows.ResourceCheckFlowTestCase;
 import google.registry.model.host.HostResource;
-
 import org.junit.Test;
 
 /** Unit tests for {@link HostCheckFlow}. */

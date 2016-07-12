@@ -20,13 +20,11 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 

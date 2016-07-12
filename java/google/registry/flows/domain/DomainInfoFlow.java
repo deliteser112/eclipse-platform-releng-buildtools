@@ -18,7 +18,6 @@ import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.flows.EppException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
@@ -27,7 +26,6 @@ import google.registry.model.domain.fee.FeeInfoResponseExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.rgp.RgpInfoExtension;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
-
 import javax.inject.Inject;
 
 /**

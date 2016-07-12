@@ -19,7 +19,6 @@ import static google.registry.request.Action.Method.POST;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.net.InternetDomainName;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.dns.writer.api.DnsWriter;
 import google.registry.request.Action;
@@ -28,14 +27,11 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.util.DomainNameUtils;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.Duration;
-
 import java.util.Set;
 import java.util.concurrent.Callable;
-
 import javax.inject.Inject;
 import javax.inject.Provider;
+import org.joda.time.Duration;
 
 /** Task that sends domain and host updates to the DNS server. */
 @Action(path = PublishDnsUpdatesAction.PATH, method = POST, automaticallyPrintOk = true)

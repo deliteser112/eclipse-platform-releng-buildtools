@@ -17,15 +17,12 @@ package google.registry.tools;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.io.Files;
-
 import com.beust.jcommander.ParameterException;
-
-import org.junit.Before;
-import org.junit.Test;
-
+import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Base class for common testing setup for create and update commands for Reserved Lists.

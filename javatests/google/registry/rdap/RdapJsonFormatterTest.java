@@ -30,7 +30,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainResource;
@@ -45,7 +44,6 @@ import google.registry.rdap.RdapJsonFormatter.MakeRdapJsonNoticeParameters;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;

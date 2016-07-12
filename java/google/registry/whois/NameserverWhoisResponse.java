@@ -19,13 +19,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
-
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
-
-import org.joda.time.DateTime;
-
 import java.net.InetAddress;
+import org.joda.time.DateTime;
 
 /** Container for WHOIS responses to a nameserver lookup queries. */
 final class NameserverWhoisResponse extends WhoisResponseImpl {

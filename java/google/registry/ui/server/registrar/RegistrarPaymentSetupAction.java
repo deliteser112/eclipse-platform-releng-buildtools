@@ -19,11 +19,9 @@ import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 import static java.util.Arrays.asList;
 
+import com.braintreegateway.BraintreeGateway;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
-
-import com.braintreegateway.BraintreeGateway;
-
 import google.registry.braintree.BraintreeRegistrarSyncer;
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.registrar.Registrar;
@@ -31,12 +29,9 @@ import google.registry.request.Action;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
 import google.registry.security.JsonResponseHelper;
-
-import org.joda.money.CurrencyUnit;
-
 import java.util.Map;
-
 import javax.inject.Inject;
+import org.joda.money.CurrencyUnit;
 
 /**
  * Action returning information needed to render payment form in browser.

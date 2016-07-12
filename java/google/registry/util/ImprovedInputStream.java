@@ -20,7 +20,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.WillCloseWhenClosed;
 import javax.annotation.concurrent.NotThreadSafe;

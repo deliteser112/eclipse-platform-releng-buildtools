@@ -20,11 +20,9 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.Callable;
-
 import javax.inject.Inject;
 
 /** Utilities for dealing with App Engine task queues. */

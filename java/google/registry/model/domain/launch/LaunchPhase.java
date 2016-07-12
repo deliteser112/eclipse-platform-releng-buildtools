@@ -20,15 +20,11 @@ import static google.registry.util.TypeUtils.getTypesafeEnumMapping;
 import static java.util.Objects.hash;
 
 import com.google.common.collect.ImmutableMap;
-
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.ImmutableObject;
-
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlValue;
 

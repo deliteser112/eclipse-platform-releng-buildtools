@@ -20,14 +20,12 @@ import static google.registry.testing.DatastoreHelper.createTlds;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
-
+import java.io.StringReader;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.io.StringReader;
 
 /** Unit tests for {@link WhoisReader}. */
 @RunWith(JUnit4.class)

@@ -21,7 +21,6 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.registrar.Registrar;
@@ -29,15 +28,13 @@ import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
-
+import java.util.Map;
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.Map;
 
 /** Tests for {@link CheckApiAction}. */
 @RunWith(JUnit4.class)

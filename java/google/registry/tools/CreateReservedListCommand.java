@@ -20,19 +20,15 @@ import static google.registry.util.ListNamingUtils.convertFilePathToName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.model.registry.label.ReservedList;
-
-import org.joda.time.DateTime;
-
 import java.nio.file.Files;
 import java.util.List;
+import org.joda.time.DateTime;
 
 /** Command to create a {@link ReservedList} on Datastore. */
 @Parameters(separators = " =", commandDescription = "Create a ReservedList in datastore.")

@@ -20,11 +20,9 @@ import com.google.common.base.Optional;
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
-
 import google.registry.model.domain.Period;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.TruthChainer.And;
-
 import java.util.Objects;
 
 /** Utility methods for asserting things about {@link HistoryEntry} instances. */

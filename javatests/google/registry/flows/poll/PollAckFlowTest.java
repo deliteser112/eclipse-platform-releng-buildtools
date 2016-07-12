@@ -30,7 +30,6 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.poll.PollMessage;
 import google.registry.testing.ExceptionRule;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;

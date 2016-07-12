@@ -21,18 +21,14 @@ import static google.registry.request.RequestParameters.extractRequiredParameter
 
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.request.Header;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
-
-import org.bouncycastle.openpgp.PGPPublicKey;
-
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import javax.servlet.http.HttpServletRequest;
+import org.bouncycastle.openpgp.PGPPublicKey;
 
 /** Dagger module for TMCH package. */
 @Module

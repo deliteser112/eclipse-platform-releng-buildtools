@@ -19,7 +19,6 @@ import static org.hamcrest.Matchers.equalTo;
 
 import google.registry.testing.CertificateSamples;
 import google.registry.ui.forms.FormFieldException;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

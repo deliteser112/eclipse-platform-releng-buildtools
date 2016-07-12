@@ -27,10 +27,8 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
@@ -46,7 +44,6 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.testing.mapreduce.MapreduceTestCase;
-
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Rule;

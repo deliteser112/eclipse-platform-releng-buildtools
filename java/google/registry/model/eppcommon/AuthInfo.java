@@ -15,10 +15,8 @@
 package google.registry.model.eppcommon;
 
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;

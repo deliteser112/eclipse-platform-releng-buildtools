@@ -19,7 +19,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Lists.charactersOf;
 
 import com.google.common.collect.Iterators;
-
 import java.util.Iterator;
 
 /** A password generator that produces a password from a predefined string. */

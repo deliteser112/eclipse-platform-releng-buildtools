@@ -25,18 +25,16 @@ import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 import com.google.common.truth.Expect;
-
+import java.io.IOException;
+import java.lang.reflect.Modifier;
+import java.util.Map;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.io.IOException;
-import java.lang.reflect.Modifier;
-import java.util.Map;
-import java.util.Set;
 
 /** Unit tests for {@link RegistryTool}. */
 @RunWith(JUnit4.class)

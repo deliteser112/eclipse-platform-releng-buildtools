@@ -15,7 +15,6 @@
 package google.registry.model.host;
 
 import google.registry.model.ResourceCommandTestCase;
-
 import org.junit.Test;
 
 /** Test xml roundtripping of commands. */

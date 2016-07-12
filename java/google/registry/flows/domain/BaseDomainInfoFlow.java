@@ -17,7 +17,6 @@ package google.registry.flows.domain;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
 
 import com.google.common.collect.ImmutableList;
-
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceInfoFlow;
 import google.registry.model.domain.DomainBase;

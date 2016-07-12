@@ -31,7 +31,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
-
 import google.registry.flows.EppException;
 import google.registry.flows.Flow;
 import google.registry.flows.contact.ContactCreateFlow;
@@ -68,12 +67,10 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.request.Action;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
-
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 

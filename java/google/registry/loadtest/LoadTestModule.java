@@ -19,12 +19,9 @@ import static google.registry.request.RequestParameters.extractRequiredParameter
 
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.request.Parameter;
-
-import org.joda.time.Minutes;
-
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.Minutes;
 
 /**
  * Dagger module for loadtest package.

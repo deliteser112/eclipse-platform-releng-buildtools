@@ -19,16 +19,13 @@ import static google.registry.model.contact.PostalInfo.Type.INTERNATIONALIZED;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
-
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 /** Static utility functions for contact flows. */

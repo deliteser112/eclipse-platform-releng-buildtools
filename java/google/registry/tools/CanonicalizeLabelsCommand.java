@@ -17,18 +17,15 @@ package google.registry.tools;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.tools.Command.GtechCommand;
 import google.registry.util.DomainNameUtils;
 import google.registry.util.Idn;
 import google.registry.util.NonFinalForTesting;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

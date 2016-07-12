@@ -17,7 +17,6 @@ package google.registry.tools;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
-
 import google.registry.tools.javascrap.LoadAndResaveCommand;
 import google.registry.tools.javascrap.RemoveIpAddressCommand;
 

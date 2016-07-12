@@ -21,7 +21,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Optional;
-
 import google.registry.groups.DirectoryGroupsConnection;
 import google.registry.groups.GroupsConnection.Role;
 import google.registry.request.HttpException.BadRequestException;
@@ -30,7 +29,6 @@ import google.registry.request.Response;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
-
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

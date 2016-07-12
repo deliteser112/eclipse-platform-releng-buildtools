@@ -23,22 +23,17 @@ import static google.registry.util.DateTimeUtils.earliestOf;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpoint;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.Ofy;
 import google.registry.util.Clock;
-
-import org.joda.time.DateTime;
-
 import java.util.List;
 import java.util.Map.Entry;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * Implementation of the procedure for determining point-in-time consistent commit log checkpoint.

@@ -15,7 +15,6 @@
 package google.registry.tools.params;
 
 import com.google.common.base.Optional;
-
 import google.registry.util.TypeUtils.TypeInstantiator;
 
 /**

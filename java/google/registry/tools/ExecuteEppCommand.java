@@ -16,14 +16,11 @@ package google.registry.tools;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.io.CharStreams;
-import com.google.common.io.Files;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.io.CharStreams;
+import com.google.common.io.Files;
 import google.registry.util.NonFinalForTesting;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

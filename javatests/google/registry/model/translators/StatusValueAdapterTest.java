@@ -19,7 +19,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.flows.EppXmlTransformer;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.EppInput;
@@ -31,7 +30,6 @@ import google.registry.model.host.HostResource;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.EppLoader;
 import google.registry.xml.ValidationMode;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

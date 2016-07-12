@@ -26,7 +26,6 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
@@ -35,7 +34,6 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.tmch.TmchData;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

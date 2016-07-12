@@ -18,7 +18,6 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
 
 import com.beust.jcommander.ParameterException;
-
 import org.junit.Test;
 
 /** Unit tests for {@link GetTldCommand}. */

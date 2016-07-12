@@ -18,11 +18,9 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
-
 import java.util.List;
 
 /** Command to show a registrar record. */

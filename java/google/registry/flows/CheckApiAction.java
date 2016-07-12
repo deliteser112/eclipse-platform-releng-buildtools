@@ -30,10 +30,8 @@ import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
 import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.tofu.SoyTofu;
-
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.config.RegistryConfig;
 import google.registry.flows.soy.DomainCheckFeeEppSoyInfo;
 import google.registry.model.domain.fee.FeeCheckResponseExtension;
@@ -46,9 +44,7 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
-
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 

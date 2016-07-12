@@ -21,15 +21,12 @@ import static google.registry.util.CollectionUtils.partitionMap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.testing.ExceptionRule;
-
+import java.util.Map;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.Map;
 
 /** Unit tests for {@link CollectionUtils} */
 @RunWith(MockitoJUnitRunner.class)

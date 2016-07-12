@@ -18,16 +18,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.tools.BigqueryCommandUtilities.handleTableCreation;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import google.registry.bigquery.BigqueryUtils.TableType;
 import google.registry.tools.BigqueryCommandUtilities.TableCreationException;
 import google.registry.util.SqlTemplate;
-
 import java.util.List;
 
 /** Command to make synthetic billing tables and views in Bigquery. */

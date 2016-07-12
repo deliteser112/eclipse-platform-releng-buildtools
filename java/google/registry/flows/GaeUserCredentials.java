@@ -20,11 +20,9 @@ import static com.google.common.base.Strings.nullToEmpty;
 
 import com.google.appengine.api.users.User;
 import com.google.common.annotations.VisibleForTesting;
-
 import google.registry.flows.EppException.AuthenticationErrorException;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
-
 import javax.annotation.Nullable;
 
 /** Credentials provided by {@link com.google.appengine.api.users.UserService}. */

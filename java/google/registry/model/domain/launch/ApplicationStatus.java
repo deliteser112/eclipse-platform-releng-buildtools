@@ -19,7 +19,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
 import google.registry.model.translators.EnumToAttributeAdapter;
 import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
-
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**

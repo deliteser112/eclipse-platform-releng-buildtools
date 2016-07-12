@@ -27,21 +27,17 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.io.Resources;
-
 import google.registry.model.eppcommon.Address;
 import google.registry.model.registrar.Registrar;
 import google.registry.util.Idn;
 import google.registry.xml.UtcDateTimeAdapter;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /** Base class for responses to WHOIS queries. */
 abstract class WhoisResponseImpl implements WhoisResponse {

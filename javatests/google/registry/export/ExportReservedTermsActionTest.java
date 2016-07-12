@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
-
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.RegistryNotFoundException;
 import google.registry.model.registry.label.ReservedList;
@@ -38,15 +37,13 @@ import google.registry.storage.drive.DriveConnection;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
-
+import java.io.IOException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.io.IOException;
 
 /** Unit tests for {@link ExportReservedTermsAction}. */
 @RunWith(MockitoJUnitRunner.class)

@@ -18,10 +18,8 @@ import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
-import org.junit.Test;
-
 import java.util.List;
+import org.junit.Test;
 
 /** Unit tests for {@link EppToolCommand}. */
 public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {

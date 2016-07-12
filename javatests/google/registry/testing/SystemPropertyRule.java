@@ -18,15 +18,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Optional;
-
-import org.junit.rules.ExternalResource;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
+import org.junit.rules.ExternalResource;
 
 /**
  * JUnit Rule for overriding the values Java system properties during tests.

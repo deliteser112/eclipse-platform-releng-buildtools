@@ -22,9 +22,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.VerifyException;
-
 import google.registry.testing.ExceptionRule;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import javax.net.SocketFactory;
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,18 +50,6 @@ import org.xbill.DNS.Rcode;
 import org.xbill.DNS.Record;
 import org.xbill.DNS.Type;
 import org.xbill.DNS.Update;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-
-import javax.net.SocketFactory;
 
 /** Unit tests for {@link DnsMessageTransport}. */
 @RunWith(MockitoJUnitRunner.class)

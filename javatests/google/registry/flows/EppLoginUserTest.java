@@ -19,12 +19,10 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.UserInfo;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

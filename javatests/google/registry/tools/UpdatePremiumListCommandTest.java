@@ -23,10 +23,8 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-
 import google.registry.tools.ServerSideCommand.Connection;
 import google.registry.tools.server.UpdatePremiumListAction;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

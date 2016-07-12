@@ -31,7 +31,6 @@ import google.registry.flows.session.LoginFlow.UnsupportedLanguageException;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.State;
 import google.registry.testing.ExceptionRule;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

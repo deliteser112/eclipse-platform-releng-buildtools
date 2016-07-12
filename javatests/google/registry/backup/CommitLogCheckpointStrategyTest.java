@@ -23,9 +23,7 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
-
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.config.TestRegistryConfig;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
@@ -37,7 +35,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.testing.RegistryConfigRule;
-
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;

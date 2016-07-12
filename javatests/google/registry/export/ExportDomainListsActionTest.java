@@ -30,22 +30,19 @@ import com.google.appengine.tools.cloudstorage.ListOptions;
 import com.google.appengine.tools.cloudstorage.ListResult;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
-
+import java.io.FileNotFoundException;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.io.FileNotFoundException;
 
 /** Unit tests for {@link ExportDomainListsAction}. */
 @RunWith(JUnit4.class)

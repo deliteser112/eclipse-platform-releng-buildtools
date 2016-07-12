@@ -19,10 +19,8 @@ import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
-
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.util.TypeUtils.TypeInstantiator;
-
 import java.lang.reflect.Field;
 
 /** Interface for {@link ImmutableObject} subclasses that have a builder. */

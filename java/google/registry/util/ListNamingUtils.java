@@ -15,7 +15,6 @@
 package google.registry.util;
 
 import com.google.common.io.Files;
-
 import java.nio.file.Path;
 
 /**

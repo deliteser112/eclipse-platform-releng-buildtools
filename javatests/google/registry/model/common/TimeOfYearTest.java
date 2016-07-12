@@ -20,9 +20,7 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
-
 import google.registry.testing.ExceptionRule;
-
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;

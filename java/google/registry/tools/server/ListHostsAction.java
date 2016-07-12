@@ -21,17 +21,13 @@ import static google.registry.request.Action.Method.POST;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.EppResourceUtils;
 import google.registry.model.host.HostResource;
 import google.registry.request.Action;
 import google.registry.util.Clock;
-
-import org.joda.time.DateTime;
-
 import java.util.Comparator;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** An action that lists hosts, for use by the registry_tool list_hosts command. */
 @Action(path = ListHostsAction.PATH, method = {GET, POST})

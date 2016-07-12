@@ -15,7 +15,6 @@
 package google.registry.model.ofy;
 
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.ObjectifyImpl;

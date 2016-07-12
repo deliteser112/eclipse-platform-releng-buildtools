@@ -21,20 +21,16 @@ import static com.google.common.net.MediaType.JSON_UTF_8;
 import static org.json.simple.JSONValue.writeJSONString;
 
 import com.google.common.net.MediaType;
-
 import google.registry.util.FormattingLogger;
-
-import org.json.simple.JSONValue;
-import org.json.simple.parser.ParseException;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.ParseException;
 
 /**
  * Helper class for servlets that read or write JSON.

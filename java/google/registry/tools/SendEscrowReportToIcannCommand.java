@@ -16,15 +16,12 @@ package google.registry.tools;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
 import google.registry.rde.RdeReporter;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-
 import javax.inject.Inject;
 
 /** Command to send ICANN notification that an escrow deposit was uploaded. */

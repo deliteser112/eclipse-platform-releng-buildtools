@@ -18,19 +18,15 @@ import static google.registry.config.ConfigUtils.makeUrl;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-
 import dagger.Module;
 import dagger.Provides;
-
-import org.joda.money.CurrencyUnit;
-import org.joda.time.DateTimeConstants;
-import org.joda.time.Duration;
-
 import java.lang.annotation.Documented;
 import java.net.URI;
 import java.net.URL;
-
 import javax.inject.Qualifier;
+import org.joda.money.CurrencyUnit;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.Duration;
 
 /** Dagger module for injecting configuration settings. */
 @Module

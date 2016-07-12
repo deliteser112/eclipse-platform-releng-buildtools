@@ -23,20 +23,16 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
-
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.annotation.Nullable;
 
 /** Unit tests for {@link HostInfoFlow}. */
 public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostResource> {

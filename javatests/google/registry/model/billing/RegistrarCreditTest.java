@@ -27,7 +27,6 @@ import google.registry.model.billing.RegistrarCredit.CreditType;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.testing.ExceptionRule;
-
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;
 import org.junit.Rule;

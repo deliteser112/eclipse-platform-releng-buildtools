@@ -20,19 +20,15 @@ import static google.registry.model.registry.Registries.findTldForNameOrThrow;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.common.net.InternetDomainName;
-import com.google.template.soy.data.SoyMapData;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.net.InternetDomainName;
+import com.google.template.soy.data.SoyMapData;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.soy.CreateAnchorTenantSoyInfo;
-
+import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-
-import javax.inject.Inject;
 
 /** A command to create a new anchor tenant domain. */
 @Parameters(separators = " =", commandDescription = "Provision a domain for an anchor tenant.")

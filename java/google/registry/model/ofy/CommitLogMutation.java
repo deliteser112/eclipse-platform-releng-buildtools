@@ -21,12 +21,10 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.common.annotations.VisibleForTesting;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.NotBackedUp.Reason;

@@ -18,18 +18,15 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.net.InternetDomainName;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tools.Command.RemoteApiCommand;
-
 import org.joda.time.DateTime;
 
 /** Command to update the claims notice on a domain application. */

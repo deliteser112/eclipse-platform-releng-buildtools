@@ -19,12 +19,10 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 
 import com.google.common.base.Optional;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.contact.ContactResource;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

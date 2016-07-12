@@ -24,7 +24,6 @@ import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.net.MediaType;
-
 import google.registry.model.registry.Registry;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
@@ -32,7 +31,6 @@ import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.storage.drive.DriveConnection;
 import google.registry.util.FormattingLogger;
-
 import javax.inject.Inject;
 
 /** Action that exports the publicly viewable reserved terms list for a TLD to Google Drive. */

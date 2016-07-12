@@ -21,15 +21,12 @@ import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.BigqueryScopes;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.collect.ImmutableList;
-
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ElementsIntoSet;
 import dagger.multibindings.Multibinds;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.request.OAuthScopes;
-
 import java.util.Map;
 import java.util.Set;
 

@@ -19,7 +19,6 @@ import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableList;
-
 import google.registry.model.EppResource;
 import google.registry.model.EppResource.Builder;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;

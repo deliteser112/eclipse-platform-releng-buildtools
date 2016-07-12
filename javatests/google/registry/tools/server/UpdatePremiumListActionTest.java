@@ -22,7 +22,6 @@ import google.registry.model.registry.label.PremiumList;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeJsonResponse;
-
 import org.joda.money.Money;
 import org.junit.Before;
 import org.junit.Rule;

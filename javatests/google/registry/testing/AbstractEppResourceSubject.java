@@ -23,18 +23,15 @@ import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntr
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
-
 import google.registry.model.EppResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.TruthChainer.And;
 import google.registry.testing.TruthChainer.Which;
-
-import org.joda.time.DateTime;
-
 import java.util.List;
 import java.util.Objects;
+import org.joda.time.DateTime;
 
 /** Base Truth subject for asserting things about epp resources. */
 abstract class AbstractEppResourceSubject

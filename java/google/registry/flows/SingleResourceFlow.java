@@ -19,13 +19,11 @@ import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.model.EppResource;
 import google.registry.model.domain.launch.ApplicationIdTargetExtension;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-
 import java.util.Set;
 
 /**

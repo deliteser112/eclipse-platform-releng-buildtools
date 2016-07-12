@@ -25,16 +25,14 @@ import static org.mockito.Mockito.when;
 
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.UserInfo;
-
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /** Unit tests for {@link XsrfProtectedServlet}. */
 @RunWith(MockitoJUnitRunner.class)

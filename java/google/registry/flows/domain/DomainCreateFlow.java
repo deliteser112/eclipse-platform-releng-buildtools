@@ -20,7 +20,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
@@ -36,9 +35,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tmch.LordnTask;
-
 import java.util.Set;
-
 import javax.inject.Inject;
 
 /**

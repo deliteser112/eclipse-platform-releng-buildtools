@@ -22,7 +22,6 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
-
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;

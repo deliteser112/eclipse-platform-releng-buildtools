@@ -18,7 +18,6 @@ import static com.google.common.base.Strings.emptyToNull;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.googlecode.objectify.annotation.Id;
-
 import google.registry.model.Buildable.GenericBuilder;
 import google.registry.model.ImmutableObject;
 

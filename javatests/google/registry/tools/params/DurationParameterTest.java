@@ -17,9 +17,7 @@ package google.registry.tools.params;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.beust.jcommander.ParameterException;
-
 import google.registry.testing.ExceptionRule;
-
 import org.joda.time.Duration;
 import org.joda.time.Period;
 import org.junit.Rule;

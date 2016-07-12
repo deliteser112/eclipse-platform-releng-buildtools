@@ -18,7 +18,6 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableList;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;

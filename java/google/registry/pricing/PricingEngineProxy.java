@@ -21,15 +21,12 @@ import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-
 import google.registry.model.pricing.PremiumPricingEngine;
 import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
 import google.registry.model.registry.Registry;
-
+import java.util.Map;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-
-import java.util.Map;
 
 /**
  * A global proxy providing static methods for getting premium prices that dispatches requests

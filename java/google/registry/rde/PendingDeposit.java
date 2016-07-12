@@ -15,14 +15,11 @@
 package google.registry.rde;
 
 import com.google.auto.value.AutoValue;
-
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.rde.RdeMode;
-
+import java.io.Serializable;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-
-import java.io.Serializable;
 
 /** Container representing a single RDE or BRDA XML escrow deposit that needs to be created. */
 @AutoValue

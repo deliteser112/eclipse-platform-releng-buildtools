@@ -25,18 +25,14 @@ import com.google.appengine.tools.mapreduce.inputs.InMemoryInput;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpointRoot;
 import google.registry.request.Action;
 import google.registry.request.Response;
-
 import java.util.Arrays;
-
 import javax.inject.Inject;
 
 /** Deletes all commit logs in datastore. */

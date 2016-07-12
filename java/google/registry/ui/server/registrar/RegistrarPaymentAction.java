@@ -21,17 +21,15 @@ import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 import static java.util.Arrays.asList;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap;
-import com.google.re2j.Pattern;
-
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.Result;
 import com.braintreegateway.Transaction;
 import com.braintreegateway.TransactionRequest;
 import com.braintreegateway.ValidationError;
 import com.braintreegateway.ValidationErrors;
-
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
+import com.google.re2j.Pattern;
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
@@ -41,17 +39,14 @@ import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormField;
 import google.registry.ui.forms.FormFieldException;
 import google.registry.util.FormattingLogger;
-
-import org.joda.money.CurrencyUnit;
-import org.joda.money.IllegalCurrencyException;
-import org.joda.money.Money;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import javax.inject.Inject;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.IllegalCurrencyException;
+import org.joda.money.Money;
 
 /**
  * Action handling submission of customer payment form.

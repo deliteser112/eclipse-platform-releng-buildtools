@@ -24,16 +24,14 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList.PremiumListEntry;
 import google.registry.model.registry.label.PremiumList.PremiumListRevision;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
-
+import java.util.Map;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -41,8 +39,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.Map;
 
 /** Unit tests for {@link PremiumList}. */
 @RunWith(JUnit4.class)

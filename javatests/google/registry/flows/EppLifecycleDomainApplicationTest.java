@@ -18,11 +18,9 @@ import static google.registry.testing.DatastoreHelper.createTld;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
-
 import google.registry.model.registry.Registry.TldState;
 import google.registry.testing.AppEngineRule;
 import google.registry.util.DateTimeUtils;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;

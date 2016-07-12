@@ -15,10 +15,8 @@
 package google.registry.request;
 
 import com.google.common.net.MediaType;
-
-import org.joda.time.DateTime;
-
 import javax.servlet.http.HttpServletResponse;
+import org.joda.time.DateTime;
 
 /**
  * HTTP request response object.

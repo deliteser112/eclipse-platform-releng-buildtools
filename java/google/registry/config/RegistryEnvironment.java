@@ -15,7 +15,6 @@
 package google.registry.config;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import javax.annotation.Nullable;
 
 /** Registry environments. */

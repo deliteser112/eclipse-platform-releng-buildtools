@@ -23,16 +23,13 @@ import com.google.appengine.api.users.UserService;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.hash.Hashing;
-
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import google.registry.util.SystemClock;
-
+import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-
-import java.util.List;
 
 /** Helper class for generating and validate XSRF tokens. */
 public final class XsrfTokenManager {

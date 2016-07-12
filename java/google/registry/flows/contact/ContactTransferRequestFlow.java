@@ -19,10 +19,8 @@ import google.registry.flows.ResourceTransferRequestFlow;
 import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.reporting.HistoryEntry;
-
-import org.joda.time.Duration;
-
 import javax.inject.Inject;
+import org.joda.time.Duration;
 
 /**
  * An EPP flow that requests a transfer on a {@link ContactResource}.

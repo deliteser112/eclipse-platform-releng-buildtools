@@ -20,24 +20,20 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
 import google.registry.model.tmch.ClaimsListShard.UnshardedSaveException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /** Unit tests for {@link ClaimsListShard}. */
 @RunWith(JUnit4.class)

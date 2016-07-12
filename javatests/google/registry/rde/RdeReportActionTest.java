@@ -40,7 +40,6 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
-
 import google.registry.config.RegistryConfig;
 import google.registry.config.RegistryEnvironment;
 import google.registry.gcs.GcsUtils;
@@ -55,7 +54,8 @@ import google.registry.testing.FakeResponse;
 import google.registry.xjc.XjcXmlTransformer;
 import google.registry.xjc.rdereport.XjcRdeReportReport;
 import google.registry.xml.XmlException;
-
+import java.io.ByteArrayInputStream;
+import java.util.Map;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -64,9 +64,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
-
-import java.io.ByteArrayInputStream;
-import java.util.Map;
 
 /** Unit tests for {@link RdeReportAction}. */
 @RunWith(JUnit4.class)

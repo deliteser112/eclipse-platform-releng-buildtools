@@ -19,20 +19,15 @@ import static google.registry.tools.server.ListObjectsAction.FIELDS_PARAM;
 import static google.registry.tools.server.ListObjectsAction.FULL_FIELD_NAMES_PARAM;
 import static google.registry.tools.server.ListObjectsAction.PRINT_HEADER_ROW_PARAM;
 
+import com.beust.jcommander.Parameter;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-
-import com.beust.jcommander.Parameter;
-
 import google.registry.tools.Command.RemoteApiCommand;
-
-import org.json.simple.JSONValue;
-
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
+import org.json.simple.JSONValue;
 
 /**
  * Abstract base class for commands that list objects by calling a server task.

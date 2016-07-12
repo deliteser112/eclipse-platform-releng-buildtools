@@ -16,11 +16,9 @@ package google.registry.model.index;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.Hashing;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;

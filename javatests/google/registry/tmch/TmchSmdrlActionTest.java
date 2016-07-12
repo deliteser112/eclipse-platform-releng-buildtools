@@ -21,9 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Optional;
-
 import google.registry.model.smd.SignedMarkRevocationList;
-
 import org.joda.time.DateTime;
 import org.junit.Test;
 

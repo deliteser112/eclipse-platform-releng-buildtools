@@ -17,15 +17,12 @@ package google.registry.testing.sftp;
 import static com.google.common.base.Preconditions.checkState;
 
 import google.registry.util.NetworkUtils;
-
+import java.io.File;
+import java.io.IOException;
+import javax.annotation.Nullable;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.junit.rules.ExternalResource;
-
-import java.io.File;
-import java.io.IOException;
-
-import javax.annotation.Nullable;
 
 /**
  * JUnit Rule for creating an in-process {@link TestSftpServer SFTP Server}.

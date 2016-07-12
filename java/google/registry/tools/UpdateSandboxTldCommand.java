@@ -17,7 +17,6 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.beust.jcommander.Parameters;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.tools.Command.GtechCommand;
 

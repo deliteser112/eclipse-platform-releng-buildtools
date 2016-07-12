@@ -24,19 +24,17 @@ import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.tools.CommandUtilities.addHeader;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SoyMapData;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
-
 import google.registry.flows.EppException;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainApplication;
@@ -50,7 +48,6 @@ import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.SignedMark;
 import google.registry.tools.soy.DomainAllocateSoyInfo;
-
 import java.util.ArrayList;
 import java.util.List;
 

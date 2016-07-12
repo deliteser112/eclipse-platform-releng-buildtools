@@ -26,15 +26,11 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Range;
-
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
-
 import google.registry.model.ImmutableObject;
-
-import org.joda.time.DateTime;
-
 import java.util.List;
+import org.joda.time.DateTime;
 
 /**
  * A time of year (month, day, millis of day) that can be stored in a sort-friendly format.

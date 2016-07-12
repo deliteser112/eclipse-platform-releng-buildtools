@@ -30,9 +30,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-
 import google.registry.util.NonFinalForTesting;
-
 import java.util.NoSuchElementException;
 
 /** An object providing methods for starting and querying datastore backups. */

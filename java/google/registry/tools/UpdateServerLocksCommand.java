@@ -20,16 +20,13 @@ import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.union;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.template.soy.data.SoyMapData;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.template.soy.data.SoyMapData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.soy.UpdateServerLocksSoyInfo;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;

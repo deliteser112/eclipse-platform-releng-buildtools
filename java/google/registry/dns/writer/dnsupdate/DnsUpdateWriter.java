@@ -18,7 +18,6 @@ import static com.google.common.base.Verify.verify;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 
 import com.google.common.net.InternetDomainName;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.dns.writer.api.DnsWriter;
 import google.registry.model.domain.DomainResource;
@@ -26,7 +25,11 @@ import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
 import google.registry.model.registry.Registries;
 import google.registry.util.Clock;
-
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import javax.inject.Inject;
 import org.joda.time.Duration;
 import org.xbill.DNS.AAAARecord;
 import org.xbill.DNS.ARecord;
@@ -40,13 +43,6 @@ import org.xbill.DNS.Rcode;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 import org.xbill.DNS.Update;
-
-import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-
-import javax.inject.Inject;
 
 /**
  * A DnsWriter that implements the DNS UPDATE protocol as specified in

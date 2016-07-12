@@ -21,12 +21,9 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-
 import google.registry.config.RegistryConfig;
 import google.registry.config.RegistryEnvironment;
-
 import java.util.List;
-
 import javax.mail.Message;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;

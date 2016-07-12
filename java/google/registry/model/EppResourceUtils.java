@@ -24,12 +24,10 @@ import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static google.registry.util.DateTimeUtils.latestOf;
 
 import com.google.common.base.Function;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.ResultNow;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.EppResource.Builder;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
@@ -43,15 +41,12 @@ import google.registry.model.ofy.CommitLogMutation;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 
 /** Utilities for working with {@link EppResource}. */
 public final class EppResourceUtils {

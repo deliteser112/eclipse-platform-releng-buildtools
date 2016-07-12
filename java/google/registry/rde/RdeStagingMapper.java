@@ -26,9 +26,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
-
 import com.googlecode.objectify.Result;
-
 import google.registry.model.EppResource;
 import google.registry.model.EppResourceUtils;
 import google.registry.model.contact.ContactResource;
@@ -36,11 +34,9 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.rde.RdeMode;
 import google.registry.model.registrar.Registrar;
-
-import org.joda.time.DateTime;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.joda.time.DateTime;
 
 /** Mapper for {@link RdeStagingAction}. */
 public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, DepositFragment> {

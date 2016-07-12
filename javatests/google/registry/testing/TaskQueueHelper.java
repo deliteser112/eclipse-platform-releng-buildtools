@@ -42,11 +42,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-
 import google.registry.dns.DnsConstants;
-
-import org.joda.time.Duration;
-
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,8 +52,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-
 import javax.annotation.Nonnull;
+import org.joda.time.Duration;
 
 /** Static utility functions for testing task queues. */
 public class TaskQueueHelper {

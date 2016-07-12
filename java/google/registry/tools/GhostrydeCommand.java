@@ -18,20 +18,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.common.io.ByteStreams;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.io.ByteStreams;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.rde.Ghostryde;
 import google.registry.tools.params.PathParameter;
-
-import org.bouncycastle.openpgp.PGPException;
-import org.bouncycastle.openpgp.PGPPrivateKey;
-import org.bouncycastle.openpgp.PGPPublicKey;
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,8 +31,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
-
 import javax.inject.Inject;
+import org.bouncycastle.openpgp.PGPException;
+import org.bouncycastle.openpgp.PGPPrivateKey;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.joda.time.DateTime;
 
 /** Command to encrypt/decrypt {@code .ghostryde} files. */
 @Parameters(separators = " =", commandDescription = "Encrypt/decrypt a ghostryde file.")

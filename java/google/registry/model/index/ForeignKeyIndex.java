@@ -22,23 +22,19 @@ import static google.registry.util.TypeUtils.instantiate;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
-
 import google.registry.model.BackupGroupRoot;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
-
-import org.joda.time.DateTime;
-
 import java.util.Map;
+import org.joda.time.DateTime;
 
 /**
  * Class to map a foreign key to the active instance of {@link EppResource} whose unique id matches

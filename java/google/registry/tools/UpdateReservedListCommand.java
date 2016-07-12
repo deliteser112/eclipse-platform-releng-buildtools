@@ -18,15 +18,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.ListNamingUtils.convertFilePathToName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-
-import com.beust.jcommander.Parameters;
-
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.registry.label.ReservedList.Builder;
 import google.registry.util.SystemClock;
-
 import java.nio.file.Files;
 
 /** Command to safely update {@link ReservedList} on Datastore. */

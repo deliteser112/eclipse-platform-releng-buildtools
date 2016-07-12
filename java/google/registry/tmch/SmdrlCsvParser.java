@@ -19,12 +19,9 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.model.smd.SignedMarkRevocationList;
-
-import org.joda.time.DateTime;
-
 import java.util.List;
+import org.joda.time.DateTime;
 
 /**
  * Signed Mark Data Revocation List (SMDRL) CSV Parser

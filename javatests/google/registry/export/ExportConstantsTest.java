@@ -26,19 +26,14 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import com.google.re2j.Pattern;
-
 import com.googlecode.objectify.annotation.Entity;
-
 import google.registry.model.ImmutableObject;
-
+import java.net.URL;
+import java.util.List;
+import javax.annotation.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.net.URL;
-import java.util.List;
-
-import javax.annotation.Nullable;
 
 /** Unit tests for {@link ExportConstants}. */
 @RunWith(JUnit4.class)

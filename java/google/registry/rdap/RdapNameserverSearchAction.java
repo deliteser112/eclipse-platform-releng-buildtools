@@ -25,9 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.primitives.Booleans;
-
 import com.googlecode.objectify.cmd.Query;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
@@ -39,12 +37,9 @@ import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
 import google.registry.util.Idn;
-
-import org.joda.time.DateTime;
-
 import java.net.InetAddress;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * RDAP (new WHOIS) action for nameserver search requests.

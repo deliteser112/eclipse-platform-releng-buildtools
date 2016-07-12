@@ -23,16 +23,12 @@ import static google.registry.request.RequestParameters.extractRequiredParameter
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
-
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
 import dagger.multibindings.StringKey;
-
 import google.registry.request.Parameter;
-
 import java.util.UUID;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**

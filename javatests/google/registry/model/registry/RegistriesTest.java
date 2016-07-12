@@ -18,9 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
 
 import com.google.common.net.InternetDomainName;
-
 import google.registry.testing.AppEngineRule;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

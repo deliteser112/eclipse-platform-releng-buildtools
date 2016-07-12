@@ -20,12 +20,10 @@ import static google.registry.security.XsrfTokenManager.validateToken;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Splitter;
-
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.testing.UserInfo;
-
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;

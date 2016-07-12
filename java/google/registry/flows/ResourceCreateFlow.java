@@ -17,9 +17,7 @@ package google.registry.flows;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.flows.EppException.ObjectAlreadyExistsException;
 import google.registry.model.EppResource;
 import google.registry.model.EppResource.Builder;
@@ -31,7 +29,6 @@ import google.registry.model.index.DomainApplicationIndex;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.util.TypeUtils.TypeInstantiator;
-
 import javax.annotation.Nullable;
 
 /**

@@ -25,7 +25,6 @@ import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -33,7 +32,6 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.impl.translate.TranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.joda.MoneyStringTranslatorFactory;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.EntityClasses;
 import google.registry.model.ImmutableObject;
@@ -45,7 +43,6 @@ import google.registry.model.translators.DurationTranslatorFactory;
 import google.registry.model.translators.InetAddressTranslatorFactory;
 import google.registry.model.translators.ReadableInstantUtcTranslatorFactory;
 import google.registry.model.translators.UpdateAutoTimestampTranslatorFactory;
-
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;

@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import dagger.Component;
-
 import google.registry.config.ConfigModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.api.VoidKeyringModule;

@@ -19,7 +19,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Work;
-
 import google.registry.flows.EppException.AssociationProhibitsOperationException;
 import google.registry.model.EppResource;
 import google.registry.model.EppResource.Builder;

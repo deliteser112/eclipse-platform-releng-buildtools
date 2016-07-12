@@ -18,15 +18,11 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
 import google.registry.model.eppcommon.PresenceMarker;
-
 import java.util.List;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 

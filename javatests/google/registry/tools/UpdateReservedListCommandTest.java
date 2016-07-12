@@ -20,9 +20,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
-
 import google.registry.model.registry.label.ReservedList;
-
 import org.junit.Test;
 
 /** Unit tests for {@link UpdateReservedListCommand}. */

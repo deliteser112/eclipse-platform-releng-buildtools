@@ -24,16 +24,13 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.util.FormattingLogger;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
-
 import javax.annotation.CheckReturnValue;
 import javax.inject.Inject;
 

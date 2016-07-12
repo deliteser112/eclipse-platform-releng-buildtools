@@ -19,17 +19,13 @@ import static org.bouncycastle.openpgp.PGPLiteralData.BINARY;
 
 import com.google.auto.factory.AutoFactory;
 import com.google.auto.factory.Provided;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.util.ImprovedOutputStream;
-
-import org.bouncycastle.openpgp.PGPLiteralDataGenerator;
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.io.OutputStream;
-
 import javax.annotation.WillNotClose;
+import org.bouncycastle.openpgp.PGPLiteralDataGenerator;
+import org.joda.time.DateTime;
 
 /**
  * OpenPGP literal data layer generator that wraps {@link OutputStream}.

@@ -21,12 +21,10 @@ import static google.registry.model.domain.launch.ApplicationStatus.ALLOCATED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.google.common.collect.ImmutableList;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
@@ -36,10 +34,8 @@ import google.registry.model.poll.PendingActionNotificationResponse.DomainPendin
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.reporting.HistoryEntry;
-
-import org.joda.time.DateTime;
-
 import java.util.List;
+import org.joda.time.DateTime;
 
 /** Command to manually update the status of a domain application. */
 @Parameters(separators = " =", commandDescription = "Manually update domain application status.")

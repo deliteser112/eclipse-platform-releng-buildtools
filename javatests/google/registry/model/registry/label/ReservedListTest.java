@@ -29,9 +29,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservedList.ReservedListEntry;
@@ -39,7 +37,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;

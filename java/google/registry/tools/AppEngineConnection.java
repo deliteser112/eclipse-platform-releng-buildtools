@@ -22,6 +22,8 @@ import static google.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
 import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
@@ -32,17 +34,9 @@ import com.google.common.net.HostAndPort;
 import com.google.common.net.MediaType;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.security.XsrfTokenManager;
 import google.registry.tools.ServerSideCommand.Connection;
-
-import org.joda.time.Duration;
-import org.json.simple.JSONValue;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -51,6 +45,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.joda.time.Duration;
+import org.json.simple.JSONValue;
 
 /** An http connection to the appengine server. */
 @Parameters(separators = " =")

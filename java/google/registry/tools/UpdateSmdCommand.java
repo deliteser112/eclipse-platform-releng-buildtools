@@ -21,24 +21,20 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.tmch.TmchData.readEncodedSignedMark;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.net.InternetDomainName;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.collect.ImmutableList;
+import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.flows.EppException;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
-
-import org.joda.time.DateTime;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.joda.time.DateTime;
 
 /** Command to update the SMD on a domain application. */
 @Parameters(separators = " =", commandDescription = "Update the SMD on an application.")

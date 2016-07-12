@@ -20,7 +20,6 @@ import static google.registry.tldconfig.idn.IdnTableEnum.JA;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.util.Idn;
 import google.registry.util.NonFinalForTesting;
 

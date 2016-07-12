@@ -17,12 +17,9 @@ package google.registry.model.domain.secdns;
 import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
 
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.eppinput.EppInput.CommandExtension;
-
 import java.util.Set;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 

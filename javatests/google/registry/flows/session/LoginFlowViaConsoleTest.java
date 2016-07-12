@@ -21,17 +21,14 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.Environment;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.flows.GaeUserCredentials;
 import google.registry.flows.GaeUserCredentials.BadGaeUserIdException;
 import google.registry.flows.GaeUserCredentials.UserNotLoggedInException;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
-
-import org.junit.Test;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link LoginFlow} when accessed via a web frontend

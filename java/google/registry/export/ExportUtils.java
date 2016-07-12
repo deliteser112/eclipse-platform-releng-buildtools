@@ -17,14 +17,11 @@ package google.registry.export;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 
 import com.google.common.base.Joiner;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.registry.label.ReservedList.ReservedListEntry;
-
 import java.util.Set;
 import java.util.TreeSet;
 

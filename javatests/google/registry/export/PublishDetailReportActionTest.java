@@ -32,7 +32,6 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-
 import google.registry.gcs.GcsUtils;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.HttpException.BadRequestException;
@@ -40,17 +39,15 @@ import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.storage.drive.DriveConnection;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
-
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Map;
 
 /** Unit tests for {@link PublishDetailReportAction}. */
 @RunWith(MockitoJUnitRunner.class)

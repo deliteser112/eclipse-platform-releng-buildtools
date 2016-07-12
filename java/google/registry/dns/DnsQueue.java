@@ -35,20 +35,16 @@ import com.google.apphosting.api.DeadlineExceededException;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.registry.Registries;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.Duration;
-
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
+import org.joda.time.Duration;
 
 /** Methods for manipulating the queue used for DNS write tasks. */
 public class DnsQueue {

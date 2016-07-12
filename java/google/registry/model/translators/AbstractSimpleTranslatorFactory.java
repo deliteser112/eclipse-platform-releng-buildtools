@@ -21,9 +21,7 @@ import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
-
 import google.registry.util.TypeUtils.TypeInstantiator;
-
 import java.lang.reflect.Type;
 
 /** Common boilerplate for translator factories. */

@@ -19,9 +19,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.time.Duration.ZERO;
 
 import com.google.common.base.Supplier;
-
 import google.registry.config.RegistryEnvironment;
-
 import org.joda.time.Duration;
 
 /** Utility methods related to caching. */

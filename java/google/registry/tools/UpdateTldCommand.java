@@ -21,20 +21,16 @@ import static com.google.common.collect.Sets.union;
 import static google.registry.model.registry.Registries.assertTldExists;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
-
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservedList;
-
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 /** Command to update a TLD. */

@@ -18,13 +18,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import google.registry.testing.ExceptionRule;
-
+import java.io.StringWriter;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.io.StringWriter;
 
 /** Unit tests for {@link HexDumper}. */
 @RunWith(JUnit4.class)

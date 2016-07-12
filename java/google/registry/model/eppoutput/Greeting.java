@@ -18,13 +18,10 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.eppcommon.PresenceMarker;
 import google.registry.model.eppcommon.ProtocolDefinition;
 import google.registry.model.eppoutput.EppOutput.ResponseOrGreeting;
-
-import org.joda.time.DateTime;
-
 import java.util.Set;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
+import org.joda.time.DateTime;
 
 /**
  * A greeting, defined in {@link "http://tools.ietf.org/html/rfc5730"}.

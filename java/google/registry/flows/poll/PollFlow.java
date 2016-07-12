@@ -17,11 +17,9 @@ package google.registry.flows.poll;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableList;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Query;
-
 import google.registry.flows.EppException;
 import google.registry.flows.LoggedInFlow;
 import google.registry.model.eppinput.EppInput.Poll;
@@ -32,7 +30,6 @@ import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.poll.MessageQueueInfo;
 import google.registry.model.poll.PollMessage;
-
 import java.util.List;
 
 /** Base class of EPP Poll command flows. Mostly provides datastore helper methods. */

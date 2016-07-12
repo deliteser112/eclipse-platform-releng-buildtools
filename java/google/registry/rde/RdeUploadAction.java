@@ -28,10 +28,8 @@ import static java.util.Arrays.asList;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.io.ByteStreams;
-
 import com.googlecode.objectify.VoidWork;
 import com.jcraft.jsch.JSch;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule.Key;
@@ -51,21 +49,18 @@ import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
 import google.registry.util.TeeOutputStream;
-
-import org.bouncycastle.openpgp.PGPKeyPair;
-import org.bouncycastle.openpgp.PGPPrivateKey;
-import org.bouncycastle.openpgp.PGPPublicKey;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-
 import javax.inject.Inject;
 import javax.inject.Named;
+import org.bouncycastle.openpgp.PGPKeyPair;
+import org.bouncycastle.openpgp.PGPPrivateKey;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * Action that securely uploads an RDE XML file from Cloud Storage to a trusted third party (such as

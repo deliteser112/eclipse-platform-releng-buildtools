@@ -18,9 +18,7 @@ import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static org.joda.time.format.ISODateTimeFormat.dateTimeNoMillis;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.flows.FlowTestCase;
-
 import org.junit.Test;
 
 /** Unit tests for {@link HelloFlow}. */

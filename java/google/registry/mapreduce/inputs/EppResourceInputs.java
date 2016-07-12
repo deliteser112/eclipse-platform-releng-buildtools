@@ -22,10 +22,8 @@ import static google.registry.util.TypeUtils.hasAnnotation;
 
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.EntitySubclass;
-
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.index.EppResourceIndex;

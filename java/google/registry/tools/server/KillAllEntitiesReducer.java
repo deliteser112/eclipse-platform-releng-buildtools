@@ -19,10 +19,8 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
-
 import java.util.Iterator;
 import java.util.List;
 

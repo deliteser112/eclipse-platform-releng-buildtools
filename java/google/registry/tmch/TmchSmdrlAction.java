@@ -17,19 +17,15 @@ package google.registry.tmch;
 import static google.registry.request.Action.Method.POST;
 
 import com.google.common.base.Optional;
-
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.request.Action;
 import google.registry.util.FormattingLogger;
-
-import org.bouncycastle.openpgp.PGPException;
-
 import java.io.IOException;
 import java.security.SignatureException;
 import java.util.List;
-
 import javax.inject.Inject;
+import org.bouncycastle.openpgp.PGPException;
 
 /** Action to download the latest signed mark revocation list from MarksDB. */
 @Action(path = "/_dr/task/tmchSmdrl", method = POST, automaticallyPrintOk = true)

@@ -31,16 +31,13 @@ import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.model.EntityTestCase;
 import google.registry.model.registry.Registry.RegistryNotFoundException;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.testing.ExceptionRule;
-
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;

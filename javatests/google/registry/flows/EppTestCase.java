@@ -23,7 +23,6 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.net.MediaType;
-
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.ofy.Ofy;
 import google.registry.testing.FakeClock;
@@ -31,12 +30,10 @@ import google.registry.testing.FakeHttpSession;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.testing.ShardableTestCase;
-
+import java.util.Map;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
-
-import java.util.Map;
 
 public class EppTestCase extends ShardableTestCase {
 

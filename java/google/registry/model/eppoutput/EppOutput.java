@@ -15,9 +15,7 @@
 package google.registry.model.eppoutput;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import google.registry.model.ImmutableObject;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;

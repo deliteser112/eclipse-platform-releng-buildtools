@@ -21,12 +21,10 @@ import static org.joda.time.Duration.standardDays;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharSource;
-
 import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
-
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;

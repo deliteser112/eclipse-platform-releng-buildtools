@@ -15,7 +15,6 @@
 package google.registry.model.eppoutput;
 
 import com.google.common.collect.ImmutableList;
-
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
@@ -48,15 +47,13 @@ import google.registry.model.poll.PendingActionNotificationResponse.ContactPendi
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
-
-import org.joda.time.DateTime;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import org.joda.time.DateTime;
 
 /**
  * The EppResponse class represents an EPP response message.

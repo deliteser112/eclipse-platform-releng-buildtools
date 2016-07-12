@@ -20,15 +20,12 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.ImmutableMap;
-
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.ClientTokenGateway;
-
+import com.google.common.collect.ImmutableMap;
 import google.registry.braintree.BraintreeRegistrarSyncer;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
-
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;
 import org.junit.Rule;

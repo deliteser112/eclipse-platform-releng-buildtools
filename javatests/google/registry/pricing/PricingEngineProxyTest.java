@@ -25,7 +25,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableSortedMap;
-
 import google.registry.model.pricing.PremiumPricingEngine;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList;
@@ -33,7 +32,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.util.Clock;
-
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;

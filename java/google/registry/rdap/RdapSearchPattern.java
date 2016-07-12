@@ -15,7 +15,6 @@
 package google.registry.rdap;
 
 import google.registry.request.HttpException.UnprocessableEntityException;
-
 import javax.annotation.Nullable;
 
 /**

@@ -23,9 +23,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.base.Optional;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
@@ -39,7 +37,6 @@ import google.registry.model.host.HostResource;
 import google.registry.model.host.HostResource.Builder;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.model.reporting.HistoryEntry;
-
 import javax.inject.Inject;
 
 /**

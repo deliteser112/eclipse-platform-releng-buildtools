@@ -40,9 +40,7 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
-
 import com.googlecode.objectify.Work;
-
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
@@ -67,9 +65,7 @@ import google.registry.model.smd.SignedMark;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.pricing.TldSpecificLogicProxy;
 import google.registry.pricing.TldSpecificLogicProxy.EppCommandOperations;
-
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 /**

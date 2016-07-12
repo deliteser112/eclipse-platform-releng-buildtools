@@ -26,12 +26,14 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.users.UserService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.NullPointerTester;
-
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.InjectRule;
 import google.registry.testing.UserInfo;
-
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,12 +41,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /** Unit tests for {@link RequestHandler}. */
 @RunWith(MockitoJUnitRunner.class)

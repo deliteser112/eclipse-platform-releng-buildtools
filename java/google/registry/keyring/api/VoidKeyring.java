@@ -14,11 +14,10 @@
 
 package google.registry.keyring.api;
 
+import javax.annotation.concurrent.Immutable;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
-
-import javax.annotation.concurrent.Immutable;
 
 /** {@link Keyring} that throws {@link UnsupportedOperationException} if any methods are called. */
 @Immutable

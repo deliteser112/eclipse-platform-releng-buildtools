@@ -24,7 +24,6 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservedList;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

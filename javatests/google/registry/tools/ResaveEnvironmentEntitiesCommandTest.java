@@ -21,14 +21,12 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 
 import com.google.common.base.Function;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.registry.Registry;
-
 import org.junit.Test;
 
 /** Unit tests for {@link ResaveEnvironmentEntitiesCommand}. */

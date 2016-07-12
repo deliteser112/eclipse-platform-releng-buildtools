@@ -18,7 +18,6 @@ import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Payload;
 import google.registry.util.FormattingLogger;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 

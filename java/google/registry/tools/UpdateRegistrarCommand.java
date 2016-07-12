@@ -17,7 +17,6 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.beust.jcommander.Parameters;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.tools.Command.GtechCommand;
 

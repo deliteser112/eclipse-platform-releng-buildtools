@@ -22,15 +22,12 @@ import static google.registry.security.XsrfTokenManager.validateToken;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 import com.google.appengine.api.users.UserService;
-
-import org.joda.time.Duration;
-
 import java.io.IOException;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.joda.time.Duration;
 
 /**
  * Servlet with Cross-Site Request Forgery (XSRF) protection.

@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.testing.ExceptionRule;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

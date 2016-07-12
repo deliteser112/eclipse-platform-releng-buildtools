@@ -17,16 +17,13 @@ package google.registry.flows.async;
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 
 import com.googlecode.objectify.Ref;
-
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.HistoryEntry.Type;
 import google.registry.request.Action;
-
-import org.joda.time.DateTime;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * A mapreduce to delete the specified ContactResource, but ONLY if it is not referred to by any

@@ -17,10 +17,8 @@ package google.registry.tools.params;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.re2j.Pattern;
-
 import com.beust.jcommander.ParameterException;
-
+import com.google.re2j.Pattern;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -21,13 +21,11 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
-
 import google.registry.model.registry.label.ReservedList;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeResponse;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

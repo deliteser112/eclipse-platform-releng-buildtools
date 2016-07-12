@@ -15,9 +15,7 @@
 package google.registry.tools;
 
 import com.google.common.net.MediaType;
-
 import google.registry.tools.Command.RemoteApiCommand;
-
 import java.io.IOException;
 import java.util.Map;
 

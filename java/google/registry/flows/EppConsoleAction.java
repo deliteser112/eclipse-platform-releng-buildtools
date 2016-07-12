@@ -19,7 +19,6 @@ import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Payload;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 

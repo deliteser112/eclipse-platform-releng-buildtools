@@ -23,12 +23,10 @@ import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
+import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-
-import com.beust.jcommander.ParameterException;
-
 import google.registry.config.TestRegistryConfig;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -50,19 +48,16 @@ import google.registry.xjc.rdehost.XjcRdeHost;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
 import google.registry.xml.XmlException;
 import google.registry.xml.XmlTestUtils;
-
-import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.bind.JAXBElement;
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 /** Unit tests for {@link GenerateEscrowDepositCommand}. */
 public class GenerateEscrowDepositCommandTest

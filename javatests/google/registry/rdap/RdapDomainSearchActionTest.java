@@ -33,9 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import com.google.common.net.InetAddresses;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
 import google.registry.model.host.HostResource;
@@ -47,7 +45,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
-
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;

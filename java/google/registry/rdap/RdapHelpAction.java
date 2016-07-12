@@ -19,7 +19,6 @@ import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.MakeRdapJsonNoticeParameters;
 import google.registry.request.Action;
@@ -27,7 +26,6 @@ import google.registry.request.HttpException;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.util.Clock;
-
 import javax.inject.Inject;
 
 /**

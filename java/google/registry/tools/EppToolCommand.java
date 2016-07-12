@@ -26,6 +26,7 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static google.registry.xml.XmlTransformer.prettyPrint;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.beust.jcommander.Parameter;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -37,11 +38,7 @@ import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.data.SoyRecord;
 import com.google.template.soy.parseinfo.SoyFileInfo;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
-
-import com.beust.jcommander.Parameter;
-
 import google.registry.model.registrar.Registrar;
-
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;

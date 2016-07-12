@@ -15,15 +15,11 @@
 package google.registry.rdap;
 
 import com.google.common.base.Optional;
-
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
-
 import java.net.InetAddress;
-
 import javax.servlet.http.HttpServletRequest;
 
 /** Dagger module for the RDAP package. */

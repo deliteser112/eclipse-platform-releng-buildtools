@@ -18,10 +18,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableList;
-
 import java.io.IOException;
 import java.io.OutputStream;
-
 import javax.annotation.WillNotClose;
 
 /**

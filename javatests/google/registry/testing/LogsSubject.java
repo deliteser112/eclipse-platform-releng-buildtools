@@ -20,9 +20,7 @@ import com.google.common.testing.TestLogHandler;
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
-
 import google.registry.testing.TruthChainer.And;
-
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;

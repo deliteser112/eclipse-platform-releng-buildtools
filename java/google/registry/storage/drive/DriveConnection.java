@@ -24,10 +24,8 @@ import com.google.api.services.drive.model.ParentReference;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.MediaType;
-
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 

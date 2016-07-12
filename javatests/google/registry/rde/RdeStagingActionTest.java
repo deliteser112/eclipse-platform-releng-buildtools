@@ -40,9 +40,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.keyring.api.Keyring;
 import google.registry.keyring.api.PgpHelper;
 import google.registry.mapreduce.MapreduceRunner;
@@ -73,7 +71,11 @@ import google.registry.xjc.rdeidn.XjcRdeIdn;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
 import google.registry.xml.XmlException;
 import google.registry.xml.XmlTestUtils;
-
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.bind.JAXBElement;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
@@ -87,13 +89,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.bind.JAXBElement;
 
 /** Unit tests for {@link RdeStagingAction}. */
 @RunWith(JUnit4.class)

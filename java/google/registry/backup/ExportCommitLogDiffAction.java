@@ -38,9 +38,7 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogBucket;
@@ -50,18 +48,15 @@ import google.registry.model.ofy.CommitLogMutation;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** Action that exports the diff between two commit log checkpoints to GCS. */
 @Action(

@@ -19,7 +19,6 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource.Builder;
 import google.registry.model.contact.PostalInfo.Type;
@@ -28,10 +27,8 @@ import google.registry.model.eppinput.ResourceCommand.ResourceCheck;
 import google.registry.model.eppinput.ResourceCommand.ResourceCreateOrChange;
 import google.registry.model.eppinput.ResourceCommand.ResourceUpdate;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
-
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;

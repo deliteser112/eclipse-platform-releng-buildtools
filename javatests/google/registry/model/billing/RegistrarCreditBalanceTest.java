@@ -22,21 +22,18 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.RegistrarCredit.CreditType;
 import google.registry.model.billing.RegistrarCreditBalance.BalanceMap;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.ExceptionRule;
-
+import java.util.Map;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.Map;
 
 /** Unit tests for {@link RegistrarCreditBalance}. */
 public class RegistrarCreditBalanceTest extends EntityTestCase {

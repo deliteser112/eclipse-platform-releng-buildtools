@@ -16,13 +16,11 @@ package google.registry.model.smd;
 
 import google.registry.model.ImmutableObject;
 import google.registry.model.mark.Mark;
-
-import org.joda.time.DateTime;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.joda.time.DateTime;
 
 /**
  * Represents an XML fragment that is digitally signed by the TMCH to prove ownership over a mark.

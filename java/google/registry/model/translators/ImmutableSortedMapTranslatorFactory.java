@@ -23,7 +23,6 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
 import com.google.common.reflect.TypeToken;
-
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
@@ -35,10 +34,8 @@ import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TranslatorFactory;
 import com.googlecode.objectify.impl.translate.TranslatorRegistry;
-
 import java.lang.reflect.Type;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 
 /**

@@ -19,7 +19,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
-
 import google.registry.flows.TlsCredentials;
 import google.registry.flows.TlsCredentials.BadRegistrarCertificateException;
 import google.registry.flows.TlsCredentials.BadRegistrarIpAddressException;
@@ -28,7 +27,6 @@ import google.registry.flows.TlsCredentials.NoSniException;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.CertificateSamples;
 import google.registry.util.CidrAddressBlock;
-
 import org.junit.Test;
 
 /** Unit tests for {@link LoginFlow} when accessed via a TLS transport. */

@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.modules.ModulesService;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.ofy.Ofy;
 import google.registry.testing.AppEngineRule;
@@ -32,24 +31,21 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.util.SendEmailService;
 import google.registry.util.SendEmailUtils;
-
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Map;
+import java.util.Properties;
+import javax.mail.Message;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /** Base class for tests using {@link RegistrarServlet}. */
 @RunWith(MockitoJUnitRunner.class)

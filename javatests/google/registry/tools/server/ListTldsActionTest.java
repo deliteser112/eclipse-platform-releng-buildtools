@@ -17,9 +17,7 @@ package google.registry.tools.server;
 import static google.registry.testing.DatastoreHelper.createTld;
 
 import com.google.common.base.Optional;
-
 import google.registry.testing.FakeClock;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

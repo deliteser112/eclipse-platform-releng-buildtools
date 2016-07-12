@@ -19,14 +19,11 @@ import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.millis;
 
 import google.registry.util.Clock;
-
+import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.concurrent.ThreadSafe;
 import org.joda.time.DateTime;
 import org.joda.time.ReadableDuration;
 import org.joda.time.ReadableInstant;
-
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /** A mock clock for testing purposes that supports telling, setting, and advancing the time. */
 @ThreadSafe

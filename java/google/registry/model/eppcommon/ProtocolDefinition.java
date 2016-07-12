@@ -21,7 +21,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.domain.allocate.AllocateCreateExtension;
 import google.registry.model.domain.fee.FeeCheckExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
@@ -29,10 +28,8 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.RgpUpdateExtension;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.eppinput.EppInput.CommandExtension;
-
 import java.util.EnumSet;
 import java.util.Set;
-
 import javax.xml.bind.annotation.XmlSchema;
 
 /** Constants that define the EPP protocol version we support. */

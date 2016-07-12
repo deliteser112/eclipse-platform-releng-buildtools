@@ -21,13 +21,10 @@ import static java.util.Collections.unmodifiableMap;
 
 import com.google.common.base.Throwables;
 import com.google.common.net.MediaType;
-
 import google.registry.request.Response;
-
-import org.joda.time.DateTime;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.joda.time.DateTime;
 
 /** Fake implementation of {@link Response} for testing. */
 public final class FakeResponse implements Response {

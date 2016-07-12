@@ -16,9 +16,7 @@ package google.registry.model.common;
 
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
-
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.ImmutableObject;
 
 /** An object that's equivalent to a {@code Range<Long>} that can be persisted to datastore. */

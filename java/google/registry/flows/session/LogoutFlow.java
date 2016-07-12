@@ -19,7 +19,6 @@ import static google.registry.model.eppoutput.Result.Code.SuccessAndClose;
 import google.registry.flows.EppException;
 import google.registry.flows.LoggedInFlow;
 import google.registry.model.eppoutput.EppOutput;
-
 import javax.inject.Inject;
 
 /**

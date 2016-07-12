@@ -18,7 +18,6 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 import google.registry.xjc.rde.XjcRdeRrType;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 

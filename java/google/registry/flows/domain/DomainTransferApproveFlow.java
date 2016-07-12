@@ -25,9 +25,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceTransferApproveFlow;
 import google.registry.model.billing.BillingEvent;
@@ -42,10 +40,8 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
-
-import org.joda.time.DateTime;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that approves a pending transfer on a {@link DomainResource}.

@@ -19,14 +19,11 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.rgp.GracePeriodStatus;
-
-import org.joda.time.DateTime;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /**
  * A domain grace period with an expiration time.

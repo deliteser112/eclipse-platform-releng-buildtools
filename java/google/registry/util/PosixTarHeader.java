@@ -22,12 +22,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeConstants.MILLIS_PER_SECOND;
 import static org.joda.time.DateTimeZone.UTC;
 
-import org.joda.time.DateTime;
-
 import java.util.Arrays;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import org.joda.time.DateTime;
 
 /**
  * POSIX Tar Header.

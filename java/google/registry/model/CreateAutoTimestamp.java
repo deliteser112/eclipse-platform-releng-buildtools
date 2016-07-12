@@ -15,7 +15,6 @@
 package google.registry.model;
 
 import google.registry.model.translators.CreateAutoTimestampTranslatorFactory;
-
 import org.joda.time.DateTime;
 
 /**

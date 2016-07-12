@@ -16,12 +16,10 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import google.registry.model.registry.label.ReservedList;
 
 /**

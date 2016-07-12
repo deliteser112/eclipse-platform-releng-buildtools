@@ -30,10 +30,8 @@ import com.google.api.services.bigquery.model.TableDataInsertAllResponse;
 import com.google.api.services.bigquery.model.TableDataInsertAllResponse.InsertErrors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.testing.AppEngineRule;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

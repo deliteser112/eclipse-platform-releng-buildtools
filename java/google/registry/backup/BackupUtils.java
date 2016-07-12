@@ -20,9 +20,7 @@ import com.google.appengine.api.datastore.EntityTranslator;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.storage.onestore.v3.OnestoreEntity.EntityProto;
-
 import google.registry.model.ImmutableObject;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;

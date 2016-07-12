@@ -32,7 +32,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogBucket;
@@ -42,12 +41,10 @@ import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
-
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.List;
 
 /** Tests for {@link KillAllCommitLogsAction}.*/
 @RunWith(JUnit4.class)

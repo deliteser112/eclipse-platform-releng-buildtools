@@ -21,12 +21,9 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.rde.RdeNamingUtils.makePartialName;
 
 import com.google.common.base.VerifyException;
-
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-
 import google.registry.model.ImmutableObject;
-
 import org.joda.time.DateTime;
 
 /**

@@ -25,7 +25,6 @@ import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardDays;
 
 import com.googlecode.objectify.Key;
-
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
@@ -36,7 +35,6 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeHttpSession;
 import google.registry.testing.InjectRule;
 import google.registry.testing.ShardableTestCase;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;

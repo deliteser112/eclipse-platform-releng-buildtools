@@ -27,15 +27,13 @@ import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
-
+import java.util.Arrays;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.Arrays;
 
 /** Unit tests for {@link MutatingCommand}. */
 @RunWith(MockitoJUnitRunner.class)

@@ -29,7 +29,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.testing.TestLogHandler;
-
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
@@ -39,18 +38,16 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeHttpSession;
 import google.registry.testing.Providers;
 import google.registry.testing.ShardableTestCase;
-
+import java.util.List;
+import java.util.Map;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.List;
-import java.util.Map;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 
 /** Unit tests for {@link FlowRunner}. */
 @RunWith(JUnit4.class)

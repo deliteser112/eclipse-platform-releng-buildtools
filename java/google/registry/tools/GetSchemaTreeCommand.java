@@ -19,22 +19,19 @@ import static google.registry.model.EntityClasses.ALL_CLASSES;
 import static java.lang.ClassLoader.getSystemClassLoader;
 import static java.lang.reflect.Modifier.isAbstract;
 
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultimap;
-
-import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Parent;
-
 import google.registry.model.BackupGroupRoot;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.VirtualEntity;
 import google.registry.tools.Command.GtechCommand;
-
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;

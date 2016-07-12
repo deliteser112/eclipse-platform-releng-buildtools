@@ -25,9 +25,7 @@ import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
@@ -50,7 +48,6 @@ import google.registry.model.registry.Registry.TldState;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.EppLoader;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

@@ -17,7 +17,6 @@ package google.registry.tools;
 import static google.registry.testing.DatastoreHelper.createTlds;
 
 import google.registry.tools.ServerSideCommand.Connection;
-
 import org.junit.Before;
 import org.mockito.Mock;
 

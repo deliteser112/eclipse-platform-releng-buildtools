@@ -19,7 +19,6 @@ import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
-
 import google.registry.model.ImmutableObject;
 
 /** A singleton entity in the datastore. */

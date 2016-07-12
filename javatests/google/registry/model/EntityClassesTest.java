@@ -22,15 +22,12 @@ import static google.registry.util.TypeUtils.hasAnnotation;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Ordering;
-
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.EntitySubclass;
-
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.Set;
 
 /** Unit tests for {@link EntityClasses}. */
 @RunWith(JUnit4.class)

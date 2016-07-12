@@ -26,15 +26,12 @@ import static java.util.Arrays.asList;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
-
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.Map;
 
 /**
  * Unit tests for security_settings.js use of {@link RegistrarServlet}.

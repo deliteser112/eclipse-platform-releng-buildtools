@@ -18,14 +18,11 @@ import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.ParameterException;
-
 import google.registry.testing.InjectRule;
-
+import java.io.ByteArrayInputStream;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.io.ByteArrayInputStream;
 
 /** Unit tests for {@link ExecuteEppCommand}. */
 public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppCommand> {

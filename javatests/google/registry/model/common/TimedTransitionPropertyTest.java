@@ -22,18 +22,15 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
-
 import google.registry.testing.ExceptionRule;
-
+import java.util.Map;
+import java.util.Set;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.Map;
-import java.util.Set;
 
 /** Unit tests for {@link TimedTransitionProperty}. */
 @RunWith(JUnit4.class)

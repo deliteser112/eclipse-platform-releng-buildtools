@@ -15,7 +15,6 @@
 package google.registry.module.tools;
 
 import dagger.Subcomponent;
-
 import google.registry.export.PublishDetailReportAction;
 import google.registry.flows.EppToolAction;
 import google.registry.flows.EppToolAction.EppToolModule;

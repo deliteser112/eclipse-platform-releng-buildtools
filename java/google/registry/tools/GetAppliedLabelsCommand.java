@@ -24,22 +24,19 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.internal.Sets;
 import com.googlecode.objectify.Work;
-
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.Idn;
-
-import org.joda.time.DateTime;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.joda.time.DateTime;
 
 /** Command to generate a list of all slds in a tld that have open applications. */
 @Parameters(separators = " =", commandDescription = "Generate applied-for domains list")

@@ -26,7 +26,6 @@ import com.google.common.net.MediaType;
 import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.shared.SoyCssRenamingMap;
 import com.google.template.soy.tofu.SoyTofu;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppConsoleAction;
 import google.registry.model.registrar.Registrar;
@@ -35,7 +34,6 @@ import google.registry.request.Response;
 import google.registry.security.XsrfTokenManager;
 import google.registry.ui.server.SoyTemplateUtils;
 import google.registry.ui.soy.registrar.ConsoleSoyInfo;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 

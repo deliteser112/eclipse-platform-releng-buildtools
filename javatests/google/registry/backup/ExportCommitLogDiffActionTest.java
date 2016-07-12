@@ -28,10 +28,8 @@ import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.collect.ImmutableMap;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
-
 import google.registry.config.TestRegistryConfig;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogBucket;
@@ -42,15 +40,13 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.GcsTestingUtils;
 import google.registry.testing.RegistryConfigRule;
 import google.registry.testing.TestObject;
-
+import java.util.List;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.List;
 
 /** Unit tests for {@link ExportCommitLogDiffAction}. */
 @RunWith(JUnit4.class)

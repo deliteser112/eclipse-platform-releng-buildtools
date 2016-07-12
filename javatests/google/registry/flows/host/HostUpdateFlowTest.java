@@ -38,10 +38,8 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -64,14 +62,11 @@ import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
-
+import java.net.InetAddress;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.net.InetAddress;
-
-import javax.annotation.Nullable;
 
 /** Unit tests for {@link HostUpdateFlow}. */
 public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, HostResource> {

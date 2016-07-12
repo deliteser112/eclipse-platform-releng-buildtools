@@ -15,7 +15,6 @@
 package google.registry.dns.writer.api;
 
 import com.google.common.base.Joiner;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;

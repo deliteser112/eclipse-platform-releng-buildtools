@@ -21,12 +21,9 @@ import static google.registry.request.RequestParameters.extractSetOfParameters;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.request.Parameter;
-
 import javax.servlet.http.HttpServletRequest;
 
 /** Dagger module for the cron package. */

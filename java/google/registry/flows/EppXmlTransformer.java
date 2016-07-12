@@ -23,7 +23,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.SyntaxErrorException;
@@ -39,7 +38,6 @@ import google.registry.util.FormattingLogger;
 import google.registry.xml.ValidationMode;
 import google.registry.xml.XmlException;
 import google.registry.xml.XmlTransformer;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 

@@ -25,7 +25,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
-
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
@@ -39,7 +38,6 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
-
 import org.junit.Before;
 import org.junit.Test;
 

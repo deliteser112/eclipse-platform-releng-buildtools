@@ -20,18 +20,15 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.io.BaseEncoding;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-
 import google.registry.xjc.rde.XjcRdeRrType;
 import google.registry.xml.XmlException;
-
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import org.joda.time.DateTime;
 import org.joda.time.ReadableInstant;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /** Helper methods for RDE. */
 public final class RdeUtil {

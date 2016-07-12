@@ -23,14 +23,11 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.registry.Registry;
 import google.registry.request.Action;
 import google.registry.util.Clock;
-
-import org.joda.time.DateTime;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** An action that lists top-level domains, for use by the registry_tool list_tlds command. */
 @Action(path = ListTldsAction.PATH, method = {GET, POST})

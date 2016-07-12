@@ -29,7 +29,6 @@ import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Optional;
 import com.google.gdata.util.ServiceException;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.server.Lock;
 import google.registry.request.Action;
@@ -37,14 +36,11 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
-
-import org.joda.time.Duration;
-
 import java.io.IOException;
 import java.util.concurrent.Callable;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import org.joda.time.Duration;
 
 /**
  * Action for synchronizing the registrars spreadsheet.

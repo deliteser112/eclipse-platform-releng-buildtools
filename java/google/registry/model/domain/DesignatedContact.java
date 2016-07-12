@@ -15,14 +15,11 @@
 package google.registry.model.domain;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlValue;

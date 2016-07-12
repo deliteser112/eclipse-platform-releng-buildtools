@@ -23,11 +23,9 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.beust.jcommander.ParameterException;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-
-import com.beust.jcommander.ParameterException;
-
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
@@ -36,17 +34,15 @@ import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.ofy.Ofy;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /** Unit tests for {@link GenerateAuctionDataCommand}. */
 public class GenerateAuctionDataCommandTest extends CommandTestCase<GenerateAuctionDataCommand> {

@@ -18,10 +18,8 @@ import static google.registry.xml.ValidationMode.LENIENT;
 import static google.registry.xml.ValidationMode.STRICT;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.xml.XmlException;
 import google.registry.xml.XmlTransformer;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;

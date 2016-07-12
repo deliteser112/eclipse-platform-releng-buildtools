@@ -15,11 +15,8 @@
 package google.registry.model.domain.secdns;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.ImmutableObject;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;

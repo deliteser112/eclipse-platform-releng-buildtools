@@ -24,13 +24,10 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.model.EntityTestCase;
 import google.registry.model.domain.DomainApplication;
 import google.registry.testing.ExceptionRule;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;

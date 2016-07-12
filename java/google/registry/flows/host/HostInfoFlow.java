@@ -17,7 +17,6 @@ package google.registry.flows.host;
 import google.registry.flows.ResourceInfoFlow;
 import google.registry.model.host.HostCommand;
 import google.registry.model.host.HostResource;
-
 import javax.inject.Inject;
 
 /**

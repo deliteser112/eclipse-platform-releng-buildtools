@@ -16,7 +16,6 @@ package google.registry.tools;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
-
 import google.registry.tools.Command.GtechCommand;
 
 /** Command line interface with a subset of commands that are safe for tech support to run. */

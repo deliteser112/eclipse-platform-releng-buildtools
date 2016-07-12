@@ -17,7 +17,6 @@ package google.registry.model.domain;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
-
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 

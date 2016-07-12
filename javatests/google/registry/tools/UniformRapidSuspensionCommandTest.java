@@ -19,20 +19,16 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.common.collect.ImmutableSet;
-
 import com.beust.jcommander.ParameterException;
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Ref;
-
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
-
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
 /** Unit tests for {@link UniformRapidSuspensionCommand}. */
 public class UniformRapidSuspensionCommandTest

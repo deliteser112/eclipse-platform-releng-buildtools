@@ -20,20 +20,16 @@ import static google.registry.model.registry.Registries.getTlds;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
-
+import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
-
-import javax.annotation.Nullable;
 
 /** Command to create a TLD. */
 @Parameters(separators = " =", commandDescription = "Create new TLD(s)")

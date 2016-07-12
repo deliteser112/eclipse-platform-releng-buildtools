@@ -14,11 +14,10 @@
 
 package google.registry.testing;
 
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 /** Utility class for capturing channel output bytes from google cloud storage library mock. */
 public final class SlurpAnswer implements Answer<Integer> {

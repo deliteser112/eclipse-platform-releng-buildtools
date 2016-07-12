@@ -18,7 +18,6 @@ import static google.registry.flows.EppXmlTransformer.unmarshal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-
 import google.registry.flows.FlowModule.EppExceptionInProviderException;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
@@ -29,7 +28,6 @@ import google.registry.model.eppoutput.Result.Code;
 import google.registry.monitoring.whitebox.EppMetrics;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-
 import javax.inject.Inject;
 
 /**

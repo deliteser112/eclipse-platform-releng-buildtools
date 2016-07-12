@@ -14,11 +14,9 @@
 
 package google.registry.tools;
 
-import com.google.common.collect.ImmutableMap;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.collect.ImmutableMap;
 import google.registry.tools.server.ListDomainsAction;
 
 /** Command to list all second-level domains associated with a TLD. */

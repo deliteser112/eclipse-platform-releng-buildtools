@@ -27,10 +27,8 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceTransferRequestFlow;
 import google.registry.model.billing.BillingEvent;
@@ -48,15 +46,12 @@ import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
-
+import java.util.HashSet;
+import java.util.Set;
+import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.inject.Inject;
 
 /**
  * An EPP flow that requests a transfer on a {@link DomainResource}.

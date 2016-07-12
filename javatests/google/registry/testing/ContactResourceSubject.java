@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
-
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.eppcommon.AuthInfo;

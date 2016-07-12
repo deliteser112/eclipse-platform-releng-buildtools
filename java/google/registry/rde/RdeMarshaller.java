@@ -18,7 +18,6 @@ import static com.google.common.base.Verify.verify;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.googlecode.objectify.Key;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
@@ -38,16 +37,13 @@ import google.registry.xjc.rdepolicy.XjcRdePolicy;
 import google.registry.xjc.rdepolicy.XjcRdePolicyElement;
 import google.registry.xml.XmlException;
 import google.registry.xml.XmlFragmentMarshaller;
-
-import org.joda.time.DateTime;
-
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 import java.util.Collection;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.MarshalException;
+import org.joda.time.DateTime;
 
 /** XML document <i>fragment</i> marshaller for RDE. */
 @NotThreadSafe

@@ -26,12 +26,10 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.util.Clock;
 import google.registry.util.SystemClock;
 import google.registry.xml.ValidationMode;
-
+import javax.annotation.Nullable;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-
-import javax.annotation.Nullable;
 
 /**
  * A test rule similar to JUnit's {@code ExpectedException} rule that does extra checking to ensure

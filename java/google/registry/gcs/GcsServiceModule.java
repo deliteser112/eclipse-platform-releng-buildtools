@@ -17,7 +17,6 @@ package google.registry.gcs;
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.RetryParams;
-
 import dagger.Module;
 import dagger.Provides;
 

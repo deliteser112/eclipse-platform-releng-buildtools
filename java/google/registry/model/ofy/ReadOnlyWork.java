@@ -15,7 +15,6 @@
 package google.registry.model.ofy;
 
 import com.googlecode.objectify.Work;
-
 import google.registry.util.Clock;
 
 /** Wrapper for {@link Work} that disallows mutations and fails the transaction at the end. */

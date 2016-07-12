@@ -38,10 +38,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.EppResource;
@@ -63,18 +61,15 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
-
-import org.joda.time.DateTime;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * A mapreduce to verify integrity of entities in Datastore.

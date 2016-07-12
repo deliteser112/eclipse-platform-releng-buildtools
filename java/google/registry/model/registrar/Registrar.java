@@ -44,7 +44,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import com.google.re2j.Pattern;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Cache;
@@ -54,7 +53,6 @@ import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.condition.IfNull;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.Buildable;
 import google.registry.model.CreateAutoTimestamp;
@@ -65,9 +63,6 @@ import google.registry.model.UpdateAutoTimestamp;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.util.CidrAddressBlock;
 import google.registry.util.NonFinalForTesting;
-
-import org.joda.time.DateTime;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -77,6 +72,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.joda.time.DateTime;
 
 /** Information about a registrar. */
 @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)

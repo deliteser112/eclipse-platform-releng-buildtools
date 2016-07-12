@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
-
 import google.registry.model.registry.label.PremiumList;
 import google.registry.tools.server.UpdatePremiumListAction;
 

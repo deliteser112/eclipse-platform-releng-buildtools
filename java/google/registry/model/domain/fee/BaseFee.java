@@ -18,16 +18,13 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 
 import google.registry.model.ImmutableObject;
 import google.registry.xml.PeriodAdapter;
-
-import org.joda.time.Period;
-
 import java.math.BigDecimal;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.joda.time.Period;
 
 /** Base class for the fee and credit types. */
 @XmlTransient

@@ -15,23 +15,18 @@
 package google.registry.rde;
 
 import com.google.common.base.Splitter;
-
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.Duration;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
-
 import javax.inject.Inject;
+import org.joda.time.Duration;
 
 /**
  * SFTP connection {@link Session} delegate that implements {@link Closeable}.

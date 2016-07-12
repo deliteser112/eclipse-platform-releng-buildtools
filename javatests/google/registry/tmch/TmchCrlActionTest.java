@@ -19,14 +19,13 @@ import static google.registry.util.ResourceUtils.readResourceBytes;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.joda.time.DateTime;
-import org.junit.Test;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.SignatureException;
 import java.security.cert.CRLException;
 import java.security.cert.CertificateNotYetValidException;
+import org.joda.time.DateTime;
+import org.junit.Test;
 
 /** Unit tests for {@link TmchCrlAction}. */
 public class TmchCrlActionTest extends TmchActionTestCase {

@@ -25,14 +25,11 @@ import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
-
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList;
-
+import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-
-import javax.inject.Inject;
 
 /** A premium list pricing engine that stores static pricing information in Datastore entities. */
 public final class StaticPremiumListPricingEngine implements PremiumPricingEngine {

@@ -17,17 +17,13 @@ package google.registry.rde;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 
 import com.google.appengine.api.taskqueue.Queue;
-
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
-
-import org.joda.time.DateTime;
-
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
 
 /**
  * Dagger module for RDE package.

@@ -26,7 +26,6 @@ import google.registry.xjc.rderegistrar.XjcRdeRegistrarPostalInfoEnumType;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrarPostalInfoType;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrarStatusType;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrarWhoisInfoType;
-
 import java.math.BigInteger;
 
 /** Utility class that turns {@link Registrar} as {@link XjcRdeRegistrarElement}. */

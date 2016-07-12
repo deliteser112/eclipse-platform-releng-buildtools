@@ -16,11 +16,9 @@ package google.registry.model.transfer;
 
 import google.registry.model.Buildable.GenericBuilder;
 import google.registry.model.ImmutableObject;
-
-import org.joda.time.DateTime;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
+import org.joda.time.DateTime;
 
 /** Fields common to {@link TransferData} and {@link TransferResponse}. */
 @XmlTransient

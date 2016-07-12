@@ -19,13 +19,11 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
 import google.registry.model.billing.RegistrarCredit;
 import google.registry.model.billing.RegistrarCreditBalance;
 import google.registry.model.registrar.Registrar;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.util.SystemClock;
-
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 

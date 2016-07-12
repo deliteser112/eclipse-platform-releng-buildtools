@@ -14,10 +14,9 @@
 
 package google.registry.model.mark;
 
-import org.joda.time.DateTime;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
+import org.joda.time.DateTime;
 
 /** Common fields for {@link CourtMark} and {@link TreatyOrStatuteMark}. */
 @XmlTransient

@@ -27,9 +27,7 @@ import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
-
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule;
@@ -47,13 +45,6 @@ import google.registry.util.TaskEnqueuer;
 import google.registry.xjc.rdeheader.XjcRdeHeader;
 import google.registry.xjc.rdeheader.XjcRdeHeaderElement;
 import google.registry.xml.XmlException;
-
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openpgp.PGPException;
-import org.bouncycastle.openpgp.PGPPublicKey;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -61,8 +52,12 @@ import java.io.Writer;
 import java.security.Security;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
-
 import javax.inject.Inject;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openpgp.PGPException;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /** Reducer for {@link RdeStagingAction}. */
 public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFragment, Void> {

@@ -21,25 +21,20 @@ import static google.registry.tools.server.CreateOrUpdatePremiumListAction.NAME_
 import static google.registry.util.ListNamingUtils.convertFilePathToName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.beust.jcommander.Parameter;
 import com.google.common.base.Joiner;
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-
-import com.beust.jcommander.Parameter;
-
 import google.registry.model.registry.label.PremiumList;
 import google.registry.tools.params.PathParameter;
-
-import org.json.simple.JSONValue;
-
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
+import org.json.simple.JSONValue;
 
 /**
  * Base class for specification of command line parameters common to creating and updating premium

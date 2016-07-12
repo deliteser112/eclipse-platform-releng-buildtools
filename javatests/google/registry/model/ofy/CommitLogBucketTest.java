@@ -23,15 +23,12 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.annotation.Cache;
-
 import google.registry.config.TestRegistryConfig;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
 import google.registry.testing.RegistryConfigRule;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

@@ -25,20 +25,15 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 
 import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.ListeningExecutorService;
-
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.cron.CommitLogFanoutAction;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
-
-import org.joda.time.DateTime;
-
 import java.lang.annotation.Documented;
-
 import javax.inject.Qualifier;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
 
 /**
  * Dagger module for backup package.

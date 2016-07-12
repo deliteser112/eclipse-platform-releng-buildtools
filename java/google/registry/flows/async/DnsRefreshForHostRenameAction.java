@@ -21,10 +21,8 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-
 import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
@@ -36,10 +34,8 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
-
-import org.joda.time.DateTime;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * Enqueues DNS refreshes for applicable domains following a host rename.

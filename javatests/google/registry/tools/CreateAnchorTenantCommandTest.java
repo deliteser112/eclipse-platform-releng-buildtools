@@ -19,9 +19,7 @@ import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.beust.jcommander.ParameterException;
-
 import google.registry.model.registry.Registry;
-
 import org.junit.Before;
 import org.junit.Test;
 

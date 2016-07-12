@@ -27,14 +27,13 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
 import com.google.appengine.api.taskqueue.QueueFactory;
-
 import google.registry.dns.writer.api.DnsWriter;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-
+import javax.inject.Provider;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.After;
@@ -44,8 +43,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.inject.Provider;
 
 /** Unit tests for {@link WriteDnsAction}. */
 @RunWith(MockitoJUnitRunner.class)

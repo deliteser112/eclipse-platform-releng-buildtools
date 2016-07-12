@@ -23,13 +23,10 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
-
 import google.registry.model.EppResource;
 import google.registry.util.TypeUtils.TypeInstantiator;
-
-import org.joda.time.DateTime;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /** Represents a WHOIS lookup on a domain name (i.e. SLD) or a nameserver. */
 abstract class DomainOrHostLookupCommand<T extends EppResource> implements WhoisCommand {

@@ -23,13 +23,10 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-
 import google.registry.model.host.HostResource;
 import google.registry.model.registry.Registries;
-
-import org.joda.time.DateTime;
-
 import java.net.InetAddress;
+import org.joda.time.DateTime;
 
 /**
  * Represents a WHOIS lookup for a nameserver based on its IP.

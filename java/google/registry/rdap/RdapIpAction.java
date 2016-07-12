@@ -18,11 +18,9 @@ import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.request.Action;
 import google.registry.request.HttpException;
 import google.registry.request.HttpException.NotImplementedException;
-
 import javax.inject.Inject;
 
 /**

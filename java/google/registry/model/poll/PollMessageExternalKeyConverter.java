@@ -19,15 +19,12 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.google.common.base.Converter;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableBiMap;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
-
 import java.util.List;
 
 /**

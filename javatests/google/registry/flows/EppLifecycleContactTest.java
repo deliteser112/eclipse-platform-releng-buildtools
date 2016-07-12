@@ -15,9 +15,7 @@
 package google.registry.flows;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.testing.AppEngineRule;
-
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;

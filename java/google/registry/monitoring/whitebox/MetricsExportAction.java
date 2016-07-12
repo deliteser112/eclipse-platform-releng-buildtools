@@ -31,18 +31,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.config.ConfigModule.Config;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.ParameterMap;
 import google.registry.util.FormattingLogger;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 /** Action for exporting metrics to BigQuery. */

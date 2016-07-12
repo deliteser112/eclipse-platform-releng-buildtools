@@ -15,7 +15,6 @@
 package google.registry.model.ofy;
 
 import google.registry.testing.AppEngineRule;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

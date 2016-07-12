@@ -21,7 +21,6 @@ import static google.registry.model.rde.RdeNamingUtils.makePartialName;
 import static google.registry.model.rde.RdeNamingUtils.makeRydeFilename;
 
 import google.registry.testing.ExceptionRule;
-
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;

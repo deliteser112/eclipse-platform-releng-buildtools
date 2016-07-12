@@ -15,11 +15,8 @@
 package google.registry.pricing;
 
 import dagger.Component;
-
 import google.registry.model.pricing.PremiumPricingEngine;
-
 import java.util.Map;
-
 import javax.inject.Singleton;
 
 /**

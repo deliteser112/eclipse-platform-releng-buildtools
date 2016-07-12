@@ -17,16 +17,13 @@ package google.registry.flows.host;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 
 import com.google.common.collect.ImmutableList;
-
 import google.registry.flows.ResourceCheckFlow;
 import google.registry.model.eppoutput.CheckData;
 import google.registry.model.eppoutput.CheckData.HostCheck;
 import google.registry.model.eppoutput.CheckData.HostCheckData;
 import google.registry.model.host.HostCommand.Check;
 import google.registry.model.host.HostResource;
-
 import java.util.Set;
-
 import javax.inject.Inject;
 
 /**

@@ -23,11 +23,9 @@ import com.google.gdata.data.spreadsheet.ListFeed;
 import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
 import com.google.gdata.data.spreadsheet.WorksheetEntry;
 import com.google.gdata.util.ServiceException;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-
 import javax.inject.Inject;
 
 /** Generic data synchronization utility for Google Spreadsheets. */

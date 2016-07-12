@@ -23,17 +23,14 @@ import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.model.ofy.CommitLogCheckpoint;
 import google.registry.model.ofy.CommitLogCheckpointRoot;
 import google.registry.request.Action;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
-
-import org.joda.time.DateTime;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * Action that saves commit log checkpoints to datastore and kicks off a diff export task.

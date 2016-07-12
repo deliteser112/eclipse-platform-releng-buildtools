@@ -20,12 +20,10 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Detainted;
 import javax.annotation.Nullable;

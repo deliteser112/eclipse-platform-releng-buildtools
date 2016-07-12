@@ -20,12 +20,9 @@ import static google.registry.request.Action.Method.POST;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.model.registry.label.PremiumList;
 import google.registry.request.Action;
-
 import java.util.List;
-
 import javax.inject.Inject;
 
 /**

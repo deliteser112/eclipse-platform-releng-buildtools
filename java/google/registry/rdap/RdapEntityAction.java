@@ -21,9 +21,7 @@ import static google.registry.request.Action.Method.HEAD;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.re2j.Pattern;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.registrar.Registrar;
@@ -32,7 +30,6 @@ import google.registry.request.HttpException;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.util.Clock;
-
 import javax.inject.Inject;
 
 /**

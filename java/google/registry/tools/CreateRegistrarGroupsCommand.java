@@ -17,18 +17,15 @@ package google.registry.tools;
 import static com.google.common.collect.Iterables.transform;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.server.CreateGroupsAction;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

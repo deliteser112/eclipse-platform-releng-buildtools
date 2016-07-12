@@ -15,12 +15,9 @@
 package google.registry.whois;
 
 import com.google.common.net.InternetDomainName;
-
 import google.registry.model.host.HostResource;
-
-import org.joda.time.DateTime;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /** Represents a WHOIS lookup on a nameserver based on its hostname. */
 final class NameserverLookupByHostCommand extends DomainOrHostLookupCommand<HostResource> {

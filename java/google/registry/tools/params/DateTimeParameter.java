@@ -17,7 +17,6 @@ package google.registry.tools.params;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.primitives.Longs;
-
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;

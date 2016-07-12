@@ -18,22 +18,18 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
-
 import google.registry.model.EppResource;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tools.params.EppResourceTypeParameter;
-
-import org.joda.time.DateTime;
-
 import java.util.List;
 import java.util.Map;
+import org.joda.time.DateTime;
 
 /** Command to soft-delete a list of EppResources of a given type specified by ROIDs. */
 @Parameters(separators = " =", commandDescription = "Soft-delete EPP resources.")

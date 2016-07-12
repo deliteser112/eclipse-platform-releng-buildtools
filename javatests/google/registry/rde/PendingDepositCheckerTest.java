@@ -26,9 +26,7 @@ import static org.joda.time.DateTimeConstants.TUESDAY;
 import static org.joda.time.Duration.standardDays;
 
 import com.google.common.collect.ImmutableSetMultimap;
-
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.ofy.Ofy;
@@ -36,7 +34,6 @@ import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Ignore;

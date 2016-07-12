@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import google.registry.rde.RdeTestData;
 import google.registry.xml.XmlException;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;

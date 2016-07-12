@@ -27,19 +27,15 @@ import static google.registry.tools.RegistryToolEnvironment.SANDBOX;
 import static google.registry.tools.RegistryToolEnvironment.UNITTEST;
 import static google.registry.util.RegistrarUtils.normalizeClientId;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.tools.Command.GtechCommand;
-
 import java.util.List;
-
 import javax.annotation.Nullable;
 
 /** Command to create a Registrar. */

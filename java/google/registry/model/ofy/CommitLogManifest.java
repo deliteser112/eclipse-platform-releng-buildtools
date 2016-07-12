@@ -18,20 +18,16 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.NotBackedUp.Reason;
-
-import org.joda.time.DateTime;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.joda.time.DateTime;
 
 /**
  * Archived datastore transaction that can be replayed.

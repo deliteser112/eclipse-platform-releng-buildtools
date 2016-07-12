@@ -20,11 +20,9 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.google.common.io.ByteSource;
-
-import org.junit.rules.ExternalResource;
-
 import java.io.File;
 import java.io.IOException;
+import org.junit.rules.ExternalResource;
 
 /**
  * GnuPG system command JUnit rule.

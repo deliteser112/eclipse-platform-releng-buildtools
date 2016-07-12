@@ -20,7 +20,6 @@ import static com.google.common.base.Strings.nullToEmpty;
 
 import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
 import google.registry.model.translators.StatusValueAdapter;
-
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**

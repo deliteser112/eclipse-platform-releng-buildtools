@@ -15,7 +15,6 @@
 package google.registry.request;
 
 import java.lang.annotation.Documented;
-
 import javax.inject.Qualifier;
 
 /** Dagger qualifier for {@link com.google.common.collect.ImmutableListMultimap} of HTTP params. */

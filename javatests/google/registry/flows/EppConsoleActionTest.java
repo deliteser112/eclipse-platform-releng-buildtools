@@ -25,7 +25,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeHttpSession;
 import google.registry.testing.ShardableTestCase;
 import google.registry.testing.UserInfo;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

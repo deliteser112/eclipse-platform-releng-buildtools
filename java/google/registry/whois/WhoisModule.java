@@ -16,10 +16,8 @@ package google.registry.whois;
 
 import dagger.Module;
 import dagger.Provides;
-
 import java.io.IOException;
 import java.io.Reader;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**

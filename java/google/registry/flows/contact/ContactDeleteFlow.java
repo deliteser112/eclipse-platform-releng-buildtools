@@ -20,10 +20,8 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceAsyncDeleteFlow;
@@ -35,7 +33,6 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.ContactResource.Builder;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.reporting.HistoryEntry;
-
 import javax.inject.Inject;
 
 /**

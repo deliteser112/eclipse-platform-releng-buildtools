@@ -22,7 +22,6 @@ import static java.lang.Character.UnicodeBlock.KATAKANA;
 import com.google.common.collect.ImmutableRangeSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
-
 import java.lang.Character.UnicodeBlock;
 
 /**

@@ -16,7 +16,16 @@ package google.registry.testing.sftp;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.security.KeyPair;
+import java.security.PublicKey;
+import java.security.Security;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.sshd.common.NamedFactory;
@@ -35,18 +44,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.security.KeyPair;
-import java.security.PublicKey;
-import java.security.Security;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.annotation.Nullable;
 
 /** In-process SFTP server using Apache SSHD. */
 public class TestSftpServer implements FtpServer {

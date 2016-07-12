@@ -20,12 +20,10 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.xml.XmlTransformer;
-
 import org.joda.time.DateTime;
 
 /** Command to show history entries. */

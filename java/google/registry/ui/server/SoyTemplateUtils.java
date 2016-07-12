@@ -33,9 +33,7 @@ import com.google.template.soy.base.SoySyntaxException;
 import com.google.template.soy.parseinfo.SoyFileInfo;
 import com.google.template.soy.shared.SoyCssRenamingMap;
 import com.google.template.soy.tofu.SoyTofu;
-
 import google.registry.ui.ConsoleDebug;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;

@@ -20,14 +20,11 @@ import static java.nio.file.Files.readAllLines;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.model.tmch.ClaimsListShard;
-
-import org.joda.time.DateTime;
-import org.junit.Test;
-
 import java.io.File;
 import java.nio.file.Files;
+import org.joda.time.DateTime;
+import org.junit.Test;
 
 /** Unit tests for {@link GetClaimsListCommand}. */
 public class GetClaimsListCommandTest extends CommandTestCase<GetClaimsListCommand> {

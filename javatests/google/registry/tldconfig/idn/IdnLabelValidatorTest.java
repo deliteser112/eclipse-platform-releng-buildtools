@@ -19,9 +19,7 @@ import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableF
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.testing.InjectRule;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

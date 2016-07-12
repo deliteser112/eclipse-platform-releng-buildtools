@@ -20,13 +20,10 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
-
 import google.registry.model.registry.Registry.TldState;
-
+import java.util.Map;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-
-import java.util.Map;
 
 /**
  * Combined converter and validator class for transition list JCommander argument strings.

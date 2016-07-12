@@ -21,15 +21,13 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import google.registry.xjc.epp.XjcEpp;
 import google.registry.xjc.rde.XjcRdeDeposit;
-
+import java.io.ByteArrayInputStream;
 import org.junit.Rule;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-
-import java.io.ByteArrayInputStream;
 
 /**
  * Unit tests that ensure {@link XjcObject} is able to unmarshal XML in {@code testdata/} and

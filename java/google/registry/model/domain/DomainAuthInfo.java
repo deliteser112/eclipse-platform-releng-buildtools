@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo;

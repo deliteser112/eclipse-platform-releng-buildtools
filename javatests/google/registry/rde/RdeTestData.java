@@ -18,7 +18,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
-
 import java.io.IOException;
 import java.net.URL;
 

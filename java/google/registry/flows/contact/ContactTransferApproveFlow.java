@@ -19,7 +19,6 @@ import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.ContactResource.Builder;
 import google.registry.model.reporting.HistoryEntry;
-
 import javax.inject.Inject;
 
 /**

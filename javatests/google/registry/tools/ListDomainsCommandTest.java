@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import google.registry.tools.server.ListDomainsAction;
-
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 

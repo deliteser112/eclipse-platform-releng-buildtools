@@ -17,15 +17,12 @@ package google.registry.tmch;
 import static com.google.common.base.CharMatcher.whitespace;
 
 import com.google.common.io.ByteSource;
-
 import google.registry.model.smd.EncodedSignedMark;
-
+import java.io.IOException;
+import java.io.InputStream;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.bc.BcPGPPublicKeyRing;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 /** Helper class for common data loaded from the jar and datastore at runtime. */
 public final class TmchData {

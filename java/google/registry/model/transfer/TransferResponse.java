@@ -15,16 +15,13 @@
 package google.registry.model.transfer;
 
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.EppResource;
 import google.registry.model.eppoutput.EppResponse.ResponseData;
-
-import org.joda.time.DateTime;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import org.joda.time.DateTime;
 
 /**
  * A response to a transfer command on a {@link EppResource}. This base class contains fields that

@@ -23,13 +23,11 @@ import static org.joda.money.CurrencyUnit.USD;
 
 import com.beust.jcommander.ParameterException;
 import com.googlecode.objectify.Key;
-
 import google.registry.model.billing.RegistrarCredit;
 import google.registry.model.billing.RegistrarCredit.CreditType;
 import google.registry.model.billing.RegistrarCreditBalance;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
-
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;

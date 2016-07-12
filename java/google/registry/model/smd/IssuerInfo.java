@@ -16,7 +16,6 @@ package google.registry.model.smd;
 
 import google.registry.model.ImmutableObject;
 import google.registry.model.mark.MarkPhoneNumber;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 

@@ -30,7 +30,6 @@ import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntr
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.FluentIterable;
-
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
@@ -38,7 +37,6 @@ import google.registry.model.poll.PendingActionNotificationResponse.DomainPendin
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.reporting.HistoryEntry;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

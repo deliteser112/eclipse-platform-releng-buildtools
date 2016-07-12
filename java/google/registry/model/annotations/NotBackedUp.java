@@ -15,7 +15,6 @@
 package google.registry.model.annotations;
 
 import com.googlecode.objectify.annotation.Entity;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

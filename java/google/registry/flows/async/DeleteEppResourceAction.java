@@ -29,11 +29,9 @@ import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Work;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.mapreduce.inputs.NullInput;
@@ -49,10 +47,8 @@ import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TypeUtils.TypeInstantiator;
-
-import org.joda.time.DateTime;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * A mapreduce to delete the specified EPP resource, but ONLY if it is not referred to by any

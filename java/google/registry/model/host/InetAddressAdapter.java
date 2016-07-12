@@ -15,10 +15,8 @@
 package google.registry.model.host;
 
 import com.google.common.net.InetAddresses;
-
 import java.net.Inet6Address;
 import java.net.InetAddress;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlValue;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;

@@ -16,7 +16,6 @@ package google.registry.request;
 
 import java.lang.annotation.Documented;
 import java.util.Set;
-
 import javax.inject.Qualifier;
 
 /** Dagger qualifier for the {@link Set} of OAuth2 scope strings, used for API authorization. */

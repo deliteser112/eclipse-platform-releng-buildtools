@@ -17,7 +17,6 @@ package google.registry.testing;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
 import com.google.common.truth.SubjectFactory;
-
 import google.registry.util.TypeUtils.TypeInstantiator;
 
 /** Helper to reduce boilerplate in making new Truth subject classes. */

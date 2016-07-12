@@ -24,7 +24,6 @@ import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.contact.ContactFlowUtils.BadInternationalizedPostalInfoException;
 import google.registry.flows.contact.ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException;
 import google.registry.model.contact.ContactResource;
-
 import org.joda.time.DateTime;
 import org.junit.Test;
 

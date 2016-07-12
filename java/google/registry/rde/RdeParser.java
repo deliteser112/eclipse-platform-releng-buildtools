@@ -19,7 +19,6 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.xjc.XjcXmlTransformer;
 import google.registry.xjc.rdecontact.XjcRdeContact;
 import google.registry.xjc.rdecontact.XjcRdeContactElement;
@@ -38,11 +37,9 @@ import google.registry.xjc.rdenndn.XjcRdeNndn;
 import google.registry.xjc.rdenndn.XjcRdeNndnElement;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrarElement;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;

@@ -15,7 +15,6 @@
 package google.registry.model.domain.fee;
 
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 

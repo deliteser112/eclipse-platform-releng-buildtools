@@ -21,12 +21,10 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
-
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.testing.TruthChainer.And;
-
 import java.util.Objects;
 
 /** Truth subject for asserting things about {@link DomainApplication} instances. */

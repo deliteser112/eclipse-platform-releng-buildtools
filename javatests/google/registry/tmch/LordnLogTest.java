@@ -17,18 +17,15 @@ package google.registry.tmch;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
-
 import google.registry.testing.ExceptionRule;
 import google.registry.tmch.LordnLog.Result;
-
+import java.util.List;
+import java.util.Map.Entry;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.List;
-import java.util.Map.Entry;
 
 /** Unit tests for {@link LordnLog}. */
 @RunWith(JUnit4.class)

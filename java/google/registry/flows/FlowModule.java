@@ -18,13 +18,10 @@ import static com.google.common.base.Preconditions.checkState;
 
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.flows.picker.FlowPicker;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
-
 import java.lang.annotation.Documented;
-
 import javax.annotation.Nullable;
 import javax.inject.Qualifier;
 

@@ -15,7 +15,6 @@
 package google.registry.module.frontend;
 
 import dagger.Component;
-
 import google.registry.braintree.BraintreeModule;
 import google.registry.config.ConfigModule;
 import google.registry.keyring.api.KeyModule;
@@ -24,7 +23,6 @@ import google.registry.request.Modules.UserServiceModule;
 import google.registry.request.RequestModule;
 import google.registry.ui.ConsoleConfigModule;
 import google.registry.util.SystemClock.SystemClockModule;
-
 import javax.inject.Singleton;
 
 /** Dagger component with instance lifetime for "default" App Engine module. */

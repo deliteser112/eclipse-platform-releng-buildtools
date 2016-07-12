@@ -20,11 +20,9 @@ import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static org.json.simple.JSONValue.toJSONString;
 
-import org.joda.time.DateTime;
-
 import java.util.Map;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** JSON response object. */
 public class JsonResponse {

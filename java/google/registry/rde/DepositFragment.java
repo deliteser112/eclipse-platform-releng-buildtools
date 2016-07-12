@@ -15,7 +15,6 @@
 package google.registry.rde;
 
 import com.google.auto.value.AutoValue;
-
 import java.io.Serializable;
 
 /** Container of datastore resource marshalled by {@link RdeMarshaller}. */

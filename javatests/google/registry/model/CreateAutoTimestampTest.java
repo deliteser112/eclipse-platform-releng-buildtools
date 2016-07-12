@@ -22,10 +22,8 @@ import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
-
 import google.registry.model.common.CrossTldSingleton;
 import google.registry.testing.AppEngineRule;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;

@@ -23,7 +23,6 @@ import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.ShardableTestCase;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

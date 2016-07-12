@@ -26,11 +26,17 @@ import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.base.Optional;
 import com.google.common.io.ByteSource;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.util.UrlFetchException;
-
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.security.Security;
+import java.security.SignatureException;
+import java.util.List;
+import javax.annotation.Tainted;
+import javax.inject.Inject;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPObjectFactory;
@@ -40,16 +46,6 @@ import org.bouncycastle.openpgp.PGPSignatureList;
 import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.bc.BcPGPObjectFactory;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.security.Security;
-import java.security.SignatureException;
-import java.util.List;
-
-import javax.annotation.Tainted;
-import javax.inject.Inject;
 
 /** Shared code for tasks that download stuff from MarksDB. */
 public final class Marksdb {

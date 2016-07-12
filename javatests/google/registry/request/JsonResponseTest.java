@@ -18,17 +18,14 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeResponse;
-
+import java.util.Map;
 import org.json.simple.JSONValue;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.Map;
 
 /** Unit tests for {@link JsonResponse}. */
 @RunWith(JUnit4.class)

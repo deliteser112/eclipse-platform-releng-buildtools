@@ -18,7 +18,6 @@ import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableList;
-
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.model.EppResource;
 import google.registry.model.EppResource.Builder;

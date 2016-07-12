@@ -19,9 +19,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.collect.ImmutableSetMultimap;
-
 import com.googlecode.objectify.Work;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
@@ -30,11 +28,9 @@ import google.registry.model.registry.Registries;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.util.Clock;
-
+import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-
-import javax.inject.Inject;
 
 /**
  * Utility class that determines which RDE or BRDA deposits need to be created.

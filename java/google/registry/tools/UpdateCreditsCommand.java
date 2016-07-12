@@ -21,24 +21,20 @@ import static google.registry.bigquery.BigqueryUtils.fromBigqueryTimestampString
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import google.registry.model.billing.RegistrarCredit;
 import google.registry.model.billing.RegistrarCreditBalance;
 import google.registry.model.billing.RegistrarCreditBalance.BalanceMap;
 import google.registry.model.registrar.Registrar;
-
-import org.joda.money.Money;
-import org.joda.time.DateTime;
-
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import org.joda.money.Money;
+import org.joda.time.DateTime;
 
 /** Command for writing out new balances of credits updated in an invoicing cycle. */
 @Parameters(separators = " =", commandDescription = "Update a set of registrar credit balances")

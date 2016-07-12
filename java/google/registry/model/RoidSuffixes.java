@@ -21,9 +21,7 @@ import static google.registry.util.CacheUtils.memoizeWithShortExpiration;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.HashBiMap;
-
 import com.googlecode.objectify.Work;
-
 import google.registry.model.registry.Registry;
 
 /** Utility class for dealing with EPP ROID suffixes. */

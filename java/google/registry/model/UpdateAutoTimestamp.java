@@ -17,9 +17,7 @@ package google.registry.model;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Optional;
-
 import google.registry.model.translators.UpdateAutoTimestampTranslatorFactory;
-
 import org.joda.time.DateTime;
 
 /**

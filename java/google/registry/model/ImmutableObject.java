@@ -22,17 +22,13 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
-
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Ignore;
-
 import google.registry.model.domain.ReferenceUnion;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.concurrent.Immutable;
 import javax.xml.bind.annotation.XmlTransient;
 

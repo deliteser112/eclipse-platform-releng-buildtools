@@ -18,12 +18,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.model.tmch.ClaimsListShard;
-
-import org.joda.time.DateTime;
-
 import java.util.List;
+import org.joda.time.DateTime;
 
 /**
  * Claims List (MarksDB DNL CSV) Parser.

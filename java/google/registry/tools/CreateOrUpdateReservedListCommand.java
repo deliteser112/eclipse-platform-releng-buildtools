@@ -15,11 +15,8 @@
 package google.registry.tools;
 
 import com.beust.jcommander.Parameter;
-
 import google.registry.tools.params.PathParameter;
-
 import java.nio.file.Path;
-
 import javax.annotation.Nullable;
 
 /**

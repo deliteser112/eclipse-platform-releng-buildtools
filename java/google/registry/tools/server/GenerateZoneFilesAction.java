@@ -36,7 +36,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
@@ -49,10 +48,6 @@ import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.JsonActionRunner;
 import google.registry.util.Clock;
-
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -63,8 +58,9 @@ import java.net.InetAddress;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * MapReduce that requests generation of BIND zone files for a set of TLDs at a given time.

@@ -22,15 +22,12 @@ import static org.mockito.Mockito.verify;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.net.MediaType;
-
 import google.registry.testing.UriParameters;
 import google.registry.tools.ServerSideCommand.Connection;
-
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 
 /**
  * Base class for common testing setup for create and update commands for Premium Lists.

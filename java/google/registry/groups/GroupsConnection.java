@@ -16,7 +16,6 @@ package google.registry.groups;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.admin.directory.model.Group;
-
 import java.io.IOException;
 import java.util.Set;
 

@@ -21,13 +21,11 @@ import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent.Recurring;
 import google.registry.request.Action;
 import google.registry.request.Response;
-
 import javax.inject.Inject;
 
 /**

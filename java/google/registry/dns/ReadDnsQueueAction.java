@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.TreeMultimap;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.registry.Registry;
@@ -41,7 +40,6 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
-
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -49,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 

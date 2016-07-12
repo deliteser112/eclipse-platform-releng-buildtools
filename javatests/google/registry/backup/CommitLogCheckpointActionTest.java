@@ -24,7 +24,6 @@ import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.model.ofy.CommitLogCheckpoint;
 import google.registry.model.ofy.CommitLogCheckpointRoot;
 import google.registry.testing.AppEngineRule;
@@ -32,7 +31,6 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Retrier;
 import google.registry.util.TaskEnqueuer;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;

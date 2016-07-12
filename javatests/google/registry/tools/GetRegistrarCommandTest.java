@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import com.beust.jcommander.ParameterException;
-
 import org.junit.Test;
 
 /** Unit tests for {@link GetRegistrarCommand}. */

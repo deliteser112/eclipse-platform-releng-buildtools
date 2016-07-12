@@ -30,10 +30,8 @@ import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Work;
-
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
@@ -45,13 +43,8 @@ import google.registry.model.eppinput.ResourceCommand.ResourceUpdate;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex;
-
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-
 import java.util.Map;
 import java.util.Set;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -60,6 +53,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 /** A collection of {@link DomainResource} commands. */
 public class DomainCommand {

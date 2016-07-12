@@ -22,7 +22,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
-
 import google.registry.model.EntityClasses;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.NotBackedUp;

@@ -19,7 +19,6 @@ import static google.registry.server.Route.route;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
-
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;

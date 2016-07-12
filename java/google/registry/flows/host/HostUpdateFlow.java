@@ -23,10 +23,8 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableMap;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ObjectAlreadyExistsException;
@@ -42,12 +40,9 @@ import google.registry.model.host.HostResource;
 import google.registry.model.host.HostResource.Builder;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.reporting.HistoryEntry;
-
-import org.joda.time.Duration;
-
 import java.util.Objects;
-
 import javax.inject.Inject;
+import org.joda.time.Duration;
 
 /**
  * An EPP flow that updates a host resource.

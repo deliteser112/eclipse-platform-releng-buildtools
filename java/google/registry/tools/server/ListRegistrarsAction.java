@@ -20,10 +20,8 @@ import static google.registry.request.Action.Method.POST;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
-
 import javax.inject.Inject;
 
 /** An action that lists registrars, for use by the registry_tool list_registrars command. */

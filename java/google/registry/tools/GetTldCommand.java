@@ -18,11 +18,9 @@ import static google.registry.model.registry.Registries.assertTldExists;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
 import google.registry.model.registry.Registry;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
-
 import java.util.List;
 
 /** Command to show a TLD record. */

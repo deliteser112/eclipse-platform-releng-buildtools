@@ -28,17 +28,13 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.base.Optional;
-
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
-
-import org.joda.time.Duration;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.joda.time.Duration;
 
 /**
  * Dagger request processor for Domain Registry.

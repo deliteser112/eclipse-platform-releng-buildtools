@@ -23,15 +23,13 @@ import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Query;
-
 import google.registry.flows.EppException;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.smd.EncodedSignedMark;
@@ -44,17 +42,14 @@ import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.Clock;
 import google.registry.util.Idn;
-
-import org.joda.time.DateTime;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.CheckReturnValue;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** Command to generate a report of all domain applications. */
 @Parameters(separators = " =", commandDescription = "Generate report of all domain applications.")

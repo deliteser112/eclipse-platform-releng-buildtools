@@ -24,7 +24,6 @@ import com.google.appengine.api.LifecycleManager;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.common.base.Throwables;
 import com.google.common.net.InternetDomainName;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.dns.writer.api.DnsWriter;
@@ -36,9 +35,6 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.util.DomainNameUtils;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.Duration;
-
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,9 +42,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
 import javax.inject.Inject;
 import javax.inject.Provider;
+import org.joda.time.Duration;
 
 /** Action that consumes pull-queue for zone updates to write to the DNS server. */
 @Action(path = "/_dr/task/writeDns", method = POST, automaticallyPrintOk = true)

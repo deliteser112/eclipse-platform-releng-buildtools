@@ -19,12 +19,10 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.config.TestRegistryConfig;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.RegistryConfigRule;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;

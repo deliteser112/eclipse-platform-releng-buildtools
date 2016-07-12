@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.CollectionUtils.union;
 
 import com.google.common.collect.ImmutableSet;
-
 import java.io.IOException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -32,7 +31,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
-
 import javax.annotation.concurrent.GuardedBy;
 
 /** Utilities for networking. */

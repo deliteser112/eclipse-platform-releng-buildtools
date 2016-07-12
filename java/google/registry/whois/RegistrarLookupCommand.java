@@ -26,15 +26,12 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.DateTime;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.joda.time.DateTime;
 
 /** Represents a WHOIS lookup for a registrar by its name. */
 final class RegistrarLookupCommand implements WhoisCommand {

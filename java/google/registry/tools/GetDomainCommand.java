@@ -16,10 +16,8 @@ package google.registry.tools;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
 import google.registry.model.domain.DomainResource;
 import google.registry.tools.Command.GtechCommand;
-
 import java.util.List;
 
 /** Command to show a domain resource. */

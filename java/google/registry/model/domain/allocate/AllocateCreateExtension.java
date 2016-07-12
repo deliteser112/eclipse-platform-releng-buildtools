@@ -17,10 +17,8 @@ package google.registry.model.domain.allocate;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.eppinput.EppInput.CommandExtension;
-
-import org.joda.time.DateTime;
-
 import javax.xml.bind.annotation.XmlRootElement;
+import org.joda.time.DateTime;
 
 /**
  * An XML data object that represents an allocate extension that will be present on EPP commands to

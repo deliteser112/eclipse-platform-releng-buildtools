@@ -23,9 +23,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.model.EppResource;
 import google.registry.model.domain.launch.ApplicationIdTargetExtension;
@@ -37,7 +35,6 @@ import google.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
 import google.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
 import google.registry.testing.ExceptionRule;
 import google.registry.util.TypeUtils.TypeInstantiator;
-
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;

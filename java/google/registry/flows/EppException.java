@@ -20,13 +20,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.eppinput.EppInput.InnerCommand;
 import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.eppoutput.Result.Code;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;

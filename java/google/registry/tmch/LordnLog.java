@@ -21,16 +21,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.re2j.Pattern;
-
-import org.joda.time.DateTime;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import org.joda.time.DateTime;
 
 /**
  * Parser of LORDN log responses from the MarksDB server during the NORDN process.

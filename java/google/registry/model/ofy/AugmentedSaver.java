@@ -18,11 +18,9 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.common.collect.ImmutableList;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Saver;
-
 import java.util.Arrays;
 import java.util.Map;
 

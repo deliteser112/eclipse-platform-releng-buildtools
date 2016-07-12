@@ -17,17 +17,13 @@ package google.registry.util;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.util.concurrent.Uninterruptibles;
-
 import dagger.Module;
 import dagger.Provides;
-
-import org.joda.time.ReadableDuration;
-
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
+import org.joda.time.ReadableDuration;
 
 /** Implementation of {@link Sleeper} for production use. */
 @ThreadSafe

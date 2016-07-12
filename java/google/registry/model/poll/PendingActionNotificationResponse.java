@@ -16,21 +16,17 @@ package google.registry.model.poll;
 
 
 import com.google.common.annotations.VisibleForTesting;
-
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppResponse.ResponseData;
-
-import org.joda.time.DateTime;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
+import org.joda.time.DateTime;
 
 /** The {@link ResponseData} returned when completing a pending action on a domain. */
 @XmlTransient

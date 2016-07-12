@@ -21,20 +21,16 @@ import static google.registry.util.X509Utils.getCertificateHash;
 import static google.registry.util.X509Utils.loadCertificate;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
-import com.google.common.base.Optional;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.base.Optional;
 import google.registry.flows.TlsCredentials;
 import google.registry.model.registrar.Registrar;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import javax.annotation.Nullable;
 
 /** A command to test registrar login credentials. */

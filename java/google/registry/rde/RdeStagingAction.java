@@ -21,7 +21,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimaps;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
@@ -38,10 +37,8 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.Duration;
-
 import javax.inject.Inject;
+import org.joda.time.Duration;
 
 /**
  * MapReduce that idempotently stages escrow deposit XML files on GCS for RDE/BRDA for all TLDs.

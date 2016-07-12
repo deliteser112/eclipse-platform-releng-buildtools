@@ -20,12 +20,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.model.eppcommon.ProtocolDefinition;
 import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Parameter;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 

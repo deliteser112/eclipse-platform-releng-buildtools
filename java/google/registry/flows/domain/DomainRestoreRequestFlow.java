@@ -27,9 +27,7 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.CommandUseErrorException;
@@ -50,11 +48,9 @@ import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
-
+import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-
-import javax.inject.Inject;
 
 /**
  * An EPP flow that requests that a deleted domain be restored.

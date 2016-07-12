@@ -15,7 +15,6 @@
 package google.registry.util;
 
 import com.google.common.base.Joiner;
-
 import com.ibm.icu.text.IDNA;
 import com.ibm.icu.text.IDNA.Info;
 

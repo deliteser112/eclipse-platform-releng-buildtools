@@ -23,7 +23,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.PremiumList.PremiumListEntry;
-
 import org.junit.Test;
 
 /** Unit tests for {@link DeletePremiumListCommand}. */

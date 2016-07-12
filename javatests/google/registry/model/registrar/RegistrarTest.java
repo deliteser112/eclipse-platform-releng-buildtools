@@ -28,7 +28,6 @@ import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.EntityTestCase;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.registrar.Registrar.CertificateState;
@@ -36,7 +35,6 @@ import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.Registrar.Type;
 import google.registry.testing.ExceptionRule;
 import google.registry.util.CidrAddressBlock;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

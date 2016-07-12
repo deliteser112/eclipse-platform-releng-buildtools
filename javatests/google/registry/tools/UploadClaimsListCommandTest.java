@@ -17,11 +17,9 @@ package google.registry.tools;
 import static com.google.common.truth.Truth.assertThat;
 
 import google.registry.model.tmch.ClaimsListShard;
-
+import java.io.FileNotFoundException;
 import org.joda.time.DateTime;
 import org.junit.Test;
-
-import java.io.FileNotFoundException;
 
 /** Unit tests for {@link UploadClaimsListCommand}. */
 public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsListCommand> {

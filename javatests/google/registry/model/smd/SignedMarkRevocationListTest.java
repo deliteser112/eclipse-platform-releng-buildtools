@@ -21,13 +21,10 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.Duration.standardDays;
 
 import com.google.common.collect.ImmutableMap;
-
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
-
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;

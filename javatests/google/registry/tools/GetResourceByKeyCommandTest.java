@@ -24,7 +24,6 @@ import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

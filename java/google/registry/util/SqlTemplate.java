@@ -24,10 +24,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.annotation.concurrent.Immutable;
 
 /** SQL template variable substitution. */

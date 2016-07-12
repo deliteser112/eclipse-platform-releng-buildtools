@@ -15,7 +15,6 @@
 package google.registry.util;
 
 import com.google.common.collect.ImmutableMap;
-
 import javax.xml.bind.annotation.XmlEnumValue;
 
 /** Efficient lookup from xml enums to java enums */

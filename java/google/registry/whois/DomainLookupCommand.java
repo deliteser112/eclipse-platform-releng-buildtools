@@ -15,12 +15,9 @@
 package google.registry.whois;
 
 import com.google.common.net.InternetDomainName;
-
 import google.registry.model.domain.DomainResource;
-
-import org.joda.time.DateTime;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /** Represents a WHOIS lookup on a domain name (i.e. SLD). */
 class DomainLookupCommand extends DomainOrHostLookupCommand<DomainResource> {

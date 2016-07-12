@@ -16,7 +16,6 @@ package google.registry.model.smd;
 
 import com.google.appengine.api.datastore.Text;
 import com.google.common.base.CharMatcher;
-
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 /**

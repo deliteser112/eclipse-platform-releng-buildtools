@@ -18,9 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.testing.AppEngineRule;
-
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;

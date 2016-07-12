@@ -34,7 +34,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.bigquery.BigqueryUtils.SourceFormat;
 import google.registry.bigquery.BigqueryUtils.WriteDisposition;
@@ -46,12 +45,9 @@ import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** Action to load a Datastore snapshot from Google Cloud Storage into BigQuery. */
 @Action(path = LoadSnapshotAction.PATH, method = POST)

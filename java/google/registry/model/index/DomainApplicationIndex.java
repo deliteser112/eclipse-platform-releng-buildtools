@@ -22,22 +22,17 @@ import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.DateTimeUtils.latestOf;
 
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-
 import google.registry.model.BackupGroupRoot;
 import google.registry.model.domain.DomainApplication;
 import google.registry.util.CollectionUtils;
-
-import org.joda.time.DateTime;
-
 import java.util.Set;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /**
  * Entity for tracking all domain applications with a given fully qualified domain name. Since this

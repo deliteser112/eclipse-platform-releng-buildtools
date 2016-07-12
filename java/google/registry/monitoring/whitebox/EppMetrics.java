@@ -18,11 +18,9 @@ import static com.google.apphosting.api.ApiProxy.getCurrentEnvironment;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.collect.ImmutableList;
-
 import google.registry.bigquery.BigqueryUtils.FieldType;
 import google.registry.model.eppoutput.Result.Code;
 import google.registry.request.RequestScope;
-
 import javax.inject.Inject;
 
 /** The EPP Metrics collector. See {@link Metrics}. */

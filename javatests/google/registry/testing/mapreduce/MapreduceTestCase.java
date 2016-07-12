@@ -32,14 +32,9 @@ import com.google.appengine.tools.pipeline.impl.servlets.PipelineServlet;
 import com.google.appengine.tools.pipeline.impl.servlets.TaskHandler;
 import com.google.apphosting.api.ApiProxy;
 import com.google.common.base.CharMatcher;
-
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.util.FormattingLogger;
-
-import org.junit.Before;
-import org.junit.Rule;
-
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.io.UnsupportedEncodingException;
@@ -48,10 +43,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.junit.Before;
+import org.junit.Rule;
 
 /**
  * Base test class for mapreduces.  Adapted from EndToEndTestCase with some modifications that

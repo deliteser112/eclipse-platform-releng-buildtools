@@ -18,13 +18,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.X509Utils.getCertificateHash;
 import static google.registry.util.X509Utils.loadCertificate;
 
-import com.google.common.base.Joiner;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.base.Joiner;
 import google.registry.tools.Command.GtechCommand;
-
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.security.cert.CertificateParsingException;

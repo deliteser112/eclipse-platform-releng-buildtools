@@ -21,14 +21,11 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.model.EntityTestCase;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
 import google.registry.testing.ExceptionRule;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

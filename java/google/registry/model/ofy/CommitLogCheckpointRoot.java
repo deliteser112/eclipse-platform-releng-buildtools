@@ -20,11 +20,9 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.NotBackedUp.Reason;
-
 import org.joda.time.DateTime;
 
 /**

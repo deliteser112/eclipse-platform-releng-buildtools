@@ -32,22 +32,18 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.google.common.net.MediaType;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.util.TaskEnqueuer;
-
-import org.joda.time.DateTime;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** Simple load test action that can generate configurable QPSes of various EPP actions. */
 @Action(

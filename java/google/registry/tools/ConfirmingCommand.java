@@ -16,9 +16,8 @@ package google.registry.tools;
 
 import static google.registry.tools.CommandUtilities.promptForYes;
 
-import com.google.common.base.Strings;
-
 import com.beust.jcommander.Parameter;
+import com.google.common.base.Strings;
 
 /** A {@link Command} that implements a confirmation step before executing. */
 public abstract class ConfirmingCommand implements Command {

@@ -15,7 +15,6 @@
 package google.registry.model.contact;
 
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.eppcommon.Address;
 
 /**

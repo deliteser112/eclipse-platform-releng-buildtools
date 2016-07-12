@@ -24,16 +24,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.util.Clock;
 import google.registry.util.NonFinalForTesting;
 import google.registry.util.SystemClock;
-
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-
 import java.util.Date;
 import java.util.List;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /** Container for information about a datastore backup. */
 public class DatastoreBackupInfo {

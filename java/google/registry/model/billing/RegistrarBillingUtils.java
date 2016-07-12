@@ -24,18 +24,14 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Maps.EntryTransformer;
 import com.google.common.collect.Ordering;
-
 import com.googlecode.objectify.cmd.Query;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registries;
 import google.registry.model.registry.Registry;
 import google.registry.util.CacheUtils;
-
+import java.util.Map;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
-
-import java.util.Map;
 
 /** Utilities for managing the billing of {@link Registrar} customers. */
 public final class RegistrarBillingUtils {

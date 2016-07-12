@@ -21,12 +21,10 @@ import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWit
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
-
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceCheckFlow;
 import google.registry.model.domain.DomainCommand.Check;
 import google.registry.model.domain.DomainResource;
-
 import java.util.Map;
 
 /** An EPP flow that checks whether a domain can be provisioned. */

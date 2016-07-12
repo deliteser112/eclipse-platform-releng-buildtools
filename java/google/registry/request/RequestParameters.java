@@ -22,15 +22,11 @@ import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-
 import google.registry.request.HttpException.BadRequestException;
-
-import org.joda.time.DateTime;
-
 import java.net.InetAddress;
-
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
 
 /** Utilities for extracting parameters from HTTP requests. */
 public final class RequestParameters {

@@ -30,7 +30,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -38,7 +37,6 @@ import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.VirtualEntity;
@@ -49,14 +47,11 @@ import google.registry.util.NonFinalForTesting;
 import google.registry.util.Sleeper;
 import google.registry.util.SystemClock;
 import google.registry.util.SystemSleeper;
-
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-
 import java.lang.annotation.Annotation;
 import java.util.Objects;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * A wrapper around ofy().

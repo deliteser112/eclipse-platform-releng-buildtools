@@ -20,15 +20,13 @@ import static google.registry.model.registry.Registries.assertTldExists;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
@@ -36,17 +34,14 @@ import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.Clock;
-
-import org.joda.time.DateTime;
-import org.json.simple.JSONValue;
-
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
+import org.json.simple.JSONValue;
 
 /** Command to generate a report of all DNS data. */
 @Parameters(separators = " =", commandDescription = "Generate report of all DNS data in a TLD.")

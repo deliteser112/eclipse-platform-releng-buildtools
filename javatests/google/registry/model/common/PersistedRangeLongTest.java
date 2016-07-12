@@ -17,7 +17,6 @@ package google.registry.model.common;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.Range;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;

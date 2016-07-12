@@ -17,12 +17,9 @@ package google.registry.mapreduce.inputs;
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableList;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.EppResourceIndexBucket;
-
 import java.util.List;
 
 /** Base class for {@link Input} classes that map over {@link EppResourceIndex}. */

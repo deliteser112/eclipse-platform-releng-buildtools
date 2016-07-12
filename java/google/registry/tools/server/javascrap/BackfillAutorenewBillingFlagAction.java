@@ -23,9 +23,7 @@ import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Recurring;
@@ -34,7 +32,6 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
-
 import javax.inject.Inject;
 
 /** A mapreduce that backfills new {@link Flag#AUTO_RENEW} flag on recurring billing events. */

@@ -15,12 +15,10 @@
 package google.registry.util;
 
 import com.google.common.collect.Iterables;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
-
 import javax.annotation.Nullable;
 
 /** A log handler that captures logs. */

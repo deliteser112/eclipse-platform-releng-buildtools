@@ -15,7 +15,6 @@
 package google.registry.module.backend;
 
 import dagger.Subcomponent;
-
 import google.registry.backup.BackupModule;
 import google.registry.backup.CommitLogCheckpointAction;
 import google.registry.backup.DeleteOldCommitLogsAction;

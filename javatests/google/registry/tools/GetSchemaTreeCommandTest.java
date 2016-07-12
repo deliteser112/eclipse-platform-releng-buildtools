@@ -18,9 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-
 import google.registry.model.EntityClasses;
-
 import org.junit.Test;
 
 /** Unit tests for {@link GetSchemaTreeCommand}. */

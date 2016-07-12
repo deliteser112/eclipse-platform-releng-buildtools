@@ -24,7 +24,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.SyntaxErrorException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
@@ -33,7 +32,6 @@ import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppinput.EppInput.CommandExtension;
 import google.registry.model.registrar.Registrar;
 import google.registry.util.FormattingLogger;
-
 import java.util.Set;
 
 /** A flow that requires being logged in. */

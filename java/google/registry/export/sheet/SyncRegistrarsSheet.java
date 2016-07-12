@@ -32,20 +32,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
 import com.google.gdata.util.ServiceException;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarAddress;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.util.Clock;
 import google.registry.util.DateTimeUtils;
-
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-
 import java.io.IOException;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * Class for synchronizing all {@link Registrar} datastore objects to a Google Spreadsheet.

@@ -18,13 +18,10 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.annotation.Entity;
-
 import google.registry.model.Buildable;
 import google.registry.model.common.CrossTldSingleton;
 import google.registry.model.common.PersistedRangeLong;
-
 import java.util.List;
 import java.util.Set;
 

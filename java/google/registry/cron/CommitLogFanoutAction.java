@@ -20,14 +20,11 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.common.base.Optional;
-
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.util.TaskEnqueuer;
-
 import java.util.Random;
-
 import javax.inject.Inject;
 
 /** Action for fanning out cron tasks for each commit log bucket. */

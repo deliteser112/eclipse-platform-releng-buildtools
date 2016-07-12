@@ -19,15 +19,13 @@ import static google.registry.model.RoidSuffixes.isRoidSuffixUsed;
 import static google.registry.util.CollectionUtils.findDuplicates;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
+import com.beust.jcommander.Parameter;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-
-import com.beust.jcommander.Parameter;
-
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.Registries;
 import google.registry.model.registry.Registry;
@@ -37,15 +35,12 @@ import google.registry.model.registry.label.PremiumList;
 import google.registry.tools.params.OptionalStringParameter;
 import google.registry.tools.params.TransitionListParameter.BillingCostTransitions;
 import google.registry.tools.params.TransitionListParameter.TldStateTransitions;
-
+import java.util.List;
+import java.util.Set;
+import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.Nullable;
 
 /** Shared base class for commands to create or update a TLD. */
 abstract class CreateOrUpdateTldCommand extends MutatingCommand {

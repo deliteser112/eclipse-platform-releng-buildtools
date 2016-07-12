@@ -33,11 +33,9 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.ResourceUtils.readResourceBytes;
 
-import com.google.common.collect.ImmutableSet;
-
 import com.beust.jcommander.ParameterException;
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.domain.DomainAllocateFlow;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainApplication;
@@ -47,13 +45,11 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tools.ServerSideCommand.Connection;
-
+import java.io.IOException;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import java.io.IOException;
 
 /** Unit tests for {@link AllocateDomainCommand}. */
 public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCommand> {

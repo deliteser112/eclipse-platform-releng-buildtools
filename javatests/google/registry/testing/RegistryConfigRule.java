@@ -17,11 +17,9 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Optional;
-
 import google.registry.config.RegistryConfig;
 import google.registry.config.RegistryEnvironment;
 import google.registry.config.TestRegistryConfig;
-
 import org.junit.rules.ExternalResource;
 
 /** JUnit Rule for overriding Domain Registry configuration values. */

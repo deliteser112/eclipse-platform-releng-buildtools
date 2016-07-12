@@ -16,15 +16,12 @@ package google.registry.tools;
 
 import static google.registry.util.ResourceUtils.readResourceBytes;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.tools.params.PathParameter;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -32,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
-
 import javax.annotation.Nullable;
 
 /** Parameter delegate class to handle logging configuration for {@link RegistryCli}. */

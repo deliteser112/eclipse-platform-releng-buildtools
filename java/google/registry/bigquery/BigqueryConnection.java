@@ -56,7 +56,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-
 import google.registry.bigquery.BigqueryUtils.DestinationFormat;
 import google.registry.bigquery.BigqueryUtils.SourceFormat;
 import google.registry.bigquery.BigqueryUtils.TableType;
@@ -67,18 +66,15 @@ import google.registry.util.NonFinalForTesting;
 import google.registry.util.Sleeper;
 import google.registry.util.SqlTemplate;
 import google.registry.util.SystemSleeper;
-
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /** Class encapsulating parameters and state for accessing the Bigquery API. */
 public class BigqueryConnection implements AutoCloseable {

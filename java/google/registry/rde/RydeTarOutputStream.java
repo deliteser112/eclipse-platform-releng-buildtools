@@ -17,16 +17,12 @@ package google.registry.rde;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.auto.factory.AutoFactory;
-
 import google.registry.util.ImprovedOutputStream;
 import google.registry.util.PosixTarHeader;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.io.OutputStream;
-
 import javax.annotation.WillNotClose;
+import org.joda.time.DateTime;
 
 /**
  * Single-file POSIX tar archive creator that wraps an {@link OutputStream}.

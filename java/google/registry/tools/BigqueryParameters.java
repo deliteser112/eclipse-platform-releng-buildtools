@@ -14,24 +14,20 @@
 
 package google.registry.tools;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.bigquery.BigqueryScopes;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.bigquery.BigqueryConnection;
 import google.registry.tools.params.PathParameter;
-
-import org.joda.time.Duration;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.Executors;
+import org.joda.time.Duration;
 
 /** Parameter delegate class to handle flag settings for a command's BigqueryConnection object. */
 @Parameters(separators = " =")

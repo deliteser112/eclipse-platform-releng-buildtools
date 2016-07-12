@@ -29,11 +29,9 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.PeekingIterator;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.ResultNow;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogBucket;
@@ -45,9 +43,6 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.Channels;
@@ -57,8 +52,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** Restore Registry 2 commit logs from GCS to datastore. */
 @Action(

@@ -15,7 +15,6 @@
 package google.registry.testing;
 
 import google.registry.request.JsonResponse;
-
 import java.util.Map;
 
 /** Fake implementation of {@link JsonResponse} for testing. */

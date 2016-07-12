@@ -34,17 +34,13 @@ import com.google.appengine.tools.pipeline.Job0;
 import com.google.appengine.tools.pipeline.JobSetting;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
-
 import google.registry.mapreduce.inputs.ConcatenatingInput;
 import google.registry.request.Parameter;
 import google.registry.util.FormattingLogger;
 import google.registry.util.PipelineUtils;
-
-import org.joda.time.Duration;
-
 import java.io.Serializable;
-
 import javax.inject.Inject;
+import org.joda.time.Duration;
 
 /**
  * Runner for map-only or full map and reduce mapreduces.

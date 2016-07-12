@@ -22,13 +22,11 @@ import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.condition.IfNull;
-
 import google.registry.model.Buildable;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.Period;
 import google.registry.model.eppcommon.Trid;
-
 import org.joda.time.DateTime;
 
 /** A record of an EPP command that mutated a resource. */

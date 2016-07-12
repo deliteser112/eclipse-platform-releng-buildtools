@@ -15,9 +15,7 @@
 package google.registry.model.domain.fee;
 
 import com.google.common.base.CharMatcher;
-
 import google.registry.model.ImmutableObject;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlValue;
 

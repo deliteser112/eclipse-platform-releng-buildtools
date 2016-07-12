@@ -22,6 +22,8 @@ import static google.registry.model.registry.Registries.assertTldExists;
 import static java.util.Arrays.asList;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
@@ -29,21 +31,11 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.model.billing.RegistrarCredit;
 import google.registry.model.billing.RegistrarCredit.CreditType;
 import google.registry.model.billing.RegistrarCreditBalance;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
-
-import org.joda.money.BigMoney;
-import org.joda.money.CurrencyUnit;
-import org.joda.money.Money;
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -51,6 +43,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import org.joda.money.BigMoney;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
+import org.joda.time.DateTime;
 
 /**
  * Command for creating new auction credits based on a CSV file from Pool.

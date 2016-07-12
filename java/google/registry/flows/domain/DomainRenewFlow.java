@@ -29,9 +29,7 @@ import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ObjectPendingTransferException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
@@ -53,13 +51,10 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferStatus;
-
+import java.util.Set;
+import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-
-import java.util.Set;
-
-import javax.inject.Inject;
 
 /**
  * An EPP flow that updates a domain resource.

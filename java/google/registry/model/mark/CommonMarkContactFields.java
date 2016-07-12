@@ -15,7 +15,6 @@
 package google.registry.model.mark;
 
 import google.registry.model.ImmutableObject;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 

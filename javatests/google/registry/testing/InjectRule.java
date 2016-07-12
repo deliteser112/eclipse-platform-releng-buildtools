@@ -16,15 +16,13 @@ package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import org.junit.rules.ExternalResource;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.Nullable;
+import org.junit.rules.ExternalResource;
 
 /**
  * JUnit Rule for overriding {@code private static} fields during a test.

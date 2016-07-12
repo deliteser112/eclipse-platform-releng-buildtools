@@ -27,9 +27,7 @@ import static google.registry.testing.GenericEppResourceSubject.assertAboutEppRe
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.Flow;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.model.EppResource;
@@ -52,7 +50,6 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.AppEngineRule;
-
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;

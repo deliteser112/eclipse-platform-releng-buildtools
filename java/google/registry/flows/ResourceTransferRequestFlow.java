@@ -23,9 +23,7 @@ import static google.registry.util.CollectionUtils.union;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.ObjectPendingTransferException;
@@ -39,11 +37,9 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
-
+import java.util.Set;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-
-import java.util.Set;
 
 /**
  * An EPP flow that requests a transfer on a resource.

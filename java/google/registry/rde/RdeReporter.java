@@ -28,7 +28,6 @@ import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.config.RegistryConfig;
 import google.registry.keyring.api.KeyModule.Key;
@@ -41,12 +40,10 @@ import google.registry.xjc.iirdea.XjcIirdeaResult;
 import google.registry.xjc.rdeheader.XjcRdeHeader;
 import google.registry.xjc.rdereport.XjcRdeReportReport;
 import google.registry.xml.XmlException;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import javax.inject.Inject;
 
 /**

@@ -17,16 +17,13 @@ package google.registry.flows.contact;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 
 import com.google.common.collect.ImmutableList;
-
 import google.registry.flows.ResourceCheckFlow;
 import google.registry.model.contact.ContactCommand.Check;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppoutput.CheckData;
 import google.registry.model.eppoutput.CheckData.ContactCheck;
 import google.registry.model.eppoutput.CheckData.ContactCheckData;
-
 import java.util.Set;
-
 import javax.inject.Inject;
 
 /**

@@ -17,7 +17,6 @@ package google.registry.model.domain.fee;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.collect.Range;
-
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 

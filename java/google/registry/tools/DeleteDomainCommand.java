@@ -14,11 +14,9 @@
 
 package google.registry.tools;
 
-import com.google.template.soy.data.SoyMapData;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.template.soy.data.SoyMapData;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.soy.DeleteDomainSoyInfo;
 

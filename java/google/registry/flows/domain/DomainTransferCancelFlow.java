@@ -24,7 +24,6 @@ import google.registry.model.domain.DomainCommand.Transfer;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.reporting.HistoryEntry;
-
 import javax.inject.Inject;
 
 /**

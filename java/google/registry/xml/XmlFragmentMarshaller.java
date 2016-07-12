@@ -19,9 +19,7 @@ import static com.google.common.base.Verify.verify;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.re2j.Pattern;
-
 import java.io.ByteArrayOutputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;

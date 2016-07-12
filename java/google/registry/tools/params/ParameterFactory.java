@@ -14,24 +14,20 @@
 
 package google.registry.tools.params;
 
+import com.beust.jcommander.IStringConverter;
+import com.beust.jcommander.IStringConverterFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.InternetDomainName;
-
-import com.beust.jcommander.IStringConverter;
-import com.beust.jcommander.IStringConverterFactory;
-
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.logging.Level;
+import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.LocalDate;
 import org.joda.time.YearMonth;
-
-import java.nio.file.Path;
-import java.util.Map;
-import java.util.logging.Level;
-
-import javax.annotation.Nullable;
 
 /** JCommander converter factory that works for non-internal converters. */
 public final class ParameterFactory implements IStringConverterFactory {

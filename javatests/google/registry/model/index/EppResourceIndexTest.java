@@ -22,13 +22,10 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.EntityTestCase;
 import google.registry.model.contact.ContactResource;
-
 import org.junit.Before;
 import org.junit.Test;
 

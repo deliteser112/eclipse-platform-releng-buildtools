@@ -31,25 +31,21 @@ import com.google.appengine.tools.cloudstorage.ListItem;
 import com.google.appengine.tools.cloudstorage.ListResult;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
-
 import com.googlecode.objectify.ObjectifyService;
-
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.TestObject;
-
-import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link GcsDiffFileLister}. */
 @RunWith(JUnit4.class)

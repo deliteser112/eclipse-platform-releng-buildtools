@@ -27,9 +27,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-
 import com.googlecode.objectify.Work;
-
 import google.registry.config.RegistryConfig;
 import google.registry.config.RegistryEnvironment;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
@@ -42,12 +40,10 @@ import google.registry.util.CidrAddressBlock;
 import google.registry.util.CollectionUtils;
 import google.registry.util.DiffUtils;
 import google.registry.util.SendEmailUtils;
-
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**

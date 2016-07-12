@@ -25,14 +25,11 @@ import static org.mockito.Mockito.verify;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-
 import google.registry.tools.ServerSideCommand.Connection;
-
-import org.mockito.ArgumentCaptor;
-
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
+import org.mockito.ArgumentCaptor;
 
 /** Class for verifying EPP commands sent to the server via the tool endpoint. */
 public class EppToolVerifier {

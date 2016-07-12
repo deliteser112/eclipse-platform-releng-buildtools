@@ -23,22 +23,18 @@ import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
-import com.beust.jcommander.ParameterException;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.util.CidrAddressBlock;
-
+import java.security.cert.CertificateParsingException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.security.cert.CertificateParsingException;
 
 /** Unit tests for {@link SetupOteCommand}. */
 public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {

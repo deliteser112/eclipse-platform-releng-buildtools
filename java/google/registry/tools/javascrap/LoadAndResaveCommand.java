@@ -19,22 +19,18 @@ import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.common.base.Function;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.base.Function;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.tools.MutatingCommand;
-
-import org.joda.time.DateTime;
-
 import java.util.Arrays;
 import java.util.Map;
+import org.joda.time.DateTime;
 
 /** Load and resave an object in the probers, to trigger @OnSave changes. */
 @Parameters(

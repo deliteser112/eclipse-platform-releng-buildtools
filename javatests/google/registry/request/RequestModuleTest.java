@@ -18,11 +18,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.RequestModule.provideJsonPayload;
 
 import com.google.common.net.MediaType;
-
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.UnsupportedMediaTypeException;
 import google.registry.testing.ExceptionRule;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

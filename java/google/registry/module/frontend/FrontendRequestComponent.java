@@ -15,7 +15,6 @@
 package google.registry.module.frontend;
 
 import dagger.Subcomponent;
-
 import google.registry.flows.CheckApiAction;
 import google.registry.flows.CheckApiAction.CheckApiModule;
 import google.registry.flows.EppConsoleAction;

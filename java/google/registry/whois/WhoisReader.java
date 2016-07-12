@@ -25,13 +25,11 @@ import com.google.common.base.Optional;
 import com.google.common.io.CharStreams;
 import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import org.joda.time.DateTime;
 
 /**
  * The WhoisReader class understands how to read the WHOIS command from some source, parse it, and

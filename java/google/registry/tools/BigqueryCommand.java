@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import com.beust.jcommander.ParametersDelegate;
-
 import google.registry.bigquery.BigqueryConnection;
 
 /** A {@link Command} that uses the bigquery client API. */

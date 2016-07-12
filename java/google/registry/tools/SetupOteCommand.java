@@ -18,27 +18,22 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.tools.CommandUtilities.promptForYes;
 import static google.registry.util.X509Utils.loadCertificate;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.re2j.Pattern;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
-
-import org.joda.time.Duration;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.inject.Inject;
+import org.joda.time.Duration;
 
 /** Composite command to set up OT&E TLDs and accounts. */
 @Parameters(

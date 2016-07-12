@@ -19,9 +19,7 @@ import static google.registry.model.rde.RdeMode.THIN;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
-
 import google.registry.model.rde.RdeMode;
-
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;

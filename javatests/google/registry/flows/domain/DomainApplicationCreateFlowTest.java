@@ -39,7 +39,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
 import google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
@@ -114,7 +113,9 @@ import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.testing.DatastoreHelper;
 import google.registry.testing.RegistryConfigRule;
 import google.registry.tmch.TmchCertificateAuthority;
-
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -122,10 +123,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 /** Unit tests for {@link DomainApplicationCreateFlow}. */
 public class DomainApplicationCreateFlowTest

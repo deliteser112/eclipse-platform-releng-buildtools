@@ -15,7 +15,6 @@
 package google.registry.module.backend;
 
 import dagger.Component;
-
 import google.registry.bigquery.BigqueryModule;
 import google.registry.config.ConfigModule;
 import google.registry.dns.writer.api.VoidDnsWriterModule;
@@ -40,7 +39,6 @@ import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModu
 import google.registry.request.RequestModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
-
 import javax.inject.Singleton;
 
 /** Dagger component with instance lifetime for "backend" App Engine module. */

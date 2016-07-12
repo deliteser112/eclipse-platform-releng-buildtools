@@ -21,10 +21,8 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
-
 import google.registry.model.EntityTestCase;
 import google.registry.model.common.PersistedRangeLong;
-
 import org.junit.Before;
 import org.junit.Test;
 

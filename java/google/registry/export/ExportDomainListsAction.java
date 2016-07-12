@@ -29,7 +29,6 @@ import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
@@ -38,16 +37,13 @@ import google.registry.model.registry.Registry.TldType;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * A mapreduce that exports the list of active domains on all real TLDs to Google Cloud Storage.

@@ -20,10 +20,8 @@ import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
 
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.registry.label.PremiumList;
 import google.registry.request.Action;
-
 import javax.inject.Inject;
 
 /** An action that lists premium lists, for use by the registry_tool list_premium_lists command. */

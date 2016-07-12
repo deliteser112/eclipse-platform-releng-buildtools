@@ -17,16 +17,13 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
-import com.google.common.base.Joiner;
-import com.google.common.io.Files;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.base.Joiner;
+import com.google.common.io.Files;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.tmch.ClaimsListParser;
 import google.registry.tools.Command.RemoteApiCommand;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

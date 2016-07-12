@@ -14,9 +14,8 @@
 
 package google.registry.util;
 
-import org.joda.time.DateTime;
-
 import javax.annotation.concurrent.ThreadSafe;
+import org.joda.time.DateTime;
 
 /** A clock that tells the current time in milliseconds or nanoseconds. */
 @ThreadSafe

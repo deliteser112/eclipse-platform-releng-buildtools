@@ -18,15 +18,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.base.Optional;
-
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeJsonResponse;
-
-import org.junit.Rule;
-
 import java.util.List;
 import java.util.regex.Pattern;
+import org.junit.Rule;
 
 /**
  * Base class for tests of list actions.

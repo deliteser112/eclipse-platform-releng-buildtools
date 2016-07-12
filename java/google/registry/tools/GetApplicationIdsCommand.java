@@ -18,16 +18,13 @@ import static google.registry.model.index.DomainApplicationIndex.loadActiveAppli
 import static google.registry.model.registry.Registries.assertTldExists;
 import static google.registry.model.registry.Registries.findTldForNameOrThrow;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.net.InternetDomainName;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.net.InternetDomainName;
 import google.registry.model.domain.DomainApplication;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
-
 import java.util.List;
 
 /** Command to generate a list of all applications for a given domain name(s). */

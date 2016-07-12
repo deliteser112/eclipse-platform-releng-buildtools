@@ -20,12 +20,9 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.ofy.CommitLogManifest;
-
 import org.joda.time.DateTime;
 
 /**

@@ -24,18 +24,15 @@ import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
-import com.beust.jcommander.ParameterException;
-
 import google.registry.model.billing.RegistrarBillingEntry;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.BillingMethod;
 import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.Registrar.Type;
 import google.registry.util.CidrAddressBlock;
-
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Test;

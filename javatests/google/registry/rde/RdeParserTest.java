@@ -17,7 +17,6 @@ package google.registry.rde;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.io.ByteSource;
-
 import google.registry.rde.RdeParser.RdeHeader;
 import google.registry.testing.ExceptionRule;
 import google.registry.xjc.rdecontact.XjcRdeContact;
@@ -27,17 +26,15 @@ import google.registry.xjc.rdehost.XjcRdeHost;
 import google.registry.xjc.rdeidn.XjcRdeIdn;
 import google.registry.xjc.rdenndn.XjcRdeNndn;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
-
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 /** Unit tests for {@link RdeParser}. */
 @RunWith(JUnit4.class)

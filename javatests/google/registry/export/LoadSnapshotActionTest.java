@@ -39,7 +39,6 @@ import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
 import google.registry.request.HttpException.BadRequestException;
@@ -48,7 +47,8 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
-
+import java.io.IOException;
+import java.util.List;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -57,9 +57,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.io.IOException;
-import java.util.List;
 
 /** Unit tests for {@link LoadSnapshotAction}. */
 @RunWith(MockitoJUnitRunner.class)

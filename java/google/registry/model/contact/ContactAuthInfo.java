@@ -17,10 +17,8 @@ package google.registry.model.contact;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.EppResource;
 import google.registry.model.eppcommon.AuthInfo;
-
 import javax.xml.bind.annotation.XmlType;
 
 /** A version of authInfo specifically for contacts. */

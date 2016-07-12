@@ -24,7 +24,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import google.registry.model.EntityTestCase;
 import google.registry.model.domain.Period;
 import google.registry.model.eppcommon.Trid;
-
 import org.junit.Before;
 import org.junit.Test;
 

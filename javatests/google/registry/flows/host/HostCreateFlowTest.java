@@ -27,7 +27,6 @@ import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.flows.EppXmlTransformer.IpAddressVersionMismatchException;
 import google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
 import google.registry.flows.ResourceFlowTestCase;
@@ -39,7 +38,6 @@ import google.registry.flows.host.HostFlowUtils.InvalidHostNameException;
 import google.registry.flows.host.HostFlowUtils.SuperordinateDomainDoesNotExistException;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

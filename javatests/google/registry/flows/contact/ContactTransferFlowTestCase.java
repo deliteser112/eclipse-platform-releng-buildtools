@@ -26,7 +26,6 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.registry.Registry;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.AppEngineRule;
-
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;

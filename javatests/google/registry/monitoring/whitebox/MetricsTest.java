@@ -17,12 +17,10 @@ package google.registry.monitoring.whitebox;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
 import com.google.common.base.Suppliers;
-
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;

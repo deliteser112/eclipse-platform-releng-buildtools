@@ -15,10 +15,8 @@
 package google.registry.ui;
 
 import com.google.appengine.api.users.UserService;
-
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.config.ConfigModule.Config;
 
 /** Dagger module for UI configuration. */

@@ -19,7 +19,6 @@ import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.collect.ImmutableList;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;

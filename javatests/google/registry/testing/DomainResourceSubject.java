@@ -19,13 +19,10 @@ import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
-
 import google.registry.model.domain.DomainResource;
 import google.registry.testing.TruthChainer.And;
-
-import org.joda.time.DateTime;
-
 import java.util.Objects;
+import org.joda.time.DateTime;
 
 /** Truth subject for asserting things about {@link DomainResource} instances. */
 public final class DomainResourceSubject

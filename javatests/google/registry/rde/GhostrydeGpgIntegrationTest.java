@@ -22,20 +22,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
 
 import com.google.common.io.CharStreams;
-
 import google.registry.keyring.api.Keyring;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.ShardableTestCase;
-
-import org.bouncycastle.openpgp.PGPPublicKey;
-import org.joda.time.DateTime;
-import org.junit.Rule;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,6 +33,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.joda.time.DateTime;
+import org.junit.Rule;
+import org.junit.experimental.theories.DataPoints;
+import org.junit.experimental.theories.Theories;
+import org.junit.experimental.theories.Theory;
+import org.junit.runner.RunWith;
 
 /** GnuPG integration tests for {@link Ghostryde}. */
 @RunWith(Theories.class)

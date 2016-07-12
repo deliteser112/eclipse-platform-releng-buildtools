@@ -18,7 +18,6 @@ import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.util.concurrent.Futures;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.Future;

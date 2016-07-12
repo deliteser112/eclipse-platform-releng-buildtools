@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.google.common.testing.NullPointerTester;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

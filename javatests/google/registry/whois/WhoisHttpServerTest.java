@@ -34,7 +34,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
-
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.After;

@@ -25,9 +25,7 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-
 import dagger.Lazy;
-
 import google.registry.request.Action;
 import google.registry.request.Header;
 import google.registry.request.HttpException.BadRequestException;
@@ -35,16 +33,13 @@ import google.registry.request.HttpException.NotModifiedException;
 import google.registry.request.Payload;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
-
-import org.joda.time.Duration;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
 import javax.inject.Inject;
+import org.joda.time.Duration;
 
 /**
  * An action which polls the state of a bigquery job. If it is completed then it will log its

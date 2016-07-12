@@ -24,7 +24,8 @@ import static org.bouncycastle.bcpg.PublicKeyAlgorithmTags.RSA_SIGN;
 
 import com.google.common.base.Optional;
 import com.google.common.base.VerifyException;
-
+import java.io.IOException;
+import java.util.Iterator;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
@@ -36,9 +37,6 @@ import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 import org.bouncycastle.openpgp.bc.BcPGPPublicKeyRing;
 import org.bouncycastle.openpgp.operator.bc.BcPBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
-
-import java.io.IOException;
-import java.util.Iterator;
 
 /** Helper functions for extracting PGP keys from their keyrings. */
 public final class PgpHelper {

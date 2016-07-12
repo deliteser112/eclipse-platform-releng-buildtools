@@ -21,14 +21,11 @@ import static google.registry.request.Action.Method.POST;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.domain.DomainResource;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
-
 import java.util.Comparator;
-
 import javax.inject.Inject;
 
 /** An action that lists domains, for use by the registry_tool list_domains command. */

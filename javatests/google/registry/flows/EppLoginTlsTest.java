@@ -18,11 +18,9 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Optional;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.CertificateSamples;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;

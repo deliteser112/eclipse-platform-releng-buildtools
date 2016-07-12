@@ -23,9 +23,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
@@ -37,12 +35,9 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.DateTime;
-
 import java.util.Set;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /** Represents a WHOIS response to a domain query. */
 final class DomainWhoisResponse extends WhoisResponseImpl {

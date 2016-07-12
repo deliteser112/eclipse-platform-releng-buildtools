@@ -22,10 +22,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-
 import google.registry.model.registry.Registry.TldState;
 import google.registry.testing.AppEngineRule;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;

@@ -16,7 +16,6 @@ package google.registry.flows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.EppInput.CommandExtension;
@@ -25,12 +24,10 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.EppResponse.ResponseData;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.eppoutput.Result;
-
-import org.joda.time.DateTime;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import org.joda.time.DateTime;
 
 /**
  * An abstract EPP flow.

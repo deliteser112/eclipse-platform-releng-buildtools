@@ -23,13 +23,11 @@ import static google.registry.util.RegistrarUtils.normalizeRegistrarName;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.beust.jcommander.Parameter;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-
-import com.beust.jcommander.Parameter;
-
 import google.registry.model.billing.RegistrarBillingUtils;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.BillingMethod;
@@ -39,19 +37,16 @@ import google.registry.tools.params.OptionalPhoneNumberParameter;
 import google.registry.tools.params.OptionalStringParameter;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.CidrAddressBlock;
-
-import org.joda.money.CurrencyUnit;
-import org.joda.money.Money;
-import org.joda.time.DateTime;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
+import org.joda.time.DateTime;
 
 /** Shared base class for commands to create or update a {@link Registrar}. */
 abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {

@@ -16,10 +16,8 @@ package google.registry.ui.server.registrar;
 
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.request.HttpException.ForbiddenException;
-
 import javax.servlet.http.HttpServletRequest;
 
 /** Registrar Console module providing reference to logged-in {@link Registrar}. */

@@ -20,12 +20,10 @@ import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
 import dagger.Subcomponent;
-
 import google.registry.monitoring.whitebox.EppMetrics;
 import google.registry.request.RequestScope;
 import google.registry.testing.FakeClock;
 import google.registry.util.Clock;
-
 import javax.inject.Singleton;
 
 /** Dagger component for running EPP tests. */

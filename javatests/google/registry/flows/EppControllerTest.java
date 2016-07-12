@@ -23,7 +23,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ShardableTestCase;
 import google.registry.util.SystemClock;
 import google.registry.xml.ValidationMode;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -16,9 +16,7 @@ package google.registry.dns.writer.dnsupdate;
 
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.config.ConfigModule.Config;
-
 import org.joda.time.Duration;
 
 /** Dagger module that provides DNS configuration settings. */

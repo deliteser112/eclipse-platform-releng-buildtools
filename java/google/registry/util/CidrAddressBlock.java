@@ -18,14 +18,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.AbstractSequentialIterator;
 import com.google.common.net.InetAddresses;
-
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
-
 import javax.annotation.Nullable;
 
 /**

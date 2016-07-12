@@ -14,19 +14,15 @@
 
 package google.registry.tools;
 
-import com.google.common.base.Joiner;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.base.Joiner;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.whois.Whois;
 import google.registry.whois.WhoisException;
 import google.registry.whois.WhoisResponse;
-
 import java.util.List;
-
 import javax.inject.Inject;
 
 /** Command to execute a WHOIS query. */

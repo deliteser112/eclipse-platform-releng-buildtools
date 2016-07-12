@@ -45,19 +45,16 @@ import com.google.api.services.groupssettings.Groupssettings;
 import com.google.api.services.groupssettings.model.Groups;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.groups.GroupsConnection.Role;
 import google.registry.testing.ExceptionRule;
-
+import java.io.IOException;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.io.IOException;
-import java.util.Set;
 
 /**
  * Unit tests for {@link DirectoryGroupsConnection}.

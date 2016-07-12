@@ -27,10 +27,8 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.domain.DomainApplication;
@@ -45,9 +43,7 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
 import google.registry.util.PipelineUtils;
-
 import java.util.List;
-
 import javax.inject.Inject;
 
 /**

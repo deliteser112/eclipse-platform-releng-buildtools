@@ -30,9 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
 import com.google.re2j.Pattern;
-
 import com.googlecode.objectify.cmd.Query;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.EppResource;
 import google.registry.request.Action;
@@ -43,13 +41,10 @@ import google.registry.request.RequestMethod;
 import google.registry.request.RequestPath;
 import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
-
-import org.json.simple.JSONValue;
-
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import javax.inject.Inject;
+import org.json.simple.JSONValue;
 
 /**
  * Base RDAP (new WHOIS) action for single-item domain, nameserver and entity requests.

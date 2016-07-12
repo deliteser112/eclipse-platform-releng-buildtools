@@ -31,18 +31,14 @@ import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
-
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.keyring.api.KeyModule.Key;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Set;
-
 import javax.inject.Named;
 import javax.inject.Singleton;
 

@@ -18,10 +18,8 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import dagger.Module;
 import dagger.Provides;
-
-import org.joda.time.DateTime;
-
 import javax.annotation.concurrent.ThreadSafe;
+import org.joda.time.DateTime;
 
 /** Clock implementation that proxies to the real system clock. */
 @ThreadSafe

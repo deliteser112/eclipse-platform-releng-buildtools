@@ -30,9 +30,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 
 import com.google.appengine.tools.mapreduce.InputReader;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.config.TestRegistryConfig;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
@@ -44,12 +42,6 @@ import google.registry.model.index.EppResourceIndex;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.RegistryConfigRule;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -57,6 +49,10 @@ import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Tests {@link EppResourceInputs} */
 @RunWith(JUnit4.class)

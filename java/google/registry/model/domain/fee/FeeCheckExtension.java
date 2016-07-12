@@ -17,13 +17,10 @@ package google.registry.model.domain.fee;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.Period;
 import google.registry.model.eppinput.EppInput.CommandExtension;
-
 import java.util.Set;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;

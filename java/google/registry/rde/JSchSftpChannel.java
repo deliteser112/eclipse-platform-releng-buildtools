@@ -17,7 +17,6 @@ package google.registry.rde;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.jcraft.jsch.ChannelSftp;
-
 import java.io.Closeable;
 import java.io.IOException;
 

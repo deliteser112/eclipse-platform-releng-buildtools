@@ -16,14 +16,12 @@ package google.registry.testing;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.FailureStrategy;
-
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.testing.TruthChainer.And;
-
 import java.util.Set;
 
 /** Truth subject for asserting things about {@link DomainResource} instances. */

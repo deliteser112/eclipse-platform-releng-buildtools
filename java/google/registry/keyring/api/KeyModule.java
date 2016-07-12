@@ -17,17 +17,13 @@ package google.registry.keyring.api;
 import static com.google.common.base.Strings.emptyToNull;
 
 import com.google.common.base.Optional;
-
 import dagger.Module;
 import dagger.Provides;
-
+import java.lang.annotation.Documented;
+import javax.inject.Qualifier;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
-
-import java.lang.annotation.Documented;
-
-import javax.inject.Qualifier;
 
 /** Dagger module for keys stored in {@link Keyring}. */
 @Module

@@ -20,14 +20,12 @@ import static com.google.common.truth.Truth.assert_;
 import static google.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
 
 import com.google.common.base.Supplier;
-
-import org.json.simple.JSONValue;
-import org.json.simple.parser.ParseException;
-
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Map;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.ParseException;
 
 /**
  * Helper class for testing JSON RPC servlets.

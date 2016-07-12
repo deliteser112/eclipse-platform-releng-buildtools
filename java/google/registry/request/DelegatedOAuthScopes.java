@@ -16,7 +16,6 @@ package google.registry.request;
 
 import java.lang.annotation.Documented;
 import java.util.Set;
-
 import javax.inject.Qualifier;
 
 /**

@@ -15,7 +15,6 @@
 package google.registry.util;
 
 import com.google.common.base.Function;
-
 import com.googlecode.objectify.Key;
 
 /** Utilities for working with Objectify. */

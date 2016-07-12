@@ -35,22 +35,18 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.MediaType;
-
 import google.registry.export.DatastoreBackupInfo.BackupStatus;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
-
-import org.joda.time.Duration;
-import org.joda.time.PeriodType;
-import org.joda.time.format.PeriodFormat;
-
 import java.io.IOException;
 import java.util.Set;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.joda.time.Duration;
+import org.joda.time.PeriodType;
+import org.joda.time.format.PeriodFormat;
 
 /** Check the status of a snapshot, and if complete, trigger loading it into BigQuery. */
 public class CheckSnapshotServlet extends HttpServlet {

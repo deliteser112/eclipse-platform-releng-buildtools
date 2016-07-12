@@ -38,11 +38,9 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.NullInput;
 import google.registry.model.billing.BillingEvent;
@@ -57,13 +55,10 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-
+import java.util.Set;
+import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-
-import java.util.Set;
-
-import javax.inject.Inject;
 
 /**
  * A mapreduce that expands {@link Recurring} billing events into synthetic {@link OneTime} events.

@@ -25,18 +25,15 @@ import static google.registry.request.RequestParameters.extractRequiredParameter
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.testing.ExceptionRule;
-
+import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.servlet.http.HttpServletRequest;
 
 /** Unit tests for {@link RequestParameters}. */
 @RunWith(MockitoJUnitRunner.class)

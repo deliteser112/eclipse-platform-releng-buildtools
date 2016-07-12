@@ -17,10 +17,8 @@ package google.registry.config;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
-
-import org.joda.time.Duration;
-
 import java.net.URL;
+import org.joda.time.Duration;
 
 /**
  * Domain Registry configuration.

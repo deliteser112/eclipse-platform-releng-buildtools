@@ -35,10 +35,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.EppXmlTransformer;
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent;
@@ -64,14 +62,12 @@ import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.ExceptionRule;
 import google.registry.xml.ValidationMode;
-
+import java.util.List;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
 
 /** Unit tests for {@link DomainResource}. */
 public class DomainResourceTest extends EntityTestCase {

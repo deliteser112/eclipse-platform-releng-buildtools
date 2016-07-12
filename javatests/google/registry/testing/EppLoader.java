@@ -19,9 +19,7 @@ import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.model.eppinput.EppInput;
-
 import java.util.Map;
 
 /** Test rule that loads an Epp object from a file. */

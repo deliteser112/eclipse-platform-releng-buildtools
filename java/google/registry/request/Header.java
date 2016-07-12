@@ -15,7 +15,6 @@
 package google.registry.request;
 
 import java.lang.annotation.Documented;
-
 import javax.inject.Qualifier;
 
 /** Dagger qualifier for HTTP headers. */

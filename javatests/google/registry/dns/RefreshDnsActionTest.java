@@ -29,7 +29,6 @@ import google.registry.request.HttpException.NotFoundException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

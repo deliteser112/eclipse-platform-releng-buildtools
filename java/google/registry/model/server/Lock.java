@@ -27,28 +27,23 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
-
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.NotBackedUp.Reason;
 import google.registry.util.AppEngineTimeLimiter;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * A lock on some shared resource. Locks are either specific to a tld or global to the entire

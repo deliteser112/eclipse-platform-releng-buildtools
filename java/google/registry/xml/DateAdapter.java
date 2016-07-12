@@ -17,13 +17,12 @@ package google.registry.xml;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.joda.time.DateTimeZone.UTC;
 
-import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 /**
  * Adapter to use Joda {@link LocalDate} when marshalling the XML Schema {@code date} type.

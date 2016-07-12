@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.config.RegistryEnvironment;
 
 /** Enum of production environments, used for the {@code --environment} flag. */

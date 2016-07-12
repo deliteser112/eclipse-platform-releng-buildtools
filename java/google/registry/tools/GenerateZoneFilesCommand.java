@@ -18,19 +18,15 @@ import static google.registry.model.registry.Registries.assertTldExists;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardMinutes;
 
-import com.google.common.collect.ImmutableMap;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.collect.ImmutableMap;
 import google.registry.tools.params.DateTimeParameter;
 import google.registry.tools.server.GenerateZoneFilesAction;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import org.joda.time.DateTime;
 
 /** Command to generate zone files. */
 @Parameters(separators = " =", commandDescription = "Generate zone files")

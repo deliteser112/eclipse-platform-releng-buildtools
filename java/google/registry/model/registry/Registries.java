@@ -29,9 +29,7 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
-
 import com.googlecode.objectify.Work;
-
 import google.registry.model.registry.Registry.TldType;
 
 /** Utilities for finding and listing {@link Registry} entities. */

@@ -19,13 +19,7 @@ import static com.google.common.base.Verify.verify;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Ints;
-
 import google.registry.config.ConfigModule.Config;
-
-import org.joda.time.Duration;
-import org.xbill.DNS.Message;
-import org.xbill.DNS.Opcode;
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,9 +27,11 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-
 import javax.inject.Inject;
 import javax.net.SocketFactory;
+import org.joda.time.Duration;
+import org.xbill.DNS.Message;
+import org.xbill.DNS.Opcode;
 
 /**
  * A transport for DNS messages. Sends/receives DNS messages over TCP using old-style {@link Socket}

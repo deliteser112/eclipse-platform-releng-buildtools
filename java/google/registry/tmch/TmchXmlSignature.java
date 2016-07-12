@@ -21,11 +21,6 @@ import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static google.registry.xml.XmlTransformer.loadXmlSchemas;
 
 import com.google.common.collect.ImmutableList;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +30,6 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.xml.crypto.AlgorithmMethod;
@@ -54,6 +48,9 @@ import javax.xml.crypto.dsig.keyinfo.X509Data;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /** Helper class for verifying TMCH certificates and XML signatures. */
 @ThreadSafe

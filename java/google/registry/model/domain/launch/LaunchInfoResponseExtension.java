@@ -15,14 +15,10 @@
 package google.registry.model.domain.launch;
 
 import com.google.common.collect.ImmutableList;
-
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.mark.Mark;
-
 import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;

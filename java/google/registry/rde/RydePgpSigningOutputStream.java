@@ -19,21 +19,17 @@ import static org.bouncycastle.bcpg.PublicKeyAlgorithmTags.RSA_GENERAL;
 import static org.bouncycastle.openpgp.PGPSignature.BINARY_DOCUMENT;
 
 import com.google.auto.factory.AutoFactory;
-
 import google.registry.util.ImprovedOutputStream;
-
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Iterator;
+import javax.annotation.WillNotClose;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPSignatureGenerator;
 import org.bouncycastle.openpgp.PGPSignatureSubpacketGenerator;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Iterator;
-
-import javax.annotation.WillNotClose;
 
 /**
  * OpenPGP detached signing service that wraps an {@link OutputStream}.

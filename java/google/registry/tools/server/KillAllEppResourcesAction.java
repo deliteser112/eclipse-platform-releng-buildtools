@@ -21,10 +21,8 @@ import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
@@ -35,7 +33,6 @@ import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.request.Action;
 import google.registry.request.Response;
-
 import javax.inject.Inject;
 
 /** Deletes all {@link EppResource} objects in datastore, including indices and descendants. */

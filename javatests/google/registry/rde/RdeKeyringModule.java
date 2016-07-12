@@ -18,14 +18,14 @@ import static google.registry.keyring.api.PgpHelper.KeyRequirement.ENCRYPT;
 import static google.registry.keyring.api.PgpHelper.KeyRequirement.SIGN;
 
 import com.google.common.io.ByteSource;
-
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.keyring.api.Keyring;
 import google.registry.keyring.api.PgpHelper;
 import google.registry.keyring.api.PgpHelper.KeyRequirement;
-
+import java.io.IOException;
+import java.io.InputStream;
+import javax.annotation.concurrent.Immutable;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
@@ -35,11 +35,6 @@ import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.bc.BcPGPPublicKeyRingCollection;
 import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.annotation.concurrent.Immutable;
 
 /** Keyring factory that loads keys {@code javatests/.../rde/testdata} */
 @Module

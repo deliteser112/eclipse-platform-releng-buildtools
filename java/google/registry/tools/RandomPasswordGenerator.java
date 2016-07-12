@@ -17,7 +17,6 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Random;
-
 import javax.inject.Inject;
 
 /** Password generator. */

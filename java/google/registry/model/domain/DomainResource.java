@@ -27,14 +27,12 @@ import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfNull;
-
 import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.billing.BillingEvent;
@@ -44,17 +42,14 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
-
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 
 /** A persistable domain resource including mutable and non-mutable fields. */
 @XmlRootElement(name = "infData")

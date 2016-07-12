@@ -18,15 +18,12 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-
 import google.registry.testing.ExceptionRule;
-
+import java.net.URI;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.net.URI;
 
 /** Unit tests for {@link IdnTable}. */
 @RunWith(JUnit4.class)

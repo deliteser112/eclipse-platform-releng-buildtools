@@ -17,7 +17,6 @@ package google.registry.tools;
 import static google.registry.model.rde.RdeMode.FULL;
 
 import com.google.common.io.ByteStreams;
-
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.model.rde.RdeNamingUtils;
 import google.registry.rde.RdeUtil;
@@ -32,21 +31,18 @@ import google.registry.rde.RydePgpSigningOutputStreamFactory;
 import google.registry.rde.RydeTarOutputStream;
 import google.registry.rde.RydeTarOutputStreamFactory;
 import google.registry.xml.XmlException;
-
-import org.bouncycastle.bcpg.ArmoredOutputStream;
-import org.bouncycastle.openpgp.PGPException;
-import org.bouncycastle.openpgp.PGPKeyPair;
-import org.bouncycastle.openpgp.PGPPublicKey;
-import org.joda.time.DateTime;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import javax.inject.Inject;
+import org.bouncycastle.bcpg.ArmoredOutputStream;
+import org.bouncycastle.openpgp.PGPException;
+import org.bouncycastle.openpgp.PGPKeyPair;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.joda.time.DateTime;
 
 /** Utility for encrypting an RDE RyDE deposit on the Java 7 NIO file system. */
 final class EscrowDepositEncryptor {

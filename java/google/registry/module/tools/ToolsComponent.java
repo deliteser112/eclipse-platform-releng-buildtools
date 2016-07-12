@@ -15,7 +15,6 @@
 package google.registry.module.tools;
 
 import dagger.Component;
-
 import google.registry.config.ConfigModule;
 import google.registry.export.DriveModule;
 import google.registry.gcs.GcsServiceModule;
@@ -33,7 +32,6 @@ import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModu
 import google.registry.request.RequestModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
-
 import javax.inject.Singleton;
 
 /** Dagger component with instance lifetime for "tools" App Engine module. */

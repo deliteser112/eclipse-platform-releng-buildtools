@@ -15,9 +15,7 @@
 package google.registry.tools;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
 import google.registry.bigquery.BigqueryConnection.DestinationTable;
-
 import java.util.concurrent.ExecutionException;
 
 /** Container class for static utility methods for Bigquery commands. */

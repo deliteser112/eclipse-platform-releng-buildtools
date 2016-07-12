@@ -25,7 +25,6 @@ import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteSource;
-
 import google.registry.request.Action;
 import google.registry.request.Header;
 import google.registry.request.HttpException.BadRequestException;
@@ -35,11 +34,9 @@ import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
 import google.registry.util.UrlFetchException;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map.Entry;
-
 import javax.inject.Inject;
 
 /**

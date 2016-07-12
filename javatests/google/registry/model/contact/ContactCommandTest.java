@@ -23,11 +23,9 @@ import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
-
 import google.registry.model.contact.PostalInfo.Type;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.EppLoader;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

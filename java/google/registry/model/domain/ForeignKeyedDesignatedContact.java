@@ -15,7 +15,6 @@
 package google.registry.model.domain;
 
 import google.registry.model.ImmutableObject;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlValue;
 

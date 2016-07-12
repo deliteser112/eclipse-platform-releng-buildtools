@@ -15,13 +15,10 @@
 package google.registry.model.domain.fee;
 
 import google.registry.model.ImmutableObject;
-
-import org.joda.money.CurrencyUnit;
-
 import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
+import org.joda.money.CurrencyUnit;
 
 /** Base class for general transform commands with fees (create, renew, update, transfer). */
 @XmlTransient

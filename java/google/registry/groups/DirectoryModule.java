@@ -18,16 +18,12 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.admin.directory.Directory;
 import com.google.api.services.admin.directory.DirectoryScopes;
 import com.google.common.collect.ImmutableSet;
-
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ElementsIntoSet;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.request.DelegatedOAuthScopes;
-
 import java.util.Set;
-
 import javax.inject.Named;
 
 /**

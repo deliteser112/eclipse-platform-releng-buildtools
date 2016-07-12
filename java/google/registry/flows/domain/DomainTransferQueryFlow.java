@@ -17,7 +17,6 @@ package google.registry.flows.domain;
 import google.registry.flows.ResourceTransferQueryFlow;
 import google.registry.model.domain.DomainCommand.Transfer;
 import google.registry.model.domain.DomainResource;
-
 import javax.inject.Inject;
 
 /**

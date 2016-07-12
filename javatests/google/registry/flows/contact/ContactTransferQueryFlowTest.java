@@ -28,7 +28,6 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferStatus;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

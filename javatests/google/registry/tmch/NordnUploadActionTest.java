@@ -39,7 +39,6 @@ import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.base.Optional;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
-
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.ofy.Ofy;
@@ -51,7 +50,7 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.UrlFetchException;
-
+import java.net.URL;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -61,8 +60,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.net.URL;
 
 /** Unit tests for {@link NordnUploadAction}. */
 @RunWith(MockitoJUnitRunner.class)

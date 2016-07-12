@@ -18,7 +18,6 @@ import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.UserInfo;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

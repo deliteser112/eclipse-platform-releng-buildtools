@@ -18,10 +18,8 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
 import google.registry.model.UpdateAutoTimestamp;
-
-import org.joda.time.DateTime;
-
 import java.util.Date;
+import org.joda.time.DateTime;
 
 /** Saves {@link UpdateAutoTimestamp} as the current time. */
 public class UpdateAutoTimestampTranslatorFactory

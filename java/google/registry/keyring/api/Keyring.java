@@ -14,11 +14,10 @@
 
 package google.registry.keyring.api;
 
+import javax.annotation.concurrent.ThreadSafe;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Domain Registry keyring interface.

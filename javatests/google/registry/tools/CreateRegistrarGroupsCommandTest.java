@@ -19,9 +19,7 @@ import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-
 import google.registry.tools.ServerSideCommand.Connection;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

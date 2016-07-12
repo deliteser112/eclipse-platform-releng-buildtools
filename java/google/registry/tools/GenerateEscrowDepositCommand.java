@@ -20,17 +20,15 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.EppResource;
 import google.registry.model.EppResourceUtils;
@@ -54,9 +52,6 @@ import google.registry.tools.params.DateTimeParameter;
 import google.registry.tools.params.PathParameter;
 import google.registry.xjc.rdeheader.XjcRdeHeader;
 import google.registry.xjc.rdeheader.XjcRdeHeaderElement;
-
-import org.joda.time.DateTime;
-
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -64,8 +59,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** Command to generate an XML RDE escrow deposit (with relevant files) in current directory. */
 @Parameters(separators = " =", commandDescription = "Generate an XML escrow deposit.")

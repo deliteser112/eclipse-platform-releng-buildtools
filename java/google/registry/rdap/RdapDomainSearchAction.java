@@ -27,12 +27,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Booleans;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.cmd.QueryKeys;
-
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
@@ -43,13 +41,10 @@ import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
 import google.registry.util.Idn;
-
-import org.joda.time.DateTime;
-
 import java.net.InetAddress;
 import java.util.List;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * RDAP (new WHOIS) action for domain search requests.

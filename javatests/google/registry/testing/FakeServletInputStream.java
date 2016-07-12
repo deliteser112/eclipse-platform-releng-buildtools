@@ -15,11 +15,9 @@
 package google.registry.testing;
 
 import com.google.common.io.ByteSource;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.servlet.ServletInputStream;
 
 /**

@@ -21,7 +21,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;

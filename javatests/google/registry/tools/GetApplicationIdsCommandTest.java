@@ -21,9 +21,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
-
 import google.registry.model.domain.launch.LaunchPhase;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

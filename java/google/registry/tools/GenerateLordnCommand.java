@@ -18,21 +18,17 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.common.collect.ImmutableList;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.collect.ImmutableList;
 import google.registry.model.domain.DomainResource;
 import google.registry.tmch.LordnTask;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.joda.time.DateTime;
 
 /** Command to generate a LORDN CSV file for an entire TLD. */
 @Parameters(separators = " =", commandDescription = "Generate LORDN CSV file")

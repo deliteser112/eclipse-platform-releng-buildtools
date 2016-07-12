@@ -19,12 +19,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Sets.difference;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Ordering;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.Ordering;
 import google.registry.keyring.api.Keyring;
 import google.registry.rde.Ghostryde;
 import google.registry.tools.params.PathParameter;
@@ -37,7 +35,6 @@ import google.registry.xjc.rdedomain.XjcRdeDomain;
 import google.registry.xjc.rdehost.XjcRdeHost;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
 import google.registry.xml.XmlException;
-
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,7 +46,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBElement;

@@ -18,9 +18,7 @@ import static com.google.common.truth.Truth.assert_;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.google.common.base.Joiner;
-
 import google.registry.testing.AppEngineRule;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

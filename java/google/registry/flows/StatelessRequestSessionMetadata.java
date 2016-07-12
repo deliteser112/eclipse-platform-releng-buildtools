@@ -20,7 +20,6 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-
 import java.util.Set;
 
 /** A read-only {@link SessionMetadata} that doesn't support login/logout. */

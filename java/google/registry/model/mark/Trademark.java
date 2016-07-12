@@ -17,13 +17,10 @@ package google.registry.model.mark;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableList;
-
-import org.joda.time.DateTime;
-
 import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
+import org.joda.time.DateTime;
 
 /** Holds information about a registered trademark. */
 @XmlType(propOrder = {

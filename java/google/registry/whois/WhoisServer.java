@@ -18,17 +18,13 @@ import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.net.MediaType;
-
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.DateTime;
-
 import java.io.Reader;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * HTTP request handler for WHOIS protocol requests sent to us by a proxy.

@@ -31,16 +31,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
 import com.google.common.testing.NullPointerTester;
 import com.google.re2j.Pattern;
-
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /** Unit tests for {@link FormField}. */
 @RunWith(JUnit4.class)

@@ -14,21 +14,17 @@
 
 package google.registry.server;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.net.HostAndPort;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.net.HostAndPort;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.UserInfo;
 import google.registry.tools.params.HostAndPortParameter;
 import google.registry.ui.ConsoleDebug;
-
+import java.util.List;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-
-import java.util.List;
 
 /** Command-line interface for {@link RegistryTestServer}. */
 public final class RegistryTestServerMain {

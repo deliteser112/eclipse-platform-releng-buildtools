@@ -19,17 +19,14 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
 import google.registry.model.billing.RegistrarCredit;
 import google.registry.model.billing.RegistrarCredit.CreditType;
 import google.registry.model.billing.RegistrarCreditBalance;
 import google.registry.model.registrar.Registrar;
 import google.registry.tools.Command.GtechCommand;
-
+import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-
-import javax.annotation.Nullable;
 
 /** Command for creating a registrar credit object with an initial balance. */
 @Parameters(separators = " =", commandDescription = "Create a new registrar credit")

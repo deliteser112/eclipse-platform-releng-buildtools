@@ -19,7 +19,6 @@ import static google.registry.util.ResourceUtils.readResourceBytes;
 
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-
 import google.registry.rde.RdeKeyringModule;
 import google.registry.rde.RdeTestData;
 import google.registry.rde.RydePgpCompressionOutputStreamFactory;
@@ -29,12 +28,10 @@ import google.registry.rde.RydePgpSigningOutputStreamFactory;
 import google.registry.rde.RydeTarOutputStreamFactory;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.Providers;
-
+import java.io.File;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.io.File;
 
 /** Unit tests for {@link EncryptEscrowDepositCommand}. */
 public class EncryptEscrowDepositCommandTest

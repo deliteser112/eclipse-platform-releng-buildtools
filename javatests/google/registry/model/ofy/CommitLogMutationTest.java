@@ -21,14 +21,11 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityTranslator;
 import com.google.appengine.api.datastore.KeyFactory;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
-
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;

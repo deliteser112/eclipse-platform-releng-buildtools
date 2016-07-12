@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
@@ -53,7 +52,6 @@ import google.registry.xjc.contact.XjcContactPostalInfoType;
 import google.registry.xjc.contact.XjcContactStatusType;
 import google.registry.xjc.rdecontact.XjcRdeContact;
 import google.registry.xjc.rdecontact.XjcRdeContactTransferDataType;
-
 import javax.annotation.Nullable;
 
 /** Utility class that converts an {@link XjcRdeContact} into a {@link ContactResource}. */

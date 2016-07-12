@@ -18,19 +18,15 @@ import static java.util.Arrays.asList;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
-
 import google.registry.request.RequestHandler;
 import google.registry.request.RequestModule;
-
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.security.Security;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /** Servlet that should handle all requests to our "backend" App Engine module. */
 public final class BackendServlet extends HttpServlet {

@@ -17,13 +17,10 @@ package google.registry.model.contact;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Optional;
-
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.Buildable;
 import google.registry.model.Buildable.Overlayable;
 import google.registry.model.ImmutableObject;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlEnumValue;

@@ -14,9 +14,8 @@
 
 package google.registry.util;
 
-import org.joda.time.ReadableDuration;
-
 import javax.annotation.concurrent.ThreadSafe;
+import org.joda.time.ReadableDuration;
 
 /**
  * An object which accepts requests to put the current thread to sleep.

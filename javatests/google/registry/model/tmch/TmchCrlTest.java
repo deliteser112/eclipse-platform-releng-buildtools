@@ -17,7 +17,6 @@ package google.registry.model.tmch;
 import static com.google.common.truth.Truth.assertThat;
 
 import google.registry.testing.AppEngineRule;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

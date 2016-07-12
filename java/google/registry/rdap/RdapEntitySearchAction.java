@@ -23,10 +23,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Booleans;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
@@ -40,7 +38,6 @@ import google.registry.request.HttpException.NotImplementedException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
-
 import javax.inject.Inject;
 
 /**

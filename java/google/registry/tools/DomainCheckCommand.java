@@ -14,15 +14,12 @@
 
 package google.registry.tools;
 
-import com.google.common.collect.Multimap;
-import com.google.template.soy.data.SoyMapData;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.collect.Multimap;
+import com.google.template.soy.data.SoyMapData;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.soy.DomainCheckSoyInfo;
-
 import java.util.Collection;
 import java.util.List;
 

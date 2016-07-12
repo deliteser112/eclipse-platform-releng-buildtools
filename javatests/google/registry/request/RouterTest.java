@@ -19,15 +19,12 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-
 import google.registry.testing.ExceptionRule;
-
+import java.util.concurrent.Callable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.concurrent.Callable;
 
 /** Unit tests for {@link Router}. */
 @RunWith(JUnit4.class)

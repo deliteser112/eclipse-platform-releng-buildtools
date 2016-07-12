@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.Key;
-
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.FlowModule.InputXml;
 import google.registry.model.EppResource;
@@ -28,7 +27,6 @@ import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.util.TypeUtils.TypeInstantiator;
-
 import javax.inject.Inject;
 
 /**

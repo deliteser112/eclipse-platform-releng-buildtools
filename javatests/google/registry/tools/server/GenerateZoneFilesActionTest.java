@@ -36,23 +36,19 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
 import google.registry.testing.FakeClock;
 import google.registry.testing.mapreduce.MapreduceTestCase;
-
+import java.net.InetAddress;
+import java.util.Map;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.net.InetAddress;
-import java.util.Map;
 
 /** Tests for {@link GenerateZoneFilesAction}.*/
 @RunWith(JUnit4.class)

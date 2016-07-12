@@ -17,17 +17,13 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-import com.google.template.soy.data.SoyMapData;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.template.soy.data.SoyMapData;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.params.PhoneNumberParameter;
 import google.registry.tools.soy.CreateContactSoyInfo;
-
 import java.util.List;
-
 import javax.inject.Inject;
 
 /** A command to create a new contact via EPP. */

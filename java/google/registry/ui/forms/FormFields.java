@@ -22,7 +22,6 @@ import static java.util.Locale.getISOCountries;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.re2j.Pattern;
-
 import javax.annotation.Nullable;
 
 /** Utility class of {@link FormField} objects for validating EPP related things. */

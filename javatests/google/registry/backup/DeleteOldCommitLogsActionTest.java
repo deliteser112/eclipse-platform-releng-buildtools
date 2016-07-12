@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.joda.time.Duration.millis;
 
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.config.TestRegistryConfig;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
@@ -28,7 +27,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.RegistryConfigRule;
-
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;

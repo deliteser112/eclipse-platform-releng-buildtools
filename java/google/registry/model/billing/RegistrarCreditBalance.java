@@ -26,22 +26,18 @@ import com.google.common.collect.ForwardingNavigableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.ref.DeadRef;
-
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
-
-import org.joda.money.Money;
-import org.joda.time.DateTime;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.joda.money.Money;
+import org.joda.time.DateTime;
 
 /**
  * The balance of a {@link RegistrarCredit} at a given point in time.

@@ -28,10 +28,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
-
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.InjectRule;
-
+import java.security.SecureRandom;
+import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,9 +40,6 @@ import org.junit.runners.JUnit4;
 import org.mockito.ArgumentMatcher;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
-import java.security.SecureRandom;
-import java.util.Arrays;
 
 /** Unit tests for {@link UrlFetchUtils}. */
 @RunWith(JUnit4.class)

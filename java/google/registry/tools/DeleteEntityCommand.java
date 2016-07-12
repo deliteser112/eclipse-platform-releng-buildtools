@@ -14,15 +14,12 @@
 
 package google.registry.tools;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.tools.server.DeleteEntityAction;
-
 import java.util.List;
 
 /**

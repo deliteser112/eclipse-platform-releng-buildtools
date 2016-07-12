@@ -20,19 +20,16 @@ import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.net.MediaType;
-
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.UserInfo;
-
+import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.servlet.http.HttpServletRequest;
 
 /** Unit tests for {@link ConsoleUiAction}. */
 @RunWith(MockitoJUnitRunner.class)

@@ -23,7 +23,6 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-
 import java.net.URI;
 
 /** An IDN table for a particular TLD. */

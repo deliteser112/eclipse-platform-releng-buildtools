@@ -16,9 +16,7 @@ package google.registry.mapreduce.inputs;
 
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.EppResourceIndexBucket;
 

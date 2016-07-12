@@ -21,7 +21,6 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.groups.GroupsConnection.Role;
@@ -35,11 +34,9 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.util.Concurrent;
 import google.registry.util.FormattingLogger;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 

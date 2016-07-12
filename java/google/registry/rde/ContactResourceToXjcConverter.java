@@ -36,7 +36,6 @@ import google.registry.xjc.eppcom.XjcEppcomTrStatusType;
 import google.registry.xjc.rdecontact.XjcRdeContact;
 import google.registry.xjc.rdecontact.XjcRdeContactElement;
 import google.registry.xjc.rdecontact.XjcRdeContactTransferDataType;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 

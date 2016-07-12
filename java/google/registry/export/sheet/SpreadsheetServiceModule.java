@@ -17,7 +17,6 @@ package google.registry.export.sheet;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.common.collect.ImmutableList;
 import com.google.gdata.client.spreadsheet.SpreadsheetService;
-
 import dagger.Module;
 import dagger.Provides;
 

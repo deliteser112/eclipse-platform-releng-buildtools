@@ -20,14 +20,11 @@ import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
-
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.EppResource;
 import google.registry.request.Action;
 import google.registry.request.Response;
-
 import javax.inject.Inject;
 
 /**

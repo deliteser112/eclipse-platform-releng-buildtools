@@ -19,9 +19,7 @@ import static google.registry.util.TypeUtils.checkNoInheritanceRelationships;
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.model.EppResource;
 import google.registry.model.index.EppResourceIndexBucket;
 

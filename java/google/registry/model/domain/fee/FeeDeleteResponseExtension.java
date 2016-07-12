@@ -15,17 +15,13 @@
 package google.registry.model.domain.fee;
 
 import com.google.common.collect.ImmutableList;
-
 import google.registry.model.Buildable.GenericBuilder;
 import google.registry.model.ImmutableObject;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
-
-import org.joda.money.CurrencyUnit;
-
 import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.joda.money.CurrencyUnit;
 
 /**
  * An XML data object that represents a fee extension that may be present on the response to EPP

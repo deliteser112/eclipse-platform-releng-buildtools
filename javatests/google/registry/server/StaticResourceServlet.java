@@ -25,21 +25,17 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import com.google.common.primitives.Ints;
-
 import google.registry.util.FormattingLogger;
-
-import org.mortbay.jetty.servlet.ServletHolder;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.mortbay.jetty.servlet.ServletHolder;
 
 /**
  * Servlet for serving static resources on a Jetty development server path prefix.

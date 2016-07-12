@@ -16,19 +16,16 @@ package google.registry.tools;
 
 import static com.google.common.base.Predicates.notNull;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-
 import google.registry.bigquery.BigqueryUtils.SourceFormat;
 import google.registry.export.ExportConstants;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

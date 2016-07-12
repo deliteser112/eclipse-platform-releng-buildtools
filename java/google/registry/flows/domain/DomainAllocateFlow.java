@@ -23,9 +23,7 @@ import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
@@ -47,7 +45,6 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservationType;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tmch.LordnTask;
-
 import javax.inject.Inject;
 
 /**

@@ -21,9 +21,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.bigquery.model.ErrorProto;
 import com.google.api.services.bigquery.model.JobStatus;
 import com.google.common.collect.Iterables;
-
 import java.io.IOException;
-
 import javax.annotation.Nullable;
 
 /** Generic exception to throw if a Bigquery job fails. */

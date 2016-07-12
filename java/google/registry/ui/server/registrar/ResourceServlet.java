@@ -20,16 +20,13 @@ import static google.registry.security.JsonResponseHelper.Status.ERROR;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.security.JsonResponseHelper;
 import google.registry.security.JsonTransportServlet;
 import google.registry.ui.forms.FormException;
 import google.registry.ui.forms.FormFieldException;
 import google.registry.util.NonFinalForTesting;
-
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 

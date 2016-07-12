@@ -16,7 +16,6 @@ package google.registry.keyring.api;
 
 import dagger.Module;
 import dagger.Provides;
-
 import javax.annotation.concurrent.Immutable;
 
 /** Dagger keyring module that always returns {@link VoidKeyring} instances. */

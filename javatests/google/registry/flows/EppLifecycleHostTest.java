@@ -15,7 +15,6 @@
 package google.registry.flows;
 
 import google.registry.testing.AppEngineRule;
-
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;

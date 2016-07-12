@@ -23,9 +23,7 @@ import static google.registry.request.RequestParameters.extractRequiredParameter
 
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.request.Parameter;
-
 import javax.servlet.http.HttpServletRequest;
 
 /** Dagger module for the async flows package. */

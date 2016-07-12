@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
-
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.SyntaxErrorException;
 import google.registry.flows.EppException.UnimplementedCommandException;
@@ -85,7 +84,6 @@ import google.registry.model.eppinput.EppInput.Transfer;
 import google.registry.model.eppinput.EppInput.Transfer.TransferOp;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.host.HostCommand;
-
 import java.util.Map;
 import java.util.Set;
 

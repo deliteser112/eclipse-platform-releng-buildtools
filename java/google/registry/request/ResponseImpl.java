@@ -15,13 +15,10 @@
 package google.registry.request;
 
 import com.google.common.net.MediaType;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
+import org.joda.time.DateTime;
 
 /** HTTP response object. */
 public final class ResponseImpl implements Response {

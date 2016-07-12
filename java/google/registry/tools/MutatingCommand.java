@@ -32,20 +32,16 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.model.ImmutableObject;
 import google.registry.tools.Command.RemoteApiCommand;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 /** A {@link ConfirmingCommand} that changes objects in the datastore. */

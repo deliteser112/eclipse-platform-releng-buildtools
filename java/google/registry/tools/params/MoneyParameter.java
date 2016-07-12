@@ -15,7 +15,6 @@
 package google.registry.tools.params;
 
 import com.google.common.base.Ascii;
-
 import org.joda.money.Money;
 
 /** {@linkplain Money} CLI parameter converter/validator. */

@@ -28,13 +28,11 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multisets;
 import com.google.common.collect.Sets;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-
 import javax.annotation.Nullable;
 
 /** Utility methods related to collections. */

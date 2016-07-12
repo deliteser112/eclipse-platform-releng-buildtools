@@ -15,11 +15,9 @@
 package google.registry.tools.server;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.request.JsonResponse;
 import google.registry.request.Parameter;
 import google.registry.util.FormattingLogger;
-
 import javax.inject.Inject;
 
 /**

@@ -17,7 +17,6 @@ package google.registry.flows.session;
 import google.registry.flows.Flow;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.Greeting;
-
 import javax.inject.Inject;
 
 /** A flow for an Epp "hello". */

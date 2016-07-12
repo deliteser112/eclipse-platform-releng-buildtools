@@ -21,12 +21,10 @@ import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
 import static google.registry.request.Action.Method.POST;
 
 import com.google.common.base.Function;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Query;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogManifest;
@@ -36,13 +34,10 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-
+import java.util.List;
+import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-
-import java.util.List;
-
-import javax.inject.Inject;
 
 /**
  * Task that garbage collects old {@link CommitLogManifest} entities.

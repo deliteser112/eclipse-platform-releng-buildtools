@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.SubjectFactory;
-
 import google.registry.model.EppResource;
 
 /** Truth subject for asserting things about {@link EppResource} instances. */

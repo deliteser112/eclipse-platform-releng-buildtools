@@ -22,13 +22,13 @@ import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import com.google.appengine.api.NamespaceManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.model.ofy.Ofy;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
-
+import java.util.Map;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -36,10 +36,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.Map;
-
-import javax.annotation.Nullable;
 
 /** Unit tests for {@link RdapNameserverAction}. */
 @RunWith(JUnit4.class)

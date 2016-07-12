@@ -23,7 +23,11 @@ import google.registry.config.TestRegistryConfig;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.testing.RegistryConfigRule;
-
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,13 +35,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /** Unit tests for {@link ExportSnapshotServlet}. */
 @RunWith(MockitoJUnitRunner.class)

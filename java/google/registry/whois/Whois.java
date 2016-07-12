@@ -15,13 +15,10 @@
 package google.registry.whois;
 
 import google.registry.util.Clock;
-
-import org.joda.time.DateTime;
-
 import java.io.IOException;
 import java.io.StringReader;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** High-level WHOIS API for other packages. */
 public final class Whois {

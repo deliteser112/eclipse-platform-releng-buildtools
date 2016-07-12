@@ -19,15 +19,11 @@ import static java.util.Arrays.asList;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
-
 import google.registry.model.BackupGroupRoot;
-
-import org.joda.time.DateTime;
-
 import java.util.Map;
+import org.joda.time.DateTime;
 
 /**
  * Exception when trying to write to the datastore with a timestamp that is inconsistent with

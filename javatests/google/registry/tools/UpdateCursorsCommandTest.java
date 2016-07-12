@@ -22,7 +22,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

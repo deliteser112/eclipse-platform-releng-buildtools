@@ -17,7 +17,6 @@ package google.registry.flows;
 import dagger.Module;
 import dagger.Provides;
 import dagger.Subcomponent;
-
 import google.registry.flows.contact.ContactCheckFlow;
 import google.registry.flows.contact.ContactCreateFlow;
 import google.registry.flows.contact.ContactDeleteFlow;

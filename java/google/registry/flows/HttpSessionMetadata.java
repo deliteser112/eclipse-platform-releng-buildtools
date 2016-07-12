@@ -19,9 +19,7 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-
 import java.util.Set;
-
 import javax.servlet.http.HttpSession;
 
 /** A metadata class that is a wrapper around {@link HttpSession}. */

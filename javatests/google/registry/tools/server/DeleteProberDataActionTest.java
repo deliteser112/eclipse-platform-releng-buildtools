@@ -25,9 +25,7 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
@@ -42,7 +40,7 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
-
+import java.util.Set;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -50,8 +48,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.Set;
 
 /** Unit tests for {@link DeleteProberDataAction}. */
 @RunWith(JUnit4.class)

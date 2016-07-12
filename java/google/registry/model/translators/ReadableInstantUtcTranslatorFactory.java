@@ -23,13 +23,11 @@ import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
-
-import org.joda.time.DateTimeZone;
-import org.joda.time.ReadableInstant;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.Date;
+import org.joda.time.DateTimeZone;
+import org.joda.time.ReadableInstant;
 
 /**
  * Stores Joda {@link ReadableInstant} types ({@code DateTime}, etc) as a {@link java.util.Date}.

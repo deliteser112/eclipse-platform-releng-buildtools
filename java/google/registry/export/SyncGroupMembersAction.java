@@ -27,9 +27,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.groups.GroupsConnection.Role;
@@ -39,12 +37,10 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.util.Concurrent;
 import google.registry.util.FormattingLogger;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 

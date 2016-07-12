@@ -15,7 +15,6 @@
 package google.registry.model.translators;
 
 import com.google.common.net.InetAddresses;
-
 import java.net.InetAddress;
 
 /** Stores {@link InetAddress} as a canonicalized string. */

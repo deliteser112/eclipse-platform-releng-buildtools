@@ -19,7 +19,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 import static google.registry.flows.domain.DomainFlowUtils.DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS;
 
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.model.domain.DomainApplication;
@@ -29,7 +28,6 @@ import google.registry.model.domain.launch.LaunchUpdateExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
-
 import javax.inject.Inject;
 
 /**

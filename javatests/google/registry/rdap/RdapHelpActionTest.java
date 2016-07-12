@@ -18,12 +18,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.model.ofy.Ofy;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
-
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;

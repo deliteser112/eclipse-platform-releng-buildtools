@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
 
 import com.googlecode.objectify.annotation.Embed;
-
 import google.registry.model.eppcommon.Address;
 
 /**

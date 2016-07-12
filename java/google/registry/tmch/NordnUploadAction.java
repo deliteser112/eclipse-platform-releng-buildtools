@@ -35,7 +35,6 @@ import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.base.Optional;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
@@ -43,16 +42,13 @@ import google.registry.request.RequestParameters;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.UrlFetchException;
-
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Random;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * Action that reads the NORDN pull queues, uploads claims and sunrise marks data to TMCH, and

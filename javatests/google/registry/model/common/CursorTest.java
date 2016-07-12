@@ -24,12 +24,10 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.googlecode.objectify.VoidWork;
-
 import google.registry.model.EntityTestCase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.registry.Registry;
 import google.registry.testing.ExceptionRule;
-
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;

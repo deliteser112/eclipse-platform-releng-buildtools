@@ -18,7 +18,6 @@ import static google.registry.model.eppoutput.Result.Code.Success;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
@@ -28,7 +27,6 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand.AddRemoveSameValueException;
 import google.registry.model.eppinput.ResourceCommand.ResourceUpdate;
 import google.registry.model.eppoutput.EppOutput;
-
 import java.util.Set;
 
 /**

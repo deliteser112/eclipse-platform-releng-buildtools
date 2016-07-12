@@ -15,12 +15,10 @@
 package google.registry.monitoring.whitebox;
 
 import dagger.Component;
-
 import google.registry.bigquery.BigqueryModule;
 import google.registry.config.ConfigModule;
 import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
-
 import javax.inject.Singleton;
 
 /** Dagger component with instance lifetime for Whitebox package. */

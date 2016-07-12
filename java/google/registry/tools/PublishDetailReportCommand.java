@@ -16,15 +16,12 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.ImmutableMap;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.common.collect.ImmutableMap;
 import google.registry.export.PublishDetailReportAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.tools.Command.GtechCommand;
-
 import java.util.Map;
 
 /**

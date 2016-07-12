@@ -23,19 +23,15 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import com.google.common.primitives.Ints;
-
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfNull;
-
 import google.registry.model.ImmutableObject;
-
-import org.joda.time.DateTime;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
+import org.joda.time.DateTime;
 
 /** The claims notice id from the claims phase. */
 @Embed

@@ -19,16 +19,13 @@ import static google.registry.model.ofy.ObjectifyService.initOfy;
 
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyFilter;
 import com.googlecode.objectify.ObjectifyService;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.Type;
 import google.registry.testing.ExceptionRule;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;

@@ -23,7 +23,6 @@ import static google.registry.request.Action.Method.POST;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.io.ByteStreams;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule.Key;
@@ -38,16 +37,13 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
-
+import java.io.IOException;
+import java.io.InputStream;
+import javax.inject.Inject;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.inject.Inject;
 
 /**
  * Action that uploads a small XML RDE report to ICANN after {@link RdeUploadAction} has finished.

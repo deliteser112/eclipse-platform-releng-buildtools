@@ -25,7 +25,6 @@ import google.registry.model.EntityTestCase;
 import google.registry.model.domain.Period;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.reporting.HistoryEntry;
-
 import org.junit.Before;
 import org.junit.Test;
 

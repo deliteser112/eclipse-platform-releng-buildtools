@@ -24,15 +24,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import org.junit.Before;
+import org.junit.Test;
 
 /** Unit tests for {@link RegistrarContactCommand}. */
 public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContactCommand> {

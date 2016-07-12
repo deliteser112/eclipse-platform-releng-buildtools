@@ -23,7 +23,6 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +42,6 @@ import java.security.cert.X509CRLEntry;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.NoSuchElementException;
-
 import javax.annotation.Tainted;
 
 /** X.509 Public Key Infrastructure (PKI) helper functions. */

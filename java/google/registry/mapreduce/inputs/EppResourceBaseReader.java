@@ -22,15 +22,12 @@ import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
-
 import google.registry.model.EppResource;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.EppResourceIndexBucket;
 import google.registry.util.FormattingLogger;
-
 import java.util.NoSuchElementException;
 
 /** Base class for {@link InputReader} classes that map over {@link EppResourceIndex}. */

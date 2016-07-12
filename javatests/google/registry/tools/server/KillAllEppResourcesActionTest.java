@@ -36,9 +36,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
@@ -56,14 +54,12 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
-
+import java.util.Set;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.Set;
 
 /** Tests for {@link KillAllEppResourcesAction}.*/
 @RunWith(JUnit4.class)

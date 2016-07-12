@@ -17,7 +17,6 @@ package google.registry.flows.contact;
 import google.registry.flows.ResourceInfoFlow;
 import google.registry.model.contact.ContactCommand.Info;
 import google.registry.model.contact.ContactResource;
-
 import javax.inject.Inject;
 
 /**

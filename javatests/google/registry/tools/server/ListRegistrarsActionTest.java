@@ -19,9 +19,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.model.registrar.Registrar;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -20,12 +20,9 @@ import static google.registry.request.RequestParameters.extractOptionalParameter
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.common.base.Optional;
-
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.request.Parameter;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**

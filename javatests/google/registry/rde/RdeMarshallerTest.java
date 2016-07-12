@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
 import google.registry.xml.XmlTestUtils;
-
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.junit.Rule;

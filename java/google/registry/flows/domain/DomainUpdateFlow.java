@@ -21,7 +21,6 @@ import static google.registry.util.DateTimeUtils.earliestOf;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-
 import google.registry.dns.DnsQueue;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -33,12 +32,9 @@ import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
-
-import org.joda.time.DateTime;
-
 import java.util.Set;
-
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that updates a domain resource.

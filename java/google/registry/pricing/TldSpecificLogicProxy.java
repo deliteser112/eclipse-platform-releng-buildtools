@@ -21,13 +21,11 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.fee.EapFee;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
 import google.registry.model.registry.Registry;
-
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;

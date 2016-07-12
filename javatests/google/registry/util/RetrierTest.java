@@ -17,13 +17,11 @@ package google.registry.util;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
-
+import java.util.concurrent.Callable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.util.concurrent.Callable;
 
 /** Unit tests for {@link Retrier}. */
 @RunWith(JUnit4.class)

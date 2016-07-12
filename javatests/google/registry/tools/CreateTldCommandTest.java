@@ -26,20 +26,16 @@ import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardMinutes;
 
-import com.google.common.collect.Range;
-
 import com.beust.jcommander.ParameterException;
-
+import com.google.common.collect.Range;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
-
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 /** Unit tests for {@link CreateTldCommand}. */
 public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {

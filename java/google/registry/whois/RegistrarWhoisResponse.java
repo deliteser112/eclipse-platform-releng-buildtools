@@ -18,12 +18,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
-
-import org.joda.time.DateTime;
-
 import java.util.Set;
-
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /** Container for WHOIS responses to registrar lookup queries. */
 class RegistrarWhoisResponse extends WhoisResponseImpl {

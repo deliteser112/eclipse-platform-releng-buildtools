@@ -19,14 +19,11 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.MonitoringScopes;
-
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ElementsIntoSet;
-
 import google.registry.config.ConfigModule.Config;
 import google.registry.request.OAuthScopes;
-
 import java.util.Set;
 
 /** Dagger module for Google Stackdriver service connection objects. */

@@ -23,16 +23,14 @@ import google.registry.rde.Ghostryde.DecodeResult;
 import google.registry.rde.RdeKeyringModule;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.InjectRule;
-
-import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 /** Unit tests for {@link GhostrydeCommand}. */
 public class GhostrydeCommandTest extends CommandTestCase<GhostrydeCommand> {

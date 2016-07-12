@@ -24,13 +24,10 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-
 import google.registry.config.RegistryEnvironment;
 import google.registry.util.FormattingLogger;
-
-import org.joda.time.Duration;
-
 import java.util.Map.Entry;
+import org.joda.time.Duration;
 
 /** Utility methods specific to async flows. */
 public final class AsyncFlowUtils {

@@ -21,7 +21,6 @@ import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import com.google.common.net.MediaType;
-
 import google.registry.gcs.GcsUtils;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
@@ -31,11 +30,9 @@ import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
 import google.registry.storage.drive.DriveConnection;
 import google.registry.util.FormattingLogger;
-
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 /** Publish a single registrar detail report from GCS to Drive. */

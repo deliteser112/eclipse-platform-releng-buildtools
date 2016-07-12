@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
-
 import google.registry.model.host.HostResource;
 
 /** Truth subject for asserting things about {@link HostResource} instances. */

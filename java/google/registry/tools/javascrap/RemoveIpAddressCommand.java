@@ -17,16 +17,13 @@ package google.registry.tools.javascrap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.template.soy.data.SoyMapData;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
+import com.google.template.soy.data.SoyMapData;
 import google.registry.model.host.HostResource;
 import google.registry.tools.MutatingEppToolCommand;
 import google.registry.tools.params.PathParameter;
 import google.registry.tools.soy.RemoveIpAddressSoyInfo;
-
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.nio.file.Files;
