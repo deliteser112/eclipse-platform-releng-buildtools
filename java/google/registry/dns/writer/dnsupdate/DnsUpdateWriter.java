@@ -134,7 +134,7 @@ public class DnsUpdateWriter implements DnsWriter {
       throw new RuntimeException("publishDomain failed: " + domainName, e);
     }
   }
-  
+
   @Override
   public void publishDomain(String domainName) {
     publishDomain(domainName, null);

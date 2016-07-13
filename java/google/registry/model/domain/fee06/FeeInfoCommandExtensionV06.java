@@ -35,7 +35,7 @@ public class FeeInfoCommandExtensionV06
   public CurrencyUnit getCurrency() {
     return currency;
   }
-  
+
   @Override
   public Optional<DateTime> getEffectiveDate() {
     return Optional.absent();

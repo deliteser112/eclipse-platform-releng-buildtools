@@ -54,7 +54,7 @@ public class DnsQueue {
   @Inject @Config("dnsWriteLockTimeout") Duration writeLockTimeout;
   @Inject @Named(DNS_PULL_QUEUE_NAME) Queue queue;
   @Inject DnsQueue() {}
-  
+
   long writeBatchSize = QueueConstants.maxLeaseCount();
 
   /**

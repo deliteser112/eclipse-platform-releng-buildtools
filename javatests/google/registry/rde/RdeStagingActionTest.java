@@ -368,7 +368,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
           .containsExactly("New Registrar", "The Registrar");
       assertThat(mapifyCounts(header)).containsEntry(RdeResourceType.REGISTRAR.getUri(), 2L);
     }
-    
+
     assertThat(
             ofy().load().key(Cursor.createKey(RDE_STAGING, Registry.get("fop"))).now()
                 .getCursorTime())

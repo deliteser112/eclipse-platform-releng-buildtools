@@ -62,7 +62,7 @@ public class FeeCheckResponseExtensionItemCommandV12 extends ImmutableObject {
    */
   @XmlElement(name = "class")
   String feeClass;
-  
+
   /** The effective date that the check is to be performed on (if specified in the query). */
   @XmlElement(name = "date")
   DateTime effectiveDate;

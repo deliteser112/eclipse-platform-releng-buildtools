@@ -26,7 +26,7 @@ public interface FeeCheckCommandExtensionItem extends FeeQueryCommandExtensionIt
 
   /** The domain name being checked; throws an exception if domain names are not supported. */
   public String getDomainName() throws UnsupportedOperationException;
-  
+
   /** Create a builder for a matching fee check response item. */
   public FeeCheckResponseExtensionItem.Builder createResponseBuilder();
 }

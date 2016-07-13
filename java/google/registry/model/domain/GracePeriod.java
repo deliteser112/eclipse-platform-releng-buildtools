@@ -116,7 +116,7 @@ public class GracePeriod extends ImmutableObject {
     return instance;
   }
 
-  /** 
+  /**
    * Creates a GracePeriod for an (optional) OneTime billing event.
    *
    * <p>Normal callers should always use {@link #forBillingEvent} instead, assuming they do not

@@ -103,7 +103,7 @@ public class Cursor extends ImmutableObject {
 
   /**
    * Checks that the type of the scoped object (or null) matches the required type for the specified
-   * cursor (or null, if the cursor is a global cursor). 
+   * cursor (or null, if the cursor is a global cursor).
    */
   private static void checkValidCursorTypeForScope(
       CursorType cursorType, Key<? extends ImmutableObject> scope) {
@@ -160,12 +160,12 @@ public class Cursor extends ImmutableObject {
   }
 
   /**
-   * Returns the current time for a given cursor, or {@code START_OF_TIME} if the cursor is null. 
+   * Returns the current time for a given cursor, or {@code START_OF_TIME} if the cursor is null.
    */
   public static DateTime getCursorTimeOrStartOfTime(Cursor cursor) {
     return cursor != null ? cursor.getCursorTime() : START_OF_TIME;
   }
-  
+
   public DateTime getCursorTime() {
     return cursorTime;
   }

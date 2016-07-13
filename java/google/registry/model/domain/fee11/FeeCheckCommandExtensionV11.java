@@ -66,7 +66,7 @@ public class FeeCheckCommandExtensionV11 extends ImmutableObject
     // This version of the fee extension does not have any items, and although the currency is
     // specified at the top level we've modeled it as a single fake item with the currency inside,
     // so there's no top level currency to return here.
-    return null;  
+    return null;
   }
 
   @Override
@@ -138,7 +138,7 @@ public class FeeCheckCommandExtensionV11 extends ImmutableObject
     public Builder createResponseBuilder() {
       return new FeeCheckResponseExtensionItemV11.Builder();
     }
-    
+
     @Override
     public Optional<DateTime> getEffectiveDate() {
       return Optional.absent();

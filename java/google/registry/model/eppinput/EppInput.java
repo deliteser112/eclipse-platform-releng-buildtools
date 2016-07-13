@@ -131,7 +131,7 @@ public class EppInput extends ImmutableObject {
     }
     return null;
   }
-  
+
   @SafeVarargs
   @Nullable
   public final <E extends CommandExtension>

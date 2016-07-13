@@ -98,7 +98,7 @@ public final class ReadDnsQueueAction implements Runnable {
           .result();
     }
   }
-  
+
   /** Leases all tasks from the pull queue and creates per-tld update actions for them. */
   @Override
   public void run() {

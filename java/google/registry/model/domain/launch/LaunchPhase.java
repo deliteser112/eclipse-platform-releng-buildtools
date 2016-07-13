@@ -36,7 +36,7 @@ import javax.xml.bind.annotation.XmlValue;
  */
 @Embed
 public class LaunchPhase extends ImmutableObject {
-  
+
   /**
    * The phase during which trademark holders can submit registrations or applications with
    * trademark information that can be validated by the server.
@@ -65,8 +65,8 @@ public class LaunchPhase extends ImmutableObject {
   public static final LaunchPhase CUSTOM = create("custom", null);
 
   private static final Map<String, LaunchPhase> LAUNCH_PHASES = initEnumMapping();
-  
-  /** 
+
+  /**
    * Returns a map of the static final fields to their values, case-converted.
    */
   private static final ImmutableMap<String, LaunchPhase> initEnumMapping() {
@@ -84,7 +84,7 @@ public class LaunchPhase extends ImmutableObject {
     instance.subphase = subphase;
     return instance;
   }
-  
+
   @XmlValue
   String phase;
 
@@ -94,15 +94,15 @@ public class LaunchPhase extends ImmutableObject {
    */
   @XmlAttribute(name = "name")
   String subphase;
-  
+
   public String getPhase() {
     return phase;
   }
-  
+
   public String getSubphase() {
     return subphase;
   }
-  
+
   public static LaunchPhase fromValue(String value) {
     return LAUNCH_PHASES.get(value);
   }

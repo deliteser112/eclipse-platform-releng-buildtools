@@ -51,9 +51,9 @@ public class FeeCheckResponseExtensionItemV12
   public static class Builder
       extends GenericBuilder<FeeCheckResponseExtensionItemV12, Builder>
       implements FeeCheckResponseExtensionItem.Builder {
-    
+
     final FeeCheckResponseExtensionItemCommandV12.Builder commandBuilder;
-    
+
     Builder() {
       super();
       commandBuilder = new FeeCheckResponseExtensionItemCommandV12.Builder();
@@ -96,12 +96,12 @@ public class FeeCheckResponseExtensionItemV12
     public Builder setCurrencyIfSupported(CurrencyUnit currency) {
       return this;
     }
-    
+
     @Override
     public Builder setAvailIfSupported(boolean avail) {
       return this;
     }
-    
+
     @Override
     public Builder setReasonIfSupported(String reason) {
       return this;

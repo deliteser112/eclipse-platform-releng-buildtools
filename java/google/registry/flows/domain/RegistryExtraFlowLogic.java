@@ -32,7 +32,7 @@ public interface RegistryExtraFlowLogic {
   public List<String> getExtensionFlags(
       DomainResource domainResource, String clientId, DateTime asOfDate);
 
-  /** Computes the expected creation fee, for use in fee challenges and the like. */  
+  /** Computes the expected creation fee, for use in fee challenges and the like. */
   public BaseFee getCreateFeeOrCredit(
       String domainName,
       String clientId,
@@ -63,7 +63,7 @@ public interface RegistryExtraFlowLogic {
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException;
 
-  /** Computes the expected renewal fee, for use in fee challenges and the like. */  
+  /** Computes the expected renewal fee, for use in fee challenges and the like. */
   public BaseFee getRenewFeeOrCredit(
       DomainResource domain,
       String clientId,
@@ -106,7 +106,7 @@ public interface RegistryExtraFlowLogic {
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException;
 
-  /** Computes the expected update fee, for use in fee challenges and the like. */  
+  /** Computes the expected update fee, for use in fee challenges and the like. */
   public BaseFee getUpdateFeeOrCredit(
       DomainResource domain,
       String clientId,

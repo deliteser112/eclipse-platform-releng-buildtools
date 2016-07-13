@@ -41,7 +41,7 @@ public class BackupUtils {
   }
 
   /**
-   * Converts the given {@link ImmutableObject} to a raw datastore entity and write it to an 
+   * Converts the given {@link ImmutableObject} to a raw datastore entity and write it to an
    * {@link OutputStream} in delimited protocol buffer format.
    */
   static void serializeEntity(ImmutableObject entity, OutputStream stream) throws IOException {

@@ -48,7 +48,7 @@ public class RegistryExtraFlowLogicProxy {
       return newInstanceForTld(domain.getTld());
     }
   }
-  
+
   public static Optional<RegistryExtraFlowLogic>
       newInstanceForTld(String tld) throws EppException {
     if (extraLogicOverrideMap.containsKey(tld)) {

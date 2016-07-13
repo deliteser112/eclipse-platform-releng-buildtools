@@ -24,11 +24,11 @@ import google.registry.model.ImmutableObject;
 public class DomainObjectSpec extends ImmutableObject {
 
   final String name;
-    
+
   public String getName() {
     return name;
   }
-    
+
   public DomainObjectSpec(String name) {
     this.name = name;
   }

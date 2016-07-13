@@ -26,7 +26,7 @@ import org.junit.runners.JUnit4;
 /** Unit tests for {@link EnumParameter}. */
 @RunWith(JUnit4.class)
 public class EnumParameterTest {
-  
+
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 

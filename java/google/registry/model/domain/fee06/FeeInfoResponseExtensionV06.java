@@ -30,18 +30,18 @@ import org.joda.time.DateTime;
 @XmlType(propOrder = {"currency", "command", "period", "fee", "feeClass"})
 public class FeeInfoResponseExtensionV06
     extends FeeQueryResponseExtensionItemImpl implements ResponseExtension {
-  
+
   CurrencyUnit currency;
-  
+
   /** Builder for {@link FeeInfoResponseExtensionV06}. */
   public static class Builder
       extends FeeQueryResponseExtensionItemImpl.Builder<FeeInfoResponseExtensionV06, Builder> {
-    
+
     @Override
     public Builder setAvailIfSupported(boolean avail) {
       return this;
     }
-    
+
     @Override
     public Builder setReasonIfSupported(String reason) {
       return this;

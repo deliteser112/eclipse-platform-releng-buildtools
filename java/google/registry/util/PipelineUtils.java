@@ -20,7 +20,7 @@ public class PipelineUtils {
   private static final String URL_PREFIX = "/_ah/pipeline/status.html?root=";
 
   private PipelineUtils() {}
-  
+
   public static String createJobPath(String jobId) {
     return URL_PREFIX + jobId;
   }

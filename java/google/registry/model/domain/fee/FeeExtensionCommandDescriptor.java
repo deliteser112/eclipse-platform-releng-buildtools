@@ -56,7 +56,7 @@ public class FeeExtensionCommandDescriptor extends ImmutableObject {
     }
     return CommandName.UNKNOWN;
   }
-  
+
   public static FeeExtensionCommandDescriptor
       create(CommandName commandName, String phase, String subphase) {
     FeeExtensionCommandDescriptor commandDescriptor = new FeeExtensionCommandDescriptor();

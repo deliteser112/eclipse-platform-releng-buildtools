@@ -64,7 +64,7 @@ public class FeeQueryResponseExtensionItemImpl
   public abstract static class
       Builder<T extends FeeQueryResponseExtensionItemImpl, B extends Builder<?, ?>>
           extends GenericBuilder<T, B> implements FeeQueryResponseExtensionItem.Builder {
-    
+
     @Override
     public B setCommand(CommandName commandName, String phase, String subphase) {
       getInstance().command = FeeExtensionCommandDescriptor.create(commandName, phase, subphase);

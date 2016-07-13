@@ -161,7 +161,7 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
             .setParent(historyEntry)
             .build();
     ofy().save().entity(createEvent);
-    
+
     // Bill for EAP cost, if any.
     if (!commandOperations.getEapCost().isZero()) {
       BillingEvent.OneTime eapEvent =

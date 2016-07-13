@@ -142,7 +142,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
       assertInStdout(String.format("domain%d.tld,LRP_%04d_abcdefghijklmnop", i, i));
     }
   }
-  
+
   @Test
   public void testFailure_missingAssigneeOrFile() throws Exception {
     thrown.expect(
@@ -184,7 +184,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
           .isEqualTo(expectedToken.getRedemptionHistoryEntry());
     }
   }
-  
+
   private LrpToken createToken(
       String token,
       String assignee,

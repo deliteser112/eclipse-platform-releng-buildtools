@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.joda.money.CurrencyUnit;
 
 /**
- * An XML data object that represents version 0.11 of the fee extension that may be present on the 
+ * An XML data object that represents version 0.11 of the fee extension that may be present on the
  * response to EPP domain check commands.
  */
 @XmlRootElement(name = "chkData")
@@ -33,7 +33,7 @@ public class FeeCheckResponseExtensionV11
   /** Check responses. */
   @XmlElement(name = "cd")
   ImmutableList<FeeCheckResponseExtensionItemV11> items;
-  
+
 
   @Override
   public void setCurrencyIfSupported(CurrencyUnit currency) {}

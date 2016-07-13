@@ -171,7 +171,7 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
 
   /**
    * Validates a new set of transitions and returns the resulting TimedTransitionProperty map.
-   * 
+   *
    * @param newTransitions map from date time to transition value
    * @param transitionClass the class of transitions in this map
    * @param allowedTransitions optional map of all possible state-to-state transitions

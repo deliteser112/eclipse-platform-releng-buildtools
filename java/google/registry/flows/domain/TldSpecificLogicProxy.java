@@ -256,7 +256,7 @@ public final class TldSpecificLogicProxy {
     } else {
       feeOrCredit = Fee.create(Money.zero(registry.getCurrency()).getAmount(), FeeType.UPDATE);
     }
-    
+
     return new EppCommandOperations(currency, feeOrCredit);
   }
 
@@ -268,7 +268,7 @@ public final class TldSpecificLogicProxy {
   /**
    * Checks whether a {@link Create} command has a valid {@link LrpToken} for a particular TLD, and
    * return that token (wrapped in an {@link Optional}) if one exists.
-   * 
+   *
    * <p>This method has no knowledge of whether or not an auth code (interpreted here as an LRP
    * token) has already been checked against the reserved list for QLP (anchor tenant), as auth
    * codes are used for both types of registrations.

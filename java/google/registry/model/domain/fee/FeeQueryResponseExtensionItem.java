@@ -58,11 +58,11 @@ public interface FeeQueryResponseExtensionItem {
     public Builder setNotAfterDateIfSupported(DateTime notAfterDate);
 
     public Builder setCommand(CommandName commandName, String phase, String subphase);
-    
+
     public Builder setPeriod(Period period);
 
     public Builder setFees(List<Fee> fees);
-    
+
     public Builder setClass(String feeClass);
   }
 }

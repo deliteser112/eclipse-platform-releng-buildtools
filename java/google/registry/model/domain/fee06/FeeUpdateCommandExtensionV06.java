@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(propOrder = {"currency", "fees"})
 public class FeeUpdateCommandExtensionV06
     extends FeeTransformCommandExtensionImplNoCredits implements FeeTransformCommandExtension {
-  
+
   @Override
   public FeeTransformResponseExtension.Builder createResponseBuilder() {
     return new FeeUpdateResponseExtensionV06.Builder();

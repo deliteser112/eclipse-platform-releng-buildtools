@@ -25,7 +25,6 @@ import com.googlecode.objectify.annotation.Index;
 import google.registry.model.BackupGroupRoot;
 import google.registry.model.Buildable;
 import google.registry.model.reporting.HistoryEntry;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -89,7 +88,7 @@ public class LrpToken extends BackupGroupRoot implements Buildable {
   public Map<String, String> getMetadata() {
     return nullToEmptyImmutableCopy(metadata);
   }
-  
+
   @Override
   public Builder asBuilder() {
     return new Builder(clone(this));
@@ -112,7 +111,7 @@ public class LrpToken extends BackupGroupRoot implements Buildable {
       getInstance().token = checkArgumentNotNull(token);
       return this;
     }
-    
+
     public Builder setRedemptionHistoryEntry(Key<HistoryEntry> redemptionHistoryEntry) {
       getInstance().redemptionHistoryEntry = checkArgumentNotNull(redemptionHistoryEntry);
       return this;

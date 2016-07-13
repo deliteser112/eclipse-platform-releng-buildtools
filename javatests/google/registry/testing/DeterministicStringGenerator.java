@@ -27,7 +27,7 @@ import javax.inject.Named;
  * A string generator that produces strings using sequential characters in its alphabet. This is
  * most useful in tests as a "fake" password generator (which would otherwise use
  * {@link RandomStringGenerator}.
- * 
+ *
  * <p>Note that consecutive calls to createString will continue where the last call left off in
  * the alphabet.
  */

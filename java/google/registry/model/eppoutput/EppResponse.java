@@ -181,7 +181,7 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
   public ImmutableList<? extends ResponseExtension> getExtensions() {
     return extensions;
   }
-  
+
   @Nullable
   public ResponseExtension getFirstExtensionOfType(Class<? extends ResponseExtension> clazz) {
     return FluentIterable.from(extensions).filter(clazz).first().orNull();
@@ -205,7 +205,7 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
       getFirstExtensionOfType(Class<? extends ResponseExtension>... classes) {
     return getFirstExtensionOfType(ImmutableList.copyOf(classes));
   }
-  
+
   public Result getResult() {
     return result;
   }

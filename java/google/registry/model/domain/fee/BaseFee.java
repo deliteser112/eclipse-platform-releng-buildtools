@@ -41,7 +41,7 @@ public abstract class BaseFee extends ImmutableObject {
     @XmlEnumValue("delayed")
     DELAYED
   }
-  
+
   /** Enum for the type of the fee. */
   public enum FeeType {
     CREATE("create"),
@@ -80,7 +80,7 @@ public abstract class BaseFee extends ImmutableObject {
 
   @XmlTransient
   FeeType type;
-  
+
   @XmlTransient
   Range<DateTime> validDateRange;
 
@@ -104,21 +104,21 @@ public abstract class BaseFee extends ImmutableObject {
    * According to the fee extension specification, a fee must always be non-negative, while a credit
    * must always be negative. Essentially, they are the same thing, just with different sign.
    * However, we need them to be separate classes for proper JAXB handling.
-   * 
+   *
    * @see "https://tools.ietf.org/html/draft-brown-epp-fees-03#section-2.4"
    */
   public BigDecimal getCost() {
     return cost;
   }
-  
+
   public FeeType getType() {
     return type;
   }
-  
+
   public boolean hasValidDateRange() {
     return validDateRange != null;
   }
-  
+
   public Range<DateTime> getValidDateRange() {
     checkState(hasValidDateRange());
     return validDateRange;
@@ -128,7 +128,7 @@ public abstract class BaseFee extends ImmutableObject {
     checkState(type != null);
     description = type.renderDescription(args);
   }
-  
+
   public boolean hasZeroCost() {
     return cost.signum() == 0;
   }

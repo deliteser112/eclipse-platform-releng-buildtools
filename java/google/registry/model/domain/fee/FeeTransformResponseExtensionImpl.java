@@ -38,7 +38,7 @@ public class FeeTransformResponseExtensionImpl extends ImmutableObject
    */
   @XmlElement(name = "fee")
   List<Fee> fees;
-  
+
   @XmlElement(name = "credit")
   List<Credit> credits;
 
@@ -46,7 +46,7 @@ public class FeeTransformResponseExtensionImpl extends ImmutableObject
   public abstract static class
       Builder<T extends FeeTransformResponseExtensionImpl, B extends Builder<?, ?>>
           extends GenericBuilder<T, B> implements FeeTransformResponseExtension.Builder {
-    
+
     @Override
     public B setCurrency(CurrencyUnit currency) {
       getInstance().currency = currency;

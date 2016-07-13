@@ -109,7 +109,7 @@ public class XmlTestUtils {
    * key. We may have to update the key as well, to get the namespaces correct. A returned key of
    * null indicates that we should use the existing key. A non-null key indicates that we should
    * replace the existing key.
-   * 
+   *
    * @param elementName the name under which the current subtree was found, or null if the current
    *     subtree's name is nonexistent or irrelevant
    * @param obj the current subtree

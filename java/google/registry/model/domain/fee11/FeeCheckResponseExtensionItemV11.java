@@ -33,35 +33,35 @@ public class FeeCheckResponseExtensionItemV11
 
   /** The domain that was checked. */
   DomainObjectSpec object;
-  
+
   CurrencyUnit currency;
 
   /** The reason that the check item cannot be calculated. */
   String reason;
-  
+
   /** Builder for {@link FeeCheckResponseExtensionItemV11}. */
   public static class Builder
       extends FeeQueryResponseExtensionItemImpl.Builder<FeeCheckResponseExtensionItemV11, Builder>
       implements FeeCheckResponseExtensionItem.Builder {
-    
+
     @Override
     public Builder setDomainNameIfSupported(String name) {
       getInstance().object = new DomainObjectSpec(name);
       return this;
     }
-    
+
     @Override
     public Builder setCurrencyIfSupported(CurrencyUnit currency) {
       getInstance().currency = currency;
       return this;
     }
-        
+
     @Override
     public Builder setAvailIfSupported(boolean avail) {
       getInstance().avail = avail;
       return this;
     }
-    
+
     @Override
     public Builder setReasonIfSupported(String reason) {
       getInstance().reason = reason;

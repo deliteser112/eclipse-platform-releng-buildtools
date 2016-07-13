@@ -134,7 +134,7 @@ public class DirectoryGroupsConnection implements GroupsConnection {
       } while (!Strings.isNullOrEmpty(listRequest.getPageToken()));
       return allMembers.build();
     } catch (GoogleJsonResponseException e) {
-      if (e.getDetails() != null 
+      if (e.getDetails() != null
           && e.getDetails().getCode() == SC_NOT_FOUND
           && e.getDetails().getMessage().equals(GROUP_NOT_FOUND_MSG)) {
         return ImmutableSet.of();

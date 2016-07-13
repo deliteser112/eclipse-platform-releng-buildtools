@@ -70,7 +70,7 @@ public class EppLoginUserTest extends EppTestCase {
     assertCommandAndResponse("logout.xml", "logout_response.xml");
     assertCommandAndResponse("login2_valid.xml", "login_response_unauthorized_role.xml");
   }
-  
+
   @Test
   public void testLoginLogout_wrongPasswordStillWorks() throws Exception {
     // For user-based logins the password in the epp xml is ignored.

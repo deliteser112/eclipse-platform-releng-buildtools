@@ -29,7 +29,7 @@ public final class TeeOutputStream extends OutputStream {
 
   private final ImmutableList<? extends OutputStream> outputs;
   private boolean isClosed;
-  
+
   public TeeOutputStream(@WillNotClose Iterable<? extends OutputStream> outputs) {
     this.outputs = ImmutableList.copyOf(outputs);
     checkArgument(!this.outputs.isEmpty(), "must provide at least one output stream");

@@ -32,6 +32,6 @@ public interface FeeCheckResponseExtension<F extends FeeCheckResponseExtensionIt
    * extension, this function has not effect.
    */
   public void setCurrencyIfSupported(CurrencyUnit currency);
-  
+
   public ImmutableList<F> getItems();
 }

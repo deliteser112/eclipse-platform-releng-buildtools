@@ -73,7 +73,7 @@ public class TimeOfYear extends ImmutableObject {
   /**
    * Returns an {@link Iterable} of {@link DateTime}s of every recurrence of this particular
    * time of year within a given {@link Range} (usually one spanning many years).
-   * 
+   *
    * <p>WARNING: This can return a potentially very large {@link Iterable} if {@code END_OF_TIME}
    * is used as the upper endpoint of the range.
    */

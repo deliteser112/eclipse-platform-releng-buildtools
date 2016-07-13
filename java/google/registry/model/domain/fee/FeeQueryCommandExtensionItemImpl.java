@@ -42,13 +42,13 @@ public abstract class FeeQueryCommandExtensionItemImpl
   public CommandName getCommandName() {
     return command.getCommand();
   }
-  
+
   /** The command name before being parsed into an enum, for use in error strings. */
   @Override
   public String getUnparsedCommandName() {
     return command.getUnparsedCommandName();
   }
-  
+
   /** The phase of the command being checked. */
   @Override
   public String getPhase() {

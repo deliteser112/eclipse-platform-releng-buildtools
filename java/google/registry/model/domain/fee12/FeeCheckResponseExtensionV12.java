@@ -24,7 +24,7 @@ import javax.xml.bind.annotation.XmlType;
 import org.joda.money.CurrencyUnit;
 
 /**
- * An XML data object that represents version 0.12 of the fee extension that may be present on the 
+ * An XML data object that represents version 0.12 of the fee extension that may be present on the
  * response to EPP domain check commands.
  */
 @XmlRootElement(name = "chkData")
@@ -33,7 +33,7 @@ public class FeeCheckResponseExtensionV12
     extends ImmutableObject implements FeeCheckResponseExtension<FeeCheckResponseExtensionItemV12> {
 
   CurrencyUnit currency;
-  
+
   /** Check responses. */
   @XmlElement(name = "cd")
   ImmutableList<FeeCheckResponseExtensionItemV12> items;
