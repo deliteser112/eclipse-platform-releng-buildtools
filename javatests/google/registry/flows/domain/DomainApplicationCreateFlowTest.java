@@ -77,6 +77,7 @@ import google.registry.flows.domain.DomainFlowUtils.LeadingDashException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedException;
 import google.registry.flows.domain.DomainFlowUtils.NoMarksFoundMatchingDomainException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
@@ -1205,7 +1206,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testSuccess_emptyNameserversPassesWhitelist() throws Exception {
+  public void testFailure_emptyNameserverFailsWhitelist() throws Exception {
     setEppInput("domain_create_sunrise_encoded_signed_mark_no_hosts.xml");
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedRegistrantContactIds(ImmutableSet.of("jd1234"))
@@ -1213,9 +1214,8 @@ public class DomainApplicationCreateFlowTest
         .build());
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    doSuccessfulTest("domain_create_sunrise_encoded_signed_mark_response.xml", true);
-    assertAboutApplications().that(getOnlyGlobalResource(DomainApplication.class))
-        .hasApplicationStatus(ApplicationStatus.VALIDATED);
+    thrown.expect(NameserversNotSpecifiedException.class);
+    runFlow();
   }
 
   /**

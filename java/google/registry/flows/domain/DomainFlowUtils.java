@@ -274,11 +274,18 @@ public class DomainFlowUtils {
     }
   }
 
-  static void validateNameserversCount(int count) throws EppException {
+  static void validateNameserversCountForTld(String tld, int count) throws EppException {
+    ImmutableSet<String> whitelist = Registry.get(tld).getAllowedFullyQualifiedHostNames();
+    // For TLDs with a nameserver whitelist, all domains must have at least 1 nameserver.
+    if (!whitelist.isEmpty() && count == 0) {
+      throw new NameserversNotSpecifiedException();
+    }
+
     if (count > MAX_NAMESERVERS_PER_DOMAIN) {
       throw new TooManyNameserversException(String.format(
           "Only %d nameservers are allowed per domain", MAX_NAMESERVERS_PER_DOMAIN));
     }
+
   }
 
   static void validateNoDuplicateContacts(Set<DesignatedContact> contacts)
@@ -313,7 +320,7 @@ public class DomainFlowUtils {
   static void validateRegistrantAllowedOnTld(String tld, String registrantContactId)
       throws RegistrantNotAllowedException {
     ImmutableSet<String> whitelist = Registry.get(tld).getAllowedRegistrantContactIds();
-    // Empty whitelists or null registrantContactId are ignored.
+    // Empty whitelist or null registrantContactId are ignored.
     if (registrantContactId != null && !whitelist.isEmpty() 
         && !whitelist.contains(registrantContactId)) {
       throw new RegistrantNotAllowedException(registrantContactId);
@@ -323,12 +330,12 @@ public class DomainFlowUtils {
   static void validateNameserversAllowedOnTld(String tld, Set<String> fullyQualifiedHostNames)
       throws EppException {
     ImmutableSet<String> whitelist = Registry.get(tld).getAllowedFullyQualifiedHostNames();
-    if (whitelist.isEmpty()) {  // Empty whitelists are ignored.
-      return;
-    }
-    Set<String> disallowedNameservers = difference(nullToEmpty(fullyQualifiedHostNames), whitelist);
-    if (!disallowedNameservers.isEmpty()) {
-      throw new NameserversNotAllowedException(disallowedNameservers);
+    Set<String> hostnames = nullToEmpty(fullyQualifiedHostNames);
+    if (!whitelist.isEmpty()) { // Empty whitelist is ignored.
+      Set<String> disallowedNameservers = difference(hostnames, whitelist);
+      if (!disallowedNameservers.isEmpty()) {
+        throw new NameserversNotAllowedException(disallowedNameservers);
+      }
     }
   }
 
@@ -998,4 +1005,12 @@ public class DomainFlowUtils {
           Joiner.on(',').join(fullyQualifiedHostNames)));
     }
   }
+
+  /** Nameservers not specified for this TLD with whitelist. */
+  public static class NameserversNotSpecifiedException extends StatusProhibitsOperationException {
+    public NameserversNotSpecifiedException() {
+      super("At least one nameserver must be specified for this TLD");
+    }
+  }
+
 }

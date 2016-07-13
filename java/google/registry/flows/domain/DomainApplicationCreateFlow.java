@@ -90,6 +90,7 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.LinkedResourcesDoNotExistException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedException}
+ * @error {@link DomainFlowUtils.NameserversNotSpecifiedException}
  * @error {@link DomainFlowUtils.NoMarksFoundMatchingDomainException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}

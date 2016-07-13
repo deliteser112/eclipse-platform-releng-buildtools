@@ -21,7 +21,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 import static google.registry.flows.domain.DomainFlowUtils.validateDsData;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnTld;
-import static google.registry.flows.domain.DomainFlowUtils.validateNameserversCount;
+import static google.registry.flows.domain.DomainFlowUtils.validateNameserversCountForTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
 import static google.registry.flows.domain.DomainFlowUtils.validateRegistrantAllowedOnTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
@@ -215,7 +215,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
     validateRequiredContactsPresent(command.getRegistrant(), command.getContacts());
     Set<String> fullyQualifiedHostNames =
         nullToEmpty(command.getNameserverFullyQualifiedHostNames());
-    validateNameserversCount(fullyQualifiedHostNames.size());
+    validateNameserversCountForTld(tld, fullyQualifiedHostNames.size());
     validateNameserversAllowedOnTld(tld, fullyQualifiedHostNames);
     validateLaunchCreateExtension();
     // If a signed mark was provided, then it must match the desired domain label.

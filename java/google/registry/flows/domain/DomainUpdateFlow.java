@@ -59,6 +59,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.MissingTechnicalContactException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedException}
+ * @error {@link DomainFlowUtils.NameserversNotSpecifiedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
  * @error {@link DomainFlowUtils.TooManyDsRecordsException}
  * @error {@link DomainFlowUtils.TooManyNameserversException}

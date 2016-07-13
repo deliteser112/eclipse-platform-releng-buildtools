@@ -37,8 +37,10 @@ import static org.joda.money.CurrencyUnit.USD;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException;
@@ -60,6 +62,7 @@ import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
@@ -78,6 +81,7 @@ import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -1100,13 +1104,29 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistResource(
         Registry.get("tld").asBuilder()
             .setAllowedRegistrantContactIds(ImmutableSet.of("sh8013"))
-            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.foo"))
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.foo", "ns2.example.foo"))
             .build());
     assertThat(reloadResourceByUniqueId().getNameservers()).doesNotContain(
         Ref.create(loadByUniqueId(HostResource.class, "ns2.example.foo", clock.nowUtc())));
     runFlow();
     assertThat(reloadResourceByUniqueId().getNameservers()).contains(
         Ref.create(loadByUniqueId(HostResource.class, "ns2.example.foo", clock.nowUtc())));
+  }
+
+  @Test
+  public void testSuccess_changeRegistrantWhitelisted() throws Exception {
+    setEppInput("domain_update_registrant.xml");
+    persistReferencedEntities();
+    persistDomain();
+    // Only changes registrant, with both nameserver and registrant whitelist on the TLD.
+    persistResource(
+        Registry.get("tld").asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("sh8013"))
+            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
+            .build());
+    runFlow();
+    assertThat(reloadResourceByUniqueId().getRegistrant().get().getContactId()).isEqualTo("sh8013");
   }
 
   @Test
@@ -1119,5 +1139,41 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.foo"))
             .build());
     doSuccessfulTest();
+  }
+
+  @Test
+  public void testSuccess_removeNameserverWhitelisted() throws Exception {
+    setEppInput("domain_update_remove_nameserver.xml");
+    persistReferencedEntities();
+    persistDomain();
+    persistResource(
+        reloadResourceByUniqueId().asBuilder()
+            .addNameservers(ImmutableSet.of(Ref.create(
+                loadByUniqueId(HostResource.class, "ns2.example.foo", clock.nowUtc()))))
+            .build());
+    persistResource(
+        Registry.get("tld").asBuilder()
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.foo", "ns2.example.foo"))
+            .build());
+    assertThat(reloadResourceByUniqueId().getNameservers()).contains(
+        Ref.create(loadByUniqueId(HostResource.class, "ns1.example.foo", clock.nowUtc())));
+    clock.advanceOneMilli();
+    runFlow();
+    assertThat(reloadResourceByUniqueId().getNameservers()).doesNotContain(
+        Ref.create(loadByUniqueId(HostResource.class, "ns1.example.foo", clock.nowUtc())));
+  }
+
+  @Test
+  public void testFailure_removeLastNameserverWhitelisted() throws Exception {
+    persistReferencedEntities();
+    persistDomain();
+    setEppInput("domain_update_remove_nameserver.xml");
+    persistResource(
+        Registry.get("tld").asBuilder()
+            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
+            .build());
+    thrown.expect(NameserversNotSpecifiedException.class);
+    runFlow();
   }
 }

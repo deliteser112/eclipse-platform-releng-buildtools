@@ -87,6 +87,7 @@ import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingRegistrantException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
@@ -1261,13 +1262,14 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_emptyNameserversPassesWhitelist() throws Exception {
+  public void testFailure_emptyNameserverFailsWhitelist() throws Exception {
     setEppInput("domain_create_no_hosts_or_dsdata.xml");
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedFullyQualifiedHostNames(ImmutableSet.of("somethingelse.example.net"))
         .build());
     persistContactsAndHosts();
-    runFlow();  // This is sufficient, as doSuccessfulTests validates hosts, which will fail here.
+    thrown.expect(NameserversNotSpecifiedException.class);
+    runFlow();
   }
 
   @Test
