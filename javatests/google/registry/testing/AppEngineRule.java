@@ -347,9 +347,12 @@ public final class AppEngineRule extends ExternalResource {
     ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
     try {
       // To normalize the indexes, we are going to pass them through JSON and then rewrite the xml.
-      for (JSONObject index : getJsonAsArray(toJSONObject(indexFile)
-          .getJSONObject("datastore-indexes")
-          .opt("datastore-index"))) {
+      JSONObject datastoreIndexes = new JSONObject();
+      Object indexes = toJSONObject(indexFile).get("datastore-indexes");
+      if (indexes instanceof JSONObject) {
+        datastoreIndexes = (JSONObject) indexes;
+      }
+      for (JSONObject index : getJsonAsArray(datastoreIndexes.opt("datastore-index"))) {
         builder.add(getIndexXmlString(index));
       }
     } catch (JSONException e) {
@@ -384,7 +387,7 @@ public final class AppEngineRule extends ExternalResource {
     builder.append(String.format(
         "<datastore-index kind=\"%s\" ancestor=\"%s\" source=\"manual\">\n",
         source.getString("kind"),
-        source.getString("ancestor")));
+        source.get("ancestor").toString()));
     for (JSONObject property : getJsonAsArray(source.get("property"))) {
       builder.append(String.format(
           "  <property name=\"%s\" direction=\"%s\"/>\n",

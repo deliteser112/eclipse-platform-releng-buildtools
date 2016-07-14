@@ -26,7 +26,7 @@
       </domain:infData>
     </resData>
     <extension>
-        <rgp:infData>
+        <rgp:infData xmlns:rgp="urn:ietf:params:xml:ns:rgp-1.0">
             <rgp:rgpStatus s="redemptionPeriod"/>
         </rgp:infData>
     </extension>

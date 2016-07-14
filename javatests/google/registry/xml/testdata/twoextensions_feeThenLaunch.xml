@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<test xmlns="urn:ietf:params:xml:ns:fake">
+  <response>
+    <result code="1000">
+      <msg>Command completed successfully</msg>
+    </result>
+    <resData>
+      <red:creData xmlns:red="urn:ietf:params:xml:ns:color">
+        <red:name>example.tld</red:name>
+        <red:crDate>1999-04-03T22:00:00.0Z</red:crDate>
+        <red:exDate>2001-04-03T22:00:00.0Z</red:exDate>
+      </red:creData>
+    </resData>
+    <extension>
+      <fee:creData xmlns:fee="urn:ietf:params:xml:ns:fee">
+        <fee:currency>USD</fee:currency>
+        <fee:fee description="create">26.00</fee:fee>
+      </fee:creData>
+      <launch:creData xmlns:launch="urn:ietf:params:xml:ns:launch">
+        <launch:phase name="landrush">sunrise</launch:phase>
+        <launch:applicationID>1-TLD</launch:applicationID>
+      </launch:creData>
+    </extension>
+    <trID>
+      <clTRID>ABC-12345</clTRID>
+      <svTRID>server-trid</svTRID>
+    </trID>
+  </response>
+</test>

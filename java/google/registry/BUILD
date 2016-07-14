@@ -8,6 +8,7 @@ package_group(
     packages = [
         "//java/google/registry/...",
         "//javatests/google/registry/...",
+        "//python/...",
     ],
 )
 

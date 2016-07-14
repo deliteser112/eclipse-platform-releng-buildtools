@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<test xmlns="urn:ietf:params:xml:ns:fake">
+  <response>
+    <result code="1000">
+      <msg>Command completed successfully</msg>
+    </result>
+    <resData>
+      <green:creData xmlns:green="urn:ietf:params:xml:ns:color">
+        <green:name>example.tld</green:name>
+        <green:crDate>1999-04-03T22:00:00.0Z</green:crDate>
+        <green:exDate>2001-04-03T22:00:00.0Z</green:exDate>
+      </green:creData>
+    </resData>
+    <trID>
+      <clTRID>ABC-12345</clTRID>
+      <svTRID>server-trid</svTRID>
+    </trID>
+  </response>
+</test>

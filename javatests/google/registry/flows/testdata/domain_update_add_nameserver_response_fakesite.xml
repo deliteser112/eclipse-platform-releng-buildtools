@@ -1,4 +1,4 @@
-<epp xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
     <response>
         <result code="1000">
             <msg>Command completed successfully</msg>
