@@ -49,7 +49,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public abstract class CommandTestCase<C extends Command> {
 
-  private ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+  private final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+  private final ByteArrayOutputStream stderr = new ByteArrayOutputStream();
 
   protected C command;
 
@@ -71,6 +72,7 @@ public abstract class CommandTestCase<C extends Command> {
     RegistryToolEnvironment.UNITTEST.setup();
     command = newCommandInstance();
     System.setOut(new PrintStream(stdout));
+    System.setErr(new PrintStream(stderr));
   }
 
   void runCommandInEnvironment(RegistryToolEnvironment env, String... args) throws Exception {
@@ -153,6 +155,13 @@ public abstract class CommandTestCase<C extends Command> {
     String stdout = getStdoutAsString();
     for (String line : expected) {
       assertThat(stdout).contains(line);
+    }
+  }
+
+  protected void assertInStderr(String... expected) throws Exception {
+    String stderror = new String(stderr.toByteArray(), UTF_8);
+    for (String line : expected) {
+      assertThat(stderror).contains(line);
     }
   }
 

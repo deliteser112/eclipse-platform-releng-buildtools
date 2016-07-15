@@ -13,7 +13,9 @@ java_library(
     srcs = glob([
         "*.java",
     ]),
-    resources = glob(["testdata/*.*"]),
+    resources = glob([
+        "testdata/*.*",
+    ]),
     deps = [
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",
