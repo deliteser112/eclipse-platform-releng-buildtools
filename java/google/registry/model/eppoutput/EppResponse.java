@@ -47,6 +47,7 @@ import google.registry.model.poll.PendingActionNotificationResponse.ContactPendi
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
+import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementRefs;
@@ -187,12 +188,12 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
       return this;
     }
 
-    public Builder setResData(ImmutableList<? extends ResponseData> resData) {
+    public Builder setResData(@Nullable ImmutableList<? extends ResponseData> resData) {
       getInstance().resData = resData;
       return this;
     }
 
-    public Builder setExtensions(ImmutableList<? extends ResponseExtension> extensions) {
+    public Builder setExtensions(@Nullable ImmutableList<? extends ResponseExtension> extensions) {
       getInstance().extensions = extensions;
       return this;
     }

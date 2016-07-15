@@ -25,6 +25,7 @@ import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.eppoutput.Result.Code;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * An EPP flow that deletes an {@link EppResource}.
@@ -58,6 +59,7 @@ public abstract class ResourceDeleteFlow<R extends EppResource, C extends Single
   }
 
   /** Subclasses can override this to return response extensions. */
+  @Nullable
   protected ImmutableList<? extends ResponseExtension> getDeleteResponseExtensions() {
     return null;
   }

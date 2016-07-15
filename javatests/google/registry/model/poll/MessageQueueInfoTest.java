@@ -16,6 +16,8 @@ package google.registry.model.poll;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.testing.NullPointerTester;
+import com.google.common.testing.NullPointerTester.Visibility;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,5 +38,11 @@ public final class MessageQueueInfoTest {
     assertThat(mp.getQueueLength()).isEqualTo(123);
     mp.messageId = "adorable";
     assertThat(mp.getMessageId()).isEqualTo("adorable");
+  }
+
+  @Test
+  public void testNullness() {
+    NullPointerTester tester = new NullPointerTester();
+    tester.testStaticMethods(MessageQueueInfo.class, Visibility.PROTECTED);
   }
 }

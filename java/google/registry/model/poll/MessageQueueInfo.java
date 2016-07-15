@@ -14,7 +14,10 @@
 
 package google.registry.model.poll;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import google.registry.model.ImmutableObject;
+import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import org.joda.time.DateTime;
@@ -54,15 +57,15 @@ public class MessageQueueInfo extends ImmutableObject {
   }
 
   public static MessageQueueInfo create(
-      DateTime queueDate,
-      String msg,
+      @Nullable DateTime queueDate,
+      @Nullable String msg,
       Integer queueLength,
       String messageId) {
     MessageQueueInfo instance = new MessageQueueInfo();
     instance.queueDate = queueDate;
     instance.msg = msg;
-    instance.queueLength = queueLength;
-    instance.messageId = messageId;
+    instance.queueLength = checkNotNull(queueLength);
+    instance.messageId = checkNotNull(messageId);
     return instance;
   }
 }

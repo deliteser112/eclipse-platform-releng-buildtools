@@ -31,6 +31,7 @@ import google.registry.model.eppoutput.Result;
 import google.registry.model.poll.MessageQueueInfo;
 import google.registry.model.poll.PollMessage;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /** Base class of EPP Poll command flows. Mostly provides datastore helper methods. */
 public abstract class PollFlow extends LoggedInFlow {
@@ -74,8 +75,8 @@ public abstract class PollFlow extends LoggedInFlow {
   protected EppOutput createOutput(
       Result.Code code,
       MessageQueueInfo messageQueueInfo,
-      ImmutableList<ResponseData> responseData,
-      ImmutableList<ResponseExtension> responseExtensions) {
+      @Nullable ImmutableList<ResponseData> responseData,
+      @Nullable ImmutableList<ResponseExtension> responseExtensions) {
     return EppOutput.create(new EppResponse.Builder()
         .setTrid(trid)
         .setResult(Result.create(code))

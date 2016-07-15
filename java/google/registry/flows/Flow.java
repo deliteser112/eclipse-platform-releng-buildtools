@@ -27,6 +27,7 @@ import google.registry.model.eppoutput.Result;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /**
@@ -78,8 +79,8 @@ public abstract class Flow {
 
   protected EppOutput createOutput(
       Result.Code code,
-      ResponseData responseData,
-      ImmutableList<? extends ResponseExtension> extensions) {
+      @Nullable ResponseData responseData,
+      @Nullable ImmutableList<? extends ResponseExtension> extensions) {
     return EppOutput.create(new EppResponse.Builder()
         .setTrid(trid)
         .setResult(Result.create(code))

@@ -25,6 +25,7 @@ java_library(
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
         "//java/com/google/common/net",
+        "//java/com/google/common/testing",
         "//java/com/google/common/util/concurrent",
         "//third_party/java/appengine:appengine-api-testonly",
         "//third_party/java/appengine:appengine-testing",
