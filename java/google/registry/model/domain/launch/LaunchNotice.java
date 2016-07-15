@@ -20,6 +20,7 @@ import static com.google.common.io.BaseEncoding.base16;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import com.google.common.primitives.Ints;
@@ -101,7 +102,7 @@ public class LaunchNotice extends ImmutableObject {
     String tcnId = getNoticeId().getTcnId();
     checkArgument(tcnId.length() == 27);
 
-    int checksum = Ints.fromByteArray(base16().decode(tcnId.substring(0, 8).toUpperCase()));
+    int checksum = Ints.fromByteArray(base16().decode(Ascii.toUpperCase(tcnId.substring(0, 8))));
     String noticeId = tcnId.substring(8);
     checkArgument(CharMatcher.inRange('0', '9').matchesAllOf(noticeId));
 

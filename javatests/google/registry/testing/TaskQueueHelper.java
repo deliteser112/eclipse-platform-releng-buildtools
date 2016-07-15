@@ -30,6 +30,7 @@ import static java.util.Arrays.asList;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.HeaderWrapper;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
+import com.google.common.base.Ascii;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
@@ -94,7 +95,7 @@ public class TaskQueueHelper {
 
     public TaskMatcher header(String name, String value) {
       // Lowercase for case-insensitive comparison.
-      expected.headers.put(name.toLowerCase(), value);
+      expected.headers.put(Ascii.toLowerCase(name), value);
       return this;
     }
 
@@ -310,7 +311,7 @@ public class TaskQueueHelper {
       for (HeaderWrapper header : info.getHeaders()) {
         // Lowercase header name for comparison since HTTP
         // header names are case-insensitive.
-        headerBuilder.put(header.getKey().toLowerCase(), header.getValue());
+        headerBuilder.put(Ascii.toLowerCase(header.getKey()), header.getValue());
       }
       this.headers = headerBuilder.build();
       ImmutableMultimap.Builder<String, String> inputParams = new ImmutableMultimap.Builder<>();
@@ -319,7 +320,7 @@ public class TaskQueueHelper {
         inputParams.putAll(UriParameters.parse(query));
       }
       if (headers.containsEntry(
-          HttpHeaders.CONTENT_TYPE.toLowerCase(), MediaType.FORM_DATA.toString())) {
+          Ascii.toLowerCase(HttpHeaders.CONTENT_TYPE), MediaType.FORM_DATA.toString())) {
         inputParams.putAll(UriParameters.parse(info.getBody()));
       }
       this.params = inputParams.build();

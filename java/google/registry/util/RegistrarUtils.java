@@ -16,11 +16,13 @@ package google.registry.util;
 
 import static com.google.common.base.CharMatcher.javaLetterOrDigit;
 
+import com.google.common.base.Ascii;
+
 /** Utilities for working with {@code Registrar} objects. */
 public class RegistrarUtils {
   /** Strip out anything that isn't a letter or digit, and lowercase. */
   public static String normalizeRegistrarName(String name) {
-    return javaLetterOrDigit().retainFrom(name).toLowerCase();
+    return Ascii.toLowerCase(javaLetterOrDigit().retainFrom(name));
   }
 
   /**
@@ -29,6 +31,6 @@ public class RegistrarUtils {
    * in Datastore, and is suitable for use in email addresses.
    */
   public static String normalizeClientId(String clientId) {
-    return clientId.toLowerCase().replaceAll("[^a-z0-9\\-]", "");
+    return Ascii.toLowerCase(clientId).replaceAll("[^a-z0-9\\-]", "");
   }
 }

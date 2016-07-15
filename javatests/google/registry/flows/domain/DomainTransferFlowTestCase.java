@@ -26,6 +26,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
+import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Ref;
 import google.registry.flows.Flow;
@@ -113,7 +114,7 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
     createTld(tld);
     contact = persistActiveContact("jd1234");
     domain = new DomainResource.Builder()
-        .setRepoId("1-".concat(tld.toUpperCase()))
+        .setRepoId("1-".concat(Ascii.toUpperCase(tld)))
         .setFullyQualifiedDomainName(label + "." + tld)
         .setCurrentSponsorClientId("TheRegistrar")
         .setCreationClientId("TheRegistrar")
@@ -157,7 +158,7 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
             .build());
     subordinateHost = persistResource(
         new HostResource.Builder()
-            .setRepoId("2-".concat(tld.toUpperCase()))
+            .setRepoId("2-".concat(Ascii.toUpperCase(tld)))
             .setFullyQualifiedHostName("ns1." + label + "." + tld)
             .setCurrentSponsorClientId("TheRegistrar")
             .setCreationClientId("TheRegistrar")

@@ -259,12 +259,12 @@ public class DnsUpdateWriterTest {
       Update update, String resourceName, int recordType, String... resourceData) {
     ArrayList<String> expectedData = new ArrayList<>();
     for (String resourceDatum : resourceData) {
-      expectedData.add(resourceDatum.toLowerCase());
+      expectedData.add(resourceDatum);
     }
 
     ArrayList<String> actualData = new ArrayList<>();
     for (Record record : findUpdateRecords(update, resourceName, recordType)) {
-      actualData.add(record.rdataToString().toLowerCase());
+      actualData.add(record.rdataToString());
     }
     assertThat(actualData).containsExactlyElementsIn(expectedData);
   }
