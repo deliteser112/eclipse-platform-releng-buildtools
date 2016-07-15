@@ -145,17 +145,22 @@ public abstract class CommandTestCase<C extends Command> {
     return ofy().load().type(PollMessage.class).count();
   }
 
+  protected void assertStdoutIs(String expected) throws Exception {
+    assertThat(getStdoutAsString()).isEqualTo(expected);
+  }
+
   protected void assertInStdout(String... expected) throws Exception {
+    String stdout = getStdoutAsString();
     for (String line : expected) {
-      assertThat(stdout.toString(UTF_8.toString())).contains(line);
+      assertThat(stdout).contains(line);
     }
   }
 
   void assertNotInStdout(String expected) throws Exception {
-    assertThat(stdout.toString(UTF_8.toString())).doesNotContain(expected);
+    assertThat(getStdoutAsString()).doesNotContain(expected);
   }
 
-  String getStdoutAsString() {
+  protected String getStdoutAsString() {
     return new String(stdout.toByteArray(), UTF_8);
   }
 
