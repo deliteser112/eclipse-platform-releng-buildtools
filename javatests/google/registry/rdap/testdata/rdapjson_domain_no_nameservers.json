@@ -5,11 +5,11 @@
   "unicodeName" : "fish.みんな",
   "status" :
     [
-      "delete prohibited",
+      "client delete prohibited",
+      "client renew prohibited",
+      "client transfer prohibited",
       "inactive",
-      "renew prohibited",
-      "transfer prohibited",
-      "update prohibited"
+      "server update prohibited"
     ],
   "links" :
   [

@@ -1,9 +1,9 @@
 {
   "status": [
-    "delete prohibited",
-    "renew prohibited",
-    "transfer prohibited",
-    "update prohibited"
+    "client delete prohibited",
+    "client renew prohibited",
+    "client transfer prohibited",
+    "server update prohibited"
   ],
   "handle": "%HANDLE%",
   "links": [
