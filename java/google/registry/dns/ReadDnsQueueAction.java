@@ -25,6 +25,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
@@ -79,20 +80,21 @@ public final class ReadDnsQueueAction implements Runnable {
   @Inject ReadDnsQueueAction() {}
 
   /** Container for items we pull out of the DNS pull queue and process for fanout. */
-  private class RefreshItem implements Comparable<RefreshItem> {
-    final TargetType type;
-    final String name;
-    
-    public RefreshItem(final TargetType type, final String name) {
-      this.type = type;
-      this.name = name;
+  @AutoValue
+  abstract static class RefreshItem implements Comparable<RefreshItem> {
+    static RefreshItem create(TargetType type, String name) {
+      return new AutoValue_ReadDnsQueueAction_RefreshItem(type, name);
     }
+
+    abstract TargetType type();
+
+    abstract String name();
 
     @Override
     public int compareTo(RefreshItem other) {
       return ComparisonChain.start()
-          .compare(this.type, other.type)
-          .compare(this.name, other.name)
+          .compare(this.type(), other.type())
+          .compare(this.name(), other.name())
           .result();
     }
   }
@@ -138,23 +140,19 @@ public final class ReadDnsQueueAction implements Runnable {
         } else {
           String typeString = params.get(DNS_TARGET_TYPE_PARAM);
           String name = params.get(DNS_TARGET_NAME_PARAM);
-          if (typeString == null) {
-            logger.severe("discarding invalid DNS refresh request; no type specified");
-          } else if (name == null) {
-            logger.severe("discarding invalid DNS refresh request; no name specified");
-          } else {
-            TargetType type = TargetType.valueOf(typeString);
-            switch (type) {
-              case DOMAIN:
-              case HOST:
-                refreshItemMultimap.put(tld, new RefreshItem(type, name));
-                break;
-              default:
-                logger.severefmt("discarding DNS refresh request of type %s", typeString);
-                break;
-            }
+          TargetType type = TargetType.valueOf(typeString);
+          switch (type) {
+            case DOMAIN:
+            case HOST:
+              refreshItemMultimap.put(tld, RefreshItem.create(type, name));
+              break;
+            default:
+              logger.severefmt("discarding DNS refresh request of type %s", typeString);
+              break;
           }
         }
+      } catch (RuntimeException e) {
+        logger.severefmt(e, "discarding invalid DNS refresh request (task %s)", task);
       } catch (UnsupportedEncodingException e) {
         logger.severefmt(e, "discarding invalid DNS refresh request (task %s)", task);
       }
@@ -174,9 +172,10 @@ public final class ReadDnsQueueAction implements Runnable {
             .param(RequestParameters.PARAM_TLD, tldRefreshItemsEntry.getKey());
         for (RefreshItem refreshItem : chunk) {
           options.param(
-              (refreshItem.type == TargetType.HOST) 
-                  ? PublishDnsUpdatesAction.HOSTS_PARAM : PublishDnsUpdatesAction.DOMAINS_PARAM,
-              refreshItem.name);
+              (refreshItem.type() == TargetType.HOST)
+                  ? PublishDnsUpdatesAction.HOSTS_PARAM
+                  : PublishDnsUpdatesAction.DOMAINS_PARAM,
+              refreshItem.name());
         }
         taskEnqueuer.enqueue(dnsPublishPushQueue, options);
       }
