@@ -30,15 +30,6 @@
     <bucket-size>100</bucket-size>
   </queue>
 
-  <queue>
-    <name>export</name>
-    <rate>10/s</rate>
-    <bucket-size>100</bucket-size>
-    <retry-parameters>
-      <task-retry-limit>1</task-retry-limit>
-    </retry-parameters>
-  </queue>
-
   <!-- Queue for launching asynchronous actions (e.g. mapreduces) from async flows. -->
   <queue>
     <name>flows-async</name>
