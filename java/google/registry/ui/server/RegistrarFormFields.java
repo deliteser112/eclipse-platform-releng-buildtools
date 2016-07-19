@@ -19,6 +19,7 @@ import static com.google.common.collect.Range.atMost;
 import static com.google.common.collect.Range.closed;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -354,7 +355,7 @@ public final class RegistrarFormFields {
         }
         for (String state : stateField.extractUntyped(args).asSet()) {
           if ("US".equals(countryCode)) {
-            state = state.toUpperCase();
+            state = Ascii.toUpperCase(state);
             if (!StateCode.US_MAP.containsKey(state)) {
               throw new FormFieldException(stateField, "Unknown US state code.");
             }

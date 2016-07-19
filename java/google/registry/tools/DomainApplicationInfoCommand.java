@@ -18,6 +18,7 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.Ascii;
 import com.google.template.soy.data.SoyMapData;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.tools.Command.GtechCommand;
@@ -53,8 +54,8 @@ final class DomainApplicationInfoCommand extends EppToolCommand implements Gtech
 
   @Override
   void initEppToolCommand() {
-    LaunchPhase launchPhase =
-        checkArgumentNotNull(LaunchPhase.fromValue(phase.toLowerCase()), "Illegal launch phase.");
+    LaunchPhase launchPhase = checkArgumentNotNull(
+        LaunchPhase.fromValue(Ascii.toLowerCase(phase)), "Illegal launch phase.");
 
     setSoyTemplate(
         DomainApplicationInfoSoyInfo.getInstance(),

@@ -21,6 +21,7 @@ import static org.joda.time.DateTimeZone.UTC;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Text;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -140,7 +141,7 @@ public class DatastoreBackupInfo {
             "Status: " + getStatus(),
             "Started: " + startTime,
             "Ended: " + completeTime.orNull(),
-            "Duration: " + getRunningTime().toPeriod().toString().substring(2).toLowerCase(),
+            "Duration: " + Ascii.toLowerCase(getRunningTime().toPeriod().toString().substring(2)),
             "GCS: " + gcsFilename.orNull(),
             "Kinds: " + kinds,
             "");

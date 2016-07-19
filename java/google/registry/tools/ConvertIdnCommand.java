@@ -19,6 +19,7 @@ import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.Ascii;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.util.Idn;
 import java.io.IOException;
@@ -37,7 +38,7 @@ final class ConvertIdnCommand implements Command, GtechCommand {
   public void run() throws IOException {
     for (String label : mainParameters) {
       if (label.startsWith(ACE_PREFIX)) {
-        System.out.println(Idn.toUnicode(label.toLowerCase()));
+        System.out.println(Idn.toUnicode(Ascii.toLowerCase(label)));
       } else {
         System.out.println(canonicalizeDomainName(label));
       }

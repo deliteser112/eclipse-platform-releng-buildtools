@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Strings;
 
 /** Container class for static utility methods. */
@@ -25,6 +26,6 @@ class CommandUtilities {
 
   /** Prompts for yes/no input using promptText, defaulting to no. */
   static boolean promptForYes(String promptText) {
-    return System.console().readLine(promptText + " (y/N): ").toUpperCase().startsWith("Y");
+    return Ascii.toUpperCase(System.console().readLine(promptText + " (y/N): ")).startsWith("Y");
   }
 }

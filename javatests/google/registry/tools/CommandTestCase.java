@@ -49,7 +49,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public abstract class CommandTestCase<C extends Command> {
 
-  private ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+  private final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+  private final ByteArrayOutputStream stderr = new ByteArrayOutputStream();
 
   protected C command;
 
@@ -71,6 +72,7 @@ public abstract class CommandTestCase<C extends Command> {
     RegistryToolEnvironment.UNITTEST.setup();
     command = newCommandInstance();
     System.setOut(new PrintStream(stdout));
+    System.setErr(new PrintStream(stderr));
   }
 
   void runCommandInEnvironment(RegistryToolEnvironment env, String... args) throws Exception {
@@ -145,17 +147,29 @@ public abstract class CommandTestCase<C extends Command> {
     return ofy().load().type(PollMessage.class).count();
   }
 
+  protected void assertStdoutIs(String expected) throws Exception {
+    assertThat(getStdoutAsString()).isEqualTo(expected);
+  }
+
   protected void assertInStdout(String... expected) throws Exception {
+    String stdout = getStdoutAsString();
     for (String line : expected) {
-      assertThat(stdout.toString(UTF_8.toString())).contains(line);
+      assertThat(stdout).contains(line);
+    }
+  }
+
+  protected void assertInStderr(String... expected) throws Exception {
+    String stderror = new String(stderr.toByteArray(), UTF_8);
+    for (String line : expected) {
+      assertThat(stderror).contains(line);
     }
   }
 
   void assertNotInStdout(String expected) throws Exception {
-    assertThat(stdout.toString(UTF_8.toString())).doesNotContain(expected);
+    assertThat(getStdoutAsString()).doesNotContain(expected);
   }
 
-  String getStdoutAsString() {
+  protected String getStdoutAsString() {
     return new String(stdout.toByteArray(), UTF_8);
   }
 

@@ -38,6 +38,7 @@ import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
+import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
 import google.registry.config.RegistryConfig;
@@ -194,7 +195,7 @@ public class RdeReportActionTest {
   private static ImmutableMap<String, String> mapifyHeaders(Iterable<HTTPHeader> headers) {
     ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
     for (HTTPHeader header : headers) {
-      builder.put(header.getName().replace('-', '_').toUpperCase(), header.getValue());
+      builder.put(Ascii.toUpperCase(header.getName().replace('-', '_')), header.getValue());
     }
     return builder.build();
   }

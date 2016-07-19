@@ -57,8 +57,8 @@ public final class Idn {
   }
 
   /**
-   * Translates a string from Unicode to ASCII Compatible Encoding (ACE), as defined by the ToASCII
-   * operation of <a href="http://www.ietf.org/rfc/rfc3490.txt">RFC 3490</a>.
+   * Translates a string from ASCII Compatible Encoding (ACE) to Unicode, as defined by the
+   * ToUnicode operation of <a href="http://www.ietf.org/rfc/rfc3490.txt">RFC 3490</a>.
    *
    * <p>This method always uses <a href="http://unicode.org/reports/tr46/">UTS46 transitional
    * processing</a>.

@@ -15,6 +15,7 @@
 package google.registry.config;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Ascii;
 import javax.annotation.Nullable;
 
 /** Registry environments. */
@@ -50,7 +51,7 @@ public enum RegistryEnvironment {
 
   /** Returns environment configured by system property {@value #PROPERTY}. */
   public static RegistryEnvironment get() {
-    return valueOf(System.getProperty(PROPERTY, UNITTEST.name()).toUpperCase());
+    return valueOf(Ascii.toUpperCase(System.getProperty(PROPERTY, UNITTEST.name())));
   }
 
   /**

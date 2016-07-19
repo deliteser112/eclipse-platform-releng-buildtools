@@ -26,6 +26,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
+import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
 import com.google.common.net.MediaType;
 import java.security.NoSuchAlgorithmException;
@@ -49,9 +50,9 @@ public final class UrlFetchUtils {
   }
 
   private static Optional<String> getHeaderFirstInternal(Iterable<HTTPHeader> hdrs, String name) {
-    name = name.toLowerCase();
+    name = Ascii.toLowerCase(name);
     for (HTTPHeader header : hdrs) {
-      if (header.getName().toLowerCase().equals(name)) {
+      if (Ascii.toLowerCase(header.getName()).equals(name)) {
         return Optional.of(header.getValue());
       }
     }

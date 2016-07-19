@@ -36,6 +36,7 @@ import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.Arrays.asList;
 import static org.joda.money.CurrencyUnit.USD;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -360,7 +361,7 @@ public class DatastoreHelper {
   }
 
   public static void createTld(String tld, ImmutableSortedMap<DateTime, TldState> tldStates) {
-    createTld(tld, tld.replaceFirst(ACE_PREFIX_REGEX, "").toUpperCase(), tldStates);
+    createTld(tld, Ascii.toUpperCase(tld.replaceFirst(ACE_PREFIX_REGEX, "")), tldStates);
   }
 
   public static void createTld(

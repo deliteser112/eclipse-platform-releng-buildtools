@@ -26,6 +26,7 @@ import static google.registry.tools.CommandUtilities.addHeader;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.Ascii;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -134,7 +135,7 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
             ImmutableMap.Builder<String, String> contactsMapBuilder = new ImmutableMap.Builder<>();
             for (DesignatedContact contact : application.getContacts()) {
               contactsMapBuilder.put(
-                  contact.getType().toString().toLowerCase(),
+                  Ascii.toLowerCase(contact.getType().toString()),
                   contact.getContactRef().get().getForeignKey());
             }
             LaunchNotice launchNotice = application.getLaunchNotice();

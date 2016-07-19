@@ -23,6 +23,7 @@ import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 import static java.util.Arrays.asList;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
@@ -250,7 +251,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
 
     /** Returns a more human-readable translation of the enum constant. */
     String description() {
-      return this.name().replace('_', ' ').toLowerCase();
+      return Ascii.toLowerCase(this.name().replace('_', ' '));
     }
 
     /** An {@link EppInput} might match multiple actions, so check if this action matches. */

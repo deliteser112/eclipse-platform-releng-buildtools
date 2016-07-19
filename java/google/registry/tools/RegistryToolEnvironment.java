@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.config.RegistryEnvironment;
@@ -61,7 +62,7 @@ enum RegistryToolEnvironment {
    * @see #get()
    */
   static RegistryToolEnvironment parseFromArgs(String[] args) {
-    return valueOf(getFlagValue(args, FLAGS).toUpperCase());
+    return valueOf(Ascii.toUpperCase(getFlagValue(args, FLAGS)));
   }
 
   /**
