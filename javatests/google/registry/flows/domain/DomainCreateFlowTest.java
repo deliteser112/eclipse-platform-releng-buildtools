@@ -112,6 +112,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.DatastoreHelper;
+import java.util.Map;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -247,10 +248,26 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
       String domainTld,
       String responseXmlFile,
       UserPrivileges userPrivileges) throws Exception {
+    doSuccessfulTest(domainTld, responseXmlFile, userPrivileges, ImmutableMap.<String, String>of());
+  }
+
+  private void doSuccessfulTest(
+      String domainTld,
+      String responseXmlFile,
+      UserPrivileges userPrivileges,
+      Map<String, String> substitutions) throws Exception {
     assertTransactionalFlow(true);
-    runFlowAssertResponse(CommitMode.LIVE, userPrivileges, readFile(responseXmlFile));
+    runFlowAssertResponse(
+        CommitMode.LIVE, userPrivileges, readFile(responseXmlFile, substitutions));
     assertSuccessfulCreate(domainTld, false);
     assertNoLordn();
+  }
+
+  private void doSuccessfulTest(
+      String domainTld,
+      String responseXmlFile,
+      Map<String, String> substitutions) throws Exception {
+    doSuccessfulTest(domainTld, responseXmlFile, UserPrivileges.NORMAL, substitutions);
   }
 
   private void doSuccessfulTest(String domainTld, String responseXmlFile) throws Exception {
@@ -303,39 +320,81 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_fee() throws Exception {
-    setEppInput("domain_create_fee.xml");
+  public void testSuccess_fee_v06() throws Exception {
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response_fee.xml");
+    doSuccessfulTest(
+        "tld", "domain_create_response_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
   }
 
   @Test
-  public void testSuccess_fee_withDefaultAttributes() throws Exception {
-    setEppInput("domain_create_fee_defaults.xml");
+  public void testSuccess_fee_v11() throws Exception {
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response_fee.xml");
+    doSuccessfulTest(
+        "tld", "domain_create_response_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
   }
 
   @Test
-  public void testFailure_refundableFee() throws Exception {
+  public void testSuccess_fee_withDefaultAttributes_v06() throws Exception {
+    setEppInput("domain_create_fee_defaults.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    persistContactsAndHosts();
+    doSuccessfulTest(
+        "tld", "domain_create_response_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+  }
+
+  @Test
+  public void testSuccess_fee_withDefaultAttributes_v11() throws Exception {
+    setEppInput("domain_create_fee_defaults.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    persistContactsAndHosts();
+    doSuccessfulTest(
+        "tld", "domain_create_response_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+  }
+
+  @Test
+  public void testFailure_refundableFee_v06() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
-    setEppInput("domain_create_fee_refundable.xml");
+    setEppInput("domain_create_fee_refundable.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
     runFlow();
   }
 
   @Test
-  public void testFailure_gracePeriodFee() throws Exception {
+  public void testFailure_refundableFee_v11() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
-    setEppInput("domain_create_fee_grace_period.xml");
+    setEppInput("domain_create_fee_refundable.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
     runFlow();
   }
 
   @Test
-  public void testFailure_appliedFee() throws Exception {
+  public void testFailure_gracePeriodFee_v06() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
-    setEppInput("domain_create_fee_applied.xml");
+    setEppInput("domain_create_fee_grace_period.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    persistContactsAndHosts();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_gracePeriodFee_v11() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    setEppInput("domain_create_fee_grace_period.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    persistContactsAndHosts();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_appliedFee_v06() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    setEppInput("domain_create_fee_applied.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    persistContactsAndHosts();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_appliedFee_v11() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    setEppInput("domain_create_fee_applied.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
     runFlow();
   }
@@ -548,18 +607,43 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_wrongFeeAmount() throws Exception {
+  public void testFailure_wrongFeeAmount_v06() throws Exception {
     thrown.expect(FeesMismatchException.class);
-    setEppInput("domain_create_fee.xml");
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistResource(Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, 20)).build());
     persistContactsAndHosts();
     runFlow();
   }
 
   @Test
-  public void testFailure_wrongCurrency() throws Exception {
+  public void testFailure_wrongFeeAmount_v11() throws Exception {
+    thrown.expect(FeesMismatchException.class);
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    persistResource(Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, 20)).build());
+    persistContactsAndHosts();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_wrongCurrency_v06() throws Exception {
     thrown.expect(CurrencyUnitMismatchException.class);
-    setEppInput("domain_create_fee.xml");
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    persistResource(Registry.get("tld").asBuilder()
+        .setCurrency(CurrencyUnit.EUR)
+        .setCreateBillingCost(Money.of(EUR, 13))
+        .setRestoreBillingCost(Money.of(EUR, 11))
+        .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(EUR, 7)))
+        .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
+        .setServerStatusChangeBillingCost(Money.of(EUR, 19))
+        .build());
+    persistContactsAndHosts();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_wrongCurrency_v11() throws Exception {
+    thrown.expect(CurrencyUnitMismatchException.class);
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistResource(Registry.get("tld").asBuilder()
         .setCurrency(CurrencyUnit.EUR)
         .setCreateBillingCost(Money.of(EUR, 13))
@@ -979,19 +1063,39 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_omitFeeExtensionOnLogin() throws Exception {
+  public void testFailure_omitFeeExtensionOnLogin_v06() throws Exception {
     thrown.expect(UndeclaredServiceExtensionException.class);
     removeServiceExtensionUri(ServiceExtension.FEE_0_6.getUri());
+    removeServiceExtensionUri(ServiceExtension.FEE_0_11.getUri());
     createTld("net");
-    setEppInput("domain_create_fee.xml");
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
     runFlow();
   }
 
   @Test
-  public void testFailure_feeGivenInWrongScale() throws Exception {
+  public void testFailure_omitFeeExtensionOnLogin_v11() throws Exception {
+    thrown.expect(UndeclaredServiceExtensionException.class);
+    removeServiceExtensionUri(ServiceExtension.FEE_0_6.getUri());
+    removeServiceExtensionUri(ServiceExtension.FEE_0_11.getUri());
+    createTld("net");
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    persistContactsAndHosts();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_feeGivenInWrongScale_v06() throws Exception {
     thrown.expect(CurrencyValueScaleException.class);
-    setEppInput("domain_create_fee_bad_scale.xml");
+    setEppInput("domain_create_fee_bad_scale.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    persistContactsAndHosts();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_feeGivenInWrongScale_v11() throws Exception {
+    thrown.expect(CurrencyValueScaleException.class);
+    setEppInput("domain_create_fee_bad_scale.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
     runFlow();
   }
@@ -1283,8 +1387,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_eapFeeApplied() throws Exception {
-    setEppInput("domain_create_eap_fee.xml");
+  public void testSuccess_eapFeeApplied_v06() throws Exception {
+    setEppInput("domain_create_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
     persistResource(Registry.get("tld").asBuilder()
         .setEapFeeSchedule(ImmutableSortedMap.of(
@@ -1292,7 +1396,22 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             clock.nowUtc().minusDays(1), Money.of(USD, 100),
             clock.nowUtc().plusDays(1), Money.of(USD, 0)))
         .build());
-    doSuccessfulTest("tld", "domain_create_response_eap_fee.xml");
+    doSuccessfulTest(
+        "tld", "domain_create_response_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+  }
+
+  @Test
+  public void testSuccess_eapFeeApplied_v11() throws Exception {
+    setEppInput("domain_create_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    persistContactsAndHosts();
+    persistResource(Registry.get("tld").asBuilder()
+        .setEapFeeSchedule(ImmutableSortedMap.of(
+            START_OF_TIME, Money.of(USD, 0),
+            clock.nowUtc().minusDays(1), Money.of(USD, 100),
+            clock.nowUtc().plusDays(1), Money.of(USD, 0)))
+        .build());
+    doSuccessfulTest(
+        "tld", "domain_create_response_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
   }
 
   @Test

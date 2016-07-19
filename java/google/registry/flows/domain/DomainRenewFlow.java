@@ -22,6 +22,7 @@ import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurr
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
+import static google.registry.model.domain.fee.Fee.FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.eppoutput.Result.Code.Success;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
@@ -42,8 +43,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.Fee;
-import google.registry.model.domain.fee.FeeRenewExtension;
-import google.registry.model.domain.fee.FeeRenewResponseExtension;
+import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppOutput;
@@ -80,7 +80,7 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
       StatusValue.PENDING_DELETE,
       StatusValue.SERVER_RENEW_PROHIBITED);
 
-  protected FeeRenewExtension feeRenew;
+  protected FeeTransformCommandExtension feeRenew;
   protected Money renewCost;
 
   @Inject DomainRenewFlow() {}
@@ -92,8 +92,9 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
 
   @Override
   public final void initResourceCreateOrMutateFlow() throws EppException {
-    registerExtensions(FeeRenewExtension.class);
-    feeRenew = eppInput.getSingleExtension(FeeRenewExtension.class);
+    registerExtensions(FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    feeRenew =
+        eppInput.getFirstExtensionOfClasses(FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
   }
 
   @Override
@@ -176,9 +177,9 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
             newResource.getFullyQualifiedDomainName(),
             newResource.getRegistrationExpirationTime()),
         (feeRenew == null) ? null : ImmutableList.of(
-            new FeeRenewResponseExtension.Builder()
+            feeRenew.createResponseBuilder()
                 .setCurrency(renewCost.getCurrencyUnit())
-                .setFee(ImmutableList.of(Fee.create(renewCost.getAmount(), "renew")))
+                .setFees(ImmutableList.of(Fee.create(renewCost.getAmount(), "renew")))
                 .build()));
   }
 

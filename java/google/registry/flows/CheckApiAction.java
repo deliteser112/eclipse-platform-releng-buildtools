@@ -18,6 +18,8 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
+import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
+import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_11;
 import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_6;
 import static google.registry.model.registry.Registries.findTldForNameOrThrow;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
@@ -25,7 +27,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.json.simple.JSONValue.toJSONString;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
 import com.google.template.soy.SoyFileSet;
@@ -35,7 +37,6 @@ import dagger.Provides;
 import google.registry.config.RegistryConfig;
 import google.registry.flows.soy.DomainCheckFeeEppSoyInfo;
 import google.registry.model.domain.fee.FeeCheckResponseExtension;
-import google.registry.model.domain.fee.FeeCheckResponseExtension.FeeCheck;
 import google.registry.model.eppoutput.CheckData.DomainCheck;
 import google.registry.model.eppoutput.CheckData.DomainCheckData;
 import google.registry.model.eppoutput.EppResponse;
@@ -96,7 +97,7 @@ public class CheckApiAction implements Runnable {
           .getBytes(UTF_8);
       SessionMetadata sessionMetadata = new StatelessRequestSessionMetadata(
           config.getCheckApiServletRegistrarClientId(),
-          ImmutableSet.of(FEE_0_6.getUri()));
+          FEE_EXTENSION_URIS);
       EppResponse response = eppController
           .handleEppCommand(
               sessionMetadata,
@@ -117,10 +118,16 @@ public class CheckApiAction implements Runnable {
           .put("status", "success")
           .put("available", available);
       if (available) {
-        FeeCheckResponseExtension feeCheckResponse =
-            (FeeCheckResponseExtension) response.getExtensions().get(0);
-        FeeCheck feeCheck = feeCheckResponse.getChecks().get(0);
-        builder.put("tier", firstNonNull(feeCheck.getFeeClass(), "standard"));
+        FeeCheckResponseExtension<?> feeCheckResponseExtension =
+            (FeeCheckResponseExtension<?>) response.getFirstExtensionOfType(
+                FEE_0_11.getResponseExtensionClass(),
+                FEE_0_6.getResponseExtensionClass());
+        if (feeCheckResponseExtension != null) {
+          builder.put("tier",
+              firstNonNull(
+                  Iterables.getOnlyElement(feeCheckResponseExtension.getItems()).getFeeClass(),
+                  "standard"));
+        }
       } else {
         builder.put("reason", check.getReason());
       }

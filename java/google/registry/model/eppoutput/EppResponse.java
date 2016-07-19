@@ -14,6 +14,7 @@
 
 package google.registry.model.eppoutput;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
@@ -21,13 +22,19 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainRenewData;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.fee.FeeCheckResponseExtension;
-import google.registry.model.domain.fee.FeeCreateResponseExtension;
-import google.registry.model.domain.fee.FeeDeleteResponseExtension;
-import google.registry.model.domain.fee.FeeInfoResponseExtension;
-import google.registry.model.domain.fee.FeeRenewResponseExtension;
-import google.registry.model.domain.fee.FeeTransferResponseExtension;
-import google.registry.model.domain.fee.FeeUpdateResponseExtension;
+import google.registry.model.domain.fee06.FeeCheckResponseExtensionV06;
+import google.registry.model.domain.fee06.FeeCreateResponseExtensionV06;
+import google.registry.model.domain.fee06.FeeDeleteResponseExtensionV06;
+import google.registry.model.domain.fee06.FeeInfoResponseExtensionV06;
+import google.registry.model.domain.fee06.FeeRenewResponseExtensionV06;
+import google.registry.model.domain.fee06.FeeTransferResponseExtensionV06;
+import google.registry.model.domain.fee06.FeeUpdateResponseExtensionV06;
+import google.registry.model.domain.fee11.FeeCheckResponseExtensionV11;
+import google.registry.model.domain.fee11.FeeCreateResponseExtensionV11;
+import google.registry.model.domain.fee11.FeeDeleteResponseExtensionV11;
+import google.registry.model.domain.fee11.FeeRenewResponseExtensionV11;
+import google.registry.model.domain.fee11.FeeTransferResponseExtensionV11;
+import google.registry.model.domain.fee11.FeeUpdateResponseExtensionV11;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension;
 import google.registry.model.domain.launch.LaunchCreateResponseExtension;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
@@ -120,13 +127,19 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
 
   /** Zero or more response extensions. */
   @XmlElementRefs({
-      @XmlElementRef(type = FeeCheckResponseExtension.class),
-      @XmlElementRef(type = FeeCreateResponseExtension.class),
-      @XmlElementRef(type = FeeDeleteResponseExtension.class),
-      @XmlElementRef(type = FeeInfoResponseExtension.class),
-      @XmlElementRef(type = FeeRenewResponseExtension.class),
-      @XmlElementRef(type = FeeTransferResponseExtension.class),
-      @XmlElementRef(type = FeeUpdateResponseExtension.class),
+      @XmlElementRef(type = FeeCheckResponseExtensionV06.class),
+      @XmlElementRef(type = FeeInfoResponseExtensionV06.class),
+      @XmlElementRef(type = FeeCreateResponseExtensionV06.class),
+      @XmlElementRef(type = FeeDeleteResponseExtensionV06.class),
+      @XmlElementRef(type = FeeRenewResponseExtensionV06.class),
+      @XmlElementRef(type = FeeTransferResponseExtensionV06.class),
+      @XmlElementRef(type = FeeUpdateResponseExtensionV06.class),
+      @XmlElementRef(type = FeeCheckResponseExtensionV11.class),
+      @XmlElementRef(type = FeeCreateResponseExtensionV11.class),
+      @XmlElementRef(type = FeeDeleteResponseExtensionV11.class),
+      @XmlElementRef(type = FeeRenewResponseExtensionV11.class),
+      @XmlElementRef(type = FeeTransferResponseExtensionV11.class),
+      @XmlElementRef(type = FeeUpdateResponseExtensionV11.class),
       @XmlElementRef(type = LaunchCheckResponseExtension.class),
       @XmlElementRef(type = LaunchCreateResponseExtension.class),
       @XmlElementRef(type = LaunchInfoResponseExtension.class),
@@ -150,7 +163,31 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
   public ImmutableList<? extends ResponseExtension> getExtensions() {
     return extensions;
   }
+  
+  @Nullable
+  public ResponseExtension getFirstExtensionOfType(Class<? extends ResponseExtension> clazz) {
+    return FluentIterable.from(extensions).filter(clazz).first().orNull();
+  }
 
+  @Nullable
+  public ResponseExtension
+      getFirstExtensionOfType(ImmutableList<Class<? extends ResponseExtension>> classes) {
+    for (Class<? extends ResponseExtension> clazz : classes) {
+      ResponseExtension extension = getFirstExtensionOfType(clazz);
+      if (extension != null) {
+        return extension;
+      }
+    }
+    return null;
+  }
+
+  @SafeVarargs
+  @Nullable
+  public final ResponseExtension
+      getFirstExtensionOfType(Class<? extends ResponseExtension>... classes) {
+    return getFirstExtensionOfType(ImmutableList.copyOf(classes));
+  }
+  
   public Result getResult() {
     return result;
   }

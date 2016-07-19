@@ -22,7 +22,7 @@
        xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
         <launch:phase>landrush</launch:phase>
      </launch:create>
-      <fee:create xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+      <fee:create xmlns:fee="urn:ietf:params:xml:ns:fee-%FEE_VERSION%">
         <fee:currency>USD</fee:currency>
         <fee:fee refundable="true" grace-period="P0D" applied="immediate">13.00</fee:fee>
       </fee:create>

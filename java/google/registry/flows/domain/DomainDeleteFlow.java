@@ -37,7 +37,9 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.fee.Credit;
-import google.registry.model.domain.fee.FeeDeleteResponseExtension;
+import google.registry.model.domain.fee.FeeTransformResponseExtension;
+import google.registry.model.domain.fee06.FeeDeleteResponseExtensionV06;
+import google.registry.model.domain.fee11.FeeDeleteResponseExtensionV11;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
@@ -48,6 +50,8 @@ import google.registry.model.poll.PendingActionNotificationResponse.DomainPendin
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+import java.util.Set;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -169,18 +173,32 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
         ? SuccessWithActionPending : Success;
   }
 
+  @Nullable
+  private FeeTransformResponseExtension.Builder getDeleteResponseBuilder() {
+    Set<String> uris = nullToEmpty(sessionMetadata.getServiceExtensionUris());
+    if (uris.contains(ServiceExtension.FEE_0_11.getUri())) {
+      return new FeeDeleteResponseExtensionV11.Builder();
+    }
+    if (uris.contains(ServiceExtension.FEE_0_6.getUri())) {
+      return new FeeDeleteResponseExtensionV06.Builder();
+    }
+    return null;
+  }
+
   @Override
+  @Nullable
   protected final ImmutableList<? extends ResponseExtension> getDeleteResponseExtensions() {
-    if (!credits.isEmpty()
-        && nullToEmpty(sessionMetadata.getServiceExtensionUris()).contains(
-            ServiceExtension.FEE_0_6.getUri())) {
-      return ImmutableList.of(new FeeDeleteResponseExtension.Builder()
-          .setCurrency(checkNotNull(creditsCurrencyUnit))
-          .setCredits(credits)
-          .build());
-    } else {
+    if (credits.isEmpty()) {
       return null;
     }
+    FeeTransformResponseExtension.Builder feeResponseBuilder = getDeleteResponseBuilder();
+    if (feeResponseBuilder == null) {
+      return null;
+    }
+    return ImmutableList.of(feeResponseBuilder
+        .setCurrency(checkNotNull(creditsCurrencyUnit))
+        .setCredits(credits)
+        .build());
   }
 
   @Override

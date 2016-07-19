@@ -29,7 +29,6 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.Period;
-import google.registry.model.domain.fee.FeeCreateResponseExtension;
 import google.registry.model.eppoutput.CreateData.DomainCreateData;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.Result;
@@ -108,9 +107,9 @@ public abstract class DomainCreateOrAllocateFlow
             now,
             newResource.getRegistrationExpirationTime()),
         (feeCreate == null) ? null : ImmutableList.of(
-            new FeeCreateResponseExtension.Builder()
+            feeCreate.createResponseBuilder()
                 .setCurrency(commandOperations.getCurrency())
-                .setFee(commandOperations.getFees())
+                .setFees(commandOperations.getFees())
                 .build()));
   }
 }

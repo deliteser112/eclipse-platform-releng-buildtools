@@ -44,7 +44,9 @@ public abstract class LoggedInFlow extends Flow {
    * declared on login.
    */
   private static final ImmutableSet<String> UNDECLARED_URIS_BLACKLIST =
-      ImmutableSet.of(ServiceExtension.FEE_0_6.getUri());
+      ImmutableSet.of(
+          ServiceExtension.FEE_0_6.getUri(),
+          ServiceExtension.FEE_0_11.getUri());
 
   /**
    * The TLDs on which the logged-in registrar is allowed access domains.

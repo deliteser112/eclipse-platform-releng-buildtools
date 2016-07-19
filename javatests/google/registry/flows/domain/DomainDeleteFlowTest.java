@@ -37,6 +37,7 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
@@ -57,6 +58,7 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
@@ -68,6 +70,7 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
+import java.util.Map;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -83,6 +86,11 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   private static final DateTime TIME_BEFORE_FLOW = DateTime.parse("2000-06-06T22:00:00.0Z");
   private static final DateTime A_MONTH_AGO = TIME_BEFORE_FLOW.minusMonths(1);
   private static final DateTime A_MONTH_FROM_NOW = TIME_BEFORE_FLOW.plusMonths(1);
+
+  private static final ImmutableMap<String, String> FEE_06_MAP =
+      ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee");
+  private static final ImmutableMap<String, String> FEE_11_MAP =
+      ImmutableMap.of("FEE_VERSION", "0.11", "FEE_NS", "fee11");
 
   public DomainDeleteFlowTest() {
     setEppInput("domain_delete.xml");
@@ -226,6 +234,13 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   private void doImmediateDeleteTest(GracePeriodStatus gracePeriodStatus, String responseFilename)
       throws Exception {
+    doImmediateDeleteTest(gracePeriodStatus, responseFilename, ImmutableMap.<String, String>of());
+  }
+  
+  private void doImmediateDeleteTest(
+      GracePeriodStatus gracePeriodStatus,
+      String responseFilename,
+      Map<String, String> substitutions) throws Exception {
     // Persist the billing event so it can be retrieved for cancellation generation and checking.
     setupSuccessfulTest();
     BillingEvent.OneTime graceBillingEvent =
@@ -234,7 +249,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     // We should see exactly one poll message, which is for the autorenew 1 month in the future.
     assertPollMessages(createAutorenewPollMessage("TheRegistrar").build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile(responseFilename));
+    runFlowAssertResponse(readFile(responseFilename, substitutions));
     // Check that the domain is fully deleted.
     assertThat(reloadResourceByUniqueId()).isNull();
     // The add grace period is for a billable action, so it should trigger a cancellation.
@@ -253,8 +268,14 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   @Test
-  public void testSuccess_addGracePeriodCredit() throws Exception {
-    doImmediateDeleteTest(GracePeriodStatus.ADD, "domain_delete_response_fee.xml");
+  public void testSuccess_addGracePeriodCredit_v06() throws Exception {
+    removeServiceExtensionUri(ServiceExtension.FEE_0_11.getUri());
+    doImmediateDeleteTest(GracePeriodStatus.ADD, "domain_delete_response_fee.xml", FEE_06_MAP);
+  }
+
+  @Test
+  public void testSuccess_addGracePeriodCredit_v11() throws Exception {
+    doImmediateDeleteTest(GracePeriodStatus.ADD, "domain_delete_response_fee.xml", FEE_11_MAP);
   }
 
   @Test
@@ -264,6 +285,11 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   private void doSuccessfulTest_noAddGracePeriod(String responseFilename) throws Exception {
+    doSuccessfulTest_noAddGracePeriod(responseFilename, ImmutableMap.<String, String>of());
+  }
+  
+  private void doSuccessfulTest_noAddGracePeriod(
+      String responseFilename, Map<String, String> substitutions) throws Exception {
     // Persist the billing event so it can be retrieved for cancellation generation and checking.
     setupSuccessfulTest();
     BillingEvent.OneTime renewBillingEvent =
@@ -275,7 +301,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     // We should see exactly one poll message, which is for the autorenew 1 month in the future.
     assertPollMessages(createAutorenewPollMessage("TheRegistrar").build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile(responseFilename));
+    runFlowAssertResponse(readFile(responseFilename, substitutions));
     DomainResource resource = reloadResourceByUniqueId();
     // Check that the domain is in the pending delete state.
     assertAboutDomains().that(resource)
@@ -315,8 +341,14 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   @Test
-  public void testSuccess_renewGracePeriodCredit() throws Exception {
-    doSuccessfulTest_noAddGracePeriod("domain_delete_response_pending_fee.xml");
+  public void testSuccess_renewGracePeriodCredit_v06() throws Exception {
+    removeServiceExtensionUri(ServiceExtension.FEE_0_11.getUri());
+    doSuccessfulTest_noAddGracePeriod("domain_delete_response_pending_fee.xml", FEE_06_MAP);
+  }
+
+  @Test
+  public void testSuccess_renewGracePeriodCredit_v11() throws Exception {
+    doSuccessfulTest_noAddGracePeriod("domain_delete_response_pending_fee.xml", FEE_11_MAP);
   }
 
   @Test
@@ -361,14 +393,23 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   @Test
-  public void testSuccess_autoRenewGracePeriod() throws Exception {
+  public void testSuccess_autoRenewGracePeriod_v06() throws Exception {
+    removeServiceExtensionUri(ServiceExtension.FEE_0_11.getUri());
     setupAutorenewGracePeriod();
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml"));
+    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml", FEE_06_MAP));
   }
 
   @Test
-  public void testSuccess_autoRenewGracePeriod_priceChanges() throws Exception {
+  public void testSuccess_autoRenewGracePeriod_v11() throws Exception {
+    setupAutorenewGracePeriod();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml", FEE_11_MAP));
+  }
+
+  @Test
+  public void testSuccess_autoRenewGracePeriod_priceChanges_v06() throws Exception {
+    removeServiceExtensionUri(ServiceExtension.FEE_0_11.getUri());
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -377,7 +418,20 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .build());
     setupAutorenewGracePeriod();
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml"));
+    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml", FEE_06_MAP));
+  }
+
+  @Test
+  public void testSuccess_autoRenewGracePeriod_priceChanges_v11() throws Exception {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setRenewBillingCostTransitions(ImmutableSortedMap.of(
+                START_OF_TIME, Money.of(USD, 11), TIME_BEFORE_FLOW.minusDays(5), Money.of(USD, 20)))
+            .build());
+    setupAutorenewGracePeriod();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml", FEE_11_MAP));
   }
 
   @Test

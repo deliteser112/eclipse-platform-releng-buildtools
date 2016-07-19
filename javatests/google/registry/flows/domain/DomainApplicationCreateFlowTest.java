@@ -165,14 +165,36 @@ public class DomainApplicationCreateFlowTest
 
   private void doSuccessfulTest(String responseXmlFile, boolean sunriseApplication)
       throws Exception {
-    doSuccessfulTest(responseXmlFile, sunriseApplication, 1);
+    doSuccessfulTest(responseXmlFile, sunriseApplication, 1, null, null);
   }
 
-  private void doSuccessfulTest(String responseXmlFile, boolean sunriseApplication, int years)
+  private void doSuccessfulTest(
+      String responseXmlFile, boolean sunriseApplication, int years)
       throws Exception {
+    doSuccessfulTest(responseXmlFile, sunriseApplication, years, null, null);
+  }
+
+  private void doSuccessfulTest(
+      String responseXmlFile,
+      boolean sunriseApplication,
+      String feeExtensionVersion,
+      String feeExtensionNamespace) throws Exception {
+    doSuccessfulTest(
+        responseXmlFile, sunriseApplication, 1, feeExtensionVersion, feeExtensionNamespace);
+  }
+
+  private void doSuccessfulTest(
+      String responseXmlFile,
+      boolean sunriseApplication,
+      int years, String feeExtensionVersion,
+      String feeExtensionNamespace) throws Exception {
     assertTransactionalFlow(true);
     runFlowAssertResponse(
-        readFile(responseXmlFile),
+        (feeExtensionVersion == null)
+          ? readFile(responseXmlFile)
+          : readFile(
+              responseXmlFile,
+              ImmutableMap.of("FEE_VERSION", feeExtensionVersion, "FEE_NS", feeExtensionNamespace)),
         "epp.response.extension.creData.applicationID",
         "epp.response.resData.creData.crDate");
     // Check that the domain application was created and persisted with a history entry.
@@ -440,50 +462,101 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testSuccess_landrushApplicationWithFee() throws Exception {
+  public void testSuccess_landrushApplicationWithFee_v06() throws Exception {
     createTld("tld", TldState.LANDRUSH);
-    setEppInput("domain_create_landrush_fee.xml");
+    setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    doSuccessfulTest("domain_create_landrush_fee_response.xml", false);
+    doSuccessfulTest("domain_create_landrush_fee_response.xml", false, "0.6", "fee");
   }
 
   @Test
-  public void testSuccess_landrushApplicationWithFee_withDefaultAttributes() throws Exception {
+  public void testSuccess_landrushApplicationWithFee_v11() throws Exception {
     createTld("tld", TldState.LANDRUSH);
-    setEppInput("domain_create_landrush_fee_defaults.xml");
+    setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    doSuccessfulTest("domain_create_landrush_fee_response.xml", false);
+    doSuccessfulTest("domain_create_landrush_fee_response.xml", false, "0.11", "fee11");
   }
 
   @Test
-  public void testFailure_landrushApplicationWithRefundableFee() throws Exception {
+  public void testSuccess_landrushApplicationWithFee_withDefaultAttributes_v06() throws Exception {
+    createTld("tld", TldState.LANDRUSH);
+    setEppInput("domain_create_landrush_fee_defaults.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    doSuccessfulTest("domain_create_landrush_fee_response.xml", false, "0.6", "fee");
+  }
+
+  @Test
+  public void testSuccess_landrushApplicationWithFee_withDefaultAttributes_v11() throws Exception {
+    createTld("tld", TldState.LANDRUSH);
+    setEppInput("domain_create_landrush_fee_defaults.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    doSuccessfulTest("domain_create_landrush_fee_response.xml", false, "0.11", "fee11");
+  }
+
+  @Test
+  public void testFailure_landrushApplicationWithRefundableFee_v06() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    setEppInput("domain_create_landrush_fee_refundable.xml");
+    setEppInput("domain_create_landrush_fee_refundable.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     runFlow();
   }
 
   @Test
-  public void testFailure_landrushApplicationWithGracePeriodFee() throws Exception {
+  public void testFailure_landrushApplicationWithRefundableFee_v11() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    setEppInput("domain_create_landrush_fee_grace_period.xml");
+    setEppInput(
+        "domain_create_landrush_fee_refundable.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     runFlow();
   }
 
   @Test
-  public void testFailure_landrushApplicationWithAppliedFee() throws Exception {
+  public void testFailure_landrushApplicationWithGracePeriodFee_v06() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    setEppInput("domain_create_landrush_fee_applied.xml");
+    setEppInput(
+        "domain_create_landrush_fee_grace_period.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_landrushApplicationWithGracePeriodFee_v11() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    createTld("tld", TldState.LANDRUSH);
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    setEppInput(
+        "domain_create_landrush_fee_grace_period.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_landrushApplicationWithAppliedFee_v06() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    createTld("tld", TldState.LANDRUSH);
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    setEppInput("domain_create_landrush_fee_applied.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_landrushApplicationWithAppliedFee_v11() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    createTld("tld", TldState.LANDRUSH);
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    setEppInput("domain_create_landrush_fee_applied.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     runFlow();
   }
 
@@ -1115,10 +1188,10 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_wrongFeeLandrushApplication() throws Exception {
+  public void testFailure_wrongFeeLandrushApplication_v06() throws Exception {
     thrown.expect(FeesMismatchException.class);
     createTld("tld", TldState.LANDRUSH);
-    setEppInput("domain_create_landrush_fee.xml");
+    setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistResource(
         Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, 20)).build());
     persistContactsAndHosts();
@@ -1127,10 +1200,22 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_wrongCurrency() throws Exception {
+  public void testFailure_wrongFeeLandrushApplication_v11() throws Exception {
+    thrown.expect(FeesMismatchException.class);
+    createTld("tld", TldState.LANDRUSH);
+    setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    persistResource(
+        Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, 20)).build());
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_wrongCurrency_v06() throws Exception {
     thrown.expect(CurrencyUnitMismatchException.class);
     createTld("tld", TldState.LANDRUSH);
-    setEppInput("domain_create_landrush_fee.xml");
+    setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistResource(Registry.get("tld").asBuilder()
         .setCurrency(CurrencyUnit.EUR)
         .setCreateBillingCost(Money.of(EUR, 13))
@@ -1145,10 +1230,38 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_feeGivenInWrongScale() throws Exception {
+  public void testFailure_wrongCurrency_v11() throws Exception {
+    thrown.expect(CurrencyUnitMismatchException.class);
+    createTld("tld", TldState.LANDRUSH);
+    setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    persistResource(Registry.get("tld").asBuilder()
+        .setCurrency(CurrencyUnit.EUR)
+        .setCreateBillingCost(Money.of(EUR, 13))
+        .setRestoreBillingCost(Money.of(EUR, 11))
+        .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(EUR, 7)))
+        .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
+        .setServerStatusChangeBillingCost(Money.of(EUR, 19))
+        .build());
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_feeGivenInWrongScale_v06() throws Exception {
     thrown.expect(CurrencyValueScaleException.class);
     createTld("tld", TldState.LANDRUSH);
-    setEppInput("domain_create_landrush_fee_bad_scale.xml");
+    setEppInput("domain_create_landrush_fee_bad_scale.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_feeGivenInWrongScale_v11() throws Exception {
+    thrown.expect(CurrencyValueScaleException.class);
+    createTld("tld", TldState.LANDRUSH);
+    setEppInput("domain_create_landrush_fee_bad_scale.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
     clock.advanceOneMilli();
     runFlow();

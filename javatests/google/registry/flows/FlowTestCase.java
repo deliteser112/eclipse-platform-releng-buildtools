@@ -50,6 +50,7 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeHttpSession;
 import google.registry.testing.InjectRule;
 import google.registry.testing.ShardableTestCase;
+import google.registry.testing.TestDataHelper;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import google.registry.xml.ValidationMode;
 import java.util.List;
@@ -113,6 +114,10 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
 
   protected String readFile(String filename) {
     return readResourceUtf8(getClass(), "testdata/" + filename);
+  }
+
+  protected String readFile(String filename, Map<String, String> substitutions) {
+    return TestDataHelper.loadFileWithSubstitutions(getClass(), filename, substitutions);
   }
 
   protected String getClientTrid() throws Exception {

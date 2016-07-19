@@ -137,6 +137,24 @@
       </nameXmlTransform>
     </schemaBindings>
   </bindings>
+  <bindings schemaLocation="fee06.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="google.registry.xjc.fee06"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcFee06"/>
+        <typeName prefix="XjcFee06"/>
+      </nameXmlTransform>
+    </schemaBindings>
+  </bindings>
+  <bindings schemaLocation="fee11.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="google.registry.xjc.fee11"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcFee11"/>
+        <typeName prefix="XjcFee11"/>
+      </nameXmlTransform>
+    </schemaBindings>
+  </bindings>
   <bindings schemaLocation="launch.xsd" node="/xsd:schema">
     <schemaBindings>
       <package name="google.registry.xjc.launch"/>

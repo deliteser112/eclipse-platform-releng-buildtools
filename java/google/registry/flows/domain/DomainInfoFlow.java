@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
-import google.registry.model.domain.fee.FeeInfoExtension;
-import google.registry.model.domain.fee.FeeInfoResponseExtension;
+import google.registry.model.domain.fee06.FeeInfoCommandExtensionV06;
+import google.registry.model.domain.fee06.FeeInfoResponseExtensionV06;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.rgp.RgpInfoExtension;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
@@ -44,7 +44,7 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
 
   @Override
   protected void initSingleResourceFlow() throws EppException {
-    registerExtensions(FeeInfoExtension.class);
+    registerExtensions(FeeInfoCommandExtensionV06.class);
   }
 
   @Override
@@ -87,11 +87,17 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
     if (!gracePeriodStatuses.isEmpty()) {
       extensions.add(RgpInfoExtension.create(gracePeriodStatuses));
     }
-    FeeInfoExtension feeInfo = eppInput.getSingleExtension(FeeInfoExtension.class);
+    FeeInfoCommandExtensionV06 feeInfo =
+        eppInput.getSingleExtension(FeeInfoCommandExtensionV06.class);
     if (feeInfo != null) {  // Fee check was requested.
-      FeeInfoResponseExtension.Builder builder = new FeeInfoResponseExtension.Builder();
+      FeeInfoResponseExtensionV06.Builder builder = new FeeInfoResponseExtensionV06.Builder();
       handleFeeRequest(
-          feeInfo, builder, getTargetId(), existingResource.getTld(), now);
+          feeInfo,
+          builder,
+          getTargetId(),
+          existingResource.getTld(),
+          null,
+          now);
       extensions.add(builder.build());
     }
     return extensions.build();

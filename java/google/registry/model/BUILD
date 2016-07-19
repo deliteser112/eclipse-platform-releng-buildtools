@@ -13,6 +13,8 @@ FIELD_EXPOSERS = [
     "domain/FieldExposer.java",
     "domain/allocate/FieldExposer.java",
     "domain/fee/FieldExposer.java",
+    "domain/fee06/FieldExposer.java",
+    "domain/fee11/FieldExposer.java",
     "domain/launch/FieldExposer.java",
     "domain/rgp/FieldExposer.java",
     "domain/secdns/FieldExposer.java",

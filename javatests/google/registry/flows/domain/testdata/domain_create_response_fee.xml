@@ -12,7 +12,7 @@
       </domain:creData>
     </resData>
     <extension>
-      <fee:creData xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+      <fee:creData xmlns:fee="urn:ietf:params:xml:ns:fee-%FEE_VERSION%">
         <fee:currency>USD</fee:currency>
         <fee:fee description="create">26.00</fee:fee>
       </fee:creData>

@@ -19,6 +19,12 @@
             prefix = "dsig",
             namespaceURI = "http://www.w3.org/2000/09/xmldsig#"),
         @javax.xml.bind.annotation.XmlNs(
+            prefix = "fee06",
+            namespaceURI = "urn:ietf:params:xml:ns:fee-0.6"),
+        @javax.xml.bind.annotation.XmlNs(
+            prefix = "fee11",
+            namespaceURI = "urn:ietf:params:xml:ns:fee-0.11"),
+        @javax.xml.bind.annotation.XmlNs(
             prefix = "host",
             namespaceURI = "urn:ietf:params:xml:ns:host-1.0"),
         @javax.xml.bind.annotation.XmlNs(

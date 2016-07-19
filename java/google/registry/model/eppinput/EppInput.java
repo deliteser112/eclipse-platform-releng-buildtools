@@ -17,6 +17,7 @@ package google.registry.model.eppinput;
 import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -24,12 +25,17 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactCommand;
 import google.registry.model.domain.DomainCommand;
 import google.registry.model.domain.allocate.AllocateCreateExtension;
-import google.registry.model.domain.fee.FeeCheckExtension;
-import google.registry.model.domain.fee.FeeCreateExtension;
-import google.registry.model.domain.fee.FeeInfoExtension;
-import google.registry.model.domain.fee.FeeRenewExtension;
-import google.registry.model.domain.fee.FeeTransferExtension;
-import google.registry.model.domain.fee.FeeUpdateExtension;
+import google.registry.model.domain.fee06.FeeCheckCommandExtensionV06;
+import google.registry.model.domain.fee06.FeeCreateCommandExtensionV06;
+import google.registry.model.domain.fee06.FeeInfoCommandExtensionV06;
+import google.registry.model.domain.fee06.FeeRenewCommandExtensionV06;
+import google.registry.model.domain.fee06.FeeTransferCommandExtensionV06;
+import google.registry.model.domain.fee06.FeeUpdateCommandExtensionV06;
+import google.registry.model.domain.fee11.FeeCheckCommandExtensionV11;
+import google.registry.model.domain.fee11.FeeCreateCommandExtensionV11;
+import google.registry.model.domain.fee11.FeeRenewCommandExtensionV11;
+import google.registry.model.domain.fee11.FeeTransferCommandExtensionV11;
+import google.registry.model.domain.fee11.FeeUpdateCommandExtensionV11;
 import google.registry.model.domain.launch.LaunchCheckExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.launch.LaunchDeleteExtension;
@@ -44,6 +50,7 @@ import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 import google.registry.model.host.HostCommand;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
@@ -90,8 +97,37 @@ public class EppInput extends ImmutableObject {
   }
 
   /** Get the extension based on type, or null. If there are multiple, it chooses the first. */
+  @Nullable
   public <E extends CommandExtension> E getSingleExtension(Class<E> clazz) {
     return FluentIterable.from(getCommandWrapper().getExtensions()).filter(clazz).first().orNull();
+  }
+
+  /** Get the extension based on type, or null, chosen from a list of possible extension classes.
+   * If there are extensions matching multiple classes, the first class listed is chosen. If there
+   * are multiple extensions of the same class, the first extension of that class is chosen
+   * (assuming that an extension matching a preceding class was not already chosen). This method is
+   * used to support multiple versions of an extension. Specify all supported versions, starting
+   * with the latest. The first-occurring extension of the latest version will be chosen, or failing
+   * that the first-occurring extension of the previous version, and so on.
+   */
+  @Nullable
+  public <E extends CommandExtension>
+      E getFirstExtensionOfClasses(ImmutableList<Class<? extends E>> classes) {
+    for (Class<? extends E> clazz : classes) {
+      Optional<? extends E> extension = FluentIterable.from(
+          getCommandWrapper().getExtensions()).filter(clazz).first();
+      if (extension.isPresent()) {
+        return extension.get();
+      }
+    }
+    return null;
+  }
+  
+  @SafeVarargs
+  @Nullable
+  public final <E extends CommandExtension>
+      E getFirstExtensionOfClasses(Class<? extends E>... classes) {
+    return getFirstExtensionOfClasses(ImmutableList.copyOf(classes));
   }
 
   /** A tag that goes inside of an EPP {@literal <command>}. */
@@ -260,13 +296,22 @@ public class EppInput extends ImmutableObject {
 
     /** Zero or more command extensions. */
     @XmlElementRefs({
+        // allocate create extension
         @XmlElementRef(type = AllocateCreateExtension.class),
-        @XmlElementRef(type = FeeCheckExtension.class),
-        @XmlElementRef(type = FeeCreateExtension.class),
-        @XmlElementRef(type = FeeInfoExtension.class),
-        @XmlElementRef(type = FeeRenewExtension.class),
-        @XmlElementRef(type = FeeTransferExtension.class),
-        @XmlElementRef(type = FeeUpdateExtension.class),
+        // fee extension version 0.6
+        @XmlElementRef(type = FeeCheckCommandExtensionV06.class),
+        @XmlElementRef(type = FeeInfoCommandExtensionV06.class),
+        @XmlElementRef(type = FeeCreateCommandExtensionV06.class),
+        @XmlElementRef(type = FeeRenewCommandExtensionV06.class),
+        @XmlElementRef(type = FeeTransferCommandExtensionV06.class),
+        @XmlElementRef(type = FeeUpdateCommandExtensionV06.class),
+        // fee extension version 0.11
+        @XmlElementRef(type = FeeCheckCommandExtensionV11.class),
+        @XmlElementRef(type = FeeCreateCommandExtensionV11.class),
+        @XmlElementRef(type = FeeRenewCommandExtensionV11.class),
+        @XmlElementRef(type = FeeTransferCommandExtensionV11.class),
+        @XmlElementRef(type = FeeUpdateCommandExtensionV11.class),
+        // other extensions
         @XmlElementRef(type = LaunchCheckExtension.class),
         @XmlElementRef(type = LaunchCreateExtension.class),
         @XmlElementRef(type = LaunchDeleteExtension.class),

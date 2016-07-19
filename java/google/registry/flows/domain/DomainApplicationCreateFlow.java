@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.flows.domain.DomainFlowUtils.DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
+import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.eppoutput.Result.Code.Success;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetReference;
@@ -32,8 +33,6 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainApplication.Builder;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
-import google.registry.model.domain.fee.FeeCreateExtension;
-import google.registry.model.domain.fee.FeeCreateResponseExtension;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.launch.LaunchCreateResponseExtension;
@@ -117,7 +116,8 @@ public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainAppl
 
   @Override
   protected void initDomainCreateFlow() {
-    registerExtensions(FeeCreateExtension.class, LaunchCreateExtension.class);
+    registerExtensions(LaunchCreateExtension.class);
+    registerExtensions(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
   }
 
   @Override
@@ -211,9 +211,9 @@ public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainAppl
         .setApplicationId(newResource.getForeignKey())
         .build());
     if (feeCreate != null) {
-      responseExtensionsBuilder.add(new FeeCreateResponseExtension.Builder()
+      responseExtensionsBuilder.add(feeCreate.createResponseBuilder()
           .setCurrency(commandOperations.getCurrency())
-          .setFee(commandOperations.getFees())
+          .setFees(commandOperations.getFees())
           .build());
     }
 

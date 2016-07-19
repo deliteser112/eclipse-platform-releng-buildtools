@@ -22,12 +22,16 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.domain.allocate.AllocateCreateExtension;
-import google.registry.model.domain.fee.FeeCheckExtension;
+import google.registry.model.domain.fee06.FeeCheckCommandExtensionV06;
+import google.registry.model.domain.fee06.FeeCheckResponseExtensionV06;
+import google.registry.model.domain.fee11.FeeCheckCommandExtensionV11;
+import google.registry.model.domain.fee11.FeeCheckResponseExtensionV11;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.RgpUpdateExtension;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.eppinput.EppInput.CommandExtension;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import java.util.EnumSet;
 import java.util.Set;
 import javax.xml.bind.annotation.XmlSchema;
@@ -45,19 +49,35 @@ public class ProtocolDefinition {
 
   /** Enums repesenting valid service extensions that are recognized by the server. */
   public enum ServiceExtension {
-    LAUNCH_EXTENSION_1_0(LaunchCreateExtension.class, true),
-    REDEMPTION_GRACE_PERIOD_1_0(RgpUpdateExtension.class, true),
-    SECURE_DNS_1_1(SecDnsCreateExtension.class, true),
-    FEE_0_6(FeeCheckExtension.class, true),
-    ALLOCATE_1_0(AllocateCreateExtension.class, false),
-    METADATA_1_0(MetadataExtension.class, false);
+    LAUNCH_EXTENSION_1_0(LaunchCreateExtension.class, null, true),
+    REDEMPTION_GRACE_PERIOD_1_0(RgpUpdateExtension.class, null, true),
+    SECURE_DNS_1_1(SecDnsCreateExtension.class, null, true),
+    FEE_0_6(FeeCheckCommandExtensionV06.class, FeeCheckResponseExtensionV06.class, true),
+    FEE_0_11(FeeCheckCommandExtensionV11.class, FeeCheckResponseExtensionV11.class, true),
+    ALLOCATE_1_0(AllocateCreateExtension.class, null, false),
+    METADATA_1_0(MetadataExtension.class, null, false);
 
+    private final Class<? extends CommandExtension> commandExtensionClass;
+    private final Class<? extends ResponseExtension> responseExtensionClass;
     private String uri;
     private boolean visible;
 
-    ServiceExtension(Class<? extends CommandExtension> clazz, boolean visible) {
-      this.uri = getCommandExtensionUri(clazz);
+    ServiceExtension(
+        Class<? extends CommandExtension> commandExtensionClass,
+        Class<? extends ResponseExtension> responseExtensionClass,
+        boolean visible) {
+      this.commandExtensionClass = commandExtensionClass;
+      this.responseExtensionClass = responseExtensionClass;
+      this.uri = getCommandExtensionUri(commandExtensionClass);
       this.visible = visible;
+    }
+
+    public Class<? extends CommandExtension> getCommandExtensionClass() {
+      return commandExtensionClass;
+    }
+
+    public Class<? extends ResponseExtension> getResponseExtensionClass() {
+      return responseExtensionClass;
     }
 
     public String getUri() {

@@ -18,6 +18,7 @@ import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Maps.toMap;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.flows.picker.FlowPicker.getFlowClass;
+import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
@@ -57,7 +58,6 @@ import google.registry.flows.host.HostCreateFlow;
 import google.registry.flows.host.HostDeleteFlow;
 import google.registry.flows.host.HostUpdateFlow;
 import google.registry.model.domain.DomainCommand;
-import google.registry.model.domain.fee.FeeCreateExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
@@ -143,7 +143,8 @@ public class VerifyOteAction implements Runnable, JsonAction {
   private static final Predicate<EppInput> HAS_FEE = new Predicate<EppInput>() {
       @Override
       public boolean apply(@Nonnull EppInput eppInput) {
-        return eppInput.getSingleExtension(FeeCreateExtension.class) != null;
+        return eppInput.getFirstExtensionOfClasses(
+            FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER) != null;
       }};
 
   private static final Predicate<EppInput> HAS_SEC_DNS = new Predicate<EppInput>() {

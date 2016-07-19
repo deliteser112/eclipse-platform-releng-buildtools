@@ -498,7 +498,10 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     runFlow();
   }
 
-  /** Test create command. */
+  /**
+   * Test create command. Fee extension version 6 is the only one which supports fee extensions
+   * on info commands and responses, so we don't need to test the other versions.
+   */
   @Test
   public void testFeeExtension_createCommand() throws Exception {
     setEppInput("domain_info_fee_create.xml");

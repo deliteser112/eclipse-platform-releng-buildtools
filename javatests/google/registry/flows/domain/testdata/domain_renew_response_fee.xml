@@ -11,10 +11,10 @@
       </domain:renData>
     </resData>
     <extension>
-      <fee:renData xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
-        <fee:currency>USD</fee:currency>
-        <fee:fee description="renew">55.00</fee:fee>
-      </fee:renData>
+      <%FEE_NS%:renData xmlns:%FEE_NS%="urn:ietf:params:xml:ns:fee-%FEE_VERSION%">
+        <%FEE_NS%:currency>USD</%FEE_NS%:currency>
+        <%FEE_NS%:fee description="renew">55.00</%FEE_NS%:fee>
+      </%FEE_NS%:renData>
     </extension>
     <trID>
       <clTRID>ABC-12345</clTRID>

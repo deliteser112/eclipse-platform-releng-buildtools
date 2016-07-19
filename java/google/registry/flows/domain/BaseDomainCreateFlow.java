@@ -33,6 +33,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRoid;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
@@ -52,7 +53,7 @@ import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainBase.Builder;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.fee.FeeCreateExtension;
+import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
@@ -83,7 +84,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
   protected String domainLabel;
   protected InternetDomainName domainName;
   protected String idnTableName;
-  protected FeeCreateExtension feeCreate;
+  protected FeeTransformCommandExtension feeCreate;
   protected EppCommandOperations commandOperations;
   protected boolean hasSignedMarks;
   protected SignedMark signedMark;
@@ -96,7 +97,8 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
     registerExtensions(SecDnsCreateExtension.class);
     secDnsCreate = eppInput.getSingleExtension(SecDnsCreateExtension.class);
     launchCreate = eppInput.getSingleExtension(LaunchCreateExtension.class);
-    feeCreate = eppInput.getSingleExtension(FeeCreateExtension.class);
+    feeCreate =
+        eppInput.getFirstExtensionOfClasses(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     hasSignedMarks = launchCreate != null && !launchCreate.getSignedMarks().isEmpty();
     initDomainCreateFlow();
   }

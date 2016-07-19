@@ -16,6 +16,19 @@ package google.registry.model.domain.fee;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import google.registry.model.domain.fee06.FeeCheckCommandExtensionV06;
+import google.registry.model.domain.fee06.FeeCreateCommandExtensionV06;
+import google.registry.model.domain.fee06.FeeRenewCommandExtensionV06;
+import google.registry.model.domain.fee06.FeeTransferCommandExtensionV06;
+import google.registry.model.domain.fee06.FeeUpdateCommandExtensionV06;
+import google.registry.model.domain.fee11.FeeCheckCommandExtensionV11;
+import google.registry.model.domain.fee11.FeeCreateCommandExtensionV11;
+import google.registry.model.domain.fee11.FeeRenewCommandExtensionV11;
+import google.registry.model.domain.fee11.FeeTransferCommandExtensionV11;
+import google.registry.model.domain.fee11.FeeUpdateCommandExtensionV11;
+import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import java.math.BigDecimal;
 
 /** A fee, in currency units specified elsewhere in the xml, and with an optional description. */
@@ -26,4 +39,45 @@ public class Fee extends BaseFee {
     instance.description = description;
     return instance;
   }
+
+  public static final ImmutableList<
+          Class<? extends FeeCheckCommandExtension<
+              ? extends FeeCheckCommandExtensionItem, ? extends FeeCheckResponseExtension<?>>>>
+      FEE_CHECK_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER =
+          ImmutableList.<
+                  Class<? extends FeeCheckCommandExtension<
+                      ? extends FeeCheckCommandExtensionItem,
+                      ? extends FeeCheckResponseExtension<?>>>>of(
+              FeeCheckCommandExtensionV11.class,
+              FeeCheckCommandExtensionV06.class);
+
+  public static final ImmutableList<Class<? extends FeeTransformCommandExtension>>
+      FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER =
+          ImmutableList.<Class<? extends FeeTransformCommandExtension>>of(
+              FeeCreateCommandExtensionV11.class,
+              FeeCreateCommandExtensionV06.class);
+
+  public static final ImmutableList<Class<? extends FeeTransformCommandExtension>>
+      FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER =
+          ImmutableList.<Class<? extends FeeTransformCommandExtension>>of(
+              FeeRenewCommandExtensionV11.class,
+              FeeRenewCommandExtensionV06.class);
+
+  public static final ImmutableList<Class<? extends FeeTransformCommandExtension>>
+      FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER =
+          ImmutableList.<Class<? extends FeeTransformCommandExtension>>of(
+              FeeTransferCommandExtensionV11.class,
+              FeeTransferCommandExtensionV06.class);
+
+  public static final ImmutableList<Class<? extends FeeTransformCommandExtension>>
+      FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER =
+          ImmutableList.<Class<? extends FeeTransformCommandExtension>>of(
+              FeeUpdateCommandExtensionV11.class,
+              FeeUpdateCommandExtensionV06.class);
+
+  public static final ImmutableSet<String>
+      FEE_EXTENSION_URIS =
+          ImmutableSet.<String>of(
+              ServiceExtension.FEE_0_11.getUri(),
+              ServiceExtension.FEE_0_6.getUri());
 }

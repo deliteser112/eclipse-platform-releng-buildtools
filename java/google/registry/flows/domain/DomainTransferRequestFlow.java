@@ -14,13 +14,13 @@
 
 package google.registry.flows.domain;
 
-
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
+import static google.registry.model.domain.fee.Fee.FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -38,8 +38,7 @@ import google.registry.model.domain.DomainCommand.Transfer;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.Fee;
-import google.registry.model.domain.fee.FeeTransferExtension;
-import google.registry.model.domain.fee.FeeTransferResponseExtension;
+import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
@@ -92,7 +91,7 @@ public class DomainTransferRequestFlow
   /**
    * An optional extension from the client specifying how much they think the transfer should cost.
    */
-  private FeeTransferExtension feeTransfer;
+  private FeeTransformCommandExtension feeTransfer;
 
   @Inject DomainTransferRequestFlow() {}
 
@@ -103,8 +102,9 @@ public class DomainTransferRequestFlow
 
   @Override
   protected final void initResourceTransferRequestFlow() {
-    registerExtensions(FeeTransferExtension.class);
-    feeTransfer = eppInput.getSingleExtension(FeeTransferExtension.class);
+    registerExtensions(FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    feeTransfer = eppInput.getFirstExtensionOfClasses(
+        FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     // The "existingResource" field is loaded before this function is called, but it may be null if
     // the domain name specified is invalid or doesn't exist.  If that's the case, simply exit
     // early, and ResourceMutateFlow will later throw ResourceToMutateDoesNotExistException.
@@ -162,9 +162,9 @@ public class DomainTransferRequestFlow
   @Override
   protected ImmutableList<? extends ResponseExtension> getTransferResponseExtensions() {
     if (feeTransfer != null) {
-      return ImmutableList.of(new FeeTransferResponseExtension.Builder()
+      return ImmutableList.of(feeTransfer.createResponseBuilder()
           .setCurrency(renewCost.getCurrencyUnit())
-          .setFee(ImmutableList.of(Fee.create(renewCost.getAmount(), "renew")))
+          .setFees(ImmutableList.of(Fee.create(renewCost.getAmount(), "renew")))
           .build());
     } else {
       return null;

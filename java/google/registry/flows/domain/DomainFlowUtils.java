@@ -62,11 +62,12 @@ import google.registry.model.domain.DomainCommand.CreateOrUpdate;
 import google.registry.model.domain.DomainCommand.InvalidReferencesException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
-import google.registry.model.domain.fee.BaseFeeCommand;
-import google.registry.model.domain.fee.BaseFeeRequest;
-import google.registry.model.domain.fee.BaseFeeResponse;
 import google.registry.model.domain.fee.Fee;
-import google.registry.model.domain.fee.FeeCommandDescriptor;
+import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
+import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
+import google.registry.model.domain.fee.FeeQueryCommandExtensionItem;
+import google.registry.model.domain.fee.FeeQueryResponseExtensionItem;
+import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.domain.launch.LaunchExtension;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -101,9 +102,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dsig.XMLSignatureException;
 import javax.xml.parsers.ParserConfigurationException;
+import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.xml.sax.SAXException;
@@ -555,42 +558,47 @@ public class DomainFlowUtils {
   }
 
   /**
-   * Validates a {@link BaseFeeRequest} and sets the appropriate fields on a {@link BaseFeeResponse}
-   * builder.
+   * Validates a {@link FeeCheckCommandExtensionItem} and sets the appropriate fields on a
+   * {@link FeeCheckResponseExtensionItem} builder.
    */
   static void handleFeeRequest(
-      BaseFeeRequest feeRequest,
-      BaseFeeResponse.Builder<?, ?> builder,
+      FeeQueryCommandExtensionItem feeRequest,
+      FeeQueryResponseExtensionItem.Builder builder,
       String domainName,
       String tld,
+      @Nullable CurrencyUnit topLevelCurrency,
       DateTime now) throws EppException {
     InternetDomainName domain = InternetDomainName.from(domainName);
-    FeeCommandDescriptor feeCommand = feeRequest.getCommand();
     Registry registry = Registry.get(tld);
     int years = verifyUnitIsYears(feeRequest.getPeriod()).getValue();
     boolean isSunrise = registry.getTldState(now).equals(TldState.SUNRISE);
 
-    if (feeCommand.getPhase() != null || feeCommand.getSubphase() != null) {
+    if (feeRequest.getPhase() != null || feeRequest.getSubphase() != null) {
       throw new FeeChecksDontSupportPhasesException();
     }
-    if (feeRequest.getCurrency() != null
-        && !feeRequest.getCurrency().equals(registry.getCurrency())) {
+    
+    CurrencyUnit currency =
+        feeRequest.isCurrencySupported() ? feeRequest.getCurrency() : topLevelCurrency;
+    if ((currency != null) && !currency.equals(registry.getCurrency())) {
       throw new CurrencyUnitMismatchException();
     }
 
     builder
-        .setCommand(feeCommand)
-        .setCurrency(registry.getCurrency())
+        .setCommand(feeRequest.getCommandName(), feeRequest.getPhase(), feeRequest.getSubphase())
+        .setCurrencyIfSupported(registry.getCurrency())
         .setPeriod(feeRequest.getPeriod())
         .setClass(TldSpecificLogicProxy.getFeeClass(domainName, now).orNull());
 
-    switch (feeCommand.getCommand()) {
+    switch (feeRequest.getCommandName()) {
       case UNKNOWN:
-        throw new UnknownFeeCommandException(feeCommand.getUnparsedCommandName());
+        throw new UnknownFeeCommandException(feeRequest.getUnparsedCommandName());
       case CREATE:
         if (isReserved(domain, isSunrise)) {  // Don't return a create price for reserved names.
           builder.setClass("reserved");  // Override whatever class we've set above.
+          builder.setAvailIfSupported(false);
+          builder.setReasonIfSupported("reserved");
         } else {
+          builder.setAvailIfSupported(true);
           builder.setFees(
               TldSpecificLogicProxy.getCreatePrice(registry, domainName, now, years).getFees());
         }
@@ -599,11 +607,14 @@ public class DomainFlowUtils {
         if (years != 1) {
           throw new RestoresAreAlwaysForOneYearException();
         }
+        builder.setAvailIfSupported(true);
         builder.setFees(
             TldSpecificLogicProxy.getRestorePrice(registry, domainName, now, years).getFees());
         break;
+      // TODO(mountford): handle UPDATE
       default:
         // Anything else (transfer|renew) will have a "renew" fee.
+        builder.setAvailIfSupported(true);
         builder.setFees(
             TldSpecificLogicProxy.getRenewPrice(registry, domainName, now, years).getFees());
     }
@@ -613,7 +624,7 @@ public class DomainFlowUtils {
       String domainName,
       String tld,
       DateTime priceTime,
-      final BaseFeeCommand feeCommand,
+      final FeeTransformCommandExtension feeCommand,
       Money cost,
       Money... otherCosts)
       throws EppException {
@@ -1014,3 +1025,4 @@ public class DomainFlowUtils {
   }
 
 }
+

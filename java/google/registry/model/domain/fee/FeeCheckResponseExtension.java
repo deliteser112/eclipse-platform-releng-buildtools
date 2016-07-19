@@ -14,48 +14,24 @@
 
 package google.registry.model.domain.fee;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import google.registry.model.ImmutableObject;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import org.joda.money.CurrencyUnit;
 
 /**
- * An XML data object that represents a fee extension that may be present on the response to EPP
- * domain check commands.
+ * Interface for domain check response fee extensions. The check extension will contain some number
+ * of items requesting the fees for particular commands and domains. For some versions of the fee
+ * extension, the currency is also specified here; for other versions it is contained in the
+ * individual items.
  */
-@XmlRootElement(name = "chkData")
-public class FeeCheckResponseExtension extends ImmutableObject implements ResponseExtension {
+public interface FeeCheckResponseExtension<F extends FeeCheckResponseExtensionItem>
+    extends ResponseExtension {
 
-  /** Check responses. */
-  @XmlElement(name = "cd")
-  ImmutableList<FeeCheck> feeChecks;
-
-  @VisibleForTesting
-  public ImmutableList<FeeCheck> getChecks() {
-    return feeChecks;
-  }
-
-  public static FeeCheckResponseExtension create(ImmutableList<FeeCheck> feeChecks) {
-    FeeCheckResponseExtension instance = new FeeCheckResponseExtension();
-    instance.feeChecks = feeChecks;
-    return instance;
-  }
-
-  /** The response for a check on a single resource. */
-  @XmlType(propOrder = {"name", "currency", "command", "period", "fee", "feeClass"})
-  public static class FeeCheck extends BaseFeeResponse {
-    /** The name of the domain that was checked, with an attribute indicating if it is premium. */
-    String name;
-
-    /** A builder for {@link FeeCheck}. */
-    public static class Builder extends BaseFeeResponse.Builder<FeeCheck, Builder> {
-      public Builder setName(String name) {
-        getInstance().name = name;
-        return this;
-      }
-    }
-  }
+  /**
+   * If currency is not supported at the top level of Check responses for this version of the fee
+   * extension, this function has not effect.
+   */
+  public void setCurrencyIfSupported(CurrencyUnit currency);
+  
+  public ImmutableList<F> getItems();
 }

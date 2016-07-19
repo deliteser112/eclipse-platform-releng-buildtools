@@ -1,4 +1,3 @@
-# converted from extension //java/google/registry/xjc:generated_files
 #
 #      .'``'.      ...
 #     :o  o `....'`  ;
@@ -15,7 +14,7 @@
 # (bindings.xjb), you must regenerate this file with the following commands:
 #
 #   bazel run java/google/registry/xjc:list_generated_files | tee /tmp/lol
-#   mv /tmp/lol java/google/registry/xjc/generated_files
+#   mv /tmp/lol java/google/registry/xjc/generated_files.bzl
 #
 
 pkginfo_generated_files = [
@@ -24,6 +23,8 @@ pkginfo_generated_files = [
     "dsig/package-info.java",
     "epp/package-info.java",
     "eppcom/package-info.java",
+    "fee06/package-info.java",
+    "fee11/package-info.java",
     "host/package-info.java",
     "iirdea/package-info.java",
     "launch/package-info.java",
@@ -168,6 +169,45 @@ xjc_generated_files = [
     "eppcom/XjcEppcomPwAuthInfoType.java",
     "eppcom/XjcEppcomReasonType.java",
     "eppcom/XjcEppcomTrStatusType.java",
+    "fee06/ObjectFactory.java",
+    "fee06/XjcFee06Check.java",
+    "fee06/XjcFee06ChkData.java",
+    "fee06/XjcFee06CommandType.java",
+    "fee06/XjcFee06CreData.java",
+    "fee06/XjcFee06Create.java",
+    "fee06/XjcFee06CreditType.java",
+    "fee06/XjcFee06DelData.java",
+    "fee06/XjcFee06DomainCDType.java",
+    "fee06/XjcFee06DomainCheckType.java",
+    "fee06/XjcFee06FeeType.java",
+    "fee06/XjcFee06InfData.java",
+    "fee06/XjcFee06Info.java",
+    "fee06/XjcFee06RenData.java",
+    "fee06/XjcFee06Renew.java",
+    "fee06/XjcFee06Transfer.java",
+    "fee06/XjcFee06TransformCommandType.java",
+    "fee06/XjcFee06TransformResultType.java",
+    "fee06/XjcFee06TrnData.java",
+    "fee06/XjcFee06UpdData.java",
+    "fee06/XjcFee06Update.java",
+    "fee11/ObjectFactory.java",
+    "fee11/XjcFee11Check.java",
+    "fee11/XjcFee11ChkData.java",
+    "fee11/XjcFee11CommandType.java",
+    "fee11/XjcFee11CreData.java",
+    "fee11/XjcFee11Create.java",
+    "fee11/XjcFee11CreditType.java",
+    "fee11/XjcFee11DelData.java",
+    "fee11/XjcFee11FeeType.java",
+    "fee11/XjcFee11ObjectCDType.java",
+    "fee11/XjcFee11RenData.java",
+    "fee11/XjcFee11Renew.java",
+    "fee11/XjcFee11Transfer.java",
+    "fee11/XjcFee11TransformCommandType.java",
+    "fee11/XjcFee11TransformResultType.java",
+    "fee11/XjcFee11TrnData.java",
+    "fee11/XjcFee11UpdData.java",
+    "fee11/XjcFee11Update.java",
     "host/ObjectFactory.java",
     "host/XjcHostAddRemType.java",
     "host/XjcHostAddrType.java",

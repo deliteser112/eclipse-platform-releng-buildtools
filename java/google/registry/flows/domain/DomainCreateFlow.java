@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
+import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -28,7 +29,6 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.fee.FeeCreateExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.registry.Registry;
@@ -124,7 +124,8 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
 
   @Override
   protected final void initDomainCreateOrAllocateFlow() {
-    registerExtensions(FeeCreateExtension.class, LaunchCreateExtension.class);
+    registerExtensions(LaunchCreateExtension.class);
+    registerExtensions(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
   }
 
   @Override

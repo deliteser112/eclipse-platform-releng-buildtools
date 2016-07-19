@@ -70,6 +70,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
+import java.util.Map;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -79,6 +80,11 @@ import org.junit.Test;
 /** Unit tests for {@link DomainTransferRequestFlow}. */
 public class DomainTransferRequestFlowTest
     extends DomainTransferFlowTestCase<DomainTransferRequestFlow, DomainResource> {
+
+  private static final ImmutableMap<String, String> FEE_06_MAP =
+      ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee");
+  private static final ImmutableMap<String, String> FEE_11_MAP =
+      ImmutableMap.of("FEE_VERSION", "0.11", "FEE_NS", "fee11");
 
   @Before
   public void setUp() throws Exception {
@@ -118,8 +124,9 @@ public class DomainTransferRequestFlowTest
       String commandFilename,
       String expectedXmlFilename,
       DateTime expectedExpirationTime,
+      Map<String, String> substitutions,
       BillingEvent.Cancellation.Builder... extraExpectedBillingEvents) throws Exception {
-    setEppInput(commandFilename);
+    setEppInput(commandFilename, substitutions);
     ImmutableSet<GracePeriod> originalGracePeriods = domain.getGracePeriods();
     // Replace the ROID in the xml file with the one generated in our test.
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
@@ -130,7 +137,7 @@ public class DomainTransferRequestFlowTest
         clock.nowUtc().plus(Registry.get("tld").getAutomaticTransferLength());
     // Setup done; run the test.
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile(expectedXmlFilename));
+    runFlowAssertResponse(readFile(expectedXmlFilename, substitutions));
     // Transfer should have been requested. Verify correct fields were set.
     domain = reloadResourceByUniqueId();
     final HistoryEntry historyEntryTransferRequest =
@@ -262,6 +269,31 @@ public class DomainTransferRequestFlowTest
     assertThat(afterGracePeriod.getGracePeriods()).isEmpty();
   }
 
+  private void doSuccessfulTest(
+      String commandFilename,
+      String expectedXmlFilename,
+      DateTime expectedExpirationTime,
+      BillingEvent.Cancellation.Builder... extraExpectedBillingEvents) throws Exception {
+    doSuccessfulTest(
+        commandFilename,
+        expectedXmlFilename,
+        expectedExpirationTime,
+        ImmutableMap.<String, String>of(),
+        extraExpectedBillingEvents);
+  }
+
+  private void doSuccessfulTest(
+      String commandFilename,
+      String expectedXmlFilename,
+      Map<String, String> substitutions) throws Exception {
+    clock.advanceOneMilli();
+    doSuccessfulTest(
+        commandFilename,
+        expectedXmlFilename,
+        domain.getRegistrationExpirationTime().plusYears(1),
+        substitutions);
+  }
+
   private void doSuccessfulTest(String commandFilename, String expectedXmlFilename)
       throws Exception {
     clock.advanceOneMilli();
@@ -269,17 +301,29 @@ public class DomainTransferRequestFlowTest
         commandFilename, expectedXmlFilename, domain.getRegistrationExpirationTime().plusYears(1));
   }
 
-  private void runTest(String commandFilename, UserPrivileges userPrivileges) throws Exception {
-    setEppInput(commandFilename);
+  private void runTest(
+      String commandFilename,
+      UserPrivileges userPrivileges,
+      Map<String, String> substitutions) throws Exception {
+    setEppInput(commandFilename, substitutions);
     // Replace the ROID in the xml file with the one generated in our test.
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
     // Setup done; run the test.
     assertTransactionalFlow(true);
     runFlow(CommitMode.LIVE, userPrivileges);
   }
+  
+  private void runTest(String commandFilename, UserPrivileges userPrivileges) throws Exception {
+    runTest(commandFilename, userPrivileges, ImmutableMap.<String, String>of());
+  }
+
+  private void doFailingTest(
+      String commandFilename, Map<String, String> substitutions) throws Exception {
+    runTest(commandFilename, UserPrivileges.NORMAL, substitutions);
+  }
 
   private void doFailingTest(String commandFilename) throws Exception {
-    runTest(commandFilename, UserPrivileges.NORMAL);
+    runTest(commandFilename, UserPrivileges.NORMAL, ImmutableMap.<String, String> of());
   }
 
   @Test
@@ -295,34 +339,69 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
-  public void testSuccess_fee() throws Exception {
-    doSuccessfulTest("domain_transfer_request_fee.xml", "domain_transfer_request_response_fee.xml");
-  }
-
-  @Test
-  public void testSuccess_fee_withDefaultAttributes() throws Exception {
+  public void testSuccess_fee_v06() throws Exception {
     doSuccessfulTest(
-        "domain_transfer_request_fee_defaults.xml", "domain_transfer_request_response_fee.xml");
+        "domain_transfer_request_fee.xml", "domain_transfer_request_response_fee.xml", FEE_06_MAP);
   }
 
   @Test
-  public void testFailure_refundableFee() throws Exception {
+  public void testSuccess_fee_v11() throws Exception {
+    doSuccessfulTest(
+        "domain_transfer_request_fee.xml", "domain_transfer_request_response_fee.xml", FEE_11_MAP);
+  }
+
+  @Test
+  public void testSuccess_fee_withDefaultAttributes_v06() throws Exception {
+    doSuccessfulTest(
+        "domain_transfer_request_fee_defaults.xml",
+        "domain_transfer_request_response_fee.xml",
+        FEE_06_MAP);
+  }
+
+  @Test
+  public void testSuccess_fee_withDefaultAttributes_v11() throws Exception {
+    doSuccessfulTest(
+        "domain_transfer_request_fee_defaults.xml",
+        "domain_transfer_request_response_fee.xml",
+        FEE_11_MAP);
+  }
+
+  @Test
+  public void testFailure_refundableFee_v06() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
-    doFailingTest("domain_transfer_request_fee_refundable.xml");
+    doFailingTest("domain_transfer_request_fee_refundable.xml", FEE_06_MAP);
   }
 
 
   @Test
-  public void testFailure_gracePeriodFee() throws Exception {
+  public void testFailure_refundableFee_v11() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
-    doFailingTest("domain_transfer_request_fee_grace_period.xml");
+    doFailingTest("domain_transfer_request_fee_refundable.xml", FEE_11_MAP);
   }
 
 
   @Test
-  public void testFailure_appliedFee() throws Exception {
+  public void testFailure_gracePeriodFee_v06() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
-    doFailingTest("domain_transfer_request_fee_applied.xml");
+    doFailingTest("domain_transfer_request_fee_grace_period.xml", FEE_06_MAP);
+  }
+
+  @Test
+  public void testFailure_gracePeriodFee_v11() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    doFailingTest("domain_transfer_request_fee_grace_period.xml", FEE_11_MAP);
+  }
+
+  @Test
+  public void testFailure_appliedFee_v06() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    doFailingTest("domain_transfer_request_fee_applied.xml", FEE_06_MAP);
+  }
+
+  @Test
+  public void testFailure_appliedFee_v11() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    doFailingTest("domain_transfer_request_fee_applied.xml", FEE_11_MAP);
   }
 
   @Test
@@ -428,8 +507,7 @@ public class DomainTransferRequestFlowTest
     runTest("domain_transfer_request_premium.xml", UserPrivileges.SUPERUSER);
   }
 
-  @Test
-  public void testFailure_wrongCurrency() throws Exception {
+  private void runWrongCurrencyTest(Map<String, String> substitutions) throws Exception {
     thrown.expect(CurrencyUnitMismatchException.class);
     persistResource(
         Registry.get("tld")
@@ -441,24 +519,49 @@ public class DomainTransferRequestFlowTest
             .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
             .setServerStatusChangeBillingCost(Money.of(EUR, 19))
             .build());
-    doFailingTest("domain_transfer_request_fee.xml");
+    doFailingTest("domain_transfer_request_fee.xml", substitutions);
   }
 
   @Test
-  public void testFailure_feeGivenInWrongScale() throws Exception {
+  public void testFailure_wrongCurrency_v06() throws Exception {
+    runWrongCurrencyTest(FEE_06_MAP);
+  }
+
+  @Test
+  public void testFailure_wrongCurrency_v11() throws Exception {
+    runWrongCurrencyTest(FEE_11_MAP);
+  }
+
+  @Test
+  public void testFailure_feeGivenInWrongScale_v06() throws Exception {
     thrown.expect(CurrencyValueScaleException.class);
-    doFailingTest("domain_transfer_request_fee_bad_scale.xml");
+    doFailingTest("domain_transfer_request_fee_bad_scale.xml", FEE_06_MAP);
   }
 
   @Test
-  public void testFailure_wrongFeeAmount() throws Exception {
+  public void testFailure_feeGivenInWrongScale_v11() throws Exception {
+    thrown.expect(CurrencyValueScaleException.class);
+    doFailingTest("domain_transfer_request_fee_bad_scale.xml", FEE_11_MAP);
+  }
+
+  private void runWrongFeeAmountTest(Map<String, String> substitutions) throws Exception {
     thrown.expect(FeesMismatchException.class);
     persistResource(
         Registry.get("tld")
             .asBuilder()
             .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, 20)))
             .build());
-    doFailingTest("domain_transfer_request_fee.xml");
+    doFailingTest("domain_transfer_request_fee.xml", substitutions);
+  }
+
+  @Test
+  public void testFailure_wrongFeeAmount_v06() throws Exception {
+    runWrongFeeAmountTest(FEE_06_MAP);
+  }
+
+  @Test
+  public void testFailure_wrongFeeAmount_v11() throws Exception {
+    runWrongFeeAmountTest(FEE_11_MAP);
   }
 
   @Test
@@ -470,7 +573,6 @@ public class DomainTransferRequestFlowTest
         Registrar.loadByClientId("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
     doFailingTest("domain_transfer_request_premium.xml");
   }
-
 
   @Test
   public void testFailure_feeNotProvidedOnPremiumName() throws Exception {

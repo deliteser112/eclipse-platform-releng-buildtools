@@ -33,6 +33,8 @@ create domain urn:ietf:params:xml:ns:domain-1.0
 create dsig http://www.w3.org/2000/09/xmldsig#
 create epp urn:ietf:params:xml:ns:epp-1.0
 create eppcom urn:ietf:params:xml:ns:eppcom-1.0
+create fee06 urn:ietf:params:xml:ns:fee-0.6
+create fee11 urn:ietf:params:xml:ns:fee-0.11
 create host urn:ietf:params:xml:ns:host-1.0
 create iirdea urn:ietf:params:xml:ns:iirdea-1.0
 create launch urn:ietf:params:xml:ns:launch-1.0

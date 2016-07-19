@@ -26,6 +26,7 @@ import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.eppoutput.Result;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -121,6 +122,11 @@ public abstract class Flow {
   @SafeVarargs
   protected final void registerExtensions(Class<? extends CommandExtension>... extensions) {
     Collections.addAll(validExtensions, extensions);
+  }
+
+  protected final <E extends CommandExtension>
+      void registerExtensions(List<Class<? extends E>> extensions) {
+    validExtensions.addAll(extensions);
   }
 
   /** Get the legal command extension types for this flow. */
