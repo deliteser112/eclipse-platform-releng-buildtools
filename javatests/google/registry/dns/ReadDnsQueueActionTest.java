@@ -101,22 +101,13 @@ public class ReadDnsQueueActionTest {
     action.run();
   }
 
-  // TODO(b/24564175): remove
-  private enum RefreshTld { AS_TAG, AS_PARAM }
-
-  private static TaskOptions createRefreshTask(
-      String name, TargetType type, RefreshTld refreshTld) {
+  private static TaskOptions createRefreshTask(String name, TargetType type) {
     TaskOptions options = TaskOptions.Builder
         .withMethod(Method.PULL)
         .param(DNS_TARGET_TYPE_PARAM, type.toString())
         .param(DNS_TARGET_NAME_PARAM, name);
     String tld = InternetDomainName.from(name).parts().reverse().get(0);
-    switch (refreshTld) {
-      case AS_TAG:
-        return options.tag(tld);
-      default:
-        return options.param(PARAM_TLD, tld);
-    }
+    return options.param(PARAM_TLD, tld);
   }
 
   private void assertTldsEnqueuedInPushQueue(String... tlds) throws Exception {
@@ -164,29 +155,9 @@ public class ReadDnsQueueActionTest {
     run(true);
     assertTasksEnqueued(
         DnsConstants.DNS_PULL_QUEUE_NAME,
-        new TaskMatcher().tag("com"),
-        new TaskMatcher().tag("net"),
-        new TaskMatcher().tag("example"));
-    assertTldsEnqueuedInPushQueue("com", "net", "example");
-  }
-
-  @Test
-  public void testSuccess_allTldsNoTag() throws Exception {
-    dnsQueue.queue.add(createRefreshTask("domain.com", TargetType.DOMAIN, RefreshTld.AS_PARAM));
-    dnsQueue.queue.add(createRefreshTask("domain.net", TargetType.DOMAIN, RefreshTld.AS_PARAM));
-    dnsQueue.queue.add(createRefreshTask("domain.example", TargetType.DOMAIN, RefreshTld.AS_PARAM));
-    run(false);
-    assertNoTasksEnqueued(DnsConstants.DNS_PULL_QUEUE_NAME);
-    assertTldsEnqueuedInPushQueue("com", "net", "example");
-  }
-
-  @Test
-  public void testSuccess_allTldsMixedOldAndNewTldStyles() throws Exception {
-    dnsQueue.addDomainRefreshTask("domain.com");
-    dnsQueue.queue.add(createRefreshTask("domain.net", TargetType.DOMAIN, RefreshTld.AS_PARAM));
-    dnsQueue.queue.add(createRefreshTask("domain.example", TargetType.DOMAIN, RefreshTld.AS_TAG));
-    run(false);
-    assertNoTasksEnqueued(DnsConstants.DNS_PULL_QUEUE_NAME);
+        new TaskMatcher().payload("Target-Type=DOMAIN&Target-Name=domain.com&tld=com"),
+        new TaskMatcher().payload("Target-Type=DOMAIN&Target-Name=domain.net&tld=net"),
+        new TaskMatcher().payload("Target-Type=DOMAIN&Target-Name=domain.example&tld=example"));
     assertTldsEnqueuedInPushQueue("com", "net", "example");
   }
 
@@ -197,7 +168,7 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addDomainRefreshTask("domain.example");
     run(false);
-    assertTasksEnqueued(DnsConstants.DNS_PULL_QUEUE_NAME, new TaskMatcher().tag("net"));
+    assertTasksEnqueued(DnsConstants.DNS_PULL_QUEUE_NAME, new TaskMatcher());
     assertTldsEnqueuedInPushQueue("com", "example");
   }
 
@@ -239,13 +210,11 @@ public class ReadDnsQueueActionTest {
               task.param("domains", domainName);
               break;
             case 1:
-              dnsQueue.queue.add(
-                  createRefreshTask("ns1." + domainName, TargetType.HOST, RefreshTld.AS_TAG));
+              dnsQueue.queue.add(createRefreshTask("ns1." + domainName, TargetType.HOST));
               task.param("hosts", "ns1." + domainName);
               break;
             case 2:
-              dnsQueue.queue.add(
-                  createRefreshTask("ns2." + domainName, TargetType.HOST, RefreshTld.AS_PARAM));
+              dnsQueue.queue.add(createRefreshTask("ns2." + domainName, TargetType.HOST));
               task.param("hosts", "ns2." + domainName);
               break;
           }

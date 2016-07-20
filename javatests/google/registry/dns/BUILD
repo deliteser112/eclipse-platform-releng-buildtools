@@ -29,6 +29,7 @@ java_library(
         "//third_party/java/servlet/servlet_api",
         "//third_party/java/truth",
         "//java/google/registry/config",
+        "//java/google/registry/cron",
         "//java/google/registry/dns",
         "//java/google/registry/dns:constants",
         "//java/google/registry/dns/writer/api",

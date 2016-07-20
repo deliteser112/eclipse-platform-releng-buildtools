@@ -57,7 +57,7 @@ public class DnsQueueTest {
     createTld("tld");
     dnsQueue.addHostRefreshTask("octopus.tld");
     assertTasksEnqueued("dns-pull",
-        new TaskMatcher().tag("tld").payload("Target-Type=HOST&Target-Name=octopus.tld&tld=tld"));
+        new TaskMatcher().payload("Target-Type=HOST&Target-Name=octopus.tld&tld=tld"));
   }
 
   @Test
@@ -76,7 +76,7 @@ public class DnsQueueTest {
     createTld("tld");
     dnsQueue.addDomainRefreshTask("octopus.tld");
     assertTasksEnqueued("dns-pull",
-        new TaskMatcher().tag("tld").payload("Target-Type=DOMAIN&Target-Name=octopus.tld&tld=tld"));
+        new TaskMatcher().payload("Target-Type=DOMAIN&Target-Name=octopus.tld&tld=tld"));
   }
 
   @Test

@@ -58,13 +58,11 @@ public class DnsQueue {
   long writeBatchSize = QueueConstants.maxLeaseCount();
 
   /**
-   * Enqueues the given task type with the given target name to the DNS queue, tagged with the
-   * specified TLD.
+   * Enqueues the given task type with the given target name to the DNS queue.
    */
   private TaskHandle addToQueue(TargetType targetType, String targetName, String tld) {
     return queue.add(TaskOptions.Builder
-        // TODO(b/24564175): don't set the tag
-        .withTag(tld)
+        .withDefaults()
         .method(Method.PULL)
         .param(DNS_TARGET_TYPE_PARAM, targetType.toString())
         .param(DNS_TARGET_NAME_PARAM, targetName)

@@ -75,12 +75,12 @@ public final class DnsInjectionTest {
   }
 
   @Test
-  public void testWriteDnsAction_injectsAndWorks() throws Exception {
+  public void testReadDnsQueueAction_injectsAndWorks() throws Exception {
     persistActiveSubordinateHost("ns1.example.lol", persistActiveDomain("example.lol"));
     clock.advanceOneMilli();
     dnsQueue.addDomainRefreshTask("example.lol");
     when(req.getParameter("tld")).thenReturn("lol");
-    component.writeDnsAction().run();
+    component.readDnsQueueAction().run();
     assertNoDnsTasksEnqueued();
   }
 

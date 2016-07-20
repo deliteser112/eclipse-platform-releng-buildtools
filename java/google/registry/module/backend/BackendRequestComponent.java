@@ -28,7 +28,6 @@ import google.registry.dns.DnsModule;
 import google.registry.dns.PublishDnsUpdatesAction;
 import google.registry.dns.ReadDnsQueueAction;
 import google.registry.dns.RefreshDnsAction;
-import google.registry.dns.WriteDnsAction;
 import google.registry.export.BigqueryPollJobAction;
 import google.registry.export.ExportDomainListsAction;
 import google.registry.export.ExportRequestModule;
@@ -110,6 +109,5 @@ interface BackendRequestComponent {
   TmchDnlAction tmchDnlAction();
   TmchSmdrlAction tmchSmdrlAction();
   UpdateSnapshotViewAction updateSnapshotViewAction();
-  WriteDnsAction writeDnsAction();
   VerifyEntityIntegrityAction verifyEntityIntegrityAction();
 }

@@ -73,7 +73,7 @@ public final class RegistryTestServer {
           google.registry.module.backend.BackendServlet.class),
 
       // Process DNS pull queue
-      route("/_dr/task/writeDns",
+      route("/_dr/cron/readDnsQueue",
           google.registry.module.backend.BackendServlet.class),
 
       // Registrar Console

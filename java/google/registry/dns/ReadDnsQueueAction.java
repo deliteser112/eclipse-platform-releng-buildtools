@@ -124,12 +124,7 @@ public final class ReadDnsQueueAction implements Runnable {
     for (TaskHandle task : tasks) {
       try {
         Map<String, String> params = ImmutableMap.copyOf(task.extractParams());
-        // Dual-read the TLD from either the parameter (new methodology) or the tag (old way).
-        // TODO(b/24564175): get the TLD from the regular parameter only.
-        String tld = task.getTag();
-        if (tld == null) {
-          tld = params.get(RequestParameters.PARAM_TLD);
-        }
+        String tld = params.get(RequestParameters.PARAM_TLD);
         if (tld == null) {
           logger.severe("discarding invalid DNS refresh request; no TLD specified");
         } else if (!tldsOfInterest.contains(tld)) {
@@ -151,9 +146,7 @@ public final class ReadDnsQueueAction implements Runnable {
               break;
           }
         }
-      } catch (RuntimeException e) {
-        logger.severefmt(e, "discarding invalid DNS refresh request (task %s)", task);
-      } catch (UnsupportedEncodingException e) {
+      } catch (RuntimeException | UnsupportedEncodingException e) {
         logger.severefmt(e, "discarding invalid DNS refresh request (task %s)", task);
       }
     }

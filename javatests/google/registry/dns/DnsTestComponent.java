@@ -16,10 +16,12 @@ package google.registry.dns;
 
 import dagger.Component;
 import google.registry.config.ConfigModule;
+import google.registry.cron.CronModule;
 import google.registry.dns.writer.api.VoidDnsWriterModule;
 import google.registry.module.backend.BackendModule;
 import google.registry.request.RequestModule;
 import google.registry.util.SystemClock.SystemClockModule;
+import google.registry.util.SystemSleeper.SystemSleeperModule;
 
 @Component(modules = {
     SystemClockModule.class,
@@ -28,9 +30,11 @@ import google.registry.util.SystemClock.SystemClockModule;
     DnsModule.class,
     RequestModule.class,
     VoidDnsWriterModule.class,
+    SystemSleeperModule.class,
+    CronModule.class,
 })
 interface DnsTestComponent {
   DnsQueue dnsQueue();
   RefreshDnsAction refreshDns();
-  WriteDnsAction writeDnsAction();
+  ReadDnsQueueAction readDnsQueueAction();
 }

@@ -38,7 +38,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
-/** Unit tests for {@link WriteDnsAction}. */
+/** Unit tests for {@link PublishDnsUpdatesAction}. */
 @RunWith(MockitoJUnitRunner.class)
 public class PublishDnsUpdatesActionTest {
 
