@@ -140,12 +140,6 @@
   </queue>
 
   <queue>
-    <name>mail</name>
-    <rate>5/m</rate>
-    <bucket-size>10</bucket-size>
-  </queue>
-
-  <queue>
     <name>rde-upload</name>
     <rate>1/m</rate>
     <max-concurrent-requests>1</max-concurrent-requests>
