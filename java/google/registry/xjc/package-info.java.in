@@ -25,6 +25,9 @@
             prefix = "fee11",
             namespaceURI = "urn:ietf:params:xml:ns:fee-0.11"),
         @javax.xml.bind.annotation.XmlNs(
+            prefix = "fee12",
+            namespaceURI = "urn:ietf:params:xml:ns:fee-0.12"),
+        @javax.xml.bind.annotation.XmlNs(
             prefix = "host",
             namespaceURI = "urn:ietf:params:xml:ns:host-1.0"),
         @javax.xml.bind.annotation.XmlNs(

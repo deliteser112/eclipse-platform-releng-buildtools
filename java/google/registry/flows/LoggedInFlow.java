@@ -17,6 +17,7 @@ package google.registry.flows;
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
+import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.registry.Registries.getTlds;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
@@ -28,7 +29,6 @@ import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.SyntaxErrorException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.model.eppcommon.ProtocolDefinition;
-import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppinput.EppInput.CommandExtension;
 import google.registry.model.registrar.Registrar;
 import google.registry.util.FormattingLogger;
@@ -43,10 +43,7 @@ public abstract class LoggedInFlow extends Flow {
    * A blacklist of service extension URIs that will cause an error if they are used without being
    * declared on login.
    */
-  private static final ImmutableSet<String> UNDECLARED_URIS_BLACKLIST =
-      ImmutableSet.of(
-          ServiceExtension.FEE_0_6.getUri(),
-          ServiceExtension.FEE_0_11.getUri());
+  private static final ImmutableSet<String> UNDECLARED_URIS_BLACKLIST = FEE_EXTENSION_URIS;
 
   /**
    * The TLDs on which the logged-in registrar is allowed access domains.

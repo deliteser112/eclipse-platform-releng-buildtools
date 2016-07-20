@@ -20,6 +20,7 @@ import static com.google.common.io.Resources.getResource;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_11;
+import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_12;
 import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_6;
 import static google.registry.model.registry.Registries.findTldForNameOrThrow;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
@@ -120,6 +121,7 @@ public class CheckApiAction implements Runnable {
       if (available) {
         FeeCheckResponseExtension<?> feeCheckResponseExtension =
             (FeeCheckResponseExtension<?>) response.getFirstExtensionOfType(
+                FEE_0_12.getResponseExtensionClass(),
                 FEE_0_11.getResponseExtensionClass(),
                 FEE_0_6.getResponseExtensionClass());
         if (feeCheckResponseExtension != null) {

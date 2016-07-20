@@ -40,6 +40,7 @@ import google.registry.model.domain.fee.Credit;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import google.registry.model.domain.fee06.FeeDeleteResponseExtensionV06;
 import google.registry.model.domain.fee11.FeeDeleteResponseExtensionV11;
+import google.registry.model.domain.fee12.FeeDeleteResponseExtensionV12;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
@@ -176,6 +177,9 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
   @Nullable
   private FeeTransformResponseExtension.Builder getDeleteResponseBuilder() {
     Set<String> uris = nullToEmpty(sessionMetadata.getServiceExtensionUris());
+    if (uris.contains(ServiceExtension.FEE_0_12.getUri())) {
+      return new FeeDeleteResponseExtensionV12.Builder();
+    }
     if (uris.contains(ServiceExtension.FEE_0_11.getUri())) {
       return new FeeDeleteResponseExtensionV11.Builder();
     }

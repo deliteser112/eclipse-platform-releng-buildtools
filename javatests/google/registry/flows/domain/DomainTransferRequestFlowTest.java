@@ -85,6 +85,9 @@ public class DomainTransferRequestFlowTest
       ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee");
   private static final ImmutableMap<String, String> FEE_11_MAP =
       ImmutableMap.of("FEE_VERSION", "0.11", "FEE_NS", "fee11");
+  private static final ImmutableMap<String, String> FEE_12_MAP =
+      ImmutableMap.of("FEE_VERSION", "0.12", "FEE_NS", "fee12");
+
 
   @Before
   public void setUp() throws Exception {
@@ -351,6 +354,12 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
+  public void testSuccess_fee_v12() throws Exception {
+    doSuccessfulTest(
+        "domain_transfer_request_fee.xml", "domain_transfer_request_response_fee.xml", FEE_12_MAP);
+  }
+
+  @Test
   public void testSuccess_fee_withDefaultAttributes_v06() throws Exception {
     doSuccessfulTest(
         "domain_transfer_request_fee_defaults.xml",
@@ -367,11 +376,18 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
+  public void testSuccess_fee_withDefaultAttributes_v12() throws Exception {
+    doSuccessfulTest(
+        "domain_transfer_request_fee_defaults.xml",
+        "domain_transfer_request_response_fee.xml",
+        FEE_12_MAP);
+  }
+
+  @Test
   public void testFailure_refundableFee_v06() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
     doFailingTest("domain_transfer_request_fee_refundable.xml", FEE_06_MAP);
   }
-
 
   @Test
   public void testFailure_refundableFee_v11() throws Exception {
@@ -379,6 +395,11 @@ public class DomainTransferRequestFlowTest
     doFailingTest("domain_transfer_request_fee_refundable.xml", FEE_11_MAP);
   }
 
+  @Test
+  public void testFailure_refundableFee_v12() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    doFailingTest("domain_transfer_request_fee_refundable.xml", FEE_12_MAP);
+  }
 
   @Test
   public void testFailure_gracePeriodFee_v06() throws Exception {
@@ -393,6 +414,12 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
+  public void testFailure_gracePeriodFee_v12() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    doFailingTest("domain_transfer_request_fee_grace_period.xml", FEE_12_MAP);
+  }
+
+  @Test
   public void testFailure_appliedFee_v06() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
     doFailingTest("domain_transfer_request_fee_applied.xml", FEE_06_MAP);
@@ -402,6 +429,12 @@ public class DomainTransferRequestFlowTest
   public void testFailure_appliedFee_v11() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
     doFailingTest("domain_transfer_request_fee_applied.xml", FEE_11_MAP);
+  }
+
+  @Test
+  public void testFailure_appliedFee_v12() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    doFailingTest("domain_transfer_request_fee_applied.xml", FEE_12_MAP);
   }
 
   @Test
@@ -533,6 +566,11 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
+  public void testFailure_wrongCurrency_v12() throws Exception {
+    runWrongCurrencyTest(FEE_12_MAP);
+  }
+
+  @Test
   public void testFailure_feeGivenInWrongScale_v06() throws Exception {
     thrown.expect(CurrencyValueScaleException.class);
     doFailingTest("domain_transfer_request_fee_bad_scale.xml", FEE_06_MAP);
@@ -543,6 +581,13 @@ public class DomainTransferRequestFlowTest
     thrown.expect(CurrencyValueScaleException.class);
     doFailingTest("domain_transfer_request_fee_bad_scale.xml", FEE_11_MAP);
   }
+
+  @Test
+  public void testFailure_feeGivenInWrongScale_v12() throws Exception {
+    thrown.expect(CurrencyValueScaleException.class);
+    doFailingTest("domain_transfer_request_fee_bad_scale.xml", FEE_12_MAP);
+  }
+
 
   private void runWrongFeeAmountTest(Map<String, String> substitutions) throws Exception {
     thrown.expect(FeesMismatchException.class);
@@ -562,6 +607,11 @@ public class DomainTransferRequestFlowTest
   @Test
   public void testFailure_wrongFeeAmount_v11() throws Exception {
     runWrongFeeAmountTest(FEE_11_MAP);
+  }
+
+  @Test
+  public void testFailure_wrongFeeAmount_v12() throws Exception {
+    runWrongFeeAmountTest(FEE_12_MAP);
   }
 
   @Test

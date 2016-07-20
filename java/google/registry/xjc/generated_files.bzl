@@ -1,3 +1,4 @@
+
 #
 #      .'``'.      ...
 #     :o  o `....'`  ;
@@ -25,6 +26,7 @@ pkginfo_generated_files = [
     "eppcom/package-info.java",
     "fee06/package-info.java",
     "fee11/package-info.java",
+    "fee12/package-info.java",
     "host/package-info.java",
     "iirdea/package-info.java",
     "launch/package-info.java",
@@ -208,6 +210,25 @@ xjc_generated_files = [
     "fee11/XjcFee11TrnData.java",
     "fee11/XjcFee11UpdData.java",
     "fee11/XjcFee11Update.java",
+    "fee12/ObjectFactory.java",
+    "fee12/XjcFee12Check.java",
+    "fee12/XjcFee12ChkData.java",
+    "fee12/XjcFee12CommandCDType.java",
+    "fee12/XjcFee12CommandCheckType.java",
+    "fee12/XjcFee12CreData.java",
+    "fee12/XjcFee12Create.java",
+    "fee12/XjcFee12CreditType.java",
+    "fee12/XjcFee12DelData.java",
+    "fee12/XjcFee12FeeType.java",
+    "fee12/XjcFee12ObjectCDType.java",
+    "fee12/XjcFee12RenData.java",
+    "fee12/XjcFee12Renew.java",
+    "fee12/XjcFee12Transfer.java",
+    "fee12/XjcFee12TransformCommandType.java",
+    "fee12/XjcFee12TransformResultType.java",
+    "fee12/XjcFee12TrnData.java",
+    "fee12/XjcFee12UpdData.java",
+    "fee12/XjcFee12Update.java",
     "host/ObjectFactory.java",
     "host/XjcHostAddRemType.java",
     "host/XjcHostAddrType.java",

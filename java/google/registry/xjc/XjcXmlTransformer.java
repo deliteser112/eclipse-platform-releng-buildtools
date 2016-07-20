@@ -44,6 +44,7 @@ public class XjcXmlTransformer {
           .put("smd", "smd.xsd")
           .put("fee06", "fee06.xsd")
           .put("fee11", "fee11.xsd")
+          .put("fee12", "fee12.xsd")
           .put("launch", "launch.xsd")
           .put("rde", "rde.xsd")
           .put("rdeheader", "rde-header.xsd")

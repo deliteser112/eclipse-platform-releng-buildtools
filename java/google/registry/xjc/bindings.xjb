@@ -155,6 +155,15 @@
       </nameXmlTransform>
     </schemaBindings>
   </bindings>
+  <bindings schemaLocation="fee12.xsd" node="/xsd:schema">
+    <schemaBindings>
+      <package name="google.registry.xjc.fee12"/>
+      <nameXmlTransform>
+        <elementName prefix="XjcFee12"/>
+        <typeName prefix="XjcFee12"/>
+      </nameXmlTransform>
+    </schemaBindings>
+  </bindings>
   <bindings schemaLocation="launch.xsd" node="/xsd:schema">
     <schemaBindings>
       <package name="google.registry.xjc.launch"/>

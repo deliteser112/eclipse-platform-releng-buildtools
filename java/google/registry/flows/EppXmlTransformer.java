@@ -57,6 +57,7 @@ public class EppXmlTransformer  {
       "secdns.xsd",
       "fee06.xsd",
       "fee11.xsd",
+      "fee12.xsd",
       "metadata.xsd",
       "mark.xsd",
       "dsig.xsd",
@@ -173,4 +174,3 @@ public class EppXmlTransformer  {
     }
   }
 }
-

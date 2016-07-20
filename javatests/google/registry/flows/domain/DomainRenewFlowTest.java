@@ -72,6 +72,8 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
       ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee");
   private static final ImmutableMap<String, String> FEE_11_MAP =
       ImmutableMap.of("FEE_VERSION", "0.11", "FEE_NS", "fee11");
+  private static final ImmutableMap<String, String> FEE_12_MAP =
+      ImmutableMap.of("FEE_VERSION", "0.12", "FEE_NS", "fee12");
 
   final DateTime expirationTime = DateTime.parse("2000-04-03T22:00:00.0Z");
 
@@ -221,6 +223,13 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   }
 
   @Test
+  public void testSuccess_fee_v12() throws Exception {
+    setEppInput("domain_renew_fee.xml", FEE_12_MAP);
+    persistDomain();
+    doSuccessfulTest("domain_renew_response_fee.xml", 5, FEE_12_MAP);
+  }
+
+  @Test
   public void testSuccess_fee_withDefaultAttributes_v06() throws Exception {
     setEppInput("domain_renew_fee_defaults.xml", FEE_06_MAP);
     persistDomain();
@@ -235,6 +244,13 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   }
 
   @Test
+  public void testSuccess_fee_withDefaultAttributes_v12() throws Exception {
+    setEppInput("domain_renew_fee_defaults.xml", FEE_12_MAP);
+    persistDomain();
+    doSuccessfulTest("domain_renew_response_fee.xml", 5, FEE_12_MAP);
+  }
+
+  @Test
   public void testFailure_refundableFee_v06() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_renew_fee_refundable.xml", FEE_06_MAP);
@@ -246,6 +262,14 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_refundableFee_v11() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_renew_fee_refundable.xml", FEE_11_MAP);
+    persistDomain();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_refundableFee_v12() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    setEppInput("domain_renew_fee_refundable.xml", FEE_12_MAP);
     persistDomain();
     runFlow();
   }
@@ -267,6 +291,14 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   }
 
   @Test
+  public void testFailure_gracePeriodFee_v12() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    setEppInput("domain_renew_fee_grace_period.xml", FEE_12_MAP);
+    persistDomain();
+    runFlow();
+  }
+
+  @Test
   public void testFailure_appliedFee_v06() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_renew_fee_applied.xml", FEE_06_MAP);
@@ -278,6 +310,14 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_appliedFee_v11() throws Exception {
     thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_renew_fee_applied.xml", FEE_11_MAP);
+    persistDomain();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_appliedFee_v12() throws Exception {
+    thrown.expect(UnsupportedFeeAttributeException.class);
+    setEppInput("domain_renew_fee_applied.xml", FEE_12_MAP);
     persistDomain();
     runFlow();
   }
@@ -389,6 +429,19 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   }
 
   @Test
+  public void testFailure_wrongFeeAmount_v12() throws Exception {
+    thrown.expect(FeesMismatchException.class);
+    setEppInput("domain_renew_fee.xml", FEE_12_MAP);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, 20)))
+            .build());
+    persistDomain();
+    runFlow();
+  }
+
+  @Test
   public void testFailure_wrongCurrency_v06() throws Exception {
     thrown.expect(CurrencyUnitMismatchException.class);
     setEppInput("domain_renew_fee.xml", FEE_06_MAP);
@@ -425,6 +478,24 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   }
 
   @Test
+  public void testFailure_wrongCurrency_v12() throws Exception {
+    thrown.expect(CurrencyUnitMismatchException.class);
+    setEppInput("domain_renew_fee.xml", FEE_12_MAP);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setCurrency(EUR)
+            .setCreateBillingCost(Money.of(EUR, 13))
+            .setRestoreBillingCost(Money.of(EUR, 11))
+            .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(EUR, 7)))
+            .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
+            .setServerStatusChangeBillingCost(Money.of(EUR, 19))
+            .build());
+    persistDomain();
+    runFlow();
+  }
+
+  @Test
   public void testFailure_feeGivenInWrongScale_v06() throws Exception {
     thrown.expect(CurrencyValueScaleException.class);
     setEppInput("domain_renew_fee_bad_scale.xml", FEE_06_MAP);
@@ -436,6 +507,14 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_feeGivenInWrongScale_v11() throws Exception {
     thrown.expect(CurrencyValueScaleException.class);
     setEppInput("domain_renew_fee_bad_scale.xml", FEE_11_MAP);
+    persistDomain();
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_feeGivenInWrongScale_v12() throws Exception {
+    thrown.expect(CurrencyValueScaleException.class);
+    setEppInput("domain_renew_fee_bad_scale.xml", FEE_12_MAP);
     persistDomain();
     runFlow();
   }

@@ -36,6 +36,11 @@ import google.registry.model.domain.fee11.FeeCreateCommandExtensionV11;
 import google.registry.model.domain.fee11.FeeRenewCommandExtensionV11;
 import google.registry.model.domain.fee11.FeeTransferCommandExtensionV11;
 import google.registry.model.domain.fee11.FeeUpdateCommandExtensionV11;
+import google.registry.model.domain.fee12.FeeCheckCommandExtensionV12;
+import google.registry.model.domain.fee12.FeeCreateCommandExtensionV12;
+import google.registry.model.domain.fee12.FeeRenewCommandExtensionV12;
+import google.registry.model.domain.fee12.FeeTransferCommandExtensionV12;
+import google.registry.model.domain.fee12.FeeUpdateCommandExtensionV12;
 import google.registry.model.domain.launch.LaunchCheckExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.launch.LaunchDeleteExtension;
@@ -311,6 +316,12 @@ public class EppInput extends ImmutableObject {
         @XmlElementRef(type = FeeRenewCommandExtensionV11.class),
         @XmlElementRef(type = FeeTransferCommandExtensionV11.class),
         @XmlElementRef(type = FeeUpdateCommandExtensionV11.class),
+        // fee extension version 0.12
+        @XmlElementRef(type = FeeCheckCommandExtensionV12.class),
+        @XmlElementRef(type = FeeCreateCommandExtensionV12.class),
+        @XmlElementRef(type = FeeRenewCommandExtensionV12.class),
+        @XmlElementRef(type = FeeTransferCommandExtensionV12.class),
+        @XmlElementRef(type = FeeUpdateCommandExtensionV12.class),
         // other extensions
         @XmlElementRef(type = LaunchCheckExtension.class),
         @XmlElementRef(type = LaunchCreateExtension.class),
