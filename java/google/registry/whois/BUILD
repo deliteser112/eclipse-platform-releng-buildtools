@@ -8,7 +8,6 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "whois",
     srcs = glob(["*.java"]),
-    resources = ["disclaimer.txt"],
     visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/annotations",

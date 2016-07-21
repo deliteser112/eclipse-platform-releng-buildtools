@@ -43,29 +43,29 @@ class RegistrarWhoisResponse extends WhoisResponseImpl {
   }
 
   @Override
-  public String getPlainTextOutput(boolean preferUnicode) {
+  public String getPlainTextOutput(boolean preferUnicode, String disclaimer) {
     Set<RegistrarContact> contacts = registrar.getContacts();
     return new RegistrarEmitter()
         .emitField("Registrar Name", registrar.getRegistrarName())
-        .emitAddress(null, chooseByUnicodePreference(
-            preferUnicode,
-            registrar.getLocalizedAddress(),
-            registrar.getInternationalizedAddress()))
+        .emitAddress(
+            null,
+            chooseByUnicodePreference(
+                preferUnicode,
+                registrar.getLocalizedAddress(),
+                registrar.getInternationalizedAddress()))
         .emitPhonesAndEmail(
-            registrar.getPhoneNumber(),
-            registrar.getFaxNumber(),
-            registrar.getEmailAddress())
+            registrar.getPhoneNumber(), registrar.getFaxNumber(), registrar.getEmailAddress())
         .emitField("WHOIS Server", registrar.getWhoisServer())
         .emitField("Referral URL", registrar.getReferralUrl())
         .emitRegistrarContacts("Admin", contacts, AdminOrTech.ADMIN)
-        .emitRegistrarContacts("Technical", contacts,  AdminOrTech.TECH)
+        .emitRegistrarContacts("Technical", contacts, AdminOrTech.TECH)
         .emitLastUpdated(getTimestamp())
-        .emitFooter()
+        .emitFooter(disclaimer)
         .toString();
   }
 
   /** An emitter with logic for registrars. */
-  class RegistrarEmitter extends Emitter<RegistrarEmitter> {
+  static class RegistrarEmitter extends Emitter<RegistrarEmitter> {
     /** Emits the registrar contact of the given type. */
     RegistrarEmitter emitRegistrarContacts(
         String contactLabel,

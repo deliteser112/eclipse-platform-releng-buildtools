@@ -14,6 +14,7 @@
 
 package google.registry.whois;
 
+import google.registry.config.ConfigModule.Config;
 import google.registry.util.Clock;
 import java.io.IOException;
 import java.io.StringReader;
@@ -24,23 +25,24 @@ import org.joda.time.DateTime;
 public final class Whois {
 
   private final Clock clock;
+  private final String disclaimer;
 
   @Inject
-  public Whois(Clock clock) {
+  public Whois(Clock clock, @Config("whoisDisclaimer") String disclaimer) {
     this.clock = clock;
+    this.disclaimer = disclaimer;
   }
 
-  /**
-   * Performs a WHOIS lookup on a plaintext query string.
-   *
-   * @throws WhoisException if the record is not found or the query is invalid
-   */
-  public WhoisResponse lookup(String query) throws WhoisException {
+  /** Performs a WHOIS lookup on a plaintext query string. */
+  public String lookup(String query, boolean preferUnicode) {
     DateTime now = clock.nowUtc();
     try {
       return new WhoisReader(new StringReader(query), now)
           .readCommand()
-          .executeQuery(now);
+          .executeQuery(now)
+          .getPlainTextOutput(preferUnicode, disclaimer);
+    } catch (WhoisException e) {
+      return e.getPlainTextOutput(preferUnicode, disclaimer);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

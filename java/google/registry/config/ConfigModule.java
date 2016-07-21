@@ -28,7 +28,26 @@ import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.Duration;
 
-/** Dagger module for injecting configuration settings. */
+/**
+ * Configuration example for the Domain Registry codebase.
+ *
+ * <p>The Domain Registry codebase contains many classes that inject configurable settings. This is
+ * the centralized class that is used by default to configure them all, in hard-coded type-safe
+ * Java code.
+ *
+ * <p>This class does not represent the total configuration of the Domain Registry service. It's
+ * <b>only meant for settings that need to be configured <i>once</i></b>. Settings which may
+ * be subject to change in the future, should instead be retrieved from Datastore. The
+ * {@link google.registry.model.registry.Registry Registry} class is one such example of this.
+ *
+ * <h3>Customization</h3>
+ *
+ * <p>It is recommended that users do not modify this file within a forked repository. It is
+ * preferable to modify these settings by swapping out this module with a separate copied version
+ * in the user's repository. For this to work, other files need to be copied too, such as
+ * {@link google.registry.module.backend.BackendComponent BackendComponent}. This allows modules to
+ * be substituted at the {@code @Component} level.
+ */
 @Module
 public final class ConfigModule {
 
@@ -562,5 +581,28 @@ public final class ConfigModule {
         // Valentine: Domain Registry Braintree Sandbox
         return "tzcyzvm3mn7zkdnx";
     }
+  }
+
+  /**
+   * Disclaimer displayed at the end of WHOIS query results.
+   *
+   * @see google.registry.whois.WhoisResponse
+   */
+  @Provides
+  @Config("whoisDisclaimer")
+  public static String provideWhoisDisclaimer() {
+    return "WHOIS information is provided by Charleston Road Registry Inc. (CRR) solely for\n"
+        + "query-based, informational purposes. By querying our WHOIS database, you are\n"
+        + "agreeing to comply with these terms\n"
+        + "(http://www.registry.google/about/whois-disclaimer.html) so please read them\n"
+        + "carefully.  Any information provided is \"as is\" without any guarantee of\n"
+        + "accuracy. You may not use such information to (a) allow, enable, or otherwise\n"
+        + "support the transmission of mass unsolicited, commercial advertising or\n"
+        + "solicitations; (b) enable high volume, automated, electronic processes that\n"
+        + "access the systems of CRR or any ICANN-Accredited Registrar, except as\n"
+        + "reasonably necessary to register domain names or modify existing registrations;\n"
+        + "or (c) engage in or support unlawful behavior. CRR reserves the right to\n"
+        + "restrict or deny your access to the Whois database, and may modify these terms\n"
+        + "at any time.\n";
   }
 }

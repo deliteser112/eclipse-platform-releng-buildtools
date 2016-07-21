@@ -243,4 +243,6 @@ public interface RegistryConfig {
    * the logs from filling up with unnecessarily failures.
    */
   public Duration getAsyncFlowFailureBackoff();
+
+  // XXX: Please consider using ConfigModule instead of adding new methods to this file.
 }

@@ -17,7 +17,6 @@ package google.registry.whois;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -26,13 +25,10 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
-import com.google.common.io.Resources;
 import google.registry.model.eppcommon.Address;
 import google.registry.model.registrar.Registrar;
 import google.registry.util.Idn;
 import google.registry.xml.UtcDateTimeAdapter;
-import java.io.IOException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -41,9 +37,6 @@ import org.joda.time.DateTime;
 
 /** Base class for responses to WHOIS queries. */
 abstract class WhoisResponseImpl implements WhoisResponse {
-
-  /** Legal disclaimer that is appended to all WHOIS responses. */
-  private static final String DISCLAIMER = load("disclaimer.txt");
 
   /** Field name for ICANN problem reporting URL appended to all WHOIS responses. */
   private static final String ICANN_REPORTING_URL_FIELD =
@@ -166,9 +159,9 @@ abstract class WhoisResponseImpl implements WhoisResponse {
     }
 
     /** Returns raw text that should be appended to the end of ALL WHOIS responses. */
-    E emitFooter() {
+    E emitFooter(String disclaimer) {
       emitField(ICANN_REPORTING_URL_FIELD, ICANN_REPORTING_URL);
-      stringBuilder.append("\r\n").append(DISCLAIMER).append("\r\n");
+      stringBuilder.append("\r\n").append(disclaimer).append("\r\n");
       return thisCastToDerived();
     }
 
@@ -198,16 +191,6 @@ abstract class WhoisResponseImpl implements WhoisResponse {
 
   /** An emitter that needs no special logic. */
   static class BasicEmitter extends Emitter<BasicEmitter> {}
-
-  /** Slurps UTF-8 file from jar, relative to this source file. */
-  private static String load(String relativeFilename) {
-    URL resource = Resources.getResource(WhoisResponseImpl.class, relativeFilename);
-    try {
-      return Resources.toString(resource, UTF_8).replaceAll("\r?\n", "\r\n").trim();
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to slurp: " + relativeFilename, e);
-    }
-  }
 
   /** Returns the registrar for this client id, or an empty registrar with null values. */
   static Registrar getRegistrar(@Nullable String clientId) {

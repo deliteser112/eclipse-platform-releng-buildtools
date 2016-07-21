@@ -113,7 +113,7 @@ public class RegistrarWhoisResponseTest {
 
     RegistrarWhoisResponse registrarWhoisResponse =
         new RegistrarWhoisResponse(registrar, clock.nowUtc());
-    assertThat(registrarWhoisResponse.getPlainTextOutput(false))
+    assertThat(registrarWhoisResponse.getPlainTextOutput(false, "Doodle Disclaimer"))
         .isEqualTo(loadWhoisTestFile("whois_registrar.txt"));
   }
 
@@ -129,6 +129,6 @@ public class RegistrarWhoisResponseTest {
     RegistrarWhoisResponse registrarWhoisResponse =
         new RegistrarWhoisResponse(registrar, clock.nowUtc());
     // Just make sure this doesn't NPE.
-    registrarWhoisResponse.getPlainTextOutput(false);
+    registrarWhoisResponse.getPlainTextOutput(false, "Doodle Disclaimer");
   }
 }

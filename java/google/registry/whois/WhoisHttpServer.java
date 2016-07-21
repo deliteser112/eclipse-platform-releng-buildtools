@@ -130,6 +130,7 @@ public final class WhoisHttpServer implements Runnable {
 
   @Inject Clock clock;
   @Inject Response response;
+  @Inject @Config("whoisDisclaimer") String disclaimer;
   @Inject @Config("whoisHttpExpires") Duration expires;
   @Inject @RequestPath String requestPath;
   @Inject WhoisHttpServer() {}
@@ -159,7 +160,7 @@ public final class WhoisHttpServer implements Runnable {
     response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, CORS_ALLOW_ORIGIN);
     response.setHeader(X_CONTENT_TYPE_OPTIONS, X_CONTENT_NO_SNIFF);
     response.setContentType(PLAIN_TEXT_UTF_8);
-    response.setPayload(whoisResponse.getPlainTextOutput(true));
+    response.setPayload(whoisResponse.getPlainTextOutput(true, disclaimer));
   }
 
   /** Removes {@code %xx} escape codes from request path components. */

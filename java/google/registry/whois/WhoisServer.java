@@ -18,6 +18,7 @@ import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.net.MediaType;
+import google.registry.config.ConfigModule.Config;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.util.Clock;
@@ -57,6 +58,9 @@ public class WhoisServer implements Runnable {
   @Inject Clock clock;
   @Inject Reader input;
   @Inject Response response;
+  @Inject
+  @Config("whoisDisclaimer")
+  String disclaimer;
   @Inject WhoisServer() {}
 
   @Override
@@ -64,12 +68,13 @@ public class WhoisServer implements Runnable {
     String responseText;
     DateTime now = clock.nowUtc();
     try {
-      responseText = new WhoisReader(input, now)
-          .readCommand()
-          .executeQuery(now)
-          .getPlainTextOutput(PREFER_UNICODE);
+      responseText =
+          new WhoisReader(input, now)
+              .readCommand()
+              .executeQuery(now)
+              .getPlainTextOutput(PREFER_UNICODE, disclaimer);
     } catch (WhoisException e) {
-      responseText = e.getPlainTextOutput(PREFER_UNICODE);
+      responseText = e.getPlainTextOutput(PREFER_UNICODE, disclaimer);
     } catch (Throwable t) {
       logger.severe(t, "WHOIS request crashed");
       responseText = "Internal Server Error";

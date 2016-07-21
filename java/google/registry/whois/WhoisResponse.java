@@ -22,13 +22,14 @@ public interface WhoisResponse {
   /**
    * Returns a plain text WHOIS response.
    *
-   * @param preferUnicode if {@code false} will cause the output to be converted to ASCII
-   *        whenever possible; for example, converting IDN hostname labels to punycode. However
-   *        certain things (like a domain registrant name with accent marks) will be returned
-   *        "as is". If the WHOIS client has told us they're able to receive UTF-8 (such as with
-   *        HTTP) then this field should be set to {@code true}.
+   * @param preferUnicode if {@code false} will cause the output to be converted to ASCII whenever
+   *     possible; for example, converting IDN hostname labels to punycode. However certain things
+   *     (like a domain registrant name with accent marks) will be returned "as is". If the WHOIS
+   *     client has told us they're able to receive UTF-8 (such as with HTTP) then this field should
+   *     be set to {@code true}.
+   * @param disclaimer text to show at bottom of output
    */
-  String getPlainTextOutput(boolean preferUnicode);
+  String getPlainTextOutput(boolean preferUnicode, String disclaimer);
 
   /**
    * Returns the time at which this response was created.

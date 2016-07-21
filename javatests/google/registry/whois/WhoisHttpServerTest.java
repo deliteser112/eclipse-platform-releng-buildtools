@@ -70,6 +70,7 @@ public class WhoisHttpServerTest {
     result.expires = Duration.standardHours(1);
     result.requestPath = WhoisHttpServer.PATH + pathInfo;
     result.response = response;
+    result.disclaimer = "Doodle Disclaimer";
     return result;
   }
 
