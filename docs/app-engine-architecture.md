@@ -40,10 +40,10 @@ manner.
 
 The backend service is also where all MapReduces run, which includes some of the
 aforementioned tasks such as RDE and asynchronous resource deletion, as well as
-any one-off data migration MapReduces.  Consequently, the backend service
-should be sized to support not just the normal ongoing DNS load but also the
-load incurred by MapReduces, both scheduled (such as RDE) and on-demand
-(asynchronous contact/host deletion).
+any one-off data migration MapReduces.  Consequently, the backend service should
+be sized to support not just the normal ongoing DNS load but also the load
+incurred by MapReduces, both scheduled (such as RDE) and on-demand (asynchronous
+contact/host deletion).
 
 ### Tools service
 
@@ -165,7 +165,86 @@ explicitly marked as otherwise.
   spreadsheet.  Tasks are enqueued by `RegistrarServlet` when changes are made
   to registrar fields and are executed by `SyncRegistrarsSheetAction`.
 
+## Environments
+
+The domain registry codebase comes pre-configured with support for a number of
+different environments, all of which are used in Google's registry system.
+Other registry operators may choose to user more or fewer environments,
+depending on their needs.
+
+The different environments are specified in `RegistryEnvironment`.  Most
+correspond to a separate App Engine app except for `UNITTEST` and `LOCAL`, which
+by their nature do not use real environments running in the cloud.  The
+recommended naming scheme for the App Engine apps that has the best possible
+compatibility with the codebase and thus requires the least configuration is to
+pick a name for the production app and then suffix it for the other
+environments.  E.g., if the production app is to be named 'registry-platform',
+then the sandbox app would be named 'registry-platform-sandbox'.
+
+The full list of environments supported out-of-the-box, in descending order from
+real to not, is:
+
+* PRODUCTION -- The real production environment that is actually running live
+  TLDs.  Since the Domain Registry is a shared registry platform, there need
+  only ever be one of these.
+* SANDBOX -- A playground environment for external users to test commands in
+  without the possibility of affecting production data.  This is the environment
+  new registrars go through
+  [OT&E](https://www.icann.org/resources/unthemed-pages/registry-agmt-appc-e-2001-04-26-en)
+  in.  Sandbox is also useful as a final sanity check to push a new prospective
+  build to and allow it to "bake" before pushing it to production.
+* QA -- An internal environment used by business users to play with and sign off
+  on new features to be released.  This environment can be pushed to frequently
+  and is where manual testers should be spending the majority of their time.
+* CRASH -- Another environment similar to QA, except with no expectations of
+  data preservation.  Crash is used for testing of backup/restore (which brings
+  the entire system down until it is completed) without affecting the QA
+  environment.
+* ALPHA -- The developers' playground.  Experimental builds are routinely pushed
+  here in order to test them on a real app running on App Engine.  You may end
+  up wanting multiple environments like Alpha if you regularly experience
+  contention (i.e. developers being blocked from testing their code on Alpha
+  because others are already using it).
+* LOCAL -- A fake environment that is used when running the app locally on a
+  simulated App Engine instance.
+* UNITTEST -- A fake environment that is used in unit tests, where everything in
+  the App Engine stack is simulated or mocked.
+
+## Release process
+
+The following is a recommended release process based on Google's several years
+of experience running a production registry using this codebase.
+
+1. Developers write code and associated unit tests verifying that the new code
+   works properly.
+2. New features or potentially risky bug fixes are pushed to Alpha and tested by
+   the developers before being committed to the source code repository.
+3. New builds are cut and first pushed to Sandbox.
+4. Once a build has been running successfully in Sandbox for a day with no
+   errors, it can be pushed to Production.
+5. Repeat once weekly, or potentially more often.
+
 ## Cron tasks
+
+All [cron tasks](https://cloud.google.com/appengine/docs/java/config/cron) are
+specified in `cron.xml` files, with one per environment.  There are more tasks
+that execute in Production than in other environments, because tasks like
+uploading RDE dumps are only done for the live system.
+
+Most cron tasks use the `TldFanoutAction` which is accessed via the
+`/_dr/cron/fanout` URL path.  This action, which is run by the BackendServlet on
+the backend service, fans out a given cron task for each TLD that exists in the
+registry system, using the queue that is specified in the `cron.xml` entry.
+Because some tasks may be computationally intensive and could risk spiking
+system latency if all start executing immediately at the same time, there is a
+`jitterSeconds` parameter that spreads out tasks over the given number of
+seconds.  This is used with DNS updates and commit log deletion.
+
+The reason the `TldFanoutAction` exists is that a lot of tasks need to be done
+separately for each TLD, such as RDE exports and NORDN uploads.  It's simpler to
+have a single cron entry that will create tasks for all TLDs than to have to
+specify a separate cron task for each action for each TLD (though that is still
+an option).
 
 ## Datastore entities
 
