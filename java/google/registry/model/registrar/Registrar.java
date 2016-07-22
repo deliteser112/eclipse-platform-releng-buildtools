@@ -72,6 +72,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /** Information about a registrar. */
@@ -786,6 +787,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   }
 
   /** Load a registrar entity by its client id. */
+  @Nullable
   public static Registrar loadByClientId(final String clientId) {
     return ofy().doTransactionless(new Work<Registrar>() {
       @Override
