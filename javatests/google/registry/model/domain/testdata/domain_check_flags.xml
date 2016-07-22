@@ -1,0 +1,26 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <check>
+      <domain:check
+        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>example.com</domain:name>
+        <domain:name>example.net</domain:name>
+        <domain:name>example.org</domain:name>
+      </domain:check>
+    </check>
+    <extension>
+      <flags:check xmlns:flags="urn:google:params:xml:ns:flags-0.1">
+        <flags:domain>
+          <flags:name>example.com</flags:name>
+          <flags:flag>one</flags:flag>
+        </flags:domain>
+        <flags:domain>
+          <flags:name>example.net</flags:name>
+          <flags:flag>two</flags:flag>
+          <flags:flag>three</flags:flag>
+        </flags:domain>
+      </flags:check>
+    </extension>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>
