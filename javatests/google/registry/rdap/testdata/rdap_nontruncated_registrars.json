@@ -1,0 +1,255 @@
+{
+  "entitySearchResults":
+  [
+    {
+      "objectClassName" : "entity",
+      "handle" : "301",
+      "status" : ["active"],
+      "links" :
+      [
+        {
+          "value" : "https://example.com/rdap/entity/301",
+          "rel" : "self",
+          "href": "https://example.com/rdap/entity/301",
+          "type" : "application/rdap+json"
+        }
+      ],
+      "publicIds" :
+      [
+        {
+          "type" : "IANA Registrar ID",
+          "identifier" : "301"
+        }
+      ],
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Entity 1"],
+          ["adr", {}, "text",
+            [
+              "",
+              "",
+              "123 Example Boulevard <script>",
+              "Williamsburg <script>",
+              "NY",
+              "11211",
+              "United States"
+            ]
+          ],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+          ["email", {}, "text", "contact-us@example.com"]
+        ]
+      ],
+      "roles" : ["registrar"]
+    },
+    {
+      "objectClassName" : "entity",
+      "handle" : "302",
+      "status" : ["active"],
+      "links" :
+      [
+        {
+          "value" : "https://example.com/rdap/entity/302",
+          "rel" : "self",
+          "href": "https://example.com/rdap/entity/302",
+          "type" : "application/rdap+json"
+        }
+      ],
+      "publicIds" :
+      [
+        {
+          "type" : "IANA Registrar ID",
+          "identifier" : "302"
+        }
+      ],
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Entity 2"],
+          ["adr", {}, "text",
+            [
+              "",
+              "",
+              "123 Example Boulevard <script>",
+              "Williamsburg <script>",
+              "NY",
+              "11211",
+              "United States"
+            ]
+          ],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+          ["email", {}, "text", "contact-us@example.com"]
+        ]
+      ],
+      "roles" : ["registrar"]
+    },
+    {
+      "objectClassName" : "entity",
+      "handle" : "303",
+      "status" : ["active"],
+      "links" :
+      [
+        {
+          "value" : "https://example.com/rdap/entity/303",
+          "rel" : "self",
+          "href": "https://example.com/rdap/entity/303",
+          "type" : "application/rdap+json"
+        }
+      ],
+      "publicIds" :
+      [
+        {
+          "type" : "IANA Registrar ID",
+          "identifier" : "303"
+        }
+      ],
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Entity 3"],
+          ["adr", {}, "text",
+            [
+              "",
+              "",
+              "123 Example Boulevard <script>",
+              "Williamsburg <script>",
+              "NY",
+              "11211",
+              "United States"
+            ]
+          ],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+          ["email", {}, "text", "contact-us@example.com"]
+        ]
+      ],
+      "roles" : ["registrar"]
+    },
+    {
+      "objectClassName" : "entity",
+      "handle" : "304",
+      "status" : ["active"],
+      "links" :
+      [
+        {
+          "value" : "https://example.com/rdap/entity/304",
+          "rel" : "self",
+          "href": "https://example.com/rdap/entity/304",
+          "type" : "application/rdap+json"
+        }
+      ],
+      "publicIds" :
+      [
+        {
+          "type" : "IANA Registrar ID",
+          "identifier" : "304"
+        }
+      ],
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Entity 4"],
+          ["adr", {}, "text",
+            [
+              "",
+              "",
+              "123 Example Boulevard <script>",
+              "Williamsburg <script>",
+              "NY",
+              "11211",
+              "United States"
+            ]
+          ],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+          ["email", {}, "text", "contact-us@example.com"]
+        ]
+      ],
+      "roles" : ["registrar"]
+    }
+  ],
+  "rdapConformance": [ "rdap_level_0" ],
+  "notices" :
+  [
+    {
+      "title" : "RDAP Terms of Service",
+      "description" :
+      [
+        "By querying our Domain Database, you are agreeing to comply with these terms so please read them carefully.",
+        "Any information provided is 'as is' without any guarantee of accuracy.",
+        "Please do not misuse the Domain Database. It is intended solely for query-based access.",
+        "Don't use the Domain Database to allow, enable, or otherwise support the transmission of mass unsolicited, commercial advertising or solicitations.",
+        "Don't access our Domain Database through the use of high volume, automated electronic processes that send queries or data to the systems of Charleston Road Registry or any ICANN-accredited registrar.",
+        "You may only use the information contained in the Domain Database for lawful purposes.",
+        "Do not compile, repackage, disseminate, or otherwise use the information contained in the Domain Database in its entirety, or in any substantial portion, without our prior written permission.",
+        "We may retain certain details about queries to our Domain Database for the purposes of detecting and preventing misuse.",
+        "We reserve the right to restrict or deny your access to the database if we suspect that you have failed to comply with these terms.",
+        "We reserve the right to modify this agreement at any time."
+      ],
+      "links" :
+      [
+        {
+          "value" : "https://example.com/rdap/help/tos",
+          "rel" : "alternate",
+          "href" : "https://www.registry.google/about/rdap/tos.html",
+          "type" : "text/html"
+        }
+      ]
+    }
+  ],
+  "remarks" :
+  [
+    {
+      "description" :
+      [
+        "This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"
+      ]
+    }
+  ]
+}

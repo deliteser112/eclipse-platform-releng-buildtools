@@ -128,8 +128,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
       return RdapSearchResults.create(
           ImmutableList.of(
               RdapJsonFormatter.makeRdapJsonForHost(
-                  hostResource, false, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL)),
-          false);
+                  hostResource, false, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL)));
     // Handle queries with a wildcard, but no suffix. There are no pending deletes for hosts, so we
     // can call queryUndeleted.
     } else if (partialStringQuery.getSuffix() == null) {

@@ -95,7 +95,7 @@
     }
   ],
   "rdapConformance": [ "rdap_level_0" ],
-    "notices" :
+  "notices" :
   [
     {
       "title" : "RDAP Terms of Service",

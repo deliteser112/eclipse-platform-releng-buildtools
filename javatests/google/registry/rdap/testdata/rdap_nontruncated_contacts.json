@@ -3,14 +3,14 @@
   [
     {
       "objectClassName" : "entity",
-      "handle" : "2-ROID",
+      "handle" : "7-ROID",
       "status" : ["active"],
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/2-ROID",
+          "value" : "https://example.com/rdap/entity/7-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/2-ROID",
+          "href": "https://example.com/rdap/entity/7-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -28,13 +28,13 @@
         "vcard",
         [
           ["version", {}, "text", "4.0"],
-          ["fn", {}, "text", "Blinky (赤ベイ)"],
+          ["fn", {}, "text", "Entity 1"],
           ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
           ["adr", {}, "text",
             [
               "",
               "",
-              ["123 Blinky St", "Blinkyland"],
+              "123 Example Boulevard <script>",
               "KOKOMO",
               "BM",
               "31337",
@@ -43,21 +43,20 @@
           ],
           ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
           ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
-          ["email", {}, "text", "blinky@b.tld"]
+          ["email", {}, "text", "contact1@gmail.com"]
         ]
       ]
     },
     {
       "objectClassName" : "entity",
-      "handle" : "2-Registrar",
+      "handle" : "8-ROID",
       "status" : ["active"],
-      "roles" : ["registrar"],
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/2-Registrar",
+          "value" : "https://example.com/rdap/entity/8-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/2-Registrar",
+          "href": "https://example.com/rdap/entity/8-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -70,11 +69,50 @@
           "type": "object truncated due to unexplainable reasons"
         }
       ],
-      "publicIds" :
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Entity 2"],
+          ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
+          ["adr", {}, "text",
+            [
+              "",
+              "",
+              "123 Example Boulevard <script>",
+              "KOKOMO",
+              "BM",
+              "31337",
+              "United States"
+            ]
+          ],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
+          ["email", {}, "text", "contact2@gmail.com"]
+        ]
+      ]
+    },
+    {
+      "objectClassName" : "entity",
+      "handle" : "9-ROID",
+      "status" : ["active"],
+      "links" :
       [
         {
-          "type" : "IANA Registrar ID",
-          "identifier" : "1"
+          "value" : "https://example.com/rdap/entity/9-ROID",
+          "rel" : "self",
+          "href": "https://example.com/rdap/entity/9-ROID",
+          "type" : "application/rdap+json"
+        }
+      ],
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
         }
       ],
       "vcardArray" :
@@ -82,21 +120,68 @@
         "vcard",
         [
           ["version", {}, "text", "4.0"],
-          ["fn", {}, "text", "Yes Virginia <script>"],
+          ["fn", {}, "text", "Entity 3"],
+          ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
           ["adr", {}, "text",
             [
               "",
               "",
-              "123 Example Boulevard <script>"
-              "Williamsburg <script>",
-              "NY",
-              "11211",
+              "123 Example Boulevard <script>",
+              "KOKOMO",
+              "BM",
+              "31337",
               "United States"
             ]
           ],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
-          ["email", {}, "text", "contact-us@example.com"]
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
+          ["email", {}, "text", "contact3@gmail.com"]
+        ]
+      ]
+    },
+    {
+      "objectClassName" : "entity",
+      "handle" : "A-ROID",
+      "status" : ["active"],
+      "links" :
+      [
+        {
+          "value" : "https://example.com/rdap/entity/A-ROID",
+          "rel" : "self",
+          "href": "https://example.com/rdap/entity/A-ROID",
+          "type" : "application/rdap+json"
+        }
+      ],
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Entity 4"],
+          ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
+          ["adr", {}, "text",
+            [
+              "",
+              "",
+              "123 Example Boulevard <script>",
+              "KOKOMO",
+              "BM",
+              "31337",
+              "United States"
+            ]
+          ],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
+          ["email", {}, "text", "contact4@gmail.com"]
         ]
       ]
     }

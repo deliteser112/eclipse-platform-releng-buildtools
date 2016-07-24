@@ -17,6 +17,7 @@ package google.registry.rdap;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistResources;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
@@ -27,6 +28,7 @@ import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
@@ -34,6 +36,8 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
+import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
@@ -120,7 +124,7 @@ public class RdapEntitySearchActionTest {
     action.clock = clock;
     action.requestPath = RdapEntitySearchAction.PATH;
     action.response = response;
-    action.rdapResultSetMaxSize = 100;
+    action.rdapResultSetMaxSize = 4;
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
     action.fnParam = Optional.absent();
@@ -175,6 +179,38 @@ public class RdapEntitySearchActionTest {
     RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.com/rdap/");
     RdapTestHelper.addNonDomainBoilerplateRemarks(builder);
     return builder.build();
+  }
+
+  private void createManyContactsAndRegistrars(int numContacts, int numRegistrars) {
+    ImmutableList.Builder<ImmutableObject> resourcesBuilder = new ImmutableList.Builder<>();
+    for (int i = 1; i <= numContacts; i++) {
+      resourcesBuilder.add(makeContactResource(
+          String.format("contact%d", i),
+          String.format("Entity %d", i),
+          String.format("contact%d@gmail.com", i)));
+    }
+    persistResources(resourcesBuilder.build());
+    for (int i = 1; i <= numRegistrars; i++) {
+      resourcesBuilder.add(
+          makeRegistrar(
+              String.format("registrar%d", i),
+              String.format("Entity %d", i + numContacts),
+              Registrar.State.ACTIVE,
+              300L + i));
+    }
+    persistResources(resourcesBuilder.build());
+  }
+
+  private void checkNumberOfEntitiesInResult(Object obj, int expected) {
+    assertThat(obj).isInstanceOf(Map.class);
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> map = (Map<String, Object>) obj;
+
+    @SuppressWarnings("unchecked")
+    List<Object> domains = (List<Object>) map.get("entitySearchResults");
+
+    assertThat(domains).hasSize(expected);
   }
 
   @Test
@@ -275,6 +311,62 @@ public class RdapEntitySearchActionTest {
   }
 
   @Test
+  public void testNameMatch_nonTruncatedContacts() throws Exception {
+    createManyContactsAndRegistrars(4, 0);
+    assertThat(generateActualJsonWithFullName("Entity *"))
+        .isEqualTo(generateExpectedJson("rdap_nontruncated_contacts.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_truncatedContacts() throws Exception {
+    createManyContactsAndRegistrars(5, 0);
+    assertThat(generateActualJsonWithFullName("Entity *"))
+        .isEqualTo(generateExpectedJson("rdap_truncated_contacts.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_reallyTruncatedContacts() throws Exception {
+    createManyContactsAndRegistrars(9, 0);
+    assertThat(generateActualJsonWithFullName("Entity *"))
+        .isEqualTo(generateExpectedJson("rdap_truncated_contacts.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_nonTruncatedRegistrars() throws Exception {
+    createManyContactsAndRegistrars(0, 4);
+    assertThat(generateActualJsonWithFullName("Entity *"))
+        .isEqualTo(generateExpectedJson("rdap_nontruncated_registrars.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_truncatedRegistrars() throws Exception {
+    createManyContactsAndRegistrars(0, 5);
+    assertThat(generateActualJsonWithFullName("Entity *"))
+        .isEqualTo(generateExpectedJson("rdap_truncated_registrars.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_reallyTruncatedRegistrars() throws Exception {
+    createManyContactsAndRegistrars(0, 9);
+    assertThat(generateActualJsonWithFullName("Entity *"))
+        .isEqualTo(generateExpectedJson("rdap_truncated_registrars.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_truncatedMixOfContactsAndRegistrars() throws Exception {
+    createManyContactsAndRegistrars(3, 3);
+    assertThat(generateActualJsonWithFullName("Entity *"))
+        .isEqualTo(generateExpectedJson("rdap_truncated_mixed_entities.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
   public void testHandleMatch_2roid_found() throws Exception {
     assertThat(generateActualJsonWithHandle("2-ROID"))
         .isEqualTo(
@@ -351,5 +443,13 @@ public class RdapEntitySearchActionTest {
   public void testHandleMatch_3teststar_notFound() throws Exception {
     generateActualJsonWithHandle("3test*");
     assertThat(response.getStatus()).isEqualTo(404);
+  }
+  
+  @Test
+  public void testHandleMatch_truncatedEntities() throws Exception {
+    createManyContactsAndRegistrars(300, 0);
+    Object obj = generateActualJsonWithHandle("10*");
+    assertThat(response.getStatus()).isEqualTo(200);
+    checkNumberOfEntitiesInResult(obj, 4);
   }
 }
