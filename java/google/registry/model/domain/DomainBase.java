@@ -35,6 +35,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Ordering;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
@@ -185,15 +186,16 @@ public abstract class DomainBase extends EppResource {
   }
 
   /** Loads and returns the fully qualified host names of all linked nameservers. */
-  public ImmutableSet<String> loadNameserverFullyQualifiedHostNames() {
+  public ImmutableSortedSet<String> loadNameserverFullyQualifiedHostNames() {
     return FluentIterable.from(ofy().load().refs(getNameservers()).values())
         .transform(
             new Function<HostResource, String>() {
               @Override
               public String apply(HostResource host) {
                 return host.getFullyQualifiedHostName();
-              }})
-        .toSet();
+              }
+            })
+        .toSortedSet(Ordering.natural());
   }
 
   /** A reference to the registrant who registered this domain. */
