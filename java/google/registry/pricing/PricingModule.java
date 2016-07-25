@@ -25,8 +25,8 @@ import google.registry.model.pricing.StaticPremiumListPricingEngine;
  * Dagger module for injecting pricing engines.
  *
  * <p>To add a new pricing engine, create a new class that implements {@link PremiumPricingEngine},
- * and add a module that provides an instance of PricingEngine with a
- * <code>PricingEngineClassKey</code> annotation with the class of the implementation and also
+ * and add a module that provides an instance of {@link PremiumPricingEngine} with a
+ * {@link PremiumPricingEngineClassKey} annotation with the class of the implementation and also
  * <code>@Provides @IntoMap</code> annotations.
  */
 @Module
