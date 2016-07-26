@@ -6,4 +6,5 @@ licenses(["notice"])  # Apache 2.0
 filegroup(
     name = "html_files",
     srcs = glob(["*.html"]),
+    compatible_with = ["//buildenv/target:appengine"],
 )

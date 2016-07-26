@@ -8,11 +8,13 @@ load("@io_bazel_rules_closure//closure:defs.bzl", "closure_css_library", "closur
 filegroup(
     name = "css_files",
     srcs = glob(["*.css"]),
+    compatible_with = ["//buildenv/target:appengine"],
 )
 
 closure_css_library(
     name = "kd_components_lib",
     srcs = ["kd_components.css"],
+    compatible_with = ["//buildenv/target:appengine"],
 )
 
 
@@ -23,6 +25,7 @@ closure_css_library(
         "forms.css",
         "registry.css",
     ],
+    compatible_with = ["//buildenv/target:appengine"],
     deps = [":kd_components_lib"],
 )
 
@@ -36,16 +39,19 @@ closure_css_library(
         "resources.css",
         "security-settings.css",
     ],
+    compatible_with = ["//buildenv/target:appengine"],
     deps = [":registry_lib"],
 )
 
 closure_css_binary(
     name = "registrar_bin",
+    compatible_with = ["//buildenv/target:appengine"],
     deps = [":registrar_lib"],
 )
 
 closure_css_binary(
     name = "registrar_dbg",
+    compatible_with = ["//buildenv/target:appengine"],
     debug = 1,
     deps = [":registrar_lib"],
 )

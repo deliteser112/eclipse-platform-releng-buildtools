@@ -6,6 +6,7 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "server",
     srcs = glob(["*.java"]),
+    compatible_with = ["//buildenv/target:appengine"],
     resources = [
         "//java/google/registry/ui:globals.txt",
         "//java/google/registry/ui/css:registrar_bin.css.js",

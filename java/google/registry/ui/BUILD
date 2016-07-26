@@ -10,6 +10,7 @@ exports_files(["globals.txt"])
 filegroup(
     name = "assets_recursive",
     srcs = glob(["assets/**"]),
+    compatible_with = ["//buildenv/target:appengine"],
 )
 
 filegroup(
@@ -20,6 +21,7 @@ filegroup(
         "//java/google/registry/ui/soy:js_files",
         "//java/google/registry/ui/soy/registrar:js_files",
     ],
+    compatible_with = ["//buildenv/target:appengine"],
 )
 
 filegroup(
@@ -56,6 +58,7 @@ filegroup(
 java_library(
     name = "ui",
     srcs = glob(["*.java"]),
+    compatible_with = ["//buildenv/target:appengine"],
     deps = [
         "//java/com/google/common/base",
         "//third_party/java/appengine:appengine-api",
@@ -68,6 +71,7 @@ java_library(
 
 closure_js_deps(
     name = "deps",
+    compatible_with = ["//buildenv/target:appengine"],
     deps = [
         "//java/google/registry/ui/js",
         "//java/google/registry/ui/js/registrar",
@@ -84,6 +88,7 @@ closure_js_deps(
 # non-union minified equivalents.
 closure_js_binary(
     name = "registrar_bin",
+    compatible_with = ["//buildenv/target:appengine"],
     css = "//java/google/registry/ui/css:registrar_bin",
     entry_points = ["goog:registry.registrar.main"],
     deps = [
@@ -100,6 +105,7 @@ genrule(
     outs = ["registrar_bin_map.js"],
     cmd = "cat $(location registrar_bin.js) >$@ && " +
           "echo '//# sourceMappingURL=registrar_bin.js.map' >>$@",
+    compatible_with = ["//buildenv/target:appengine"],
 )
 
 # This target creates a compiled JavaScript file where symbols are renamed to
@@ -109,6 +115,7 @@ genrule(
 # an extra underscore.
 closure_js_binary(
     name = "registrar_dbg",
+    compatible_with = ["//buildenv/target:appengine"],
     css = "//java/google/registry/ui/css:registrar_dbg",
     debug = 1,
     entry_points = ["goog:registry.registrar.main"],
@@ -124,6 +131,7 @@ closure_js_binary(
 
 closure_js_binary(
     name = "brain_bin",
+    compatible_with = ["//buildenv/target:appengine"],
     entry_points = ["goog:registry.registrar.BrainFrame.main"],
     deps = [
         "//java/google/registry/ui/externs",
@@ -137,4 +145,5 @@ genrule(
     outs = ["brain_bin_map.js"],
     cmd = "cat $(location brain_bin.js) >$@ && " +
           "echo '//# sourceMappingURL=brain_bin.js.map' >>$@",
+    compatible_with = ["//buildenv/target:appengine"],
 )

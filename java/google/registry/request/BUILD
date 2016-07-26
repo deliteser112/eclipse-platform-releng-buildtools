@@ -9,6 +9,7 @@ java_library(
         ["*.java"],
         exclude = ["Modules.java"],
     ),
+    compatible_with = ["//buildenv/target:appengine"],
     visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/annotations",
@@ -33,6 +34,7 @@ java_library(
 java_library(
     name = "modules",
     srcs = ["Modules.java"],
+    compatible_with = ["//buildenv/target:appengine"],
     visibility = ["//visibility:public"],
     deps = [
         ":request",

@@ -8,6 +8,7 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "idn",
     srcs = glob(["*.java"]),
+    compatible_with = ["//buildenv/target:appengine"],
     resources = glob(["*.txt"]),
     deps = [
         "//java/com/google/common/annotations",

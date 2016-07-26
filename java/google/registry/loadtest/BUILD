@@ -8,11 +8,13 @@ licenses(["notice"])  # Apache 2.0
 filegroup(
     name = "templates",
     srcs = glob(["templates/*.xml"]),
+    compatible_with = ["//buildenv/target:appengine"],
 )
 
 java_library(
     name = "loadtest",
     srcs = glob(["*.java"]),
+    compatible_with = ["//buildenv/target:appengine"],
     resources = [":templates"],
     deps = [
         "//java/com/google/common/base",

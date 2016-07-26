@@ -36,6 +36,7 @@ genrule(
         "@SuppressWarnings({\"unchecked\",\"serial\",\"cast\"}) " +
         "public class/'",
     ]),
+    compatible_with = ["//buildenv/target:appengine"],
     tools = ["//third_party/java/jaxb:jaxb-xjc"],
 )
 
@@ -49,6 +50,7 @@ genrule(
     srcs = ["package-info.java.in"],
     outs = pkginfo_generated_files,
     cmd = "$(location :make_pkginfo) $(SRCS) $(@D)",
+    compatible_with = ["//buildenv/target:appengine"],
     tools = [
         ":jaxb_srcs",
         ":make_pkginfo",
@@ -58,6 +60,7 @@ genrule(
 java_library(
     name = "xjc",
     srcs = glob(["*.java"]) + xjc_generated_files + pkginfo_generated_files,
+    compatible_with = ["//buildenv/target:appengine"],
     deps = [
         "//java/com/google/common/collect",
         "//third_party/java/joda_time",

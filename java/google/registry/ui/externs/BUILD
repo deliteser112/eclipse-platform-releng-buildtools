@@ -7,6 +7,7 @@ load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
 
 closure_js_library(
     name = "externs",
+    compatible_with = ["//buildenv/target:appengine"],
     externs = glob(["*.js"]),
 )
 
