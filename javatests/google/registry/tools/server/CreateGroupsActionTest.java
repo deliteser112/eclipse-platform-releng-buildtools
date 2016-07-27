@@ -16,6 +16,7 @@ package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,7 +30,6 @@ import google.registry.request.Response;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -103,6 +103,7 @@ public class CreateGroupsActionTest {
         Role.MEMBER);
     try {
       runAction("NewRegistrar");
+      fail("Should have thrown InternalServerErrorException.");
     } catch (InternalServerErrorException e) {
       String responseString = e.toString();
       assertThat(responseString).contains("abuse => Success");
@@ -115,9 +116,7 @@ public class CreateGroupsActionTest {
       assertThat(responseString).contains(
           "technical => java.lang.RuntimeException: Invalid access.");
       verifyGroupCreationCallsForNewRegistrar();
-      return;
     }
-    Assert.fail("Should have thrown InternalServerErrorException.");
   }
 
   private void verifyGroupCreationCallsForNewRegistrar() throws Exception {

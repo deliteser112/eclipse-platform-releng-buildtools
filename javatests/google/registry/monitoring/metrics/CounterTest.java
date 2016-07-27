@@ -15,7 +15,6 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -123,12 +122,9 @@ public class CounterTest {
             "vdn",
             ImmutableSet.of(LabelDescriptor.create("label1", "bar")));
 
-    try {
-      counter.incrementBy(-1L, "foo");
-      fail("Test should not allow non-negative offsets");
-    } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("The offset provided must be non-negative");
-    }
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("The offset provided must be non-negative");
+    counter.incrementBy(-1L, "foo");
   }
 
   @Test

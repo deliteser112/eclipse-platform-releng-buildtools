@@ -15,13 +15,13 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
+import static org.junit.Assert.fail;
 
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
@@ -285,6 +285,7 @@ public class MutatingCommandTest {
             + "blockPremiumNames -> [false, true]\n");
     try {
       command.execute();
+      fail("Expected transaction to fail with IllegalStateException.");
     } catch (IllegalStateException e) {
       assertThat(e.getMessage()).contains("Entity changed since init() was called.");
       assertThat(ofy().load().entity(host1).now()).isNull();
@@ -293,9 +294,7 @@ public class MutatingCommandTest {
       // These two shouldn't've changed.
       assertThat(ofy().load().entity(registrar1).now()).isEqualTo(registrar1);
       assertThat(ofy().load().entity(registrar2).now()).isEqualTo(registrar2);
-      return;
     }
-    assertWithMessage("Expected transaction to fail with IllegalStateException").fail();
   }
 
   @Test

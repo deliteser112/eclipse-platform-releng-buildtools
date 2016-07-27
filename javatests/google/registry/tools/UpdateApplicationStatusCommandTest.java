@@ -16,7 +16,6 @@ package google.registry.tools;
 
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
 import static google.registry.model.domain.launch.ApplicationStatus.ALLOCATED;
 import static google.registry.model.domain.launch.ApplicationStatus.PENDING_ALLOCATION;
 import static google.registry.model.domain.launch.ApplicationStatus.REJECTED;
@@ -28,6 +27,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static org.joda.time.DateTimeZone.UTC;
+import static org.junit.Assert.fail;
 
 import com.google.common.collect.FluentIterable;
 import google.registry.model.domain.DomainApplication;
@@ -256,6 +256,7 @@ public class UpdateApplicationStatusCommandTest
 
     try {
       runCommandForced("--ids=2-Q9JYB4C", "--msg=\"Application rejected\"", "--status=REJECTED");
+      fail("Expected IllegalStateException \"Domain application has final status ALLOCATED\"");
     } catch (IllegalStateException e) {
       assertThat(e.getMessage()).contains("Domain application has final status ALLOCATED");
       assertAboutApplications().that(ofy().load().entity(domainApplication).now())
@@ -263,10 +264,7 @@ public class UpdateApplicationStatusCommandTest
       assertThat(getPollMessageCount()).isEqualTo(0);
       assertAboutHistoryEntries().that(loadLastHistoryEntry())
           .hasType(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE);
-      return;
     }
-    assert_().fail(
-        "Expected IllegalStateException \"Domain application has final status ALLOCATED\"");
   }
 
   @Test

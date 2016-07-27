@@ -17,6 +17,7 @@ package google.registry.whois;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.registrar.Registrar.State.ACTIVE;
 import static google.registry.model.registrar.Registrar.Type.PDT;
+import static google.registry.model.registry.Registries.getTlds;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
@@ -26,13 +27,11 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResourc
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
-import static org.junit.Assert.fail;
 
 import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.Registry.RegistryNotFoundException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
@@ -325,12 +324,7 @@ public class WhoisServerTest {
 
   @Test
   public void testRun_ipMapsToNameserverUnderNonAuthoritativeTld_notFound() throws Exception {
-    try {
-      Registry.get("com");
-      fail("Found Registry when none should exist");
-    } catch (RegistryNotFoundException e) {
-      // expected
-    }
+    assertThat(getTlds()).doesNotContain("com");
     persistResource(makeHostResource("ns1.google.com", "1.2.3.4"));
     newWhoisServer("nameserver 1.2.3.4").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -339,12 +333,7 @@ public class WhoisServerTest {
 
   @Test
   public void testRun_nameserverUnderNonAuthoritativeTld_notFound() throws Exception {
-    try {
-      Registry.get("com");
-      fail("Found Registry when none should exist");
-    } catch (RegistryNotFoundException e) {
-      // expected
-    }
+    assertThat(getTlds()).doesNotContain("com");
     persistResource(makeHostResource("ns1.google.com", "1.2.3.4"));
     newWhoisServer("nameserver ns1.google.com").run();
     assertThat(response.getStatus()).isEqualTo(200);
