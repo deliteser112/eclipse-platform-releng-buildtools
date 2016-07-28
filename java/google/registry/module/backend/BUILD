@@ -19,7 +19,7 @@ java_library(
         "//java/google/registry/config",
         "//java/google/registry/cron",
         "//java/google/registry/dns",
-        "//java/google/registry/dns/writer/api",
+        "//java/google/registry/dns/writer",
         "//java/google/registry/export",
         "//java/google/registry/export/sheet",
         "//java/google/registry/flows",

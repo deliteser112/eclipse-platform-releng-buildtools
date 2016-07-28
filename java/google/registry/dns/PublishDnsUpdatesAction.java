@@ -20,7 +20,7 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.net.InternetDomainName;
 import google.registry.config.ConfigModule.Config;
-import google.registry.dns.writer.api.DnsWriter;
+import google.registry.model.dns.DnsWriter;
 import google.registry.request.Action;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.Parameter;

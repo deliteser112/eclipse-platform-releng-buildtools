@@ -19,7 +19,7 @@ import static google.registry.model.EppResourceUtils.loadByUniqueId;
 
 import com.google.common.net.InternetDomainName;
 import google.registry.config.ConfigModule.Config;
-import google.registry.dns.writer.api.DnsWriter;
+import google.registry.model.dns.DnsWriter;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;

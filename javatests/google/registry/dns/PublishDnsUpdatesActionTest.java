@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.google.common.collect.ImmutableSet;
-import google.registry.dns.writer.api.DnsWriter;
+import google.registry.model.dns.DnsWriter;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.testing.AppEngineRule;

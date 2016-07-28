@@ -17,7 +17,7 @@ package google.registry.dns.writer.dnsupdate;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.dns.writer.api.DnsWriter;
+import google.registry.model.dns.DnsWriter;
 import javax.net.SocketFactory;
 
 /** Dagger module that provides a DnsUpdateWriter. */

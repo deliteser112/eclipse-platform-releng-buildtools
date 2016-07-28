@@ -32,7 +32,7 @@ java_library(
         "//java/google/registry/cron",
         "//java/google/registry/dns",
         "//java/google/registry/dns:constants",
-        "//java/google/registry/dns/writer/api",
+        "//java/google/registry/dns/writer",
         "//java/google/registry/model",
         "//java/google/registry/module/backend",
         "//java/google/registry/request",

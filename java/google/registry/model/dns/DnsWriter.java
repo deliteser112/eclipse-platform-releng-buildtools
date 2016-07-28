@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.dns.writer.api;
+package google.registry.model.dns;
 
 /**
  * Transaction object for sending an atomic batch of updates for a single zone to the DNS server.

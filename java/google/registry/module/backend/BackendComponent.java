@@ -17,7 +17,7 @@ package google.registry.module.backend;
 import dagger.Component;
 import google.registry.bigquery.BigqueryModule;
 import google.registry.config.ConfigModule;
-import google.registry.dns.writer.api.VoidDnsWriterModule;
+import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.export.DriveModule;
 import google.registry.export.sheet.SpreadsheetServiceModule;
 import google.registry.gcs.GcsServiceModule;

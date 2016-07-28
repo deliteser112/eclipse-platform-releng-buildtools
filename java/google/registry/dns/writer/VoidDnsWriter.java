@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.dns.writer.api;
+package google.registry.dns.writer;
 
 import com.google.common.base.Joiner;
+import google.registry.model.dns.DnsWriter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;

@@ -12,17 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.dns.writer.api;
+package google.registry.model.dns;
 
-import dagger.Module;
-import dagger.Provides;
+import java.lang.annotation.Documented;
+import javax.inject.Qualifier;
 
-/** Dagger module that disables DNS updates. */
-@Module
-public final class VoidDnsWriterModule {
-
-  @Provides
-  static DnsWriter provideDnsWriter() {
-    return new VoidDnsWriter();
-  }
-}
+/** Dagger qualifier for the fully-qualified zone name that's being updated. */
+@Qualifier
+@Documented
+public @interface DnsWriterZone {}
