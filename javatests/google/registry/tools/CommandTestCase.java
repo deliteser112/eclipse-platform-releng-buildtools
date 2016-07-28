@@ -147,6 +147,15 @@ public abstract class CommandTestCase<C extends Command> {
     return ofy().load().type(PollMessage.class).count();
   }
 
+  /**
+   * Asserts whether standard out matches an expected string, allowing for differences in
+   * ImmutableObject hash codes (i.e. "(@1234567)").
+   */
+  protected void assertStdoutForImmutableObjectIs(String expected) throws Exception {
+    assertThat(stripImmutableObjectHashCodes(getStdoutAsString()).trim())
+        .isEqualTo(stripImmutableObjectHashCodes(expected).trim());
+  }
+
   protected void assertStdoutIs(String expected) throws Exception {
     assertThat(getStdoutAsString()).isEqualTo(expected);
   }
@@ -175,6 +184,10 @@ public abstract class CommandTestCase<C extends Command> {
 
   List<String> getStdoutAsLines() {
     return Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(getStdoutAsString());
+  }
+
+  protected String stripImmutableObjectHashCodes(String string) {
+    return string.replaceAll("\\(@\\d+\\)", "(@)");
   }
 
   @SuppressWarnings("unchecked")
