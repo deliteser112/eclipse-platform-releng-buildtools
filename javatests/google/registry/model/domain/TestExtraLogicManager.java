@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import google.registry.flows.EppException;
 import google.registry.flows.domain.RegistryExtraFlowLogic;
@@ -34,6 +35,7 @@ import google.registry.model.eppinput.EppInput;
 import google.registry.model.reporting.HistoryEntry;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 import org.joda.time.DateTime;
 
 /**
@@ -57,7 +59,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   }
 
   @Override
-  public List<String> getExtensionFlags(
+  public Set<String> getExtensionFlags(
       DomainResource domainResource, String clientId, DateTime asOfDate) {
     // Take the part before the period, split by dashes, and treat each part after the first as
     // a flag.
@@ -65,7 +67,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
         Splitter.on('-').splitToList(
             Iterables.getFirst(
                 Splitter.on('.').split(domainResource.getFullyQualifiedDomainName()), ""));
-    return components.subList(1, components.size());
+    return ImmutableSet.copyOf(components.subList(1, components.size()));
   }
 
   BaseFee domainNameToFeeOrCredit(String domainName) {

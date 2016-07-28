@@ -19,7 +19,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.reporting.HistoryEntry;
-import java.util.List;
+import java.util.Set;
 import org.joda.time.DateTime;
 
 /**
@@ -28,11 +28,19 @@ import org.joda.time.DateTime;
  */
 public interface RegistryExtraFlowLogic {
 
-  /** Gets the flags to be used in the EPP flags extension. This is used for EPP info commands. */
-  public List<String> getExtensionFlags(
+  /**
+   * Gets the flags to be used in the EPP flags extension.
+   *
+   * <p>This is used for EPP info commands.
+   */
+  public Set<String> getExtensionFlags(
       DomainResource domainResource, String clientId, DateTime asOfDate);
 
-  /** Computes the expected creation fee, for use in fee challenges and the like. */
+  /**
+   * Computes the expected creation fee.
+   *
+   * <p>For use in fee challenges and the like.
+   */
   public BaseFee getCreateFeeOrCredit(
       String domainName,
       String clientId,
@@ -41,8 +49,10 @@ public interface RegistryExtraFlowLogic {
       EppInput eppInput) throws EppException;
 
   /**
-   * Performs additional tasks required for a create command. Any changes should not be persisted to
-   * Datastore until commitAdditionalLogicChanges is called.
+   * Performs additional tasks required for a create command.
+   *
+   * <p>Any changes should not be persisted to Datastore until commitAdditionalLogicChanges is
+   * called.
    */
   public void performAdditionalDomainCreateLogic(
       DomainResource domain,
@@ -53,8 +63,10 @@ public interface RegistryExtraFlowLogic {
       HistoryEntry historyEntry) throws EppException;
 
   /**
-   * Performs additional tasks required for a delete command. Any changes should not be persisted to
-   * Datastore until commitAdditionalLogicChanges is called.
+   * Performs additional tasks required for a delete command.
+   *
+   * <p>Any changes should not be persisted to Datastore until commitAdditionalLogicChanges is
+   * called.
    */
   public void performAdditionalDomainDeleteLogic(
       DomainResource domain,
@@ -63,7 +75,11 @@ public interface RegistryExtraFlowLogic {
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException;
 
-  /** Computes the expected renewal fee, for use in fee challenges and the like. */
+  /**
+   * Computes the expected renewal fee.
+   *
+   * <p>For use in fee challenges and the like.
+   */
   public BaseFee getRenewFeeOrCredit(
       DomainResource domain,
       String clientId,
@@ -72,8 +88,10 @@ public interface RegistryExtraFlowLogic {
       EppInput eppInput) throws EppException;
 
   /**
-   * Performs additional tasks required for a renew command. Any changes should not be persisted
-   * to Datastore until commitAdditionalLogicChanges is called.
+   * Performs additional tasks required for a renew command.
+   *
+   * <p>Any changes should not be persisted to Datastore until commitAdditionalLogicChanges is
+   * called.
    */
   public void performAdditionalDomainRenewLogic(
       DomainResource domain,
@@ -84,8 +102,10 @@ public interface RegistryExtraFlowLogic {
       HistoryEntry historyEntry) throws EppException;
 
   /**
-   * Performs additional tasks required for a restore command. Any changes should not be persisted
-   * to Datastore until commitAdditionalLogicChanges is called.
+   * Performs additional tasks required for a restore command.
+   *
+   * <p>Any changes should not be persisted to Datastore until commitAdditionalLogicChanges is
+   * called.
    */
   public void performAdditionalDomainRestoreLogic(
       DomainResource domain,
@@ -95,8 +115,10 @@ public interface RegistryExtraFlowLogic {
       HistoryEntry historyEntry) throws EppException;
 
   /**
-   * Performs additional tasks required for a transfer command. Any changes should not be persisted
-   * to Datastore until commitAdditionalLogicChanges is called.
+   * Performs additional tasks required for a transfer command.
+   *
+   * <p>Any changes should not be persisted to Datastore until commitAdditionalLogicChanges is
+   * called.
    */
   public void performAdditionalDomainTransferLogic(
       DomainResource domain,
@@ -106,7 +128,11 @@ public interface RegistryExtraFlowLogic {
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException;
 
-  /** Computes the expected update fee, for use in fee challenges and the like. */
+  /**
+   * Computes the expected update fee.
+   *
+   * <p>For use in fee challenges and the like.
+   */
   public BaseFee getUpdateFeeOrCredit(
       DomainResource domain,
       String clientId,
@@ -114,8 +140,10 @@ public interface RegistryExtraFlowLogic {
       EppInput eppInput) throws EppException;
 
   /**
-   * Performs additional tasks required for an update command. Any changes should not be persisted
-   * to Datastore until commitAdditionalLogicChanges is called.
+   * Performs additional tasks required for an update command.
+   *
+   * <p>Any changes should not be persisted to Datastore until commitAdditionalLogicChanges is
+   * called.
    */
   public void performAdditionalDomainUpdateLogic(
       DomainResource domain,

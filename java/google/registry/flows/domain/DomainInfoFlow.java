@@ -42,7 +42,7 @@ import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
-import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 
 /**
@@ -136,10 +136,10 @@ public final class DomainInfoFlow extends LoggedInFlow {
     Optional<RegistryExtraFlowLogic> extraLogicManager =
         RegistryExtraFlowLogicProxy.newInstanceForDomain(domain);
     if (extraLogicManager.isPresent()) {
-      List<String> flags = extraLogicManager.get().getExtensionFlags(
+      Set<String> flags = extraLogicManager.get().getExtensionFlags(
           domain, clientId, now); // As-of date is always now for info commands.
       if (!flags.isEmpty()) {
-        extensions.add(FlagsInfoResponseExtension.create(flags));
+        extensions.add(FlagsInfoResponseExtension.create(ImmutableList.copyOf(flags)));
       }
     }
     return forceEmptyToNull(extensions.build());
