@@ -15,8 +15,14 @@
 package google.registry.dns.writer.dnsupdate;
 
 import static com.google.common.base.Verify.verify;
+import static com.google.common.collect.Sets.intersection;
+import static com.google.common.collect.Sets.union;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.dns.DnsWriter;
@@ -90,17 +96,28 @@ public class DnsUpdateWriter implements DnsWriter {
     this.clock = clock;
   }
 
-  @Override
-  public void publishDomain(String domainName) {
+  /**
+   * Publish the domain, while keeping tracking of which host refresh quest triggered this domain
+   * refresh. Delete the requesting host in addition to all subordinate hosts.
+   *
+   * @param domainName the fully qualified domain name, with no trailing dot
+   * @param requestingHostName the fully qualified host name, with no trailing dot, that triggers
+   *     this domain refresh request
+   */
+  private void publishDomain(String domainName, String requestingHostName) {
     DomainResource domain = loadByUniqueId(DomainResource.class, domainName, clock.nowUtc());
     try {
       Update update = new Update(toAbsoluteName(findTldFromName(domainName)));
       update.delete(toAbsoluteName(domainName), Type.ANY);
-      if (domain != null && domain.shouldPublishToDns()) {
-        update.add(makeNameServerSet(domain));
-        update.add(makeDelegationSignerSet(domain));
+      if (domain != null) {
+        // As long as the domain exists, orphan glues should be cleaned.
+        deleteSubordinateHostAddressSet(domain, requestingHostName, update);
+        if (domain.shouldPublishToDns()) {
+          addInBailiwickNameServerSet(domain, update);
+          update.add(makeNameServerSet(domain));
+          update.add(makeDelegationSignerSet(domain));
+        }
       }
-
       Message response = transport.send(update);
       verify(
           response.getRcode() == Rcode.NOERROR,
@@ -111,27 +128,32 @@ public class DnsUpdateWriter implements DnsWriter {
       throw new RuntimeException("publishDomain failed: " + domainName, e);
     }
   }
+  
+  @Override
+  public void publishDomain(String domainName) {
+    publishDomain(domainName, null);
+  }
 
   @Override
   public void publishHost(String hostName) {
-    HostResource host = loadByUniqueId(HostResource.class, hostName, clock.nowUtc());
-    try {
-      Update update = new Update(toAbsoluteName(findTldFromName(hostName)));
-      update.delete(toAbsoluteName(hostName), Type.ANY);
-      if (host != null) {
-        update.add(makeAddressSet(host));
-        update.add(makeV6AddressSet(host));
-      }
+    // Get the superordinate domain name of the host.
+    InternetDomainName host = InternetDomainName.from(hostName);
+    ImmutableList<String> hostParts = host.parts();
+    Optional<InternetDomainName> tld = Registries.findTldForName(host);
 
-      Message response = transport.send(update);
-      verify(
-          response.getRcode() == Rcode.NOERROR,
-          "DNS server failed host update for '%s' rcode: %s",
-          hostName,
-          Rcode.string(response.getRcode()));
-    } catch (IOException e) {
-      throw new RuntimeException("publishHost failed: " + hostName, e);
+    // host not managed by our registry, no need to update DNS.
+    if (!tld.isPresent()) {
+      return;
     }
+
+    ImmutableList<String> tldParts = tld.get().parts();
+    ImmutableList<String> domainParts =
+        hostParts.subList(hostParts.size() - tldParts.size() - 1, hostParts.size());
+    String domain = Joiner.on(".").join(domainParts);
+
+    // Refresh the superordinate domain, always delete the host first to ensure idempotency,
+    // and only publish the host if it is a glue record.
+    publishDomain(domain, hostName);
   }
 
   /**
@@ -155,6 +177,29 @@ public class DnsUpdateWriter implements DnsWriter {
       signerSet.addRR(dsRecord);
     }
     return signerSet;
+  }
+
+  private void deleteSubordinateHostAddressSet(
+      DomainResource domain, String additionalHost, Update update) throws TextParseException {
+    for (String hostName :
+        union(
+            domain.getSubordinateHosts(),
+            (additionalHost == null
+                ? ImmutableSet.<String>of()
+                : ImmutableSet.of(additionalHost)))) {
+      update.delete(toAbsoluteName(hostName), Type.ANY);
+    }
+  }
+
+  private void addInBailiwickNameServerSet(DomainResource domain, Update update)
+      throws TextParseException {
+    for (String hostName :
+        intersection(
+            domain.loadNameserverFullyQualifiedHostNames(), domain.getSubordinateHosts())) {
+      HostResource host = loadByUniqueId(HostResource.class, hostName, clock.nowUtc());
+      update.add(makeAddressSet(host));
+      update.add(makeV6AddressSet(host));
+    }
   }
 
   private RRset makeNameServerSet(DomainResource domain) throws TextParseException {

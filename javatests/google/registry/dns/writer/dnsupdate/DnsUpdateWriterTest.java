@@ -18,6 +18,8 @@ import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
@@ -177,38 +179,138 @@ public class DnsUpdateWriterTest {
   @Test
   public void publishHostCreatePublishesAddressRecords() throws Exception {
     HostResource host =
-        persistActiveSubordinateHost("ns1.example.tld", persistActiveDomain("example.tld"))
+        persistResource(
+            newHostResource("ns1.example.tld")
+                .asBuilder()
+                .setInetAddresses(
+                    ImmutableSet.of(
+                        InetAddresses.forString("10.0.0.1"),
+                        InetAddresses.forString("10.1.0.1"),
+                        InetAddresses.forString("fd0e:a5c8:6dfb:6a5e:0:0:0:1")))
+                .build());
+    persistResource(
+        newDomainResource("example.tld")
             .asBuilder()
-            .setInetAddresses(
-                ImmutableSet.of(
-                    InetAddresses.forString("10.0.0.1"),
-                    InetAddresses.forString("10.1.0.1"),
-                    InetAddresses.forString("fd0e:a5c8:6dfb:6a5e:0:0:0:1")))
-            .build();
-    persistResource(host);
+            .addSubordinateHost("ns1.example.tld")
+            .addNameservers(ImmutableSet.of(Ref.create(host)))
+            .build());
 
     writer.publishHost("ns1.example.tld");
 
     verify(mockResolver).send(updateCaptor.capture());
     Update update = updateCaptor.getValue();
     assertThatUpdatedZoneIs(update, "tld.");
+    assertThatUpdateDeletes(update, "example.tld.", Type.ANY);
     assertThatUpdateDeletes(update, "ns1.example.tld.", Type.ANY);
     assertThatUpdateAdds(update, "ns1.example.tld.", Type.A, "10.0.0.1", "10.1.0.1");
     assertThatUpdateAdds(update, "ns1.example.tld.", Type.AAAA, "fd0e:a5c8:6dfb:6a5e:0:0:0:1");
-    assertThatTotalUpdateSetsIs(update, 3); // The delete, the A, and AAAA sets
+    assertThatUpdateAdds(update, "example.tld.", Type.NS, "ns1.example.tld.");
+    assertThatTotalUpdateSetsIs(update, 5);
   }
 
   @Test
   public void publishHostDeleteRemovesDnsRecords() throws Exception {
     persistDeletedHost("ns1.example.tld", clock.nowUtc());
+    persistActiveDomain("example.tld");
 
     writer.publishHost("ns1.example.tld");
 
     verify(mockResolver).send(updateCaptor.capture());
     Update update = updateCaptor.getValue();
     assertThatUpdatedZoneIs(update, "tld.");
+    assertThatUpdateDeletes(update, "example.tld.", Type.ANY);
     assertThatUpdateDeletes(update, "ns1.example.tld.", Type.ANY);
-    assertThatTotalUpdateSetsIs(update, 1); // Just the delete set
+    assertThatTotalUpdateSetsIs(update, 2); // Just the delete set
+  }
+
+  @Test
+  public void publishHostDeleteRemovesGlueRecords() throws Exception {
+    persistDeletedHost("ns1.example.tld", clock.nowUtc());
+    persistResource(
+        persistActiveDomain("example.tld")
+            .asBuilder()
+            .setNameservers(ImmutableSet.of(Ref.create(persistActiveHost("ns1.example.com"))))
+            .build());
+
+    writer.publishHost("ns1.example.tld");
+
+    verify(mockResolver).send(updateCaptor.capture());
+    Update update = updateCaptor.getValue();
+    assertThatUpdatedZoneIs(update, "tld.");
+    assertThatUpdateDeletes(update, "example.tld.", Type.ANY);
+    assertThatUpdateDeletes(update, "ns1.example.tld.", Type.ANY);
+    assertThatUpdateAdds(update, "example.tld.", Type.NS, "ns1.example.com.");
+    assertThatTotalUpdateSetsIs(update, 3);
+  }
+
+  @Test
+  public void publishDomainExternalAndInBailiwickNameServer() throws Exception {
+    HostResource externalNameserver = persistResource(newHostResource("ns1.example.com"));
+    HostResource inBailiwickNameserver =
+        persistResource(
+            newHostResource("ns1.example.tld")
+                .asBuilder()
+                .setInetAddresses(
+                    ImmutableSet.of(
+                        InetAddresses.forString("10.0.0.1"),
+                        InetAddresses.forString("10.1.0.1"),
+                        InetAddresses.forString("fd0e:a5c8:6dfb:6a5e:0:0:0:1")))
+                .build());
+
+    persistResource(
+        newDomainResource("example.tld")
+            .asBuilder()
+            .addSubordinateHost("ns1.example.tld")
+            .addNameservers(
+                ImmutableSet.of(Ref.create(externalNameserver), Ref.create(inBailiwickNameserver)))
+            .build());
+
+    writer.publishDomain("example.tld");
+
+    verify(mockResolver).send(updateCaptor.capture());
+    Update update = updateCaptor.getValue();
+    assertThatUpdatedZoneIs(update, "tld.");
+    assertThatUpdateDeletes(update, "example.tld.", Type.ANY);
+    assertThatUpdateDeletes(update, "ns1.example.tld.", Type.ANY);
+    assertThatUpdateAdds(update, "example.tld.", Type.NS, "ns1.example.com.", "ns1.example.tld.");
+    assertThatUpdateAdds(update, "ns1.example.tld.", Type.A, "10.0.0.1", "10.1.0.1");
+    assertThatUpdateAdds(update, "ns1.example.tld.", Type.AAAA, "fd0e:a5c8:6dfb:6a5e:0:0:0:1");
+    assertThatTotalUpdateSetsIs(update, 5);
+  }
+
+  @Test
+  public void publishDomainDeleteOrphanGlues() throws Exception {
+    HostResource inBailiwickNameserver =
+        persistResource(
+            newHostResource("ns1.example.tld")
+                .asBuilder()
+                .setInetAddresses(
+                    ImmutableSet.of(
+                        InetAddresses.forString("10.0.0.1"),
+                        InetAddresses.forString("10.1.0.1"),
+                        InetAddresses.forString("fd0e:a5c8:6dfb:6a5e:0:0:0:1")))
+                .build());
+
+    persistResource(
+        newDomainResource("example.tld")
+            .asBuilder()
+            .addSubordinateHost("ns1.example.tld")
+            .addSubordinateHost("foo.example.tld")
+            .addNameservers(ImmutableSet.of(Ref.create(inBailiwickNameserver)))
+            .build());
+
+    writer.publishDomain("example.tld");
+
+    verify(mockResolver).send(updateCaptor.capture());
+    Update update = updateCaptor.getValue();
+    assertThatUpdatedZoneIs(update, "tld.");
+    assertThatUpdateDeletes(update, "example.tld.", Type.ANY);
+    assertThatUpdateDeletes(update, "ns1.example.tld.", Type.ANY);
+    assertThatUpdateDeletes(update, "foo.example.tld.", Type.ANY);
+    assertThatUpdateAdds(update, "example.tld.", Type.NS, "ns1.example.tld.");
+    assertThatUpdateAdds(update, "ns1.example.tld.", Type.A, "10.0.0.1", "10.1.0.1");
+    assertThatUpdateAdds(update, "ns1.example.tld.", Type.AAAA, "fd0e:a5c8:6dfb:6a5e:0:0:0:1");
+    assertThatTotalUpdateSetsIs(update, 6);
   }
 
   @Test
