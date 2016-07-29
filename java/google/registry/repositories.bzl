@@ -274,8 +274,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "gson",
-      artifact = "com.google.code.gson:gson:2.4",
-      sha1 = "0695b63d702f505b9b916e02272e3b6381bade7f",
+      artifact = "com.google.code.gson:gson:2.7",
+      sha1 = "751f548c85fa49f330cecbb1875893f971b33c4e",
   )
 
   native.maven_jar(
@@ -304,8 +304,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "icu4j",
-      artifact = "com.ibm.icu:icu4j:56.1",
-      sha1 = "8dd6671f52165a0419e6de5e1016400875a90fa9",
+      artifact = "com.ibm.icu:icu4j:57.1",
+      sha1 = "198ea005f41219f038f4291f0b0e9f3259730e92",
   )
 
   native.maven_jar(
@@ -388,8 +388,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "json",
-      artifact = "org.json:json:20090211",
-      sha1 = "c183aa3a2a6250293808bba12262c8920ce5a51c",
+      artifact = "org.json:json:20160212",
+      sha1 = "a742e3f85161835b95877478c5dd5b405cefaab9",
   )
 
   native.maven_jar(
