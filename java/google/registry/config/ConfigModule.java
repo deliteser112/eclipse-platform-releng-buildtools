@@ -20,7 +20,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.ConfigModule.Config;
 import java.lang.annotation.Documented;
 import java.net.URI;
 import java.net.URL;
@@ -46,9 +45,9 @@ import org.joda.time.Duration;
  *
  * <p>It is recommended that users do not modify this file within a forked repository. It is
  * preferable to modify these settings by swapping out this module with a separate copied version
- * in the user's repository. For this to work, other files need to be copied too, such as
- * {@link google.registry.module.backend.BackendComponent BackendComponent}. This allows modules to
- * be substituted at the {@code @Component} level.
+ * in the user's repository. For this to work, other files need to be copied too, such as the
+ * {@code @Component} instances under {@code google.registry.module}.  This allows modules to be
+ * substituted at the {@code @Component} level.
  *
  * <p>There's also a deprecated configuration class that needs to be overridden and supplied via a
  * system property. See the instructions in {@link ProductionRegistryConfigExample} and
