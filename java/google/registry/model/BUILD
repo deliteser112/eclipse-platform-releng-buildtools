@@ -50,7 +50,6 @@ genrule(
     cmd = "for FILE in $(OUTS); do " +
           "./$(location generate_field_exposer.sh) $$FILE >> $$FILE;" +
           "done",
-    compatible_with = ["//buildenv/target:appengine"],
     visibility = ["//visibility:private"],
 )
 
@@ -62,7 +61,6 @@ genrule(
     cmd = "./$(location generate_field_exposer_registry.sh) \"" +
           ", ".join(FIELD_EXPOSERS) +
           ");\" >\"$@\"",
-    compatible_with = ["//buildenv/target:appengine"],
     visibility = ["//visibility:private"],
 )
 
@@ -73,7 +71,6 @@ java_library(
         "*/*.java",
         "*/*/*.java",
     ]) + ["FieldExposerRegistry.java"] + FIELD_EXPOSERS,
-    compatible_with = ["//buildenv/target:appengine"],
     visibility = ["//visibility:public"],
     deps = [
         ":field_exposer_registry",

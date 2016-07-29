@@ -21,7 +21,6 @@ java_library(
         "*.java",
         "**/*.java",
     ]),
-    compatible_with = ["//buildenv/target:appengine"],
     visibility = ["//visibility:public"],
     deps = [
         ":soy_java_wrappers",
@@ -60,6 +59,5 @@ java_library(
 closure_java_template_library(
     name = "soy_java_wrappers",
     srcs = glob(["soy/*.soy"]),
-    compatible_with = ["//buildenv/target:appengine"],
     java_package = "google.registry.flows.soy",
 )

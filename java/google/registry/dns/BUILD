@@ -11,7 +11,6 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "constants",
     srcs = ["DnsConstants.java"],
-    compatible_with = ["//buildenv/target:appengine"],
 )
 
 java_library(
@@ -20,7 +19,6 @@ java_library(
         ["*.java"],
         exclude = ["DnsConstants.java"],
     ),
-    compatible_with = ["//buildenv/target:appengine"],
     deps = [
         ":constants",
         "//java/com/google/common/annotations",

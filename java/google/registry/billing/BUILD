@@ -8,7 +8,6 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "billing",
     srcs = glob(["*.java"]),
-    compatible_with = ["//buildenv/target:appengine"],
     deps = [
         "//java/com/google/common/base",
         "//java/com/google/common/collect",

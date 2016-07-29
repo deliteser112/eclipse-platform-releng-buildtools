@@ -11,7 +11,6 @@ java_library(
         ["*.java"],
         exclude = glob(["*Servlet.java"]),
     ),
-    compatible_with = ["//buildenv/target:appengine"],
     visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/base",
@@ -34,7 +33,6 @@ java_library(
 java_library(
     name = "servlets",
     srcs = glob(["*Servlet.java"]),
-    compatible_with = ["//buildenv/target:appengine"],
     deps = [
         ":security",
         "//java/com/google/common/base",

@@ -6,7 +6,6 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "braintree",
     srcs = glob(["*.java"]),
-    compatible_with = ["//buildenv/target:appengine"],
     visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/base",

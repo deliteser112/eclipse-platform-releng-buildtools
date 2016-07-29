@@ -8,7 +8,6 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "groups",
     srcs = glob(["*.java"]),
-    compatible_with = ["//buildenv/target:appengine"],
     deps = [
         "//apiserving/discoverydata/admin:admin_directory_v1",
         "//apiserving/discoverydata/groupssettings",
