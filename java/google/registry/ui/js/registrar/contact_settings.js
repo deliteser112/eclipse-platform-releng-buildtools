@@ -17,6 +17,7 @@ goog.provide('registry.registrar.ContactSettings');
 goog.require('goog.Uri');
 goog.require('goog.array');
 goog.require('goog.dom');
+goog.require('goog.dom.TagName');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
 goog.require('goog.json');
@@ -58,12 +59,13 @@ registry.registrar.ContactSettings.prototype.setupAppbar = function() {
   registry.registrar.ContactSettings.base(this, 'setupAppbar');
   // Setup delete only on existing items, not on creates.
   if (goog.isDefAndNotNull(this.model)) {
-    var deleteBtn = goog.dom.createDom('button', {
-      type: 'button',
-      id: 'reg-app-btn-delete',
-      className: goog.getCssName('kd-button')
-    },
-    'Delete');
+    var deleteBtn = goog.dom.createDom(
+        goog.dom.TagName.BUTTON, {
+          type: 'button',
+          id: 'reg-app-btn-delete',
+          className: goog.getCssName('kd-button')
+        },
+        'Delete');
     goog.events.listen(deleteBtn, goog.events.EventType.CLICK,
         goog.bind(this.sendDelete, this));
     goog.dom.insertSiblingBefore(deleteBtn,
