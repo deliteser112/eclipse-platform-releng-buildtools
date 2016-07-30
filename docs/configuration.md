@@ -30,15 +30,14 @@ different values for different environments. This is especially pronounced in
 the `UNITTEST` and `LOCAL` environments, which don't run on App Engine at all.
 As an example, some timeouts may be long in production and short in unit tests.
 
-See the "App Engine architecture" documentation for more details on environments
-as used in the domain registry.
+See the [App Engine architecture](./app-engine-architecture.md) documentation
+for more details on environments as used by Nomulus.
 
 ## App Engine configuration
 
 App Engine configuration isn't covered in depth in this document as it is
 thoroughly documented in the [App Engine configuration docs][app-engine-config].
-The main files of note that come pre-configured along with the domain registry
-are:
+The main files of note that come pre-configured in Nomulus are:
 
 *   `cron.xml` -- Configuration of cronjobs
 *   `web.xml` -- Configuration of URL paths on the webserver
@@ -72,8 +71,8 @@ provides the instance of `RegistryConfig`, and defaults to returning
 In order to create a configuration specific to your registry, we recommend
 copying the `ProductionRegistryConfigExample` class to a new class that will not
 be shared publicly, setting the `google.registry.config` system property in the
-`appengine-web.xml` files to the fully qualified class name of that new class
-so that `RegistryConfigLoader` will load it instead, and then editing said new
+`appengine-web.xml` files to the fully qualified class name of that new class so
+that `RegistryConfigLoader` will load it instead, and then editing said new
 class to add your specific configuration options. There is one
 `appengine-web.xml` file per service (so three per environment). The same
 configuration class must be used for each service, but different ones can be

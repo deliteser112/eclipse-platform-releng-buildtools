@@ -1,4 +1,4 @@
-# Domain Registry EPP Command API Documentation
+# Nomulus EPP Command API Documentation
 
 ## ContactUpdateFlow
 

@@ -8,11 +8,11 @@ including how to set up an IDE environment and run tests.
 `RegistryTestServer` is a lightweight test server for the registry that is
 suitable for running locally for development. It uses local versions of all
 Google Cloud Platform dependencies, when available. Correspondingly, its
-functionality is limited compared to a Domain Registry instance running on an
-actual App Engine instance. It is most helpful for doing web UI development such
-as on the registrar console: it allows you to update JS, CSS, images, and other
-front-end resources, and see the changes instantly simply by refreshing the
-relevant page in your browser.
+functionality is limited compared to a Nomulus instance running on an actual App
+Engine instance. It is most helpful for doing web UI development such as on the
+registrar console: it allows you to update JS, CSS, images, and other front-end
+resources, and see the changes instantly simply by refreshing the relevant page
+in your browser.
 
 To see the registry server's command-line parameters, run:
 

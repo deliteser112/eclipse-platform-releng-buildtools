@@ -11,13 +11,13 @@ production registry system.
 
 ### Premium list file format
 
-The default domain registry codebase comes with a
-`StaticPremiumListPricingEngine` that determines premium prices of domain labels
-(i.e. the part of the domain name without the TLD) by checking for their
-presence on a list of prices in Datastore. `nomulus` is used to load and
-update these lists from flat text files. The format of this list is simple: It
-is a newline-delimited CSV text file with each line containing the label and its
-price (including currency specifier in ISO-4217 format). As an example:
+Nomulus comes with a `StaticPremiumListPricingEngine` that determines premium
+prices of domain labels (i.e. the part of the domain name without the TLD) by
+checking for their presence on a list of prices in Datastore. `nomulus` is used
+to load and update these lists from flat text files. The format of this list is
+simple: It is a newline-delimited CSV text file with each line containing the
+label and its price (including currency specifier in ISO-4217 format). As an
+example:
 
 ```
 premium,USD 100

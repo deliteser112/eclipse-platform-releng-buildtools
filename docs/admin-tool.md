@@ -2,7 +2,7 @@
 
 Nomulus includes a command-line registry administration tool that is invoked
 using the `nomulus` command. It has the ability to view and change a large
-number of things in a running domain registry environment, including creating
+number of things in a running Nomulus environment, including creating
 registrars, updating premium and reserved lists, running an EPP command from a
 given XML file, and performing various backend tasks like re-running RDE if the
 most recent export failed. Its code lives inside the tools package

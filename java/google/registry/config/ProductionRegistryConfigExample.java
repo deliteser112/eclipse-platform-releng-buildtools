@@ -187,7 +187,7 @@ public final class ProductionRegistryConfigExample implements RegistryConfig {
 
   @Override
   public String getDocumentationProjectTitle() {
-    return "Domain Registry";
+    return "Nomulus";
   }
 
   @Override
