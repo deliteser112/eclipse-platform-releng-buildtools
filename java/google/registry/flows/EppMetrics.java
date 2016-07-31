@@ -55,18 +55,22 @@ public class EppMetrics {
    * @see FlowRunner
    */
   public void incrementEppRequests(EppMetric metric) {
+    String eppStatusCode =
+        metric.getStatus().isPresent() ? String.valueOf(metric.getStatus().get().code) : "";
     eppRequests.increment(
         metric.getCommandName().or(""),
         metric.getClientId().or(""),
-        metric.getStatus().isPresent() ? metric.getStatus().toString() : "");
+        eppStatusCode);
   }
 
   /** Record the server-side processing time for an EPP request. */
   public void recordProcessingTime(EppMetric metric) {
+    String eppStatusCode =
+        metric.getStatus().isPresent() ? String.valueOf(metric.getStatus().get().code) : "";
     processingTime.record(
         metric.getEndTimestamp().getMillis() - metric.getStartTimestamp().getMillis(),
         metric.getCommandName().or(""),
         metric.getClientId().or(""),
-        metric.getStatus().isPresent() ? metric.getStatus().toString() : "");
+        eppStatusCode);
   }
 }

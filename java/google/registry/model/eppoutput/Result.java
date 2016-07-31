@@ -150,11 +150,6 @@ public class Result extends ImmutableObject {
     public boolean isSuccess() {
       return code < 2000;
     }
-
-    @Override
-    public String toString() {
-      return String.format("{code:'%s', msg:'%s', msgLang:'%s'}", code, msg, msgLang);
-    }
   }
 
   /** The result code for this result. This is always present. */
