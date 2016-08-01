@@ -720,11 +720,6 @@ enum google.registry.model.registry.Registry$TldType {
   REAL;
   TEST;
 }
-class google.registry.model.registry.RegistryCursor {
-  @Id java.lang.String cursorType;
-  @Parent com.googlecode.objectify.Key<google.registry.model.registry.Registry> registry;
-  org.joda.time.DateTime date;
-}
 class google.registry.model.registry.label.PremiumList {
   @Id java.lang.String name;
   @Parent com.googlecode.objectify.Key<google.registry.model.common.EntityGroupRoot> parent;
