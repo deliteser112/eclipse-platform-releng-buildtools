@@ -56,7 +56,7 @@ public final class TldSpecificLogicProxy {
      * Returns the total cost of all fees for the event.
      */
     public Money getTotalCost() {
-      Money result = Money.of(currency, 0);
+      Money result = Money.zero(currency);
       for (Fee fee : fees) {
         result = result.plus(fee.getCost());
       }
