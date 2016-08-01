@@ -1,4 +1,4 @@
-"""Tests for google.registry.reporting.icann_report_query_builder."""
+
 # Copyright 2016 The Domain Registry Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Tests for google.registry.reporting.icann_report_query_builder."""
 
 import os
 import unittest
