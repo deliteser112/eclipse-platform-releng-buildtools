@@ -19,9 +19,9 @@ import static google.registry.testing.DatastoreHelper.createTlds;
 
 import com.google.common.net.InternetDomainName;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -33,7 +33,7 @@ public class RegistriesTest {
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public ExceptionRule thrown = new ExceptionRule();
 
   private void initTestTlds() {
     createTlds("foo", "a.b.c"); // Test a multipart tld.

@@ -16,10 +16,10 @@ package google.registry.xml;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import google.registry.testing.ExceptionRule;
 import org.joda.time.LocalDate;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -28,7 +28,7 @@ import org.junit.runners.JUnit4;
 public class DateAdapterTest {
 
   @Rule
-  public final ExpectedException thrown = ExpectedException.none();
+  public final ExceptionRule thrown = new ExceptionRule();
 
   @Test
   public void testMarshal() {

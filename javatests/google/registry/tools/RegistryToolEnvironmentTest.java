@@ -16,9 +16,9 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import google.registry.testing.ExceptionRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -27,7 +27,7 @@ import org.junit.runners.JUnit4;
 public class RegistryToolEnvironmentTest {
 
   @Rule
-  public final ExpectedException thrown = ExpectedException.none();
+  public ExceptionRule thrown = new ExceptionRule();
 
   @Test
   public void testGet_withoutSetup_throws() throws Exception {
