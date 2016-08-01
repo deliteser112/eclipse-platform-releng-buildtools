@@ -17,9 +17,9 @@ package google.registry.xml;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 
+import google.registry.testing.ExceptionRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -28,7 +28,7 @@ import org.junit.runners.JUnit4;
 public class XmlTestUtilsTest {
 
   @Rule
-  public final ExpectedException thrown = ExpectedException.none();
+  public final ExceptionRule thrown = new ExceptionRule();
 
   void runTest(String file1, String file2) throws Exception {
     String s1 = readResourceUtf8(getClass(), "testdata/" + file1);
@@ -46,12 +46,12 @@ public class XmlTestUtilsTest {
     thrown.expect(AssertionError.class);
     runTest("simple.xml", "twoextensions_feeThenLaunch.xml");
   }
-  
+
   @Test
   public void testMultipleElementsInDifferentNamespaces() throws Exception {
     runTest("twoextensions_feeThenLaunch.xml", "twoextensions_launchThenFee.xml");
   }
-  
+
   @Test
   public void testMultipleElementsInDifferentNamespaces_differentValues() throws Exception {
     thrown.expect(AssertionError.class);

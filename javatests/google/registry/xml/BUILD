@@ -23,6 +23,7 @@ java_library(
         "//third_party/java/truth",
         "//java/google/registry/util",
         "//java/google/registry/xml",
+        "//javatests/google/registry/testing",
     ],
 )
 
