@@ -174,7 +174,7 @@ public abstract class CommandTestCase<C extends Command> {
     }
   }
 
-  void assertNotInStdout(String expected) throws Exception {
+  protected void assertNotInStdout(String expected) throws Exception {
     assertThat(getStdoutAsString()).doesNotContain(expected);
   }
 
