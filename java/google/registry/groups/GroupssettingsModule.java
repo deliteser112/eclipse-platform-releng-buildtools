@@ -20,38 +20,21 @@ import com.google.api.services.groupssettings.GroupssettingsScopes;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
-import dagger.multibindings.ElementsIntoSet;
 import google.registry.config.ConfigModule.Config;
-import google.registry.request.DelegatedOAuthScopes;
-import java.util.Set;
 import javax.inject.Named;
 
-/**
- * Dagger module for the Google {@link Groupssettings} service.
- *
- * @see google.registry.config.ConfigModule
- * @see google.registry.request.Modules.UrlFetchTransportModule
- * @see google.registry.request.Modules.Jackson2Module
- * @see google.registry.request.Modules.AppIdentityCredentialModule
- * @see google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule
- */
+/** Dagger module for the Google {@link Groupssettings} service. */
 @Module
 public final class GroupssettingsModule {
 
-  /** Provides OAuth2 scopes for the Groupssettings service needed by Domain Registry. */
   @Provides
-  @ElementsIntoSet
-  @DelegatedOAuthScopes
-  static Set<String> provideGroupssettingsOAuthScopes() {
-    return ImmutableSet.of(GroupssettingsScopes.APPS_GROUPS_SETTINGS);
-  }
-
-  @Provides
-  static Groupssettings provideGroupssettings(
+  static Groupssettings provideDirectory(
       @Named("delegatedAdmin") GoogleCredential credential,
       @Config("projectId") String projectId) {
-    return new Groupssettings
-        .Builder(credential.getTransport(), credential.getJsonFactory(), credential)
+    return new Groupssettings.Builder(
+            credential.getTransport(),
+            credential.getJsonFactory(),
+            credential.createScoped(ImmutableSet.of(GroupssettingsScopes.APPS_GROUPS_SETTINGS)))
         .setApplicationName(projectId)
         .build();
   }

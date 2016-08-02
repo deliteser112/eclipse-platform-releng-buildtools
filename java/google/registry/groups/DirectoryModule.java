@@ -20,39 +20,24 @@ import com.google.api.services.admin.directory.DirectoryScopes;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
-import dagger.multibindings.ElementsIntoSet;
 import google.registry.config.ConfigModule.Config;
-import google.registry.request.DelegatedOAuthScopes;
-import java.util.Set;
 import javax.inject.Named;
 
-/**
- * Dagger module for the Google {@link Directory} service.
- *
- * @see google.registry.config.ConfigModule
- * @see google.registry.request.Modules.UrlFetchTransportModule
- * @see google.registry.request.Modules.Jackson2Module
- * @see google.registry.request.Modules.AppIdentityCredentialModule
- * @see google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule
- */
+/** Dagger module for the Google {@link Directory} service. */
 @Module
 public final class DirectoryModule {
-
-  /** Provides OAuth2 scopes for the Directory service needed by Domain Registry. */
-  @Provides
-  @ElementsIntoSet
-  @DelegatedOAuthScopes
-  static Set<String> provideDirectoryOAuthScopes() {
-    return ImmutableSet.of(
-        DirectoryScopes.ADMIN_DIRECTORY_GROUP_MEMBER,
-        DirectoryScopes.ADMIN_DIRECTORY_GROUP);
-  }
 
   @Provides
   static Directory provideDirectory(
       @Named("delegatedAdmin") GoogleCredential credential,
       @Config("projectId") String projectId) {
-    return new Directory.Builder(credential.getTransport(), credential.getJsonFactory(), credential)
+    return new Directory.Builder(
+            credential.getTransport(),
+            credential.getJsonFactory(),
+            credential.createScoped(
+                ImmutableSet.of(
+                    DirectoryScopes.ADMIN_DIRECTORY_GROUP_MEMBER,
+                    DirectoryScopes.ADMIN_DIRECTORY_GROUP)))
         .setApplicationName(projectId)
         .build();
   }

@@ -19,40 +19,23 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
+import com.google.common.base.Function;
 import dagger.Module;
 import dagger.Provides;
-import dagger.multibindings.ElementsIntoSet;
 import google.registry.config.ConfigModule.Config;
-import google.registry.request.OAuthScopes;
 import java.util.Set;
 
-/**
- * Dagger module for Google {@link Drive} service connection objects.
- *
- * @see google.registry.config.ConfigModule
- * @see google.registry.request.Modules.UrlFetchTransportModule
- * @see google.registry.request.Modules.Jackson2Module
- * @see google.registry.request.Modules.AppIdentityCredentialModule
- * @see google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule
- */
+/** Dagger module for Google {@link Drive} service connection objects. */
 @Module
 public final class DriveModule {
-
-  /** Provides OAuth2 scopes for the Drive service needed by Domain Registry. */
-  @Provides
-  @ElementsIntoSet
-  @OAuthScopes
-  static Set<String> provideDriveOAuthScopes() {
-    return DriveScopes.all();
-  }
 
   @Provides
   static Drive provideDrive(
       HttpTransport transport,
       JsonFactory jsonFactory,
-      HttpRequestInitializer httpRequestInitializer,
+      Function<Set<String>, ? extends HttpRequestInitializer> credential,
       @Config("projectId") String projectId) {
-    return new Drive.Builder(transport, jsonFactory, httpRequestInitializer)
+    return new Drive.Builder(transport, jsonFactory, credential.apply(DriveScopes.all()))
         .setApplicationName(projectId)
         .build();
   }

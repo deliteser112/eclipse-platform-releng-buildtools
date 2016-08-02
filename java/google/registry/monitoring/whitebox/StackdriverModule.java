@@ -19,32 +19,23 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.MonitoringScopes;
+import com.google.common.base.Function;
 import dagger.Module;
 import dagger.Provides;
-import dagger.multibindings.ElementsIntoSet;
 import google.registry.config.ConfigModule.Config;
-import google.registry.request.OAuthScopes;
 import java.util.Set;
 
 /** Dagger module for Google Stackdriver service connection objects. */
 @Module
 public final class StackdriverModule {
 
-  /** Provides OAuth2 scopes for the Stackdriver service needed by Domain Registry. */
-  @Provides
-  @ElementsIntoSet
-  @OAuthScopes
-  static Set<String> provideStackdriverOAuthScopes() {
-    return MonitoringScopes.all();
-  }
-
   @Provides
   static Monitoring provideMonitoring(
       HttpTransport transport,
       JsonFactory jsonFactory,
-      HttpRequestInitializer httpRequestInitializer,
+      Function<Set<String>, ? extends HttpRequestInitializer> credential,
       @Config("projectId") String projectId) {
-    return new Monitoring.Builder(transport, jsonFactory, httpRequestInitializer)
+    return new Monitoring.Builder(transport, jsonFactory, credential.apply(MonitoringScopes.all()))
         .setApplicationName(projectId)
         .build();
   }

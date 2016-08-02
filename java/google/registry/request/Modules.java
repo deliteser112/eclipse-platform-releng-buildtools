@@ -31,6 +31,7 @@ import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
+import com.google.common.base.Function;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
@@ -40,6 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Set;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 /** Dagger modules for App Engine services and other vendor classes. */
@@ -124,20 +126,41 @@ public final class Modules {
   @Module
   public static final class AppIdentityCredentialModule {
     @Provides
-    static AppIdentityCredential provideAppIdentityCredential(@OAuthScopes Set<String> scopes) {
-      return new AppIdentityCredential(scopes);
+    static Function<Set<String>, AppIdentityCredential> provideAppIdentityCredential() {
+      return new Function<Set<String>, AppIdentityCredential>() {
+        @Override
+        public AppIdentityCredential apply(Set<String> scopes) {
+          return new AppIdentityCredential(scopes);
+        }
+      };
     }
   }
 
   /**
    * Dagger module causing Google APIs requests to be authorized with your GAE app identity.
    *
-   * <p>You must also use the {@link AppIdentityCredential} module.
+   * <p>You must also use the {@link AppIdentityCredentialModule}.
    */
   @Module
   public abstract static class UseAppIdentityCredentialForGoogleApisModule {
     @Binds
-    abstract HttpRequestInitializer provideHttpRequestInitializer(AppIdentityCredential credential);
+    abstract Function<Set<String>, ? extends HttpRequestInitializer>
+        provideHttpRequestInitializer(Function<Set<String>, AppIdentityCredential> credential);
+  }
+
+  /**
+   * Module indicating Google API requests should be authorized with JSON {@link GoogleCredential}.
+   *
+   * <p>This is useful when configuring a component that runs the registry outside of the App Engine
+   * environment, for example, in a command line environment.
+   *
+   * <p>You must also use the {@link GoogleCredentialModule}.
+   */
+  @Module
+  public abstract static class UseGoogleCredentialForGoogleApisModule {
+    @Binds
+    abstract Function<Set<String>, ? extends HttpRequestInitializer>
+        provideHttpRequestInitializer(Function<Set<String>, GoogleCredential> credential);
   }
 
   /**
@@ -160,6 +183,7 @@ public final class Modules {
   public static final class GoogleCredentialModule {
 
     @Provides
+    @Singleton
     static GoogleCredential provideGoogleCredential(
         HttpTransport httpTransport,
         JsonFactory jsonFactory,
@@ -170,6 +194,17 @@ public final class Modules {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
+    }
+
+    @Provides
+    static Function<Set<String>, GoogleCredential> provideScopedGoogleCredential(
+        final Provider<GoogleCredential> googleCredentialProvider) {
+      return new Function<Set<String>, GoogleCredential>() {
+        @Override
+        public GoogleCredential apply(Set<String> scopes) {
+          return googleCredentialProvider.get().createScoped(scopes);
+        }
+      };
     }
 
     /**
@@ -183,14 +218,12 @@ public final class Modules {
     static GoogleCredential provideDelegatedAdminGoogleCredential(
         GoogleCredential googleCredential,
         HttpTransport httpTransport,
-        @DelegatedOAuthScopes Set<String> scopes,
         @Config("googleAppsAdminEmailAddress") String googleAppsAdminEmailAddress) {
       return new GoogleCredential.Builder()
           .setTransport(httpTransport)
           .setJsonFactory(googleCredential.getJsonFactory())
           .setServiceAccountId(googleCredential.getServiceAccountId())
           .setServiceAccountPrivateKey(googleCredential.getServiceAccountPrivateKey())
-          .setServiceAccountScopes(scopes)
           .setServiceAccountUser(googleAppsAdminEmailAddress)
           .build();
     }

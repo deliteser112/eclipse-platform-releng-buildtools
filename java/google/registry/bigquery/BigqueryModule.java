@@ -20,25 +20,16 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.BigqueryScopes;
 import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
-import dagger.multibindings.ElementsIntoSet;
 import dagger.multibindings.Multibinds;
 import google.registry.config.ConfigModule.Config;
-import google.registry.request.OAuthScopes;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Dagger module for Google {@link Bigquery} connection objects.
- *
- * @see google.registry.config.ConfigModule
- * @see google.registry.request.Modules.UrlFetchTransportModule
- * @see google.registry.request.Modules.Jackson2Module
- * @see google.registry.request.Modules.AppIdentityCredentialModule
- * @see google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule
- */
+/** Dagger module for Google {@link Bigquery} connection objects. */
 @Module
 public abstract class BigqueryModule {
 
@@ -46,21 +37,13 @@ public abstract class BigqueryModule {
   @Multibinds
   abstract Map<String, ImmutableList<TableFieldSchema>> bigquerySchemas();
 
-  /** Provides OAuth2 scopes for the Bigquery service needed by Domain Registry. */
-  @Provides
-  @ElementsIntoSet
-  @OAuthScopes
-  static Set<String> provideBigqueryOAuthScopes() {
-    return BigqueryScopes.all();
-  }
-
   @Provides
   static Bigquery provideBigquery(
       HttpTransport transport,
       JsonFactory jsonFactory,
-      HttpRequestInitializer httpRequestInitializer,
+      Function<Set<String>, ? extends HttpRequestInitializer> credential,
       @Config("projectId") String projectId) {
-    return new Bigquery.Builder(transport, jsonFactory, httpRequestInitializer)
+    return new Bigquery.Builder(transport, jsonFactory, credential.apply(BigqueryScopes.all()))
         .setApplicationName(projectId)
         .build();
   }
