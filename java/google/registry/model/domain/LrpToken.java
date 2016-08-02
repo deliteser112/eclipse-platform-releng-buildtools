@@ -14,6 +14,7 @@
 
 package google.registry.model.domain;
 
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.googlecode.objectify.Key;
@@ -24,6 +25,8 @@ import google.registry.model.BackupGroupRoot;
 import google.registry.model.Buildable;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.HistoryEntry.Type;
+
+import java.util.Set;
 
 /**
  * An entity representing a token distributed to eligible LRP registrants.
@@ -42,6 +45,11 @@ public class LrpToken extends BackupGroupRoot implements Buildable {
    */
   @Index
   String token;
+
+  /**
+   * A list of TLDs for which this LRP token is valid.
+   */
+  Set<String> validTlds;
 
   /**
    * The key of the history entry for which the token was used. Given LRP is a domain application
@@ -63,6 +71,10 @@ public class LrpToken extends BackupGroupRoot implements Buildable {
 
   public boolean isRedeemed() {
     return redemptionHistoryEntry != null;
+  }
+
+  public Set<String> getValidTlds() {
+    return nullToEmptyImmutableCopy(validTlds);
   }
 
   @Override
@@ -90,6 +102,11 @@ public class LrpToken extends BackupGroupRoot implements Buildable {
     
     public Builder setRedemptionHistoryEntry(Key<HistoryEntry> redemptionHistoryEntry) {
       getInstance().redemptionHistoryEntry = checkArgumentNotNull(redemptionHistoryEntry);
+      return this;
+    }
+
+    public Builder setValidTlds(Set<String> validTlds) {
+      getInstance().validTlds = validTlds;
       return this;
     }
   }
