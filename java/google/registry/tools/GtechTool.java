@@ -52,6 +52,7 @@ public final class GtechTool {
           .put("get_applied_labels", GetAppliedLabelsCommand.class)
           .put("get_contact", GetContactCommand.class)
           .put("get_domain", GetDomainCommand.class)
+          .put("get_lrp_token", GetLrpTokenCommand.class)
           .put("get_history_entries", GetHistoryEntriesCommand.class)
           .put("get_host", GetHostCommand.class)
           .put("get_registrar", GetRegistrarCommand.class)
