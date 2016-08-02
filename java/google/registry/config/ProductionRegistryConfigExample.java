@@ -99,11 +99,6 @@ public final class ProductionRegistryConfigExample implements RegistryConfig {
   }
 
   @Override
-  public String getEscrowFileImportBucket() {
-    return getProjectId() + "-escrow-import";
-  }
-
-  @Override
   public boolean getTmchCaTestingMode() {
     switch (environment) {
       case PRODUCTION:
