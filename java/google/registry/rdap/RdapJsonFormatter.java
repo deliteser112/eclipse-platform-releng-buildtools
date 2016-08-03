@@ -836,6 +836,23 @@ public class RdapJsonFormatter {
     ImmutableList.Builder<Object> builder = new ImmutableList.Builder<>();
     builder.add(""); // PO box
     builder.add(""); // extended address
+
+    // The vCard spec allows several different ways to handle multiline street addresses. Per
+    // Gustavo Lozano of ICANN, the one we should use is an embedded array of street address lines
+    // if there is more than one line:
+    //
+    //   RFC7095 provides two examples of structured addresses, and one of the examples shows a
+    //   street JSON element that contains several data elements. The example showing (see below)
+    //   several data elements is the expected output when two or more <contact:street> elements
+    //   exists in the contact object.
+    //
+    //   ["adr", {}, "text",
+    //    [
+    //    "", "",
+    //    ["My Street", "Left Side", "Second Shack"],
+    //    "Hometown", "PA", "18252", "U.S.A."
+    //    ]
+    //   ]
     ImmutableList<String> street = address.getStreet();
     if (street.isEmpty()) {
       builder.add("");

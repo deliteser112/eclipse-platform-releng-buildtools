@@ -66,6 +66,8 @@ public class RdapEntityAction extends RdapActionBase {
       wasValidKey = true;
       Key<ContactResource> contactKey = Key.create(ContactResource.class, pathSearchString);
       ContactResource contactResource = ofy().load().key(contactKey).now();
+      // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
+      // they are global, and might have different roles for different domains.
       if ((contactResource != null) && clock.nowUtc().isBefore(contactResource.getDeletionTime())) {
         return RdapJsonFormatter.makeRdapJsonForContact(
             contactResource,

@@ -296,6 +296,18 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
+  public void testRolelessContact() throws Exception {
+    assertThat(
+            RdapJsonFormatter.makeRdapJsonForContact(
+                contactResourceTech,
+                false,
+                Optional.<DesignatedContact.Type>absent(),
+                LINK_BASE,
+                WHOIS_SERVER))
+        .isEqualTo(loadJson("rdapjson_rolelesscontact.json"));
+  }
+
+  @Test
   public void testDomain_full() throws Exception {
     assertThat(
             RdapJsonFormatter.makeRdapJsonForDomain(

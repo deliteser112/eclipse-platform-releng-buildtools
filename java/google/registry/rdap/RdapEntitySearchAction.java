@@ -86,6 +86,14 @@ public class RdapEntitySearchAction extends RdapActionBase {
     ImmutableList<ImmutableMap<String, Object>> results;
     if (fnParam.isPresent()) {
       // syntax: /rdap/entities?fn=Bobby%20Joe*
+      // TODO(b/25973399): implement entity name search, and move the comment below to that routine
+      // As per Gustavo Lozano of ICANN, registrar name search should be by registrar name only, not
+      // by registrar contact name:
+      //
+      //   The search is by registrar name only. The profile is supporting the functionality defined
+      //   in the Base Registry Agreement (see 1.6 of Section 4 of the Base Registry Agreement,
+      //   https://newgtlds.icann.org/sites/default/files/agreements/
+      //   agreement-approved-09jan14-en.htm).
       throw new NotImplementedException("Entity name search not implemented");
     } else {
       // syntax: /rdap/entities?handle=12345-*
@@ -113,6 +121,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
       Registrar registrar = Registrar.loadByClientId(partialStringQuery.getInitialString());
       ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
       if ((contactResource != null) && contactResource.getDeletionTime().isEqual(END_OF_TIME)) {
+        // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
+        // they are global, and might have different roles for different domains.
         builder.add(RdapJsonFormatter.makeRdapJsonForContact(
             contactResource,
             false,
