@@ -17,8 +17,8 @@ java_library(
     ),
     resources = [
         "logging.properties",
-        "//java/google/registry/env/common/default:WEB-INF/datastore-indexes.xml",
-        "//java/google/registry/env/common/default:WEB-INF/queue.xml",
+        "//java/google/registry:env/common/default/WEB-INF/datastore-indexes.xml",
+        "//java/google/registry:env/common/default/WEB-INF/queue.xml",
     ] + glob(["*.csv"]),
     visibility = ["//visibility:public"],
     deps = [
