@@ -184,31 +184,32 @@ then the sandbox app would be named 'registry-platform-sandbox'.
 The full list of environments supported out-of-the-box, in descending order from
 real to not, is:
 
-* PRODUCTION -- The real production environment that is actually running live
+* `PRODUCTION` -- The real production environment that is actually running live
   TLDs.  Since the Domain Registry is a shared registry platform, there need
   only ever be one of these.
-* SANDBOX -- A playground environment for external users to test commands in
+* `SANDBOX` -- A playground environment for external users to test commands in
   without the possibility of affecting production data.  This is the environment
   new registrars go through
   [OT&E](https://www.icann.org/resources/unthemed-pages/registry-agmt-appc-e-2001-04-26-en)
   in.  Sandbox is also useful as a final sanity check to push a new prospective
   build to and allow it to "bake" before pushing it to production.
-* QA -- An internal environment used by business users to play with and sign off
-  on new features to be released.  This environment can be pushed to frequently
-  and is where manual testers should be spending the majority of their time.
-* CRASH -- Another environment similar to QA, except with no expectations of
+* `QA` -- An internal environment used by business users to play with and sign
+  off on new features to be released.  This environment can be pushed to
+  frequently and is where manual testers should be spending the majority of
+  their time.
+* `CRASH` -- Another environment similar to QA, except with no expectations of
   data preservation.  Crash is used for testing of backup/restore (which brings
   the entire system down until it is completed) without affecting the QA
   environment.
-* ALPHA -- The developers' playground.  Experimental builds are routinely pushed
-  here in order to test them on a real app running on App Engine.  You may end
-  up wanting multiple environments like Alpha if you regularly experience
-  contention (i.e. developers being blocked from testing their code on Alpha
-  because others are already using it).
-* LOCAL -- A fake environment that is used when running the app locally on a
+* `ALPHA` -- The developers' playground.  Experimental builds are routinely
+  pushed here in order to test them on a real app running on App Engine.  You
+  may end up wanting multiple environments like Alpha if you regularly
+  experience contention (i.e. developers being blocked from testing their code
+  on Alpha because others are already using it).
+* `LOCAL` -- A fake environment that is used when running the app locally on a
   simulated App Engine instance.
-* UNITTEST -- A fake environment that is used in unit tests, where everything in
-  the App Engine stack is simulated or mocked.
+* `UNITTEST` -- A fake environment that is used in unit tests, where everything
+  in the App Engine stack is simulated or mocked.
 
 ## Release process
 
