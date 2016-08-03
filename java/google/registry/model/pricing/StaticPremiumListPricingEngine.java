@@ -34,6 +34,9 @@ import org.joda.time.DateTime;
 /** A premium list pricing engine that stores static pricing information in Datastore entities. */
 public final class StaticPremiumListPricingEngine implements PremiumPricingEngine {
 
+  /** The name of the pricing engine, as used in {@code Registry.pricingEngineClassName}. */
+  public static final String NAME = "google.registry.model.pricing.StaticPremiumListPricingEngine";
+
   @Inject StaticPremiumListPricingEngine() {}
 
   @Override

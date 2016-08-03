@@ -18,9 +18,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import google.registry.model.pricing.PremiumPricingEngine;
 import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
 import google.registry.model.registry.Registry;
@@ -34,20 +31,8 @@ import org.joda.time.DateTime;
  */
 public final class PricingEngineProxy {
 
-  private static final Map<Class<? extends PremiumPricingEngine>, PremiumPricingEngine>
-      premiumPricingEngineClasses = DaggerPricingComponent.create().premiumPricingEngines();
-
-  // Dagger map keys have to be provided with constant values that are known at compile time, so it
-  // can't be done using clazz.getCanonicalName().  So we construct the map by canonical name here,
-  // at runtime.
-  private static final ImmutableMap<String, PremiumPricingEngine> premiumPricingEngines =
-      Maps.uniqueIndex(
-          premiumPricingEngineClasses.values(),
-          new Function<PremiumPricingEngine, String>() {
-            @Override
-            public String apply(PremiumPricingEngine pricingEngine) {
-              return pricingEngine.getClass().getCanonicalName();
-            }});
+  private static final Map<String, PremiumPricingEngine>
+      premiumPricingEngines = DaggerPricingComponent.create().premiumPricingEngines();
 
   /** Returns the billing cost for registering the specified domain name for this many years. */
   public static Money getDomainCreateCost(String domainName, DateTime priceTime, int years) {

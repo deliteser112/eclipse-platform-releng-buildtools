@@ -29,5 +29,5 @@ import javax.inject.Singleton;
 @Singleton
 @Component(modules = {PricingModule.class})
 interface PricingComponent {
-  Map<Class<? extends PremiumPricingEngine>, PremiumPricingEngine> premiumPricingEngines();
+  Map<String, PremiumPricingEngine> premiumPricingEngines();
 }

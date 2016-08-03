@@ -58,7 +58,6 @@ import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.common.TimedTransitionProperty;
 import google.registry.model.common.TimedTransitionProperty.TimedTransition;
 import google.registry.model.domain.fee.EapFee;
-import google.registry.model.pricing.PremiumPricingEngine;
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservedList;
@@ -252,15 +251,18 @@ public class Registry extends ImmutableObject implements Buildable {
   @OnLoad
   void backfillPricingEngine() {
     if (pricingEngineClassName == null) {
-      pricingEngineClassName = StaticPremiumListPricingEngine.class.getCanonicalName();
+      pricingEngineClassName = StaticPremiumListPricingEngine.NAME;
     }
   }
 
   /**
-   * The fully qualified canonical classname of the pricing engine that this TLD uses.
+   * The name of the pricing engine that this TLD uses.
    *
    * <p>This must be a valid key for the map of pricing engines injected by
-   * <code>@Inject Map<String, PricingEngine></code>
+   * {@code @Inject Map<String, PricingEngine>}.
+   *
+   * <p>Note that it used to be the canonical class name, hence the name of this field, but this
+   * restriction has since been relaxed and it may now be any unique string.
    */
   String pricingEngineClassName;
 
@@ -609,10 +611,8 @@ public class Registry extends ImmutableObject implements Buildable {
       return this;
     }
 
-    public Builder setPremiumPricingEngineClass(
-        Class<? extends PremiumPricingEngine> pricingEngineClass) {
-      getInstance().pricingEngineClassName =
-          checkArgumentNotNull(pricingEngineClass).getCanonicalName();
+    public Builder setPremiumPricingEngine(String pricingEngineClass) {
+      getInstance().pricingEngineClassName = checkArgumentNotNull(pricingEngineClass);
       return this;
     }
 

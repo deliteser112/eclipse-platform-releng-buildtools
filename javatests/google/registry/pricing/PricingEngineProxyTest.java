@@ -25,7 +25,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableSortedMap;
-import google.registry.model.pricing.PremiumPricingEngine;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.testing.AppEngineRule;
@@ -145,14 +144,12 @@ public class PricingEngineProxyTest {
   public void testFailure_cantLoadPricingEngine() throws Exception {
     createTld("example");
     persistResource(
-        Registry.get("example").asBuilder().setPremiumPricingEngineClass(FakePricingEngine.class).build());
+        Registry.get("example")
+            .asBuilder()
+            .setPremiumPricingEngine("fake")
+            .build());
     thrown.expect(
-        IllegalStateException.class,
-        String.format(
-            "Could not load pricing engine %s for TLD example",
-            FakePricingEngine.class.getCanonicalName()));
+        IllegalStateException.class, "Could not load pricing engine fake for TLD example");
     getDomainCreateCost("bad.example", clock.nowUtc(), 1);
   }
-
-  private abstract static class FakePricingEngine implements PremiumPricingEngine {}
 }
