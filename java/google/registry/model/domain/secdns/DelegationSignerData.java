@@ -17,6 +17,7 @@ package google.registry.model.domain.secdns;
 import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.ImmutableObject;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
@@ -89,5 +90,16 @@ public class DelegationSignerData
   @Override
   public int compareTo(DelegationSignerData other) {
     return Integer.compare(getKeyTag(), other.getKeyTag());
+  }
+
+  /**
+   * Returns the presentation format of this DS record.
+   *
+   * @see <a href="https://tools.ietf.org/html/rfc4034#section-5.3">RFC 4034 Section 5.3</a>
+   */
+  public String toRrData() {
+    return String.format(
+        "%d %d %d %s",
+        this.keyTag, this.algorithm, this.digestType, DatatypeConverter.printHexBinary(digest));
   }
 }
