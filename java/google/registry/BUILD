@@ -19,9 +19,13 @@ package_group(
 
 zip_file(
     name = "common_war",
-    srcs = ["//third_party/java/appengine:appengine-api"],
+    srcs = [
+        "@appengine_api_sdk//jar",
+    ],
     out = "mandatory_stuff.war",
-    mappings = {"third_party/java/appengine": "WEB-INF/lib"},
+    mappings = {
+        "external/appengine_api_sdk/jar": "WEB-INF/lib",
+    },
     visibility = ["//visibility:private"],
 )
 
