@@ -21,6 +21,7 @@ java_library(
         "//third_party/java/dagger",
         "//third_party/java/joda_time",
         "//java/google/registry/config",
+        "//java/google/registry/dns/writer",
         "//java/google/registry/model",
         "//java/google/registry/util",
     ],

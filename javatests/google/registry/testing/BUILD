@@ -51,6 +51,7 @@ java_library(
         "//third_party/java/truth",
         "//java/google/registry/config",
         "//java/google/registry/dns:constants",
+        "//java/google/registry/dns/writer",
         "//java/google/registry/flows",
         "//java/google/registry/model",
         "//java/google/registry/pricing",

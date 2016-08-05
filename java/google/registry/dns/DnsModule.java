@@ -30,7 +30,7 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.dns.DnsConstants.TargetType;
-import google.registry.model.dns.DnsWriterZone;
+import google.registry.dns.writer.DnsWriterZone;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import java.util.Set;

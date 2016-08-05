@@ -675,6 +675,7 @@ class google.registry.model.registry.Registry {
   google.registry.model.common.TimedTransitionProperty<org.joda.money.Money, google.registry.model.registry.Registry$BillingCostTransition> eapFeeSchedule;
   google.registry.model.common.TimedTransitionProperty<org.joda.money.Money, google.registry.model.registry.Registry$BillingCostTransition> renewBillingCostTransitions;
   google.registry.model.registry.Registry$TldType tldType;
+  java.lang.String dnsWriter;
   java.lang.String driveFolderId;
   java.lang.String lordnUsername;
   java.lang.String pricingEngineClassName;

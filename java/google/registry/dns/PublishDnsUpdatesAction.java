@@ -20,7 +20,7 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.net.InternetDomainName;
 import google.registry.config.ConfigModule.Config;
-import google.registry.model.dns.DnsWriter;
+import google.registry.dns.writer.DnsWriter;
 import google.registry.request.Action;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.Parameter;
@@ -30,7 +30,6 @@ import google.registry.util.FormattingLogger;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
-import javax.inject.Provider;
 import org.joda.time.Duration;
 
 /** Task that sends domain and host updates to the DNS server. */
@@ -44,7 +43,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Inject DnsQueue dnsQueue;
-  @Inject Provider<DnsWriter> writerProvider;
+  @Inject DnsWriterProxy dnsWriterProxy;
   @Inject @Config("dnsWriteLockTimeout") Duration timeout;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
   @Inject @Parameter(DOMAINS_PARAM) Set<String> domains;
@@ -73,7 +72,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
 
   /** Steps through the domain and host refreshes contained in the parameters and processes them. */
   private void processBatch() {
-    try (DnsWriter writer = writerProvider.get()) {
+    try (DnsWriter writer = dnsWriterProxy.getForTld(tld)) {
       for (String domain : nullToEmpty(domains)) {
         if (!DomainNameUtils.isUnder(
             InternetDomainName.from(domain), InternetDomainName.from(tld))) {

@@ -53,6 +53,7 @@ import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Saver;
 import google.registry.config.RegistryEnvironment;
+import google.registry.dns.writer.VoidDnsWriter;
 import google.registry.model.Buildable;
 import google.registry.model.EppResource;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
@@ -222,19 +223,20 @@ public class DatastoreHelper {
   public static Registry newRegistry(
       String tld, String roidSuffix, ImmutableSortedMap<DateTime, TldState> tldStates) {
     return new Registry.Builder()
-      .setTldStr(tld)
-      .setRoidSuffix(roidSuffix)
-      .setTldStateTransitions(tldStates)
-      // Set billing costs to distinct small primes to avoid masking bugs in tests.
-      .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, 11)))
-      .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(USD)))
-      .setCreateBillingCost(Money.of(USD, 13))
-      .setRestoreBillingCost(Money.of(USD, 17))
-      .setServerStatusChangeBillingCost(Money.of(USD, 19))
-      // Always set a default premium list. Tests that don't want it can delete it.
-      .setPremiumList(persistPremiumList(tld, DEFAULT_PREMIUM_LIST_CONTENTS.get()))
-      .setPremiumPricingEngine(StaticPremiumListPricingEngine.NAME)
-      .build();
+        .setTldStr(tld)
+        .setRoidSuffix(roidSuffix)
+        .setTldStateTransitions(tldStates)
+        // Set billing costs to distinct small primes to avoid masking bugs in tests.
+        .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, 11)))
+        .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(USD)))
+        .setCreateBillingCost(Money.of(USD, 13))
+        .setRestoreBillingCost(Money.of(USD, 17))
+        .setServerStatusChangeBillingCost(Money.of(USD, 19))
+        // Always set a default premium list. Tests that don't want it can delete it.
+        .setPremiumList(persistPremiumList(tld, DEFAULT_PREMIUM_LIST_CONTENTS.get()))
+        .setPremiumPricingEngine(StaticPremiumListPricingEngine.NAME)
+        .setDnsWriter(VoidDnsWriter.NAME)
+        .build();
   }
 
   public static ContactResource persistActiveContact(String contactId) {

@@ -45,6 +45,7 @@ java_library(
         "//java/com/google/common/util/concurrent",
         "//java/google/registry/bigquery",
         "//java/google/registry/config",
+        "//java/google/registry/dns/writer",
         "//java/google/registry/export",
         "//java/google/registry/flows",
         "//java/google/registry/keyring/api",

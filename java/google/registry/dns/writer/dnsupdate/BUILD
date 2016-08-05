@@ -21,6 +21,7 @@ java_library(
         "//third_party/java/jsr305_annotations",
         "//third_party/java/jsr330_inject",
         "//java/google/registry/config",
+        "//java/google/registry/dns/writer",
         "//java/google/registry/model",
         "//java/google/registry/util",
     ],

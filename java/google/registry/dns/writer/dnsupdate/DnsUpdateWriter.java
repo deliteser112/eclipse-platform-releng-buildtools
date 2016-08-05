@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.ConfigModule.Config;
-import google.registry.model.dns.DnsWriter;
+import google.registry.dns.writer.DnsWriter;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
@@ -74,6 +74,12 @@ import org.xbill.DNS.Update;
  * "reset" to empty and republished.
  */
 public class DnsUpdateWriter implements DnsWriter {
+
+  /**
+   * The name of the pricing engine, as used in {@code Registry.dnsWriter}. Remember to change
+   * the value on affected Registry objects to prevent runtime failures.
+   */
+  public static final String NAME = "DnsUpdateWriter";
 
   private final Duration dnsTimeToLive;
   private final DnsMessageTransport transport;

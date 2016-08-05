@@ -32,8 +32,8 @@ import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.RateLimiter;
 import google.registry.config.ConfigModule.Config;
-import google.registry.model.dns.DnsWriter;
-import google.registry.model.dns.DnsWriterZone;
+import google.registry.dns.writer.DnsWriter;
+import google.registry.dns.writer.DnsWriterZone;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
@@ -58,6 +58,12 @@ import org.joda.time.Duration;
  * @see "https://cloud.google.com/dns/docs/"
  */
 class CloudDnsWriter implements DnsWriter {
+
+  /**
+   * The name of the pricing engine, as used in {@code Registry.dnsWriter}. Remember to change
+   * the value on affected Registry objects to prevent runtime failures.
+   */
+  public static final String NAME = "CloudDnsWriter";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 

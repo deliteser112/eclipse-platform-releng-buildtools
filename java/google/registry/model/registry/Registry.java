@@ -255,6 +255,16 @@ public class Registry extends ImmutableObject implements Buildable {
     }
   }
 
+  /** Backfill the Registry entities that were saved before this field was added. */
+  // TODO(shikhman): Remove this backfill once it is populated on all Registry entities.
+  @OnLoad
+  void backfillDnsWriter() {
+    if (dnsWriter == null) {
+      dnsWriter = "VoidDnsWriter";
+    }
+  }
+
+
   /**
    * The name of the pricing engine that this TLD uses.
    *
@@ -265,6 +275,14 @@ public class Registry extends ImmutableObject implements Buildable {
    * restriction has since been relaxed and it may now be any unique string.
    */
   String pricingEngineClassName;
+
+  /**
+   * The name of the DnsWriter that this TLD uses.
+   *
+   * <p>This must be a valid key for the map of DnsWriters injected by <code>
+   * @Inject Map<String, DnsWriter></code>
+   */
+  String dnsWriter;
 
   /**
    * The unicode-aware representation of the TLD associated with this {@link Registry}.
@@ -545,6 +563,10 @@ public class Registry extends ImmutableObject implements Buildable {
     return pricingEngineClassName;
   }
 
+  public String getDnsWriter() {
+    return dnsWriter;
+  }
+
   public ImmutableSet<String> getAllowedRegistrantContactIds() {
     return nullToEmptyImmutableCopy(allowedRegistrantContactIds);
   }
@@ -615,6 +637,12 @@ public class Registry extends ImmutableObject implements Buildable {
       getInstance().pricingEngineClassName = checkArgumentNotNull(pricingEngineClass);
       return this;
     }
+
+    public Builder setDnsWriter(String dnsWriter) {
+      getInstance().dnsWriter = checkArgumentNotNull(dnsWriter);
+      return this;
+    }
+
 
     public Builder setAddGracePeriodLength(Duration addGracePeriodLength) {
       checkArgument(addGracePeriodLength.isLongerThan(Duration.ZERO),

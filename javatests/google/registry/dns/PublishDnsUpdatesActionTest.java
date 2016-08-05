@@ -17,18 +17,20 @@ package google.registry.dns;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import google.registry.model.dns.DnsWriter;
+import google.registry.dns.writer.DnsWriter;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
+import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-import javax.inject.Provider;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;
@@ -58,6 +60,7 @@ public class PublishDnsUpdatesActionTest {
   public void setUp() throws Exception {
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("xn--q9jyb4c");
+    persistResource(Registry.get("xn--q9jyb4c").asBuilder().setDnsWriter("mock").build());
     DomainResource domain1 = persistActiveDomain("example.xn--q9jyb4c");
     persistActiveSubordinateHost("ns1.example.xn--q9jyb4c", domain1);
     persistActiveSubordinateHost("ns2.example.xn--q9jyb4c", domain1);
@@ -66,17 +69,13 @@ public class PublishDnsUpdatesActionTest {
     clock.advanceOneMilli();
   }
 
-  private PublishDnsUpdatesAction createAction(String tld) {
+  private PublishDnsUpdatesAction createAction(String tld) throws Exception {
     PublishDnsUpdatesAction action = new PublishDnsUpdatesAction();
     action.timeout = Duration.standardSeconds(10);
     action.tld = tld;
     action.hosts = ImmutableSet.<String>of();
     action.domains = ImmutableSet.<String>of();
-    action.writerProvider = new Provider<DnsWriter>() {
-      @Override
-      public DnsWriter get() {
-        return dnsWriter;
-      }};
+    action.dnsWriterProxy = new DnsWriterProxy(ImmutableMap.of("mock", dnsWriter));
     return action;
   }
 
