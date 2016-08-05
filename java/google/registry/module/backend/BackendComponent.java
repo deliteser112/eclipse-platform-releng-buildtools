@@ -44,32 +44,31 @@ import javax.inject.Singleton;
 /** Dagger component with instance lifetime for "backend" App Engine module. */
 @Singleton
 @Component(
-  modules = {
-    AppIdentityCredentialModule.class,
-    BigqueryModule.class,
-    ConfigModule.class,
-    DatastoreServiceModule.class,
-    DirectoryModule.class,
-    DriveModule.class,
-    GcsServiceModule.class,
-    GoogleCredentialModule.class,
-    GroupsModule.class,
-    GroupssettingsModule.class,
-    JSchModule.class,
-    Jackson2Module.class,
-    KeyModule.class,
-    ModulesServiceModule.class,
-    SpreadsheetServiceModule.class,
-    StackdriverModule.class,
-    SystemClockModule.class,
-    SystemSleeperModule.class,
-    URLFetchServiceModule.class,
-    UrlFetchTransportModule.class,
-    UseAppIdentityCredentialForGoogleApisModule.class,
-    VoidDnsWriterModule.class,
-    VoidKeyringModule.class,
-  }
-)
+    modules = {
+        AppIdentityCredentialModule.class,
+        BigqueryModule.class,
+        ConfigModule.class,
+        DatastoreServiceModule.class,
+        DirectoryModule.class,
+        DriveModule.class,
+        GcsServiceModule.class,
+        GoogleCredentialModule.class,
+        GroupsModule.class,
+        GroupssettingsModule.class,
+        JSchModule.class,
+        Jackson2Module.class,
+        KeyModule.class,
+        ModulesServiceModule.class,
+        SpreadsheetServiceModule.class,
+        StackdriverModule.class,
+        SystemClockModule.class,
+        SystemSleeperModule.class,
+        URLFetchServiceModule.class,
+        UrlFetchTransportModule.class,
+        UseAppIdentityCredentialForGoogleApisModule.class,
+        VoidDnsWriterModule.class,
+        VoidKeyringModule.class,
+    })
 interface BackendComponent {
   BackendRequestComponent startRequest(RequestModule requestModule);
 }
