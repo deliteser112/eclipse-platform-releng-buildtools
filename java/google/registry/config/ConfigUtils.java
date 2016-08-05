@@ -18,14 +18,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /** Helper methods for configuration classes. */
-final class ConfigUtils {
+public final class ConfigUtils {
 
   /**
    * Creates a URL instance.
    *
    * @throws RuntimeException to rethrow {@link MalformedURLException}
    */
-  static URL makeUrl(String url) {
+  public static URL makeUrl(String url) {
     try {
       return new URL(url);
     } catch (MalformedURLException e) {
