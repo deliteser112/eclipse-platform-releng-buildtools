@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright 2016 The Domain Registry Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,18 +14,18 @@
 # limitations under the License.
 
 
-[[ $# != 2 ]] && { echo "usage: $0 template outdir" >&2; exit 1; }
+[[ $# != 2 ]] && { echo "usage: $0 TEMPLATE OUTDIR" >&2; exit 1; }
 
-template=$1
-outdir=$2
+template="$1"
+outdir="$2"
 
 create() {
   package=$1
   namespace=$2
-  cat $template \
-    | sed -e s,@PACKAGE@,$package,g \
-          -e s,@NAMESPACE@,$namespace,g \
-    > $outdir/$package/package-info.java
+  sed -e "s,@PACKAGE@,${package},g" \
+      -e "s,@NAMESPACE@,${namespace},g" \
+    < "${template}" \
+    > "${outdir}/${package}/package-info.java"
 }
 
 create contact urn:ietf:params:xml:ns:contact-1.0

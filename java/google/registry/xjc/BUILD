@@ -15,6 +15,7 @@ sh_binary(
         "//third_party/java/jaxb:jaxb-xjc",
         "//java/google/registry/xml:xml_schema_files",
     ],
+    visibility = ["//visibility:private"],
 )
 
 genrule(
@@ -25,23 +26,29 @@ genrule(
     ],
     outs = xjc_generated_files,
     cmd = " && ".join([
-        "XJC=$$PWD/$(location //third_party/java/jaxb:jaxb-xjc)",
-        "OUT=$$PWD/$(GENDIR)/java",
+        "REP=$$(pwd)",
+        "XJC=$$REP/$(location //third_party/java/jaxb:jaxb-xjc)",
+        "OUT=$$REP/$(GENDIR)/java",
+        "TMP=$$(mktemp -d $${TMPDIR:-/tmp}/jaxb.XXXXXXXXXX)",
         "mkdir -p $$OUT",
-        "cp $(SRCS) /tmp",
-        "cd /tmp",
+        "cp $(SRCS) $$TMP",
+        "cd $$TMP",
         "$$XJC -npa -quiet -extension -d $$OUT -b *.xjb *.xsd",
-        "find $$OUT -name '*.java' | xargs sed -i 's/" +
-        "public class/" +
-        "@SuppressWarnings({\"unchecked\",\"serial\",\"cast\"}) " +
-        "public class/'",
+        ("find $$OUT -name '*.java' | xargs sed -i 's/" +
+         "public class/" +
+         "@SuppressWarnings({\"unchecked\",\"serial\",\"cast\"}) " +
+         "public class/'"),
+        "cd $$REP",
+        "rm -rf $$TMP",
     ]),
     tools = ["//third_party/java/jaxb:jaxb-xjc"],
+    visibility = ["//visibility:private"],
 )
 
 sh_binary(
     name = "make_pkginfo",
     srcs = ["make_pkginfo.sh"],
+    visibility = ["//visibility:private"],
 )
 
 genrule(
@@ -53,6 +60,7 @@ genrule(
         ":jaxb_srcs",
         ":make_pkginfo",
     ],
+    visibility = ["//visibility:private"],
 )
 
 java_library(
