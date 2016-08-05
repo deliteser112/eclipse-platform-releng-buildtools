@@ -37,7 +37,7 @@ public class ResaveAllEppResourcesActionTest
   @Before
   public void init() {
     action = new ResaveAllEppResourcesAction();
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
+    action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>absent());
     action.response = new FakeResponse();
   }
 

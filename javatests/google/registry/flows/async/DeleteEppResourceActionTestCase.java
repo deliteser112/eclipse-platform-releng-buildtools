@@ -71,7 +71,7 @@ public abstract class DeleteEppResourceActionTestCase<T extends DeleteEppResourc
 
   public void setupDeleteEppResourceAction(T deleteEppResourceAction) throws Exception {
     action = deleteEppResourceAction;
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
+    action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>absent());
     action.response = new FakeResponse();
     action.clock = clock;
     inject.setStaticField(Ofy.class, "clock", clock);

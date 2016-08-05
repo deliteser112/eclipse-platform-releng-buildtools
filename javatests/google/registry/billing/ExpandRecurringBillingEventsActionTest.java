@@ -71,7 +71,7 @@ public class ExpandRecurringBillingEventsActionTest
   @Before
   public void init() {
     action = new ExpandRecurringBillingEventsAction();
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
+    action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>absent());
     action.clock = clock;
     action.cursorTimeParam = Optional.absent();
     createTld("tld");

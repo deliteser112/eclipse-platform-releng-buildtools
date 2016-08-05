@@ -74,7 +74,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
     persistResource(Registry.get("oa-canary.test").asBuilder().setTldType(TldType.TEST).build());
 
     action = new DeleteProberDataAction();
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
+    action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>absent());
     action.response = new FakeResponse();
     action.isDryRun = false;
   }

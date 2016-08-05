@@ -65,7 +65,7 @@ public class DnsRefreshForHostRenameActionTest
   private void runMapreduce(String hostKeyString) throws Exception {
     action = new DnsRefreshForHostRenameAction();
     action.hostKeyString = hostKeyString;
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
+    action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>absent());
     action.response = new FakeResponse();
     action.run();
     executeTasksUntilEmpty("mapreduce");
