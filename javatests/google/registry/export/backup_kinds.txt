@@ -12,6 +12,7 @@ ForeignKeyHostIndex
 HistoryEntry
 HostResource
 LogsExportCursor
+LrpToken
 Modification
 OneTime
 PollMessage
