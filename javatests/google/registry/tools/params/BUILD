@@ -17,6 +17,7 @@ java_library(
         "//third_party/java/joda_time",
         "//third_party/java/junit",
         "//third_party/java/truth",
+        "//java/google/registry/model",
         "//java/google/registry/tools/params",
         "//javatests/google/registry/testing",
     ],

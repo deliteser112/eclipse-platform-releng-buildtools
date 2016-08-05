@@ -814,6 +814,68 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
     runCommandForced("--premium_list=phonies", "xn--q9jyb4c");
   }
 
+  @Test
+  public void testSuccess_updateLrpTldState() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setTldStateTransitions(
+                ImmutableSortedMap.of(
+                    START_OF_TIME, TldState.PREDELEGATION,
+                    now.minusMonths(2), TldState.SUNRISE,
+                    now.minusMonths(1), TldState.LANDRUSH,
+                    now, TldState.GENERAL_AVAILABILITY))
+            .setLrpTldStates(ImmutableSet.of(TldState.SUNRISE))
+            .build());
+    runCommandForced("--lrp_tld_states=LANDRUSH", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getLrpTldStates()).containsExactly(TldState.LANDRUSH);
+  }
+
+  @Test
+  public void testSuccess_updateMultipleLrpTldStates() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setTldStateTransitions(
+                ImmutableSortedMap.of(
+                    START_OF_TIME, TldState.PREDELEGATION,
+                    now.minusMonths(2), TldState.SUNRISE,
+                    now.minusMonths(1), TldState.LANDRUSH,
+                    now, TldState.GENERAL_AVAILABILITY))
+            .setLrpTldStates(ImmutableSet.<TldState>of())
+            .build());
+    runCommandForced("--lrp_tld_states=SUNRISE,LANDRUSH", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getLrpTldStates())
+        .containsExactly(TldState.LANDRUSH, TldState.SUNRISE);
+  }
+
+  @Test
+  public void testFailure_updateLrpTldStates_notInTransitions() throws Exception {
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder()
+            .setTldStateTransitions(
+                ImmutableSortedMap.of(
+                    START_OF_TIME, TldState.PREDELEGATION,
+                    now.minusMonths(2), TldState.SUNRISE,
+                    now, TldState.GENERAL_AVAILABILITY))
+            .setLrpTldStates(ImmutableSet.of(TldState.SUNRISE))
+            .build());
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Cannot specify an LRP TLD state that is not part of the TLD state transitions.");
+    runCommandForced("--lrp_tld_states=LANDRUSH", "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_updateLrpTldStates_badTldState() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "No enum constant google.registry.model.registry.Registry.TldState.LOUD_PERIOD");
+    runCommandForced(
+        "--lrp_tld_states=LOUD_PERIOD",
+        "--initial_tld_state=PREDELEGATION",
+        "--roid_suffix=Q9JYB4C",
+        "xn--q9jyb4c");
+  }
+
   private void runSuccessfulReservedListsTest(String reservedLists) throws Exception {
     runCommandForced("--reserved_lists", reservedLists, "xn--q9jyb4c");
   }

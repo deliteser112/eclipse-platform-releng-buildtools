@@ -443,4 +443,21 @@ public class RegistryTest extends EntityTestCase {
         .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
         .build();
   }
+
+  @Test
+  public void testFailure_lrpTldState_notInTransitions() {
+    Registry registry = Registry.get("tld").asBuilder()
+        .setTldStateTransitions(ImmutableSortedMap.<DateTime, TldState>naturalOrder()
+            .put(START_OF_TIME, TldState.PREDELEGATION)
+            .put(clock.nowUtc().plusMonths(1), TldState.SUNRISE)
+            .put(clock.nowUtc().plusMonths(3), TldState.LANDRUSH)
+            .put(clock.nowUtc().plusMonths(4), TldState.QUIET_PERIOD)
+            .put(clock.nowUtc().plusMonths(5), TldState.GENERAL_AVAILABILITY)
+            .build())
+        .build();
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Cannot specify an LRP TLD state that is not part of the TLD state transitions.");
+    registry.asBuilder().setLrpTldStates(ImmutableSet.of(TldState.SUNRUSH)).build();
+  }
 }

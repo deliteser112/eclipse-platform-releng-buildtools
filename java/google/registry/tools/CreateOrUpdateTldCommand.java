@@ -35,6 +35,7 @@ import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.tools.params.OptionalStringParameter;
+import google.registry.tools.params.TldStateParameter;
 import google.registry.tools.params.TransitionListParameter.BillingCostTransitions;
 import google.registry.tools.params.TransitionListParameter.TldStateTransitions;
 import java.util.List;
@@ -215,9 +216,15 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
     names = "--dns_writer",
     description = "The name of the DnsWriter implementation to use",
     converter = OptionalStringParameter.class,
-    validateWith = OptionalStringParameter.class
-  )
+    validateWith = OptionalStringParameter.class)
   Optional<String> dnsWriter;
+
+  @Nullable
+  @Parameter(
+      names = "--lrp_tld_states",
+      converter = TldStateParameter.class,
+      description = "A comma-separated list of TLD states for which LRP is available")
+  List<TldState> lrpTldStates;
 
   /** Returns the existing registry (for update) or null (for creates). */
   @Nullable
@@ -383,6 +390,10 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
               dnsWriter.get());
           builder.setDnsWriter(dnsWriter.get());
         }
+      }
+
+      if (lrpTldStates != null) {
+        builder.setLrpTldStates(ImmutableSet.copyOf(lrpTldStates));
       }
 
       ImmutableSet<String> newReservedListNames = getReservedLists(oldRegistry);

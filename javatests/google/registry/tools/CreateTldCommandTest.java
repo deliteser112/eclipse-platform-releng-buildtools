@@ -212,6 +212,29 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
+  public void testSuccess_addLrpTldState() throws Exception {
+    runCommandForced(
+        "--lrp_tld_states=SUNRISE",
+        "--initial_tld_state=SUNRISE",
+        "--roid_suffix=Q9JYB4C",
+        "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getLrpTldStates())
+        .containsExactly(TldState.SUNRISE);
+  }
+
+  @Test
+  public void testSuccess_addMultipleLrpTldStates() throws Exception {
+    DateTime now = DateTime.now(UTC);
+    runCommandForced(
+        "--lrp_tld_states=SUNRISE,LANDRUSH",
+        String.format("--tld_state_transitions=%s=SUNRISE,%s=LANDRUSH", START_OF_TIME, now.plus(1)),
+        "--roid_suffix=Q9JYB4C",
+        "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getLrpTldStates())
+        .containsExactly(TldState.SUNRISE, TldState.LANDRUSH);
+  }
+
+  @Test
   public void testSuccess_setPremiumPriceAckRequired() throws Exception {
     runCommandForced("--premium_price_ack_required=true", "--roid_suffix=Q9JYB4C", "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getPremiumPriceAckRequired()).isTrue();
@@ -404,6 +427,30 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     createTld("foo", "BLAH");
     thrown.expect(IllegalArgumentException.class, "The roid suffix BLAH is already in use");
     runCommandForced("--roid_suffix=BLAH", "randomtld");
+  }
+
+  @Test
+  public void testFailure_lrpTldState_notInTldStateTransitions() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Cannot specify an LRP TLD state that is not part of the TLD state transitions.");
+    runCommandForced(
+        "--lrp_tld_states=SUNRISE",
+        "--initial_tld_state=PREDELEGATION",
+        "--roid_suffix=Q9JYB4C",
+        "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_lrpTldState_badTldState() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "No enum constant google.registry.model.registry.Registry.TldState.LANDRISE");
+    runCommandForced(
+        "--lrp_tld_states=LANDRISE",
+        "--initial_tld_state=PREDELEGATION",
+        "--roid_suffix=Q9JYB4C",
+        "xn--q9jyb4c");
   }
 
   private void runSuccessfulReservedListsTest(String reservedLists) throws Exception {

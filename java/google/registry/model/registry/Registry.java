@@ -398,6 +398,9 @@ public class Registry extends ImmutableObject implements Buildable {
   /** A whitelist of hosts allowed to be used on domains on this TLD (ignored if empty). */
   Set<String> allowedFullyQualifiedHostNames;
 
+  /** The set of {@link TldState}s for which LRP applications are accepted (ignored if empty). */
+  Set<TldState> lrpTldStates;
+
   public String getTldStr() {
     return tldStr;
   }
@@ -573,6 +576,10 @@ public class Registry extends ImmutableObject implements Buildable {
 
   public ImmutableSet<String> getAllowedFullyQualifiedHostNames() {
     return nullToEmptyImmutableCopy(allowedFullyQualifiedHostNames);
+  }
+
+  public ImmutableSet<TldState> getLrpTldStates() {
+    return nullToEmptyImmutableCopy(lrpTldStates);
   }
 
   @Override
@@ -831,6 +838,11 @@ public class Registry extends ImmutableObject implements Buildable {
       return this;
     }
 
+    public Builder setLrpTldStates(ImmutableSet<TldState> lrpTldStates) {
+      getInstance().lrpTldStates = lrpTldStates;
+      return this;
+    }
+
     @Override
     public Registry build() {
       final Registry instance = getInstance();
@@ -848,6 +860,10 @@ public class Registry extends ImmutableObject implements Buildable {
       // cloned it into a new builder, to block re-building a Registry in an invalid state.
       instance.tldStateTransitions.checkValidity();
       instance.renewBillingCostTransitions.checkValidity();
+      checkArgument(
+          instance.tldStateTransitions.toValueMap().values()
+              .containsAll(instance.getLrpTldStates()),
+          "Cannot specify an LRP TLD state that is not part of the TLD state transitions.");
       instance.eapFeeSchedule.checkValidity();
       // All costs must be in the expected currency.
       // TODO(b/21854155): When we move PremiumList into datastore, verify its currency too.
