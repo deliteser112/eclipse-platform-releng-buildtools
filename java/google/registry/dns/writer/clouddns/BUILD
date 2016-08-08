@@ -8,7 +8,6 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "clouddns",
     srcs = glob(["*.java"]),
-    compatible_with = ["//buildenv/target:appengine"],
     deps = [
         "//apiserving/discoverydata/cloud/dns:cloud_dns_v2beta1_versioned",
         "//java/com/google/api/client/googleapis/json",
