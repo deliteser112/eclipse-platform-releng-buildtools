@@ -29,6 +29,7 @@ import google.registry.dns.PublishDnsUpdatesAction;
 import google.registry.dns.ReadDnsQueueAction;
 import google.registry.dns.RefreshDnsAction;
 import google.registry.dns.writer.clouddns.CloudDnsModule;
+import google.registry.dns.writer.dnsupdate.DnsUpdateConfigModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
 import google.registry.export.BigqueryPollJobAction;
 import google.registry.export.ExportDomainListsAction;
@@ -72,6 +73,7 @@ import google.registry.tmch.TmchSmdrlAction;
         CloudDnsModule.class,
         CronModule.class,
         DnsModule.class,
+        DnsUpdateConfigModule.class,
         DnsUpdateWriterModule.class,
         ExportRequestModule.class,
         MapreduceModule.class,
