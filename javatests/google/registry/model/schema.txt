@@ -284,6 +284,13 @@ class google.registry.model.domain.GracePeriod {
   java.lang.String clientId;
   org.joda.time.DateTime expirationTime;
 }
+class google.registry.model.domain.LrpToken {
+  @Id java.lang.String assignee;
+  com.googlecode.objectify.Key<google.registry.model.reporting.HistoryEntry> redemptionHistoryEntry;
+  google.registry.model.UpdateAutoTimestamp updateTimestamp;
+  java.lang.String token;
+  java.util.Set<java.lang.String> validTlds;
+}
 class google.registry.model.domain.Period {
   google.registry.model.domain.Period$Unit unit;
   java.lang.Integer value;
