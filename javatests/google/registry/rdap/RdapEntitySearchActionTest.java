@@ -115,7 +115,7 @@ public class RdapEntitySearchActionTest {
     action.response = response;
     action.rdapResultSetMaxSize = 100;
     action.rdapLinkBase = "https://example.com/rdap/";
-    action.rdapWhoisServer = "whois.example.tld";
+    action.rdapWhoisServer = null;
     action.fnParam = Optional.absent();
     action.handleParam = Optional.absent();
   }

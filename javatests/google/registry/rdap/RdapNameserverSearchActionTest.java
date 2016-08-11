@@ -131,7 +131,7 @@ public class RdapNameserverSearchActionTest {
     action.response = response;
     action.rdapResultSetMaxSize = 100;
     action.rdapLinkBase = "https://example.tld/rdap/";
-    action.rdapWhoisServer = "whois.example.tld";
+    action.rdapWhoisServer = null;
     action.ipParam = Optional.absent();
     action.nameParam = Optional.absent();
   }

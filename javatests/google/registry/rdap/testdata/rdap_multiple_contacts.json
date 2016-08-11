@@ -43,8 +43,7 @@
           ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
           ["email", {}, "text", "blinky@b.tld"]
         ]
-      ],
-      "port43": "whois.example.tld"
+      ]
     },
     {
       "objectClassName" : "entity",
@@ -130,8 +129,7 @@
             ]
           ],
         }
-      ],
-      "port43": "whois.example.tld"
+      ]
     }
   ],
   "rdapConformance": [ "rdap_level_0" ],

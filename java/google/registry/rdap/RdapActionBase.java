@@ -43,6 +43,7 @@ import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.json.simple.JSONValue;
 
@@ -68,7 +69,7 @@ public abstract class RdapActionBase implements Runnable {
   @Inject @RequestMethod Action.Method requestMethod;
   @Inject @RequestPath String requestPath;
   @Inject @Config("rdapLinkBase") String rdapLinkBase;
-  @Inject @Config("rdapWhoisServer") String rdapWhoisServer;
+  @Inject @Config("rdapWhoisServer") @Nullable String rdapWhoisServer;
 
   /** Returns a string like "domain name" or "nameserver", used for error strings. */
   abstract String getHumanReadableObjectTypeName();

@@ -145,7 +145,7 @@ public class RdapEntityActionTest {
     action.clock = clock;
     action.response = response;
     action.rdapLinkBase = "https://example.com/rdap/";
-    action.rdapWhoisServer = "whois.example.tld";
+    action.rdapWhoisServer = null;
   }
 
   private Object generateActualJson(String name) {
@@ -179,9 +179,6 @@ public class RdapEntityActionTest {
       builder.putAll(map);
       if (!map.containsKey("rdapConformance")) {
         builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-      }
-      if (!map.containsKey("port43")) {
-        builder.put("port43", "whois.example.tld");
       }
       if (!map.containsKey("notices")) {
         RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.com/rdap/");

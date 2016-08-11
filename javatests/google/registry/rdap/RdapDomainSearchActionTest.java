@@ -274,7 +274,7 @@ public class RdapDomainSearchActionTest {
     action.clock = clock;
     action.response = response;
     action.rdapLinkBase = "https://example.com/rdap/";
-    action.rdapWhoisServer = "whois.example.tld";
+    action.rdapWhoisServer = null;
   }
 
   private Object generateExpectedJson(String expectedOutputFile) {

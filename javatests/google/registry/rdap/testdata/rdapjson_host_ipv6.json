@@ -23,6 +23,5 @@
   "ipAddresses" :
   {
     "v6" : ["bad:f00d:cafe::15:beef"]
-  },
-  "port43": "whois.google.com"
+  }
 }

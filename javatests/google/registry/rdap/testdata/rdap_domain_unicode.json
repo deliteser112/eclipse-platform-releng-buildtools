@@ -355,6 +355,5 @@
       ]
     }
   ],
-  "objectClassName": "domain",
-  "port43": "whois.example.tld"
+  "objectClassName": "domain"
 }

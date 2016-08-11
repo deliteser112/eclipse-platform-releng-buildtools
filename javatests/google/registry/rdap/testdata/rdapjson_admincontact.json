@@ -41,6 +41,5 @@
       ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
       ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"]
     ]
-  ],
-  "port43": "whois.google.com"
+  ]
 }

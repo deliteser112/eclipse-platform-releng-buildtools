@@ -124,7 +124,7 @@ public class RdapDomainActionTest {
     action.clock = clock;
     action.response = response;
     action.rdapLinkBase = "https://example.com/rdap/";
-    action.rdapWhoisServer = "whois.example.tld";
+    action.rdapWhoisServer = null;
 
     // history entries
     persistResource(
@@ -198,9 +198,6 @@ public class RdapDomainActionTest {
       }
       if (!map.containsKey("remarks")) {
         RdapTestHelper.addDomainBoilerplateRemarks(builder);
-      }
-      if (!map.containsKey("port43")) {
-        builder.put("port43", "whois.example.com");
       }
       obj = builder.build();
     }

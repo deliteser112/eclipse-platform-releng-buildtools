@@ -356,8 +356,7 @@
           ]
         }
       ],
-      "objectClassName": "domain",
-      "port43": "whois.example.tld"
+      "objectClassName": "domain"
     },
     {
       "status": [
@@ -715,8 +714,7 @@
           ]
         }
       ],
-      "objectClassName": "domain",
-      "port43": "whois.example.tld"
+      "objectClassName": "domain"
     }
   ],
   "rdapConformance": [

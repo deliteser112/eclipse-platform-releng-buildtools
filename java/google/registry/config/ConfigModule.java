@@ -23,6 +23,7 @@ import dagger.Provides;
 import java.lang.annotation.Documented;
 import java.net.URI;
 import java.net.URL;
+import javax.annotation.Nullable;
 import javax.inject.Qualifier;
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTimeConstants;
@@ -319,7 +320,7 @@ public final class ConfigModule {
    */
   @Provides
   @Config("rdeImportBucket")
-  public String provideRdeImportBucket(@Config("projectId") String projectId) {
+  public static String provideRdeImportBucket(@Config("projectId") String projectId) {
     return projectId + "-rde-import";
   }
 
@@ -533,14 +534,17 @@ public final class ConfigModule {
   }
 
   /**
-   * WHOIS server displayed in RDAP query responses.
+   * WHOIS server displayed in RDAP query responses. As per Gustavo Lozano of ICANN, this should be
+   * omitted, but the ICANN operational profile doesn't actually say that, so it's good to have the
+   * ability to reinstate this field if necessary.
    *
    * @see google.registry.rdap.RdapActionBase
    */
+  @Nullable
   @Provides
   @Config("rdapWhoisServer")
   public static String provideRdapWhoisServer() {
-    return "whois.nic.google";
+    return null;
   }
 
   /** Returns Braintree Merchant Account IDs for each supported currency. */

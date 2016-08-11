@@ -50,7 +50,7 @@ public class RdapHelpActionTest {
     action.clock = clock;
     action.response = response;
     action.rdapLinkBase = "https://example.tld/rdap/";
-    action.rdapWhoisServer = "whois.example.tld";
+    action.rdapWhoisServer = null;
   }
 
   private Object generateActualJson(String helpPath) {

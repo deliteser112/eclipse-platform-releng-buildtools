@@ -40,7 +40,6 @@
       ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
       ["email", {}, "text", "%EMAIL%"]
     ]
-  ],
-  "port43": "whois.example.tld"
+  ]
 }
 

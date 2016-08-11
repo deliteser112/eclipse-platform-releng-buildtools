@@ -76,7 +76,7 @@ public class RdapNameserverActionTest {
     action.response = response;
     action.requestPath = RdapNameserverAction.PATH.concat(input);
     action.rdapLinkBase = "https://example.tld/rdap/";
-    action.rdapWhoisServer = "whois.example.tld";
+    action.rdapWhoisServer = null;
     return action;
   }
 
@@ -120,9 +120,6 @@ public class RdapNameserverActionTest {
       builder.putAll(map);
       if (!map.containsKey("rdapConformance")) {
         builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-      }
-      if (!map.containsKey("port43")) {
-        builder.put("port43", "whois.example.tld");
       }
       if (!map.containsKey("notices")) {
         RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.tld/rdap/");

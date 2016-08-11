@@ -77,7 +77,8 @@ public class RdapJsonFormatterTest {
 
   private static final String LINK_BASE = "http://myserver.google.com/";
   private static final String LINK_BASE_NO_TRAILING_SLASH = "http://myserver.google.com";
-  private static final String WHOIS_SERVER = "whois.google.com";
+  // Do not set a port43 whois server, as per Gustavo Lozano.
+  private static final String WHOIS_SERVER = null;
 
   @Before
   public void setUp() throws Exception {
