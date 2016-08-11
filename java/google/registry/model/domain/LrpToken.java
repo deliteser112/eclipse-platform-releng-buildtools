@@ -25,7 +25,6 @@ import google.registry.model.BackupGroupRoot;
 import google.registry.model.Buildable;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.HistoryEntry.Type;
-
 import java.util.Set;
 
 /**
@@ -35,16 +34,17 @@ import java.util.Set;
 public class LrpToken extends BackupGroupRoot implements Buildable {
 
   /**
-   * The token's assignee (a unique identifier).
-   */
-  @Id
-  String assignee;
-
-  /**
    * The secret token assigned to a registrant for the purposes of LRP registration.
    */
-  @Index
+  @Id
   String token;
+
+  /**
+   * The token's assignee (additional metadata for identifying the owner of the token, which may
+   * vary from TLD to TLD).
+   */
+  @Index
+  String assignee;
 
   /**
    * A list of TLDs for which this LRP token is valid.
@@ -89,7 +89,7 @@ public class LrpToken extends BackupGroupRoot implements Buildable {
     private Builder(LrpToken instance) {
       super(instance);
     }
-    
+
     public Builder setAssignee(String assignee) {
       getInstance().assignee = assignee;
       return this;

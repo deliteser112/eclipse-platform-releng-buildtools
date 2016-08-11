@@ -19,6 +19,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.LrpToken;
 import google.registry.tools.Command.GtechCommand;
@@ -51,22 +52,25 @@ public final class GetLrpTokenCommand implements RemoteApiCommand, GtechCommand 
     checkArgument(
         (tokenString == null) == (assignee != null),
         "Exactly one of either token or assignee must be specified.");
-    LrpToken token = null;
-    if (assignee != null) {
-      token = ofy().load().key(Key.create(LrpToken.class, assignee)).now();
-    } else if (tokenString != null) {
-      token = ofy().load()
-          .type(LrpToken.class)
-          .filter("token", tokenString)
-          .first()
-          .now();
-    }
-    if (token != null) {
-      System.out.println(token);
-      if (includeHistory && token.getRedemptionHistoryEntry() != null) {
-        System.out.println(
-            ofy().load().key(token.getRedemptionHistoryEntry()).now().toHydratedString());
+    ImmutableSet.Builder<LrpToken> tokensBuilder = ImmutableSet.builder();
+    if (tokenString != null) {
+      LrpToken token = ofy().load().key(Key.create(LrpToken.class, tokenString)).now();
+      if (token != null) {
+        tokensBuilder.add(token);
       }
+    } else {
+      tokensBuilder.addAll(ofy().load().type(LrpToken.class).filter("assignee", assignee));
+    }
+
+    ImmutableSet<LrpToken> tokens = tokensBuilder.build();
+    if (!tokens.isEmpty()) {
+      for (LrpToken token : tokens) {
+        System.out.println(token);
+        if (includeHistory && token.getRedemptionHistoryEntry() != null) {
+          System.out.println(
+              ofy().load().key(token.getRedemptionHistoryEntry()).now().toHydratedString());
+        }
+      } 
     } else {
       System.out.println("Token not found.");
     }
