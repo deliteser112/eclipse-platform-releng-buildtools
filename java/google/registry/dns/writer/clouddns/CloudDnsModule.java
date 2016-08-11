@@ -23,10 +23,12 @@ import com.google.common.base.Function;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
+import dagger.multibindings.IntoSet;
 import dagger.multibindings.StringKey;
 import google.registry.config.ConfigModule.Config;
 import google.registry.dns.writer.DnsWriter;
 import java.util.Set;
+import javax.inject.Named;
 
 /** Dagger module for Google Cloud DNS service connection objects. */
 @Module
@@ -46,7 +48,14 @@ public final class CloudDnsModule {
   @Provides
   @IntoMap
   @StringKey(CloudDnsWriter.NAME)
-  static DnsWriter provideCloudDnsWriter(CloudDnsWriter writer) {
+  static DnsWriter provideWriter(CloudDnsWriter writer) {
     return writer;
+  }
+
+  @Provides
+  @IntoSet
+  @Named("dnsWriterNames")
+  static String provideWriterName() {
+    return CloudDnsWriter.NAME;
   }
 }

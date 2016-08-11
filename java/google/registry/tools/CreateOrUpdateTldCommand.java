@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.model.RoidSuffixes.isRoidSuffixUsed;
 import static google.registry.util.CollectionUtils.findDuplicates;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
@@ -27,7 +26,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import google.registry.dns.writer.DnsWriter;
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.Registries;
 import google.registry.model.registry.Registry;
@@ -43,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.inject.Named;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -50,11 +49,11 @@ import org.joda.time.Duration;
 /** Shared base class for commands to create or update a TLD. */
 abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
-  @Inject Map<String, DnsWriter> dnsWriters;
+  @Inject
+  @Named("dnsWriterNames")
+  Set<String> dnsWriterNames;
 
-  @Parameter(
-      description = "Names of the TLDs",
-      required = true)
+  @Parameter(description = "Names of the TLDs", required = true)
   List<String> mainParameters;
 
   @Parameter(
@@ -384,8 +383,8 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
       if (dnsWriter != null) {
         if (dnsWriter.isPresent()) {
-          checkNotNull(
-              dnsWriters.get(dnsWriter.get()),
+          checkArgument(
+              dnsWriterNames.contains(dnsWriter.get()),
               "The DNS writer '%s' doesn't exist",
               dnsWriter.get());
           builder.setDnsWriter(dnsWriter.get());

@@ -46,6 +46,8 @@ java_library(
         "//java/google/registry/bigquery",
         "//java/google/registry/config",
         "//java/google/registry/dns/writer",
+        "//java/google/registry/dns/writer/clouddns",
+        "//java/google/registry/dns/writer/dnsupdate",
         "//java/google/registry/export",
         "//java/google/registry/flows",
         "//java/google/registry/keyring/api",

@@ -17,8 +17,10 @@ package google.registry.dns.writer.dnsupdate;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
+import dagger.multibindings.IntoSet;
 import dagger.multibindings.StringKey;
 import google.registry.dns.writer.DnsWriter;
+import javax.inject.Named;
 import javax.net.SocketFactory;
 
 /** Dagger module that provides a DnsUpdateWriter. */
@@ -33,7 +35,14 @@ public abstract class DnsUpdateWriterModule {
   @Provides
   @IntoMap
   @StringKey(DnsUpdateWriter.NAME)
-  static DnsWriter provideDnsUpdateWriter(DnsUpdateWriter writer) {
+  static DnsWriter provideWriter(DnsUpdateWriter writer) {
     return writer;
+  }
+
+  @Provides
+  @IntoSet
+  @Named("dnsWriterNames")
+  static String provideWriterName() {
+    return DnsUpdateWriter.NAME;
   }
 }

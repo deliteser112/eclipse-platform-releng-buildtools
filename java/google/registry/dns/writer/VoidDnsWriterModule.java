@@ -17,7 +17,9 @@ package google.registry.dns.writer;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
+import dagger.multibindings.IntoSet;
 import dagger.multibindings.StringKey;
+import javax.inject.Named;
 
 /** Dagger module that disables DNS updates. */
 @Module
@@ -26,7 +28,14 @@ public final class VoidDnsWriterModule {
   @Provides
   @IntoMap
   @StringKey(VoidDnsWriter.NAME)
-  static DnsWriter provideVoidDnsWriter(VoidDnsWriter writer) {
+  static DnsWriter provideWriter(VoidDnsWriter writer) {
     return writer;
+  }
+
+  @Provides
+  @IntoSet
+  @Named("dnsWriterNames")
+  static String provideWriterName() {
+    return VoidDnsWriter.NAME;
   }
 }
