@@ -87,7 +87,7 @@ public abstract class LoggedInFlow extends Flow {
       if (!undeclaredUrisThatError.isEmpty()) {
         throw new UndeclaredServiceExtensionException(undeclaredUrisThatError);
       } else {
-        logger.warningfmt(
+        logger.infofmt(
             "Client (%s) is attempting to run flow (%s) without declaring URIs %s on login",
             getClientId(), getClass().getSimpleName(), undeclaredUris);
       }
