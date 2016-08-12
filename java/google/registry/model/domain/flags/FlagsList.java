@@ -24,4 +24,8 @@ import javax.xml.bind.annotation.XmlElement;
 public class FlagsList {
   @XmlElement(name = "flag")
   List<String> flags;
+
+  public List<String> getFlags() {
+    return flags;
+  }
 }

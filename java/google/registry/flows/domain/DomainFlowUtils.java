@@ -324,7 +324,7 @@ public class DomainFlowUtils {
       throws RegistrantNotAllowedException {
     ImmutableSet<String> whitelist = Registry.get(tld).getAllowedRegistrantContactIds();
     // Empty whitelist or null registrantContactId are ignored.
-    if (registrantContactId != null && !whitelist.isEmpty() 
+    if (registrantContactId != null && !whitelist.isEmpty()
         && !whitelist.contains(registrantContactId)) {
       throw new RegistrantNotAllowedException(registrantContactId);
     }
@@ -576,7 +576,7 @@ public class DomainFlowUtils {
     if (feeRequest.getPhase() != null || feeRequest.getSubphase() != null) {
       throw new FeeChecksDontSupportPhasesException();
     }
-    
+
     CurrencyUnit currency =
         feeRequest.isCurrencySupported() ? feeRequest.getCurrency() : topLevelCurrency;
     if ((currency != null) && !currency.equals(registry.getCurrency())) {
@@ -620,7 +620,7 @@ public class DomainFlowUtils {
     }
   }
 
-  static void validateFeeChallenge(
+  public static void validateFeeChallenge(
       String domainName,
       String tld,
       DateTime priceTime,
@@ -664,7 +664,7 @@ public class DomainFlowUtils {
       throw new CurrencyUnitMismatchException();
     }
     if (!feeTotal.equals(costTotal)) {
-      throw new FeesMismatchException();
+      throw new FeesMismatchException(costTotal);
     }
   }
 
@@ -988,9 +988,15 @@ public class DomainFlowUtils {
   }
 
   /** The fees passed in the transform command do not match the fees that will be charged. */
-  static class FeesMismatchException extends ParameterValueRangeErrorException {
+  public static class FeesMismatchException extends ParameterValueRangeErrorException {
     public FeesMismatchException() {
       super("The fees passed in the transform command do not match the fees that will be charged");
+    }
+
+    public FeesMismatchException(Money correctFee) {
+      super(String.format(
+          "The fees passed in the transform command do not match the expected total of %s",
+          correctFee));
     }
   }
 

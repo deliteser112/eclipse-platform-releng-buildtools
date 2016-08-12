@@ -21,6 +21,7 @@ import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
@@ -37,10 +38,8 @@ import static org.joda.money.CurrencyUnit.USD;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException;
@@ -74,6 +73,7 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.TestExtraLogicManager;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
@@ -81,7 +81,6 @@ import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
-
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -105,7 +104,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Before
   public void initDomainTest() {
-    createTld("tld");
+    createTlds("tld", "flags");
+    // For flags extension tests.
+    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   private void persistReferencedEntities() {
@@ -1174,6 +1175,15 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
     thrown.expect(NameserversNotSpecifiedException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testAddAndRemoveFlags() throws Exception {
+    setEppInput("domain_update_addremove_flags.xml");
+    persistReferencedEntities();
+    persistDomain();
+    thrown.expect(UnimplementedExtensionException.class);
     runFlow();
   }
 }

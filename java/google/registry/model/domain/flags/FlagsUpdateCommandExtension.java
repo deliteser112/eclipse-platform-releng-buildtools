@@ -30,4 +30,12 @@ import javax.xml.bind.annotation.XmlType;
 public class FlagsUpdateCommandExtension implements CommandExtension {
   FlagsList add; // list of flags to be added (turned on)
   FlagsList rem; // list of flags to be removed (turned off)
+
+  public FlagsList getAddFlags() {
+    return add;
+  }
+
+  public FlagsList getRemoveFlags() {
+    return rem;
+  }
 }

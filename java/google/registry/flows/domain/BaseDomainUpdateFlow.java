@@ -27,8 +27,8 @@ import static google.registry.flows.domain.DomainFlowUtils.validateRegistrantAll
 import static google.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
@@ -41,7 +41,6 @@ import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension.Add;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension.Remove;
-
 import java.util.Set;
 
 /**
@@ -53,10 +52,18 @@ import java.util.Set;
 public abstract class BaseDomainUpdateFlow<R extends DomainBase, B extends Builder<R, B>>
     extends ResourceUpdateFlow<R, B, Update> {
 
+  protected Optional<RegistryExtraFlowLogic> extraFlowLogic;
+
   @Override
   public final void initResourceCreateOrMutateFlow() throws EppException {
     command = cloneAndLinkReferences(command, now);
     initDomainUpdateFlow();
+    // In certain conditions (for instance, errors), there is no existing resource.
+    if (existingResource == null) {
+      extraFlowLogic = Optional.absent();
+    } else {
+      extraFlowLogic = RegistryExtraFlowLogicProxy.newInstanceForTld(existingResource.getTld());
+    }
   }
 
   @SuppressWarnings("unused")
@@ -98,8 +105,13 @@ public abstract class BaseDomainUpdateFlow<R extends DomainBase, B extends Build
     return setDomainUpdateProperties(builder);
   }
 
-  /** Subclasses can override this to do set more specific properties. */
-  protected B setDomainUpdateProperties(B builder) {
+  /**
+   * Subclasses can override this to do set more specific properties.
+   *
+   * @throws EppException if the overriding method encounters an error that should be returned to
+   *         the user as an EPP response
+   */
+  protected B setDomainUpdateProperties(B builder) throws EppException {
     return builder;
   }
 

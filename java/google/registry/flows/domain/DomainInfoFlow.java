@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppException;
@@ -23,9 +24,11 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.fee06.FeeInfoCommandExtensionV06;
 import google.registry.model.domain.fee06.FeeInfoResponseExtensionV06;
+import google.registry.model.domain.flags.FlagsInfoResponseExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.rgp.RgpInfoExtension;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
+import java.util.List;
 import javax.inject.Inject;
 
 /**
@@ -100,6 +103,17 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
           now);
       extensions.add(builder.build());
     }
+    // If the TLD uses the flags extension, add it to the info response.
+    Optional<RegistryExtraFlowLogic> extraLogicManager =
+        RegistryExtraFlowLogicProxy.newInstanceForTld(existingResource.getTld());
+    if (extraLogicManager.isPresent()) {
+      List<String> flags = extraLogicManager.get().getFlags(
+          existingResource, this.getClientId(), now); // As-of date is always now for info commands.
+      if (!flags.isEmpty()) {
+        extensions.add(FlagsInfoResponseExtension.create(flags));
+      }
+    }
+
     return extensions.build();
   }
 }

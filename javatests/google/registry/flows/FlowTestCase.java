@@ -39,6 +39,7 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.ProtocolDefinition;
+import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.poll.PollMessage;
@@ -110,6 +111,11 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
 
   protected void setEppInput(String inputFilename, Map<String, String> substitutions) {
     eppLoader = new EppLoader(this, inputFilename, substitutions);
+  }
+
+  /** Returns the EPP data loaded by a previous call to setEppInput. */
+  protected EppInput getEppInput() throws Exception {
+    return eppLoader.getEpp();
   }
 
   protected String readFile(String filename) {

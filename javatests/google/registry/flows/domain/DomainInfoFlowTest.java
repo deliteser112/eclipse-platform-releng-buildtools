@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.io.BaseEncoding.base16;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -42,6 +43,7 @@ import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.TestExtraLogicManager;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
@@ -67,9 +69,11 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info.xml");
     sessionMetadata.setClientId("NewRegistrar");
     clock.setTo(DateTime.parse("2005-03-03T22:00:00.000Z"));
-    createTld("tld");
+    createTlds("tld", "flags");
     persistResource(
         AppEngineRule.makeRegistrar1().asBuilder().setClientIdentifier("ClientZ").build());
+    // For flags extension tests.
+    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   private void persistTestEntities(String domainName, boolean inactive) {
@@ -612,5 +616,21 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_fee_multiyear_restore.xml");
     persistTestEntities(false);
     runFlow();
+  }
+
+  /** Test registry extra logic manager with no flags. */
+  @Test
+  public void testExtraLogicManager_noFlags() throws Exception {
+    setEppInput("domain_info_flags_none.xml");
+    persistTestEntities("domain.flags", false);
+    doSuccessfulTest("domain_info_response_flags_none.xml", false);
+  }
+
+  /** Test registry extra logic manager with two flags. */
+  @Test
+  public void testExtraLogicManager_twoFlags() throws Exception {
+    setEppInput("domain_info_flags_two.xml");
+    persistTestEntities("domain-flag1-flag2.flags", false);
+    doSuccessfulTest("domain_info_response_flags_two.xml", false);
   }
 }

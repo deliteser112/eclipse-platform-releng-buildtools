@@ -22,11 +22,13 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import google.registry.dns.DnsQueue;
+import google.registry.flows.EppException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.flags.FlagsUpdateCommandExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.eppcommon.StatusValue;
@@ -70,11 +72,11 @@ public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Build
 
   @Override
   protected void initDomainUpdateFlow() {
-    registerExtensions(SecDnsUpdateExtension.class);
+    registerExtensions(SecDnsUpdateExtension.class, FlagsUpdateCommandExtension.class);
   }
 
   @Override
-  protected Builder setDomainUpdateProperties(Builder builder) {
+  protected Builder setDomainUpdateProperties(Builder builder) throws EppException {
     // Check if the domain is currently in the sunrush add grace period.
     Optional<GracePeriod> sunrushAddGracePeriod = Iterables.tryFind(
         existingResource.getGracePeriods(),
@@ -127,6 +129,11 @@ public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Build
       ofy().save().entities(billingEvent, billingEventCancellation);
     }
 
+    // Handle extra flow logic, if any.
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().performAdditionalDomainUpdateLogic(
+          existingResource, getClientId(), now, eppInput);
+    }
     return builder;
   }
 
@@ -153,6 +160,10 @@ public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Build
           .build();
         ofy().save().entity(billingEvent);
       }
+    }
+
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().commitAdditionalDomainUpdates();
     }
   }
 

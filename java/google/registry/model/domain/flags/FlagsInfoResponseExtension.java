@@ -30,4 +30,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class FlagsInfoResponseExtension implements ResponseExtension {
   @XmlElement(name = "flag")
   List<String> flags;
+
+  public static FlagsInfoResponseExtension create(List<String> flags) {
+    FlagsInfoResponseExtension extension = new FlagsInfoResponseExtension();
+    extension.flags = flags;
+    return extension;
+  }
 }
