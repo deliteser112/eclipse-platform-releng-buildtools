@@ -81,12 +81,9 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testGetReservation_twoLetterCodesAreAllReserved() {
-    // This isn't quite exhaustive but it's close.
-    for (char c1 = 'a'; c1 <= 'z'; c1++) {
-      for (char c2 = 'a'; c2 <= 'z'; c2++) {
-        assertThat(getReservation("" + c1 + c2, "tld")).isEqualTo(FULLY_BLOCKED);
-      }
+  public void testGetReservation_twoLetterCodesAreAvailable() {
+    for (String sld : ImmutableList.of("aa", "az", "zz", "91", "1n", "j5")) {
+      assertThat(getReservation(sld, "tld")).isEqualTo(UNRESERVED);
     }
   }
 

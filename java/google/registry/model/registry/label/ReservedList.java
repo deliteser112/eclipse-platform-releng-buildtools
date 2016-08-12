@@ -163,8 +163,8 @@ public final class ReservedList
    */
   public static ReservationType getReservation(String label, String tld) {
     checkNotNull(label, "label");
-    if (label.length() == 0 || label.length() == 2) {
-      return FULLY_BLOCKED;  // All 2-letter labels are FULLY_BLOCKED.
+    if (label.length() == 0) {
+      return FULLY_BLOCKED;
     }
     ReservedListEntry entry = getReservedListEntry(label, tld);
     return (entry != null) ? entry.reservationType : UNRESERVED;
