@@ -50,6 +50,7 @@ import google.registry.util.SystemClock.SystemClockModule;
 interface RegistryToolComponent {
   void inject(CreateAnchorTenantCommand command);
   void inject(CreateContactCommand command);
+  void inject(CreateDomainCommand command);
   void inject(CreateTldCommand command);
   void inject(EncryptEscrowDepositCommand command);
   void inject(GenerateApplicationsReportCommand command);

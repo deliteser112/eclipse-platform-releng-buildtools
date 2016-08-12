@@ -19,8 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /** Unit tests for {@link CreateContactCommand}. */
-public class CreateContactCommandTest
-    extends EppToolCommandTestCase<CreateContactCommand> {
+public class CreateContactCommandTest extends EppToolCommandTestCase<CreateContactCommand> {
 
   @Before
   public void initCommand() {

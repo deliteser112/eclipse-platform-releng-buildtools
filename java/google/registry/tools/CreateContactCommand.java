@@ -37,43 +37,43 @@ final class CreateContactCommand extends MutatingEppToolCommand implements Gtech
   String clientIdentifier;
 
   @Parameter(
-      names = {"--id"},
+      names = {"-i", "--id"},
       description = "Contact ID.")
   private String id;
 
   @Parameter(
-      names = {"--name"},
+      names = {"-n", "--name"},
       description = "Contact name.")
   private String name;
 
   @Parameter(
-      names = {"--org"},
+      names = {"-o", "--org"},
       description = "Organization")
   private String org;
 
   @Parameter(
-      names = {"--street"},
+      names = "--street",
       description = "Street lines of address. Can take up to 3 lines.",
       variableArity = true)
   private List<String> street;
 
   @Parameter(
-      names = {"--city"},
+      names = "--city",
       description = "City of address.")
   private String city;
 
   @Parameter(
-      names = {"--state"},
+      names = "--state",
       description = "State of address.")
   private String state;
 
   @Parameter(
-      names = {"--zip"},
+      names = {"-z", "--zip"},
       description = "Postal code of address.")
   private String zip;
 
   @Parameter(
-      names = {"--cc"},
+      names = "--cc",
       description = "Country code of address.")
   private String cc;
 
@@ -92,12 +92,12 @@ final class CreateContactCommand extends MutatingEppToolCommand implements Gtech
   String fax;
 
   @Parameter(
-      names = {"--email"},
+      names = {"-e", "--email"},
       description = "Email address.")
   private String email;
 
   @Parameter(
-      names = {"--password"},
+      names = {"-p", "--password"},
       description = "Password. Optional, randomly generated if not provided.")
   private String password;
 
