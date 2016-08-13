@@ -480,6 +480,17 @@ public final class ConfigModule {
     return Duration.standardSeconds(30);
   }
 
+  /**
+   * Time interval between metric writes to Stackdriver.
+   *
+   * @see google.registry.monitoring.stackdriver.MonitoringComponent
+   */
+  @Provides
+  @Config("metricWriteInterval")
+  public static Duration provideMetricWriteInterval() {
+    return Duration.standardSeconds(60);
+  }
+
   /** Duration after watermark where we shouldn't deposit, because transactions might be pending. */
   @Provides
   @Config("transactionCooldown")

@@ -33,6 +33,7 @@ java_library(
         "//java/google/registry/mapreduce",
         "//java/google/registry/mapreduce/inputs",
         "//java/google/registry/model",
+        "//java/google/registry/monitoring/metrics",
         "//java/google/registry/request",
         "//java/google/registry/request:modules",
         "//java/google/registry/util",
