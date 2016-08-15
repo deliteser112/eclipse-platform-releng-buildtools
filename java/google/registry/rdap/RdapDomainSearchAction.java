@@ -136,7 +136,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
       }
       return ImmutableList.of(
           RdapJsonFormatter.makeRdapJsonForDomain(
-              domainResource, false, rdapLinkBase, rdapWhoisServer));
+              domainResource, false, rdapLinkBase, rdapWhoisServer, now));
     // Handle queries with a wildcard.
     } else {
       Query<DomainResource> query = ofy().load()
@@ -153,7 +153,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
         if (domainResource.getDeletionTime().isAfter(now)) {
           builder.add(
               RdapJsonFormatter.makeRdapJsonForDomain(
-                  domainResource, false, rdapLinkBase, rdapWhoisServer));
+                  domainResource, false, rdapLinkBase, rdapWhoisServer, now));
         }
       }
       return builder.build();
@@ -168,7 +168,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
     // Handle queries without a wildcard; just load the host by foreign key in the usual way.
     if (!partialStringQuery.getHasWildcard()) {
       Ref<HostResource> hostRef = loadAndGetReference(
-          HostResource.class, partialStringQuery.getInitialString(), clock.nowUtc());
+          HostResource.class, partialStringQuery.getInitialString(), now);
       if (hostRef == null) {
         return ImmutableList.of();
       }
@@ -196,7 +196,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
     // looking for matches.
     } else {
       DomainResource domainResource = loadByUniqueId(
-          DomainResource.class, partialStringQuery.getSuffix(), clock.nowUtc());
+          DomainResource.class, partialStringQuery.getSuffix(), now);
       if (domainResource == null) {
         throw new NotFoundException("No domain found for specified nameserver suffix");
       }
@@ -205,7 +205,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
         // We can't just check that the host name starts with the initial query string, because then
         // the query ns.exam*.example.com would match against nameserver ns.example.com.
         if (partialStringQuery.matches(fqhn)) {
-          Ref<HostResource> hostRef = loadAndGetReference(HostResource.class, fqhn, clock.nowUtc());
+          Ref<HostResource> hostRef = loadAndGetReference(HostResource.class, fqhn, now);
           if (hostRef != null) {
             builder.add(hostRef);
           }
@@ -263,7 +263,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
       for (DomainResource domainResource : query) {
         builder.add(
             RdapJsonFormatter.makeRdapJsonForDomain(
-                domainResource, false, rdapLinkBase, rdapWhoisServer));
+                domainResource, false, rdapLinkBase, rdapWhoisServer, now));
       }
     }
     return builder.build();

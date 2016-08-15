@@ -96,7 +96,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
       results = searchByName(RdapSearchPattern.create(Idn.toASCII(nameParam.get()), true), now);
     } else {
       // syntax: /rdap/nameservers?ip=1.2.3.4
-      results = searchByIp(ipParam.get());
+      results = searchByIp(ipParam.get(), now);
     }
     if (results.isEmpty()) {
       throw new NotFoundException("No nameservers found");
@@ -120,7 +120,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
       }
       return ImmutableList.of(
           RdapJsonFormatter.makeRdapJsonForHost(
-              hostResource, false, rdapLinkBase, rdapWhoisServer));
+              hostResource, false, rdapLinkBase, rdapWhoisServer, now));
     // Handle queries with a wildcard, but no suffix. There are no pending deletes for hosts, so we
     // can call queryUndeleted.
     } else if (partialStringQuery.getSuffix() == null) {
@@ -132,7 +132,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
       for (HostResource hostResource : query) {
         builder.add(
             RdapJsonFormatter.makeRdapJsonForHost(
-                hostResource, false, rdapLinkBase, rdapWhoisServer));
+                hostResource, false, rdapLinkBase, rdapWhoisServer, now));
       }
       return builder.build();
     // Handle queries with a wildcard and a suffix. In this case, it is more efficient to do things
@@ -140,7 +140,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     // looking for matches.
     } else {
       DomainResource domainResource =
-          loadByUniqueId(DomainResource.class, partialStringQuery.getSuffix(), clock.nowUtc());
+          loadByUniqueId(DomainResource.class, partialStringQuery.getSuffix(), now);
       if (domainResource == null) {
         throw new NotFoundException("No domain found for specified nameserver suffix");
       }
@@ -149,11 +149,11 @@ public class RdapNameserverSearchAction extends RdapActionBase {
         // We can't just check that the host name starts with the initial query string, because then
         // the query ns.exam*.example.com would match against nameserver ns.example.com.
         if (partialStringQuery.matches(fqhn)) {
-          HostResource hostResource = loadByUniqueId(HostResource.class, fqhn, clock.nowUtc());
+          HostResource hostResource = loadByUniqueId(HostResource.class, fqhn, now);
           if (hostResource != null) {
             builder.add(
                 RdapJsonFormatter.makeRdapJsonForHost(
-                    hostResource, false, rdapLinkBase, rdapWhoisServer));
+                    hostResource, false, rdapLinkBase, rdapWhoisServer, now));
           }
         }
       }
@@ -163,7 +163,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
 
   /** Searches for nameservers by IP address, returning a JSON array of nameserver info maps. */
   private ImmutableList<ImmutableMap<String, Object>>
-      searchByIp(final InetAddress inetAddress) throws HttpException {
+      searchByIp(final InetAddress inetAddress, DateTime now) throws HttpException {
     // In theory, we could filter on deletion time being in the future. But we can't do that in the
     // name query above (because we already have an inequality filter), and filtering on deletion
     // time differently in the two cases seems like a recipe for future confusion.
@@ -177,7 +177,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     for (HostResource hostResource : query) {
       builder.add(
           RdapJsonFormatter.makeRdapJsonForHost(
-              hostResource, false, rdapLinkBase, rdapWhoisServer));
+              hostResource, false, rdapLinkBase, rdapWhoisServer, now));
     }
     return builder.build();
   }

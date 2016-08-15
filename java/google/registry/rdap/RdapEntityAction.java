@@ -31,6 +31,7 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.util.Clock;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * RDAP (new WHOIS) action for entity (contact and registrar) requests.
@@ -58,6 +59,7 @@ public class RdapEntityAction extends RdapActionBase {
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
+    DateTime now = clock.nowUtc();
     // The query string is not used; the RDAP syntax is /rdap/entity/handle (the handle is the roid
     // for contacts and the client identifier for registrars). Since RDAP's concept of an entity
     // includes both contacts and registrars, search for one first, then the other.
@@ -68,13 +70,14 @@ public class RdapEntityAction extends RdapActionBase {
       ContactResource contactResource = ofy().load().key(contactKey).now();
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
-      if ((contactResource != null) && clock.nowUtc().isBefore(contactResource.getDeletionTime())) {
+      if ((contactResource != null) && now.isBefore(contactResource.getDeletionTime())) {
         return RdapJsonFormatter.makeRdapJsonForContact(
             contactResource,
             true,
             Optional.<DesignatedContact.Type>absent(),
             rdapLinkBase,
-            rdapWhoisServer);
+            rdapWhoisServer,
+            now);
       }
     }
     String clientId = pathSearchString.trim();
@@ -83,7 +86,7 @@ public class RdapEntityAction extends RdapActionBase {
       Registrar registrar = Registrar.loadByClientId(clientId);
       if ((registrar != null) && registrar.isActiveAndPubliclyVisible()) {
         return RdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar, true, rdapLinkBase, rdapWhoisServer);
+            registrar, true, rdapLinkBase, rdapWhoisServer, now);
       }
     }
     throw !wasValidKey

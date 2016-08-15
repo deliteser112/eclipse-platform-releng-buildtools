@@ -29,6 +29,10 @@
         {
           "eventAction": "last changed",
           "eventDate": "2009-05-29T20:13:00.000Z"
+        },
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "nameservers": [
@@ -56,6 +60,10 @@
               "eventAction": "registration",
               "eventActor": "foo",
               "eventDate": "1999-01-01T00:00:00.000Z"
+            },
+            {
+              "eventAction": "last update of RDAP database",
+              "eventDate": "2000-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "nameserver"
@@ -84,6 +92,10 @@
               "eventAction": "registration",
               "eventActor": "foo",
               "eventDate": "1998-01-01T00:00:00.000Z"
+            },
+            {
+              "eventAction": "last update of RDAP database",
+              "eventDate": "2000-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "nameserver"
@@ -112,6 +124,10 @@
               "eventAction": "registration",
               "eventActor": "foo",
               "eventDate": "1998-01-01T00:00:00.000Z"
+            },
+            {
+              "eventAction": "last update of RDAP database",
+              "eventDate": "2000-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",
@@ -200,6 +216,10 @@
               "eventAction": "registration",
               "eventActor": "foo",
               "eventDate": "1997-01-01T00:00:00.000Z"
+            },
+            {
+              "eventAction": "last update of RDAP database",
+              "eventDate": "2000-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",
@@ -288,6 +308,10 @@
               "eventAction": "registration",
               "eventActor": "foo",
               "eventDate": "1999-01-01T00:00:00.000Z"
+            },
+            {
+              "eventAction": "last update of RDAP database",
+              "eventDate": "2000-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",
@@ -387,6 +411,10 @@
         {
           "eventAction": "last changed",
           "eventDate": "2009-05-29T20:13:00.000Z"
+        },
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "nameservers": [
@@ -414,6 +442,10 @@
               "eventAction": "registration",
               "eventActor": "foo",
               "eventDate": "1999-01-01T00:00:00.000Z"
+            },
+            {
+              "eventAction": "last update of RDAP database",
+              "eventDate": "2000-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "nameserver"
@@ -442,6 +474,10 @@
               "eventAction": "registration",
               "eventActor": "foo",
               "eventDate": "1998-01-01T00:00:00.000Z"
+            },
+            {
+              "eventAction": "last update of RDAP database",
+              "eventDate": "2000-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "nameserver"
@@ -470,6 +506,10 @@
               "eventAction": "registration",
               "eventActor": "foo",
               "eventDate": "1998-01-01T00:00:00.000Z"
+            },
+            {
+              "eventAction": "last update of RDAP database",
+              "eventDate": "2000-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",
@@ -558,6 +598,10 @@
               "eventAction": "registration",
               "eventActor": "foo",
               "eventDate": "1997-01-01T00:00:00.000Z"
+            },
+            {
+              "eventAction": "last update of RDAP database",
+              "eventDate": "2000-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",
@@ -646,6 +690,10 @@
               "eventAction": "registration",
               "eventActor": "foo",
               "eventDate": "1999-01-01T00:00:00.000Z"
+            },
+            {
+              "eventAction": "last update of RDAP database",
+              "eventDate": "2000-01-01T00:00:00.000Z"
             }
           ],
           "objectClassName": "entity",

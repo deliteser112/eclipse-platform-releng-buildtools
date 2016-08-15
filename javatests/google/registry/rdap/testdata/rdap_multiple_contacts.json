@@ -19,6 +19,10 @@
           "eventAction": "registration",
           "eventActor": "foo",
           "eventDate": "2000-01-01T00:00:00.000Z"
+        },
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "vcardArray" :
@@ -63,6 +67,10 @@
         {
           "eventAction": "registration",
           "eventActor": "2-Registrar",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        },
+        {
+          "eventAction": "last update of RDAP database",
           "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],

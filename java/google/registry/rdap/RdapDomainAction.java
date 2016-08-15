@@ -25,6 +25,7 @@ import google.registry.request.HttpException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.util.Clock;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * RDAP (new WHOIS) action for domain requests.
@@ -50,15 +51,16 @@ public class RdapDomainAction extends RdapActionBase {
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
+    DateTime now = clock.nowUtc();
     pathSearchString = canonicalizeName(pathSearchString);
     validateDomainName(pathSearchString);
     // The query string is not used; the RDAP syntax is /rdap/domain/mydomain.com.
     DomainResource domainResource =
-        loadByUniqueId(DomainResource.class, pathSearchString, clock.nowUtc());
+        loadByUniqueId(DomainResource.class, pathSearchString, now);
     if (domainResource == null) {
       throw new NotFoundException(pathSearchString + " not found");
     }
     return RdapJsonFormatter.makeRdapJsonForDomain(
-        domainResource, true, rdapLinkBase, rdapWhoisServer);
+        domainResource, true, rdapLinkBase, rdapWhoisServer, now);
   }
 }

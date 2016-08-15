@@ -106,7 +106,7 @@ public class RdapJsonFormatter {
     PENDING_TRANSFER("pending transfer"),
     PENDING_UPDATE("pending update"),
     PENDING_DELETE("pending delete"),
-    
+
     // Additional status values defined in
     // https://tools.ietf.org/html/draft-ietf-regext-epp-rdap-status-mapping-01.
     ADD_PERIOD("add period"),
@@ -201,7 +201,8 @@ public class RdapJsonFormatter {
     REINSTANTIATION("reinstantiation"),
     TRANSFER("transfer"),
     LOCKED("locked"),
-    UNLOCKED("unlocked");
+    UNLOCKED("unlocked"),
+    LAST_UPDATE_OF_RDAP_DATABASE("last update of RDAP database");
 
     /** Value as it appears in RDAP messages. */
     private final String rfc7483String;
@@ -412,7 +413,8 @@ public class RdapJsonFormatter {
       DomainResource domainResource,
       boolean isTopLevel,
       @Nullable String linkBase,
-      @Nullable String whoisServer) {
+      @Nullable String whoisServer,
+      DateTime now) {
     // Kick off the database loads of the nameservers that we will need.
     Map<Key<HostResource>, HostResource> loadedHosts =
         ofy().load().refs(domainResource.getNameservers());
@@ -432,7 +434,7 @@ public class RdapJsonFormatter {
     builder.put("status", makeStatusValueList(domainResource.getStatusValues()));
     builder.put("links", ImmutableList.of(
         makeLink("domain", domainResource.getFullyQualifiedDomainName(), linkBase)));
-    ImmutableList<Object> events = makeEvents(domainResource);
+    ImmutableList<Object> events = makeEvents(domainResource, now);
     if (!events.isEmpty()) {
       builder.put("events", events);
     }
@@ -440,7 +442,7 @@ public class RdapJsonFormatter {
     ImmutableList.Builder<Object> nsBuilder = new ImmutableList.Builder<>();
     for (HostResource hostResource
         : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
-      nsBuilder.add(makeRdapJsonForHost(hostResource, false, linkBase, null));
+      nsBuilder.add(makeRdapJsonForHost(hostResource, false, linkBase, null, now));
     }
     ImmutableList<Object> ns = nsBuilder.build();
     if (!ns.isEmpty()) {
@@ -454,7 +456,7 @@ public class RdapJsonFormatter {
       ContactResource loadedContact =
           loadedContacts.get(designatedContact.getContactRef().key());
       entitiesBuilder.add(makeRdapJsonForContact(
-          loadedContact, false, Optional.of(designatedContact.getType()), linkBase, null));
+          loadedContact, false, Optional.of(designatedContact.getType()), linkBase, null, now));
     }
     ImmutableList<Object> entities = entitiesBuilder.build();
     if (!entities.isEmpty()) {
@@ -481,7 +483,8 @@ public class RdapJsonFormatter {
       HostResource hostResource,
       boolean isTopLevel,
       @Nullable String linkBase,
-      @Nullable String whoisServer) {
+      @Nullable String whoisServer,
+      DateTime now) {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("objectClassName", "nameserver");
     builder.put("handle", hostResource.getRepoId());
@@ -493,7 +496,7 @@ public class RdapJsonFormatter {
     builder.put("status", makeStatusValueList(hostResource.getStatusValues()));
     builder.put("links", ImmutableList.of(
         makeLink("nameserver", hostResource.getFullyQualifiedHostName(), linkBase)));
-    ImmutableList<Object> events = makeEvents(hostResource);
+    ImmutableList<Object> events = makeEvents(hostResource, now);
     if (!events.isEmpty()) {
       builder.put("events", events);
     }
@@ -546,7 +549,8 @@ public class RdapJsonFormatter {
       boolean isTopLevel,
       Optional<DesignatedContact.Type> contactType,
       @Nullable String linkBase,
-      @Nullable String whoisServer) {
+      @Nullable String whoisServer,
+      DateTime now) {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("objectClassName", "entity");
     builder.put("handle", contactResource.getRepoId());
@@ -588,7 +592,7 @@ public class RdapJsonFormatter {
       vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
     }
     builder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
-    ImmutableList<Object> events = makeEvents(contactResource);
+    ImmutableList<Object> events = makeEvents(contactResource, now);
     if (!events.isEmpty()) {
       builder.put("events", events);
     }
@@ -613,7 +617,8 @@ public class RdapJsonFormatter {
       Registrar registrar,
       boolean isTopLevel,
       @Nullable String linkBase,
-      @Nullable String whoisServer) {
+      @Nullable String whoisServer,
+      DateTime now) {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("objectClassName", "entity");
     builder.put("handle", registrar.getClientIdentifier());
@@ -656,7 +661,7 @@ public class RdapJsonFormatter {
       vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
     }
     builder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
-    ImmutableList<Object> events = makeEvents(registrar);
+    ImmutableList<Object> events = makeEvents(registrar, now);
     if (!events.isEmpty()) {
       builder.put("events", events);
     }
@@ -763,7 +768,7 @@ public class RdapJsonFormatter {
   /**
    * Creates an event list for a domain, host or contact resource.
    */
-  private static ImmutableList<Object> makeEvents(EppResource resource) {
+  private static ImmutableList<Object> makeEvents(EppResource resource, DateTime now) {
     ImmutableList.Builder<Object> eventsBuilder = new ImmutableList.Builder<>();
     for (HistoryEntry historyEntry : ofy().load()
         .type(HistoryEntry.class)
@@ -789,13 +794,14 @@ public class RdapJsonFormatter {
       eventsBuilder.add(makeEvent(
           RdapEventAction.LAST_CHANGED, null, resource.getLastEppUpdateTime()));
     }
+    eventsBuilder.add(makeEvent(RdapEventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, now));
     return eventsBuilder.build();
   }
 
   /**
    * Creates an event list for a {@link Registrar}.
    */
-  private static ImmutableList<Object> makeEvents(Registrar registrar) {
+  private static ImmutableList<Object> makeEvents(Registrar registrar, DateTime now) {
     ImmutableList.Builder<Object> eventsBuilder = new ImmutableList.Builder<>();
     eventsBuilder.add(makeEvent(
         RdapEventAction.REGISTRATION,
@@ -806,6 +812,7 @@ public class RdapJsonFormatter {
       eventsBuilder.add(makeEvent(
           RdapEventAction.LAST_CHANGED, null, registrar.getLastUpdateTime()));
     }
+    eventsBuilder.add(makeEvent(RdapEventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, now));
     return eventsBuilder.build();
   }
 

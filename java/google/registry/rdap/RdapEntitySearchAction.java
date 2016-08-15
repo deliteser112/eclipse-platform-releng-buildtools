@@ -39,6 +39,7 @@ import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * RDAP (new WHOIS) action for entity (contact and registrar) search requests.
@@ -75,6 +76,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
+    DateTime now = clock.nowUtc();
     // RDAP syntax example: /rdap/entities?fn=Bobby%20Joe*.
     // The pathSearchString is not used by search commands.
     if (pathSearchString.length() > 0) {
@@ -98,7 +100,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
     } else {
       // syntax: /rdap/entities?handle=12345-*
       // The handle is either the contact roid or the registrar clientId.
-      results = searchByHandle(RdapSearchPattern.create(handleParam.get(), false));
+      results = searchByHandle(RdapSearchPattern.create(handleParam.get(), false), now);
     }
     if (results.isEmpty()) {
       throw new NotFoundException("No entities found");
@@ -110,8 +112,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
   }
 
   /** Searches for entities by handle, returning a JSON array of entity info maps. */
-  private ImmutableList<ImmutableMap<String, Object>>
-      searchByHandle(final RdapSearchPattern partialStringQuery) throws HttpException {
+  private ImmutableList<ImmutableMap<String, Object>> searchByHandle(
+      final RdapSearchPattern partialStringQuery, DateTime now) throws HttpException {
     // Handle queries without a wildcard -- load by ID.
     if (!partialStringQuery.getHasWildcard()) {
       ContactResource contactResource = ofy().load()
@@ -128,11 +130,12 @@ public class RdapEntitySearchAction extends RdapActionBase {
             false,
             Optional.<DesignatedContact.Type>absent(),
             rdapLinkBase,
-            rdapWhoisServer));
+            rdapWhoisServer,
+            now));
       }
       if ((registrar != null) && registrar.isActiveAndPubliclyVisible()) {
         builder.add(RdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar, false, rdapLinkBase, rdapWhoisServer));
+            registrar, false, rdapLinkBase, rdapWhoisServer, now));
       }
       return builder.build();
     // Handle queries with a wildcard, but no suffix. For contact resources, the deletion time will
@@ -154,7 +157,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
             false,
             Optional.<DesignatedContact.Type>absent(),
             rdapLinkBase,
-            rdapWhoisServer));
+            rdapWhoisServer,
+            now));
       }
       for (Registrar registrar
           : Registrar.loadByClientIdRange(
@@ -163,7 +167,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
               rdapResultSetMaxSize)) {
         if (registrar.isActiveAndPubliclyVisible()) {
           builder.add(RdapJsonFormatter.makeRdapJsonForRegistrar(
-              registrar, false, rdapLinkBase, rdapWhoisServer));
+              registrar, false, rdapLinkBase, rdapWhoisServer, now));
         }
       }
       // In theory, there could be more results than our max size, so limit the size.
