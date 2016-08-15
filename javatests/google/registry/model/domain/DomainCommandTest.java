@@ -14,11 +14,42 @@
 
 package google.registry.model.domain;
 
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static org.joda.time.DateTimeZone.UTC;
+
 import google.registry.model.ResourceCommandTestCase;
+import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
+import google.registry.model.eppinput.ResourceCommand;
+import google.registry.model.ofy.Ofy;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.EppLoader;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
-/** Test xml roundtripping of commands. */
+/** Tests for DomainCommand. */
 public class DomainCommandTest extends ResourceCommandTestCase {
+
+  @Rule
+  public final AppEngineRule appEngine = AppEngineRule.builder()
+      .withDatastore()
+      .build();
+
+  @Rule
+  public InjectRule inject = new InjectRule();
+
+  private FakeClock clock = new FakeClock(DateTime.now(UTC));
+
+  @Before
+  public void beforeDomainCommandTest() throws Exception {
+    inject.setStaticField(Ofy.class, "clock", clock);
+  }
+
   @Test
   public void testCreate() throws Exception {
     doXmlRoundtripTest("domain_create.xml");
@@ -65,6 +96,47 @@ public class DomainCommandTest extends ResourceCommandTestCase {
   }
 
   @Test
+  public void testCreate_emptyCommand() throws Exception {
+    // This EPP command wouldn't be allowed for policy reasons, but should marshal/unmarshal fine.
+    doXmlRoundtripTest("domain_create_empty.xml");
+  }
+
+  @Test
+  public void testCreate_missingNonRegistrantContacts() throws Exception {
+    // This EPP command wouldn't be allowed for policy reasons, but should marshal/unmarshal fine.
+    doXmlRoundtripTest("domain_create_missing_non_registrant_contacts.xml");
+  }
+
+  @Test
+  public void testCreate_cloneAndLinkReferences() throws Exception {
+    persistActiveHost("ns1.example.net");
+    persistActiveHost("ns2.example.net");
+    persistActiveContact("sh8013");
+    persistActiveContact("jd1234");
+    DomainCommand.Create create =
+        (DomainCommand.Create) loadEppResourceCommand("domain_create.xml");
+    create.cloneAndLinkReferences(clock.nowUtc());
+  }
+
+  @Test
+  public void testCreate_emptyCommand_cloneAndLinkReferences() throws Exception {
+    // This EPP command wouldn't be allowed for policy reasons, but should clone-and-link fine.
+    DomainCommand.Create create =
+        (DomainCommand.Create) loadEppResourceCommand("domain_create_empty.xml");
+    create.cloneAndLinkReferences(clock.nowUtc());
+  }
+
+  @Test
+  public void testCreate_missingNonRegistrantContacts_cloneAndLinkReferences() throws Exception {
+    persistActiveContact("jd1234");
+    // This EPP command wouldn't be allowed for policy reasons, but should clone-and-link fine.
+    DomainCommand.Create create =
+        (DomainCommand.Create)
+            loadEppResourceCommand("domain_create_missing_non_registrant_contacts.xml");
+    create.cloneAndLinkReferences(clock.nowUtc());
+  }
+
+  @Test
   public void testDelete() throws Exception {
     doXmlRoundtripTest("domain_delete.xml");
   }
@@ -82,6 +154,31 @@ public class DomainCommandTest extends ResourceCommandTestCase {
   @Test
   public void testUpdate_flags() throws Exception {
     doXmlRoundtripTest("domain_update_flags.xml");
+  }
+
+  @Test
+  public void testUpdate_emptyCommand() throws Exception {
+    // This EPP command wouldn't be allowed for policy reasons, but should marshal/unmarshal fine.
+    doXmlRoundtripTest("domain_update_empty.xml");
+  }
+
+  @Test
+  public void testUpdate_cloneAndLinkReferences() throws Exception {
+    persistActiveHost("ns1.example.com");
+    persistActiveHost("ns2.example.com");
+    persistActiveContact("mak21");
+    persistActiveContact("sh8013");
+    DomainCommand.Update update =
+        (DomainCommand.Update) loadEppResourceCommand("domain_update.xml");
+    update.cloneAndLinkReferences(clock.nowUtc());
+  }
+
+  @Test
+  public void testUpdate_emptyCommand_cloneAndLinkReferences() throws Exception {
+    // This EPP command wouldn't be allowed for policy reasons, but should clone-and-link fine.
+    DomainCommand.Update update =
+        (DomainCommand.Update) loadEppResourceCommand("domain_update_empty.xml");
+    update.cloneAndLinkReferences(clock.nowUtc());
   }
 
   @Test
@@ -177,5 +274,12 @@ public class DomainCommandTest extends ResourceCommandTestCase {
   @Test
   public void testRenew_fee() throws Exception {
     doXmlRoundtripTest("domain_renew_fee.xml");
+  }
+
+  /** Loads the EppInput from the given filename and returns its ResourceCommand element. */
+  private ResourceCommand loadEppResourceCommand(String filename) throws Exception {
+    EppInput eppInput = new EppLoader(this, filename).getEpp();
+    return ((ResourceCommandWrapper) eppInput.getCommandWrapper().getCommand())
+        .getResourceCommand();
   }
 }

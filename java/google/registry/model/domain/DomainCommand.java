@@ -22,7 +22,9 @@ import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.difference;
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
 import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.union;
 
@@ -204,12 +206,12 @@ public class DomainCommand {
         registrantPlaceholder.contactId = clone.registrantContactId;
         registrantPlaceholder.type = DesignatedContact.Type.REGISTRANT;
         Set<DesignatedContact> contacts = linkContacts(
-            union(clone.foreignKeyedDesignatedContacts, registrantPlaceholder),
+            union(nullToEmpty(clone.foreignKeyedDesignatedContacts), registrantPlaceholder),
             now);
         for (DesignatedContact contact : contacts) {
           if (DesignatedContact.Type.REGISTRANT.equals(contact.getType())) {
             clone.registrant = contact.getContactRef();
-            clone.contacts = difference(contacts, contact);
+            clone.contacts = forceEmptyToNull(difference(contacts, contact));
             break;
           }
         }
@@ -511,6 +513,7 @@ public class DomainCommand {
     private final Class<?> type;
 
     InvalidReferencesException(Class<?> type, ImmutableSet<String> foreignKeys) {
+      super(String.format("Invalid %s reference IDs: %s", type.getSimpleName(), foreignKeys));
       this.type = checkNotNull(type);
       this.foreignKeys = foreignKeys;
     }

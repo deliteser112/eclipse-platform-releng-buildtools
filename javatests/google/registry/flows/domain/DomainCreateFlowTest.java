@@ -1026,6 +1026,14 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
+  public void testFailure_missingNonRegistrantContacts() throws Exception {
+    thrown.expect(MissingAdminContactException.class);
+    setEppInput("domain_create_missing_non_registrant_contacts.xml");
+    persistContactsAndHosts();
+    runFlow();
+  }
+
+  @Test
   public void testFailure_badIdn() throws Exception {
     thrown.expect(InvalidIdnDomainLabelException.class);
     createTld("xn--q9jyb4c");
