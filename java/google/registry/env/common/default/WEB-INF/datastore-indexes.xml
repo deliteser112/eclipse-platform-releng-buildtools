@@ -80,4 +80,8 @@
         <property name="deletionTime" direction="asc"/>
         <property name="fullyQualifiedHostName" direction="asc"/>
     </datastore-index>
+    <datastore-index kind="ContactResource" ancestor="false" source="manual">
+        <property name="deletionTime" direction="asc"/>
+        <property name="searchName" direction="asc"/>
+    </datastore-index>
 </datastore-indexes>

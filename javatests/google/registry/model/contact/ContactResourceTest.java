@@ -129,7 +129,8 @@ public class ContactResourceTest extends EntityTestCase {
     verifyIndexing(
         contactResource,
         "deletionTime",
-        "currentSponsorClientId");
+        "currentSponsorClientId",
+        "searchName");
   }
 
   @Test

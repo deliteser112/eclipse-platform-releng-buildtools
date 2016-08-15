@@ -786,7 +786,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     }
   }
 
-  /** Load a registrar entity by its client id. */
+  /** Load a registrar entity by its client id outside of a transaction. */
   @Nullable
   public static Registrar loadByClientId(final String clientId) {
     return ofy().doTransactionless(new Work<Registrar>() {
@@ -801,7 +801,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   }
 
   /**
-   * Load registrar entities by client id range.
+   * Load registrar entities by client id range outside of a transaction.
    *
    * @param clientIdStart returned registrars will have a client id greater than or equal to this
    * @param clientIdAfterEnd returned registrars will have a client id less than this
@@ -816,6 +816,41 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
             .type(Registrar.class)
             .filterKey(">=", Key.create(getCrossTldKey(), Registrar.class, clientIdStart))
             .filterKey("<", Key.create(getCrossTldKey(), Registrar.class, clientIdAfterEnd))
+            .limit(resultSetMaxSize);
+      }});
+  }
+
+  /** Load a registrar entity by its name outside of a transaction. */
+  @Nullable
+  public static Registrar loadByName(final String name) {
+    return ofy().doTransactionless(new Work<Registrar>() {
+      @Override
+      public Registrar run() {
+        return ofy().load()
+            .type(Registrar.class)
+            .filter("registrarName", name)
+            .first()
+            .now();
+      }});
+  }
+
+  /**
+   * Load registrar entities by registrar name range, inclusive of the start but not the end,
+   * outside of a transaction.
+   *
+   * @param nameStart returned registrars will have a name greater than or equal to this
+   * @param nameAfterEnd returned registrars will have a name less than this
+   * @param resultSetMaxSize the maximum number of registrar entities to be returned
+   */
+  public static Iterable<Registrar> loadByNameRange(
+      final String nameStart, final String nameAfterEnd, final int resultSetMaxSize) {
+    return ofy().doTransactionless(new Work<Iterable<Registrar>>() {
+      @Override
+      public Iterable<Registrar> run() {
+        return ofy().load()
+            .type(Registrar.class)
+            .filter("registrarName >=", nameStart)
+            .filter("registrarName <", nameAfterEnd)
             .limit(resultSetMaxSize);
       }});
   }

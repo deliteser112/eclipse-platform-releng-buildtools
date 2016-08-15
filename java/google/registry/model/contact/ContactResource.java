@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.condition.IfNull;
 import google.registry.model.EppResource;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
@@ -84,6 +85,15 @@ public class ContactResource extends EppResource implements ForeignKeyedEppResou
   @IgnoreSave(IfNull.class)
   @XmlTransient
   PostalInfo internationalizedPostalInfo;
+
+  /**
+   * Contact name used for name searches. This is set automatically to be the internationalized
+   * postal name, or if null, the localized postal name, or if that is null as well, null. Personal
+   * info; cleared by wipeOut().
+   */
+  @Index
+  @XmlTransient
+  String searchName;
 
   /** Contact’s voice number. Personal info; cleared by wipeOut(). */
   @IgnoreSave(IfNull.class)
@@ -250,6 +260,16 @@ public class ContactResource extends EppResource implements ForeignKeyedEppResou
 
     @Override
     public ContactResource build() {
+      // Set the searchName using the internationalized and localized postal info names.
+      if ((getInstance().internationalizedPostalInfo != null)
+          && (getInstance().internationalizedPostalInfo.getName() != null)) {
+        getInstance().searchName = getInstance().internationalizedPostalInfo.getName();
+      } else if ((getInstance().localizedPostalInfo != null)
+          && (getInstance().localizedPostalInfo.getName() != null)) {
+        getInstance().searchName = getInstance().localizedPostalInfo.getName();
+      } else {
+        getInstance().searchName = null;
+      }
       return super.build();
     }
   }

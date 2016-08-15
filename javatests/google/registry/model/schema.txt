@@ -157,6 +157,7 @@ class google.registry.model.contact.ContactResource {
   java.lang.String currentSponsorClientId;
   java.lang.String email;
   java.lang.String lastEppUpdateClientId;
+  java.lang.String searchName;
   java.util.Set<google.registry.model.eppcommon.StatusValue> status;
   org.joda.time.DateTime deletionTime;
   org.joda.time.DateTime lastEppUpdateTime;

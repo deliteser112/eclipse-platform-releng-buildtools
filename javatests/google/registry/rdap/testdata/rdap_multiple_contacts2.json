@@ -1,0 +1,139 @@
+{
+  "entitySearchResults":
+  [
+    {
+      "objectClassName" : "entity",
+      "handle" : "4-ROID",
+      "status" : ["active"],
+      "links" :
+      [
+        {
+          "value" : "https://example.com/rdap/entity/4-ROID",
+          "rel" : "self",
+          "href": "https://example.com/rdap/entity/4-ROID",
+          "type" : "application/rdap+json"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        },
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Blindly"],
+          ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
+          ["adr", {}, "text",
+            [
+              "",
+              "",
+              ["123 Blindly St", "Blindlyland"],
+              "KOKOMO",
+              "BM",
+              "31337",
+              "United States"
+            ]
+          ],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
+          ["email", {}, "text", "blindly@b.tld"]
+        ]
+      ]
+    },
+    {
+      "objectClassName" : "entity",
+      "handle" : "2-ROID",
+      "status" : ["active"],
+      "links" :
+      [
+        {
+          "value" : "https://example.com/rdap/entity/2-ROID",
+          "rel" : "self",
+          "href": "https://example.com/rdap/entity/2-ROID",
+          "type" : "application/rdap+json"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        },
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Blinky (赤ベイ)"],
+          ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
+          ["adr", {}, "text",
+            [
+              "",
+              "",
+              ["123 Blinky St", "Blinkyland"],
+              "KOKOMO",
+              "BM",
+              "31337",
+              "United States"
+            ]
+          ],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
+          ["email", {}, "text", "blinky@b.tld"]
+        ]
+      ]
+    }
+  ],
+  "rdapConformance": [ "rdap_level_0" ],
+    "notices" :
+  [
+    {
+      "title" : "RDAP Terms of Service",
+      "description" :
+      [
+        "By querying our Domain Database, you are agreeing to comply with these terms so please read them carefully.",
+        "Any information provided is 'as is' without any guarantee of accuracy.",
+        "Please do not misuse the Domain Database. It is intended solely for query-based access.",
+        "Don't use the Domain Database to allow, enable, or otherwise support the transmission of mass unsolicited, commercial advertising or solicitations.",
+        "Don't access our Domain Database through the use of high volume, automated electronic processes that send queries or data to the systems of Charleston Road Registry or any ICANN-accredited registrar.",
+        "You may only use the information contained in the Domain Database for lawful purposes.",
+        "Do not compile, repackage, disseminate, or otherwise use the information contained in the Domain Database in its entirety, or in any substantial portion, without our prior written permission.",
+        "We may retain certain details about queries to our Domain Database for the purposes of detecting and preventing misuse.",
+        "We reserve the right to restrict or deny your access to the database if we suspect that you have failed to comply with these terms.",
+        "We reserve the right to modify this agreement at any time."
+      ],
+      "links" :
+      [
+        {
+          "value" : "https://example.com/rdap/help/tos",
+          "rel" : "alternate",
+          "href" : "https://www.registry.google/about/rdap/tos.html",
+          "type" : "text/html"
+        }
+      ]
+    }
+  ],
+  "remarks" :
+  [
+    {
+      "description" :
+      [
+        "This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"
+      ]
+    }
+  ]
+}
