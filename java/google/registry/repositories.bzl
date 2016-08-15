@@ -161,6 +161,12 @@ def domain_registry_repositories():
   )
 
   native.maven_jar(
+      name = "error_prone_annotations",
+      artifact = "com.google.errorprone:error_prone_annotations:2.0.11",
+      sha1 = "3624d81fca4e93c67f43bafc222b06e1b1e3b260",
+  )
+
+  native.maven_jar(
       name = "fastutil",
       artifact = "it.unimi.dsi:fastutil:6.4.3",
       sha1 = "634ae8b497f0326136fd4995618207e48989623b",
