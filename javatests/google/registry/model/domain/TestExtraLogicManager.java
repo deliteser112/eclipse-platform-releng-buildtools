@@ -30,7 +30,7 @@ import org.joda.time.DateTime;
 public class TestExtraLogicManager implements RegistryExtraFlowLogic {
 
   @Override
-  public List<String> getFlags(
+  public List<String> getExtensionFlags(
       DomainResource domainResource, String clientIdentifier, DateTime asOfDate) {
     // Take the part before the period, split by dashes, and treat each part after the first as
     // a flag.

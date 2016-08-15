@@ -107,7 +107,7 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
     Optional<RegistryExtraFlowLogic> extraLogicManager =
         RegistryExtraFlowLogicProxy.newInstanceForTld(existingResource.getTld());
     if (extraLogicManager.isPresent()) {
-      List<String> flags = extraLogicManager.get().getFlags(
+      List<String> flags = extraLogicManager.get().getExtensionFlags(
           existingResource, this.getClientId(), now); // As-of date is always now for info commands.
       if (!flags.isEmpty()) {
         extensions.add(FlagsInfoResponseExtension.create(flags));

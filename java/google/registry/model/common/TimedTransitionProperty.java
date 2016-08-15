@@ -16,17 +16,22 @@ package google.registry.model.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DateTimeUtils.latestOf;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ForwardingMap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.googlecode.objectify.mapper.Mapper;
 import google.registry.model.ImmutableObject;
 import google.registry.util.TypeUtils;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import javax.annotation.Nullable;
@@ -134,6 +139,99 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
    */
   public TimedTransitionProperty<V, T> copyUntilJustBefore(DateTime asOfDate) {
     return new TimedTransitionProperty<>(backingMap.headMap(asOfDate, false));
+  }
+
+  /**
+   * Returns a new immutable {@code TimedTransitionProperty} containing the same transitions as the
+   * current object, plus the additional specified transition.
+   *
+   * @param transitionTime the time of the new transition
+   * @param transitionValue the value of the new transition
+   * @param transitionClass the class of transitions in this map
+   * @param allowedTransitions map of all possible state-to-state transitions
+   * @param allowedTransitionMapName transition map description string for error messages
+   */
+  public TimedTransitionProperty<V, T> copyWithAddedTransition(
+      DateTime transitionTime,
+      V transitionValue,
+      Class<T> transitionClass,
+      ImmutableMultimap<V, V> allowedTransitions,
+      String allowedTransitionMapName) {
+    ImmutableSortedMap<DateTime, V> currentMap = toValueMap();
+    checkArgument(
+        transitionTime.isAfter(currentMap.lastKey()),
+        "New transitions can only be appended after the last previous transition.");
+    Map<DateTime, V> newInnerMap = new HashMap<>(currentMap);
+    newInnerMap.put(transitionTime, transitionValue);
+    ImmutableSortedMap<DateTime, V> newMap =
+        ImmutableSortedMap.<DateTime, V>copyOf(newInnerMap);
+    validateTimedTransitionMap(newMap, allowedTransitions, allowedTransitionMapName);
+    return fromValueMap(newMap, transitionClass);
+  }
+
+  /**
+   * Validates a new set of transitions and returns the resulting TimedTransitionProperty map.
+   * 
+   * @param newTransitions map from date time to transition value
+   * @param transitionClass the class of transitions in this map
+   * @param allowedTransitions optional map of all possible state-to-state transitions
+   * @param allowedTransitionMapName optional transition map description string for error messages
+   * @param initialValue optional initial value; if present, the first transition must have this
+   *        value
+   * @param badInitialValueErrorMessage option error message string if the initial value is wrong
+   */
+  public static <V, T extends TimedTransitionProperty.TimedTransition<V>>
+      TimedTransitionProperty<V, T> make(
+          ImmutableSortedMap<DateTime, V> newTransitions,
+          Class<T> transitionClass,
+          ImmutableMultimap<V, V> allowedTransitions,
+          String allowedTransitionMapName,
+          V initialValue,
+          String badInitialValueErrorMessage) {
+    validateTimedTransitionMap(
+        newTransitions,
+        allowedTransitions,
+        allowedTransitionMapName);
+    checkArgument(
+        newTransitions.firstEntry().getValue() == initialValue,
+        badInitialValueErrorMessage);
+    return fromValueMap(newTransitions, transitionClass);
+  }
+
+  /**
+   * Validates that a transition map is not null or empty, starts at START_OF_TIME, and has
+   * transitions which move from one value to another in allowed ways.
+   */
+  public static <V, T extends TimedTransitionProperty.TimedTransition<V>>
+      void validateTimedTransitionMap(
+          @Nullable NavigableMap<DateTime, V> transitionMap,
+          ImmutableMultimap<V, V> allowedTransitions,
+          String mapName) {
+    checkArgument(
+        !nullToEmpty(transitionMap).isEmpty(), "%s map cannot be null or empty.", mapName);
+    checkArgument(
+        transitionMap.firstKey().equals(START_OF_TIME),
+        "%s map must start at START_OF_TIME.",
+        mapName);
+
+    // Check that all transitions between states are allowed.
+    Iterator<V> it = transitionMap.values().iterator();
+    V currentState = it.next();
+    while (it.hasNext()) {
+      checkArgument(
+          allowedTransitions.containsKey(currentState),
+          "%s map cannot transition from %s.",
+          mapName,
+          currentState);
+      V nextState = it.next();
+      checkArgument(
+          allowedTransitions.containsEntry(currentState, nextState),
+          "%s map cannot transition from %s to %s.",
+          mapName,
+          currentState,
+          nextState);
+      currentState = nextState;
+    }
   }
 
   /**

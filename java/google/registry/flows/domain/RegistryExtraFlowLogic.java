@@ -26,8 +26,8 @@ import org.joda.time.DateTime;
  */
 public interface RegistryExtraFlowLogic {
 
-  /** Get the flags to be passed to the client in the EPP flags extension. */
-  public List<String> getFlags(
+  /** Get the flags to be used in the EPP flags extension. This is used for EPP info commands. */
+  public List<String> getExtensionFlags(
       DomainResource domainResource, String clientIdentifier, DateTime asOfDate);
 
   /**

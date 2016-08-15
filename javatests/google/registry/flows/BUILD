@@ -25,6 +25,7 @@ java_library(
     ]),
     resources = glob(["**/testdata/*.xml"]),
     deps = [
+        "//java/com/google/common/annotations",
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
