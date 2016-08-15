@@ -13,6 +13,18 @@ runs independently in a lot of ways, including that they can be upgraded
 individually, their log outputs are separate, and their servers and configured
 scaling are separate as well.
 
+Once you have your app deployed and running, the default service can be accessed
+at `https://project-id.appspot.com`, substituting whatever your App Engine app
+is named for "project-id".  Note that that is the URL for the production
+instance of your app; other environments will have the environment name appended
+with a hyphen in the hostname, e.g. `https://project-id-sandbox.appspot.com`.
+
+The URL for the backend service is `https://backend-dot-project-id.appspot.com`
+and the URL for the tools service is `https://tools-dot-project-id.appspot.com`.
+The reason that the dot is escaped rather than forming subdomains is because the
+SSL certificate for `appspot.com` is only valid for `*.appspot.com` (no double
+wild-cards).
+
 ### Default service
 
 The default service is responsible for all registrar-facing
