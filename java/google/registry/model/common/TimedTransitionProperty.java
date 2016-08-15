@@ -126,6 +126,17 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
   }
 
   /**
+   * Returns a new immutable {@code TimedTransitionProperty} containing the same transitions as the
+   * current object, up to but not including the desired date. All transitions on or after that date
+   * will be deleted.
+   *
+   * @param asOfDate the date before which transitions should be retained
+   */
+  public TimedTransitionProperty<V, T> copyUntilJustBefore(DateTime asOfDate) {
+    return new TimedTransitionProperty<>(backingMap.headMap(asOfDate, false));
+  }
+
+  /**
    * Returns a new mutable {@code TimedTransitionProperty} representing the given map of DateTime
    * to value, with transitions constructed using the given {@code TimedTransition} subclass.
    *
