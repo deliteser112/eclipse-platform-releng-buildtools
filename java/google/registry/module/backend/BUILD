@@ -41,7 +41,6 @@ java_library(
         "//java/google/registry/request:modules",
         "//java/google/registry/tmch",
         "//java/google/registry/util",
-        "//java/google/registry/tools/server/javascrap",
     ],
 )
 

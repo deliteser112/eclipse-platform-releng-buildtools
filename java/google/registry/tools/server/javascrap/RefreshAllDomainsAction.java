@@ -30,13 +30,13 @@ import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-/** A mapreduce that runs publishHost() on all active domains. */
+/** A mapreduce that enqueues publish tasks on all active domains. */
 @Action(path = "/_dr/task/refreshAllDomains")
 public class RefreshAllDomainsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  static DnsQueue dnsQueue = DnsQueue.create();
+  private static DnsQueue dnsQueue = DnsQueue.create();
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
@@ -48,7 +48,7 @@ public class RefreshAllDomainsAction implements Runnable {
         createJobPath(
             mrRunner
                 .setJobName("Refresh all domains")
-                .setModuleName("backend")
+                .setModuleName("tools")
                 .setDefaultMapShards(10)
                 .runMapOnly(
                     new RefreshAllDomainsActionMapper(),
@@ -61,8 +61,8 @@ public class RefreshAllDomainsAction implements Runnable {
     private static final long serialVersionUID = 1356876487351666133L;
 
     @Override
-    public final void map(final DomainResource domain) {
-      final String domainName = domain.getFullyQualifiedDomainName();
+    public void map(final DomainResource domain) {
+      String domainName = domain.getFullyQualifiedDomainName();
       if (EppResourceUtils.isActive(domain, DateTime.now(DateTimeZone.UTC))) {
         try {
           dnsQueue.addDomainRefreshTask(domainName);
