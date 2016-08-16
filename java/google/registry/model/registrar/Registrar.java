@@ -21,7 +21,6 @@ import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Sets.immutableEnumSet;
 import static com.google.common.io.BaseEncoding.base64;
@@ -161,10 +160,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   }
 
   private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
-
-  /** Reports the type of data on file re: registrar certificates (full cert, hash only, none). */
-  // Note: May be unnecessary, pending a conversation on how to best report on this data.
-  public enum CertificateState { NONE, CERTIFICATE_HASH, CERTIFICATE }
 
   /** Regex for E.164 phone number format specified by {@code contact.xsd}. */
   private static final Pattern E164_PATTERN = Pattern.compile("\\+[0-9]{1,3}\\.[0-9]{1,14}");
@@ -405,16 +400,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   /** Returns {@code true} if registrar should be visible in WHOIS results. */
   public boolean isActiveAndPubliclyVisible() {
     return ACTIVE_STATES.contains(state) && PUBLICLY_VISIBLE_TYPES.contains(type);
-  }
-
-  public CertificateState getCertificateState() {
-    if (!isNullOrEmpty(clientCertificate)) {
-      return CertificateState.CERTIFICATE;
-    } else if (!isNullOrEmpty(clientCertificateHash)) {
-      return CertificateState.CERTIFICATE_HASH;
-    } else {
-      return CertificateState.NONE;
-    }
   }
 
   public String getClientCertificate() {
