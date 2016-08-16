@@ -141,6 +141,12 @@
     <url-pattern>/_dr/task/loadSnapshot</url-pattern>
   </servlet-mapping>
 
+  <!-- Refreshes all active domains in DNS -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/refreshAllDomains</url-pattern>
+  </servlet-mapping>
+
   <!-- Updates a view to point at a certain snapshot in BigQuery. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>

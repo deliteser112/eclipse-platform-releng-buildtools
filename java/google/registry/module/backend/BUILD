@@ -25,7 +25,6 @@ java_library(
         "//java/google/registry/config",
         "//java/google/registry/cron",
         "//java/google/registry/dns",
-        "//java/google/registry/dns/writer",
         "//java/google/registry/dns/writer/clouddns",
         "//java/google/registry/dns/writer/dnsupdate",
         "//java/google/registry/export",
@@ -42,6 +41,7 @@ java_library(
         "//java/google/registry/request:modules",
         "//java/google/registry/tmch",
         "//java/google/registry/util",
+        "//java/google/registry/tools/server/javascrap",
     ],
 )
 

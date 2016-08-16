@@ -62,6 +62,7 @@ import google.registry.tmch.TmchCrlAction;
 import google.registry.tmch.TmchDnlAction;
 import google.registry.tmch.TmchModule;
 import google.registry.tmch.TmchSmdrlAction;
+import google.registry.tools.server.javascrap.RefreshAllDomainsAction;
 
 /** Dagger component with per-request lifetime for "backend" App Engine module. */
 @RequestScope
@@ -106,6 +107,7 @@ interface BackendRequestComponent {
   RdeStagingAction rdeStagingAction();
   RdeUploadAction rdeUploadAction();
   RdeReporter rdeReporter();
+  RefreshAllDomainsAction refreshAllDomainsAction();
   RefreshDnsAction refreshDnsAction();
   RestoreCommitLogsAction restoreCommitLogsAction();
   SyncGroupMembersAction syncGroupMembersAction();
