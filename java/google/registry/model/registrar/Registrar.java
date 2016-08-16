@@ -286,6 +286,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    * </ul>
    * @see "http://www.iana.org/assignments/registrar-ids/registrar-ids.txt"
    */
+  @Index
   Long ianaIdentifier;
 
   /** Identifier of registrar used in external billing system (e.g. Oracle). */
@@ -836,6 +837,29 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
             .type(Registrar.class)
             .filter("registrarName >=", nameStart)
             .filter("registrarName <", nameAfterEnd)
+            .limit(resultSetMaxSize);
+      }});
+  }
+
+  /**
+   * Load registrar entities by IANA identifier range outside of a transaction.
+   *
+   * @param ianaIdentifierStart returned registrars will have an IANA id greater than or equal to
+   *        this
+   * @param ianaIdentifierAfterEnd returned registrars will have an IANA id less than this
+   * @param resultSetMaxSize the maximum number of registrar entities to be returned
+   */
+  public static Iterable<Registrar> loadByIanaIdentifierRange(
+      final Long ianaIdentifierStart,
+      final Long ianaIdentifierAfterEnd,
+      final int resultSetMaxSize) {
+    return ofy().doTransactionless(new Work<Iterable<Registrar>>() {
+      @Override
+      public Iterable<Registrar> run() {
+        return ofy().load()
+            .type(Registrar.class)
+            .filter("ianaIdentifier >=", ianaIdentifierStart)
+            .filter("ianaIdentifier <", ianaIdentifierAfterEnd)
             .limit(resultSetMaxSize);
       }});
   }

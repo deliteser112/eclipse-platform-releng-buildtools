@@ -125,7 +125,7 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testIndexing() throws Exception {
-    verifyIndexing(registrar, "registrarName");
+    verifyIndexing(registrar, "registrarName", "ianaIdentifier");
   }
 
   @Test
