@@ -109,7 +109,7 @@ public class StackdriverWriter implements MetricWriter {
    */
   private final HashMap<google.registry.monitoring.metrics.Metric<?>, MetricDescriptor>
       registeredDescriptors = new HashMap<>();
-  private final String project;
+  private final String projectResource;
   private final Monitoring monitoringClient;
   private final int maxPointsPerRequest;
   private final RateLimiter rateLimiter;
@@ -128,7 +128,7 @@ public class StackdriverWriter implements MetricWriter {
       @Named("stackdriverMaxQps") int maxQps,
       @Named("stackdriverMaxPointsPerRequest") int maxPointsPerRequest) {
     this.monitoringClient = checkNotNull(monitoringClient);
-    this.project = "projects/" + checkNotNull(project);
+    this.projectResource = "projects/" + checkNotNull(project);
     this.monitoredResource = monitoredResource;
     this.maxPointsPerRequest = maxPointsPerRequest;
     this.timeSeriesBuffer = new ArrayDeque<>(maxPointsPerRequest);
@@ -244,7 +244,7 @@ public class StackdriverWriter implements MetricWriter {
     CreateTimeSeriesRequest request = new CreateTimeSeriesRequest().setTimeSeries(timeSeriesList);
 
     rateLimiter.acquire();
-    monitoringClient.projects().timeSeries().create(project, request).execute();
+    monitoringClient.projects().timeSeries().create(projectResource, request).execute();
 
     for (TimeSeries timeSeries : timeSeriesList) {
       pushedPoints.incrementBy(1, timeSeries.getMetricKind(), timeSeries.getValueType());
@@ -270,7 +270,11 @@ public class StackdriverWriter implements MetricWriter {
     try {
       rateLimiter.acquire();
       descriptor =
-          monitoringClient.projects().metricDescriptors().create(project, descriptor).execute();
+          monitoringClient
+              .projects()
+              .metricDescriptors()
+              .create(projectResource, descriptor)
+              .execute();
     } catch (IOException e) {
       throw new RuntimeException("Error creating a MetricDescriptor");
     }
