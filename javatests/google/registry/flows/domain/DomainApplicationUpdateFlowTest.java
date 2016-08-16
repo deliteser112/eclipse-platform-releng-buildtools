@@ -28,6 +28,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
@@ -40,6 +41,7 @@ import google.registry.flows.domain.DomainApplicationUpdateFlow.ApplicationStatu
 import google.registry.flows.domain.DomainFlowUtils.ApplicationDomainNameMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
 import google.registry.flows.domain.DomainFlowUtils.EmptySecDnsUpdateException;
+import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.MaxSigLifeChangeNotSupportedException;
 import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
@@ -59,6 +61,8 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainApplication.Builder;
+import google.registry.model.domain.TestExtraLogicManager;
+import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
@@ -89,6 +93,8 @@ public class DomainApplicationUpdateFlowTest
   @Before
   public void setUp() {
     createTld("tld", TldState.SUNRUSH);
+    createTld("flags", TldState.SUNRISE);
+    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   private void persistReferencedEntities() {
@@ -667,5 +673,27 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistApplication();
     doSuccessfulTest();
+  }
+
+  @Test
+  public void testFailure_flags_feeMismatch() throws Exception {
+    persistReferencedEntities();
+    persistResource(
+        newDomainApplication("update-42.flags").asBuilder().setRepoId("1-ROID").build());
+    setEppInput("domain_update_sunrise_flags.xml", ImmutableMap.of("FEE", "12"));
+    clock.advanceOneMilli();
+    thrown.expect(FeesMismatchException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_flags() throws Exception {
+    persistReferencedEntities();
+    persistResource(
+        newDomainApplication("update-42.flags").asBuilder().setRepoId("1-ROID").build());
+    setEppInput("domain_update_sunrise_flags.xml", ImmutableMap.of("FEE", "42"));
+    clock.advanceOneMilli();
+    thrown.expect(TestExtraLogicManagerSuccessException.class, "add:flag1;remove:flag2");
+    runFlow();
   }
 }

@@ -96,10 +96,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     }
   }
 
-  /**
-   * Performs additional tasks required for an application create command. Any changes should not be
-   * persisted to Datastore until commitAdditionalLogicChanges is called.
-   */
+  /** Performs additional tasks required for an application create command. */
   @Override
   public void performAdditionalApplicationCreateLogic(
       DomainApplication application,
@@ -114,6 +111,47 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
       return;
     }
     throw new TestExtraLogicManagerSuccessException(Joiner.on(',').join(flags.getFlags()));
+  }
+
+  /** Performs additional tasks required for an application create command. */
+  @Override
+  public void performAdditionalApplicationDeleteLogic(
+      DomainApplication application,
+      String clientId,
+      DateTime asOfDate,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException {
+    throw new TestExtraLogicManagerSuccessException("application deleted");
+  }
+
+  /** Computes the expected application update cost, for use in fee challenges and the like. */
+  @Override
+  public BaseFee getApplicationUpdateFeeOrCredit(
+      DomainApplication application,
+      String clientId,
+      DateTime asOfDate,
+      EppInput eppInput) throws EppException {
+    return domainNameToFeeOrCredit(application.getFullyQualifiedDomainName());
+  }
+
+  /** Performs additional tasks required for an application update command. */
+  @Override
+  public void performAdditionalApplicationUpdateLogic(
+      DomainApplication application,
+      String clientId,
+      DateTime asOfDate,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException {
+    FlagsUpdateCommandExtension flags =
+        eppInput.getSingleExtension(FlagsUpdateCommandExtension.class);
+    if (flags == null) {
+      return;
+    }
+    throw new TestExtraLogicManagerSuccessException(
+        "add:"
+        + Joiner.on(',').join(flags.getAddFlags().getFlags())
+        + ";remove:"
+        + Joiner.on(',').join(flags.getRemoveFlags().getFlags()));
   }
 
   /** Computes the expected create cost, for use in fee challenges and the like. */

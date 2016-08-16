@@ -30,6 +30,7 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.model.ImmutableObject;
+import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.fee.BaseFee;
@@ -252,6 +253,29 @@ public final class TldSpecificLogicProxy {
       }
       feeOrCredit =
           extraFlowLogic.get().getUpdateFeeOrCredit(domain, clientId, date, eppInput);
+    } else {
+      feeOrCredit = Fee.create(Money.zero(registry.getCurrency()).getAmount(), FeeType.UPDATE);
+    }
+
+    return new EppCommandOperations(currency, feeOrCredit);
+  }
+
+  /** Returns a new domain application update price for the pricer. */
+  public static EppCommandOperations getApplicationUpdatePrice(
+      Registry registry,
+      DomainApplication application,
+      String clientId,
+      DateTime date,
+      EppInput eppInput) throws EppException {
+    CurrencyUnit currency = registry.getCurrency();
+
+    // If there is extra flow logic, it may specify an update price. Otherwise, there is none.
+    BaseFee feeOrCredit;
+    Optional<RegistryExtraFlowLogic> extraFlowLogic =
+        RegistryExtraFlowLogicProxy.newInstanceForTld(registry.getTldStr());
+    if (extraFlowLogic.isPresent()) {
+      feeOrCredit = extraFlowLogic.get()
+          .getApplicationUpdateFeeOrCredit(application, clientId, date, eppInput);
     } else {
       feeOrCredit = Fee.create(Money.zero(registry.getCurrency()).getAmount(), FeeType.UPDATE);
     }

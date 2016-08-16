@@ -30,6 +30,7 @@ import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReference
 import static google.registry.flows.domain.DomainFlowUtils.updateDsData;
 import static google.registry.flows.domain.DomainFlowUtils.validateContactsHaveTypes;
 import static google.registry.flows.domain.DomainFlowUtils.validateDsData;
+import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversCountForTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
@@ -53,11 +54,15 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeUpdateException;
+import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Update;
 import google.registry.model.domain.DomainCommand.Update.AddRemove;
 import google.registry.model.domain.DomainCommand.Update.Change;
+import google.registry.model.domain.fee.FeeUpdateCommandExtension;
+import google.registry.model.domain.flags.FlagsUpdateCommandExtension;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchUpdateExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -67,8 +72,10 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
+import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
+import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /**
@@ -87,6 +94,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.ApplicationDomainNameMismatchException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
  * @error {@link DomainFlowUtils.EmptySecDnsUpdateException}
+ * @error {@link DomainFlowUtils.FeesMismatchException}
  * @error {@link DomainFlowUtils.LinkedResourcesDoNotExistException}
  * @error {@link DomainFlowUtils.MaxSigLifeChangeNotSupportedException}
  * @error {@link DomainFlowUtils.MissingAdminContactException}
@@ -134,9 +142,11 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
   @Override
   public final EppResponse run() throws EppException {
     extensionManager.register(
+        FeeUpdateCommandExtension.class,
         LaunchUpdateExtension.class,
         MetadataExtension.class,
-        SecDnsUpdateExtension.class);
+        SecDnsUpdateExtension.class,
+        FlagsUpdateCommandExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
@@ -146,16 +156,17 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
     verifyApplicationDomainMatchesTargetId(existingApplication, targetId);
     verifyNoDisallowedStatuses(existingApplication, UPDATE_DISALLOWED_STATUSES);
     verifyOptionalAuthInfo(authInfo, existingApplication);
-    verifyUpdateAllowed(existingApplication, command);
+    verifyUpdateAllowed(existingApplication, command, now);
     HistoryEntry historyEntry = buildHistory(existingApplication, now);
     DomainApplication newApplication = updateApplication(existingApplication, command, now);
     validateNewApplication(newApplication);
+    handleExtraFlowLogic(newApplication.getTld(), historyEntry, newApplication, now);
     ofy().save().<ImmutableObject>entities(newApplication, historyEntry);
     return responseBuilder.build();
   }
 
   protected final void verifyUpdateAllowed(
-      DomainApplication existingApplication, Update command) throws EppException {
+      DomainApplication existingApplication, Update command, DateTime now) throws EppException {
     AddRemove add = command.getInnerAdd();
     AddRemove remove = command.getInnerRemove();
     if (!isSuperuser) {
@@ -169,6 +180,20 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
         .contains(existingApplication.getApplicationStatus())) {
       throw new ApplicationStatusProhibitsUpdateException(
           existingApplication.getApplicationStatus());
+    }
+    EppCommandOperations commandOperations = TldSpecificLogicProxy.getApplicationUpdatePrice(
+        Registry.get(tld), existingApplication, clientId, now, eppInput);
+    FeeUpdateCommandExtension feeUpdate =
+        eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
+    // If the fee extension is present, validate it (even if the cost is zero, to check for price
+    // mismatches). Don't rely on the the validateFeeChallenge check for feeUpdate nullness, because
+    // it throws an error if the name is premium, and we don't want to do that here.
+    Money totalCost = commandOperations.getTotalCost();
+    if (feeUpdate != null) {
+      validateFeeChallenge(targetId, tld, now, feeUpdate, totalCost);
+    } else if (!totalCost.isZero()) {
+      // If it's not present but the cost is not zero, throw an exception.
+      throw new FeesRequiredForNonFreeUpdateException();
     }
     verifyNotInPendingDelete(
         add.getContacts(),
@@ -221,6 +246,16 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
     validateRequiredContactsPresent(newApplication.getRegistrant(), newApplication.getContacts());
     validateDsData(newApplication.getDsData());
     validateNameserversCountForTld(newApplication.getTld(), newApplication.getNameservers().size());
+  }
+
+  private void handleExtraFlowLogic(String tld, HistoryEntry historyEntry,
+      DomainApplication newApplication, DateTime now) throws EppException {
+    Optional<RegistryExtraFlowLogic> extraFlowLogic =
+        RegistryExtraFlowLogicProxy.newInstanceForTld(tld);
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().performAdditionalApplicationUpdateLogic(
+          newApplication, clientId, now, eppInput, historyEntry);
+    }
   }
 
   /** Application status prohibits this domain update. */

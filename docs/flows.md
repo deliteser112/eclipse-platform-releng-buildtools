@@ -734,6 +734,8 @@ application. Updates cannot change the domain name that is being applied for.
     *   Technical contact is required.
 *   2004
     *   The specified status value cannot be set by clients.
+    *   The fees passed in the transform command do not match the fees that will
+        be charged.
 *   2102
     *   Changing 'maxSigLife' is not supported.
     *   The 'urgent' attribute is not supported.

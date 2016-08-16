@@ -4,7 +4,7 @@
    <delete>
     <domain:delete
      xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-      <domain:name>example.tld</domain:name>
+      <domain:name>%DOMAIN%</domain:name>
     </domain:delete>
    </delete>
    <extension>

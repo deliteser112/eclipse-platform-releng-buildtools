@@ -25,6 +25,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomainApplica
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
@@ -39,6 +40,8 @@ import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.TestExtraLogicManager;
+import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -58,6 +61,8 @@ public class DomainApplicationDeleteFlowTest
   @Before
   public void setUp() {
     createTld("tld", TldState.SUNRUSH);
+    createTld("extra", TldState.LANDRUSH);
+    RegistryExtraFlowLogicProxy.setOverride("extra", TestExtraLogicManager.class);
   }
 
   public void doSuccessfulTest() throws Exception {
@@ -172,7 +177,7 @@ public class DomainApplicationDeleteFlowTest
   @Test
   public void testFailure_sunriseDuringLandrush() throws Exception {
     createTld("tld", TldState.LANDRUSH);
-    setEppInput("domain_delete_application_landrush.xml");
+    setEppInput("domain_delete_application_landrush.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistResource(newDomainApplication("example.tld")
         .asBuilder()
         .setRepoId("1-TLD")
@@ -185,7 +190,7 @@ public class DomainApplicationDeleteFlowTest
   @Test
   public void testSuccess_superuserSunriseDuringLandrush() throws Exception {
     createTld("tld", TldState.LANDRUSH);
-    setEppInput("domain_delete_application_landrush.xml");
+    setEppInput("domain_delete_application_landrush.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistResource(newDomainApplication("example.tld")
         .asBuilder()
         .setRepoId("1-TLD")
@@ -199,7 +204,7 @@ public class DomainApplicationDeleteFlowTest
   @Test
   public void testSuccess_sunrushDuringLandrush() throws Exception {
     createTld("tld", TldState.LANDRUSH);
-    setEppInput("domain_delete_application_landrush.xml");
+    setEppInput("domain_delete_application_landrush.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistResource(newDomainApplication("example.tld")
         .asBuilder()
         .setRepoId("1-TLD")
@@ -222,7 +227,7 @@ public class DomainApplicationDeleteFlowTest
 
   @Test
   public void testFailure_mismatchedPhase() throws Exception {
-    setEppInput("domain_delete_application_landrush.xml");
+    setEppInput("domain_delete_application_landrush.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     thrown.expect(LaunchPhaseMismatchException.class);
@@ -299,6 +304,19 @@ public class DomainApplicationDeleteFlowTest
     persistResource(
         newDomainApplication("invalid.tld").asBuilder().setRepoId("1-TLD").build());
     thrown.expect(ApplicationDomainNameMismatchException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_extraLogic() throws Exception {
+    persistResource(newDomainApplication("example.extra")
+        .asBuilder()
+        .setRepoId("1-TLD")
+        .setPhase(LaunchPhase.LANDRUSH)
+        .build());
+    setEppInput(
+        "domain_delete_application_landrush.xml", ImmutableMap.of("DOMAIN", "example.extra"));
+    thrown.expect(TestExtraLogicManagerSuccessException.class, "application deleted");
     runFlow();
   }
 }
