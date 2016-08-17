@@ -49,15 +49,23 @@ public final class Counter extends AbstractMetric<Long>
   }
 
   @VisibleForTesting
-  void incrementBy(Number offset, ImmutableList<String> labelValues) {
-    values.addAndGet(labelValues, offset.longValue());
+  void incrementBy(long offset, ImmutableList<String> labelValues) {
+    values.addAndGet(labelValues, offset);
   }
 
   @Override
   public final void incrementBy(long offset, String... labelValues) {
     checkArgument(labelValues.length == this.getMetricSchema().labels().size(), LABEL_COUNT_ERROR);
+    checkArgument(offset >= 0, "The offset provided must be non-negative");
 
     incrementBy(offset, ImmutableList.copyOf(labelValues));
+  }
+
+  @Override
+  public final void increment(String... labelValues) {
+    checkArgument(labelValues.length == this.getMetricSchema().labels().size(), LABEL_COUNT_ERROR);
+
+    incrementBy(1L, ImmutableList.copyOf(labelValues));
   }
 
   /**

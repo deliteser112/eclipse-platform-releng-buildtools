@@ -104,7 +104,7 @@ public class MetricReporter extends AbstractScheduledService {
     for (Metric<?> metric : metricRegistry.getRegisteredMetrics()) {
       points.addAll(metric.getTimestampedValues());
       logger.fine(String.format("Enqueued metric %s", metric));
-      MetricMetrics.pushedPoints.incrementBy(1,
+      MetricMetrics.pushedPoints.increment(
           metric.getMetricSchema().kind().name(), metric.getValueClass().toString());
     }
 
@@ -112,7 +112,7 @@ public class MetricReporter extends AbstractScheduledService {
       logger.severe("writeQueue full, dropped a reporting interval of points");
     }
 
-    MetricMetrics.pushIntervals.incrementBy(1);
+    MetricMetrics.pushIntervals.increment();
   }
 
   @Override

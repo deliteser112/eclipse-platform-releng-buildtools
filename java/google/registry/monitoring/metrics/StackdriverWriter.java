@@ -195,7 +195,7 @@ public class StackdriverWriter implements MetricWriter {
     monitoringClient.projects().timeSeries().create(projectResource, request).execute();
 
     for (TimeSeries timeSeries : timeSeriesList) {
-      pushedPoints.incrementBy(1, timeSeries.getMetricKind(), timeSeries.getValueType());
+      pushedPoints.increment(timeSeries.getMetricKind(), timeSeries.getValueType());
     }
     logger.info(String.format("Flushed %d metrics to Stackdriver", timeSeriesList.size()));
   }
