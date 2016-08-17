@@ -20,6 +20,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.ConfigModule.Config;
 import java.lang.annotation.Documented;
 import java.net.URI;
 import java.net.URL;
@@ -480,17 +481,6 @@ public final class ConfigModule {
     return Duration.standardSeconds(30);
   }
 
-  /**
-   * Time interval between metric writes to Stackdriver.
-   *
-   * @see google.registry.monitoring.stackdriver.MonitoringComponent
-   */
-  @Provides
-  @Config("metricWriteInterval")
-  public static Duration provideMetricWriteInterval() {
-    return Duration.standardSeconds(60);
-  }
-
   /** Duration after watermark where we shouldn't deposit, because transactions might be pending. */
   @Provides
   @Config("transactionCooldown")
@@ -632,5 +622,41 @@ public final class ConfigModule {
         + "or (c) engage in or support unlawful behavior. CRR reserves the right to\n"
         + "restrict or deny your access to the Whois database, and may modify these terms\n"
         + "at any time.\n";
+  }
+
+  /**
+   * Maximum QPS for the Google Cloud Monitoring V3 (aka Stackdriver) API. The QPS limit can be
+   * adjusted by contacting Cloud Support.
+   *
+   * @see google.registry.monitoring.metrics.StackdriverWriter
+   */
+  @Provides
+  @Config("stackdriverMaxQps")
+  public static int provideStackdriverMaxQps() {
+    return 30;
+  }
+
+  /**
+   * Maximum number of points that can be sent to Stackdriver in a single TimeSeries.Create API
+   * call.
+   *
+   * @see google.registry.monitoring.metrics.StackdriverWriter
+   */
+  @Provides
+  @Config("stackdriverMaxPointsPerRequest")
+  public static int provideStackdriverMaxPointsPerRequest() {
+    return 200;
+  }
+
+  /**
+   * The reporting interval, for Metrics to be sent to a {@link
+   * google.registry.monitoring.metrics.MetricWriter}.
+   *
+   * @see google.registry.monitoring.metrics.MetricReporter
+   */
+  @Provides
+  @Config("metricsWriteInterval")
+  public static Duration provideMetricsWriteInterval() {
+    return Duration.standardSeconds(60);
   }
 }
