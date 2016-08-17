@@ -161,8 +161,7 @@ public class MetricReporter extends AbstractScheduledService {
     return executor;
   }
 
-  @VisibleForTesting
-  void startMetricExporter() {
+  private void startMetricExporter() {
     // Services in the FAILED state must be reconstructed, they can't be started
     if (metricExporter.state() == State.FAILED) {
       logger.log(
