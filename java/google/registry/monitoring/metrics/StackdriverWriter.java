@@ -155,7 +155,7 @@ public class StackdriverWriter implements MetricWriter {
   static <V> MetricDescriptor createMetricDescriptor(
       google.registry.monitoring.metrics.Metric<V> metric) {
     return new MetricDescriptor()
-        .setType(METRIC_DOMAIN + "/" + metric.getMetricSchema().name())
+        .setType(METRIC_DOMAIN + metric.getMetricSchema().name())
         .setDescription(metric.getMetricSchema().description())
         .setDisplayName(metric.getMetricSchema().valueDisplayName())
         .setValueType(ENCODED_METRIC_TYPES.get(metric.getValueClass()))
