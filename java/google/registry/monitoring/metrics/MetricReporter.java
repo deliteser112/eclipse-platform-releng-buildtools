@@ -121,12 +121,18 @@ public class MetricReporter extends AbstractScheduledService {
     // least once.
     runOneIteration();
 
+    // Offer a poision pill to inform the exporter to stop.
     writeQueue.offer(Optional.<ImmutableList<MetricPoint<?>>>absent());
     try {
-      metricExporter.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
+      metricExporter.awaitTerminated(10, TimeUnit.SECONDS);
       logger.info("Shut down MetricExporter");
-    } catch (TimeoutException timeoutException) {
-      logger.severe("Failed to shut down MetricExporter: " + timeoutException);
+    } catch (IllegalStateException exception) {
+      logger.log(
+          Level.SEVERE,
+          "Failed to shut down MetricExporter because it was FAILED",
+          metricExporter.failureCause());
+    } catch (TimeoutException exception) {
+      logger.log(Level.SEVERE, "Failed to shut down MetricExporter within the timeout", exception);
     }
   }
 
@@ -145,6 +151,7 @@ public class MetricReporter extends AbstractScheduledService {
   protected ScheduledExecutorService executor() {
     final ScheduledExecutorService executor =
         Executors.newSingleThreadScheduledExecutor(threadFactory);
+    // Make sure the ExecutorService terminates when this service does.
     addListener(
         new Listener() {
           @Override
@@ -162,15 +169,21 @@ public class MetricReporter extends AbstractScheduledService {
   }
 
   private void startMetricExporter() {
-    // Services in the FAILED state must be reconstructed, they can't be started
-    if (metricExporter.state() == State.FAILED) {
-      logger.log(
-          Level.SEVERE,
-          "MetricExporter died unexpectedly, restarting",
-          metricExporter.failureCause());
-      this.metricExporter = new MetricExporter(writeQueue, metricWriter, threadFactory);
+    switch (metricExporter.state()) {
+      case NEW:
+        metricExporter.startAsync();
+        break;
+      case FAILED:
+        logger.log(
+            Level.SEVERE,
+            "MetricExporter died unexpectedly, restarting",
+            metricExporter.failureCause());
+        this.metricExporter = new MetricExporter(writeQueue, metricWriter, threadFactory);
+        this.metricExporter.startAsync();
+        break;
+      default:
+        throw new IllegalStateException(
+            "MetricExporter not FAILED or NEW, should not be calling startMetricExporter");
     }
-
-    this.metricExporter.startAsync();
   }
 }
