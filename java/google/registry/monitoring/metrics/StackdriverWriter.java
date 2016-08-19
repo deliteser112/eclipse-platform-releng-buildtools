@@ -46,6 +46,7 @@ import java.util.logging.Logger;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import javax.inject.Named;
+import org.joda.time.Interval;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
@@ -251,6 +252,12 @@ public class StackdriverWriter implements MetricWriter {
     return descriptor;
   }
 
+  private static TimeInterval encodeTimeInterval(Interval nativeInterval) {
+    return new TimeInterval()
+        .setEndTime(DATETIME_FORMATTER.print(nativeInterval.getEnd()))
+        .setStartTime(DATETIME_FORMATTER.print(nativeInterval.getStart()));
+  }
+
   /**
    * Encodes a {@link MetricPoint} into a Stackdriver {@link TimeSeries}.
    *
@@ -298,9 +305,7 @@ public class StackdriverWriter implements MetricWriter {
     }
 
     Point encodedPoint =
-        new Point()
-            .setInterval(new TimeInterval().setEndTime(DATETIME_FORMATTER.print(point.timestamp())))
-            .setValue(encodedValue);
+        new Point().setInterval(encodeTimeInterval(point.interval())).setValue(encodedValue);
 
     List<LabelDescriptor> encodedLabels = descriptor.getLabels();
     // The MetricDescriptors returned by the GCM API have null fields rather than empty lists
