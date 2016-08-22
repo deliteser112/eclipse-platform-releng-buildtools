@@ -25,6 +25,7 @@ java_library(
         "//java/google/registry/config",
         "//java/google/registry/cron",
         "//java/google/registry/dns",
+        "//java/google/registry/dns/writer",
         "//java/google/registry/dns/writer/clouddns",
         "//java/google/registry/dns/writer/dnsupdate",
         "//java/google/registry/export",
