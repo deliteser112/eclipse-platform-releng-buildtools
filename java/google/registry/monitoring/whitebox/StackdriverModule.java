@@ -38,6 +38,10 @@ import org.joda.time.Duration;
 @Module
 public final class StackdriverModule {
 
+  // We need a fake GCE zone to appease Stackdriver's resource model.
+  // TODO(b/31021585): Revisit this if/when gae_instance exists.
+  private static String SPOOFED_GCE_ZONE = "us-central1-f";
+
   @Provides
   static Monitoring provideMonitoring(
       HttpTransport transport,
@@ -56,19 +60,24 @@ public final class StackdriverModule {
       ModulesService modulesService,
       @Config("stackdriverMaxQps") int maxQps,
       @Config("stackdriverMaxPointsPerRequest") int maxPointsPerRequest) {
-    // The MonitoredResource for GAE apps lacks an instance_id field, so we encode it into the
-    // version_id field so that metrics from different instances don't interleave.
+    // The MonitoredResource for GAE apps is not writable (and missing fields anyway) so we just
+    // use the gce_instance resource type instead.
     return new StackdriverWriter(
         monitoringClient,
         projectId,
         new MonitoredResource()
-            .setType("gae_app")
+            .setType("gce_instance")
             .setLabels(
                 ImmutableMap.of(
-                    "module_id",
-                    modulesService.getCurrentModule(),
-                    "version_id",
-                    modulesService.getCurrentVersion()
+                    // The "zone" field MUST be a valid GCE zone, so we fake one.
+                    "zone",
+                    SPOOFED_GCE_ZONE,
+                    // Overload the GCE "instance_id" field with the GAE module name, version and
+                    // instance_id.
+                    "instance_id",
+                    modulesService.getCurrentModule()
+                        + ":"
+                        + modulesService.getCurrentVersion()
                         + ":"
                         + modulesService.getCurrentInstanceId())),
         maxQps,
