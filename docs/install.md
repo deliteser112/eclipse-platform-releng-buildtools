@@ -64,6 +64,24 @@ computer too badly.
       --local_resources=1000,3,1.0
     Executed 360 out of 360 tests: 360 tests pass.
 
+## Running a development instance locally
+
+`RegistryTestServer` is a lightweight test server for the registry that is
+suitable for running locally for development.  It uses local versions of all
+Google Cloud Platform dependencies, when available.  Correspondingly, its
+functionality is limited compared to a Domain Registry instance running on an
+actual App Engine instance.  To see its command-line parameters, run:
+
+    $ bazel run //javatests/google/registry/server -- --help
+
+Then to fire up an instance of the server, run:
+
+    $ bazel run //javatests/google/registry/server {your params}
+
+Once it is running, you can interact with it via normal `registry_tool`
+commands, or view the registrar console in a web browser by navigating to
+http://localhost:8080/registrar .
+
 ## Deploying the code
 
 You are going to need to configure a variety of things before a working
