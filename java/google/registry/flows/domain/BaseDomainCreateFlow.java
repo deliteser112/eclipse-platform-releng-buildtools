@@ -192,7 +192,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
             && !command.getAuthInfo().getPw().getValue().isEmpty()
             && !isAnchorTenantViaReservation;
     lrpToken = isLrpApplication
-        ? TldSpecificLogicProxy.getMatchingLrpToken(command)
+        ? TldSpecificLogicProxy.getMatchingLrpToken(command, tld)
         : Optional.<LrpToken>absent();
     // Superusers can create reserved domains, force creations on domains that require a claims
     // notice without specifying a claims key, and override blocks on registering premium domains.

@@ -879,6 +879,7 @@ public class DomainApplicationCreateFlowTest
     LrpToken token = persistResource(new LrpToken.Builder()
         .setToken("lrptokentest")
         .setAssignee("test-validate.tld")
+        .setValidTlds(ImmutableSet.of("tld"))
         .build());
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
@@ -910,6 +911,7 @@ public class DomainApplicationCreateFlowTest
     LrpToken token = persistResource(new LrpToken.Builder()
         .setToken("lrptokentest")
         .setAssignee("test-validate.tld")
+        .setValidTlds(ImmutableSet.of("tld"))
         .build());
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
@@ -920,7 +922,6 @@ public class DomainApplicationCreateFlowTest
 
   @Test
   public void testFailure_landrushLrpApplication_badToken() throws Exception {
-    thrown.expect(BadAuthInfoForResourceException.class);
     createTld("tld", TldState.LANDRUSH);
     persistResource(Registry.get("tld").asBuilder()
         .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
@@ -928,10 +929,33 @@ public class DomainApplicationCreateFlowTest
     persistResource(new LrpToken.Builder()
         .setToken("lrptokentest2")
         .setAssignee("test-validate.tld")
+        .setValidTlds(ImmutableSet.of("tld"))
         .build());
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
+    thrown.expect(BadAuthInfoForResourceException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_landrushLrpApplication_tokenForWrongTld() throws Exception {
+    createTld("tld", TldState.LANDRUSH);
+    persistResource(Registry.get("tld").asBuilder()
+        .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
+        .build());
+    persistResource(new LrpToken.Builder()
+        .setToken("lrptokentest")
+        // The below assignee doesn't really make sense here, but as of right now the validation
+        // in TldSpecificLogicProxy is just a match on the domain name, so this test ensures that
+        // the registration fails due to invalid TLDs even if everything else otherwise matches.
+        .setAssignee("test-validate.tld")
+        .setValidTlds(ImmutableSet.of("other"))
+        .build());
+    setEppInput("domain_create_landrush_lrp.xml");
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    thrown.expect(BadAuthInfoForResourceException.class);
     runFlow();
   }
 
@@ -945,6 +969,7 @@ public class DomainApplicationCreateFlowTest
     persistResource(new LrpToken.Builder()
         .setToken("lrptokentest")
         .setAssignee("test-validate.tld")
+        .setValidTlds(ImmutableSet.of("tld"))
         .setRedemptionHistoryEntry(Key.create(HistoryEntry.class, "1")) // as long as it's not null
         .build());
     setEppInput("domain_create_landrush_lrp.xml");
@@ -959,6 +984,7 @@ public class DomainApplicationCreateFlowTest
     LrpToken token = persistResource(new LrpToken.Builder()
         .setToken("lrptokentest")
         .setAssignee("test-validate.tld")
+        .setValidTlds(ImmutableSet.of("tld"))
         .build());
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
@@ -981,6 +1007,7 @@ public class DomainApplicationCreateFlowTest
     LrpToken token = persistResource(new LrpToken.Builder()
         .setToken("lrptokentest")
         .setAssignee("test-validate.tld")
+        .setValidTlds(ImmutableSet.of("tld"))
         .build());
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();

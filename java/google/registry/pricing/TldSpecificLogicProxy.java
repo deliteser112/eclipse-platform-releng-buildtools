@@ -159,14 +159,15 @@ public final class TldSpecificLogicProxy {
    * token) has already been checked against the reserved list for QLP (anchor tenant), as auth
    * codes are used for both types of registrations.
    */
-  public static Optional<LrpToken> getMatchingLrpToken(Create createCommand) {
+  public static Optional<LrpToken> getMatchingLrpToken(Create createCommand, String tld) {
     // Note that until the actual per-TLD logic is built out, what's being done here is a basic
     // domain-name-to-assignee match.
     String lrpToken = createCommand.getAuthInfo().getPw().getValue();
     LrpToken token = ofy().load().key(Key.create(LrpToken.class, lrpToken)).now();
     if (token != null) {
       if (token.getAssignee().equalsIgnoreCase(createCommand.getFullyQualifiedDomainName())
-          && token.getRedemptionHistoryEntry() == null) {
+          && token.getRedemptionHistoryEntry() == null
+          && token.getValidTlds().contains(tld)) {
         return Optional.of(token);
       }
     }
