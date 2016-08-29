@@ -203,6 +203,8 @@ public class StackdriverWriterTest {
 
   @Test
   public void registerMetric_fetchesStackdriverDefinition() throws Exception {
+    // Stackdriver throws an Exception with the status message "ALREADY_EXISTS" when you try to
+    // register a metric that's already been registered, so we fake one here.
     ByteArrayInputStream inputStream = new ByteArrayInputStream("".getBytes(UTF_8));
     HttpResponse response = GoogleJsonResponseExceptionHelper.createHttpResponse(400, inputStream);
     HttpResponseException.Builder httpResponseExceptionBuilder =
@@ -218,6 +220,27 @@ public class StackdriverWriterTest {
     writer.registerMetric(metric);
 
     verify(client.projects().metricDescriptors().get("metric")).execute();
+  }
+
+  @Test
+  public void registerMetric_rethrowsException() throws Exception {
+    ByteArrayInputStream inputStream = new ByteArrayInputStream("".getBytes(UTF_8));
+    HttpResponse response = GoogleJsonResponseExceptionHelper.createHttpResponse(400, inputStream);
+    HttpResponseException.Builder httpResponseExceptionBuilder =
+        new HttpResponseException.Builder(response);
+    httpResponseExceptionBuilder.setStatusCode(404);
+    GoogleJsonResponseException exception =
+        new GoogleJsonResponseException(httpResponseExceptionBuilder, null);
+    when(metricDescriptorCreate.execute()).thenThrow(exception);
+    StackdriverWriter writer =
+        new StackdriverWriter(client, PROJECT, MONITORED_RESOURCE, MAX_QPS, MAX_POINTS_PER_REQUEST);
+
+    try {
+      writer.registerMetric(metric);
+      fail("Expected GoogleJsonResponseException");
+    } catch (GoogleJsonResponseException expected) {
+      assertThat(exception.getStatusCode()).isEqualTo(404);
+    }
   }
 
   @Test

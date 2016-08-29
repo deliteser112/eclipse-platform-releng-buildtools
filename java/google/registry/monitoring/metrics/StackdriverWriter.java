@@ -232,7 +232,7 @@ public class StackdriverWriter implements MetricWriter {
       logger.info(String.format("Registered new metric descriptor %s", descriptor.getType()));
     } catch (GoogleJsonResponseException jsonException) {
       // Not the error we were expecting, just give up
-      if (!jsonException.getStatusMessage().equals("ALREADY_EXISTS")) {
+      if (!"ALREADY_EXISTS".equals(jsonException.getStatusMessage())) {
         throw jsonException;
       }
 
