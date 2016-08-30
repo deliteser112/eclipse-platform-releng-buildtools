@@ -35,6 +35,7 @@ identically for downloading the zip file.
     CONTRIBUTING.md  google        javatests   README.md  WORKSPACE
 
 The most important directories are:
+
 * `docs` -- the documentation (including this install guide)
 * `java/google/registry` -- all of the source code of the main project
 * `javatests/google/registry` -- all of the tests for the project
@@ -90,8 +91,8 @@ recommended to at least confirm that the default version of the code can be
 pushed at all first before diving into that, with the expectation that things
 won't work properly until they are configured.
 
-All of the [EAR](https://en.wikipedia.org/wiki/EAR_(file_format\)) and
-[WAR](https://en.wikipedia.org/wiki/WAR_(file_format\)) files for the different
+All of the [EAR](https://en.wikipedia.org/wiki/EAR_(file_format)) and
+[WAR](https://en.wikipedia.org/wiki/WAR_(file_format)) files for the different
 environments, which were built in the previous step, are outputted to the
 `bazel-genfiles` directory as follows:
 
