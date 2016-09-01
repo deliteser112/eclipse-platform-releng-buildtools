@@ -32,7 +32,7 @@
   </cron>
 
   <cron>
-    <url><![CDATA[/_dr/cron/fanout?queue=group-members-sync&endpoint=/_dr/task/syncGroupMembers&runInEmpty]]></url>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/syncGroupMembers&runInEmpty]]></url>
     <description>
       Syncs RegistrarContact changes in the past hour to Google Groups.
     </description>
@@ -62,7 +62,7 @@
   </cron>
 
   <cron>
-    <url><![CDATA[/_dr/task/exportDomainLists]]></url>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/exportDomainLists&runInEmpty]]></url>
     <description>
       This job exports lists of all active domain names to Google Cloud Storage.
     </description>
@@ -81,7 +81,7 @@
   </cron>
 
   <cron>
-    <url><![CDATA[/_dr/task/deleteProberData]]></url>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/deleteProberData&runInEmpty]]></url>
     <description>
       This job clears out data from probers and runs once a week.
     </description>
@@ -92,7 +92,7 @@
   </cron>
 
   <cron>
-    <url><![CDATA[/_dr/task/verifyEntityIntegrity]]></url>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/verifyEntityIntegrity&runInEmpty]]></url>
     <description>
       This job verifies entity integrity and runs once daily.
     </description>

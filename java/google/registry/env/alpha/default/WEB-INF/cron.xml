@@ -105,7 +105,7 @@
   </cron>
 
   <cron>
-    <url><![CDATA[/_dr/cron/fanout?queue=group-members-sync&endpoint=/_dr/task/syncGroupMembers&runInEmpty]]></url>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/syncGroupMembers&runInEmpty]]></url>
     <description>
       Syncs RegistrarContact changes in the past hour to Google Groups.
     </description>

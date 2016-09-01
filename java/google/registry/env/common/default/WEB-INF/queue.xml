@@ -73,16 +73,6 @@
     </retry-parameters>
   </queue>
 
-  <!-- Queue for jobs to sync RegistrarContact changes to Google Groups. -->
-  <queue>
-    <name>group-members-sync</name>
-    <rate>1/s</rate>
-    <bucket-size>100</bucket-size>
-    <retry-parameters>
-      <task-retry-limit>3</task-retry-limit>
-    </retry-parameters>
-  </queue>
-
   <!-- Queue for polling export BigQuery jobs for completion. -->
   <queue>
     <name>export-bigquery-poll</name>
@@ -228,6 +218,16 @@
     <retry-parameters>
       <task-retry-limit>1</task-retry-limit>
       <task-age-limit>1m</task-age-limit>
+    </retry-parameters>
+  </queue>
+
+  <!-- Queue for infrequent cron tasks (i.e. hourly or less often) that should retry three times on failure. -->
+  <queue>
+    <name>retryable-cron-tasks</name>
+    <rate>1/s</rate>
+    <bucket-size>100</bucket-size>
+    <retry-parameters>
+      <task-retry-limit>3</task-retry-limit>
     </retry-parameters>
   </queue>
 
