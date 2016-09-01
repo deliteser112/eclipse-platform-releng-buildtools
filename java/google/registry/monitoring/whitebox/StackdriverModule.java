@@ -22,8 +22,8 @@ import com.google.api.services.monitoring.v3.MonitoringScopes;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.appengine.api.ThreadManager;
 import com.google.appengine.api.modules.ModulesService;
-import com.google.appengine.repackaged.com.google.common.collect.ImmutableMap;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.ConfigModule.Config;
@@ -40,7 +40,7 @@ public final class StackdriverModule {
 
   // We need a fake GCE zone to appease Stackdriver's resource model.
   // TODO(b/31021585): Revisit this if/when gae_instance exists.
-  private static String SPOOFED_GCE_ZONE = "us-central1-f";
+  private static final String SPOOFED_GCE_ZONE = "us-central1-f";
 
   @Provides
   static Monitoring provideMonitoring(
