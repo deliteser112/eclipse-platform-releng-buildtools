@@ -47,7 +47,6 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Mapify;
-import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
 import google.registry.config.RegistryEnvironment;
@@ -58,7 +57,6 @@ import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.common.TimedTransitionProperty;
 import google.registry.model.common.TimedTransitionProperty.TimedTransition;
 import google.registry.model.domain.fee.EapFee;
-import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.util.Idn;
@@ -241,29 +239,6 @@ public class Registry extends ImmutableObject implements Buildable {
   void updateCache() {
     CACHE.invalidate(tldStr);
   }
-
-  /**
-   * Backfill the Registry entities that were saved before this field was added.
-   *
-   * <p>Note that this defaults to the {@link StaticPremiumListPricingEngine}.
-   */
-  // TODO(b/26901539): Remove this backfill once it is populated on all Registry entities.
-  @OnLoad
-  void backfillPricingEngine() {
-    if (pricingEngineClassName == null) {
-      pricingEngineClassName = StaticPremiumListPricingEngine.NAME;
-    }
-  }
-
-  /** Backfill the Registry entities that were saved before this field was added. */
-  // TODO(shikhman): Remove this backfill once it is populated on all Registry entities.
-  @OnLoad
-  void backfillDnsWriter() {
-    if (dnsWriter == null) {
-      dnsWriter = "VoidDnsWriter";
-    }
-  }
-
 
   /**
    * The name of the pricing engine that this TLD uses.
