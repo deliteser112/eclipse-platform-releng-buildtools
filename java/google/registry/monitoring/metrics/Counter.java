@@ -50,10 +50,6 @@ public final class Counter extends AbstractMetric<Long>
   private static final float HASHMAP_LOAD_FACTOR = 0.75f;
   private static final int HASHMAP_CONCURRENCY_LEVEL = 16;
 
-  private static final String LABEL_COUNT_ERROR =
-      "The count of labelValues must be equal to the underlying "
-          + "MetricDescriptor's count of labels.";
-
   /**
    * A map of the {@link Counter} values, with a list of label values as the keys.
    *
@@ -89,13 +85,13 @@ public final class Counter extends AbstractMetric<Long>
   }
 
   @VisibleForTesting
-  void incrementBy(long offset, Instant startTime, ImmutableList<String> labelValues) {
+  void incrementBy(long offset, Instant startTimestamp, ImmutableList<String> labelValues) {
     Lock lock = valueLocks.get(labelValues);
     lock.lock();
 
     try {
       values.addAndGet(labelValues, offset);
-      valueStartTimestamps.putIfAbsent(labelValues, startTime);
+      valueStartTimestamps.putIfAbsent(labelValues, startTimestamp);
     } finally {
       lock.unlock();
     }
@@ -103,7 +99,7 @@ public final class Counter extends AbstractMetric<Long>
 
   @Override
   public final void incrementBy(long offset, String... labelValues) {
-    checkArgument(labelValues.length == this.getMetricSchema().labels().size(), LABEL_COUNT_ERROR);
+    MetricsUtils.checkLabelValuesLength(this, labelValues);
     checkArgument(offset >= 0, "The offset provided must be non-negative");
 
     incrementBy(offset, Instant.now(), ImmutableList.copyOf(labelValues));
@@ -111,7 +107,7 @@ public final class Counter extends AbstractMetric<Long>
 
   @Override
   public final void increment(String... labelValues) {
-    checkArgument(labelValues.length == this.getMetricSchema().labels().size(), LABEL_COUNT_ERROR);
+    MetricsUtils.checkLabelValuesLength(this, labelValues);
 
     incrementBy(1L, Instant.now(), ImmutableList.copyOf(labelValues));
   }
@@ -152,13 +148,13 @@ public final class Counter extends AbstractMetric<Long>
   }
 
   @VisibleForTesting
-  final void set(Long value, Instant startTime, ImmutableList<String> labelValues) {
+  final void set(Long value, Instant startTimestamp, ImmutableList<String> labelValues) {
     Lock lock = valueLocks.get(labelValues);
     lock.lock();
 
     try {
       this.values.put(labelValues, value);
-      valueStartTimestamps.putIfAbsent(labelValues, startTime);
+      valueStartTimestamps.putIfAbsent(labelValues, startTimestamp);
     } finally {
       lock.unlock();
     }
@@ -166,13 +162,13 @@ public final class Counter extends AbstractMetric<Long>
 
   @Override
   public final void set(Long value, String... labelValues) {
-    checkArgument(labelValues.length == this.getMetricSchema().labels().size(), LABEL_COUNT_ERROR);
+    MetricsUtils.checkLabelValuesLength(this, labelValues);
 
     set(value, Instant.now(), ImmutableList.copyOf(labelValues));
   }
 
   @VisibleForTesting
-  final void reset(Instant startTime) {
+  final void reset(Instant startTimestamp) {
     // Lock the entire set of values so that all existing values will have a consistent timestamp
     // after this call, without the possibility of interleaving with another reset() call.
     Set<ImmutableList<String>> keys = values.asMap().keySet();
@@ -182,7 +178,7 @@ public final class Counter extends AbstractMetric<Long>
 
     for (ImmutableList<String> labelValues : keys) {
       this.values.put(labelValues, 0);
-      this.valueStartTimestamps.put(labelValues, startTime);
+      this.valueStartTimestamps.put(labelValues, startTimestamp);
     }
 
     for (int i = 0; i < valueLocks.size(); i++) {
@@ -196,13 +192,13 @@ public final class Counter extends AbstractMetric<Long>
   }
 
   @VisibleForTesting
-  final void reset(Instant startTime, ImmutableList<String> labelValues) {
+  final void reset(Instant startTimestamp, ImmutableList<String> labelValues) {
     Lock lock = valueLocks.get(labelValues);
     lock.lock();
 
     try {
       this.values.put(labelValues, 0);
-      this.valueStartTimestamps.put(labelValues, startTime);
+      this.valueStartTimestamps.put(labelValues, startTimestamp);
     } finally {
       lock.unlock();
     }
@@ -210,7 +206,7 @@ public final class Counter extends AbstractMetric<Long>
 
   @Override
   public final void reset(String... labelValues) {
-    checkArgument(labelValues.length == this.getMetricSchema().labels().size(), LABEL_COUNT_ERROR);
+    MetricsUtils.checkLabelValuesLength(this, labelValues);
 
     reset(Instant.now(), ImmutableList.copyOf(labelValues));
   }

@@ -69,7 +69,9 @@ public class StoredMetricTest {
             Boolean.class);
 
     thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("The count of labelValues must be equal to");
+    thrown.expectMessage(
+        "The count of labelValues must be equal to the underlying Metric's count of labels.");
+
     dimensionalMetric.set(true, "foo");
   }
 

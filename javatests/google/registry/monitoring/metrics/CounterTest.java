@@ -20,13 +20,17 @@ import static org.junit.Assert.fail;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.joda.time.Instant;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link Counter}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class CounterTest {
+
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testGetCardinality_reflectsCurrentCardinality() {
@@ -56,11 +60,11 @@ public class CounterTest {
             ImmutableSet.of(
                 LabelDescriptor.create("label1", "bar"), LabelDescriptor.create("label2", "bar")));
 
-    try {
-      counter.increment("blah");
-      fail("expected IllegalArgumentException");
-    } catch (IllegalArgumentException expected) {
-    }
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
+        "The count of labelValues must be equal to the underlying Metric's count of labels.");
+
+    counter.increment("blah");
   }
 
   @Test

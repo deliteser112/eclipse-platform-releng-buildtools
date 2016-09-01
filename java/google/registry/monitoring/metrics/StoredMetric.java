@@ -14,7 +14,6 @@
 
 package google.registry.monitoring.metrics;
 
-import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -41,10 +40,6 @@ import org.joda.time.Instant;
 @ThreadSafe
 public class StoredMetric<V> extends AbstractMetric<V> implements SettableMetric<V> {
 
-  private static final String LABEL_COUNT_ERROR =
-      "The count of labelValues must be equal to the underlying "
-          + "MetricDescriptor's count of labels.";
-
   private final ConcurrentHashMap<ImmutableList<String>, V> values = new ConcurrentHashMap<>();
 
   StoredMetric(
@@ -63,7 +58,7 @@ public class StoredMetric<V> extends AbstractMetric<V> implements SettableMetric
 
   @Override
   public final void set(V value, String... labelValues) {
-    checkArgument(labelValues.length == this.getMetricSchema().labels().size(), LABEL_COUNT_ERROR);
+    MetricsUtils.checkLabelValuesLength(this, labelValues);
 
     set(value, ImmutableList.copyOf(labelValues));
   }

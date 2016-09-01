@@ -14,8 +14,6 @@
 
 package google.registry.monitoring.metrics;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import org.joda.time.Instant;
@@ -28,12 +26,6 @@ import org.joda.time.Interval;
 @AutoValue
 public abstract class MetricPoint<V> {
 
-  private static final String LABEL_COUNT_ERROR =
-      "The count of labelsValues must be equal to the underlying "
-          + "MetricDescriptor's count of labels.";
-
-  MetricPoint() {}
-
   /**
    * Returns a new {@link MetricPoint} representing a value at a specific {@link Instant}.
    *
@@ -42,8 +34,8 @@ public abstract class MetricPoint<V> {
    */
   static <V> MetricPoint<V> create(
       Metric<V> metric, ImmutableList<String> labelValues, Instant timestamp, V value) {
-    checkArgument(
-        labelValues.size() == metric.getMetricSchema().labels().size(), LABEL_COUNT_ERROR);
+    MetricsUtils.checkLabelValuesLength(metric, labelValues);
+
     return new AutoValue_MetricPoint<>(
         metric, labelValues, new Interval(timestamp, timestamp), value);
   }
@@ -61,8 +53,8 @@ public abstract class MetricPoint<V> {
       Instant startTime,
       Instant endTime,
       V value) {
-    checkArgument(
-        labelValues.size() == metric.getMetricSchema().labels().size(), LABEL_COUNT_ERROR);
+    MetricsUtils.checkLabelValuesLength(metric, labelValues);
+
     return new AutoValue_MetricPoint<>(
         metric, labelValues, new Interval(startTime, endTime), value);
   }
