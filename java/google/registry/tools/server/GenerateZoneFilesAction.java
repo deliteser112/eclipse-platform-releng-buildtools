@@ -272,7 +272,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
    */
   private static String domainStanza(DomainResource domain, DateTime exportTime) {
     StringBuilder result = new StringBuilder();
-    for (HostResource nameserver : ofy().load().refs(domain.getNameservers()).values()) {
+    for (HostResource nameserver : ofy().load().keys(domain.getNameservers()).values()) {
       result.append(String.format(
           NS_FORMAT,
           domain.getFullyQualifiedDomainName(),

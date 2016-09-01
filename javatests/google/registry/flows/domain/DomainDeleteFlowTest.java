@@ -42,7 +42,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException;
 import google.registry.flows.ResourceFlowTestCase;
@@ -111,8 +110,8 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     PollMessage.Autorenew autorenewPollMessage = persistResource(
         createAutorenewPollMessage("TheRegistrar").build());
     domain = persistResource(domain.asBuilder()
-        .setAutorenewBillingEvent(Ref.create(autorenewBillingEvent))
-        .setAutorenewPollMessage(Ref.create(autorenewPollMessage))
+        .setAutorenewBillingEvent(Key.create(autorenewBillingEvent))
+        .setAutorenewPollMessage(Key.create(autorenewPollMessage))
         .build());
     assertTransactionalFlow(true);
   }
@@ -122,7 +121,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     ContactResource contact = persistActiveContact("sh8013");
     domain = newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .setCreationTimeForTest(TIME_BEFORE_FLOW)
-        .setRegistrant(Ref.create(contact))
+        .setRegistrant(Key.create(contact))
         .setRegistrationExpirationTime(expirationTime)
         .build();
     earlierHistoryEntry = persistResource(
@@ -153,9 +152,9 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
                 GracePeriodStatus.AUTO_RENEW,
                 A_MONTH_AGO.plusDays(45),
                 "TheRegistrar",
-                Ref.create(autorenewBillingEvent))))
-            .setAutorenewBillingEvent(Ref.create(autorenewBillingEvent))
-            .setAutorenewPollMessage(Ref.create(autorenewPollMessage))
+                Key.create(autorenewBillingEvent))))
+            .setAutorenewBillingEvent(Key.create(autorenewBillingEvent))
+            .setAutorenewPollMessage(Key.create(autorenewPollMessage))
             .build());
     assertTransactionalFlow(true);
   }
@@ -175,7 +174,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .setClientId("TheRegistrar")
             .setEventTime(eventTime)
             .setBillingTime(TIME_BEFORE_FLOW.plusDays(1))
-            .setOneTimeEventRef(Ref.create(graceBillingEvent))
+            .setOneTimeEventKey(Key.create(graceBillingEvent))
             .setParent(historyEntryDomainDelete)
             .build());
   }
@@ -238,7 +237,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
       throws Exception {
     doImmediateDeleteTest(gracePeriodStatus, responseFilename, ImmutableMap.<String, String>of());
   }
-  
+
   private void doImmediateDeleteTest(
       GracePeriodStatus gracePeriodStatus,
       String responseFilename,
@@ -296,7 +295,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   private void doSuccessfulTest_noAddGracePeriod(String responseFilename) throws Exception {
     doSuccessfulTest_noAddGracePeriod(responseFilename, ImmutableMap.<String, String>of());
   }
-  
+
   private void doSuccessfulTest_noAddGracePeriod(
       String responseFilename, Map<String, String> substitutions) throws Exception {
     // Persist the billing event so it can be retrieved for cancellation generation and checking.
@@ -373,7 +372,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     // Modify the autorenew poll message so that it has unacked messages in the past. This should
     // prevent it from being deleted when the domain is deleted.
     persistResource(
-        reloadResourceByUniqueId().getAutorenewPollMessage().get().asBuilder()
+        ofy().load().key(reloadResourceByUniqueId().getAutorenewPollMessage()).now().asBuilder()
             .setEventTime(A_MONTH_FROM_NOW.minusYears(3))
             .build());
     clock.advanceOneMilli();
@@ -531,9 +530,10 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     assertThat(domain.getTransferData().getServerApproveBillingEvent()).isNull();
     assertThat(domain.getTransferData().getServerApproveAutorenewEvent()).isNull();
     assertThat(domain.getTransferData().getServerApproveAutorenewPollMessage()).isNull();
-    assertThat(oldTransferData.getServerApproveBillingEvent().get()).isNull();
-    assertThat(oldTransferData.getServerApproveAutorenewEvent().get()).isNull();
-    assertThat(oldTransferData.getServerApproveAutorenewPollMessage().get()).isNull();
+    assertThat(ofy().load().key(oldTransferData.getServerApproveBillingEvent()).now()).isNull();
+    assertThat(ofy().load().key(oldTransferData.getServerApproveAutorenewEvent()).now()).isNull();
+    assertThat(ofy().load().key(oldTransferData.getServerApproveAutorenewPollMessage()).now())
+        .isNull();
     assertThat(oldTransferData.getServerApproveEntities()).isNotEmpty();  // Just a sanity check.
     assertThat(ofy().load()
         .keys(oldTransferData.getServerApproveEntities().toArray(new Key<?>[]{})))
@@ -554,12 +554,12 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(loadByUniqueId(
         DomainResource.class, getUniqueIdFromCommand(), clock.nowUtc())
         .asBuilder()
-        .setNameservers(ImmutableSet.of(Ref.create(host)))
+        .setNameservers(ImmutableSet.of(Key.create(host)))
         .build());
     // Persist another domain that's already been deleted and references this contact and host.
     persistResource(newDomainResource("example1.tld").asBuilder()
-        .setRegistrant(Ref.create(loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc())))
-        .setNameservers(ImmutableSet.of(Ref.create(host)))
+        .setRegistrant(Key.create(loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc())))
+        .setNameservers(ImmutableSet.of(Key.create(host)))
         .setDeletionTime(START_OF_TIME)
         .build());
     clock.advanceOneMilli();
@@ -575,7 +575,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setupSuccessfulTest();
     persistResource(
         newHostResource("ns1." + getUniqueIdFromCommand()).asBuilder()
-            .setSuperordinateDomain(Ref.create(reloadResourceByUniqueId()))
+            .setSuperordinateDomain(Key.create(reloadResourceByUniqueId()))
             .setDeletionTime(clock.nowUtc().minusDays(1))
             .build());
     clock.advanceOneMilli();
@@ -607,7 +607,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     DomainResource domain = persistActiveDomain(getUniqueIdFromCommand());
     HostResource subordinateHost = persistResource(
         newHostResource("ns1." + getUniqueIdFromCommand()).asBuilder()
-            .setSuperordinateDomain(Ref.create(reloadResourceByUniqueId()))
+            .setSuperordinateDomain(Key.create(reloadResourceByUniqueId()))
             .build());
     domain = persistResource(domain.asBuilder()
         .addSubordinateHost(subordinateHost.getFullyQualifiedHostName())

@@ -29,7 +29,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.host.HostResource;
@@ -74,21 +73,21 @@ public class DnsRefreshForHostRenameActionTest
   @Test
   public void testSuccess_dnsUpdateEnqueued() throws Exception {
     createTld("tld");
-    Ref<HostResource> renamedHostRef = Ref.create(persistActiveHost("ns1.example.tld"));
-    Ref<HostResource> otherHostRef = Ref.create(persistActiveHost("ns2.example.tld"));
+    Key<HostResource> renamedHostKey = Key.create(persistActiveHost("ns1.example.tld"));
+    Key<HostResource> otherHostKey = Key.create(persistActiveHost("ns2.example.tld"));
     persistResource(newDomainApplication("notadomain.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(renamedHostRef))
+        .setNameservers(ImmutableSet.of(renamedHostKey))
         .build());
     persistResource(newDomainResource("example.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(renamedHostRef))
+        .setNameservers(ImmutableSet.of(renamedHostKey))
         .build());
     persistResource(newDomainResource("otherexample.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(renamedHostRef))
+        .setNameservers(ImmutableSet.of(renamedHostKey))
         .build());
     persistResource(newDomainResource("untouched.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(otherHostRef))
+        .setNameservers(ImmutableSet.of(otherHostKey))
         .build());
-    runMapreduce(renamedHostRef.getKey().getString());
+    runMapreduce(renamedHostKey.getString());
     verify(dnsQueue).addDomainRefreshTask("example.tld");
     verify(dnsQueue).addDomainRefreshTask("otherexample.tld");
     verifyNoMoreInteractions(dnsQueue);
@@ -97,12 +96,12 @@ public class DnsRefreshForHostRenameActionTest
   @Test
   public void testSuccess_noDnsTasksForDeletedDomain() throws Exception {
     createTld("tld");
-    Ref<HostResource> renamedHostRef = Ref.create(persistActiveHost("ns1.example.tld"));
+    Key<HostResource> renamedHostKey = Key.create(persistActiveHost("ns1.example.tld"));
     persistResource(newDomainResource("example.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(renamedHostRef))
+        .setNameservers(ImmutableSet.of(renamedHostKey))
         .setDeletionTime(START_OF_TIME)
         .build());
-    runMapreduce(renamedHostRef.getKey().getString());
+    runMapreduce(renamedHostKey.getString());
     verifyZeroInteractions(dnsQueue);
   }
 

@@ -23,7 +23,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.base.Optional;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
@@ -64,7 +64,7 @@ public class HostCreateFlow extends ResourceCreateFlow<HostResource, Builder, Cr
    * to the actual object creation, which is why this class looks up and stores the superordinate
    * domain ahead of time.
    */
-  private Optional<Ref<DomainResource>> superordinateDomain;
+  private Optional<Key<DomainResource>> superordinateDomain;
 
   @Inject HostCreateFlow() {}
 
@@ -103,7 +103,7 @@ public class HostCreateFlow extends ResourceCreateFlow<HostResource, Builder, Cr
   @Override
   protected void modifyCreateRelatedResources() {
     if (superordinateDomain.isPresent()) {
-      ofy().save().entity(superordinateDomain.get().get().asBuilder()
+      ofy().save().entity(ofy().load().key(superordinateDomain.get()).now().asBuilder()
           .addSubordinateHost(command.getFullyQualifiedHostName())
           .build());
     }

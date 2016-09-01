@@ -16,7 +16,7 @@ package google.registry.flows.async;
 
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.reporting.HistoryEntry;
@@ -46,8 +46,8 @@ public class DeleteContactResourceAction extends DeleteEppResourceAction<Contact
 
     @Override
     protected boolean isLinked(
-        DomainBase domain, Ref<ContactResource> targetResourceRef) {
-      return domain.getReferencedContacts().contains(targetResourceRef);
+        DomainBase domain, Key<ContactResource> targetResourceKey) {
+      return domain.getReferencedContacts().contains(targetResourceKey);
     }
   }
 

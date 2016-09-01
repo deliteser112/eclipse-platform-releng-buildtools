@@ -25,7 +25,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceTransferApproveFlow;
 import google.registry.model.billing.BillingEvent;
@@ -127,8 +127,8 @@ public class DomainTransferApproveFlow extends
     ofy().save().entity(gainingClientAutorenewPollMessage);
     builder
         .setRegistrationExpirationTime(newExpirationTime)
-        .setAutorenewBillingEvent(Ref.create(autorenewEvent))
-        .setAutorenewPollMessage(Ref.create(gainingClientAutorenewPollMessage))
+        .setAutorenewBillingEvent(Key.create(autorenewEvent))
+        .setAutorenewPollMessage(Key.create(gainingClientAutorenewPollMessage))
         // Remove all the old grace periods and add a new one for the transfer.
         .setGracePeriods(ImmutableSet.of(
             GracePeriod.forBillingEvent(GracePeriodStatus.TRANSFER, billingEvent)));

@@ -114,8 +114,8 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
           .build();
       builder.setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
           .setDeletionTime(deletionTime)
-          // Clear out all old grace periods and add REDEMPTION, which does not include a ref
-          // to a billing event because there isn't one for a domain delete.
+          // Clear out all old grace periods and add REDEMPTION, which does not include a key to a
+          // billing event because there isn't one for a domain delete.
           .setGracePeriods(ImmutableSet.of(GracePeriod.createWithoutBillingEvent(
               GracePeriodStatus.REDEMPTION,
               now.plus(registry.getRedemptionGracePeriodLength()),
@@ -142,11 +142,13 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
         Money cost;
         if (gracePeriod.getType() == GracePeriodStatus.AUTO_RENEW) {
           TimeOfYear recurrenceTimeOfYear =
-              checkNotNull(gracePeriod.getRecurringBillingEvent()).get().getRecurrenceTimeOfYear();
+              ofy().load().key(checkNotNull(gracePeriod.getRecurringBillingEvent())).now()
+                  .getRecurrenceTimeOfYear();
           DateTime autoRenewTime = recurrenceTimeOfYear.getLastInstanceBeforeOrAt(now);
           cost = getDomainRenewCost(targetId, autoRenewTime, 1);
         } else {
-          cost = checkNotNull(gracePeriod.getOneTimeBillingEvent()).get().getCost();
+          cost =
+              ofy().load().key(checkNotNull(gracePeriod.getOneTimeBillingEvent())).now().getCost();
         }
         creditsBuilder.add(Credit.create(
             cost.negated().getAmount(),

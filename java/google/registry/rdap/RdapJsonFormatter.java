@@ -417,10 +417,10 @@ public class RdapJsonFormatter {
       DateTime now) {
     // Kick off the database loads of the nameservers that we will need.
     Map<Key<HostResource>, HostResource> loadedHosts =
-        ofy().load().refs(domainResource.getNameservers());
+        ofy().load().keys(domainResource.getNameservers());
     // And the registrant and other contacts.
     Map<Key<ContactResource>, ContactResource> loadedContacts =
-        ofy().load().refs(domainResource.getReferencedContacts());
+        ofy().load().keys(domainResource.getReferencedContacts());
 
     // Now, assemble the results, using the loaded objects as needed.
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
@@ -453,8 +453,7 @@ public class RdapJsonFormatter {
     for (DesignatedContact designatedContact : FluentIterable.from(domainResource.getContacts())
         .append(DesignatedContact.create(Type.REGISTRANT, domainResource.getRegistrant()))
         .toSortedList(DESIGNATED_CONTACT_ORDERING)) {
-      ContactResource loadedContact =
-          loadedContacts.get(designatedContact.getContactRef().key());
+      ContactResource loadedContact = loadedContacts.get(designatedContact.getContactKey());
       entitiesBuilder.add(makeRdapJsonForContact(
           loadedContact, false, Optional.of(designatedContact.getType()), linkBase, null, now));
     }

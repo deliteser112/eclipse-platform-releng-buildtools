@@ -14,10 +14,11 @@
 
 package google.registry.mapreduce.inputs;
 
+import static google.registry.model.ofy.ObjectifyService.ofy;
+
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.model.EppResource;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.EppResourceIndexBucket;
@@ -55,12 +56,12 @@ class EppResourceEntityReader<R extends EppResource> extends EppResourceBaseRead
    */
   @Override
   public R next() throws NoSuchElementException {
-    // Loop until we find a value, or nextRef() throws a NoSuchElementException.
+    // Loop until we find a value, or nextEri() throws a NoSuchElementException.
     while (true) {
-      Ref<? extends EppResource> reference = nextEri().getReference();
-      EppResource resource = reference.get();
+      Key<? extends EppResource> key = nextEri().getKey();
+      EppResource resource = ofy().load().key(key).now();
       if (resource == null) {
-        logger.severefmt("Broken ERI reference: %s", reference.getKey());
+        logger.severefmt("EppResourceIndex key %s points at a missing resource", key);
         continue;
       }
       // Postfilter to distinguish polymorphic types (e.g. DomainBase and DomainResource).

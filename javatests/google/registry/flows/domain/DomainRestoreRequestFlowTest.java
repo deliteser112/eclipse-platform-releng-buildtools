@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -126,7 +127,7 @@ public class DomainRestoreRequestFlowTest extends
     DomainResource domain = reloadResourceByUniqueId();
     HistoryEntry historyEntryDomainRestore =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_RESTORE);
-    assertThat(domain.getAutorenewBillingEvent().get().getEventTime())
+    assertThat(ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime())
         .isEqualTo(clock.nowUtc().plusYears(1));
     assertAboutDomains().that(domain)
         // New expiration time should be exactly a year from now.
@@ -386,7 +387,7 @@ public class DomainRestoreRequestFlowTest extends
             .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
             .setServerStatusChangeBillingCost(Money.of(EUR, 19))
             .build());
-    runFlow();    
+    runFlow();
   }
 
   @Test

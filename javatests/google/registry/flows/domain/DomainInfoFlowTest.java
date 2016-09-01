@@ -27,7 +27,6 @@ import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
@@ -91,25 +90,25 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
         .setLastEppUpdateTime(DateTime.parse("1999-12-03T09:00:00.0Z"))
         .setLastTransferTime(DateTime.parse("2000-04-08T09:00:00.0Z"))
         .setRegistrationExpirationTime(DateTime.parse("2005-04-03T22:00:00.0Z"))
-        .setRegistrant(Ref.create(registrant))
+        .setRegistrant(Key.create(registrant))
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, Ref.create(contact)),
-            DesignatedContact.create(Type.TECH, Ref.create(contact))))
-        .setNameservers(inactive ? null : ImmutableSet.of(Ref.create(host1), Ref.create(host2)))
+            DesignatedContact.create(Type.ADMIN, Key.create(contact)),
+            DesignatedContact.create(Type.TECH, Key.create(contact))))
+        .setNameservers(inactive ? null : ImmutableSet.of(Key.create(host1), Key.create(host2)))
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
         .build());
     // Set the superordinate domain of ns1.example.com to example.com. In reality, this would have
     // happened in the flow that created it, but here we just overwrite it in the datastore.
     host1 = persistResource(
-        host1.asBuilder().setSuperordinateDomain(Ref.create(domain)).build());
+        host1.asBuilder().setSuperordinateDomain(Key.create(domain)).build());
     // Create a subordinate host that is not delegated to by anyone.
     host3 = persistResource(
         new HostResource.Builder()
             .setFullyQualifiedHostName("ns2.example.tld")
             .setRepoId("3FF-TLD")
-            .setSuperordinateDomain(Ref.create(domain))
+            .setSuperordinateDomain(Key.create(domain))
             .build());
-    // Add the subordinate host references to the existing domain.
+    // Add the subordinate host keys to the existing domain.
     domain = persistResource(domain.asBuilder()
         .setSubordinateHosts(ImmutableSet.of(
             host1.getFullyQualifiedHostName(),
@@ -242,7 +241,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     persistResource(domain.asBuilder()
         .setDsData(ImmutableSet.of(DelegationSignerData.create(
             12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC"))))
-        .setNameservers(ImmutableSet.of(Ref.create(host1), Ref.create(host3)))
+        .setNameservers(ImmutableSet.of(Key.create(host1), Key.create(host3)))
         .build());
     doSuccessfulTest("domain_info_response_dsdata.xml", false);
   }
@@ -283,7 +282,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
             GracePeriodStatus.AUTO_RENEW,
             clock.nowUtc().plusDays(1),
             "foo",
-            Ref.create(Key.create(Recurring.class, 12345))))
+            Key.create(Recurring.class, 12345)))
         .build());
     doSuccessfulTest("domain_info_response_autorenewperiod.xml", false);
   }

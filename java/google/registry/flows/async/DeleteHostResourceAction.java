@@ -16,7 +16,7 @@ package google.registry.flows.async;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
@@ -46,8 +46,8 @@ public class DeleteHostResourceAction extends DeleteEppResourceAction<HostResour
     private static final long serialVersionUID = 1941092742903217194L;
 
     @Override
-    protected boolean isLinked(DomainBase domain, Ref<HostResource> targetResourceRef) {
-      return domain.getNameservers().contains(targetResourceRef);
+    protected boolean isLinked(DomainBase domain, Key<HostResource> targetResourceKey) {
+      return domain.getNameservers().contains(targetResourceKey);
     }
   }
 
@@ -72,7 +72,7 @@ public class DeleteHostResourceAction extends DeleteEppResourceAction<HostResour
       if (targetResource.getSuperordinateDomain() != null) {
         DnsQueue.create().addHostRefreshTask(targetResource.getFullyQualifiedHostName());
         ofy().save().entity(
-            targetResource.getSuperordinateDomain().get().asBuilder()
+            ofy().load().key(targetResource.getSuperordinateDomain()).now().asBuilder()
                 .removeSubordinateHost(targetResource.getFullyQualifiedHostName())
                 .build());
       }

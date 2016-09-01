@@ -17,6 +17,7 @@ package google.registry.model;
 import static com.google.common.base.Functions.identity;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.transformValues;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -24,7 +25,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Ignore;
 import google.registry.model.domain.ReferenceUnion;
 import java.lang.annotation.Documented;
@@ -109,18 +110,16 @@ public abstract class ImmutableObject implements Cloneable {
 
   /**
    * Similar to toString(), with a full expansion of embedded ImmutableObjects,
-   * collections, and references.
+   * collections, and referenced keys.
    */
   public String toHydratedString() {
     return toStringHelper(new Function<Object, Object>() {
         @Override
         public Object apply(Object input) {
           if (input instanceof ReferenceUnion) {
-            return apply(((ReferenceUnion<?>) input).getLinked().get());
-          } else if (input instanceof Ref) {
-            // Only follow references of type Ref, not of type Key (the latter deliberately used for
-            // references that should not be followed)
-            Object target = ((Ref<?>) input).get();
+            return apply(((ReferenceUnion<?>) input).getLinked());
+          } else if (input instanceof Key) {
+            Object target = ofy().load().key((Key<?>) input).now();
             return target != null && target.getClass().isAnnotationPresent(DoNotHydrate.class)
                 ? input
                 : apply(target);

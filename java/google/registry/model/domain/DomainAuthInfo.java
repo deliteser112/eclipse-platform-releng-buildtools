@@ -15,8 +15,9 @@
 package google.registry.model.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
@@ -38,9 +39,9 @@ public class DomainAuthInfo extends AuthInfo {
     checkNotNull(getPw());
     if (getRepoId() != null) {
       // Make sure the repo id matches one of the contacts on the domain.
-      Ref<ContactResource> foundContact = null;
-      for (Ref<ContactResource> contact : domain.getReferencedContacts()) {
-        String contactRepoId = contact.getKey().getName();
+      Key<ContactResource> foundContact = null;
+      for (Key<ContactResource> contact : domain.getReferencedContacts()) {
+        String contactRepoId = contact.getName();
         if (getRepoId().equals(contactRepoId)) {
           foundContact = contact;
           break;
@@ -50,7 +51,7 @@ public class DomainAuthInfo extends AuthInfo {
         throw new BadAuthInfoException();
       }
       // Check if the password provided matches the password on the referenced contact.
-      if (!foundContact.get().getAuthInfo().getPw().getValue().equals(
+      if (!ofy().load().key(foundContact).now().getAuthInfo().getPw().getValue().equals(
               getPw().getValue())) {
         throw new BadAuthInfoException();
       }

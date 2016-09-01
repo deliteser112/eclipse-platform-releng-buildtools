@@ -59,7 +59,7 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
     RegistrarCredit credit =
         getOnlyElement(ofy().load().type(RegistrarCredit.class).ancestor(registrar));
     assertThat(credit).isNotNull();
-    assertThat(credit.getParent().get()).isEqualTo(registrar);
+    assertThat(ofy().load().key(credit.getParent()).now()).isEqualTo(registrar);
     assertThat(credit.getType()).isEqualTo(CreditType.PROMOTION);
     assertThat(credit.getTld()).isEqualTo("tld");
     assertThat(credit.getDescription()).isEqualTo("Some kind of credit");
@@ -69,7 +69,7 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
     RegistrarCreditBalance creditBalance =
         getOnlyElement(ofy().load().type(RegistrarCreditBalance.class).ancestor(credit));
     assertThat(creditBalance).isNotNull();
-    assertThat(creditBalance.getParent().get()).isEqualTo(credit);
+    assertThat(ofy().load().key(creditBalance.getParent()).now()).isEqualTo(credit);
     assertThat(creditBalance.getEffectiveTime()).isEqualTo(DateTime.parse("2014-11-01T01:02:03Z"));
     assertThat(creditBalance.getWrittenTime()).isEqualTo(credit.getCreationTime());
     assertThat(creditBalance.getAmount()).isEqualTo(Money.of(USD, 100));

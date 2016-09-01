@@ -109,7 +109,7 @@ public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Build
       // occur at the same time as the sunrush add grace period, as the event time will differ
       // between them.
       BillingEvent.OneTime originalAddEvent =
-          sunrushAddGracePeriod.get().getOneTimeBillingEvent().get();
+          ofy().load().key(sunrushAddGracePeriod.get().getOneTimeBillingEvent()).now();
       BillingEvent.OneTime billingEvent = new BillingEvent.OneTime.Builder()
           .setReason(Reason.CREATE)
           .setTargetId(targetId)

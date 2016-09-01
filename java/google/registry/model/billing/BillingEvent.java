@@ -18,6 +18,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -27,7 +28,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.IgnoreSave;
@@ -410,19 +410,27 @@ public abstract class BillingEvent extends ImmutableObject
     @Index
     DateTime billingTime;
 
-    /** The one-time billing event to cancel, or null for autorenew cancellations. */
+    /**
+     * The one-time billing event to cancel, or null for autorenew cancellations.
+     *
+     * <p>Although the type is {@link Key} the name "ref" is preserved for historical reasons.
+     */
     @IgnoreSave(IfNull.class)
-    Ref<BillingEvent.OneTime> refOneTime = null;
+    Key<BillingEvent.OneTime> refOneTime = null;
 
-    /** The recurring billing event to cancel, or null for non-autorenew cancellations. */
+    /**
+     * The recurring billing event to cancel, or null for non-autorenew cancellations.
+     *
+     * <p>Although the type is {@link Key} the name "ref" is preserved for historical reasons.
+     */
     @IgnoreSave(IfNull.class)
-    Ref<BillingEvent.Recurring> refRecurring = null;
+    Key<BillingEvent.Recurring> refRecurring = null;
 
     public DateTime getBillingTime() {
       return billingTime;
     }
 
-    public Ref<? extends BillingEvent> getEventRef() {
+    public Key<? extends BillingEvent> getEventKey() {
       return firstNonNull(refOneTime, refRecurring);
     }
 
@@ -454,9 +462,9 @@ public abstract class BillingEvent extends ImmutableObject
           .setParent(historyEntry);
       // Set the grace period's billing event using the appropriate Cancellation builder method.
       if (gracePeriod.getOneTimeBillingEvent() != null) {
-        builder.setOneTimeEventRef(gracePeriod.getOneTimeBillingEvent());
+        builder.setOneTimeEventKey(gracePeriod.getOneTimeBillingEvent());
       } else if (gracePeriod.getRecurringBillingEvent() != null) {
-        builder.setRecurringEventRef(gracePeriod.getRecurringBillingEvent());
+        builder.setRecurringEventKey(gracePeriod.getRecurringBillingEvent());
       }
       return builder.build();
     }
@@ -480,13 +488,13 @@ public abstract class BillingEvent extends ImmutableObject
         return this;
       }
 
-      public Builder setOneTimeEventRef(Ref<BillingEvent.OneTime> eventRef) {
-        getInstance().refOneTime = eventRef;
+      public Builder setOneTimeEventKey(Key<BillingEvent.OneTime> eventKey) {
+        getInstance().refOneTime = eventKey;
         return this;
       }
 
-      public Builder setRecurringEventRef(Ref<BillingEvent.Recurring> eventRef) {
-        getInstance().refRecurring = eventRef;
+      public Builder setRecurringEventKey(Key<BillingEvent.Recurring> eventKey) {
+        getInstance().refRecurring = eventKey;
         return this;
       }
 
@@ -496,7 +504,7 @@ public abstract class BillingEvent extends ImmutableObject
         checkNotNull(instance.billingTime);
         checkNotNull(instance.reason);
         checkState((instance.refOneTime == null) != (instance.refRecurring == null),
-            "Cancellations must have exactly one billing event ref set");
+            "Cancellations must have exactly one billing event key set");
         return super.build();
       }
     }
@@ -512,7 +520,7 @@ public abstract class BillingEvent extends ImmutableObject
     Money cost;
 
     /** The one-time billing event to modify. */
-    Ref<BillingEvent.OneTime> eventRef;
+    Key<BillingEvent.OneTime> eventRef;
 
     /**
      * Description of the modification (and presumably why it was issued). This text may appear as a
@@ -524,7 +532,7 @@ public abstract class BillingEvent extends ImmutableObject
       return cost;
     }
 
-    public Ref<BillingEvent.OneTime> getEventRef() {
+    public Key<BillingEvent.OneTime> getEventKey() {
       return eventRef;
     }
 
@@ -551,7 +559,7 @@ public abstract class BillingEvent extends ImmutableObject
           .setFlags(billingEvent.getFlags())
           .setReason(billingEvent.getReason())
           .setTargetId(billingEvent.getTargetId())
-          .setEventRef(Ref.create(billingEvent))
+          .setEventKey(Key.create(billingEvent))
           .setEventTime(historyEntry.getModificationTime())
           .setDescription(description)
           .setCost(billingEvent.getCost().negated())
@@ -573,8 +581,8 @@ public abstract class BillingEvent extends ImmutableObject
         return this;
       }
 
-      public Builder setEventRef(Ref<BillingEvent.OneTime> eventRef) {
-        getInstance().eventRef = eventRef;
+      public Builder setEventKey(Key<BillingEvent.OneTime> eventKey) {
+        getInstance().eventRef = eventKey;
         return this;
       }
 
@@ -589,7 +597,7 @@ public abstract class BillingEvent extends ImmutableObject
         Modification instance = getInstance();
         checkNotNull(instance.reason);
         checkNotNull(instance.eventRef);
-        BillingEvent.OneTime billingEvent = instance.eventRef.get();
+        BillingEvent.OneTime billingEvent = ofy().load().key(instance.eventRef).now();
         checkArgument(Objects.equals(
             instance.cost.getCurrencyUnit(),
             billingEvent.cost.getCurrencyUnit()),

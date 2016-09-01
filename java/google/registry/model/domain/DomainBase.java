@@ -36,7 +36,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
@@ -78,7 +78,7 @@ public abstract class DomainBase extends EppResource {
 
   /** References to hosts that are the nameservers for the domain. */
   @XmlTransient
-  //TODO(b/28713909): Make this a Set<Ref<HostResource>>.
+  //TODO(b/28713909): Make this a Set<Key<HostResource>>.
   Set<ReferenceUnion<HostResource>> nameservers;
 
   /**
@@ -149,7 +149,7 @@ public abstract class DomainBase extends EppResource {
               public ForeignKeyedDesignatedContact apply(DesignatedContact designated) {
                 return ForeignKeyedDesignatedContact.create(
                     designated.getType(),
-                    designated.getContactRef().get().getContactId());
+                    ofy().load().key(designated.getContactKey()).now().getContactId());
               }})
         .toSet();
   }
@@ -158,7 +158,7 @@ public abstract class DomainBase extends EppResource {
   @XmlElement(name = "registrant")
   private String getMarshalledRegistrant() {
     preMarshal();
-    return getRegistrant().get().getContactId();
+    return ofy().load().key(getRegistrant()).now().getContactId();
   }
 
   public String getFullyQualifiedDomainName() {
@@ -177,8 +177,8 @@ public abstract class DomainBase extends EppResource {
     return idnTableName;
   }
 
-  public ImmutableSet<Ref<HostResource>> getNameservers() {
-    ImmutableSet.Builder<Ref<HostResource>> builder = new ImmutableSet.Builder<>();
+  public ImmutableSet<Key<HostResource>> getNameservers() {
+    ImmutableSet.Builder<Key<HostResource>> builder = new ImmutableSet.Builder<>();
     for (ReferenceUnion<HostResource> union : nullToEmptyImmutableCopy(nameservers)) {
       builder.add(union.getLinked());
     }
@@ -187,7 +187,7 @@ public abstract class DomainBase extends EppResource {
 
   /** Loads and returns the fully qualified host names of all linked nameservers. */
   public ImmutableSortedSet<String> loadNameserverFullyQualifiedHostNames() {
-    return FluentIterable.from(ofy().load().refs(getNameservers()).values())
+    return FluentIterable.from(ofy().load().keys(getNameservers()).values())
         .transform(
             new Function<HostResource, String>() {
               @Override
@@ -198,14 +198,14 @@ public abstract class DomainBase extends EppResource {
         .toSortedSet(Ordering.natural());
   }
 
-  /** A reference to the registrant who registered this domain. */
-  public Ref<ContactResource> getRegistrant() {
+  /** A key to the registrant who registered this domain. */
+  public Key<ContactResource> getRegistrant() {
     return FluentIterable
         .from(nullToEmpty(allContacts))
         .filter(IS_REGISTRANT)
         .first()
         .get()
-        .getContactRef();
+        .getContactKey();
   }
 
   /** Associated contacts for the domain (other than registrant). */
@@ -221,11 +221,11 @@ public abstract class DomainBase extends EppResource {
   }
 
   /** Returns all referenced contacts from this domain or application. */
-  public ImmutableSet<Ref<ContactResource>> getReferencedContacts() {
-    ImmutableSet.Builder<Ref<ContactResource>> contactsBuilder =
+  public ImmutableSet<Key<ContactResource>> getReferencedContacts() {
+    ImmutableSet.Builder<Key<ContactResource>> contactsBuilder =
         new ImmutableSet.Builder<>();
     for (DesignatedContact designated : nullToEmptyImmutableCopy(allContacts)) {
-      contactsBuilder.add(designated.getContactRef());
+      contactsBuilder.add(designated.getContactKey());
     }
     return contactsBuilder.build();
   }
@@ -276,7 +276,7 @@ public abstract class DomainBase extends EppResource {
       return thisCastToDerived();
     }
 
-    public B setRegistrant(Ref<ContactResource> registrant) {
+    public B setRegistrant(Key<ContactResource> registrant) {
       // Replace the registrant contact inside allContacts.
       getInstance().allContacts = union(
           getInstance().getContacts(),
@@ -289,21 +289,21 @@ public abstract class DomainBase extends EppResource {
       return thisCastToDerived();
     }
 
-    public B setNameservers(ImmutableSet<Ref<HostResource>> nameservers) {
+    public B setNameservers(ImmutableSet<Key<HostResource>> nameservers) {
       ImmutableSet.Builder<ReferenceUnion<HostResource>> builder = new ImmutableSet.Builder<>();
-      for (Ref<HostResource> ref : nullToEmpty(nameservers)) {
-        builder.add(ReferenceUnion.create(ref));
+      for (Key<HostResource> key : nullToEmpty(nameservers)) {
+        builder.add(ReferenceUnion.create(key));
       }
       getInstance().nameservers = builder.build();
       return thisCastToDerived();
     }
 
-    public B addNameservers(ImmutableSet<Ref<HostResource>> nameservers) {
+    public B addNameservers(ImmutableSet<Key<HostResource>> nameservers) {
       return setNameservers(
           ImmutableSet.copyOf(union(getInstance().getNameservers(), nameservers)));
     }
 
-    public B removeNameservers(ImmutableSet<Ref<HostResource>> nameservers) {
+    public B removeNameservers(ImmutableSet<Key<HostResource>> nameservers) {
       return setNameservers(
           ImmutableSet.copyOf(difference(getInstance().getNameservers(), nameservers)));
     }

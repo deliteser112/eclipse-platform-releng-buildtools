@@ -20,19 +20,19 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.ofy.CommitLogManifest;
 import org.joda.time.DateTime;
 
 /**
- * Objectify translator for {@code ImmutableSortedMap<DateTime, Ref<CommitLogManifest>>} fields.
+ * Objectify translator for {@code ImmutableSortedMap<DateTime, Key<CommitLogManifest>>} fields.
  *
  * <p>This translator is responsible for doing three things:
  * <ol>
  * <li>Translating the data into two lists of {@code Date} and {@code Key} objects, in a manner
  *   similar to {@code @Mapify}.
- * <li>Inserting a reference to the transaction's {@link CommitLogManifest} on save.
+ * <li>Inserting a key to the transaction's {@link CommitLogManifest} on save.
  * <li>Truncating the map to include only the last key per day for the last 30 days.
  * </ol>
  *
@@ -45,7 +45,7 @@ import org.joda.time.DateTime;
  * @see google.registry.model.EppResource
  */
 public final class CommitLogRevisionsTranslatorFactory
-    extends ImmutableSortedMapTranslatorFactory<DateTime, Ref<CommitLogManifest>> {
+    extends ImmutableSortedMapTranslatorFactory<DateTime, Key<CommitLogManifest>> {
 
   private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
 
@@ -62,14 +62,14 @@ public final class CommitLogRevisionsTranslatorFactory
    * @see google.registry.config.RegistryConfig#getCommitLogDatastoreRetention()
    */
   @Override
-  ImmutableSortedMap<DateTime, Ref<CommitLogManifest>> transformBeforeSave(
-      ImmutableSortedMap<DateTime, Ref<CommitLogManifest>> revisions) {
+  ImmutableSortedMap<DateTime, Key<CommitLogManifest>> transformBeforeSave(
+      ImmutableSortedMap<DateTime, Key<CommitLogManifest>> revisions) {
     DateTime now = ofy().getTransactionTime();
     DateTime threshold = now.minus(ENVIRONMENT.config().getCommitLogDatastoreRetention());
     DateTime preThresholdTime = firstNonNull(revisions.floorKey(threshold), START_OF_TIME);
-    return new ImmutableSortedMap.Builder<DateTime, Ref<CommitLogManifest>>(Ordering.natural())
+    return new ImmutableSortedMap.Builder<DateTime, Key<CommitLogManifest>>(Ordering.natural())
         .putAll(revisions.subMap(preThresholdTime, true, now.withTimeAtStartOfDay(), false))
-        .put(now, Ref.create(ofy().getCommitLogManifestKey()))
+        .put(now, ofy().getCommitLogManifestKey())
         .build();
   }
 }

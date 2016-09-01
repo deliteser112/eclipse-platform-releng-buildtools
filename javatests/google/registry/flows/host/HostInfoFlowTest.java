@@ -23,7 +23,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
 import google.registry.model.domain.DomainResource;
@@ -88,8 +88,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
     persistHostResource(true);
     persistResource(
         newDomainResource("example.foobar").asBuilder()
-          .addNameservers(
-              ImmutableSet.of(Ref.<HostResource>create(persistHostResource(true))))
+          .addNameservers(ImmutableSet.of(Key.create(persistHostResource(true))))
           .build());
     assertTransactionalFlow(false);
     // Check that the persisted host info was returned.
@@ -112,7 +111,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
     persistResource(
         persistHostResource(true).asBuilder()
             .setRepoId("CEEF-FOOBAR")
-            .setSuperordinateDomain(Ref.create(domain))
+            .setSuperordinateDomain(Key.create(domain))
             .setLastSuperordinateChange(lastSuperordinateChange)
             .build());
     assertTransactionalFlow(false);

@@ -25,7 +25,6 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -106,14 +105,14 @@ public class BillingEventTest extends EntityTestCase {
             .setReason(Reason.CREATE)
             .setEventTime(now.plusDays(1))
             .setBillingTime(now.plusDays(5))
-            .setOneTimeEventRef(Ref.create(oneTime))));
+            .setOneTimeEventKey(Key.create(oneTime))));
     cancellationRecurring = persistResource(commonInit(
         new BillingEvent.Cancellation.Builder()
             .setParent(historyEntry2)
             .setReason(Reason.RENEW)
             .setEventTime(now.plusDays(1))
             .setBillingTime(now.plusYears(1).plusDays(45))
-            .setRecurringEventRef(Ref.create(recurring))));
+            .setRecurringEventKey(Key.create(recurring))));
     modification = persistResource(commonInit(
         new BillingEvent.Modification.Builder()
             .setParent(historyEntry2)
@@ -121,7 +120,7 @@ public class BillingEventTest extends EntityTestCase {
             .setCost(Money.of(USD, 1))
             .setDescription("Something happened")
             .setEventTime(now.plusDays(1))
-            .setEventRef(Ref.create(oneTime))));
+            .setEventKey(Key.create(oneTime))));
   }
 
   private <E extends BillingEvent, B extends BillingEvent.Builder<E, B>> E commonInit(B builder) {
@@ -169,7 +168,7 @@ public class BillingEventTest extends EntityTestCase {
         .getCancellationMatchingBillingEvent();
     assertThat(ofy().load().key(recurringKey).now()).isEqualTo(recurring);
   }
-  
+
   @Test
   public void testIndexing() throws Exception {
     verifyIndexing(oneTime, "clientId", "eventTime", "billingTime", "syntheticCreationTime");
@@ -241,7 +240,7 @@ public class BillingEventTest extends EntityTestCase {
             GracePeriodStatus.AUTO_RENEW,
             now.plusYears(1).plusDays(45),
             "a registrar",
-            Ref.create(recurring)),
+            Key.create(recurring)),
         historyEntry2,
         "foo.tld");
     // Set ID to be the same to ignore for the purposes of comparison.
@@ -264,15 +263,15 @@ public class BillingEventTest extends EntityTestCase {
   @Test
   public void testFailure_cancellationWithNoBillingEvent() {
     thrown.expect(IllegalStateException.class, "exactly one billing event");
-    cancellationOneTime.asBuilder().setOneTimeEventRef(null).setRecurringEventRef(null).build();
+    cancellationOneTime.asBuilder().setOneTimeEventKey(null).setRecurringEventKey(null).build();
   }
 
   @Test
   public void testFailure_cancellationWithBothBillingEvents() {
     thrown.expect(IllegalStateException.class, "exactly one billing event");
     cancellationOneTime.asBuilder()
-        .setOneTimeEventRef(Ref.create(oneTime))
-        .setRecurringEventRef(Ref.create(recurring))
+        .setOneTimeEventKey(Key.create(oneTime))
+        .setRecurringEventKey(Key.create(recurring))
         .build();
   }
 

@@ -25,7 +25,6 @@ import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.DomainResource;
@@ -84,7 +83,7 @@ public class HostResourceTest extends EntityTestCase {
                 .setInetAddresses(ImmutableSet.of(InetAddresses.forString("127.0.0.1")))
                 .setStatusValues(ImmutableSet.of(StatusValue.OK))
                 .setSuperordinateDomain(
-                    Ref.create(loadByUniqueId(DomainResource.class, "example.com", clock.nowUtc())))
+                    Key.create(loadByUniqueId(DomainResource.class, "example.com", clock.nowUtc())))
                 .build());
     persistResource(hostResource);
   }
@@ -265,7 +264,7 @@ public class HostResourceTest extends EntityTestCase {
             .setPendingTransferExpirationTime(clock.nowUtc().plusDays(1))
             .setGainingClientId("winner")
             .setExtendedRegistrationYears(2)
-            .setServerApproveBillingEvent(Ref.create(
+            .setServerApproveBillingEvent(Key.create(
                 new BillingEvent.OneTime.Builder()
                     .setParent(new HistoryEntry.Builder().setParent(domain).build())
                     .setCost(Money.parse("USD 100"))

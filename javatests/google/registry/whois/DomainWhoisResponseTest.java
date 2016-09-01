@@ -22,7 +22,7 @@ import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
@@ -205,11 +205,11 @@ public class DomainWhoisResponseTest {
         .setEmailAddress("EMAIL@EXAMPLE.tld")
         .build());
 
-    Ref<HostResource> hostResource1Ref = Ref.create(hostResource1);
-    Ref<HostResource> hostResource2Ref = Ref.create(hostResource2);
-    Ref<ContactResource> registrantResourceRef = Ref.create(registrant);
-    Ref<ContactResource> adminResourceRef = Ref.create(adminContact);
-    Ref<ContactResource> techResourceRef = Ref.create(techContact);
+    Key<HostResource> hostResource1Key = Key.create(hostResource1);
+    Key<HostResource> hostResource2Key = Key.create(hostResource2);
+    Key<ContactResource> registrantResourceKey = Key.create(registrant);
+    Key<ContactResource> adminResourceKey = Key.create(adminContact);
+    Key<ContactResource> techResourceKey = Key.create(techContact);
 
     domainResource = persistResource(new DomainResource.Builder()
         .setFullyQualifiedDomainName("EXAMPLE.tld")
@@ -223,11 +223,11 @@ public class DomainWhoisResponseTest {
             StatusValue.CLIENT_RENEW_PROHIBITED,
             StatusValue.CLIENT_TRANSFER_PROHIBITED,
             StatusValue.SERVER_UPDATE_PROHIBITED))
-        .setRegistrant(registrantResourceRef)
+        .setRegistrant(registrantResourceKey)
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(DesignatedContact.Type.ADMIN, adminResourceRef),
-            DesignatedContact.create(DesignatedContact.Type.TECH, techResourceRef)))
-        .setNameservers(ImmutableSet.of(hostResource1Ref, hostResource2Ref))
+            DesignatedContact.create(DesignatedContact.Type.ADMIN, adminResourceKey),
+            DesignatedContact.create(DesignatedContact.Type.TECH, techResourceKey)))
+        .setNameservers(ImmutableSet.of(hostResource1Key, hostResource2Key))
         .setDsData(ImmutableSet.of(new DelegationSignerData()))
         .setGracePeriods(ImmutableSet.of(
             GracePeriod.create(GracePeriodStatus.ADD, END_OF_TIME, "", null),

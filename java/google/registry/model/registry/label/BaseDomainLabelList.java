@@ -130,14 +130,14 @@ public abstract class BaseDomainLabelList<T extends Comparable<?>, R extends Dom
     ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
     Key<? extends BaseDomainLabelList<?, ?>> key = Key.create(this);
     for (String tld : getTlds()) {
-      if (hasReference(Registry.get(tld), key)) {
+      if (refersToKey(Registry.get(tld), key)) {
         builder.add(tld);
       }
     }
     return builder.build();
   }
 
-  protected abstract boolean hasReference(
+  protected abstract boolean refersToKey(
       Registry registry, Key<? extends BaseDomainLabelList<?, ?>> key);
 
   protected static <R> Optional<R> getFromCache(String listName, LoadingCache<String, R> cache) {

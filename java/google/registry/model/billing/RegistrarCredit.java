@@ -25,7 +25,7 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
@@ -71,7 +71,7 @@ public final class RegistrarCredit extends ImmutableObject implements Buildable 
 
   /** The registrar to whom this credit belongs. */
   @Parent
-  Ref<Registrar> parent;
+  Key<Registrar> parent;
 
   /** The type of credit. */
   CreditType type;
@@ -95,7 +95,7 @@ public final class RegistrarCredit extends ImmutableObject implements Buildable 
    */
   String tld;
 
-  public Ref<Registrar> getParent() {
+  public Key<Registrar> getParent() {
     return parent;
   }
 
@@ -122,7 +122,7 @@ public final class RegistrarCredit extends ImmutableObject implements Buildable 
   /** Returns a string representation of this credit. */
   public String getSummary() {
     String fields = Joiner.on(' ').join(type, creationTime, tld);
-    return String.format("%s (%s/%d) - %s", description, parent.getKey().getName(), id, fields);
+    return String.format("%s (%s/%d) - %s", description, parent.getName(), id, fields);
   }
 
   /** Returns the default description for this {@link RegistrarCredit} instance. */
@@ -144,7 +144,7 @@ public final class RegistrarCredit extends ImmutableObject implements Buildable 
     }
 
     public Builder setParent(Registrar parent) {
-      getInstance().parent = Ref.create(parent);
+      getInstance().parent = Key.create(parent);
       return this;
     }
 

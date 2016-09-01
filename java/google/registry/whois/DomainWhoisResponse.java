@@ -16,6 +16,7 @@ package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.tryFind;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.xml.UtcDateTimeAdapter.getFormattedString;
 
@@ -23,7 +24,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
@@ -100,14 +101,14 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
 
   /** Returns the contact of the given type, or null if it does not exist. */
   @Nullable
-  private Ref<ContactResource> getContactReference(final Type type) {
+  private Key<ContactResource> getContactReference(final Type type) {
     Optional<DesignatedContact> contactOfType = tryFind(domain.getContacts(),
         new Predicate<DesignatedContact>() {
           @Override
           public boolean apply(DesignatedContact d) {
             return d.getType() == type;
           }});
-    return contactOfType.isPresent() ? contactOfType.get().getContactRef() : null;
+    return contactOfType.isPresent() ? contactOfType.get().getContactKey() : null;
   }
 
   /** Output emitter with logic for domains. */
@@ -123,7 +124,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
     /** Emit the contact entry of the given type. */
     DomainEmitter emitContact(
         String contactType,
-        @Nullable Ref<ContactResource> contact,
+        @Nullable Key<ContactResource> contact,
         boolean preferUnicode) {
       if (contact == null) {
         return this;
@@ -131,7 +132,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
       // If we refer to a contact that doesn't exist, that's a bug. It means referential integrity
       // has somehow been broken. We skip the rest of this contact, but log it to hopefully bring it
       // someone's attention.
-      ContactResource contactResource = contact.get();
+      ContactResource contactResource = ofy().load().key(contact).now();
       if (contactResource == null) {
         logger.severefmt("(BUG) Broken reference found from domain %s to contact %s",
             domain.getFullyQualifiedDomainName(), contact);

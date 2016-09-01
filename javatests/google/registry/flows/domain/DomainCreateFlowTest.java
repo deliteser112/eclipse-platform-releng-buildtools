@@ -181,7 +181,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         : null;
     HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
     assertAboutDomains().that(domain)
-        .hasRegistrationExpirationTime(domain.getAutorenewBillingEvent().get().getEventTime()).and()
+        .hasRegistrationExpirationTime(
+            ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime()).and()
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.DOMAIN_CREATE).and()
         .hasPeriodYears(2);

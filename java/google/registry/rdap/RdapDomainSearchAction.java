@@ -15,7 +15,7 @@
 package google.registry.rdap;
 
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
-import static google.registry.model.index.ForeignKeyIndex.loadAndGetReference;
+import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
@@ -28,9 +28,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Booleans;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.Query;
-import com.googlecode.objectify.cmd.QueryKeys;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
@@ -164,31 +162,25 @@ public class RdapDomainSearchAction extends RdapActionBase {
   private ImmutableList<ImmutableMap<String, Object>>
       searchByNameserverLdhName(final RdapSearchPattern partialStringQuery, final DateTime now)
           throws HttpException {
-    ImmutableList<Ref<HostResource>> hostRefs;
+    Iterable<Key<HostResource>> hostKeys;
     // Handle queries without a wildcard; just load the host by foreign key in the usual way.
     if (!partialStringQuery.getHasWildcard()) {
-      Ref<HostResource> hostRef = loadAndGetReference(
+      Key<HostResource> hostKey = loadAndGetKey(
           HostResource.class, partialStringQuery.getInitialString(), now);
-      if (hostRef == null) {
+      if (hostKey == null) {
         return ImmutableList.of();
       }
-      hostRefs = ImmutableList.of(hostRef);
+      hostKeys = ImmutableList.of(hostKey);
     // Handle queries with a wildcard, but no suffix. Query the host resources themselves, rather
     // than the foreign key index, because then we have an index on fully qualified host name and
     // deletion time, so we can check the deletion status in the query itself. There are no pending
     // deletes for hosts, so we can call queryUndeleted.
     } else if (partialStringQuery.getSuffix() == null) {
       // TODO (b/24463238): figure out how to limit the size of these queries effectively
-      Query<HostResource> query = queryUndeleted(
-          HostResource.class,
-          "fullyQualifiedHostName",
-          partialStringQuery, 1000);
-      ImmutableList.Builder<Ref<HostResource>> builder = new ImmutableList.Builder<>();
-      for (Key<HostResource> hostResourceKey : query.keys()) {
-        builder.add(Ref.create(hostResourceKey));
-      }
-      hostRefs = builder.build();
-      if (hostRefs.isEmpty()) {
+      hostKeys =
+          queryUndeleted(HostResource.class, "fullyQualifiedHostName", partialStringQuery, 1000)
+              .keys();
+      if (Iterables.isEmpty(hostKeys)) {
         throw new NotFoundException("No matching nameservers found");
       }
     // Handle queries with a wildcard and a suffix. In this case, it is more efficient to do things
@@ -200,24 +192,24 @@ public class RdapDomainSearchAction extends RdapActionBase {
       if (domainResource == null) {
         throw new NotFoundException("No domain found for specified nameserver suffix");
       }
-      ImmutableList.Builder<Ref<HostResource>> builder = new ImmutableList.Builder<>();
+      ImmutableList.Builder<Key<HostResource>> builder = new ImmutableList.Builder<>();
       for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
         // We can't just check that the host name starts with the initial query string, because then
         // the query ns.exam*.example.com would match against nameserver ns.example.com.
         if (partialStringQuery.matches(fqhn)) {
-          Ref<HostResource> hostRef = loadAndGetReference(HostResource.class, fqhn, now);
-          if (hostRef != null) {
-            builder.add(hostRef);
+          Key<HostResource> hostKey = loadAndGetKey(HostResource.class, fqhn, now);
+          if (hostKey != null) {
+            builder.add(hostKey);
           }
         }
       }
-      hostRefs = builder.build();
-      if (hostRefs.isEmpty()) {
+      hostKeys = builder.build();
+      if (Iterables.isEmpty(hostKeys)) {
         throw new NotFoundException("No matching nameservers found");
       }
     }
     // Find all domains that link to any of these hosts, and return information about them.
-    return searchByNameserverRefs(hostRefs, now);
+    return searchByNameserverRefs(hostKeys, now);
   }
 
   /** Searches for domains by nameserver address, returning a JSON array of domain info maps. */
@@ -226,35 +218,28 @@ public class RdapDomainSearchAction extends RdapActionBase {
     // In theory, we could filter on the deletion time being in the future. But we can't do that in
     // the query on nameserver name (because we're already using an inequality query), and it seems
     // dangerous and confusing to filter on deletion time differently between the two queries.
-    QueryKeys<HostResource> query = ofy()
-        .load()
-        .type(HostResource.class)
-        .filter("inetAddresses", inetAddress.getHostAddress())
-        .filter("deletionTime", END_OF_TIME)
-        .limit(1000)
-        .keys();
-    ImmutableList.Builder<Ref<HostResource>> builder = new ImmutableList.Builder<>();
-    for (Key<HostResource> key : query) {
-      builder.add(Ref.create(key));
-    }
-    ImmutableList<Ref<HostResource>> hostRefs = builder.build();
-    if (hostRefs.isEmpty()) {
-      return ImmutableList.of();
-    }
     // Find all domains that link to any of these hosts, and return information about them.
-    return searchByNameserverRefs(hostRefs, now);
+    return searchByNameserverRefs(
+        ofy()
+            .load()
+            .type(HostResource.class)
+            .filter("inetAddresses", inetAddress.getHostAddress())
+            .filter("deletionTime", END_OF_TIME)
+            .limit(1000)
+            .keys(),
+        now);
   }
 
   /**
-   * Locates all domains which are linked to a set of host refs. This method is called by
+   * Locates all domains which are linked to a set of host keys. This method is called by
    * {@link #searchByNameserverLdhName} and {@link #searchByNameserverIp} after they assemble the
-   * relevant host refs.
+   * relevant host keys.
    */
   private ImmutableList<ImmutableMap<String, Object>>
-      searchByNameserverRefs(final Iterable<Ref<HostResource>> hostRefs, final DateTime now) {
+      searchByNameserverRefs(final Iterable<Key<HostResource>> hostKeys, final DateTime now) {
     // We must break the query up into chunks, because the in operator is limited to 30 subqueries.
     ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
-    for (List<Ref<HostResource>> chunk : Iterables.partition(hostRefs, 30)) {
+    for (List<Key<HostResource>> chunk : Iterables.partition(hostKeys, 30)) {
       Query<DomainResource> query = ofy().load()
           .type(DomainResource.class)
           .filter("nameservers.linked in", chunk)

@@ -17,7 +17,7 @@ package google.registry.model;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.transform;
 import static google.registry.model.RoidSuffixes.getRoidSuffixForTld;
-import static google.registry.model.index.ForeignKeyIndex.loadAndGetReference;
+import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
@@ -25,7 +25,6 @@ import static google.registry.util.DateTimeUtils.latestOf;
 
 import com.google.common.base.Function;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.ResultNow;
 import google.registry.config.RegistryEnvironment;
@@ -98,20 +97,20 @@ public final class EppResourceUtils {
    */
   public static <T extends EppResource> T loadByUniqueId(
       Class<T> clazz, String foreignKey, DateTime now) {
-    // For regular foreign-keyed resources, get the ref by loading the FKI; for domain applications,
-    // we can construct the ref directly, since the provided foreignKey is just the repoId.
-    Ref<T> resourceRef = ForeignKeyedEppResource.class.isAssignableFrom(clazz)
-        ? loadAndGetReference(clazz, foreignKey, now)
-        : Ref.create(Key.create(null, clazz, foreignKey));
-    if (resourceRef == null) {
+    // For regular foreign-keyed resources, get the key by loading the FKI; for domain applications,
+    // we can construct the key directly, since the provided foreignKey is just the repoId.
+    Key<T> resourceKey = ForeignKeyedEppResource.class.isAssignableFrom(clazz)
+        ? loadAndGetKey(clazz, foreignKey, now)
+        : Key.create(null, clazz, foreignKey);
+    if (resourceKey == null) {
       return null;
     }
-    T resource = resourceRef.get();
+    T resource = ofy().load().key(resourceKey).now();
     if (resource == null
-        // You'd think this couldn't happen, but it can. For polymorphic entities, a Ref or Key is
-        // of necessity a reference to the base type (since datastore doesn't have polymorphism and
+        // You'd think this couldn't happen, but it can. For polymorphic entities, a Key is of
+        // necessity a reference to the base type (since datastore doesn't have polymorphism and
         // Objectify is faking it). In the non-foreign-key code path above where we directly create
-        // a Ref, there is no way to know whether the Ref points to an instance of the desired
+        // a Key, there is no way to know whether the Key points to an instance of the desired
         // subclass without loading it. Due to type erasure, it gets stuffed into "resource" without
         // causing a ClassCastException even if it's the wrong type until you actually try to use it
         // as the wrong type, at which point it blows up somewhere else in the code. Concretely,
@@ -286,13 +285,13 @@ public final class EppResourceUtils {
   private static <T extends EppResource> Result<T> loadMostRecentRevisionAtTime(
       final T resource, final DateTime timestamp) {
     final Key<T> resourceKey = Key.create(resource);
-    final Ref<CommitLogManifest> revision = findMostRecentRevisionAtTime(resource, timestamp);
+    final Key<CommitLogManifest> revision = findMostRecentRevisionAtTime(resource, timestamp);
     if (revision == null) {
       logger.severefmt("No revision found for %s, falling back to resource.", resourceKey);
       return new ResultNow<>(resource);
     }
     final Result<CommitLogMutation> mutationResult =
-        ofy().load().key(CommitLogMutation.createKey(revision.getKey(), resourceKey));
+        ofy().load().key(CommitLogMutation.createKey(revision, resourceKey));
     return new Result<T>() {
       @Override
       public T now() {
@@ -310,10 +309,10 @@ public final class EppResourceUtils {
   }
 
   @Nullable
-  private static <T extends EppResource> Ref<CommitLogManifest>
+  private static <T extends EppResource> Key<CommitLogManifest>
       findMostRecentRevisionAtTime(final T resource, final DateTime timestamp) {
     final Key<T> resourceKey = Key.create(resource);
-    Entry<?, Ref<CommitLogManifest>> revision = resource.getRevisions().floorEntry(timestamp);
+    Entry<?, Key<CommitLogManifest>> revision = resource.getRevisions().floorEntry(timestamp);
     if (revision != null) {
       logger.infofmt("Found revision history at %s for %s: %s", timestamp, resourceKey, revision);
       return revision.getValue();
@@ -336,19 +335,19 @@ public final class EppResourceUtils {
    * <p>This is an eventually consistent query.
    *
    * @param clazz the referent type (contact or host)
-   * @param ref the referent key
+   * @param key the referent key
    * @param now the logical time of the check
    * @param limit max number of keys to return
    */
   public static List<Key<DomainBase>> queryDomainsUsingResource(
-      Class<? extends EppResource> clazz, Ref<? extends EppResource> ref, DateTime now, int limit) {
+      Class<? extends EppResource> clazz, Key<? extends EppResource> key, DateTime now, int limit) {
     checkArgument(ContactResource.class.equals(clazz) || HostResource.class.equals(clazz));
     return ofy().load().type(DomainBase.class)
         .filter(
             clazz.equals(ContactResource.class)
                 ? "allContacts.contactId.linked"
                 : "nameservers.linked",
-            ref)
+            key)
         .filter("deletionTime >", now)
         .limit(limit)
         .keys()
@@ -358,7 +357,7 @@ public final class EppResourceUtils {
   /** Clone a contact or host with an eventually-consistent notion of LINKED. */
   public static EppResource cloneResourceWithLinkedStatus(EppResource resource, DateTime now) {
     Builder<?, ?> builder = resource.asBuilder();
-    if (queryDomainsUsingResource(resource.getClass(), Ref.create(resource), now, 1).isEmpty()) {
+    if (queryDomainsUsingResource(resource.getClass(), Key.create(resource), now, 1).isEmpty()) {
       builder.removeStatusValue(StatusValue.LINKED);
     } else {
       builder.addStatusValue(StatusValue.LINKED);

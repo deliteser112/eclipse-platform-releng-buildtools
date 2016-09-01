@@ -30,7 +30,7 @@ import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ObjectPendingTransferException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
@@ -145,8 +145,8 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
     ofy().save().<Object>entities(explicitRenewEvent, newAutorenewEvent, newAutorenewPollMessage);
     return existingResource.asBuilder()
         .setRegistrationExpirationTime(newExpirationTime)
-        .setAutorenewBillingEvent(Ref.create(newAutorenewEvent))
-        .setAutorenewPollMessage(Ref.create(newAutorenewPollMessage))
+        .setAutorenewBillingEvent(Key.create(newAutorenewEvent))
+        .setAutorenewPollMessage(Key.create(newAutorenewPollMessage))
         .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.RENEW, explicitRenewEvent))
         .build();
   }

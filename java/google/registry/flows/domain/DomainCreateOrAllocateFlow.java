@@ -20,7 +20,7 @@ import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.model.billing.BillingEvent;
@@ -74,8 +74,8 @@ public abstract class DomainCreateOrAllocateFlow
 
     builder
         .setRegistrationExpirationTime(registrationExpirationTime)
-        .setAutorenewBillingEvent(Ref.create(autorenewEvent))
-        .setAutorenewPollMessage(Ref.create(autorenewPollMessage));
+        .setAutorenewBillingEvent(Key.create(autorenewEvent))
+        .setAutorenewPollMessage(Key.create(autorenewPollMessage));
     setDomainCreateOrAllocateProperties(builder);
   }
 

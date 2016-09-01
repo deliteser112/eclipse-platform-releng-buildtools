@@ -71,7 +71,7 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
     RegistrarCreditBalance creditBalance =
         getOnlyElement(ofy().load().type(RegistrarCreditBalance.class).ancestor(credit));
     assertThat(creditBalance).isNotNull();
-    assertThat(creditBalance.getParent().get()).isEqualTo(credit);
+    assertThat(ofy().load().key(creditBalance.getParent()).now()).isEqualTo(credit);
     assertThat(creditBalance.getEffectiveTime()).isEqualTo(DateTime.parse("2014-11-01T01:02:03Z"));
     assertThat(creditBalance.getWrittenTime()).isIn(Range.closed(before, DateTime.now(UTC)));
     assertThat(creditBalance.getAmount()).isEqualTo(Money.of(USD, 100));

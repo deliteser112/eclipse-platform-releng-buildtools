@@ -21,7 +21,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -52,9 +52,9 @@ public class UniformRapidSuspensionCommandTest
   }
 
   private void persistDomainWithHosts(HostResource... hosts) {
-    ImmutableSet.Builder<Ref<HostResource>> hostRefs = new ImmutableSet.Builder<>();
+    ImmutableSet.Builder<Key<HostResource>> hostRefs = new ImmutableSet.Builder<>();
     for (HostResource host : hosts) {
-      hostRefs.add(Ref.create(host));
+      hostRefs.add(Key.create(host));
     }
     persistResource(newDomainResource("evil.tld").asBuilder()
         .setNameservers(hostRefs.build())

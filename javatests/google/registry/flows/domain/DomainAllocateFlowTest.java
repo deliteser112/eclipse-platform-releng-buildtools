@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -39,7 +40,7 @@ import static org.joda.money.CurrencyUnit.USD;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainAllocateFlow.HasFinalStatusException;
@@ -208,11 +209,11 @@ public class DomainAllocateFlowTest
                 CLIENT_ID,
                 null),
             createBillingEvent));
-    assertThat(domain.getAutorenewBillingEvent().get().getEventTime())
+    assertThat(ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime())
         .isEqualTo(domain.getRegistrationExpirationTime());
 
     assertThat(domain.getApplicationTime()).isEqualTo(APPLICATION_TIME);
-    assertThat(domain.getApplication()).isEqualTo(Ref.create(application));
+    assertThat(domain.getApplication()).isEqualTo(Key.create(application));
     if (nameservers == 0) {
       assertNoDnsTasksEnqueued();
     } else {

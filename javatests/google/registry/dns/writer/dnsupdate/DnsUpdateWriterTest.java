@@ -34,7 +34,7 @@ import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
@@ -107,7 +107,7 @@ public class DnsUpdateWriterTest {
     DomainResource domain =
         persistActiveDomain("example.tld")
             .asBuilder()
-            .setNameservers(ImmutableSet.of(Ref.create(host1), Ref.create(host2)))
+            .setNameservers(ImmutableSet.of(Key.create(host1), Key.create(host2)))
             .build();
     persistResource(domain);
 
@@ -126,7 +126,7 @@ public class DnsUpdateWriterTest {
     DomainResource domain =
         persistActiveDomain("example.tld")
             .asBuilder()
-            .setNameservers(ImmutableSet.of(Ref.create(persistActiveHost("ns1.example.tld"))))
+            .setNameservers(ImmutableSet.of(Key.create(persistActiveHost("ns1.example.tld"))))
             .setDsData(
                 ImmutableSet.of(
                     DelegationSignerData.create(1, 3, 1, base16().decode("0123456789ABCDEF"))))
@@ -150,7 +150,7 @@ public class DnsUpdateWriterTest {
         persistActiveDomain("example.tld")
             .asBuilder()
             .addStatusValue(StatusValue.SERVER_HOLD)
-            .setNameservers(ImmutableSet.of(Ref.create(persistActiveHost("ns1.example.tld"))))
+            .setNameservers(ImmutableSet.of(Key.create(persistActiveHost("ns1.example.tld"))))
             .build();
     persistResource(domain);
 
@@ -192,7 +192,7 @@ public class DnsUpdateWriterTest {
         newDomainResource("example.tld")
             .asBuilder()
             .addSubordinateHost("ns1.example.tld")
-            .addNameservers(ImmutableSet.of(Ref.create(host)))
+            .addNameservers(ImmutableSet.of(Key.create(host)))
             .build());
 
     writer.publishHost("ns1.example.tld");
@@ -229,7 +229,7 @@ public class DnsUpdateWriterTest {
     persistResource(
         persistActiveDomain("example.tld")
             .asBuilder()
-            .setNameservers(ImmutableSet.of(Ref.create(persistActiveHost("ns1.example.com"))))
+            .setNameservers(ImmutableSet.of(Key.create(persistActiveHost("ns1.example.com"))))
             .build());
 
     writer.publishHost("ns1.example.tld");
@@ -262,7 +262,7 @@ public class DnsUpdateWriterTest {
             .asBuilder()
             .addSubordinateHost("ns1.example.tld")
             .addNameservers(
-                ImmutableSet.of(Ref.create(externalNameserver), Ref.create(inBailiwickNameserver)))
+                ImmutableSet.of(Key.create(externalNameserver), Key.create(inBailiwickNameserver)))
             .build());
 
     writer.publishDomain("example.tld");
@@ -296,7 +296,7 @@ public class DnsUpdateWriterTest {
             .asBuilder()
             .addSubordinateHost("ns1.example.tld")
             .addSubordinateHost("foo.example.tld")
-            .addNameservers(ImmutableSet.of(Ref.create(inBailiwickNameserver)))
+            .addNameservers(ImmutableSet.of(Key.create(inBailiwickNameserver)))
             .build());
 
     writer.publishDomain("example.tld");
@@ -318,7 +318,7 @@ public class DnsUpdateWriterTest {
     DomainResource domain =
         persistActiveDomain("example.tld")
             .asBuilder()
-            .setNameservers(ImmutableSet.of(Ref.create(persistActiveHost("ns1.example.tld"))))
+            .setNameservers(ImmutableSet.of(Key.create(persistActiveHost("ns1.example.tld"))))
             .build();
     persistResource(domain);
     when(mockResolver.send(any(Message.class))).thenReturn(messageWithResponseCode(Rcode.SERVFAIL));

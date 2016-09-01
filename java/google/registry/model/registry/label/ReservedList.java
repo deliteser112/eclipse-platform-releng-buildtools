@@ -118,7 +118,7 @@ public final class ReservedList
   }
 
   @Override
-  protected boolean hasReference(Registry registry, Key<? extends BaseDomainLabelList<?, ?>> key) {
+  protected boolean refersToKey(Registry registry, Key<? extends BaseDomainLabelList<?, ?>> key) {
     return registry.getReservedLists().contains(key);
   }
 

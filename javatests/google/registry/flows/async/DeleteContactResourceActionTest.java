@@ -32,7 +32,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
@@ -75,7 +74,7 @@ public class DeleteContactResourceActionTest
     assertAboutContacts().that(contactUsed).doesNotHaveStatusValue(StatusValue.PENDING_DELETE)
         .and().hasDeletionTime(END_OF_TIME);
     domain = loadByUniqueId(DomainResource.class, "example.tld", now);
-    assertThat(domain.getReferencedContacts()).contains(Ref.create(contactUsed));
+    assertThat(domain.getReferencedContacts()).contains(Key.create(contactUsed));
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(contactUsed, HistoryEntry.Type.CONTACT_DELETE_FAILURE);
     assertPollMessageFor(

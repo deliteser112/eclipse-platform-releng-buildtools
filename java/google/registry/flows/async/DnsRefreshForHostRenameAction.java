@@ -22,7 +22,6 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
@@ -92,7 +91,7 @@ public class DnsRefreshForHostRenameAction implements Runnable {
     @Override
     public final void map(DomainResource domain) {
       if (isActive(domain, hostUpdateTime)
-          && domain.getNameservers().contains(Ref.create(targetHostKey))) {
+          && domain.getNameservers().contains(targetHostKey)) {
         try {
           dnsQueue.addDomainRefreshTask(domain.getFullyQualifiedDomainName());
           logger.infofmt("Enqueued refresh for domain %s", domain.getFullyQualifiedDomainName());

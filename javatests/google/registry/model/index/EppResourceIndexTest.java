@@ -44,7 +44,7 @@ public class EppResourceIndexTest extends EntityTestCase  {
   @Test
   public void testPersistence() throws Exception {
     EppResourceIndex loadedIndex = Iterables.getOnlyElement(getEppResourceIndexObjects());
-    assertThat(loadedIndex.reference.get()).isEqualTo(contact);
+    assertThat(ofy().load().key(loadedIndex.reference).now()).isEqualTo(contact);
   }
 
   @Test
@@ -56,7 +56,7 @@ public class EppResourceIndexTest extends EntityTestCase  {
   public void testIdempotentOnUpdate() throws Exception {
     contact = persistResource(contact.asBuilder().setEmailAddress("abc@def.fake").build());
     EppResourceIndex loadedIndex = Iterables.getOnlyElement(getEppResourceIndexObjects());
-    assertThat(loadedIndex.reference.get()).isEqualTo(contact);
+    assertThat(ofy().load().key(loadedIndex.reference).now()).isEqualTo(contact);
   }
 
   /**

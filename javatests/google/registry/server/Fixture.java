@@ -25,7 +25,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
@@ -112,26 +112,26 @@ public enum Fixture {
       persistResource(
           newDomainResource("love.xn--q9jyb4c", justine).asBuilder()
               .setContacts(ImmutableSet.of(
-                  DesignatedContact.create(ADMIN, Ref.create(robert)),
-                  DesignatedContact.create(BILLING, Ref.create(google)),
-                  DesignatedContact.create(TECH, Ref.create(justine))))
+                  DesignatedContact.create(ADMIN, Key.create(robert)),
+                  DesignatedContact.create(BILLING, Key.create(google)),
+                  DesignatedContact.create(TECH, Key.create(justine))))
               .setNameservers(ImmutableSet.of(
-                  Ref.create(persistActiveHost("ns1.love.xn--q9jyb4c")),
-                  Ref.create(persistActiveHost("ns2.love.xn--q9jyb4c"))))
+                  Key.create(persistActiveHost("ns1.love.xn--q9jyb4c")),
+                  Key.create(persistActiveHost("ns2.love.xn--q9jyb4c"))))
               .build());
 
       persistResource(
           newDomainResource("moogle.example", justine).asBuilder()
               .setContacts(ImmutableSet.of(
-                  DesignatedContact.create(ADMIN, Ref.create(robert)),
-                  DesignatedContact.create(BILLING, Ref.create(google)),
-                  DesignatedContact.create(TECH, Ref.create(justine))))
+                  DesignatedContact.create(ADMIN, Key.create(robert)),
+                  DesignatedContact.create(BILLING, Key.create(google)),
+                  DesignatedContact.create(TECH, Key.create(justine))))
               .setNameservers(ImmutableSet.of(
-                  Ref.create(persistActiveHost("ns1.linode.com")),
-                  Ref.create(persistActiveHost("ns2.linode.com")),
-                  Ref.create(persistActiveHost("ns3.linode.com")),
-                  Ref.create(persistActiveHost("ns4.linode.com")),
-                  Ref.create(persistActiveHost("ns5.linode.com"))))
+                  Key.create(persistActiveHost("ns1.linode.com")),
+                  Key.create(persistActiveHost("ns2.linode.com")),
+                  Key.create(persistActiveHost("ns3.linode.com")),
+                  Key.create(persistActiveHost("ns4.linode.com")),
+                  Key.create(persistActiveHost("ns5.linode.com"))))
               .build());
 
       persistResource(

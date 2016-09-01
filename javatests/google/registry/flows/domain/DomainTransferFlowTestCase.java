@@ -28,7 +28,7 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.Flow;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.model.EppResource;
@@ -120,14 +120,14 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
         .setCreationClientId("TheRegistrar")
         .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
         .setRegistrationExpirationTime(REGISTRATION_EXPIRATION_TIME)
-        .setRegistrant(Ref.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc())))
+        .setRegistrant(Key.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc())))
         .setContacts(ImmutableSet.of(
             DesignatedContact.create(
                 Type.ADMIN,
-                Ref.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc()))),
+                Key.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc()))),
             DesignatedContact.create(
                 Type.TECH,
-                Ref.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc())))))
+                Key.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc())))))
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("fooBAR")))
         .addGracePeriod(GracePeriod.create(
             GracePeriodStatus.ADD, clock.nowUtc().plusDays(10), "foo", null))
@@ -163,11 +163,11 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
             .setCurrentSponsorClientId("TheRegistrar")
             .setCreationClientId("TheRegistrar")
             .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
-            .setSuperordinateDomain(Ref.create(domain))
+            .setSuperordinateDomain(Key.create(domain))
             .build());
     domain = persistResource(domain.asBuilder()
-        .setAutorenewBillingEvent(Ref.create(autorenewEvent))
-        .setAutorenewPollMessage(Ref.create(autorenewPollMessage))
+        .setAutorenewBillingEvent(Key.create(autorenewEvent))
+        .setAutorenewPollMessage(Key.create(autorenewPollMessage))
         .addSubordinateHost(subordinateHost.getFullyQualifiedHostName())
         .build());
   }

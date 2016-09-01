@@ -128,7 +128,8 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
         .filter(new Predicate<EppResourceIndex>() {
             @Override
             public boolean apply(EppResourceIndex index) {
-              return index.getReference().get().equals(resource);
+              return Key.create(resource).equals(index.getKey())
+                  && ofy().load().key(index.getKey()).now().equals(resource);
             }})
         .toList();
     assertThat(indices).hasSize(1);

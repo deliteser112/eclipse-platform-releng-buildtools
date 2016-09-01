@@ -28,7 +28,7 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.CommandUseErrorException;
@@ -160,8 +160,8 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
         .setStatusValues(null)
         .setGracePeriods(null)
         .setDeletePollMessage(null)
-        .setAutorenewBillingEvent(Ref.create(autorenewEvent))
-        .setAutorenewPollMessage(Ref.create(autorenewPollMessage))
+        .setAutorenewBillingEvent(Key.create(autorenewEvent))
+        .setAutorenewPollMessage(Key.create(autorenewPollMessage))
         .build();
   }
 

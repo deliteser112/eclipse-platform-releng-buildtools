@@ -16,13 +16,14 @@ package google.registry.flows.host;
 
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
@@ -75,7 +76,7 @@ public class HostFlowUtils {
   }
 
   /** Return the {@link DomainResource} this host is subordinate to, or null for external hosts. */
-  static Ref<DomainResource> lookupSuperordinateDomain(
+  static Key<DomainResource> lookupSuperordinateDomain(
       InternetDomainName hostName, DateTime now) throws EppException {
     Optional<InternetDomainName> tldParsed = findTldForName(hostName);
     if (!tldParsed.isPresent()) {
@@ -91,7 +92,7 @@ public class HostFlowUtils {
     if (superordinateDomain == null || !isActive(superordinateDomain, now)) {
       throw new SuperordinateDomainDoesNotExistException(domainName);
     }
-    return Ref.create(superordinateDomain);
+    return Key.create(superordinateDomain);
   }
 
   /** Superordinate domain for this hostname does not exist. */
@@ -103,10 +104,11 @@ public class HostFlowUtils {
 
   /** Ensure that the superordinate domain is sponsored by the provided clientId. */
   static void verifyDomainIsSameRegistrar(
-      Ref<DomainResource> superordinateDomain,
+      Key<DomainResource> superordinateDomain,
       String clientId) throws EppException {
     if (superordinateDomain != null
-        && !clientId.equals(superordinateDomain.get().getCurrentSponsorClientId())) {
+        && !clientId.equals(
+            ofy().load().key(superordinateDomain).now().getCurrentSponsorClientId())) {
       throw new HostDomainNotOwnedException();
     }
   }

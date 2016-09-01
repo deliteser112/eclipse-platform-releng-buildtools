@@ -40,7 +40,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
@@ -246,23 +245,23 @@ public class DomainFlowUtils {
   /** Verify that no linked resources have disallowed statuses. */
   static void verifyNotInPendingDelete(
       Set<DesignatedContact> contacts,
-      Ref<ContactResource> registrant,
-      Set<Ref<HostResource>> nameservers) throws EppException {
+      Key<ContactResource> registrant,
+      Set<Key<HostResource>> nameservers) throws EppException {
     for (DesignatedContact contact : nullToEmpty(contacts)) {
-      verifyNotInPendingDelete(contact.getContactRef());
+      verifyNotInPendingDelete(contact.getContactKey());
     }
     if (registrant != null) {
       verifyNotInPendingDelete(registrant);
     }
-    for (Ref<HostResource> host : nullToEmpty(nameservers)) {
+    for (Key<HostResource> host : nullToEmpty(nameservers)) {
       verifyNotInPendingDelete(host);
     }
   }
 
   private static void verifyNotInPendingDelete(
-      Ref<? extends EppResource> resourceRef) throws EppException {
+      Key<? extends EppResource> resourceKey) throws EppException {
 
-    EppResource resource = resourceRef.get();
+    EppResource resource = ofy().load().key(resourceKey).now();
     if (resource.getStatusValues().contains(StatusValue.PENDING_DELETE)) {
       throw new LinkedResourceInPendingDeleteProhibitsOperationException(resource.getForeignKey());
     }
@@ -302,7 +301,7 @@ public class DomainFlowUtils {
   }
 
   static void validateRequiredContactsPresent(
-      Ref<ContactResource> registrant, Set<DesignatedContact> contacts)
+      Key<ContactResource> registrant, Set<DesignatedContact> contacts)
           throws RequiredParameterMissingException {
     if (registrant == null) {
       throw new MissingRegistrantException();
@@ -446,14 +445,14 @@ public class DomainFlowUtils {
   @SuppressWarnings("unchecked")
   static void updateAutorenewRecurrenceEndTime(DomainResource domain, DateTime newEndTime) {
     Optional<PollMessage.Autorenew> autorenewPollMessage =
-        Optional.fromNullable(domain.getAutorenewPollMessage().get());
+        Optional.fromNullable(ofy().load().key(domain.getAutorenewPollMessage()).now());
 
     // Construct an updated autorenew poll message. If the autorenew poll message no longer exists,
     // create a new one at the same id. This can happen if a transfer was requested on a domain
     // where all autorenew poll messages had already been delivered (this would cause the poll
     // message to be deleted), and then subsequently the transfer was canceled, rejected, or deleted
     // (which would cause the poll message to be recreated here).
-    Key<PollMessage.Autorenew> existingAutorenewKey = domain.getAutorenewPollMessage().key();
+    Key<PollMessage.Autorenew> existingAutorenewKey = domain.getAutorenewPollMessage();
     PollMessage.Autorenew updatedAutorenewPollMessage = autorenewPollMessage.isPresent()
         ? autorenewPollMessage.get().asBuilder().setAutorenewEndTime(newEndTime).build()
         : newAutorenewPollMessage(domain)
@@ -472,7 +471,7 @@ public class DomainFlowUtils {
       ofy().save().entity(updatedAutorenewPollMessage);
     }
 
-    ofy().save().entity(domain.getAutorenewBillingEvent().get().asBuilder()
+    ofy().save().entity(ofy().load().key(domain.getAutorenewBillingEvent()).now().asBuilder()
         .setRecurrenceEndTime(newEndTime)
         .build());
   }

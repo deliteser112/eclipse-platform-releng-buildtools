@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.flows.EppXmlTransformer;
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent;
@@ -111,11 +110,11 @@ public class DomainResourceTest extends EntityTestCase {
                 StatusValue.SERVER_UPDATE_PROHIBITED,
                 StatusValue.SERVER_RENEW_PROHIBITED,
                 StatusValue.SERVER_HOLD))
-            .setRegistrant(Ref.create(contactResource1))
+            .setRegistrant(Key.create(contactResource1))
             .setContacts(ImmutableSet.of(DesignatedContact.create(
                 DesignatedContact.Type.ADMIN,
-                Ref.create(contactResource2))))
-            .setNameservers(ImmutableSet.of(Ref.create(hostResource)))
+                Key.create(contactResource2))))
+            .setNameservers(ImmutableSet.of(Key.create(hostResource)))
             .setSubordinateHosts(ImmutableSet.of("ns1.example.com"))
             .setCurrentSponsorClientId("ThirdRegistrar")
             .setRegistrationExpirationTime(clock.nowUtc().plusYears(1))
@@ -135,21 +134,21 @@ public class DomainResourceTest extends EntityTestCase {
                             Key.create(BillingEvent.Recurring.class, 2),
                             Key.create(PollMessage.Autorenew.class, 3)))
                     .setServerApproveBillingEvent(
-                        Ref.create(Key.create(BillingEvent.OneTime.class, 1)))
+                        Key.create(BillingEvent.OneTime.class, 1))
                     .setServerApproveAutorenewEvent(
-                        Ref.create(Key.create(BillingEvent.Recurring.class, 2)))
+                        Key.create(BillingEvent.Recurring.class, 2))
                     .setServerApproveAutorenewPollMessage(
-                        Ref.create(Key.create(PollMessage.Autorenew.class, 3)))
+                        Key.create(PollMessage.Autorenew.class, 3))
                     .setTransferRequestTime(clock.nowUtc().plusDays(1))
                     .setTransferStatus(TransferStatus.SERVER_APPROVED)
                     .setTransferRequestTrid(Trid.create("client trid"))
                     .build())
             .setDeletePollMessage(Key.create(PollMessage.OneTime.class, 1))
-            .setAutorenewBillingEvent(Ref.create(Key.create(BillingEvent.Recurring.class, 1)))
-            .setAutorenewPollMessage(Ref.create(Key.create(PollMessage.Autorenew.class, 2)))
+            .setAutorenewBillingEvent(Key.create(BillingEvent.Recurring.class, 1))
+            .setAutorenewPollMessage(Key.create(PollMessage.Autorenew.class, 2))
             .setSmdId("smdid")
             .setApplicationTime(START_OF_TIME)
-            .setApplication(Ref.create(Key.create(DomainApplication.class, 1)))
+            .setApplication(Key.create(DomainApplication.class, 1))
             .addGracePeriod(GracePeriod.create(
                 GracePeriodStatus.ADD, clock.nowUtc().plusDays(1), "registrar", null))
             .build());
@@ -198,10 +197,10 @@ public class DomainResourceTest extends EntityTestCase {
     assertThat(newDomainResource("example.com").asBuilder()
         .setNameservers(null).build().nameservers).isNull();
     assertThat(newDomainResource("example.com").asBuilder()
-        .setNameservers(ImmutableSet.<Ref<HostResource>>of()).build().nameservers)
+        .setNameservers(ImmutableSet.<Key<HostResource>>of()).build().nameservers)
             .isNull();
     assertThat(newDomainResource("example.com").asBuilder()
-        .setNameservers(ImmutableSet.of(Ref.create(newHostResource("foo.example.tld"))))
+        .setNameservers(ImmutableSet.of(Key.create(newHostResource("foo.example.tld"))))
             .build().nameservers)
                 .isNotNull();
     // This behavior should also hold true for ImmutableObjects nested in collections.
@@ -230,8 +229,8 @@ public class DomainResourceTest extends EntityTestCase {
 
   @Test
   public void testImplicitStatusValues() {
-    ImmutableSet<Ref<HostResource>> nameservers =
-        ImmutableSet.of(Ref.create(newHostResource("foo.example.tld")));
+    ImmutableSet<Key<HostResource>> nameservers =
+        ImmutableSet.of(Key.create(newHostResource("foo.example.tld")));
     StatusValue[] statuses = {StatusValue.OK};
     // OK is implicit if there's no other statuses but there are nameservers.
     assertAboutDomains()
@@ -284,7 +283,7 @@ public class DomainResourceTest extends EntityTestCase {
     assertThat(domain.getCurrentSponsorClientId()).isEqualTo("winner");
     assertThat(domain.getLastTransferTime()).isEqualTo(clock.nowUtc().plusDays(1));
     assertThat(domain.getRegistrationExpirationTime()).isEqualTo(newExpirationTime);
-    assertThat(domain.getAutorenewBillingEvent().getKey()).isEqualTo(newAutorenewEvent);
+    assertThat(domain.getAutorenewBillingEvent()).isEqualTo(newAutorenewEvent);
   }
 
   private void doExpiredTransferTest(DateTime oldExpirationTime) {
@@ -308,7 +307,7 @@ public class DomainResourceTest extends EntityTestCase {
            .setTransferRequestTime(clock.nowUtc().minusDays(4))
            .setPendingTransferExpirationTime(clock.nowUtc().plusDays(1))
            .setGainingClientId("winner")
-           .setServerApproveBillingEvent(Ref.create(Key.create(transferBillingEvent)))
+           .setServerApproveBillingEvent(Key.create(transferBillingEvent))
            .setServerApproveEntities(ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
                Key.create(transferBillingEvent)))
            .setExtendedRegistrationYears(1)
@@ -321,14 +320,14 @@ public class DomainResourceTest extends EntityTestCase {
     DomainResource afterTransfer = domain.cloneProjectedAtTime(clock.nowUtc().plusDays(1));
     DateTime newExpirationTime = oldExpirationTime.plusYears(1);
     Key<BillingEvent.Recurring> serverApproveAutorenewEvent =
-        domain.getTransferData().getServerApproveAutorenewEvent().getKey();
+        domain.getTransferData().getServerApproveAutorenewEvent();
     assertTransferred(afterTransfer, newExpirationTime, serverApproveAutorenewEvent);
     assertThat(afterTransfer.getGracePeriods())
         .containsExactly(GracePeriod.create(
             GracePeriodStatus.TRANSFER,
             clock.nowUtc().plusDays(1).plus(Registry.get("com").getTransferGracePeriodLength()),
             "winner",
-            Ref.create(transferBillingEvent)));
+            Key.create(transferBillingEvent)));
     // If we project after the grace period expires all should be the same except the grace period.
     DomainResource afterGracePeriod = domain.cloneProjectedAtTime(
         clock.nowUtc().plusDays(2).plus(Registry.get("com").getTransferGracePeriodLength()));
@@ -420,7 +419,7 @@ public class DomainResourceTest extends EntityTestCase {
             oldExpirationTime.plusYears(2).plus(
                 Registry.get("com").getAutoRenewGracePeriodLength()),
             renewedThreeTimes.getCurrentSponsorClientId(),
-            Ref.create(renewedThreeTimes.autorenewBillingEvent.key())));
+            renewedThreeTimes.autorenewBillingEvent));
   }
 
   @Test

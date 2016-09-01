@@ -23,7 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -233,27 +233,27 @@ public final class FullFieldsTestEntityHelper {
             StatusValue.SERVER_UPDATE_PROHIBITED))
         .setDsData(ImmutableSet.of(new DelegationSignerData()));
     if (registrant != null) {
-      builder.setRegistrant(Ref.create(registrant));
+      builder.setRegistrant(Key.create(registrant));
     }
     if ((admin != null) || (tech != null)) {
       ImmutableSet.Builder<DesignatedContact> contactsBuilder = new ImmutableSet.Builder<>();
       if (admin != null) {
         contactsBuilder.add(DesignatedContact.create(
-            DesignatedContact.Type.ADMIN, Ref.create(admin)));
+            DesignatedContact.Type.ADMIN, Key.create(admin)));
       }
       if (tech != null) {
         contactsBuilder.add(DesignatedContact.create(
-            DesignatedContact.Type.TECH, Ref.create(tech)));
+            DesignatedContact.Type.TECH, Key.create(tech)));
       }
       builder.setContacts(contactsBuilder.build());
     }
     if ((ns1 != null) || (ns2 != null)) {
-      ImmutableSet.Builder<Ref<HostResource>> nsBuilder = new ImmutableSet.Builder<>();
+      ImmutableSet.Builder<Key<HostResource>> nsBuilder = new ImmutableSet.Builder<>();
       if (ns1 != null) {
-        nsBuilder.add(Ref.create(ns1));
+        nsBuilder.add(Key.create(ns1));
       }
       if (ns2 != null) {
-        nsBuilder.add(Ref.create(ns2));
+        nsBuilder.add(Key.create(ns2));
       }
       builder.setNameservers(nsBuilder.build());
     }

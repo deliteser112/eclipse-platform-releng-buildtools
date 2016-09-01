@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWithPendingTransfer;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -32,7 +33,7 @@ import static org.joda.money.CurrencyUnit.USD;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
@@ -116,8 +117,8 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     domain = persistResource(domain.asBuilder()
         .setRegistrationExpirationTime(expirationTime)
         .setStatusValues(ImmutableSet.copyOf(statusValues))
-        .setAutorenewBillingEvent(Ref.create(autorenewEvent))
-        .setAutorenewPollMessage(Ref.create(autorenewPollMessage))
+        .setAutorenewBillingEvent(Key.create(autorenewEvent))
+        .setAutorenewPollMessage(Key.create(autorenewPollMessage))
         .build());
     clock.advanceOneMilli();
   }
@@ -136,7 +137,8 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     DomainResource domain = reloadResourceByUniqueId();
     HistoryEntry historyEntryDomainRenew =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_RENEW);
-    assertThat(domain.getAutorenewBillingEvent().get().getEventTime()).isEqualTo(newExpiration);
+    assertThat(ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime())
+        .isEqualTo(newExpiration);
     assertAboutDomains().that(domain)
         .isActiveAt(clock.nowUtc()).and()
         .hasRegistrationExpirationTime(newExpiration).and()
@@ -345,7 +347,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     persistDomain();
     // Modify the autorenew poll message so that it has an undelivered message in the past.
     persistResource(
-        reloadResourceByUniqueId().getAutorenewPollMessage().get().asBuilder()
+        ofy().load().key(reloadResourceByUniqueId().getAutorenewPollMessage()).now().asBuilder()
             .setEventTime(expirationTime.minusYears(1))
             .build());
     runFlowAssertResponse(readFile("domain_renew_response.xml"));

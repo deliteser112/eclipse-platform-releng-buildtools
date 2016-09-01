@@ -49,6 +49,6 @@ class EppResourceKeyReader<R extends EppResource> extends EppResourceBaseReader<
   @SuppressWarnings("unchecked")
   public Key<R> next() throws NoSuchElementException {
     // This is a safe cast because we filtered on kind inside the query.
-    return (Key<R>) nextEri().getReference().getKey();
+    return (Key<R>) nextEri().getKey();
   }
 }

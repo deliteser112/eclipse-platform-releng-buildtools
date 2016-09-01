@@ -28,7 +28,6 @@ import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.IgnoreSave;
@@ -112,7 +111,7 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
    * should be created, and this field should be updated to point to the new one.
    */
   @XmlTransient
-  Ref<BillingEvent.Recurring> autorenewBillingEvent;
+  Key<BillingEvent.Recurring> autorenewBillingEvent;
 
   /**
    * The recurring poll message associated with this domain's autorenewals.
@@ -123,7 +122,7 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
    * should be created, and this field should be updated to point to the new one.
    */
   @XmlTransient
-  Ref<PollMessage.Autorenew> autorenewPollMessage;
+  Key<PollMessage.Autorenew> autorenewPollMessage;
 
   /** The unexpired grace periods for this domain (some of which may not be active yet). */
   @XmlTransient
@@ -146,12 +145,12 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
   DateTime applicationTime;
 
   /**
-   * A reference to the application used to allocate this domain. Will only be populated for domains
+   * A key to the application used to allocate this domain. Will only be populated for domains
    * allocated from an application.
    */
   @IgnoreSave(IfNull.class)
   @XmlTransient
-  Ref<DomainApplication> application;
+  Key<DomainApplication> application;
 
   public ImmutableSet<String> getSubordinateHosts() {
     return nullToEmptyImmutableCopy(subordinateHosts);
@@ -165,11 +164,11 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
     return deletePollMessage;
   }
 
-  public Ref<BillingEvent.Recurring> getAutorenewBillingEvent() {
+  public Key<BillingEvent.Recurring> getAutorenewBillingEvent() {
     return autorenewBillingEvent;
   }
 
-  public Ref<PollMessage.Autorenew> getAutorenewPollMessage() {
+  public Key<PollMessage.Autorenew> getAutorenewPollMessage() {
     return autorenewPollMessage;
   }
 
@@ -185,7 +184,7 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
     return applicationTime;
   }
 
-  public Ref<DomainApplication> getApplication() {
+  public Key<DomainApplication> getApplication() {
     return application;
   }
 
@@ -290,13 +289,13 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
           // Set the speculatively-written new autorenew events as the domain's autorenew events.
           .setAutorenewBillingEvent(transferData.getServerApproveAutorenewEvent())
           .setAutorenewPollMessage(transferData.getServerApproveAutorenewPollMessage())
-          // Set the grace period using a ref to the prescheduled transfer billing event.  Not using
+          // Set the grace period using a key to the prescheduled transfer billing event.  Not using
           // GracePeriod.forBillingEvent() here in order to avoid the actual datastore fetch.
           .setGracePeriods(ImmutableSet.of(GracePeriod.create(
               GracePeriodStatus.TRANSFER,
               transferExpirationTime.plus(Registry.get(getTld()).getTransferGracePeriodLength()),
               transferData.getGainingClientId(),
-              Ref.create(transferData.getServerApproveBillingEvent().key()))));
+              transferData.getServerApproveBillingEvent())));
       // Set all remaining transfer properties.
       setAutomaticTransferSuccessProperties(builder, transferData);
       // Finish projecting to now.
@@ -318,7 +317,7 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
               GracePeriodStatus.AUTO_RENEW,
               lastAutorenewTime.plus(Registry.get(getTld()).getAutoRenewGracePeriodLength()),
               getCurrentSponsorClientId(),
-              Ref.create(autorenewBillingEvent.key())));
+              autorenewBillingEvent));
     }
 
     // Remove any grace periods that have expired.
@@ -398,12 +397,12 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
       return this;
     }
 
-    public Builder setAutorenewBillingEvent(Ref<BillingEvent.Recurring> autorenewBillingEvent) {
+    public Builder setAutorenewBillingEvent(Key<BillingEvent.Recurring> autorenewBillingEvent) {
       getInstance().autorenewBillingEvent = autorenewBillingEvent;
       return this;
     }
 
-    public Builder setAutorenewPollMessage(Ref<PollMessage.Autorenew> autorenewPollMessage) {
+    public Builder setAutorenewPollMessage(Key<PollMessage.Autorenew> autorenewPollMessage) {
       getInstance().autorenewPollMessage = autorenewPollMessage;
       return this;
     }
@@ -418,7 +417,7 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
       return this;
     }
 
-    public Builder setApplication(Ref<DomainApplication> application) {
+    public Builder setApplication(Key<DomainApplication> application) {
       getInstance().application = application;
       return this;
     }

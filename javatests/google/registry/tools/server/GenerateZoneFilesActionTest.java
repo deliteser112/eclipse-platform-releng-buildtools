@@ -36,7 +36,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
@@ -70,8 +70,8 @@ public class GenerateZoneFilesActionTest extends MapreduceTestCase<GenerateZoneF
     HostResource host2 =
         persistResource(newHostResource("ns.bar.tld").asBuilder().addInetAddresses(ips).build());
 
-    ImmutableSet<Ref<HostResource>> nameservers =
-        ImmutableSet.of(Ref.create(host1), Ref.create(host2));
+    ImmutableSet<Key<HostResource>> nameservers =
+        ImmutableSet.of(Key.create(host1), Key.create(host2));
     persistResource(newDomainResource("ns-and-ds.tld").asBuilder()
         .addNameservers(nameservers)
         .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))

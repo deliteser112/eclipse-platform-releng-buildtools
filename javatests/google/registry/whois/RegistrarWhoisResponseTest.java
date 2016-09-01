@@ -62,7 +62,7 @@ public class RegistrarWhoisResponseTest {
         .setWhoisServer("whois.example-registrar.tld")
         .setReferralUrl("http://www.example-registrar.tld")
         .build();
-    // Use the registrar ref for contacts' parent.
+    // Use the registrar key for contacts' parent.
     ImmutableList<RegistrarContact> contacts = ImmutableList.of(
         new RegistrarContact.Builder()
             .setParent(registrar)

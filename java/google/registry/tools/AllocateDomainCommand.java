@@ -136,14 +136,14 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
             for (DesignatedContact contact : application.getContacts()) {
               contactsMapBuilder.put(
                   Ascii.toLowerCase(contact.getType().toString()),
-                  contact.getContactRef().get().getForeignKey());
+                  ofy().load().key(contact.getContactKey()).now().getForeignKey());
             }
             LaunchNotice launchNotice = application.getLaunchNotice();
             addSoyRecord(application.getCurrentSponsorClientId(), new SoyMapData(
                 "name", application.getFullyQualifiedDomainName(),
                 "period", period.getValue(),
                 "nameservers", application.loadNameserverFullyQualifiedHostNames(),
-                "registrant", application.getRegistrant().get().getForeignKey(),
+                "registrant", ofy().load().key(application.getRegistrant()).now().getForeignKey(),
                 "contacts", contactsMapBuilder.build(),
                 "authInfo", application.getAuthInfo().getPw().getValue(),
                 "smdId", application.getEncodedSignedMarks().isEmpty()

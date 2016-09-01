@@ -224,10 +224,11 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
             assertThat(gracePeriod.hasBillingEvent())
                 .named("Billing event is present for grace period: " + gracePeriod)
                 .isTrue();
-            return firstNonNull(
-                gracePeriod.getOneTimeBillingEvent(),
-                gracePeriod.getRecurringBillingEvent())
-                    .get();
+            return ofy().load()
+                .key(firstNonNull(
+                    gracePeriod.getOneTimeBillingEvent(),
+                    gracePeriod.getRecurringBillingEvent()))
+                .now();
           }};
     assertThat(canonicalizeGracePeriods(Maps.toMap(actual, gracePeriodExpander)))
         .isEqualTo(canonicalizeGracePeriods(expected));

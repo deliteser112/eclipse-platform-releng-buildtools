@@ -202,7 +202,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
         .filter(new Predicate<EppResourceIndex>() {
             @Override
             public boolean apply(EppResourceIndex index) {
-              return index.getReference().get().equals(resource);
+              return ofy().load().key(index.getKey()).now().equals(resource);
             }})
         .toList();
     assertThat(indices).hasSize(1);

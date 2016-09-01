@@ -26,7 +26,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
 
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
 import google.registry.flows.ResourceFlowTestCase;
@@ -85,10 +85,10 @@ public class DomainApplicationDeleteFlowTest
     persistResource(newDomainApplication("example.tld").asBuilder()
         .setRepoId("1-TLD")
         .setRegistrant(
-            Ref.create(
+            Key.create(
                 loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc())))
         .setNameservers(ImmutableSet.of(
-            Ref.create(
+            Key.create(
                 loadByUniqueId(HostResource.class, "ns1.example.net", clock.nowUtc()))))
         .build());
     doSuccessfulTest();

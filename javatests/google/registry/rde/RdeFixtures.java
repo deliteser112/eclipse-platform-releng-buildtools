@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -63,7 +62,7 @@ final class RdeFixtures {
     DomainResource domain = new DomainResource.Builder()
         .setFullyQualifiedDomainName("example." + tld)
         .setRepoId(generateNewDomainRoid(tld))
-        .setRegistrant(Ref.create(
+        .setRegistrant(Key.create(
             makeContactResource(clock,
                 "5372808-ERL", "(◕‿◕) nevermore", "prophet@evil.みんな")))
         .build();
@@ -84,10 +83,10 @@ final class RdeFixtures {
     domain = domain.asBuilder()
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("secret")))
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(DesignatedContact.Type.ADMIN, Ref.create(
+            DesignatedContact.create(DesignatedContact.Type.ADMIN, Key.create(
                 makeContactResource(clock, "5372808-IRL",
                     "be that word our sign in parting", "BOFH@cat.みんな"))),
-            DesignatedContact.create(DesignatedContact.Type.TECH, Ref.create(
+            DesignatedContact.create(DesignatedContact.Type.TECH, Key.create(
                 makeContactResource(clock, "5372808-TRL",
                     "bird or fiend!? i shrieked upstarting", "bog@cat.みんな")))))
         .setCreationClientId("TheRegistrar")
@@ -101,9 +100,9 @@ final class RdeFixtures {
         .setLastEppUpdateTime(clock.nowUtc())
         .setIdnTableName("extended_latin")
         .setNameservers(ImmutableSet.of(
-            Ref.create(
+            Key.create(
                 makeHostResource(clock, "bird.or.devil.みんな", "1.2.3.4")),
-            Ref.create(
+            Key.create(
                 makeHostResource(
                     clock, "ns2.cat.みんな", "bad:f00d:cafe::15:beef"))))
         .setRegistrationExpirationTime(DateTime.parse("1930-01-01T00:00:00Z"))
@@ -129,7 +128,7 @@ final class RdeFixtures {
             StatusValue.CLIENT_TRANSFER_PROHIBITED,
             StatusValue.SERVER_UPDATE_PROHIBITED))
         .setAutorenewBillingEvent(
-            Ref.create(persistResource(
+            Key.create(persistResource(
                 new BillingEvent.Recurring.Builder()
                     .setReason(Reason.RENEW)
                     .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
@@ -140,7 +139,7 @@ final class RdeFixtures {
                     .setParent(historyEntry)
                     .build())))
         .setAutorenewPollMessage(
-            Ref.create(persistSimpleResource(
+            Key.create(persistSimpleResource(
                 new PollMessage.Autorenew.Builder()
                     .setTargetId(tld)
                     .setClientId("TheRegistrar")
@@ -154,9 +153,9 @@ final class RdeFixtures {
             .setGainingClientId("gaining")
             .setLosingClientId("losing")
             .setPendingTransferExpirationTime(DateTime.parse("1925-04-20T00:00:00Z"))
-            .setServerApproveBillingEvent(Ref.create(billingEvent))
+            .setServerApproveBillingEvent(Key.create(billingEvent))
             .setServerApproveAutorenewEvent(
-                Ref.create(persistResource(
+                Key.create(persistResource(
                     new BillingEvent.Recurring.Builder()
                         .setReason(Reason.RENEW)
                         .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
@@ -166,7 +165,7 @@ final class RdeFixtures {
                         .setRecurrenceEndTime(END_OF_TIME)
                         .setParent(historyEntry)
                         .build())))
-            .setServerApproveAutorenewPollMessage(Ref.create(persistResource(
+            .setServerApproveAutorenewPollMessage(Key.create(persistResource(
                 new Autorenew.Builder()
                     .setTargetId("example." + tld)
                     .setClientId("TheRegistrar")
@@ -176,7 +175,7 @@ final class RdeFixtures {
                     .setParent(historyEntry)
                     .build())))
             .setServerApproveEntities(ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
-                Ref.create(billingEvent).getKey()))
+                Key.create(billingEvent)))
             .setTransferRequestTime(DateTime.parse("1919-01-01T00:00:00Z"))
             .setTransferStatus(TransferStatus.PENDING)
             .setTransferRequestTrid(Trid.create("client trid"))

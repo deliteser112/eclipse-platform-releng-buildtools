@@ -48,7 +48,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Saver;
@@ -129,7 +128,7 @@ public class DatastoreHelper {
 
   public static DomainResource newDomainResource(
       String domainName, String repoId, ContactResource contact) {
-    Ref<ContactResource> contactRef = Ref.create(contact);
+    Key<ContactResource> contactKey = Key.create(contact);
     return new DomainResource.Builder()
         .setRepoId(repoId)
         .setFullyQualifiedDomainName(domainName)
@@ -137,10 +136,10 @@ public class DatastoreHelper {
         .setCurrentSponsorClientId("TheRegistrar")
         .setCreationTimeForTest(START_OF_TIME)
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
-        .setRegistrant(contactRef)
+        .setRegistrant(contactKey)
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, contactRef),
-            DesignatedContact.create(Type.TECH, contactRef)))
+            DesignatedContact.create(Type.ADMIN, contactKey),
+            DesignatedContact.create(Type.TECH, contactKey)))
         .setRegistrationExpirationTime(END_OF_TIME)
         .build();
   }
@@ -170,16 +169,16 @@ public class DatastoreHelper {
 
   public static DomainApplication newDomainApplication(
       String domainName, String repoId, ContactResource contact, LaunchPhase phase) {
-    Ref<ContactResource> contactRef = Ref.create(contact);
+    Key<ContactResource> contactKey = Key.create(contact);
     return new DomainApplication.Builder()
         .setRepoId(repoId)
         .setFullyQualifiedDomainName(domainName)
         .setCurrentSponsorClientId("TheRegistrar")
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
-        .setRegistrant(contactRef)
+        .setRegistrant(contactKey)
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, contactRef),
-            DesignatedContact.create(Type.TECH, contactRef)))
+            DesignatedContact.create(Type.ADMIN, contactKey),
+            DesignatedContact.create(Type.TECH, contactKey)))
         .setPhase(phase)
         .setApplicationStatus(VALIDATED)
         .addStatusValue(StatusValue.PENDING_CREATE)
@@ -261,7 +260,7 @@ public class DatastoreHelper {
     return persistResource(
         newHostResource(hostName)
             .asBuilder()
-            .setSuperordinateDomain(Ref.create(superordinateDomain))
+            .setSuperordinateDomain(Key.create(superordinateDomain))
             .build());
   }
 
@@ -526,18 +525,20 @@ public class DatastoreHelper {
             .build());
     // Modify the existing autorenew event to reflect the pending transfer.
     persistResource(
-        domain.getAutorenewBillingEvent().get().asBuilder()
+        ofy().load().key(domain.getAutorenewBillingEvent()).now().asBuilder()
             .setRecurrenceEndTime(expirationTime)
             .build());
     // Update the end time of the existing autorenew poll message. We must delete it if it has no
     // events left in it.
-    if (domain.getAutorenewPollMessage().get().getEventTime().isBefore(expirationTime)) {
+    PollMessage.Autorenew autorenewPollMessage =
+        ofy().load().key(domain.getAutorenewPollMessage()).now();
+    if (autorenewPollMessage.getEventTime().isBefore(expirationTime)) {
       persistResource(
-          domain.getAutorenewPollMessage().get().asBuilder()
+          autorenewPollMessage.asBuilder()
               .setAutorenewEndTime(expirationTime)
               .build());
     } else {
-      deleteResource(domain.getAutorenewPollMessage().get());
+      deleteResource(autorenewPollMessage);
     }
     Builder transferDataBuilder = createTransferDataBuilder(
         requestTime, expirationTime, extendedRegistrationYears);
@@ -546,9 +547,9 @@ public class DatastoreHelper {
         .addStatusValue(StatusValue.PENDING_TRANSFER)
         .setTransferData(transferDataBuilder
             .setPendingTransferExpirationTime(expirationTime)
-            .setServerApproveBillingEvent(Ref.create(transferBillingEvent))
-            .setServerApproveAutorenewEvent(Ref.create(gainingClientAutorenewEvent))
-            .setServerApproveAutorenewPollMessage(Ref.create(gainingClientAutorenewPollMessage))
+            .setServerApproveBillingEvent(Key.create(transferBillingEvent))
+            .setServerApproveAutorenewEvent(Key.create(gainingClientAutorenewEvent))
+            .setServerApproveAutorenewPollMessage(Key.create(gainingClientAutorenewPollMessage))
             .setServerApproveEntities(ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
                 Key.create(transferBillingEvent),
                 Key.create(gainingClientAutorenewEvent),

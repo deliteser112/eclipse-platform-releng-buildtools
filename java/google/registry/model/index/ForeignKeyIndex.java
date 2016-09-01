@@ -23,7 +23,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -81,9 +80,10 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   /**
    * The referenced resource.
    *
-   * <p>This field holds the only reference. It is named "topReference" for historical reasons.
+   * <p>This field holds a key to the only referenced resource. It is named "topReference" for
+   * historical reasons.
    */
-  Ref<E> topReference;
+  Key<E> topReference;
 
   public String getForeignKey() {
     return foreignKey;
@@ -93,7 +93,7 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
     return deletionTime;
   }
 
-  public Ref<E> getReference() {
+  public Key<E> getResourceKey() {
     return topReference;
   }
 
@@ -103,7 +103,7 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   public static <E extends EppResource> ForeignKeyIndex<E> create(
       E resource, DateTime deletionTime) {
     ForeignKeyIndex<E> instance = instantiate(RESOURCE_CLASS_TO_FKI_CLASS.get(resource.getClass()));
-    instance.topReference = Ref.create(resource);
+    instance.topReference = Key.create(resource);
     instance.foreignKey = resource.getForeignKey();
     instance.deletionTime = deletionTime;
     return instance;
@@ -116,7 +116,7 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   }
 
   /**
-   * Loads a reference to an {@link EppResource} from the datastore by foreign key.
+   * Loads a {@link Key} to an {@link EppResource} from the datastore by foreign key.
    *
    * <p>Returns absent if no foreign key index with this foreign key was ever created, or if the
    * most recently created foreign key index was deleted before time "now". This method does not
@@ -128,10 +128,10 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
    * @param now the current logical time to use when checking for soft deletion of the foreign key
    *        index
    */
-  public static <E extends EppResource> Ref<E> loadAndGetReference(
+  public static <E extends EppResource> Key<E> loadAndGetKey(
       Class<E> clazz, String foreignKey, DateTime now) {
     ForeignKeyIndex<E> index = load(clazz, foreignKey, now);
-    return (index == null) ? null : index.getReference();
+    return (index == null) ? null : index.getResourceKey();
   }
 
   /**

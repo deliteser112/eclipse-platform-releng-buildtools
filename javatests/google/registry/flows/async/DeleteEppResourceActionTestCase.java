@@ -28,7 +28,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
@@ -81,7 +80,7 @@ public abstract class DeleteEppResourceActionTestCase<T extends DeleteEppResourc
     hostUsed = persistActiveHost("ns1.example.tld");
     domain = persistResource(
         newDomainResource("example.tld", contactUsed).asBuilder()
-            .setNameservers(ImmutableSet.of(Ref.create(hostUsed)))
+            .setNameservers(ImmutableSet.of(Key.create(hostUsed)))
             .build());
   }
 

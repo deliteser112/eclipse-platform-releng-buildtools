@@ -18,13 +18,12 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.flows.host.HostFlowUtils.verifyDomainIsSameRegistrar;
-import static google.registry.model.index.ForeignKeyIndex.loadAndGetReference;
+import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ObjectAlreadyExistsException;
@@ -63,7 +62,7 @@ import org.joda.time.Duration;
  */
 public class HostUpdateFlow extends ResourceUpdateFlow<HostResource, Builder, Update> {
 
-  private Ref<DomainResource> superordinateDomain;
+  private Key<DomainResource> superordinateDomain;
 
   private String oldHostName;
   private String newHostName;
@@ -85,7 +84,7 @@ public class HostUpdateFlow extends ResourceUpdateFlow<HostResource, Builder, Up
   protected void verifyUpdateIsAllowed() throws EppException {
     verifyDomainIsSameRegistrar(superordinateDomain, getClientId());
     if (isHostRename
-        && loadAndGetReference(HostResource.class, newHostName, now) != null) {
+        && loadAndGetKey(HostResource.class, newHostName, now) != null) {
       throw new HostAlreadyExistsException(newHostName);
     }
   }
@@ -170,24 +169,25 @@ public class HostUpdateFlow extends ResourceUpdateFlow<HostResource, Builder, Up
   }
 
   private void updateSuperordinateDomains() {
-    Ref<DomainResource> oldSuperordinateDomain = existingResource.getSuperordinateDomain();
+    Key<DomainResource> oldSuperordinateDomain = existingResource.getSuperordinateDomain();
     if (oldSuperordinateDomain != null || superordinateDomain != null) {
       if (Objects.equals(oldSuperordinateDomain, superordinateDomain)) {
-        ofy().save().entity(oldSuperordinateDomain.get().asBuilder()
-            .removeSubordinateHost(oldHostName)
-            .addSubordinateHost(newHostName)
-            .build());
+        ofy().save().entity(
+            ofy().load().key(oldSuperordinateDomain).now().asBuilder()
+                .removeSubordinateHost(oldHostName)
+                .addSubordinateHost(newHostName)
+                .build());
       } else {
         if (oldSuperordinateDomain != null) {
           ofy().save().entity(
-              oldSuperordinateDomain.get()
+              ofy().load().key(oldSuperordinateDomain).now()
                   .asBuilder()
                   .removeSubordinateHost(oldHostName)
                   .build());
         }
         if (superordinateDomain != null) {
           ofy().save().entity(
-              superordinateDomain.get()
+              ofy().load().key(superordinateDomain).now()
                   .asBuilder()
                   .addSubordinateHost(newHostName)
                   .build());

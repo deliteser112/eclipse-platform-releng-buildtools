@@ -29,7 +29,7 @@ import static google.registry.testing.DomainApplicationSubject.assertAboutApplic
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -104,9 +104,9 @@ public class DomainApplicationUpdateFlowTest
   private DomainApplication persistApplication() throws Exception {
     return persistResource(newApplicationBuilder()
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.TECH, Ref.create(sh8013Contact)),
-            DesignatedContact.create(Type.ADMIN, Ref.create(unusedContact))))
-        .setNameservers(ImmutableSet.of(Ref.create(
+            DesignatedContact.create(Type.TECH, Key.create(sh8013Contact)),
+            DesignatedContact.create(Type.ADMIN, Key.create(unusedContact))))
+        .setNameservers(ImmutableSet.of(Key.create(
             loadByUniqueId(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
         .build());
   }
@@ -170,7 +170,7 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     ContactResource sh8013 = loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc());
     persistResource(
-        newApplicationBuilder().setRegistrant(Ref.create(sh8013)).build());
+        newApplicationBuilder().setRegistrant(Key.create(sh8013)).build());
     clock.advanceOneMilli();
     runFlowAssertResponse(readFile("domain_update_response.xml"));
   }
@@ -180,13 +180,13 @@ public class DomainApplicationUpdateFlowTest
     setEppInput("domain_update_sunrise_remove_multiple_contacts.xml");
     persistReferencedEntities();
     ContactResource sh8013 = loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc());
-    Ref<ContactResource> sh8013Ref = Ref.create(sh8013);
+    Key<ContactResource> sh8013Key = Key.create(sh8013);
     persistResource(newApplicationBuilder()
-        .setRegistrant(sh8013Ref)
+        .setRegistrant(sh8013Key)
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, sh8013Ref),
-            DesignatedContact.create(Type.BILLING, sh8013Ref),
-            DesignatedContact.create(Type.TECH, sh8013Ref)))
+            DesignatedContact.create(Type.ADMIN, sh8013Key),
+            DesignatedContact.create(Type.BILLING, sh8013Key),
+            DesignatedContact.create(Type.TECH, sh8013Key)))
         .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(readFile("domain_update_response.xml"));
@@ -369,10 +369,10 @@ public class DomainApplicationUpdateFlowTest
   }
 
   private void modifyApplicationToHave13Nameservers() throws Exception {
-    ImmutableSet.Builder<Ref<HostResource>> nameservers = new ImmutableSet.Builder<>();
+    ImmutableSet.Builder<Key<HostResource>> nameservers = new ImmutableSet.Builder<>();
     for (int i = 1; i < 15; i++) {
       if (i != 2) { // Skip 2 since that's the one that the tests will add.
-        nameservers.add(Ref.create(loadByUniqueId(
+        nameservers.add(Key.create(loadByUniqueId(
             HostResource.class, String.format("ns%d.example.tld", i), clock.nowUtc())));
       }
     }
@@ -492,7 +492,7 @@ public class DomainApplicationUpdateFlowTest
     // Add a tech contact to the persisted entity, which should cause the flow to fail when it tries
     // to add "mak21" as a second tech contact.
     persistResource(reloadResourceByUniqueId().asBuilder().setContacts(ImmutableSet.of(
-        DesignatedContact.create(Type.TECH, Ref.create(
+        DesignatedContact.create(Type.TECH, Key.create(
             loadByUniqueId(ContactResource.class, "foo", clock.nowUtc()))))).build());
     runFlow();
   }
@@ -576,7 +576,7 @@ public class DomainApplicationUpdateFlowTest
     setEppInput("domain_update_sunrise_add_remove_same_host.xml");
     persistReferencedEntities();
     persistResource(newApplicationBuilder()
-        .setNameservers(ImmutableSet.of(Ref.create(
+        .setNameservers(ImmutableSet.of(Key.create(
             loadByUniqueId(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
         .build());
     runFlow();
@@ -590,7 +590,7 @@ public class DomainApplicationUpdateFlowTest
     persistResource(newApplicationBuilder()
         .setContacts(ImmutableSet.of(DesignatedContact.create(
             Type.TECH,
-            Ref.create(
+            Key.create(
                 loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc())))))
         .build());
     runFlow();
@@ -603,8 +603,8 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistResource(newApplicationBuilder()
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, Ref.create(sh8013Contact)),
-            DesignatedContact.create(Type.TECH, Ref.create(sh8013Contact))))
+            DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
+            DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
         .build());
     runFlow();
   }
@@ -616,8 +616,8 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistResource(newApplicationBuilder()
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, Ref.create(sh8013Contact)),
-            DesignatedContact.create(Type.TECH, Ref.create(sh8013Contact))))
+            DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
+            DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
         .build());
     runFlow();
   }

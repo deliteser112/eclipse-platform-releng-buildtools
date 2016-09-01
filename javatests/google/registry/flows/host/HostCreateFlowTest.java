@@ -104,10 +104,10 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   @Test
   public void testSuccess_internalNeverExisted() throws Exception {
     doSuccessfulInternalTest("tld");
-    assertThat(ofy().load().ref(reloadResourceByUniqueId().getSuperordinateDomain())
+    assertThat(ofy().load().key(reloadResourceByUniqueId().getSuperordinateDomain())
         .now().getFullyQualifiedDomainName())
             .isEqualTo("example.tld");
-    assertThat(ofy().load().ref(reloadResourceByUniqueId().getSuperordinateDomain())
+    assertThat(ofy().load().key(reloadResourceByUniqueId().getSuperordinateDomain())
         .now().getSubordinateHosts()).containsExactly("ns1.example.tld");
     assertDnsTasksEnqueued("ns1.example.tld");
   }
@@ -123,10 +123,10 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   public void testSuccess_internalExistedButWasDeleted() throws Exception {
     persistDeletedHost(getUniqueIdFromCommand(), clock.nowUtc());
     doSuccessfulInternalTest("tld");
-    assertThat(ofy().load().ref(reloadResourceByUniqueId().getSuperordinateDomain())
+    assertThat(ofy().load().key(reloadResourceByUniqueId().getSuperordinateDomain())
         .now().getFullyQualifiedDomainName())
             .isEqualTo("example.tld");
-    assertThat(ofy().load().ref(reloadResourceByUniqueId().getSuperordinateDomain())
+    assertThat(ofy().load().key(reloadResourceByUniqueId().getSuperordinateDomain())
         .now().getSubordinateHosts()).containsExactly("ns1.example.tld");
     assertDnsTasksEnqueued("ns1.example.tld");
   }

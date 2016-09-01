@@ -81,7 +81,7 @@ public class KillAllEppResourcesAction implements Runnable {
     public void map(final EppResourceIndex eri) {
       Key<EppResourceIndex> eriKey = Key.create(eri);
       emitAndIncrementCounter(eriKey, eriKey);
-      Key<?> resourceKey = eri.getReference().getKey();
+      Key<?> resourceKey = eri.getKey();
       for (Key<Object> key : ofy().load().ancestor(resourceKey).keys()) {
         emitAndIncrementCounter(resourceKey, key);
       }
@@ -91,7 +91,7 @@ public class KillAllEppResourcesAction implements Runnable {
           new Work<EppResource>() {
             @Override
             public EppResource run() {
-              return eri.getReference().get();
+              return ofy().load().key(eri.getKey()).now();
             }});
       // TODO(b/28247733): What about FKI's for renamed hosts?
       Key<?> indexKey = resource instanceof DomainApplication

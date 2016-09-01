@@ -15,7 +15,7 @@
 package google.registry.model.domain;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
 import google.registry.model.ImmutableObject;
@@ -48,7 +48,7 @@ public class DesignatedContact extends ImmutableObject {
   }
 
   @VisibleForTesting
-  public static DesignatedContact create(Type type, Ref<ContactResource> contact) {
+  public static DesignatedContact create(Type type, Key<ContactResource> contact) {
     DesignatedContact instance = new DesignatedContact();
     instance.type = type;
     instance.contactId = ReferenceUnion.create(contact);
@@ -60,14 +60,14 @@ public class DesignatedContact extends ImmutableObject {
 
   @Index
   @XmlValue
-  //TODO(b/28713909): Make this a Ref<ContactResource>.
+  //TODO(b/28713909): Make this a Key<ContactResource>.
   ReferenceUnion<ContactResource> contactId;
 
   public Type getType() {
     return type;
   }
 
-  public Ref<ContactResource> getContactRef() {
+  public Key<ContactResource> getContactKey() {
     return contactId.getLinked();
   }
 }

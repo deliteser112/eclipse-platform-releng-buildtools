@@ -201,7 +201,7 @@ final class GenerateEscrowDepositCommand implements RemoteApiCommand {
               @Override
               @SuppressWarnings("unchecked")
               public Key<EppResource> apply(EppResourceIndex index) {
-                return (Key<EppResource>) index.getReference().getKey();
+                return (Key<EppResource>) index.getKey();
               }}))
         .values();
   }

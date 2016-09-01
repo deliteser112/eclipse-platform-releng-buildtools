@@ -25,7 +25,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import google.registry.model.eppcommon.StatusValue;
@@ -129,7 +129,7 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
    * @see google.registry.model.translators.CommitLogRevisionsTranslatorFactory
    */
   @XmlTransient
-  ImmutableSortedMap<DateTime, Ref<CommitLogManifest>> revisions = ImmutableSortedMap.of();
+  ImmutableSortedMap<DateTime, Key<CommitLogManifest>> revisions = ImmutableSortedMap.of();
 
   public final String getRepoId() {
     return repoId;
@@ -178,7 +178,7 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
     return deletionTime;
   }
 
-  public ImmutableSortedMap<DateTime, Ref<CommitLogManifest>> getRevisions() {
+  public ImmutableSortedMap<DateTime, Key<CommitLogManifest>> getRevisions() {
     return nullToEmptyImmutableCopy(revisions);
   }
 

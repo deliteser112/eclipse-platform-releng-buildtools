@@ -11,8 +11,8 @@ class google.registry.model.UpdateAutoTimestamp {
 class google.registry.model.billing.BillingEvent$Cancellation {
   @Id long id;
   @Parent com.googlecode.objectify.Key<google.registry.model.reporting.HistoryEntry> parent;
-  com.googlecode.objectify.Ref<google.registry.model.billing.BillingEvent$OneTime> refOneTime;
-  com.googlecode.objectify.Ref<google.registry.model.billing.BillingEvent$Recurring> refRecurring;
+  com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$OneTime> refOneTime;
+  com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$Recurring> refRecurring;
   google.registry.model.billing.BillingEvent$Reason reason;
   java.lang.String clientId;
   java.lang.String targetId;
@@ -31,7 +31,7 @@ enum google.registry.model.billing.BillingEvent$Flag {
 class google.registry.model.billing.BillingEvent$Modification {
   @Id long id;
   @Parent com.googlecode.objectify.Key<google.registry.model.reporting.HistoryEntry> parent;
-  com.googlecode.objectify.Ref<google.registry.model.billing.BillingEvent$OneTime> eventRef;
+  com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$OneTime> eventRef;
   google.registry.model.billing.BillingEvent$Reason reason;
   java.lang.String clientId;
   java.lang.String description;
@@ -86,7 +86,7 @@ class google.registry.model.billing.RegistrarBillingEntry {
 }
 class google.registry.model.billing.RegistrarCredit {
   @Id long id;
-  @Parent com.googlecode.objectify.Ref<google.registry.model.registrar.Registrar> parent;
+  @Parent com.googlecode.objectify.Key<google.registry.model.registrar.Registrar> parent;
   google.registry.model.billing.RegistrarCredit$CreditType type;
   java.lang.String description;
   java.lang.String tld;
@@ -99,7 +99,7 @@ enum google.registry.model.billing.RegistrarCredit$CreditType {
 }
 class google.registry.model.billing.RegistrarCreditBalance {
   @Id long id;
-  @Parent com.googlecode.objectify.Ref<google.registry.model.billing.RegistrarCredit> parent;
+  @Parent com.googlecode.objectify.Key<google.registry.model.billing.RegistrarCredit> parent;
   org.joda.money.Money amount;
   org.joda.time.DateTime effectiveTime;
   org.joda.time.DateTime writtenTime;
@@ -142,7 +142,7 @@ class google.registry.model.contact.ContactPhoneNumber {
 }
 class google.registry.model.contact.ContactResource {
   @Id java.lang.String repoId;
-  com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Ref<google.registry.model.ofy.CommitLogManifest>> revisions;
+  com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Key<google.registry.model.ofy.CommitLogManifest>> revisions;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   google.registry.model.contact.ContactAuthInfo authInfo;
@@ -197,7 +197,7 @@ enum google.registry.model.domain.DesignatedContact$Type {
 }
 class google.registry.model.domain.DomainApplication {
   @Id java.lang.String repoId;
-  com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Ref<google.registry.model.ofy.CommitLogManifest>> revisions;
+  com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Key<google.registry.model.ofy.CommitLogManifest>> revisions;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   google.registry.model.domain.DomainAuthInfo authInfo;
@@ -227,7 +227,7 @@ class google.registry.model.domain.DomainAuthInfo {
 }
 class google.registry.model.domain.DomainBase {
   @Id java.lang.String repoId;
-  com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Ref<google.registry.model.ofy.CommitLogManifest>> revisions;
+  com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Key<google.registry.model.ofy.CommitLogManifest>> revisions;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   google.registry.model.domain.DomainAuthInfo authInfo;
@@ -249,11 +249,11 @@ class google.registry.model.domain.DomainBase {
 }
 class google.registry.model.domain.DomainResource {
   @Id java.lang.String repoId;
-  com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Ref<google.registry.model.ofy.CommitLogManifest>> revisions;
+  com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Key<google.registry.model.ofy.CommitLogManifest>> revisions;
   com.googlecode.objectify.Key<google.registry.model.poll.PollMessage$OneTime> deletePollMessage;
-  com.googlecode.objectify.Ref<google.registry.model.billing.BillingEvent$Recurring> autorenewBillingEvent;
-  com.googlecode.objectify.Ref<google.registry.model.domain.DomainApplication> application;
-  com.googlecode.objectify.Ref<google.registry.model.poll.PollMessage$Autorenew> autorenewPollMessage;
+  com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$Recurring> autorenewBillingEvent;
+  com.googlecode.objectify.Key<google.registry.model.domain.DomainApplication> application;
+  com.googlecode.objectify.Key<google.registry.model.poll.PollMessage$Autorenew> autorenewPollMessage;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   google.registry.model.domain.DomainAuthInfo authInfo;
@@ -279,8 +279,8 @@ class google.registry.model.domain.DomainResource {
   org.joda.time.DateTime registrationExpirationTime;
 }
 class google.registry.model.domain.GracePeriod {
-  com.googlecode.objectify.Ref<google.registry.model.billing.BillingEvent$OneTime> billingEventOneTime;
-  com.googlecode.objectify.Ref<google.registry.model.billing.BillingEvent$Recurring> billingEventRecurring;
+  com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$OneTime> billingEventOneTime;
+  com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$Recurring> billingEventRecurring;
   google.registry.model.domain.rgp.GracePeriodStatus type;
   java.lang.String clientId;
   org.joda.time.DateTime expirationTime;
@@ -301,7 +301,7 @@ enum google.registry.model.domain.Period$Unit {
   YEARS;
 }
 class google.registry.model.domain.ReferenceUnion {
-  com.googlecode.objectify.Ref<T> linked;
+  com.googlecode.objectify.Key<T> linked;
 }
 enum google.registry.model.domain.launch.ApplicationStatus {
   ALLOCATED;
@@ -384,8 +384,8 @@ class google.registry.model.export.LogsExportCursor {
 }
 class google.registry.model.host.HostResource {
   @Id java.lang.String repoId;
-  com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Ref<google.registry.model.ofy.CommitLogManifest>> revisions;
-  com.googlecode.objectify.Ref<google.registry.model.domain.DomainResource> superordinateDomain;
+  com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Key<google.registry.model.ofy.CommitLogManifest>> revisions;
+  com.googlecode.objectify.Key<google.registry.model.domain.DomainResource> superordinateDomain;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   google.registry.model.transfer.TransferData transferData;
@@ -403,12 +403,12 @@ class google.registry.model.host.HostResource {
 class google.registry.model.index.DomainApplicationIndex {
   @Id java.lang.String fullyQualifiedDomainName;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
-  java.util.Set<com.googlecode.objectify.Ref<google.registry.model.domain.DomainApplication>> references;
+  java.util.Set<com.googlecode.objectify.Key<google.registry.model.domain.DomainApplication>> references;
 }
 class google.registry.model.index.EppResourceIndex {
   @Id java.lang.String id;
   @Parent com.googlecode.objectify.Key<google.registry.model.index.EppResourceIndexBucket> bucket;
-  com.googlecode.objectify.Ref<? extends google.registry.model.EppResource> reference;
+  com.googlecode.objectify.Key<? extends google.registry.model.EppResource> reference;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   java.lang.String kind;
 }
@@ -417,19 +417,19 @@ class google.registry.model.index.EppResourceIndexBucket {
 }
 class google.registry.model.index.ForeignKeyIndex$ForeignKeyContactIndex {
   @Id java.lang.String foreignKey;
-  com.googlecode.objectify.Ref<E> topReference;
+  com.googlecode.objectify.Key<E> topReference;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   org.joda.time.DateTime deletionTime;
 }
 class google.registry.model.index.ForeignKeyIndex$ForeignKeyDomainIndex {
   @Id java.lang.String foreignKey;
-  com.googlecode.objectify.Ref<E> topReference;
+  com.googlecode.objectify.Key<E> topReference;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   org.joda.time.DateTime deletionTime;
 }
 class google.registry.model.index.ForeignKeyIndex$ForeignKeyHostIndex {
   @Id java.lang.String foreignKey;
-  com.googlecode.objectify.Ref<E> topReference;
+  com.googlecode.objectify.Key<E> topReference;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   org.joda.time.DateTime deletionTime;
 }
@@ -773,7 +773,7 @@ class google.registry.model.registry.label.ReservedList$ReservedListEntry {
 }
 class google.registry.model.reporting.HistoryEntry {
   @Id long id;
-  @Parent com.googlecode.objectify.Ref<? extends google.registry.model.EppResource> parent;
+  @Parent com.googlecode.objectify.Key<? extends google.registry.model.EppResource> parent;
   boolean bySuperuser;
   byte[] xmlBytes;
   google.registry.model.domain.Period period;
@@ -858,9 +858,9 @@ class google.registry.model.tmch.TmchCrl {
   org.joda.time.DateTime updated;
 }
 class google.registry.model.transfer.TransferData {
-  com.googlecode.objectify.Ref<google.registry.model.billing.BillingEvent$OneTime> serverApproveBillingEvent;
-  com.googlecode.objectify.Ref<google.registry.model.billing.BillingEvent$Recurring> serverApproveAutorenewEvent;
-  com.googlecode.objectify.Ref<google.registry.model.poll.PollMessage$Autorenew> serverApproveAutorenewPollMessage;
+  com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$OneTime> serverApproveBillingEvent;
+  com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$Recurring> serverApproveAutorenewEvent;
+  com.googlecode.objectify.Key<google.registry.model.poll.PollMessage$Autorenew> serverApproveAutorenewPollMessage;
   google.registry.model.eppcommon.Trid transferRequestTrid;
   google.registry.model.transfer.TransferStatus transferStatus;
   java.lang.Integer extendedRegistrationYears;

@@ -23,7 +23,6 @@ import static google.registry.util.DateTimeUtils.latestOf;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -48,11 +47,13 @@ public class DomainApplicationIndex extends BackupGroupRoot {
 
   /**
    * A set of all domain applications with this fully qualified domain name. Never null or empty.
+   *
+   * <p>Although this stores {@link Key}s it is named "references" for historical reasons.
    */
-  Set<Ref<DomainApplication>> references;
+  Set<Key<DomainApplication>> references;
 
-  /** Returns a cloned list of all references on this index. */
-  public ImmutableSet<Ref<DomainApplication>> getReferences() {
+  /** Returns a cloned list of all keys on this index. */
+  public ImmutableSet<Key<DomainApplication>> getKeys() {
     return ImmutableSet.copyOf(references);
   }
 
@@ -61,18 +62,18 @@ public class DomainApplicationIndex extends BackupGroupRoot {
   }
 
   /**
-   * Creates a DomainApplicationIndex with the specified list of references.  Only use this method
-   * for data migrations.  You probably want {@link #createUpdatedInstance}.
+   * Creates a DomainApplicationIndex with the specified list of keys. Only use this method for data
+   * migrations. You probably want {@link #createUpdatedInstance}.
    */
-  public static DomainApplicationIndex createWithSpecifiedReferences(
+  public static DomainApplicationIndex createWithSpecifiedKeys(
       String fullyQualifiedDomainName,
-      ImmutableSet<Ref<DomainApplication>> references) {
+      ImmutableSet<Key<DomainApplication>> keys) {
     checkArgument(!isNullOrEmpty(fullyQualifiedDomainName),
         "fullyQualifiedDomainName must not be null or empty.");
-    checkArgument(!isNullOrEmpty(references), "References must not be null or empty.");
+    checkArgument(!isNullOrEmpty(keys), "Keys must not be null or empty.");
     DomainApplicationIndex instance = new DomainApplicationIndex();
     instance.fullyQualifiedDomainName = fullyQualifiedDomainName;
-    instance.references = references;
+    instance.references = keys;
     return instance;
   }
 
@@ -91,7 +92,7 @@ public class DomainApplicationIndex extends BackupGroupRoot {
       return ImmutableSet.of();
     }
     ImmutableSet.Builder<DomainApplication> apps = new ImmutableSet.Builder<>();
-    for (DomainApplication app : ofy().load().refs(index.getReferences()).values()) {
+    for (DomainApplication app : ofy().load().keys(index.getKeys()).values()) {
       DateTime forwardedNow = latestOf(now, app.getUpdateAutoTimestamp().getTimestamp());
       if (app.getDeletionTime().isAfter(forwardedNow)) {
         apps.add(app.cloneProjectedAtTime(forwardedNow));
@@ -121,9 +122,9 @@ public class DomainApplicationIndex extends BackupGroupRoot {
    */
   public static DomainApplicationIndex createUpdatedInstance(DomainApplication application) {
     DomainApplicationIndex existing = load(application.getFullyQualifiedDomainName());
-    ImmutableSet<Ref<DomainApplication>> newReferences = CollectionUtils.union(
-        (existing == null ? ImmutableSet.<Ref<DomainApplication>>of() : existing.getReferences()),
-        Ref.create(application));
-    return createWithSpecifiedReferences(application.getFullyQualifiedDomainName(), newReferences);
+    ImmutableSet<Key<DomainApplication>> newKeys = CollectionUtils.union(
+        (existing == null ? ImmutableSet.<Key<DomainApplication>>of() : existing.getKeys()),
+        Key.create(application));
+    return createWithSpecifiedKeys(application.getFullyQualifiedDomainName(), newKeys);
   }
 }

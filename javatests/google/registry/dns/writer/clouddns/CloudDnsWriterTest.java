@@ -37,7 +37,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.InetAddresses;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.dns.writer.clouddns.CloudDnsWriter.ZoneStateException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -285,9 +285,9 @@ public class CloudDnsWriterTest {
               i, DS_DATA.getAlgorithm(), DS_DATA.getDigestType(), DS_DATA.getDigest()));
     }
 
-    ImmutableSet.Builder<Ref<HostResource>> hostResourceRefBuilder = new ImmutableSet.Builder<>();
+    ImmutableSet.Builder<Key<HostResource>> hostResourceRefBuilder = new ImmutableSet.Builder<>();
     for (HostResource nameserver : nameservers) {
-      hostResourceRefBuilder.add(Ref.create(nameserver));
+      hostResourceRefBuilder.add(Key.create(nameserver));
     }
 
     return newDomainResource(domainName)

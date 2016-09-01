@@ -17,7 +17,7 @@ package google.registry.flows;
 import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import google.registry.flows.EppException.AssociationProhibitsOperationException;
 import google.registry.model.EppResource;
@@ -50,7 +50,7 @@ public abstract class ResourceAsyncDeleteFlow
           // that would be hard to reason about, and there's no real gain in doing so.
           return false;
         }
-        return isLinkedForFailfast(fki.getReference());
+        return isLinkedForFailfast(fki.getResourceKey());
       }
     });
     if (isLinked) {
@@ -58,8 +58,8 @@ public abstract class ResourceAsyncDeleteFlow
     }
   }
 
-  /** Subclasses must override this to check if the supplied reference has incoming links. */
-  protected abstract boolean isLinkedForFailfast(Ref<R> ref);
+  /** Subclasses must override this to check if the supplied key has incoming links. */
+  protected abstract boolean isLinkedForFailfast(Key<R> key);
 
   @Override
   protected final R createOrMutateResource() {

@@ -32,7 +32,7 @@ import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
@@ -83,9 +83,9 @@ public class DomainCommand {
     @XmlElement(name = "registrant")
     String registrantContactId;
 
-    /** A resolved reference to the registrant who registered this domain. */
+    /** A resolved key to the registrant who registered this domain. */
     @XmlTransient
-    Ref<ContactResource> registrant;
+    Key<ContactResource> registrant;
 
     /** Authorization info (aka transfer secret) of the domain. */
     DomainAuthInfo authInfo;
@@ -94,7 +94,7 @@ public class DomainCommand {
       return registrantContactId;
     }
 
-    public Ref<ContactResource> getRegistrant() {
+    public Key<ContactResource> getRegistrant() {
       return registrant;
     }
 
@@ -134,15 +134,15 @@ public class DomainCommand {
     @XmlElement(name = "hostObj")
     Set<String> nameserverFullyQualifiedHostNames;
 
-    /** Resolved references to hosts that are the nameservers for the domain. */
+    /** Resolved keys to hosts that are the nameservers for the domain. */
     @XmlTransient
-    Set<Ref<HostResource>> nameservers;
+    Set<Key<HostResource>> nameservers;
 
     /** Foreign keyed associated contacts for the domain (other than registrant). */
     @XmlElement(name = "contact")
     Set<ForeignKeyedDesignatedContact> foreignKeyedDesignatedContacts;
 
-    /** Resolved references to associated contacts for the domain (other than registrant). */
+    /** Resolved keys to associated contacts for the domain (other than registrant). */
     @XmlTransient
     Set<DesignatedContact> contacts;
 
@@ -166,7 +166,7 @@ public class DomainCommand {
       return nullSafeImmutableCopy(nameserverFullyQualifiedHostNames);
     }
 
-    public ImmutableSet<Ref<HostResource>> getNameservers() {
+    public ImmutableSet<Key<HostResource>> getNameservers() {
       return nullSafeImmutableCopy(nameservers);
     }
 
@@ -210,7 +210,7 @@ public class DomainCommand {
             now);
         for (DesignatedContact contact : contacts) {
           if (DesignatedContact.Type.REGISTRANT.equals(contact.getType())) {
-            clone.registrant = contact.getContactRef();
+            clone.registrant = contact.getContactKey();
             clone.contacts = forceEmptyToNull(difference(contacts, contact));
             break;
           }
@@ -373,15 +373,15 @@ public class DomainCommand {
       @XmlElement(name = "hostObj")
       Set<String> nameserverFullyQualifiedHostNames;
 
-      /** Resolved references to hosts that are the nameservers for the domain. */
+      /** Resolved keys to hosts that are the nameservers for the domain. */
       @XmlTransient
-      Set<Ref<HostResource>> nameservers;
+      Set<Key<HostResource>> nameservers;
 
       /** Foreign keyed associated contacts for the domain (other than registrant). */
       @XmlElement(name = "contact")
       Set<ForeignKeyedDesignatedContact> foreignKeyedDesignatedContacts;
 
-      /** Resolved references to associated contacts for the domain (other than registrant). */
+      /** Resolved keys to associated contacts for the domain (other than registrant). */
       @XmlTransient
       Set<DesignatedContact> contacts;
 
@@ -389,7 +389,7 @@ public class DomainCommand {
         return nullSafeImmutableCopy(nameserverFullyQualifiedHostNames);
       }
 
-      public ImmutableSet<Ref<HostResource>> getNameservers() {
+      public ImmutableSet<Key<HostResource>> getNameservers() {
         return nullToEmptyImmutableCopy(nameservers);
       }
 
@@ -415,7 +415,7 @@ public class DomainCommand {
         clone.registrant = clone.registrantContactId == null
             ? null
             : getOnlyElement(
-                loadReferences(
+                loadByForeignKey(
                     ImmutableSet.of(clone.registrantContactId), ContactResource.class, now)
                         .values());
         return clone;
@@ -456,13 +456,13 @@ public class DomainCommand {
     }
   }
 
-  private static Set<Ref<HostResource>> linkHosts(
+  private static Set<Key<HostResource>> linkHosts(
       Set<String> fullyQualifiedHostNames, DateTime now) throws InvalidReferencesException {
     if (fullyQualifiedHostNames == null) {
       return null;
     }
     return ImmutableSet.copyOf(
-        loadReferences(fullyQualifiedHostNames, HostResource.class, now).values());
+        loadByForeignKey(fullyQualifiedHostNames, HostResource.class, now).values());
   }
 
   private static Set<DesignatedContact> linkContacts(
@@ -474,8 +474,8 @@ public class DomainCommand {
     for (ForeignKeyedDesignatedContact contact : contacts) {
       foreignKeys.add(contact.contactId);
     }
-    ImmutableMap<String, Ref<ContactResource>> loadedContacts =
-        loadReferences(foreignKeys.build(), ContactResource.class, now);
+    ImmutableMap<String, Key<ContactResource>> loadedContacts =
+        loadByForeignKey(foreignKeys.build(), ContactResource.class, now);
     ImmutableSet.Builder<DesignatedContact> linkedContacts = new ImmutableSet.Builder<>();
     for (ForeignKeyedDesignatedContact contact : contacts) {
       linkedContacts.add(DesignatedContact.create(
@@ -484,8 +484,8 @@ public class DomainCommand {
     return linkedContacts.build();
   }
 
-  /** Load references to resources by their foreign keys. */
-  private static <T extends EppResource> ImmutableMap<String, Ref<T>> loadReferences(
+  /** Load keys to resources by their foreign keys. */
+  private static <T extends EppResource> ImmutableMap<String, Key<T>> loadByForeignKey(
       final Set<String> foreignKeys, final Class<T> clazz, final DateTime now)
       throws InvalidReferencesException {
     Map<String, ForeignKeyIndex<T>> fkis = ofy().doTransactionless(
@@ -500,10 +500,10 @@ public class DomainCommand {
     }
     return ImmutableMap.copyOf(transformValues(
         fkis,
-        new Function<ForeignKeyIndex<T>, Ref<T>>() {
+        new Function<ForeignKeyIndex<T>, Key<T>>() {
           @Override
-          public Ref<T> apply(ForeignKeyIndex<T> fki) {
-            return fki.getReference();
+          public Key<T> apply(ForeignKeyIndex<T> fki) {
+            return fki.getResourceKey();
           }}));
   }
 

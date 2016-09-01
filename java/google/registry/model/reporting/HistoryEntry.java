@@ -15,7 +15,6 @@
 package google.registry.model.reporting;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.IgnoreSave;
@@ -25,12 +24,14 @@ import com.googlecode.objectify.condition.IfNull;
 import google.registry.model.Buildable;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
+import google.registry.model.ImmutableObject.DoNotHydrate;
 import google.registry.model.domain.Period;
 import google.registry.model.eppcommon.Trid;
 import org.joda.time.DateTime;
 
 /** A record of an EPP command that mutated a resource. */
 @Entity
+@DoNotHydrate
 public class HistoryEntry extends ImmutableObject implements Buildable {
 
   /** Represents the type of history entry. */
@@ -77,7 +78,7 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
 
   /** The resource this event mutated. */
   @Parent
-  Ref<? extends EppResource> parent;
+  Key<? extends EppResource> parent;
 
   /** The type of history entry. */
   Type type;
@@ -112,7 +113,7 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
   /** Whether this change was requested by a registrar. */
   Boolean requestedByRegistrar;
 
-  public Ref<? extends EppResource> getParent() {
+  public Key<? extends EppResource> getParent() {
     return parent;
   }
 
@@ -166,12 +167,12 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
     }
 
     public Builder setParent(EppResource parent) {
-      getInstance().parent = Ref.create(parent);
+      getInstance().parent = Key.create(parent);
       return this;
     }
 
     public Builder setParent(Key<? extends EppResource> parentKey) {
-      getInstance().parent = Ref.create(parentKey);
+      getInstance().parent = parentKey;
       return this;
     }
 

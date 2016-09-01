@@ -29,7 +29,6 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -64,7 +63,7 @@ public class DeleteHostResourceActionTest
     assertAboutHosts().that(hostUsed).doesNotHaveStatusValue(StatusValue.PENDING_DELETE)
         .and().hasDeletionTime(END_OF_TIME);
     domain = loadByUniqueId(DomainResource.class, "example.tld", now);
-    assertThat(domain.getNameservers()).contains(Ref.create(hostUsed));
+    assertThat(domain.getNameservers()).contains(Key.create(hostUsed));
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(hostUsed, HistoryEntry.Type.HOST_DELETE_FAILURE);
     assertPollMessageFor(
@@ -126,7 +125,7 @@ public class DeleteHostResourceActionTest
     persistResource(
         hostUnused.asBuilder()
             .addStatusValue(StatusValue.PENDING_DELETE)
-            .setSuperordinateDomain(Ref.create(domain))
+            .setSuperordinateDomain(Key.create(domain))
             .build());
     runMapreduceWithKeyParam(Key.create(hostUnused).getString());
     // Check that the host is deleted as of now.

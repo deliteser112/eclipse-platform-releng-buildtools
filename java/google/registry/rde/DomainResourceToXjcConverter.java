@@ -14,10 +14,12 @@
 
 package google.registry.rde;
 
+import static google.registry.model.ofy.ObjectifyService.ofy;
+
 import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainResource;
@@ -161,9 +163,9 @@ final class DomainResourceToXjcConverter {
         // o  An OPTIONAL <registrant> element that contain the identifier for
         //    the human or organizational social information object associated
         //    as the holder of the domain name object.
-        Ref<ContactResource> registrant = model.getRegistrant();
+        Key<ContactResource> registrant = model.getRegistrant();
         if (registrant != null) {
-          bean.setRegistrant(registrant.get().getContactId());
+          bean.setRegistrant(ofy().load().key(registrant).now().getContactId());
         }
 
         // o  Zero or more OPTIONAL <contact> elements that contain identifiers
@@ -280,7 +282,7 @@ final class DomainResourceToXjcConverter {
   /** Converts {@link DesignatedContact} to {@link XjcDomainContactType}. */
   private static XjcDomainContactType convertDesignatedContact(DesignatedContact model) {
     XjcDomainContactType bean = new XjcDomainContactType();
-    ContactResource contact = model.getContactRef().get();
+    ContactResource contact = ofy().load().key(model.getContactKey()).now();
     bean.setType(XjcDomainContactAttrType.fromValue(Ascii.toLowerCase(model.getType().toString())));
     bean.setValue(contact.getContactId());
     return bean;

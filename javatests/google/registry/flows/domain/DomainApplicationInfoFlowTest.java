@@ -25,7 +25,7 @@ import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
@@ -87,12 +87,12 @@ public class DomainApplicationInfoFlowTest
         .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
         .setLastEppUpdateTime(DateTime.parse("1999-12-03T09:00:00.0Z"))
         .setLastTransferTime(DateTime.parse("2000-04-08T09:00:00.0Z"))
-        .setRegistrant(Ref.create(registrant))
+        .setRegistrant(Key.create(registrant))
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, Ref.create(contact)),
-            DesignatedContact.create(Type.TECH, Ref.create(contact))))
+            DesignatedContact.create(Type.ADMIN, Key.create(contact)),
+            DesignatedContact.create(Type.TECH, Key.create(contact))))
         .setNameservers(hostsState.equals(HostsState.HOSTS_EXIST) ? ImmutableSet.of(
-            Ref.create(host1), Ref.create(host2)) : null)
+            Key.create(host1), Key.create(host2)) : null)
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
         .addStatusValue(StatusValue.PENDING_CREATE)
         .setApplicationStatus(ApplicationStatus.PENDING_VALIDATION)
@@ -242,7 +242,7 @@ public class DomainApplicationInfoFlowTest
         .setDsData(ImmutableSet.of(DelegationSignerData.create(
             12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC"))))
         .setNameservers(ImmutableSet.of(
-            Ref.create(host1), Ref.create(host2)))
+            Key.create(host1), Key.create(host2)))
         .build());
     doSuccessfulTest("domain_info_sunrise_response_dsdata.xml", HostsState.NO_HOSTS_EXIST);
   }
@@ -275,7 +275,7 @@ public class DomainApplicationInfoFlowTest
         .setRepoId("123-COM")
         .setFullyQualifiedDomainName("timber.com")
         .setDeletionTime(DateTime.now().minusDays(1))
-        .setRegistrant(Ref.create(persistActiveContact("jd1234")))
+        .setRegistrant(Key.create(persistActiveContact("jd1234")))
         .build());
     runFlow();
   }
@@ -296,7 +296,7 @@ public class DomainApplicationInfoFlowTest
     persistResource(new DomainApplication.Builder()
         .setRepoId("123-TLD")
         .setFullyQualifiedDomainName("invalid.tld")
-        .setRegistrant(Ref.create(persistActiveContact("jd1234")))
+        .setRegistrant(Key.create(persistActiveContact("jd1234")))
         .setPhase(LaunchPhase.SUNRUSH)
         .build());
     runFlow();

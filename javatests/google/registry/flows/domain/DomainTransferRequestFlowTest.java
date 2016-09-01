@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -192,7 +193,8 @@ public class DomainTransferRequestFlowTest
                 .build())
         .toArray(BillingEvent.class));
     // The domain's autorenew billing event should still point to the losing client's event.
-    BillingEvent.Recurring domainAutorenewEvent = domain.getAutorenewBillingEvent().get();
+    BillingEvent.Recurring domainAutorenewEvent =
+        ofy().load().key(domain.getAutorenewBillingEvent()).now();
     assertThat(domainAutorenewEvent.getClientId()).isEqualTo("TheRegistrar");
     assertThat(domainAutorenewEvent.getRecurrenceEndTime()).isEqualTo(implicitTransferTime);
     // The original grace periods should remain untouched.
@@ -263,8 +265,9 @@ public class DomainTransferRequestFlowTest
 
     assertAboutDomains().that(domainAfterAutomaticTransfer)
         .hasRegistrationExpirationTime(expectedExpirationTime);
-    assertThat(domainAfterAutomaticTransfer.getAutorenewBillingEvent().get().getEventTime())
-        .isEqualTo(expectedExpirationTime);
+    assertThat(ofy().load().key(domainAfterAutomaticTransfer.getAutorenewBillingEvent()).now()
+        .getEventTime())
+            .isEqualTo(expectedExpirationTime);
     // And after the expected grace time, the grace period should be gone.
     DomainResource afterGracePeriod = domain.cloneProjectedAtTime(
         clock.nowUtc().plus(Registry.get("tld").getAutomaticTransferLength()).plus(
@@ -315,7 +318,7 @@ public class DomainTransferRequestFlowTest
     assertTransactionalFlow(true);
     runFlow(CommitMode.LIVE, userPrivileges);
   }
-  
+
   private void runTest(String commandFilename, UserPrivileges userPrivileges) throws Exception {
     runTest(commandFilename, userPrivileges, ImmutableMap.<String, String>of());
   }
@@ -516,7 +519,7 @@ public class DomainTransferRequestFlowTest
             .setBillingTime(oldResource.getRegistrationExpirationTime().plus(
                 Registry.get("tld").getAutoRenewGracePeriodLength()))
             // The cancellation should refer to the old autorenew billing event.
-            .setRecurringEventRef(oldResource.getAutorenewBillingEvent()));
+            .setRecurringEventKey(oldResource.getAutorenewBillingEvent()));
   }
 
   @Test

@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEventsForResource;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
@@ -148,7 +149,7 @@ public class DomainTransferApproveFlowTest
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE);
     assertTransferApproved(domain);
     assertAboutDomains().that(domain).hasRegistrationExpirationTime(expectedExpirationTime);
-    assertThat(domain.getAutorenewBillingEvent().get().getEventTime())
+    assertThat(ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime())
         .isEqualTo(expectedExpirationTime);
     assertTransferApproved(reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc()));
     // We expect three billing events: one for the transfer, a closed autorenew for the losing
@@ -372,7 +373,7 @@ public class DomainTransferApproveFlowTest
             .setEventTime(clock.nowUtc())  // The cancellation happens at the moment of transfer.
             .setBillingTime(
                 oldExpirationTime.plus(Registry.get("tld").getAutoRenewGracePeriodLength()))
-            .setRecurringEventRef(domain.getAutorenewBillingEvent()));
+            .setRecurringEventKey(domain.getAutorenewBillingEvent()));
   }
 
   @Test

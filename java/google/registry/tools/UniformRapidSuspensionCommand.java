@@ -19,6 +19,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
@@ -28,7 +29,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.template.soy.data.SoyMapData;
-import com.googlecode.objectify.Ref;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
@@ -147,8 +147,8 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand impleme
 
   private ImmutableSortedSet<String> getExistingNameservers(DomainResource domain) {
     ImmutableSortedSet.Builder<String> nameservers = ImmutableSortedSet.naturalOrder();
-    for (Ref<HostResource> nameserverRef : domain.getNameservers()) {
-      nameservers.add(nameserverRef.get().getForeignKey());
+    for (HostResource host : ofy().load().keys(domain.getNameservers()).values()) {
+      nameservers.add(host.getForeignKey());
     }
     return nameservers.build();
   }

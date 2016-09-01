@@ -146,8 +146,8 @@ public class EppCommitLogsTest extends ShardableTestCase {
         .isEqualTo(domainAfterCreate);
 
     // Both updates happened on the same day. Since the revisions field has day granularity, the
-    // reference to the first update should have been overwritten by the second, and its timestamp
-    // rolled forward. So we have to fall back to the last revision before midnight.
+    // key to the first update should have been overwritten by the second, and its timestamp rolled
+    // forward. So we have to fall back to the last revision before midnight.
     ofy().clearSessionCache();
     assertThat(loadAtPointInTime(latest, timeAtFirstUpdate).now())
         .isEqualTo(domainAfterCreate);

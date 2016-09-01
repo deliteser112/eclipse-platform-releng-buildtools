@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.billing.BillingEvent.Recurring;
@@ -68,7 +67,7 @@ public class GracePeriodTest {
   public void testSuccess_forBillingEvent() {
     GracePeriod gracePeriod = GracePeriod.forBillingEvent(GracePeriodStatus.ADD, onetime);
     assertThat(gracePeriod.getType()).isEqualTo(GracePeriodStatus.ADD);
-    assertThat(gracePeriod.getOneTimeBillingEvent()).isEqualTo(Ref.create(onetime));
+    assertThat(gracePeriod.getOneTimeBillingEvent()).isEqualTo(Key.create(onetime));
     assertThat(gracePeriod.getRecurringBillingEvent()).isNull();
     assertThat(gracePeriod.getClientId()).isEqualTo("TheRegistrar");
     assertThat(gracePeriod.getExpirationTime()).isEqualTo(now.plusDays(1));
@@ -108,6 +107,6 @@ public class GracePeriodTest {
         GracePeriodStatus.RENEW,
         now.plusDays(1),
         "TheRegistrar",
-        Ref.create(Key.create(Recurring.class, 12345)));
+        Key.create(Recurring.class, 12345));
   }
 }

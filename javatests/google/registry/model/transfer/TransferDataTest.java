@@ -15,6 +15,7 @@
 package google.registry.model.transfer;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -23,7 +24,6 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -125,10 +125,12 @@ public class TransferDataTest {
   @Test
   public void testSuccess_GetStoredBillingEventNoEntities() throws Exception {
     transferData = new TransferData.Builder()
-        .setServerApproveBillingEvent(Ref.create(Key.create(transferBillingEvent)))
+        .setServerApproveBillingEvent(Key.create(transferBillingEvent))
         .build();
-    assertThat(transferData.serverApproveBillingEvent.get()).isEqualTo(transferBillingEvent);
-    assertThat(transferData.getServerApproveBillingEvent().get()).isEqualTo(transferBillingEvent);
+    assertThat(ofy().load().key(transferData.serverApproveBillingEvent).now())
+        .isEqualTo(transferBillingEvent);
+    assertThat(ofy().load().key(transferData.getServerApproveBillingEvent()).now())
+        .isEqualTo(transferBillingEvent);
   }
 
   @Test
@@ -139,9 +141,11 @@ public class TransferDataTest {
         Key.create(recurringBillingEvent),
         Key.create(PollMessage.OneTime.class, 1));
     transferData = transferData.asBuilder()
-        .setServerApproveBillingEvent(Ref.create(Key.create(transferBillingEvent)))
+        .setServerApproveBillingEvent(Key.create(transferBillingEvent))
         .build();
-    assertThat(transferData.serverApproveBillingEvent.get()).isEqualTo(transferBillingEvent);
-    assertThat(transferData.getServerApproveBillingEvent().get()).isEqualTo(transferBillingEvent);
+    assertThat(ofy().load().key(transferData.serverApproveBillingEvent).now())
+        .isEqualTo(transferBillingEvent);
+    assertThat(ofy().load().key(transferData.getServerApproveBillingEvent()).now())
+        .isEqualTo(transferBillingEvent);
   }
 }

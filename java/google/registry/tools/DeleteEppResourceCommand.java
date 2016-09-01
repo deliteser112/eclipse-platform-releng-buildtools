@@ -93,7 +93,7 @@ final class DeleteEppResourceCommand extends MutatingCommand {
       System.out.printf("Creating non-existent ForeignKeyIndex for: %s\n", key);
       stageEntityChange(null, ForeignKeyIndex.create(resource, now));
     } else {
-      if (fki.getReference().key().equals(key)) {
+      if (fki.getResourceKey().equals(key)) {
         if (isBeforeOrAt(fki.getDeletionTime(), now)) {
           System.out.printf("ForeignKeyIndex already deleted for: %s\n", key);
         } else {

@@ -18,7 +18,6 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Unindex;
@@ -48,9 +47,6 @@ public class TransferData extends BaseTransferObject implements Buildable {
    * a number of poll messages and billing events for both the gaining and losing registrars. If the
    * pending transfer is explicitly approved, rejected or cancelled, the referenced entities should
    * be deleted.
-   *
-   * <p>Keys are stored here instead of references to facilitate bulk deletion (the typical use
-   * case, as described above), since Objectify allows bulk deletion by key but not by reference.
    */
   @IgnoreSave(IfNull.class)
   Set<Key<? extends TransferServerApproveEntity>> serverApproveEntities;
@@ -62,7 +58,7 @@ public class TransferData extends BaseTransferObject implements Buildable {
    * being transferred is not a domain.
    */
   @IgnoreSave(IfNull.class)
-  Ref<BillingEvent.OneTime> serverApproveBillingEvent;
+  Key<BillingEvent.OneTime> serverApproveBillingEvent;
 
   /**
    * The autorenew billing event that should be associated with this resource after the transfer.
@@ -71,7 +67,7 @@ public class TransferData extends BaseTransferObject implements Buildable {
    * being transferred is not a domain.
    */
   @IgnoreSave(IfNull.class)
-  Ref<BillingEvent.Recurring> serverApproveAutorenewEvent;
+  Key<BillingEvent.Recurring> serverApproveAutorenewEvent;
 
   /**
    * The autorenew poll message that should be associated with this resource after the transfer.
@@ -80,7 +76,7 @@ public class TransferData extends BaseTransferObject implements Buildable {
    * being transferred is not a domain.
    */
   @IgnoreSave(IfNull.class)
-  Ref<PollMessage.Autorenew> serverApproveAutorenewPollMessage;
+  Key<PollMessage.Autorenew> serverApproveAutorenewPollMessage;
 
   /** The transaction id of the most recent transfer request (or null if there never was one). */
   Trid transferRequestTrid;
@@ -95,15 +91,15 @@ public class TransferData extends BaseTransferObject implements Buildable {
     return nullToEmptyImmutableCopy(serverApproveEntities);
   }
 
-  public Ref<BillingEvent.OneTime> getServerApproveBillingEvent() {
+  public Key<BillingEvent.OneTime> getServerApproveBillingEvent() {
     return serverApproveBillingEvent;
   }
 
-  public Ref<BillingEvent.Recurring> getServerApproveAutorenewEvent() {
+  public Key<BillingEvent.Recurring> getServerApproveAutorenewEvent() {
     return serverApproveAutorenewEvent;
   }
 
-  public Ref<PollMessage.Autorenew> getServerApproveAutorenewPollMessage() {
+  public Key<PollMessage.Autorenew> getServerApproveAutorenewPollMessage() {
     return serverApproveAutorenewPollMessage;
   }
 
@@ -138,19 +134,19 @@ public class TransferData extends BaseTransferObject implements Buildable {
     }
 
     public Builder setServerApproveBillingEvent(
-        Ref<BillingEvent.OneTime> serverApproveBillingEvent) {
+        Key<BillingEvent.OneTime> serverApproveBillingEvent) {
       getInstance().serverApproveBillingEvent = serverApproveBillingEvent;
       return this;
     }
 
     public Builder setServerApproveAutorenewEvent(
-        Ref<BillingEvent.Recurring> serverApproveAutorenewEvent) {
+        Key<BillingEvent.Recurring> serverApproveAutorenewEvent) {
       getInstance().serverApproveAutorenewEvent = serverApproveAutorenewEvent;
       return this;
     }
 
     public Builder setServerApproveAutorenewPollMessage(
-        Ref<PollMessage.Autorenew> serverApproveAutorenewPollMessage) {
+        Key<PollMessage.Autorenew> serverApproveAutorenewPollMessage) {
       getInstance().serverApproveAutorenewPollMessage = serverApproveAutorenewPollMessage;
       return this;
     }

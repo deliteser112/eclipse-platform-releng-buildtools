@@ -17,7 +17,7 @@ package google.registry.model.domain;
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
@@ -49,14 +49,14 @@ public class GracePeriod extends ImmutableObject {
    * {@code billingEventRecurring}) or for redemption grace periods (since deletes have no cost).
    */
   // NB: Would @IgnoreSave(IfNull.class), but not allowed for @Embed collections.
-  Ref<BillingEvent.OneTime> billingEventOneTime = null;
+  Key<BillingEvent.OneTime> billingEventOneTime = null;
 
   /**
    * The recurring billing event corresponding to the action that triggered this grace period, if
    * applicable - i.e. if the action was an autorenew - or null in all other cases.
    */
   // NB: Would @IgnoreSave(IfNull.class), but not allowed for @Embed collections.
-  Ref<BillingEvent.Recurring> billingEventRecurring = null;
+  Key<BillingEvent.Recurring> billingEventRecurring = null;
 
   public GracePeriodStatus getType() {
     // NB: We implicitly convert SUNRUSH_ADD to ADD, since they should be functionally equivalent.
@@ -85,7 +85,7 @@ public class GracePeriod extends ImmutableObject {
    * period is not AUTO_RENEW.
    */
 
-  public Ref<BillingEvent.OneTime> getOneTimeBillingEvent() {
+  public Key<BillingEvent.OneTime> getOneTimeBillingEvent() {
     return billingEventOneTime;
   }
 
@@ -93,7 +93,7 @@ public class GracePeriod extends ImmutableObject {
    * Returns the recurring billing event. The value will only be non-null if the type of this grace
    * period is AUTO_RENEW.
    */
-  public Ref<BillingEvent.Recurring> getRecurringBillingEvent() {
+  public Key<BillingEvent.Recurring> getRecurringBillingEvent() {
     return billingEventRecurring;
   }
 
@@ -101,8 +101,8 @@ public class GracePeriod extends ImmutableObject {
        GracePeriodStatus type,
        DateTime expirationTime,
        String clientId,
-       @Nullable Ref<BillingEvent.OneTime> billingEventOneTime,
-       @Nullable Ref<BillingEvent.Recurring> billingEventRecurring) {
+       @Nullable Key<BillingEvent.OneTime> billingEventOneTime,
+       @Nullable Key<BillingEvent.Recurring> billingEventRecurring) {
     checkArgument((billingEventOneTime == null) || (billingEventRecurring == null),
         "A grace period can have at most one billing event");
     checkArgument((billingEventRecurring != null) == (GracePeriodStatus.AUTO_RENEW.equals(type)),
@@ -127,7 +127,7 @@ public class GracePeriod extends ImmutableObject {
       GracePeriodStatus type,
       DateTime expirationTime,
       String clientId,
-      @Nullable Ref<BillingEvent.OneTime> billingEventOneTime) {
+      @Nullable Key<BillingEvent.OneTime> billingEventOneTime) {
     return createInternal(type, expirationTime, clientId, billingEventOneTime, null);
   }
 
@@ -136,7 +136,7 @@ public class GracePeriod extends ImmutableObject {
       GracePeriodStatus type,
       DateTime expirationTime,
       String clientId,
-      Ref<BillingEvent.Recurring> billingEventRecurring) {
+      Key<BillingEvent.Recurring> billingEventRecurring) {
     checkArgumentNotNull(billingEventRecurring);
     return createInternal(type, expirationTime, clientId, null, billingEventRecurring);
   }
@@ -151,6 +151,6 @@ public class GracePeriod extends ImmutableObject {
   public static GracePeriod forBillingEvent(
       GracePeriodStatus type, BillingEvent.OneTime billingEvent) {
     return create(
-        type, billingEvent.getBillingTime(), billingEvent.getClientId(), Ref.create(billingEvent));
+        type, billingEvent.getBillingTime(), billingEvent.getClientId(), Key.create(billingEvent));
   }
 }

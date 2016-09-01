@@ -23,7 +23,7 @@ import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
@@ -173,7 +173,7 @@ public class DomainAllocateFlow extends DomainCreateOrAllocateFlow {
             sunrushAddGracePeriod ? GracePeriodStatus.SUNRUSH_ADD : GracePeriodStatus.ADD,
             billingEvent))
         .setApplicationTime(allocateCreate.getApplicationTime())
-        .setApplication(Ref.create(application))
+        .setApplication(Key.create(application))
         .setSmdId(allocateCreate.getSmdId())
         .setLaunchNotice(allocateCreate.getNotice());
     // Names on the collision list will not be delegated. Set server hold.

@@ -35,7 +35,7 @@ import static google.registry.util.ResourceUtils.readResourceBytes;
 
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.flows.domain.DomainAllocateFlow;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainApplication;
@@ -71,20 +71,20 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
             .asBuilder()
             .setRepoId(repoId)
             .setCreationTimeForTest(START_OF_TIME)
-            .setRegistrant(Ref.create(persistActiveContact("registrant")))
+            .setRegistrant(Key.create(persistActiveContact("registrant")))
             .setContacts(ImmutableSet.of(
                 DesignatedContact.create(
                     ADMIN,
-                    Ref.create(persistActiveContact("adminContact"))),
+                    Key.create(persistActiveContact("adminContact"))),
                 DesignatedContact.create(
                     BILLING,
-                    Ref.create(persistActiveContact("billingContact"))),
+                    Key.create(persistActiveContact("billingContact"))),
                 DesignatedContact.create(
                     TECH,
-                    Ref.create(persistActiveContact("techContact")))))
+                    Key.create(persistActiveContact("techContact")))))
             .setNameservers(ImmutableSet.of(
-                Ref.create(persistActiveHost("ns1.example.com")),
-                Ref.create(persistActiveHost("ns2.example.com"))))
+                Key.create(persistActiveHost("ns1.example.com")),
+                Key.create(persistActiveHost("ns2.example.com"))))
             .setApplicationStatus(VALIDATED)
             .setDsData(ImmutableSet.of(
                 DelegationSignerData.create(

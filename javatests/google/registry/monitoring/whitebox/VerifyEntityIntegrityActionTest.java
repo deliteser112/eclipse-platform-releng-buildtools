@@ -42,7 +42,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.config.RegistryEnvironment;
 import google.registry.mapreduce.MapreduceRunner;
@@ -187,11 +186,7 @@ public class VerifyEntityIntegrityActionTest
         persistResource(
             newDomainResource("blah.tld")
                 .asBuilder()
-                .setNameservers(
-                    ImmutableSet.of(
-                        Ref.create(missingHost1),
-                        Ref.create(missingHost2),
-                        Ref.create(missingHost3)))
+                .setNameservers(ImmutableSet.of(missingHost1, missingHost2, missingHost3))
                 .build());
     Key<DomainResource> domainKey = Key.create(domain);
     runMapreduce();

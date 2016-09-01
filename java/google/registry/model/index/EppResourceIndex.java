@@ -18,7 +18,6 @@ import static google.registry.util.TypeUtils.instantiate;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -36,7 +35,8 @@ public class EppResourceIndex extends BackupGroupRoot {
   @Parent
   Key<EppResourceIndexBucket> bucket;
 
-  Ref<? extends EppResource> reference;
+  /** Although this field holds a {@link Key} it is named "reference" for historical reasons. */
+  Key<? extends EppResource> reference;
 
   @Index
   String kind;
@@ -49,7 +49,7 @@ public class EppResourceIndex extends BackupGroupRoot {
     return kind;
   }
 
-  public Ref<? extends EppResource> getReference() {
+  public Key<? extends EppResource> getKey() {
     return reference;
   }
 
@@ -62,7 +62,7 @@ public class EppResourceIndex extends BackupGroupRoot {
   public static <T extends EppResource> EppResourceIndex create(
       Key<EppResourceIndexBucket> bucket, Key<T> resourceKey) {
     EppResourceIndex instance = instantiate(EppResourceIndex.class);
-    instance.reference = Ref.create(resourceKey);
+    instance.reference = resourceKey;
     instance.kind = resourceKey.getKind();
     instance.id = resourceKey.getString();  // creates a web-safe key string
     instance.bucket = bucket;

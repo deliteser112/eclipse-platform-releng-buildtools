@@ -30,7 +30,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
@@ -121,9 +121,9 @@ public class RdapNameserverSearchActionTest {
                 .setSubordinateHosts(ImmutableSet.of("ns1.cat.lol", "ns2.cat.lol"))
                 .build());
     persistResource(
-        hostNs1CatLol.asBuilder().setSuperordinateDomain(Ref.create(domainCatLol)).build());
+        hostNs1CatLol.asBuilder().setSuperordinateDomain(Key.create(domainCatLol)).build());
     persistResource(
-        hostNs2CatLol.asBuilder().setSuperordinateDomain(Ref.create(domainCatLol)).build());
+        hostNs2CatLol.asBuilder().setSuperordinateDomain(Key.create(domainCatLol)).build());
 
     inject.setStaticField(Ofy.class, "clock", clock);
     action.clock = clock;

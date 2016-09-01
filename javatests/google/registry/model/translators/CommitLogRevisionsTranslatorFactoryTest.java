@@ -21,8 +21,8 @@ import static org.joda.time.Duration.standardHours;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
@@ -52,7 +52,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
 
   @Entity
   public static class TestObject extends CrossTldSingleton {
-    ImmutableSortedMap<DateTime, Ref<CommitLogManifest>> revisions = ImmutableSortedMap.of();
+    ImmutableSortedMap<DateTime, Key<CommitLogManifest>> revisions = ImmutableSortedMap.of();
   }
 
   @Rule
@@ -105,18 +105,17 @@ public class CommitLogRevisionsTranslatorFactoryTest {
    }
 
   @Test
-  public void testSave_translatorAddsReferenceToCommitLogToField() throws Exception {
+  public void testSave_translatorAddsKeyToCommitLogToField() throws Exception {
     save(new TestObject());
     TestObject object = reload();
     assertThat(object.revisions).hasSize(1);
     assertThat(object.revisions).containsKey(START_TIME);
-    Ref<CommitLogManifest> ref = object.revisions.get(START_TIME);
-    CommitLogManifest commitLogManifest = ref.get();
+    CommitLogManifest commitLogManifest = ofy().load().key(object.revisions.get(START_TIME)).now();
     assertThat(commitLogManifest.getCommitTime()).isEqualTo(START_TIME);
   }
 
   @Test
-  public void testSave_twoVersionsOnOneDay_referenceToLastCommitLogsGetsStored() throws Exception {
+  public void testSave_twoVersionsOnOneDay_keyToLastCommitLogsGetsStored() throws Exception {
     save(new TestObject());
     clock.advanceBy(standardHours(1));
     save(reload());
@@ -126,7 +125,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
   }
 
   @Test
-  public void testSave_twoVersionsOnTwoDays_referenceToBothCommitLogsGetsStored() throws Exception {
+  public void testSave_twoVersionsOnTwoDays_keyToBothCommitLogsGetsStored() throws Exception {
     save(new TestObject());
     clock.advanceBy(standardDays(1));
     save(reload());

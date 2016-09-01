@@ -29,7 +29,6 @@ import static org.joda.money.CurrencyUnit.USD;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.launch.ApplicationStatus;
@@ -77,12 +76,12 @@ public class DomainApplicationTest extends EntityTestCase {
                 StatusValue.SERVER_UPDATE_PROHIBITED,
                 StatusValue.SERVER_RENEW_PROHIBITED,
                 StatusValue.SERVER_HOLD))
-            .setRegistrant(Ref.create(persistActiveContact("contact_id1")))
+            .setRegistrant(Key.create(persistActiveContact("contact_id1")))
             .setContacts(ImmutableSet.of(DesignatedContact.create(
                 DesignatedContact.Type.ADMIN,
-                Ref.create(persistActiveContact("contact_id2")))))
+                Key.create(persistActiveContact("contact_id2")))))
             .setNameservers(
-                ImmutableSet.of(Ref.create(persistActiveHost("ns1.example.com"))))
+                ImmutableSet.of(Key.create(persistActiveHost("ns1.example.com"))))
             .setCurrentSponsorClientId("a third registrar")
             .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("password")))
             .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))
@@ -148,12 +147,12 @@ public class DomainApplicationTest extends EntityTestCase {
   public void testEmptySetsAndArraysBecomeNull() {
     assertThat(emptyBuilder().setNameservers(null).build().nameservers).isNull();
     assertThat(emptyBuilder()
-        .setNameservers(ImmutableSet.<Ref<HostResource>>of())
+        .setNameservers(ImmutableSet.<Key<HostResource>>of())
         .build()
         .nameservers)
             .isNull();
     assertThat(emptyBuilder()
-        .setNameservers(ImmutableSet.of(Ref.create(newHostResource("foo.example.tld"))))
+        .setNameservers(ImmutableSet.of(Key.create(newHostResource("foo.example.tld"))))
         .build()
         .nameservers)
             .isNotNull();

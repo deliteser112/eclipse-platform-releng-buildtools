@@ -39,7 +39,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.EppResource;
@@ -77,8 +76,7 @@ import org.joda.time.DateTime;
  * <p>Specifically this validates all of the following system invariants that are expected to hold
  * true for all {@link EppResource} entities and their related indexes:
  * <ul>
- *   <li>All {@link Key} and {@link Ref} fields (including nested ones) point to entities that
- *       exist.
+ *   <li>All {@link Key} fields (including nested ones) point to entities that exist.
  *   <li>There is exactly one {@link EppResourceIndex} pointing to each {@link EppResource}.
  *   <li>All contacts, hosts, and domains, when grouped by foreign key, have at most one active
  *       resource, and exactly one {@link ForeignKeyIndex} of the appropriate type, which points to
@@ -241,8 +239,8 @@ public class VerifyEntityIntegrityAction implements Runnable {
       if (resource instanceof DomainBase) {
         DomainBase domainBase = (DomainBase) resource;
         Key<?> key = Key.create(domainBase);
-        verifyExistence(key, refsToKeys(domainBase.getReferencedContacts()));
-        verifyExistence(key, refsToKeys(domainBase.getNameservers()));
+        verifyExistence(key, domainBase.getReferencedContacts());
+        verifyExistence(key, domainBase.getNameservers());
         verifyExistence(key, domainBase.getTransferData().getServerApproveAutorenewEvent());
         verifyExistence(key, domainBase.getTransferData().getServerApproveAutorenewPollMessage());
         verifyExistence(key, domainBase.getTransferData().getServerApproveBillingEvent());
@@ -299,7 +297,7 @@ public class VerifyEntityIntegrityAction implements Runnable {
     private void mapForeignKeyIndex(ForeignKeyIndex<?> fki) {
       Key<ForeignKeyIndex<?>> fkiKey = Key.<ForeignKeyIndex<?>>create(fki);
       @SuppressWarnings("cast")
-      EppResource resource = verifyExistence(fkiKey, fki.getReference());
+      EppResource resource = verifyExistence(fkiKey, fki.getResourceKey());
       if (resource != null) {
         // TODO(user): Traverse the chain of pointers to old FKIs instead once they are written.
         if (isAtOrAfter(fki.getDeletionTime(), resource.getDeletionTime())) {
@@ -328,8 +326,8 @@ public class VerifyEntityIntegrityAction implements Runnable {
     private void mapDomainApplicationIndex(DomainApplicationIndex dai) {
       getContext().incrementCounter("domain application indexes");
       Key<DomainApplicationIndex> daiKey = Key.create(dai);
-      for (Ref<DomainApplication> ref : dai.getReferences()) {
-        DomainApplication application = verifyExistence(daiKey, ref);
+      for (Key<DomainApplication> key : dai.getKeys()) {
+        DomainApplication application = verifyExistence(daiKey, key);
         if (application != null) {
           integrity().check(
               dai.getFullyQualifiedDomainName().equals(application.getFullyQualifiedDomainName()),
@@ -347,11 +345,11 @@ public class VerifyEntityIntegrityAction implements Runnable {
       Key<EppResourceIndex> eriKey = Key.create(eri);
       String eriRepoId = Key.create(eri.getId()).getName();
       integrity().check(
-          eriRepoId.equals(eri.getReference().getKey().getName()),
+          eriRepoId.equals(eri.getKey().getName()),
           eriKey,
-          eri.getReference().getKey(),
+          eri.getKey(),
           "EPP resource index id does not match repoId of reference");
-      verifyExistence(eriKey, eri.getReference());
+      verifyExistence(eriKey, eri.getKey());
       emit(MapperKey.create(EntityKind.EPP_RESOURCE, eriRepoId), eriKey);
       getContext().incrementCounter("EPP resource indexes to " + eri.getKind());
     }
@@ -367,14 +365,6 @@ public class VerifyEntityIntegrityAction implements Runnable {
     }
 
     @Nullable
-    private <E> E verifyExistence(Key<?> source, @Nullable Ref<E> target) {
-      if (target == null) {
-        return null;
-      }
-      return verifyExistence(source, target.getKey());
-    }
-
-    @Nullable
     private <E> E verifyExistence(Key<?> source, @Nullable Key<E> target) {
       if (target == null) {
         return null;
@@ -382,17 +372,6 @@ public class VerifyEntityIntegrityAction implements Runnable {
       E entity = ofy().load().key(target).now();
       integrity().check(entity != null, source, target, "Target entity does not exist");
       return entity;
-    }
-
-    private static <E extends EppResource> ImmutableSet<Key<E>> refsToKeys(Iterable<Ref<E>> refs) {
-      return FluentIterable
-          .from(refs)
-          .transform(new Function<Ref<E>, Key<E>>() {
-            @Override
-            public Key<E> apply(Ref<E> ref) {
-              return ref.getKey();
-            }})
-          .toSet();
     }
   }
 

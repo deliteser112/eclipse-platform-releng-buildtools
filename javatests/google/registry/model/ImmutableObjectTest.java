@@ -29,7 +29,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import google.registry.model.ImmutableObject.DoNotHydrate;
@@ -258,15 +257,13 @@ public class ImmutableObjectTest {
 
   /** Subclass of ImmutableObject with keys to other objects. */
   public static class RootObject extends ImmutableObject {
-    Ref<HydratableObject> hydratable;
+    Key<HydratableObject> hydratable;
 
-    Ref<UnhydratableObject> unhydratable;
+    Key<UnhydratableObject> unhydratable;
 
-    Key<HydratableObject> key;
+    Map<String, Key<?>> map;
 
-    Map<String, Ref<?>> map;
-
-    Set<Ref<?>> set;
+    Set<Key<?>> set;
 
     ReferenceUnion<?> referenceUnion;
   }
@@ -297,18 +294,9 @@ public class ImmutableObjectTest {
     UnhydratableObject unhydratable = new UnhydratableObject();
     unhydratable.value = "unexpected";
     RootObject root = new RootObject();
-    root.hydratable = Ref.create(persistResource(hydratable));
-    root.unhydratable = Ref.create(persistResource(unhydratable));
+    root.hydratable = Key.create(persistResource(hydratable));
+    root.unhydratable = Key.create(persistResource(unhydratable));
     assertThat(root.toHydratedString()).contains("expected");
-    assertThat(root.toHydratedString()).doesNotContain("unexpected");
-  }
-
-  @Test
-  public void testToHydratedString_skipsKeys() {
-    HydratableObject hydratable = new HydratableObject();
-    hydratable.value = "unexpected";
-    RootObject root = new RootObject();
-    root.key = Key.create(persistResource(hydratable));
     assertThat(root.toHydratedString()).doesNotContain("unexpected");
   }
 
@@ -319,9 +307,9 @@ public class ImmutableObjectTest {
     UnhydratableObject unhydratable = new UnhydratableObject();
     unhydratable.value = "unexpected";
     RootObject root = new RootObject();
-    root.map = ImmutableMap.<String, Ref<?>>of(
-        "hydratable", Ref.create(persistResource(hydratable)),
-        "unhydratable", Ref.create(persistResource(unhydratable)));
+    root.map = ImmutableMap.<String, Key<?>>of(
+        "hydratable", Key.create(persistResource(hydratable)),
+        "unhydratable", Key.create(persistResource(unhydratable)));
     assertThat(root.toHydratedString()).contains("expected");
     assertThat(root.toHydratedString()).doesNotContain("unexpected");
   }
@@ -333,9 +321,9 @@ public class ImmutableObjectTest {
     UnhydratableObject unhydratable = new UnhydratableObject();
     unhydratable.value = "unexpected";
     RootObject root = new RootObject();
-    root.set = ImmutableSet.<Ref<?>>of(
-        Ref.create(persistResource(hydratable)),
-        Ref.create(persistResource(unhydratable)));
+    root.set = ImmutableSet.<Key<?>>of(
+        Key.create(persistResource(hydratable)),
+        Key.create(persistResource(unhydratable)));
     assertThat(root.toHydratedString()).contains("expected");
     assertThat(root.toHydratedString()).doesNotContain("unexpected");
   }
@@ -343,7 +331,7 @@ public class ImmutableObjectTest {
   @Test
   public void testToHydratedString_expandsReferenceUnions() {
     RootObject root = new RootObject();
-    root.referenceUnion = ReferenceUnion.create(Ref.create(persistActiveContact("expected")));
+    root.referenceUnion = ReferenceUnion.create(Key.create(persistActiveContact("expected")));
     assertThat(root.toHydratedString()).contains("expected");
   }
 }

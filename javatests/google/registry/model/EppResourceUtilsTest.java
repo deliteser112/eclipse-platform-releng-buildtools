@@ -108,7 +108,7 @@ public class EppResourceUtilsTest {
   @Test
   public void testLoadAtPointInTime_brokenRevisionHistory_returnsResourceAsIs()
       throws Exception {
-    // Don't save a commit log, we want to test the handling of a broken revisions reference.
+    // Don't save a commit log since we want to test the handling of a broken revisions key.
     HostResource oldHost = persistResource(
         newHostResource("ns1.cat.tld").asBuilder()
             .setCreationTimeForTest(START_OF_TIME)

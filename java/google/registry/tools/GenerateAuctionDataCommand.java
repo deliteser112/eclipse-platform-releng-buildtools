@@ -114,7 +114,8 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand, GtechCommand
             + "Can't process contending applications for %s because some applications "
             + "are not yet validated.", domainName);
 
-        ContactResource registrant = checkNotNull(domainApplication.getRegistrant().get());
+        ContactResource registrant =
+            ofy().load().key(checkNotNull(domainApplication.getRegistrant())).now();
         result.add(emitApplication(domainApplication, registrant));
 
         // Ensure the registrant's email address is unique across the contending applications.

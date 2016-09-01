@@ -19,7 +19,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.eppoutput.Result.Code.Success;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
-import static google.registry.model.index.ForeignKeyIndex.loadAndGetReference;
+import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -156,7 +156,7 @@ public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainAppl
     }
     // Fail if the domain is already registered (e.g. this is a landrush application but the domain
     // was awarded at the end of sunrise).
-    if (loadAndGetReference(DomainResource.class, targetId, now) != null) {
+    if (loadAndGetKey(DomainResource.class, targetId, now) != null) {
       throw new ResourceAlreadyExistsException(targetId);
     }
   }

@@ -39,7 +39,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Parent;
@@ -159,12 +158,12 @@ public class ModelUtils {
 
       // If the field's type is the same as the field's class object, then it's a non-parameterized
       // type, and thus we just add it directly. We also don't bother looking at the parameterized
-      // types of Key and Ref objects, since they are just references to other objects and don't
-      // actual embed themselves in the persisted object anyway.
+      // types of Key objects, since they are just references to other objects and don't actually
+      // embed themselves in the persisted object anyway.
       Class<?> fieldClazz = field.getType();
       Type fieldType = field.getGenericType();
       builder.add(fieldClazz);
-      if (fieldType.equals(fieldClazz) || Ref.class.equals(clazz) || Key.class.equals(clazz)) {
+      if (fieldType.equals(fieldClazz) || Key.class.equals(clazz)) {
         continue;
       }
 

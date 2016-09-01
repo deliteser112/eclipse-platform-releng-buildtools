@@ -27,15 +27,14 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.impl.ref.DeadRef;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
 import java.util.HashMap;
 import java.util.Map;
+import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
@@ -58,7 +57,7 @@ public final class RegistrarCreditBalance extends ImmutableObject implements Bui
 
   /** The registrar credit object for which this represents a balance. */
   @Parent
-  Ref<RegistrarCredit> parent;
+  Key<RegistrarCredit> parent;
 
   /** The time at which this balance amount should become effective. */
   DateTime effectiveTime;
@@ -74,7 +73,7 @@ public final class RegistrarCreditBalance extends ImmutableObject implements Bui
   /** The monetary amount of credit balance remaining as of the effective time. */
   Money amount;
 
-  public Ref<RegistrarCredit> getParent() {
+  public Key<RegistrarCredit> getParent() {
     return parent;
   }
 
@@ -97,6 +96,9 @@ public final class RegistrarCreditBalance extends ImmutableObject implements Bui
 
   /** A Builder for an {@link RegistrarCreditBalance}. */
   public static class Builder extends Buildable.Builder<RegistrarCreditBalance> {
+
+    private CurrencyUnit currency;
+
     public Builder() {}
 
     public Builder(RegistrarCreditBalance instance) {
@@ -104,8 +106,8 @@ public final class RegistrarCreditBalance extends ImmutableObject implements Bui
     }
 
     public RegistrarCreditBalance.Builder setParent(RegistrarCredit parent) {
-      // Use a DeadRef so that we can retrieve the actual instance provided later on in build().
-      getInstance().parent = new DeadRef<>(Key.create(parent), parent);
+      this.currency = parent.getCurrency();
+      getInstance().parent = Key.create(parent);
       return this;
     }
 
@@ -132,12 +134,11 @@ public final class RegistrarCreditBalance extends ImmutableObject implements Bui
       checkNotNull(instance.effectiveTime);
       checkNotNull(instance.writtenTime);
       checkNotNull(instance.amount);
-      RegistrarCredit credit = instance.parent.get();
       checkState(
-          instance.amount.getCurrencyUnit().equals(credit.getCurrency()),
+          instance.amount.getCurrencyUnit().equals(currency),
           "Currency of balance amount differs from credit currency (%s vs %s)",
           instance.amount.getCurrencyUnit(),
-          credit.getCurrency());
+          currency);
       return super.build();
     }
   }

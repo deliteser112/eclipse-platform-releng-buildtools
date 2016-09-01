@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -259,10 +258,10 @@ public class DomainResourceToXjcConverterTest {
     domain = domain.asBuilder()
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("secret")))
         .setContacts(ImmutableSet.of(
-            DesignatedContact.create(DesignatedContact.Type.ADMIN, Ref.create(
+            DesignatedContact.create(DesignatedContact.Type.ADMIN, Key.create(
                 makeContactResource(clock, "10-Q9JYB4C", "5372808-IRL",
                     "be that word our sign in parting", "BOFH@cat.みんな"))),
-            DesignatedContact.create(DesignatedContact.Type.TECH, Ref.create(
+            DesignatedContact.create(DesignatedContact.Type.TECH, Key.create(
                 makeContactResource(clock, "11-Q9JYB4C", "5372808-TRL",
                     "bird or fiend!? i shrieked upstarting", "bog@cat.みんな")))))
         .setCreationClientId("LawyerCat")
@@ -275,11 +274,11 @@ public class DomainResourceToXjcConverterTest {
         .setLastEppUpdateClientId("IntoTheTempest")
         .setLastEppUpdateTime(DateTime.parse("1920-01-01T00:00:00Z"))
         .setNameservers(ImmutableSet.of(
-            Ref.create(
+            Key.create(
                 makeHostResource(clock, "3-Q9JYB4C", "bird.or.devil.みんな", "1.2.3.4")),
-            Ref.create(
+            Key.create(
                     makeHostResource(clock, "4-Q9JYB4C", "ns2.cat.みんな", "bad:f00d:cafe::15:beef"))))
-        .setRegistrant(Ref.create(makeContactResource(
+        .setRegistrant(Key.create(makeContactResource(
             clock, "12-Q9JYB4C", "5372808-ERL", "(◕‿◕) nevermore", "prophet@evil.みんな")))
         .setRegistrationExpirationTime(DateTime.parse("1930-01-01T00:00:00Z"))
         .setGracePeriods(ImmutableSet.of(
@@ -304,7 +303,7 @@ public class DomainResourceToXjcConverterTest {
             StatusValue.CLIENT_TRANSFER_PROHIBITED,
             StatusValue.SERVER_UPDATE_PROHIBITED))
         .setAutorenewBillingEvent(
-            Ref.create(persistResource(
+            Key.create(persistResource(
                 new BillingEvent.Recurring.Builder()
                     .setReason(Reason.RENEW)
                     .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
@@ -315,7 +314,7 @@ public class DomainResourceToXjcConverterTest {
                     .setParent(historyEntry)
                     .build())))
         .setAutorenewPollMessage(
-            Ref.create(persistResource(
+            Key.create(persistResource(
                 new PollMessage.Autorenew.Builder()
                     .setTargetId("lol")
                     .setClientId("TheRegistrar")
@@ -329,9 +328,9 @@ public class DomainResourceToXjcConverterTest {
             .setGainingClientId("gaining")
             .setLosingClientId("losing")
             .setPendingTransferExpirationTime(DateTime.parse("1925-04-20T00:00:00Z"))
-            .setServerApproveBillingEvent(Ref.create(billingEvent))
+            .setServerApproveBillingEvent(Key.create(billingEvent))
             .setServerApproveAutorenewEvent(
-                Ref.create(persistResource(
+                Key.create(persistResource(
                     new BillingEvent.Recurring.Builder()
                         .setReason(Reason.RENEW)
                         .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
@@ -341,7 +340,7 @@ public class DomainResourceToXjcConverterTest {
                         .setRecurrenceEndTime(END_OF_TIME)
                         .setParent(historyEntry)
                         .build())))
-            .setServerApproveAutorenewPollMessage(Ref.create(persistResource(
+            .setServerApproveAutorenewPollMessage(Key.create(persistResource(
                 new Autorenew.Builder()
                     .setTargetId("example.xn--q9jyb4c")
                     .setClientId("TheRegistrar")
@@ -351,7 +350,7 @@ public class DomainResourceToXjcConverterTest {
                     .setParent(historyEntry)
                     .build())))
             .setServerApproveEntities(ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
-                Ref.create(billingEvent).getKey()))
+                Key.create(billingEvent)))
             .setTransferRequestTime(DateTime.parse("1919-01-01T00:00:00Z"))
             .setTransferStatus(TransferStatus.PENDING)
             .setTransferRequestTrid(Trid.create("client trid"))

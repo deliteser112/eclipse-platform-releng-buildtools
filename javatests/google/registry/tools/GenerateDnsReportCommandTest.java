@@ -30,7 +30,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
@@ -130,13 +130,13 @@ public class GenerateDnsReportCommandTest extends CommandTestCase<GenerateDnsRep
     nameserver3 = persistActiveHost("ns1.google.com");
     nameserver4 = persistActiveHost("ns2.google.com");
     domain1 = persistResource(newDomainResource("example.xn--q9jyb4c").asBuilder()
-        .setNameservers(ImmutableSet.of(Ref.create(nameserver1), Ref.create(nameserver2)))
+        .setNameservers(ImmutableSet.of(Key.create(nameserver1), Key.create(nameserver2)))
         .setDsData(ImmutableSet.of(
             DelegationSignerData.create(12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC")),
             DelegationSignerData.create(56789, 2, 4, base16().decode("69FD46E6C4A45C55D4AC"))))
         .build());
     persistResource(newDomainResource("foobar.xn--q9jyb4c").asBuilder()
-        .setNameservers(ImmutableSet.of(Ref.create(nameserver3), Ref.create(nameserver4)))
+        .setNameservers(ImmutableSet.of(Key.create(nameserver3), Key.create(nameserver4)))
         .build());
     // Persist a domain in a different tld that should be ignored.
     persistActiveDomain("should-be-ignored.example");

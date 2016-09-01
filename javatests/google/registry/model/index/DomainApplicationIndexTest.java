@@ -16,7 +16,7 @@ package google.registry.model.index;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.index.DomainApplicationIndex.createUpdatedInstance;
-import static google.registry.model.index.DomainApplicationIndex.createWithSpecifiedReferences;
+import static google.registry.model.index.DomainApplicationIndex.createWithSpecifiedKeys;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
@@ -24,7 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
 import google.registry.model.domain.DomainApplication;
 import google.registry.testing.ExceptionRule;
@@ -46,14 +46,14 @@ public class DomainApplicationIndexTest extends EntityTestCase {
 
   @Test
   public void testFailure_create_nullReferences() {
-    thrown.expect(IllegalArgumentException.class, "References must not be null or empty.");
-    DomainApplicationIndex.createWithSpecifiedReferences("blah.com", null);
+    thrown.expect(IllegalArgumentException.class, "Keys must not be null or empty.");
+    DomainApplicationIndex.createWithSpecifiedKeys("blah.com", null);
   }
 
   @Test
   public void testFailure_create_emptyReferences() {
-    thrown.expect(IllegalArgumentException.class, "References must not be null or empty.");
-    createWithSpecifiedReferences("blah.com", ImmutableSet.<Ref<DomainApplication>>of());
+    thrown.expect(IllegalArgumentException.class, "Keys must not be null or empty.");
+    createWithSpecifiedKeys("blah.com", ImmutableSet.<Key<DomainApplication>>of());
   }
 
   @Test
@@ -62,7 +62,7 @@ public class DomainApplicationIndexTest extends EntityTestCase {
     persistResource(createUpdatedInstance(application));
     DomainApplicationIndex savedIndex = DomainApplicationIndex.load("example.com");
     assertThat(savedIndex).isNotNull();
-    assertThat(savedIndex.getReferences()).containsExactly(Ref.create(application));
+    assertThat(savedIndex.getKeys()).containsExactly(Key.create(application));
     assertThat(loadActiveApplicationsByDomainName("example.com", DateTime.now()))
         .containsExactly(application);
   }
@@ -83,8 +83,8 @@ public class DomainApplicationIndexTest extends EntityTestCase {
     persistResource(createUpdatedInstance(application3));
     DomainApplicationIndex savedIndex = DomainApplicationIndex.load("example.com");
     assertThat(savedIndex).isNotNull();
-    assertThat(savedIndex.getReferences()).containsExactly(
-        Ref.create(application1), Ref.create(application2), Ref.create(application3));
+    assertThat(savedIndex.getKeys()).containsExactly(
+        Key.create(application1), Key.create(application2), Key.create(application3));
     assertThat(loadActiveApplicationsByDomainName("example.com", DateTime.now()))
         .containsExactly(application1, application2, application3);
   }
@@ -113,7 +113,7 @@ public class DomainApplicationIndexTest extends EntityTestCase {
     persistResource(createUpdatedInstance(application2));
     DomainApplicationIndex savedIndex =
         DomainApplicationIndex.load(application1.getFullyQualifiedDomainName());
-    assertThat(savedIndex.getReferences()).hasSize(2);
+    assertThat(savedIndex.getKeys()).hasSize(2);
     assertThat(loadActiveApplicationsByDomainName("example.com", DateTime.now()))
         .containsExactly(application1);
   }

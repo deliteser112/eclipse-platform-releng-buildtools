@@ -32,7 +32,7 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.apphosting.api.DeadlineExceededException;
 import com.google.common.collect.ImmutableList;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.launch.LaunchNotice;
@@ -104,7 +104,7 @@ public class LordnTaskTest {
   private DomainResource.Builder newDomainBuilder(DateTime applicationTime) {
     return new DomainResource.Builder()
         .setFullyQualifiedDomainName("fleece.example")
-        .setRegistrant(Ref.create(persistActiveContact("jd1234")))
+        .setRegistrant(Key.create(persistActiveContact("jd1234")))
         .setSmdId("smdzzzz")
         .setCreationClientId("TheRegistrar")
         .setApplicationTime(applicationTime);

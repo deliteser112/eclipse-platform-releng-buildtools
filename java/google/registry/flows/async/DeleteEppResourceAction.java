@@ -30,7 +30,6 @@ import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Work;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
@@ -142,7 +141,7 @@ public abstract class DeleteEppResourceAction<T extends EppResource> implements 
     }
 
     /** Determine whether the target resource is a linked resource on the domain. */
-    protected abstract boolean isLinked(DomainBase domain, Ref<T> targetResourceRef);
+    protected abstract boolean isLinked(DomainBase domain, Key<T> targetResourceKey);
 
     @Override
     public void map(DomainBase domain) {
@@ -154,12 +153,8 @@ public abstract class DeleteEppResourceAction<T extends EppResource> implements 
         emit(targetEppResourceKey, false);
         return;
       }
-      // The Ref can't be a field on the Mapper, because when a Ref<?> is serialized (required for
-      // each MapShardTask), it uses the DeadRef version, which contains the Ref's value, which
-      // isn't serializable. Thankfully, this isn't expensive.
-      // See: https://github.com/objectify/objectify/blob/master/src/main/java/com/googlecode/objectify/impl/ref/DeadRef.java
       if (isActive(domain, targetResourceUpdateTimestamp)
-          && isLinked(domain, Ref.create(targetEppResourceKey))) {
+          && isLinked(domain, targetEppResourceKey)) {
         emit(targetEppResourceKey, true);
       }
     }

@@ -17,13 +17,14 @@ package google.registry.model.host;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static google.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
@@ -88,7 +89,7 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
   @Index
   @IgnoreSave(IfNull.class)
   @XmlTransient
-  Ref<DomainResource> superordinateDomain;
+  Key<DomainResource> superordinateDomain;
 
   /**
    * The most recent time that the superordinate domain was changed, or null if this host is
@@ -102,7 +103,7 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
     return fullyQualifiedHostName;
   }
 
-  public Ref<DomainResource> getSuperordinateDomain() {
+  public Key<DomainResource> getSuperordinateDomain() {
     return superordinateDomain;
   }
 
@@ -132,7 +133,8 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
     } else {
       // For hosts with superordinate domains, the client id, last transfer time, and transfer data
       // need to be read off the domain projected to the correct time.
-      DomainResource domainAtTime = superordinateDomain.get().cloneProjectedAtTime(now);
+      DomainResource domainAtTime = ofy().load().key(superordinateDomain).now()
+          .cloneProjectedAtTime(now);
       builder.setCurrentSponsorClientId(domainAtTime.getCurrentSponsorClientId());
       // If the superordinate domain's last transfer time is what is relevant, because the host's
       // superordinate domain was last changed less recently than the domain's last transfer, then
@@ -192,7 +194,7 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
           difference(getInstance().getInetAddresses(), inetAddresses)));
     }
 
-    public Builder setSuperordinateDomain(Ref<DomainResource> superordinateDomain) {
+    public Builder setSuperordinateDomain(Key<DomainResource> superordinateDomain) {
       getInstance().superordinateDomain = superordinateDomain;
       return this;
     }

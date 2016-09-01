@@ -186,7 +186,7 @@ public class SyncRegistrarsSheetTest {
             .setEmailAddress("pride@example.net")
             .setTypes(ImmutableSet.of(RegistrarContact.Type.TECH))
         .build());
-    // Use registrar ref for contacts' parent.
+    // Use registrar key for contacts' parent.
     persistSimpleResources(contacts);
     persistResource(registrar);
 

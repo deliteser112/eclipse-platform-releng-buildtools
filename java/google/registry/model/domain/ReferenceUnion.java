@@ -14,7 +14,7 @@
 
 package google.registry.model.domain;
 
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
 import google.registry.model.EppResource;
@@ -22,7 +22,7 @@ import google.registry.model.ImmutableObject;
 
 /**
  * Legacy shell of a "union" type to represent referenced objects as either a foreign key or as a
- * link to another object in the datastore. In its current form it merely wraps a {@link Ref}.
+ * link to another object in the datastore. In its current form it merely wraps a {@link Key}.
  *
  * @param <T> the type being referenced
  */
@@ -30,13 +30,13 @@ import google.registry.model.ImmutableObject;
 public class ReferenceUnion<T extends EppResource> extends ImmutableObject {
 
   @Index
-  Ref<T> linked;
+  Key<T> linked;
 
-  public Ref<T> getLinked() {
+  public Key<T> getLinked() {
     return linked;
   }
 
-  public static <T extends EppResource> ReferenceUnion<T> create(Ref<T> linked) {
+  public static <T extends EppResource> ReferenceUnion<T> create(Key<T> linked) {
     ReferenceUnion<T> instance = new ReferenceUnion<>();
     instance.linked = linked;
     return instance;

@@ -30,7 +30,6 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import google.registry.flows.ResourceAsyncDeleteFlow.ResourceToDeleteIsReferencedException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -173,7 +172,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     createTld("tld");
     persistResource(newDomainResource("example.tld").asBuilder()
         .setNameservers(ImmutableSet.of(
-            Ref.create(persistActiveHost(getUniqueIdFromCommand()))))
+            Key.create(persistActiveHost(getUniqueIdFromCommand()))))
         .build());
     thrown.expect(ResourceToDeleteIsReferencedException.class);
     runFlow();
@@ -184,7 +183,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     createTld("tld");
     persistResource(newDomainApplication("example.tld").asBuilder()
         .setNameservers(ImmutableSet.of(
-            Ref.create(persistActiveHost(getUniqueIdFromCommand()))))
+            Key.create(persistActiveHost(getUniqueIdFromCommand()))))
         .build());
     thrown.expect(ResourceToDeleteIsReferencedException.class);
     runFlow();
