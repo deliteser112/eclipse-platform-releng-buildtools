@@ -19,6 +19,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.common.base.Joiner;
@@ -32,6 +34,7 @@ import com.google.common.testing.TestLogHandler;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.monitoring.whitebox.EppMetrics;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -42,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Rule;
@@ -64,6 +68,12 @@ public class FlowRunnerTest extends ShardableTestCase {
   public void before() {
     Logger.getLogger(FlowRunner.class.getCanonicalName()).addHandler(handler);
 
+    final EppOutput eppOutput = mock(EppOutput.class);
+    EppResponse eppResponse = mock(EppResponse.class);
+    when(eppResponse.getCreatedRepoId()).thenReturn("foo");
+    when(eppResponse.getExecutionTime()).thenReturn(new DateTime(1337));
+    when(eppOutput.getResponse()).thenReturn(eppResponse);
+
     flowRunner.clientId = "TheRegistrar";
     flowRunner.clock = new FakeClock();
     flowRunner.credentials = new PasswordOnlyTransportCredentials();
@@ -74,8 +84,9 @@ public class FlowRunnerTest extends ShardableTestCase {
             new Flow() {
               @Override
               protected EppOutput run() {
-                return null;
-              }});
+                return eppOutput;
+              }
+            });
     flowRunner.inputXmlBytes = "<xml/>".getBytes(UTF_8);
     flowRunner.isDryRun = false;
     flowRunner.isSuperuser = false;
@@ -96,6 +107,21 @@ public class FlowRunnerTest extends ShardableTestCase {
               "xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n",
               // Base64-encoding of "<xml/>":
               "xmlBytes", "PHhtbC8+");
+  }
+
+  @Test
+  public void testRun_notIsTransactional_callsMetricIncrementAttempts() throws Exception {
+    flowRunner.run();
+
+    verify(flowRunner.metrics).incrementAttempts();
+  }
+
+  @Test
+  public void testRun_isTransactional_callsMetricIncrementAttempts() throws Exception {
+    flowRunner.isTransactional = true;
+    flowRunner.run();
+
+    verify(flowRunner.metrics).incrementAttempts();
   }
 
   @Test

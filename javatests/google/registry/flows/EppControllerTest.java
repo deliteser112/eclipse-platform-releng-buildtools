@@ -15,25 +15,68 @@
 package google.registry.flows;
 
 import static google.registry.flows.EppXmlTransformer.marshal;
+import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
 import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.eppoutput.Result.Code;
+import google.registry.monitoring.whitebox.EppMetrics;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
 import google.registry.testing.ShardableTestCase;
 import google.registry.util.SystemClock;
 import google.registry.xml.ValidationMode;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link EppController}. */
-@RunWith(JUnit4.class)
+@RunWith(MockitoJUnitRunner.class)
 public class EppControllerTest extends ShardableTestCase {
 
   @Rule
   public AppEngineRule appEngineRule = new AppEngineRule.Builder().build();
+
+  @Mock SessionMetadata sessionMetadata;
+  @Mock TransportCredentials transportCredentials;
+  @Mock EppMetrics eppMetrics;
+  @Mock FlowComponent.Builder flowComponentBuilder;
+  @Mock FlowComponent flowComponent;
+  @Mock FlowRunner flowRunner;
+  @Mock EppOutput eppOutput;
+  @Mock EppResponse eppResponse;
+  @Mock Result result;
+
+  private EppController eppController;
+
+  @Before
+  public void setUp() throws Exception {
+    when(sessionMetadata.getClientId()).thenReturn("foo");
+    when(flowComponentBuilder.flowModule(Matchers.<FlowModule>any()))
+        .thenReturn(flowComponentBuilder);
+    when(flowComponentBuilder.build()).thenReturn(flowComponent);
+    when(flowComponent.flowRunner()).thenReturn(flowRunner);
+    when(flowRunner.run()).thenReturn(eppOutput);
+    when(eppOutput.isResponse()).thenReturn(true);
+    when(eppOutput.getResponse()).thenReturn(eppResponse);
+    when(eppResponse.getResult()).thenReturn(result);
+    when(result.getCode()).thenReturn(Code.SuccessWithNoMessages);
+
+    eppController = new EppController();
+    eppController.metrics = eppMetrics;
+    eppController.clock = new FakeClock();
+    eppController.flowComponentBuilder = flowComponentBuilder;
+  }
 
   @Test
   public void testMarshallingUnknownError() throws Exception {
@@ -41,5 +84,42 @@ public class EppControllerTest extends ShardableTestCase {
         EppController.getErrorResponse(
             new SystemClock(), Result.create(Code.CommandFailed), Trid.create(null)),
         ValidationMode.STRICT);
+  }
+
+  @Test
+  public void testHandleEppCommand_unmarshallableData_exportsMetric() {
+    eppController.handleEppCommand(
+        sessionMetadata,
+        transportCredentials,
+        EppRequestSource.UNIT_TEST,
+        false,
+        false,
+        new byte[0]);
+
+    verify(eppMetrics).setClientId("foo");
+    verify(eppMetrics).setPrivilegeLevel("NORMAL");
+    verify(eppMetrics).setEppStatus(Code.SyntaxError);
+    verify(eppMetrics).export();
+  }
+
+  @Test
+  public void testHandleEppCommand_regularEppCommand_exportsMetric() {
+    String domainCreateXml =
+        loadFileWithSubstitutions(
+            getClass(), "domain_create_prettyprinted.xml", ImmutableMap.<String, String>of());
+    eppController.handleEppCommand(
+        sessionMetadata,
+        transportCredentials,
+        EppRequestSource.UNIT_TEST,
+        false,
+        true,
+        domainCreateXml.getBytes(UTF_8));
+
+    verify(eppMetrics).setClientId("foo");
+    verify(eppMetrics).setPrivilegeLevel("SUPERUSER");
+    verify(eppMetrics).setEppStatus(Code.SuccessWithNoMessages);
+    verify(eppMetrics).setCommandName("Create");
+    verify(eppMetrics).setEppTarget("example.tld");
+    verify(eppMetrics).export();
   }
 }
