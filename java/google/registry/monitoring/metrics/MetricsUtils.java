@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 /** Static helper methods for the Metrics library. */
 final class MetricsUtils {
 
+  private static final Double NEGATIVE_ZERO = -0.0;
   private static final String LABEL_SIZE_ERROR =
       "The count of labelValues must be equal to the underlying Metric's count of labels.";
 
@@ -44,5 +45,12 @@ final class MetricsUtils {
    */
   static void checkLabelValuesLength(Metric<?> metric, ImmutableList<String> labelValues) {
     checkArgument(labelValues.size() == metric.getMetricSchema().labels().size(), LABEL_SIZE_ERROR);
+  }
+
+  /** Check that the given double is not infinite, {@code NaN}, or {@code -0.0}. */
+  static void checkDouble(double value) {
+    checkArgument(
+        !Double.isInfinite(value) && !Double.isNaN(value) && !NEGATIVE_ZERO.equals(value),
+        "value must be finite, not NaN, and not -0.0");
   }
 }
