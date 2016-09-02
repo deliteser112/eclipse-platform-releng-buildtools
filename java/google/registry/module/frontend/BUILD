@@ -20,6 +20,8 @@ java_library(
         "//java/google/registry/config",
         "//java/google/registry/flows",
         "//java/google/registry/keyring/api",
+        "//java/google/registry/monitoring/metrics",
+        "//java/google/registry/monitoring/whitebox",
         "//java/google/registry/rdap",
         "//java/google/registry/request",
         "//java/google/registry/request:modules",

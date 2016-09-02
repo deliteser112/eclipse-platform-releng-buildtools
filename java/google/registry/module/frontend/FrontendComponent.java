@@ -19,6 +19,13 @@ import google.registry.braintree.BraintreeModule;
 import google.registry.config.ConfigModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.api.VoidKeyringModule;
+import google.registry.monitoring.metrics.MetricReporter;
+import google.registry.monitoring.whitebox.StackdriverModule;
+import google.registry.request.Modules.AppIdentityCredentialModule;
+import google.registry.request.Modules.Jackson2Module;
+import google.registry.request.Modules.ModulesServiceModule;
+import google.registry.request.Modules.UrlFetchTransportModule;
+import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.request.RequestModule;
 import google.registry.ui.ConsoleConfigModule;
@@ -29,14 +36,22 @@ import javax.inject.Singleton;
 @Singleton
 @Component(
     modules = {
+        AppIdentityCredentialModule.class,
         BraintreeModule.class,
         ConfigModule.class,
         ConsoleConfigModule.class,
+        FrontendMetricsModule.class,
+        Jackson2Module.class,
         KeyModule.class,
+        ModulesServiceModule.class,
+        StackdriverModule.class,
         SystemClockModule.class,
+        UrlFetchTransportModule.class,
+        UseAppIdentityCredentialForGoogleApisModule.class,
         UserServiceModule.class,
         VoidKeyringModule.class,
     })
 interface FrontendComponent {
   FrontendRequestComponent startRequest(RequestModule requestModule);
+  MetricReporter metricReporter();
 }
