@@ -34,6 +34,7 @@ import google.registry.model.billing.RegistrarCredit;
 import google.registry.model.billing.RegistrarCreditBalance;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.LrpToken;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.DomainApplicationIndex;
 import google.registry.model.index.EppResourceIndex;
@@ -65,6 +66,7 @@ public final class ExportConstants {
           ForeignKeyHostIndex.class,
           HistoryEntry.class,
           HostResource.class,
+          LrpToken.class,
           Modification.class,
           OneTime.class,
           PremiumList.class,
