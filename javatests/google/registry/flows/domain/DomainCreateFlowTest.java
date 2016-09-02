@@ -178,7 +178,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         : clock.nowUtc().plus(Registry.get(domainTld).getAddGracePeriodLength());
     ImmutableSet<BillingEvent.Flag> billingFlags = isAnchorTenant
         ? ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT)
-        : null;
+        : ImmutableSet.<BillingEvent.Flag>of();
     HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
     assertAboutDomains().that(domain)
         .hasRegistrationExpirationTime(

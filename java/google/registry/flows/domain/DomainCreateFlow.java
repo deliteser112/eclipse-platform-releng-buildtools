@@ -157,7 +157,9 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
         .setBillingTime(now.plus(isAnchorTenant()
             ? registry.getAnchorTenantAddGracePeriodLength()
             : registry.getAddGracePeriodLength()))
-        .setFlags(isAnchorTenant() ? ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT) : null)
+        .setFlags(isAnchorTenant()
+            ? ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT)
+            : ImmutableSet.<BillingEvent.Flag>of())
         .setParent(historyEntry)
         .build();
     ofy().save().entity(createEvent);

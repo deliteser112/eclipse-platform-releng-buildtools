@@ -19,9 +19,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
@@ -44,6 +46,7 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
@@ -98,6 +101,7 @@ public abstract class BillingEvent extends ImmutableObject
   /** The fully qualified domain name of the domain that the bill is for. */
   String targetId;
 
+  @Nullable
   Set<Flag> flags;
 
   public String getClientId() {
@@ -168,7 +172,7 @@ public abstract class BillingEvent extends ImmutableObject
     }
 
     public B setFlags(ImmutableSet<Flag> flags) {
-      getInstance().flags = flags;
+      getInstance().flags = forceEmptyToNull(checkArgumentNotNull(flags, "flags"));
       return thisCastToDerived();
     }
 
