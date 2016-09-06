@@ -21,6 +21,7 @@ import static google.registry.monitoring.metrics.MetricsUtils.newConcurrentHashM
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.AtomicLongMap;
 import com.google.common.util.concurrent.Striped;
 import google.registry.monitoring.metrics.MetricSchema.Kind;
@@ -130,6 +131,12 @@ public final class Counter extends AbstractMetric<Long>
       } finally {
         valueLocks.get(labelValues).unlock();
       }
+
+      // There is an opportunity for endTimestamp to be less than startTimestamp if
+      // one of the modification methods is called on a value before the lock for that value is
+      // acquired but after getTimestampedValues has been invoked. Just set endTimestamp equal to
+      // startTimestamp if that happens.
+      endTimestamp = Ordering.natural().max(startTimestamp, endTimestamp);
 
       timestampedValues.add(
           MetricPoint.create(this, labelValues, startTimestamp, endTimestamp, entry.getValue()));
