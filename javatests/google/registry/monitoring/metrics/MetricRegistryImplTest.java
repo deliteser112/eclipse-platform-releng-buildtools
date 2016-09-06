@@ -139,6 +139,29 @@ public class MetricRegistryImplTest {
   }
 
   @Test
+  public void testNewEventMetric_createsEventMetric() {
+    DistributionFitter fitter = CustomFitter.create(ImmutableSet.of(0.0));
+    EventMetric testMetric =
+        MetricRegistryImpl.getDefault()
+            .newEventMetric(
+                "/test_metric",
+                "test_description",
+                "test_valuedisplayname",
+                ImmutableSet.of(label),
+                fitter);
+
+    assertThat(testMetric.getValueClass()).isSameAs(Distribution.class);
+    assertThat(testMetric.getMetricSchema())
+        .isEqualTo(
+            MetricSchema.create(
+                "/test_metric",
+                "test_description",
+                "test_valuedisplayname",
+                Kind.CUMULATIVE,
+                ImmutableSet.of(label)));
+  }
+
+  @Test
   public void testRegister_duplicateMetric_throwsException() {
     SettableMetric<Boolean> testMetric =
         MetricRegistryImpl.getDefault()

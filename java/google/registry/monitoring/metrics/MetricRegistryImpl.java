@@ -43,6 +43,21 @@ public final class MetricRegistryImpl implements MetricRegistry {
   }
 
   @Override
+  public EventMetric newEventMetric(
+      String name,
+      String description,
+      String valueDisplayName,
+      ImmutableSet<LabelDescriptor> labels,
+      DistributionFitter distributionFitter) {
+    EventMetric metric =
+        new EventMetric(name, description, valueDisplayName, distributionFitter, labels);
+    registerMetric(name, metric);
+    logger.info("Registered new event metric: " + name);
+
+    return metric;
+  }
+
+  @Override
   @CanIgnoreReturnValue
   public <V> Metric<V> newGauge(
       String name,

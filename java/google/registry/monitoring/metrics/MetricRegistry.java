@@ -104,6 +104,33 @@ public interface MetricRegistry {
       ImmutableSet<LabelDescriptor> labels);
 
   /**
+   * Returns a new {@link EventMetric}.
+   *
+   * <p>This metric type is intended for recording aspects of an "event" -- things like latency or
+   * payload size.
+   *
+   * <p>The metric's values are {@link Distribution} instances which are updated via {@link
+   * EventMetric#record(double, String...)}.
+   *
+   * <p>The metric is thread-safe. The metric will be registered at the time of creation and
+   * collected for subsequent write intervals.
+   *
+   * @param name name of the metric. Should be in the form of '/foo/bar'.
+   * @param description human readable description of the metric.
+   * @param valueDisplayName human readable description of the metric's value type.
+   * @param labels list of the metric's labels.
+   * @param distributionFitter fit to apply to the underlying {@link Distribution} instances of this
+   *     metric.
+   * @throws IllegalStateException if a metric of the same name is already registered.
+   */
+  EventMetric newEventMetric(
+      String name,
+      String description,
+      String valueDisplayName,
+      ImmutableSet<LabelDescriptor> labels,
+      DistributionFitter distributionFitter);
+
+  /**
    * Fetches a snapshot of the currently registered metrics
    *
    * <p>Users who wish to manually sample and write metrics without relying on the scheduled {@link
