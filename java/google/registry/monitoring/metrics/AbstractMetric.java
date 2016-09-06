@@ -19,7 +19,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import google.registry.monitoring.metrics.MetricSchema.Kind;
 
-//TODO(shikhman): implement HistogramMetrics.
 abstract class AbstractMetric<V> implements Metric<V> {
 
   private final Class<V> valueClass;

@@ -14,7 +14,11 @@
 
 package google.registry.monitoring.metrics;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static google.registry.monitoring.metrics.MetricsUtils.checkDouble;
+
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableRangeMap;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -35,6 +39,21 @@ public abstract class ImmutableDistribution implements Distribution {
         distribution.count(),
         distribution.intervalCounts(),
         distribution.distributionFitter());
+  }
+
+  @VisibleForTesting
+  static ImmutableDistribution create(
+      double mean,
+      double sumOfSquaredDeviation,
+      long count,
+      ImmutableRangeMap<Double, Long> intervalCounts,
+      DistributionFitter distributionFitter) {
+    checkDouble(mean);
+    checkDouble(sumOfSquaredDeviation);
+    checkArgument(count >= 0);
+
+    return new AutoValue_ImmutableDistribution(
+        mean, sumOfSquaredDeviation, count, intervalCounts, distributionFitter);
   }
 
   @Override
