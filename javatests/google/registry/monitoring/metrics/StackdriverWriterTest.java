@@ -29,7 +29,11 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpResponseException;
 import com.google.api.services.monitoring.v3.Monitoring;
+import com.google.api.services.monitoring.v3.model.BucketOptions;
 import com.google.api.services.monitoring.v3.model.CreateTimeSeriesRequest;
+import com.google.api.services.monitoring.v3.model.Explicit;
+import com.google.api.services.monitoring.v3.model.Exponential;
+import com.google.api.services.monitoring.v3.model.Linear;
 import com.google.api.services.monitoring.v3.model.MetricDescriptor;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.api.services.monitoring.v3.model.Point;
@@ -349,6 +353,137 @@ public class StackdriverWriterTest {
     assertThat(points).hasSize(1);
     Point point = points.get(0);
     assertThat(point.getValue().getBoolValue()).isEqualTo(true);
+    assertThat(point.getInterval().getEndTime()).isEqualTo("1970-01-01T00:00:01.337Z");
+    assertThat(point.getInterval().getStartTime()).isEqualTo("1970-01-01T00:00:01.337Z");
+  }
+
+  @Test
+  public void getEncodedTimeSeries_distributionMetricCustomFitter_encodes() throws Exception {
+    StackdriverWriter writer =
+        new StackdriverWriter(client, PROJECT, MONITORED_RESOURCE, MAX_QPS, MAX_POINTS_PER_REQUEST);
+    Metric<Distribution> metric =
+        new StoredMetric<>(
+            "/name",
+            "desc",
+            "vdn",
+            ImmutableSet.of(LabelDescriptor.create("label", "description")),
+            Distribution.class);
+    MetricDescriptor descriptor = StackdriverWriter.createMetricDescriptor(metric);
+    when(metricDescriptorCreate.execute()).thenReturn(descriptor);
+    MutableDistribution distribution =
+        new MutableDistribution(CustomFitter.create(ImmutableSet.of(5.0)));
+    distribution.add(10.0, 5L);
+    distribution.add(0.0, 5L);
+    MetricPoint<Distribution> nativePoint =
+        MetricPoint.create(metric, ImmutableList.of("foo"), new Instant(1337), distribution);
+
+    TimeSeries timeSeries = writer.getEncodedTimeSeries(nativePoint);
+
+    assertThat(timeSeries.getValueType()).isEqualTo("DISTRIBUTION");
+    assertThat(timeSeries.getMetricKind()).isEqualTo("GAUGE");
+    List<Point> points = timeSeries.getPoints();
+    assertThat(points).hasSize(1);
+    Point point = points.get(0);
+    assertThat(point.getValue().getDistributionValue())
+        .isEqualTo(
+            new com.google.api.services.monitoring.v3.model.Distribution()
+                .setMean(5.0)
+                .setSumOfSquaredDeviation(250.0)
+                .setCount(10L)
+                .setBucketCounts(ImmutableList.of(5L, 5L))
+                .setBucketOptions(
+                    new BucketOptions()
+                        .setExplicitBuckets(new Explicit().setBounds(ImmutableList.of(5.0)))));
+    assertThat(point.getInterval().getEndTime()).isEqualTo("1970-01-01T00:00:01.337Z");
+    assertThat(point.getInterval().getStartTime()).isEqualTo("1970-01-01T00:00:01.337Z");
+  }
+
+  @Test
+  public void getEncodedTimeSeries_distributionMetricLinearFitter_encodes() throws Exception {
+    StackdriverWriter writer =
+        new StackdriverWriter(client, PROJECT, MONITORED_RESOURCE, MAX_QPS, MAX_POINTS_PER_REQUEST);
+    Metric<Distribution> metric =
+        new StoredMetric<>(
+            "/name",
+            "desc",
+            "vdn",
+            ImmutableSet.of(LabelDescriptor.create("label", "description")),
+            Distribution.class);
+    MetricDescriptor descriptor = StackdriverWriter.createMetricDescriptor(metric);
+    when(metricDescriptorCreate.execute()).thenReturn(descriptor);
+    MutableDistribution distribution = new MutableDistribution(LinearFitter.create(2, 5.0, 3.0));
+    distribution.add(0.0, 1L);
+    distribution.add(3.0, 2L);
+    distribution.add(10.0, 5L);
+    distribution.add(20.0, 5L);
+    MetricPoint<Distribution> nativePoint =
+        MetricPoint.create(metric, ImmutableList.of("foo"), new Instant(1337), distribution);
+
+    TimeSeries timeSeries = writer.getEncodedTimeSeries(nativePoint);
+
+    assertThat(timeSeries.getValueType()).isEqualTo("DISTRIBUTION");
+    assertThat(timeSeries.getMetricKind()).isEqualTo("GAUGE");
+    List<Point> points = timeSeries.getPoints();
+    assertThat(points).hasSize(1);
+    Point point = points.get(0);
+    assertThat(point.getValue().getDistributionValue())
+        .isEqualTo(
+            new com.google.api.services.monitoring.v3.model.Distribution()
+                .setMean(12.0)
+                .setSumOfSquaredDeviation(646.0)
+                .setCount(13L)
+                .setBucketCounts(ImmutableList.of(1L, 2L, 5L, 5L))
+                .setBucketOptions(
+                    new BucketOptions()
+                        .setLinearBuckets(
+                            new Linear().setNumFiniteBuckets(2).setWidth(5.0).setOffset(3.0))));
+    assertThat(point.getInterval().getEndTime()).isEqualTo("1970-01-01T00:00:01.337Z");
+    assertThat(point.getInterval().getStartTime()).isEqualTo("1970-01-01T00:00:01.337Z");
+  }
+
+  @Test
+  public void getEncodedTimeSeries_distributionMetricExponentialFitter_encodes() throws Exception {
+    StackdriverWriter writer =
+        new StackdriverWriter(client, PROJECT, MONITORED_RESOURCE, MAX_QPS, MAX_POINTS_PER_REQUEST);
+    Metric<Distribution> metric =
+        new StoredMetric<>(
+            "/name",
+            "desc",
+            "vdn",
+            ImmutableSet.of(LabelDescriptor.create("label", "description")),
+            Distribution.class);
+    MetricDescriptor descriptor = StackdriverWriter.createMetricDescriptor(metric);
+    when(metricDescriptorCreate.execute()).thenReturn(descriptor);
+    MutableDistribution distribution =
+        new MutableDistribution(ExponentialFitter.create(2, 3.0, 0.5));
+    distribution.add(0.0, 1L);
+    distribution.add(3.0, 2L);
+    distribution.add(10.0, 5L);
+    distribution.add(20.0, 5L);
+    MetricPoint<Distribution> nativePoint =
+        MetricPoint.create(metric, ImmutableList.of("foo"), new Instant(1337), distribution);
+
+    TimeSeries timeSeries = writer.getEncodedTimeSeries(nativePoint);
+
+    assertThat(timeSeries.getValueType()).isEqualTo("DISTRIBUTION");
+    assertThat(timeSeries.getMetricKind()).isEqualTo("GAUGE");
+    List<Point> points = timeSeries.getPoints();
+    assertThat(points).hasSize(1);
+    Point point = points.get(0);
+    assertThat(point.getValue().getDistributionValue())
+        .isEqualTo(
+            new com.google.api.services.monitoring.v3.model.Distribution()
+                .setMean(12.0)
+                .setSumOfSquaredDeviation(646.0)
+                .setCount(13L)
+                .setBucketCounts(ImmutableList.of(1L, 0L, 2L, 10L))
+                .setBucketOptions(
+                    new BucketOptions()
+                        .setExponentialBuckets(
+                            new Exponential()
+                                .setNumFiniteBuckets(2)
+                                .setGrowthFactor(3.0)
+                                .setScale(0.5))));
     assertThat(point.getInterval().getEndTime()).isEqualTo("1970-01-01T00:00:01.337Z");
     assertThat(point.getInterval().getStartTime()).isEqualTo("1970-01-01T00:00:01.337Z");
   }

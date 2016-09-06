@@ -20,8 +20,13 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.monitoring.v3.Monitoring;
+import com.google.api.services.monitoring.v3.model.BucketOptions;
 import com.google.api.services.monitoring.v3.model.CreateTimeSeriesRequest;
+import com.google.api.services.monitoring.v3.model.Distribution;
+import com.google.api.services.monitoring.v3.model.Explicit;
+import com.google.api.services.monitoring.v3.model.Exponential;
 import com.google.api.services.monitoring.v3.model.LabelDescriptor;
+import com.google.api.services.monitoring.v3.model.Linear;
 import com.google.api.services.monitoring.v3.model.Metric;
 import com.google.api.services.monitoring.v3.model.MetricDescriptor;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
@@ -88,6 +93,7 @@ public class StackdriverWriter implements MetricWriter {
           .put(Double.class, "DOUBLE")
           .put(Boolean.class, "BOOL")
           .put(String.class, "STRING")
+          .put(google.registry.monitoring.metrics.Distribution.class, "DISTRIBUTION")
           .build();
   // A map of native kind to the equivalent Stackdriver metric kind.
   private static final ImmutableMap<String, String> ENCODED_METRIC_KINDS =
@@ -258,6 +264,49 @@ public class StackdriverWriter implements MetricWriter {
         .setStartTime(DATETIME_FORMATTER.print(nativeInterval.getStart()));
   }
 
+  private static BucketOptions encodeBucketOptions(DistributionFitter fitter) {
+    BucketOptions bucketOptions = new BucketOptions();
+
+    if (fitter instanceof LinearFitter) {
+      LinearFitter linearFitter = (LinearFitter) fitter;
+
+      bucketOptions.setLinearBuckets(
+          new Linear()
+              .setNumFiniteBuckets(linearFitter.boundaries().size() - 1)
+              .setWidth(linearFitter.width())
+              .setOffset(linearFitter.offset()));
+    } else if (fitter instanceof ExponentialFitter) {
+      ExponentialFitter exponentialFitter = (ExponentialFitter) fitter;
+
+      bucketOptions.setExponentialBuckets(
+          new Exponential()
+              .setNumFiniteBuckets(exponentialFitter.boundaries().size() - 1)
+              .setGrowthFactor(exponentialFitter.base())
+              .setScale(exponentialFitter.scale()));
+    } else if (fitter instanceof CustomFitter) {
+      bucketOptions.setExplicitBuckets(new Explicit().setBounds(fitter.boundaries().asList()));
+    } else {
+      throw new IllegalArgumentException("Illegal DistributionFitter type");
+    }
+
+    return bucketOptions;
+  }
+
+  private static List<Long> encodeDistributionPoints(
+      google.registry.monitoring.metrics.Distribution distribution) {
+    return distribution.intervalCounts().asMapOfRanges().values().asList();
+  }
+
+  private static Distribution encodeDistribution(
+      google.registry.monitoring.metrics.Distribution nativeDistribution) {
+    return new Distribution()
+        .setMean(nativeDistribution.mean())
+        .setCount(nativeDistribution.count())
+        .setSumOfSquaredDeviation(nativeDistribution.sumOfSquaredDeviation())
+        .setBucketOptions(encodeBucketOptions(nativeDistribution.distributionFitter()))
+        .setBucketCounts(encodeDistributionPoints(nativeDistribution));
+  }
+
   /**
    * Encodes a {@link MetricPoint} into a Stackdriver {@link TimeSeries}.
    *
@@ -298,6 +347,9 @@ public class StackdriverWriter implements MetricWriter {
       encodedValue.setBoolValue((Boolean) value);
     } else if (valueClass == String.class) {
       encodedValue.setStringValue((String) value);
+    } else if (valueClass == google.registry.monitoring.metrics.Distribution.class) {
+      encodedValue.setDistributionValue(
+          encodeDistribution((google.registry.monitoring.metrics.Distribution) value));
     } else {
       // This is unreachable because the precondition checks will catch all NotSerializable
       // exceptions.
