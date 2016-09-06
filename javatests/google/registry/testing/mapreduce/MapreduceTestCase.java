@@ -34,6 +34,7 @@ import com.google.apphosting.api.ApiProxy;
 import com.google.common.base.CharMatcher;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.ShardableTestCase;
 import google.registry.util.FormattingLogger;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
@@ -58,7 +59,7 @@ import org.junit.Rule;
  *
  * @param <T> The type of the Action class that implements the mapreduce.
  */
-public abstract class MapreduceTestCase<T> {
+public abstract class MapreduceTestCase<T> extends ShardableTestCase {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
