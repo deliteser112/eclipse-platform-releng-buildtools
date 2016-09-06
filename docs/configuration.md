@@ -87,26 +87,24 @@ control mishap.  We use a secret store to persist these values in a secure
 manner, and abstract access to them using the `Keyring` interface.
 
 The `Keyring` interface contains methods for all sensitive configuration values,
-which are primarily credentials used to access various ICANN and
-ICANN-affiliated services (such as RDE).  These values are only needed for real
+which are primarily credentials used to access various ICANN and ICANN-
+affiliated services (such as RDE).  These values are only needed for real
 production registries and PDT environments.  If you are just playing around with
 the platform at first, it is OK to put off defining these values until
-necessary.  To that end, a `VoidKeyring` implementation is provided that simply
-throws an `UnsupportedOperationException` whenever any code attempts to load a
-secret key.  This allows the codebase to compile, but of course any actions that
-attempt to connect to these services will error out because the keys won't be
-present.
+necessary.  To that end, a `DummyKeyringModule` is included that simply provides
+an `InMemoryKeyring` populated with dummy values for all secret keys.  This
+allows the codebase to compile and run, but of course any actions that attempt
+to connect to external services will fail because none of the keys are real.
 
-`KeyModule` is a Dagger module that is used to provide injected values for all
-of the sensitive configuration options.  Each `@Provides` method requires a
-`Keyring` instance.  In the code release, a stub implementation in the form of
-`VoidKeyring` is provided by the `VoidKeyringModule`.  To configure a production
-registry system, you will need to write your own module to provide your own
-`Keyring` implementation (which you will also need to write), and replace the
-usage of `VoidKeyringModule` with your own module in all of the per-service
-components in which it is referenced.  The functions in `PgpHelper` will likely
-prove useful for loading keys stored in PGP format into the PGP key classes that
-you'll need to provide from `Keyring`.
+To configure a production registry system, you will need to write a replacement
+module for `DummyKeyringModule` that loads the credentials in a secure way, and
+provides them using either an instance of `InMemoryKeyring` or your own custom
+implementation of `Keyring`.  You then need to replace all usages of
+`DummyKeyringModule` with your own module in all of the per-service components
+in which it is referenced.  The functions in `PgpHelper` will likely prove
+useful for loading keys stored in PGP format into the PGP key classes that
+you'll need to provide from `Keyring`, and you can see examples of them in
+action in `DummyKeyringModule`.
 
 ## Per-TLD configuration
 

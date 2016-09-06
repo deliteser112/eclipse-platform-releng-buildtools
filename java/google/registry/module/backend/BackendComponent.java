@@ -25,7 +25,7 @@ import google.registry.groups.DirectoryModule;
 import google.registry.groups.GroupsModule;
 import google.registry.groups.GroupssettingsModule;
 import google.registry.keyring.api.KeyModule;
-import google.registry.keyring.api.VoidKeyringModule;
+import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.monitoring.whitebox.StackdriverModule;
 import google.registry.rde.JSchModule;
@@ -69,7 +69,7 @@ import javax.inject.Singleton;
         UrlFetchTransportModule.class,
         UseAppIdentityCredentialForGoogleApisModule.class,
         VoidDnsWriterModule.class,
-        VoidKeyringModule.class,
+        DummyKeyringModule.class,
     })
 interface BackendComponent {
   BackendRequestComponent startRequest(RequestModule requestModule);

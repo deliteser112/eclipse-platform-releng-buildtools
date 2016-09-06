@@ -18,7 +18,7 @@ import dagger.Component;
 import google.registry.braintree.BraintreeModule;
 import google.registry.config.ConfigModule;
 import google.registry.keyring.api.KeyModule;
-import google.registry.keyring.api.VoidKeyringModule;
+import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.monitoring.whitebox.StackdriverModule;
 import google.registry.request.Modules.AppIdentityCredentialModule;
@@ -49,7 +49,7 @@ import javax.inject.Singleton;
         UrlFetchTransportModule.class,
         UseAppIdentityCredentialForGoogleApisModule.class,
         UserServiceModule.class,
-        VoidKeyringModule.class,
+        DummyKeyringModule.class,
     })
 interface FrontendComponent {
   FrontendRequestComponent startRequest(RequestModule requestModule);
