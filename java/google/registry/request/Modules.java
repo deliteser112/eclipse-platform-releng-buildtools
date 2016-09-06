@@ -224,7 +224,8 @@ public final class Modules {
           .setJsonFactory(googleCredential.getJsonFactory())
           .setServiceAccountId(googleCredential.getServiceAccountId())
           .setServiceAccountPrivateKey(googleCredential.getServiceAccountPrivateKey())
-          .setServiceAccountProjectId(googleCredential.getServiceAccountProjectId())
+          // TODO(b/31317128): Also set serviceAccountProjectId from value off googleCredential when
+          // that functionality is publicly released.
           .setServiceAccountScopes(googleCredential.getServiceAccountScopes())
           .setServiceAccountUser(googleAppsAdminEmailAddress)
           .build();
