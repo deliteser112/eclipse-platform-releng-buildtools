@@ -81,7 +81,7 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
   private String premiumList = DEFAULT_PREMIUM_LIST;
 
   @Inject
-  PasswordGenerator passwordGenerator;
+  StringGenerator passwordGenerator;
 
   /**
    * Long registrar names are truncated and then have an incrementing digit appended at the end so
@@ -188,16 +188,16 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
     // Storing names and credentials in a list of tuples for later play-back.
     List<List<String>> registrars = new ArrayList<>();
     registrars.add(ImmutableList.<String>of(
-        registrar + "-1", passwordGenerator.createPassword(PASSWORD_LENGTH),
+        registrar + "-1", passwordGenerator.createString(PASSWORD_LENGTH),
         registrar + "-sunrise"));
     registrars.add(ImmutableList.<String>of(
-        registrar + "-2", passwordGenerator.createPassword(PASSWORD_LENGTH),
+        registrar + "-2", passwordGenerator.createString(PASSWORD_LENGTH),
         registrar + "-landrush"));
     registrars.add(ImmutableList.<String>of(
-        registrar + "-3", passwordGenerator.createPassword(PASSWORD_LENGTH),
+        registrar + "-3", passwordGenerator.createString(PASSWORD_LENGTH),
         registrar + "-ga"));
     registrars.add(ImmutableList.<String>of(
-        registrar + "-4", passwordGenerator.createPassword(PASSWORD_LENGTH),
+        registrar + "-4", passwordGenerator.createString(PASSWORD_LENGTH),
         registrar + "-ga"));
 
     for (List<String> r : registrars) {

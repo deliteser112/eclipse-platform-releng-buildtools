@@ -22,6 +22,8 @@ import java.security.ProviderException;
 import java.security.SecureRandom;
 import java.util.Random;
 
+import javax.inject.Named;
+
 /** Dagger module for Registry Tool. */
 @Module
 abstract class RegistryToolModule {
@@ -32,7 +34,7 @@ abstract class RegistryToolModule {
   }
 
   @Binds
-  abstract PasswordGenerator providePasswordGenerator(RandomPasswordGenerator passwordGenerator);
+  abstract StringGenerator provideStringGenerator(RandomStringGenerator stringGenerator);
 
   @Provides
   static Random provideRandom() {
@@ -41,5 +43,11 @@ abstract class RegistryToolModule {
     } catch (NoSuchAlgorithmException e) {
       throw new ProviderException(e);
     }
+  }
+
+  @Provides
+  @Named("alphabet")
+  static String provideAlphabet() {
+    return StringGenerator.Alphabets.BASE_64;
   }
 }

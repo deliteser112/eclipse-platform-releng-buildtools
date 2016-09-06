@@ -72,14 +72,14 @@ final class CreateAnchorTenantCommand extends MutatingEppToolCommand implements 
   private boolean fee;
 
   @Inject
-  PasswordGenerator passwordGenerator;
+  StringGenerator passwordGenerator;
 
   @Override
   protected void initMutatingEppToolCommand() {
     checkArgument(superuser, "This command must be run as a superuser.");
     findTldForNameOrThrow(InternetDomainName.from(domainName)); // Check that the tld exists.
     if (isNullOrEmpty(password)) {
-      password = passwordGenerator.createPassword(PASSWORD_LENGTH);
+      password = passwordGenerator.createString(PASSWORD_LENGTH);
     }
 
     Money cost = null;

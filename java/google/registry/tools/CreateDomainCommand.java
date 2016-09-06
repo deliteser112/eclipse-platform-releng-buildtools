@@ -76,14 +76,14 @@ final class CreateDomainCommand extends MutatingEppToolCommand implements GtechC
   private String password;
 
   @Inject
-  PasswordGenerator passwordGenerator;
+  StringGenerator passwordGenerator;
 
   private static final int PASSWORD_LENGTH = 16;
 
   @Override
   protected void initMutatingEppToolCommand() {
     if (isNullOrEmpty(password)) {
-      password = passwordGenerator.createPassword(PASSWORD_LENGTH);
+      password = passwordGenerator.createString(PASSWORD_LENGTH);
     }
     checkArgument(ns == null || ns.size() <= 13, "There can be at most 13 nameservers.");
 

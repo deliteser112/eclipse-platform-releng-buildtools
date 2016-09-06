@@ -23,7 +23,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
 
   @Before
   public void initCommand() {
-    command.passwordGenerator = new FakePasswordGenerator("abcdefghijklmnopqrstuvwxyz");
+    command.passwordGenerator = new DeterministicStringGenerator("abcdefghijklmnopqrstuvwxyz");
   }
 
   @Test

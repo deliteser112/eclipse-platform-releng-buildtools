@@ -18,27 +18,26 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Random;
 import javax.inject.Inject;
+import javax.inject.Named;
 
-/** Password generator. */
-class RandomPasswordGenerator implements PasswordGenerator {
-
-  private static final String SYMBOLS =
-      "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-=";
+/** Random string generator. */
+class RandomStringGenerator extends StringGenerator {
 
   private final Random random;
 
   @Inject
-  RandomPasswordGenerator(Random random) {
+  RandomStringGenerator(@Named("alphabet") String alphabet, Random random) {
+    super(alphabet);
     this.random = random;
   }
 
-  /** Generates a password of a specified length. */
+  /** Generates a random string of a specified length. */
   @Override
-  public String createPassword(int length) {
+  public String createString(int length) {
     checkArgument(length > 0);
     char[] password = new char[length];
     for (int i = 0; i < length; ++i) {
-      password[i] = SYMBOLS.charAt(random.nextInt(SYMBOLS.length()));
+      password[i] = alphabet.charAt(random.nextInt(alphabet.length()));
     }
     return new String(password);
   }

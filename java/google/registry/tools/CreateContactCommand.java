@@ -103,14 +103,14 @@ final class CreateContactCommand extends MutatingEppToolCommand implements Gtech
   private String password;
 
   @Inject
-  PasswordGenerator passwordGenerator;
+  StringGenerator passwordGenerator;
 
   private static final int PASSWORD_LENGTH = 16;
 
   @Override
   protected void initMutatingEppToolCommand() {
     if (isNullOrEmpty(password)) {
-      password = passwordGenerator.createPassword(PASSWORD_LENGTH);
+      password = passwordGenerator.createString(PASSWORD_LENGTH);
     }
     checkArgument(street == null || street.size() <= 3,
         "Addresses must contain at most 3 street lines.");

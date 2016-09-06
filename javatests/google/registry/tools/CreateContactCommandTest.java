@@ -23,7 +23,7 @@ public class CreateContactCommandTest extends EppToolCommandTestCase<CreateConta
 
   @Before
   public void initCommand() {
-    command.passwordGenerator = new FakePasswordGenerator("abcdefghijklmnopqrstuvwxyz");
+    command.passwordGenerator = new DeterministicStringGenerator("abcdefghijklmnopqrstuvwxyz");
   }
 
   @Test

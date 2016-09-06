@@ -41,7 +41,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   ImmutableList<String> passwords = ImmutableList.of(
       "abcdefghijklmnop", "qrstuvwxyzabcdef", "ghijklmnopqrstuv", "wxyzabcdefghijkl");
-  FakePasswordGenerator passwordGenerator = new FakePasswordGenerator("abcdefghijklmnopqrstuvwxyz");
+  DeterministicStringGenerator passwordGenerator =
+      new DeterministicStringGenerator("abcdefghijklmnopqrstuvwxyz");
 
   @Before
   public void init() {

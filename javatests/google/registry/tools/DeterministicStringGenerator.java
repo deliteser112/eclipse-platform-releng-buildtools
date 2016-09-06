@@ -15,21 +15,32 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Lists.charactersOf;
 
 import com.google.common.collect.Iterators;
 import java.util.Iterator;
 
-/** A password generator that produces a password from a predefined string. */
-class FakePasswordGenerator implements PasswordGenerator {
+import javax.inject.Named;
+
+/**
+ * A string generator that produces strings using sequential characters in its alphabet. This is
+ * most useful in tests as a "fake" password generator (which would otherwise use
+ * {@link RandomStringGenerator}.
+ * 
+ * <p>Note that consecutive calls to createString will continue where the last call left off in
+ * the alphabet.
+ */
+class DeterministicStringGenerator extends StringGenerator {
 
   private Iterator<Character> iterator;
 
-  /** Produces a password from the password source string. */
+  /**
+   * Generates a string using sequential characters in the generator's alphabet, cycling back to the
+   * beginning of the alphabet if necessary.
+   */
   @Override
-  public String createPassword(int length) {
-    checkArgument(length > 0, "Password length must be positive.");
+  public String createString(int length) {
+    checkArgument(length > 0, "String length must be positive.");
     String password = "";
     for (int i = 0; i < length; i++) {
       password += iterator.next();
@@ -37,8 +48,8 @@ class FakePasswordGenerator implements PasswordGenerator {
     return password;
   }
 
-  public FakePasswordGenerator(String passwordSource) {
-    checkArgument(!isNullOrEmpty(passwordSource), "Password source cannot be null or empty.");
-    iterator = Iterators.cycle(charactersOf(passwordSource));
+  public DeterministicStringGenerator(@Named("alphabet") String alphabet) {
+    super(alphabet);
+    iterator = Iterators.cycle(charactersOf(alphabet));
   }
 }
