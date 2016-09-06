@@ -193,6 +193,12 @@ public class StackdriverWriter implements MetricWriter {
   public void flush() throws IOException {
     checkState(timeSeriesBuffer.size() <= 200, FLUSH_OVERFLOW_ERROR);
 
+    // Return early; Stackdriver throws errors if we attempt to send empty requests.
+    if (timeSeriesBuffer.isEmpty()) {
+      logger.fine("Attempted to flush with no pending points, doing nothing");
+      return;
+    }
+
     ImmutableList<TimeSeries> timeSeriesList = ImmutableList.copyOf(timeSeriesBuffer);
     timeSeriesBuffer.clear();
 
