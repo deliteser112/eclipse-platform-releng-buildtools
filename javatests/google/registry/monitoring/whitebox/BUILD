@@ -43,6 +43,7 @@ java_library(
 
 GenTestRules(
     name = "GeneratedTestRules",
+    medium_tests = ["VerifyEntityIntegrityActionTest"],
     test_files = glob(["*Test.java"]),
     deps = [":whitebox"],
 )
