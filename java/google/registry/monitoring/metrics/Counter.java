@@ -23,7 +23,6 @@ import com.google.common.util.concurrent.AtomicLongMap;
 import com.google.common.util.concurrent.Striped;
 import google.registry.monitoring.metrics.MetricSchema.Kind;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import javax.annotation.concurrent.ThreadSafe;
@@ -171,18 +170,19 @@ public final class Counter extends AbstractMetric<Long>
   final void reset(Instant startTimestamp) {
     // Lock the entire set of values so that all existing values will have a consistent timestamp
     // after this call, without the possibility of interleaving with another reset() call.
-    Set<ImmutableList<String>> keys = values.asMap().keySet();
     for (int i = 0; i < valueLocks.size(); i++) {
       valueLocks.getAt(i).lock();
     }
 
-    for (ImmutableList<String> labelValues : keys) {
-      this.values.put(labelValues, 0);
-      this.valueStartTimestamps.put(labelValues, startTimestamp);
-    }
-
-    for (int i = 0; i < valueLocks.size(); i++) {
-      valueLocks.getAt(i).unlock();
+    try {
+      for (ImmutableList<String> labelValues : values.asMap().keySet()) {
+        this.values.put(labelValues, 0);
+        this.valueStartTimestamps.put(labelValues, startTimestamp);
+      }
+    } finally {
+      for (int i = 0; i < valueLocks.size(); i++) {
+        valueLocks.getAt(i).unlock();
+      }
     }
   }
 
