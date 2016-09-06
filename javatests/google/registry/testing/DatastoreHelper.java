@@ -608,6 +608,13 @@ public class DatastoreHelper {
             FluentIterable.from(asList(expected)).transform(BILLING_EVENT_ID_STRIPPER));
   }
 
+  /** Assert that the expected billing events set is exactly the one found in the fake datastore. */
+  public static void assertBillingEvents(ImmutableSet<BillingEvent> expected) throws Exception {
+    assertThat(FluentIterable.from(getBillingEvents()).transform(BILLING_EVENT_ID_STRIPPER))
+        .containsExactlyElementsIn(
+            FluentIterable.from(expected.asList()).transform(BILLING_EVENT_ID_STRIPPER));
+  }
+
   /**
    * Assert that the expected billing events are exactly the ones found for the given EppResource.
    */

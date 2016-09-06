@@ -22,6 +22,7 @@ import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
@@ -88,18 +89,18 @@ public class TldSpecificLogicProxyTest {
     assertThat(createPrice.getTotalCost()).isEqualTo(basicCreateCost.plus(Money.of(USD, 100)));
     assertThat(createPrice.getCurrency()).isEqualTo(USD);
     assertThat(createPrice.getFees().get(0))
-        .isEqualTo(Fee.create(basicCreateCost.getAmount(), "create"));
+        .isEqualTo(Fee.create(basicCreateCost.getAmount(), FeeType.CREATE));
     assertThat(createPrice.getFees().get(1))
         .isEqualTo(
             Fee.create(
-                Money.of(USD, 100).getAmount(),
-                "Early Access Period, fee expires: " + clock.nowUtc().plusDays(1)));
+                Money.of(USD, 100).getAmount(), FeeType.EAP, clock.nowUtc().plusDays(1)));
     assertThat(createPrice.getFees())
         .isEqualTo(
             ImmutableList.of(
-                Fee.create(basicCreateCost.getAmount(), "create"),
+                Fee.create(basicCreateCost.getAmount(), FeeType.CREATE),
                 Fee.create(
                     Money.of(USD, 100).getAmount(),
-                    "Early Access Period, fee expires: " + clock.nowUtc().plusDays(1))));
+                    FeeType.EAP,
+                    clock.nowUtc().plusDays(1))));
   }
 }

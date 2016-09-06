@@ -14,10 +14,12 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.collect.Sets.union;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -146,23 +148,42 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
     Registry registry = Registry.get(getTld());
 
     // Bill for the create.
-    BillingEvent.OneTime createEvent = new BillingEvent.OneTime.Builder()
-        .setReason(Reason.CREATE)
-        .setTargetId(targetId)
-        .setClientId(getClientId())
-        .setPeriodYears(command.getPeriod().getValue())
-        // TODO(b/29089413): the EAP fee needs to be a separate billing event.
-        .setCost(commandOperations.getTotalCost())
-        .setEventTime(now)
-        .setBillingTime(now.plus(isAnchorTenant()
-            ? registry.getAnchorTenantAddGracePeriodLength()
-            : registry.getAddGracePeriodLength()))
-        .setFlags(isAnchorTenant()
-            ? ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT)
-            : ImmutableSet.<BillingEvent.Flag>of())
-        .setParent(historyEntry)
-        .build();
+    BillingEvent.OneTime createEvent =
+        new BillingEvent.OneTime.Builder()
+            .setReason(Reason.CREATE)
+            .setTargetId(targetId)
+            .setClientId(getClientId())
+            .setPeriodYears(command.getPeriod().getValue())
+            .setCost(commandOperations.getCreateCost())
+            .setEventTime(now)
+            .setBillingTime(now.plus(isAnchorTenant()
+                ? registry.getAnchorTenantAddGracePeriodLength()
+                : registry.getAddGracePeriodLength()))
+            .setFlags(isAnchorTenant()
+                ? ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT)
+                : ImmutableSet.<BillingEvent.Flag>of())
+            .setParent(historyEntry)
+            .build();
     ofy().save().entity(createEvent);
+    
+    // Bill for EAP cost, if any.
+    if (!commandOperations.getEapCost().isZero()) {
+      BillingEvent.OneTime eapEvent =
+          new BillingEvent.OneTime.Builder()
+              .setReason(createEvent.getReason())
+              .setTargetId(createEvent.getTargetId())
+              .setClientId(createEvent.getClientId())
+              .setPeriodYears(createEvent.getPeriodYears())
+              .setCost(commandOperations.getEapCost())
+              .setEventTime(createEvent.getEventTime())
+              .setBillingTime(createEvent.getBillingTime())
+              .setFlags(union(createEvent.getFlags(),
+                  ImmutableSet.of(BillingEvent.Flag.EAP)).immutableCopy())
+              .setParent(createEvent.getParentKey())
+              .build();
+      ofy().save().entity(eapEvent);
+    }
+
     builder.addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.ADD, createEvent));
     if (launchCreate != null && (launchCreate.getNotice() != null || hasSignedMarks)) {
       builder

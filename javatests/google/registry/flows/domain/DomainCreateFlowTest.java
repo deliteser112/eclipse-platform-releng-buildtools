@@ -169,9 +169,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         ? Money.of(USD, 200)
         : Money.of(USD, 26);
     Money eapFee = Registry.get(domainTld).getEapFeeFor(clock.nowUtc()).getCost();
-    if (!eapFee.isZero()) {
-        cost = Money.total(cost, eapFee);
-    }
 
     DateTime billingTime = isAnchorTenant
         ? clock.nowUtc().plus(Registry.get(domainTld).getAnchorTenantAddGracePeriodLength())
@@ -186,20 +183,21 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.DOMAIN_CREATE).and()
         .hasPeriodYears(2);
-    // There should be a bill for the create and a recurring autorenew event.
-    BillingEvent.OneTime createBillingEvent = new BillingEvent.OneTime.Builder()
-        .setReason(Reason.CREATE)
-        .setTargetId(getUniqueIdFromCommand())
-        .setClientId("TheRegistrar")
-        .setCost(cost)
-        .setPeriodYears(2)
-        .setEventTime(clock.nowUtc())
-        .setBillingTime(billingTime)
-        .setFlags(billingFlags)
-        .setParent(historyEntry)
-        .build();
-    assertBillingEvents(
-        createBillingEvent,
+    // There should be one bill for the create and one for the recurring autorenew event.
+    BillingEvent.OneTime createBillingEvent =
+        new BillingEvent.OneTime.Builder()
+            .setReason(Reason.CREATE)
+            .setTargetId(getUniqueIdFromCommand())
+            .setClientId("TheRegistrar")
+            .setCost(cost)
+            .setPeriodYears(2)
+            .setEventTime(clock.nowUtc())
+            .setBillingTime(billingTime)
+            .setFlags(billingFlags)
+            .setParent(historyEntry)
+            .build();
+
+    BillingEvent.Recurring renewBillingEvent =
         new BillingEvent.Recurring.Builder()
             .setReason(Reason.RENEW)
             .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
@@ -208,7 +206,36 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .setEventTime(domain.getRegistrationExpirationTime())
             .setRecurrenceEndTime(END_OF_TIME)
             .setParent(historyEntry)
-            .build());
+            .build();
+
+    ImmutableSet<BillingEvent> billingEvents = ImmutableSet.of(
+        createBillingEvent, renewBillingEvent);
+
+    // If EAP is applied, a billing event for EAP should be present.
+    if (!eapFee.isZero()) {
+      ImmutableSet<BillingEvent.Flag> eapFlags =
+          isAnchorTenant
+              ? ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT, BillingEvent.Flag.EAP)
+              : ImmutableSet.of(BillingEvent.Flag.EAP);
+      BillingEvent.OneTime eapBillingEvent =
+          new BillingEvent.OneTime.Builder()
+              .setReason(Reason.CREATE)
+              .setTargetId(getUniqueIdFromCommand())
+              .setClientId("TheRegistrar")
+              .setCost(eapFee)
+              .setPeriodYears(2)
+              .setEventTime(clock.nowUtc())
+              .setBillingTime(billingTime)
+              .setFlags(eapFlags)
+              .setParent(historyEntry)
+              .build();
+      billingEvents = ImmutableSet.<BillingEvent>builder()
+          .addAll(billingEvents)
+          .add(eapBillingEvent)
+          .build();
+    }
+    assertBillingEvents(billingEvents);
+    
     assertGracePeriods(
         domain.getGracePeriods(),
         ImmutableMap.of(

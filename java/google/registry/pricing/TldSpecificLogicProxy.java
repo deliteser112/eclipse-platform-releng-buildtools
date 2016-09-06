@@ -26,6 +26,7 @@ import com.googlecode.objectify.Key;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.LrpToken;
+import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.EapFee;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
@@ -39,9 +40,6 @@ import org.joda.time.DateTime;
  * implementations on a per-TLD basis.
  */
 public final class TldSpecificLogicProxy {
-
-  private static final String EAP_DESCRIPTION_FORMAT = "Early Access Period, fee expires: %s";
-
   /**
    * A collection of fees for a specific event.
    */
@@ -56,15 +54,34 @@ public final class TldSpecificLogicProxy {
       this.fees = checkArgumentNotNull(fees, "Fees may not be null in EppCommandOperations.");
     }
 
-    /**
-     * Returns the total cost of all fees for the event.
-     */
+    private Money getTotalCostForType(FeeType type) {
+      Money result = Money.zero(currency);
+      checkArgumentNotNull(type);
+      for (Fee fee : fees) {
+        if (fee.getType() == type) {
+          result = result.plus(fee.getCost());
+        }
+      }
+      return result;
+    }
+
+    /** Returns the total cost of all fees for the event. */
     public Money getTotalCost() {
       Money result = Money.zero(currency);
       for (Fee fee : fees) {
         result = result.plus(fee.getCost());
       }
       return result;
+    }
+
+    /** Returns the create cost for the event. */
+    public Money getCreateCost() {
+      return getTotalCostForType(FeeType.CREATE);
+    }
+
+    /** Returns the EAP cost for the event. */
+    public Money getEapCost() {
+      return getTotalCostForType(FeeType.EAP);
     }
 
     /**
@@ -94,7 +111,8 @@ public final class TldSpecificLogicProxy {
     ImmutableList.Builder<Fee> feeBuilder = new ImmutableList.Builder<>();
 
     // Add Create cost.
-    feeBuilder.add(Fee.create(prices.getCreateCost().multipliedBy(years).getAmount(), "create"));
+    feeBuilder.add(
+        Fee.create(prices.getCreateCost().multipliedBy(years).getAmount(), FeeType.CREATE));
 
     // Add EAP Fee.
     EapFee eapFee = registry.getEapFeeFor(date);
@@ -103,8 +121,7 @@ public final class TldSpecificLogicProxy {
     if (!eapFeeCost.getAmount().equals(Money.zero(currency).getAmount())) {
       feeBuilder.add(
           Fee.create(
-              eapFeeCost.getAmount(),
-              String.format(EAP_DESCRIPTION_FORMAT, eapFee.getPeriod().upperEndpoint())));
+              eapFeeCost.getAmount(), FeeType.EAP, eapFee.getPeriod().upperEndpoint()));
     }
 
     return new EppCommandOperations(currency, feeBuilder.build());
@@ -119,7 +136,8 @@ public final class TldSpecificLogicProxy {
     return new EppCommandOperations(
         registry.getCurrency(),
         ImmutableList.of(
-            Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), "renew")));
+            Fee.create(
+                prices.getRenewCost().multipliedBy(years).getAmount(), FeeType.RENEW)));
   }
 
   /**
@@ -131,8 +149,9 @@ public final class TldSpecificLogicProxy {
     return new EppCommandOperations(
         registry.getCurrency(),
         ImmutableList.of(
-            Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), "renew"),
-            Fee.create(registry.getStandardRestoreCost().getAmount(), "restore")));
+            Fee.create(
+                prices.getRenewCost().multipliedBy(years).getAmount(), FeeType.RENEW),
+            Fee.create(registry.getStandardRestoreCost().getAmount(), FeeType.RESTORE)));
   }
 
   /**

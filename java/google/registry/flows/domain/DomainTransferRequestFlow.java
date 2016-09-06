@@ -36,6 +36,7 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainCommand.Transfer;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
+import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
@@ -161,10 +162,12 @@ public class DomainTransferRequestFlow
   @Override
   protected ImmutableList<? extends ResponseExtension> getTransferResponseExtensions() {
     if (feeTransfer != null) {
-      return ImmutableList.of(feeTransfer.createResponseBuilder()
-          .setCurrency(renewCost.getCurrencyUnit())
-          .setFees(ImmutableList.of(Fee.create(renewCost.getAmount(), "renew")))
-          .build());
+      return ImmutableList.of(
+          feeTransfer
+              .createResponseBuilder()
+              .setCurrency(renewCost.getCurrencyUnit())
+              .setFees(ImmutableList.of(Fee.create(renewCost.getAmount(), FeeType.RENEW)))
+              .build());
     } else {
       return null;
     }

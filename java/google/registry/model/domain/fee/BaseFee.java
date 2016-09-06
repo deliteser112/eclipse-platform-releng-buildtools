@@ -15,6 +15,7 @@
 package google.registry.model.domain.fee;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import google.registry.model.ImmutableObject;
 import google.registry.xml.PeriodAdapter;
@@ -38,6 +39,24 @@ public abstract class BaseFee extends ImmutableObject {
     @XmlEnumValue("delayed")
     DELAYED
   }
+  
+  /** Enum for the type of the fee. */
+  public enum FeeType {
+    CREATE("create"),
+    EAP("Early Access Period, fee expires: %s"),
+    RENEW("renew"),
+    RESTORE("restore");
+
+    private final String formatString;
+
+    FeeType(String formatString) {
+      this.formatString = formatString;
+    }
+
+    String renderDescription(Object... args) {
+      return String.format(formatString, args);
+    }
+  }
 
   @XmlAttribute
   String description;
@@ -54,6 +73,9 @@ public abstract class BaseFee extends ImmutableObject {
 
   @XmlValue
   BigDecimal cost;
+  
+  @XmlTransient
+  FeeType type;
 
   public String getDescription() {
     return description;
@@ -80,6 +102,15 @@ public abstract class BaseFee extends ImmutableObject {
    */
   public BigDecimal getCost() {
     return cost;
+  }
+  
+  public FeeType getType() {
+    return type;
+  }
+
+  protected void generateDescription(Object... args) {
+    checkState(type != null);
+    description = type.renderDescription(args);
   }
 
   public boolean hasDefaultAttributes() {

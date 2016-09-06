@@ -42,6 +42,7 @@ import google.registry.model.domain.DomainRenewData;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.Period;
+import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -174,13 +175,16 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
     return createOutput(
         Success,
         DomainRenewData.create(
-            newResource.getFullyQualifiedDomainName(),
-            newResource.getRegistrationExpirationTime()),
-        (feeRenew == null) ? null : ImmutableList.of(
-            feeRenew.createResponseBuilder()
-                .setCurrency(renewCost.getCurrencyUnit())
-                .setFees(ImmutableList.of(Fee.create(renewCost.getAmount(), "renew")))
-                .build()));
+            newResource.getFullyQualifiedDomainName(), newResource.getRegistrationExpirationTime()),
+        (feeRenew == null)
+            ? null
+            : ImmutableList.of(
+                feeRenew
+                    .createResponseBuilder()
+                    .setCurrency(renewCost.getCurrencyUnit())
+                    .setFees(
+                        ImmutableList.of(Fee.create(renewCost.getAmount(), FeeType.RENEW)))
+                    .build()));
   }
 
   /** The domain has a pending transfer on it and so can't be explicitly renewed. */

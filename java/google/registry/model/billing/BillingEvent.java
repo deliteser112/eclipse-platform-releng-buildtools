@@ -71,6 +71,7 @@ public abstract class BillingEvent extends ImmutableObject
     ALLOCATION,
     ANCHOR_TENANT,
     AUTO_RENEW,
+    EAP,
     LANDRUSH,
     SUNRISE,
     /**

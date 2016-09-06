@@ -37,13 +37,17 @@ import google.registry.model.domain.fee12.FeeUpdateCommandExtensionV12;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import java.math.BigDecimal;
 
-/** A fee, in currency units specified elsewhere in the xml, and with an optional description. */
+/**
+ * A fee, in currency units specified elsewhere in the xml, with type of the fee an optional fee
+ * description.
+ */
 public class Fee extends BaseFee {
-  public static Fee create(BigDecimal cost, String description) {
+  public static Fee create(BigDecimal cost, FeeType type, Object... descriptionArgs) {
     Fee instance = new Fee();
     instance.cost = checkNotNull(cost);
     checkArgument(instance.cost.signum() >= 0);
-    instance.description = description;
+    instance.type = checkNotNull(type);
+    instance.generateDescription(descriptionArgs);
     return instance;
   }
 
