@@ -14,6 +14,9 @@
 
 package google.registry.monitoring.metrics;
 
+import static google.registry.monitoring.metrics.MetricsUtils.DEFAULT_CONCURRENCY_LEVEL;
+import static google.registry.monitoring.metrics.MetricsUtils.newConcurrentHashMap;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -38,22 +41,10 @@ import org.joda.time.Instant;
  */
 public final class EventMetric extends AbstractMetric<Distribution> {
 
-  /**
-   * The below constants replicate the default initial capacity, load factor, and concurrency level
-   * for {@link ConcurrentHashMap} as of Java SE 7. They are hardcoded here so that the concurrency
-   * level in {@code valueLocks} below can be set identically.
-   */
-  private static final int HASHMAP_INITIAL_CAPACITY = 16;
-
-  private static final float HASHMAP_LOAD_FACTOR = 0.75f;
-  private static final int HASHMAP_CONCURRENCY_LEVEL = 16;
-
   private final ConcurrentHashMap<ImmutableList<String>, Instant> valueStartTimestamps =
-      new ConcurrentHashMap<>(
-          HASHMAP_INITIAL_CAPACITY, HASHMAP_LOAD_FACTOR, HASHMAP_CONCURRENCY_LEVEL);
+      newConcurrentHashMap(DEFAULT_CONCURRENCY_LEVEL);
   private final ConcurrentHashMap<ImmutableList<String>, MutableDistribution> values =
-      new ConcurrentHashMap<>(
-          HASHMAP_INITIAL_CAPACITY, HASHMAP_LOAD_FACTOR, HASHMAP_CONCURRENCY_LEVEL);
+      newConcurrentHashMap(DEFAULT_CONCURRENCY_LEVEL);
 
   private final DistributionFitter distributionFitter;
 
@@ -64,7 +55,7 @@ public final class EventMetric extends AbstractMetric<Distribution> {
    *
    * @see Striped
    */
-  private final Striped<Lock> valueLocks = Striped.lock(HASHMAP_CONCURRENCY_LEVEL);
+  private final Striped<Lock> valueLocks = Striped.lock(DEFAULT_CONCURRENCY_LEVEL);
 
   EventMetric(
       String name,

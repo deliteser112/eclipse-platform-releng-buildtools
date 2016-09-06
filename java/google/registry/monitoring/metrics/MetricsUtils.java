@@ -17,6 +17,7 @@ package google.registry.monitoring.metrics;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.ImmutableList;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Static helper methods for the Metrics library. */
 final class MetricsUtils {
@@ -24,6 +25,16 @@ final class MetricsUtils {
   private static final Double NEGATIVE_ZERO = -0.0;
   private static final String LABEL_SIZE_ERROR =
       "The count of labelValues must be equal to the underlying Metric's count of labels.";
+
+  /**
+   * The below constants replicate the default initial capacity, load factor, and concurrency level
+   * for {@link ConcurrentHashMap} as of Java SE 7. They are recorded here so that a {@link
+   * com.google.common.util.concurrent.Striped} object can be constructed with a concurrency level
+   * matching the default concurrency level of a {@link ConcurrentHashMap}.
+   */
+  private static final int HASHMAP_INITIAL_CAPACITY = 16;
+  private static final float HASHMAP_LOAD_FACTOR = 0.75f;
+  static final int DEFAULT_CONCURRENCY_LEVEL = 16;
 
   private MetricsUtils() {}
 
@@ -52,5 +63,9 @@ final class MetricsUtils {
     checkArgument(
         !Double.isInfinite(value) && !Double.isNaN(value) && !NEGATIVE_ZERO.equals(value),
         "value must be finite, not NaN, and not -0.0");
+  }
+
+  static <K, V> ConcurrentHashMap<K, V> newConcurrentHashMap(int concurrencyLevel) {
+    return new ConcurrentHashMap<>(HASHMAP_INITIAL_CAPACITY, HASHMAP_LOAD_FACTOR, concurrencyLevel);
   }
 }
