@@ -42,6 +42,7 @@ java_library(
         "//java/com/google/api/client/json",
         "//java/com/google/api/client/json/jackson2",
         "//java/com/google/common/base",
+        "//java/com/google/common/collect",
         "//third_party/java/appengine:appengine-api",
         "//third_party/java/dagger",
         "//java/google/registry/config",
