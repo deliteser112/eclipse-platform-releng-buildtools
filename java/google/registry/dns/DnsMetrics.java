@@ -18,17 +18,20 @@ import com.google.common.collect.ImmutableSet;
 import google.registry.monitoring.metrics.IncrementableMetric;
 import google.registry.monitoring.metrics.LabelDescriptor;
 import google.registry.monitoring.metrics.MetricRegistryImpl;
+import javax.inject.Inject;
 
-/**
- * DNS instrumentation.
- */
+/** DNS instrumentation. */
 public class DnsMetrics {
+
+  /** Disposition of a publish request. */
+  public enum Status { ACCEPTED, REJECTED }
 
   private static final ImmutableSet<LabelDescriptor> LABEL_DESCRIPTORS =
       ImmutableSet.of(
           LabelDescriptor.create("tld", "TLD"),
           LabelDescriptor.create(
               "status", "Whether the publish request was accepted or rejected."));
+
   private static final IncrementableMetric publishDomainRequests =
       MetricRegistryImpl.getDefault()
           .newIncrementableMetric(
@@ -36,6 +39,7 @@ public class DnsMetrics {
               "count of publishDomain requests",
               "count",
               LABEL_DESCRIPTORS);
+
   private static final IncrementableMetric publishHostRequests =
       MetricRegistryImpl.getDefault()
           .newIncrementableMetric(
@@ -43,6 +47,9 @@ public class DnsMetrics {
               "count of publishHost requests",
               "count",
               LABEL_DESCRIPTORS);
+
+  @Inject
+  DnsMetrics() {}
 
   /**
    * Increment a monotonic counter that tracks calls to {@link
@@ -58,11 +65,5 @@ public class DnsMetrics {
    */
   public void incrementPublishHostRequests(String tld, Status status) {
     publishHostRequests.increment(tld, status.name());
-  }
-
-  /** Enum to encode the disposition of a publish request. */
-  public enum Status {
-    ACCEPTED,
-    REJECTED
   }
 }
