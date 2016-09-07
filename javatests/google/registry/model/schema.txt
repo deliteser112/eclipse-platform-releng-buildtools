@@ -251,10 +251,10 @@ class google.registry.model.domain.DomainBase {
 class google.registry.model.domain.DomainResource {
   @Id java.lang.String repoId;
   com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Key<google.registry.model.ofy.CommitLogManifest>> revisions;
-  com.googlecode.objectify.Key<google.registry.model.poll.PollMessage$OneTime> deletePollMessage;
   com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$Recurring> autorenewBillingEvent;
   com.googlecode.objectify.Key<google.registry.model.domain.DomainApplication> application;
   com.googlecode.objectify.Key<google.registry.model.poll.PollMessage$Autorenew> autorenewPollMessage;
+  com.googlecode.objectify.Key<google.registry.model.poll.PollMessage$OneTime> deletePollMessage;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   google.registry.model.domain.DomainAuthInfo authInfo;
