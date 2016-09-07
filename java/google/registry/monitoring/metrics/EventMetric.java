@@ -41,6 +41,13 @@ import org.joda.time.Instant;
  */
 public final class EventMetric extends AbstractMetric<Distribution> {
 
+  /**
+   * Default {@link DistributionFitter} suitable for latency measurements.
+   *
+   * <p>The finite range of this fitter is from 1 to 4^16 (4294967296).
+   */
+  public static final DistributionFitter DEFAULT_FITTER = ExponentialFitter.create(16, 4.0, 1.0);
+
   private final ConcurrentHashMap<ImmutableList<String>, Instant> valueStartTimestamps =
       newConcurrentHashMap(DEFAULT_CONCURRENCY_LEVEL);
   private final ConcurrentHashMap<ImmutableList<String>, MutableDistribution> values =
