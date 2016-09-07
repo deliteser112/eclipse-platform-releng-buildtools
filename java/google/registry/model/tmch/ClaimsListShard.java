@@ -44,6 +44,7 @@ import google.registry.model.annotations.VirtualEntity;
 import google.registry.model.common.CrossTldSingleton;
 import google.registry.util.CollectionUtils;
 import google.registry.util.Concurrent;
+import google.registry.util.NonFinalForTesting;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,8 +70,10 @@ import org.joda.time.DateTime;
 @NotBackedUp(reason = Reason.EXTERNALLY_SOURCED)
 public class ClaimsListShard extends ImmutableObject {
 
+  /** The number of claims list entries to store per shard.  Do not modify except for in tests. */
   @VisibleForTesting
-  public static final int SHARD_SIZE = 10000;
+  @NonFinalForTesting
+  static int shardSize = 10000;
 
   @Id
   long id;
@@ -159,7 +162,7 @@ public class ClaimsListShard extends ImmutableObject {
     final Key<ClaimsListRevision> parentKey = ClaimsListRevision.createKey();
 
     // Save the ClaimsList shards in separate transactions.
-    Concurrent.transform(CollectionUtils.partitionMap(labelsToKeys, SHARD_SIZE),
+    Concurrent.transform(CollectionUtils.partitionMap(labelsToKeys, shardSize),
         new Function<ImmutableMap<String, String>, ClaimsListShard>() {
           @Override
           public ClaimsListShard apply(final ImmutableMap<String, String> labelsToKeysShard) {

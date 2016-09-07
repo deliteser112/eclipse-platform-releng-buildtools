@@ -26,10 +26,12 @@ import google.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
 import google.registry.model.tmch.ClaimsListShard.UnshardedSaveException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
+import google.registry.testing.InjectRule;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +49,13 @@ public class ClaimsListShardTest {
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
-  protected final DateTime now = DateTime.now(UTC);
+  @Rule
+  public final InjectRule inject = new InjectRule();
+
+  @Before
+  public void before() throws Exception {
+    inject.setStaticField(ClaimsListShard.class, "shardSize", 10);
+  }
 
   @Test
   public void test_unshardedSaveFails() throws Exception {
@@ -73,9 +81,10 @@ public class ClaimsListShardTest {
   public void test_savesAndGets_withSharding() throws Exception {
     // Create a ClaimsList that will need 4 shards to save.
     Map<String, String> labelsToKeys = new HashMap<>();
-    for (int i = 0; i <= ClaimsListShard.SHARD_SIZE * 3; i++) {
+    for (int i = 0; i <= ClaimsListShard.shardSize * 3; i++) {
       labelsToKeys.put(Integer.toString(i), Integer.toString(i));
     }
+    DateTime now = DateTime.now(UTC);
     // Save it with sharding, and make sure that reloading it works.
     ClaimsListShard unsharded = ClaimsListShard.create(now, ImmutableMap.copyOf(labelsToKeys));
     unsharded.save();
@@ -88,7 +97,7 @@ public class ClaimsListShardTest {
 
     // Create a smaller ClaimsList that will need only 2 shards to save.
     labelsToKeys = new HashMap<>();
-    for (int i = 0; i <= ClaimsListShard.SHARD_SIZE; i++) {
+    for (int i = 0; i <= ClaimsListShard.shardSize; i++) {
       labelsToKeys.put(Integer.toString(i), Integer.toString(i));
     }
     unsharded = ClaimsListShard.create(now.plusDays(1), ImmutableMap.copyOf(labelsToKeys));
