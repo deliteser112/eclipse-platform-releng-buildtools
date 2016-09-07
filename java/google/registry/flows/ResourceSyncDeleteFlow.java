@@ -36,7 +36,7 @@ public abstract class ResourceSyncDeleteFlow
 
   @Override
   @SuppressWarnings("unchecked")
-  protected final R createOrMutateResource() {
+  protected final R createOrMutateResource() throws EppException {
     B builder = (B) prepareDeletedResourceAsBuilder(existingResource, now);
     setDeleteProperties(builder);
     return builder.build();
@@ -52,7 +52,7 @@ public abstract class ResourceSyncDeleteFlow
 
   /** Set any resource-specific properties before deleting. */
   @SuppressWarnings("unused")
-  protected void setDeleteProperties(B builder) {}
+  protected void setDeleteProperties(B builder) throws EppException {}
 
   /** Modify any other resources that need to be informed of this delete. */
   protected void modifySyncDeleteRelatedResources() {}

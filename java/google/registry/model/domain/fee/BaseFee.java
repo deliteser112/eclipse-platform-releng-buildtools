@@ -45,7 +45,9 @@ public abstract class BaseFee extends ImmutableObject {
     CREATE("create"),
     EAP("Early Access Period, fee expires: %s"),
     RENEW("renew"),
-    RESTORE("restore");
+    RESTORE("restore"),
+    UPDATE("update"),
+    CREDIT("%s credit");
 
     private final String formatString;
 

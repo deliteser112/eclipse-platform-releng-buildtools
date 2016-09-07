@@ -28,6 +28,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -84,6 +85,8 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
   protected FeeTransformCommandExtension feeRenew;
   protected Money renewCost;
 
+  protected Optional<RegistryExtraFlowLogic> extraFlowLogic;
+
   @Inject DomainRenewFlow() {}
 
   @Override
@@ -96,6 +99,7 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
     registerExtensions(FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     feeRenew =
         eppInput.getFirstExtensionOfClasses(FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extraFlowLogic = RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);
   }
 
   @Override
@@ -117,7 +121,7 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
   }
 
   @Override
-  protected DomainResource createOrMutateResource() {
+  protected DomainResource createOrMutateResource() throws EppException {
     DateTime newExpirationTime = leapSafeAddYears(
         existingResource.getRegistrationExpirationTime(), command.getPeriod().getValue());
     // Bill for this explicit renew itself.
@@ -143,6 +147,13 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
         .setEventTime(newExpirationTime)
         .setParent(historyEntry)
         .build();
+
+    // Handle extra flow logic, if any.
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().performAdditionalDomainRenewLogic(
+          existingResource, getClientId(), now, command.getPeriod().getValue(), eppInput);
+    }
+
     ofy().save().<Object>entities(explicitRenewEvent, newAutorenewEvent, newAutorenewPollMessage);
     return existingResource.asBuilder()
         .setRegistrationExpirationTime(newExpirationTime)
@@ -157,6 +168,14 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
     if (leapSafeAddYears(now, MAX_REGISTRATION_YEARS)
         .isBefore(newResource.getRegistrationExpirationTime())) {
       throw new ExceedsMaxRegistrationYearsException();
+    }
+  }
+
+  /** Commit any extra flow logic. */
+  @Override
+  protected final void modifyRelatedResources() {
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().commitAdditionalLogicChanges();
     }
   }
 

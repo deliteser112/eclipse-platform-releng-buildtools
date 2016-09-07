@@ -14,8 +14,8 @@
 
 package google.registry.model.domain.fee;
 
-import com.google.common.collect.ImmutableList;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
+import java.util.List;
 import org.joda.money.CurrencyUnit;
 
 /** Interface for fee extensions in Create, Renew, Transfer and Update responses. */
@@ -24,8 +24,8 @@ public interface FeeTransformResponseExtension extends ResponseExtension {
   /** Builder for {@link FeeTransformResponseExtension}. */
   public interface Builder {
     Builder setCurrency(CurrencyUnit currency);
-    Builder setFees(ImmutableList<Fee> fees);
-    Builder setCredits(ImmutableList<Credit> credits);
+    Builder setFees(List<Fee> fees);
+    Builder setCredits(List<Credit> credits);
     FeeTransformResponseExtension build();
   }
 }

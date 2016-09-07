@@ -56,7 +56,7 @@
           </fee:object>
           <fee:command name="update">
             <fee:period unit="y">1</fee:period>
-            <fee:fee description="renew">11.00</fee:fee>
+            <fee:fee description="update">0.00</fee:fee>
           </fee:command>
         </fee:cd>
       </fee:chkData>

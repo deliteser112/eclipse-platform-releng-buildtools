@@ -138,7 +138,7 @@ public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Build
   }
 
   @Override
-  protected final void modifyRelatedResources() {
+  protected final void modifyUpdateRelatedResources() {
     // Determine the status changes, and filter to server statuses.
     // If any of these statuses have been added or removed, bill once.
     if (metadataExtension != null && metadataExtension.getRequestedByRegistrar()) {
@@ -160,10 +160,6 @@ public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Build
           .build();
         ofy().save().entity(billingEvent);
       }
-    }
-
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().commitAdditionalDomainUpdates();
     }
   }
 

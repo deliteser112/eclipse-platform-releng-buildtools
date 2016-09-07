@@ -60,7 +60,7 @@
           </fee:object>
           <fee:command name="update">
             <fee:period unit="y">1</fee:period>
-            <fee:fee description="renew">100.00</fee:fee>
+            <fee:fee description="update">0.00</fee:fee>
             <fee:class>premium</fee:class>
           </fee:command>
         </fee:cd>

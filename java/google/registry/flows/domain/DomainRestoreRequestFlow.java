@@ -26,6 +26,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
@@ -75,6 +76,7 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
   protected FeeTransformCommandExtension feeUpdate;
   protected Money restoreCost;
   protected Money renewCost;
+  protected Optional<RegistryExtraFlowLogic> extraFlowLogic;
 
   @Inject DomainRestoreRequestFlow() {}
 
@@ -82,6 +84,7 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
   protected final void initResourceCreateOrMutateFlow() throws EppException {
     registerExtensions(RgpUpdateExtension.class);
     registerExtensions(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extraFlowLogic = RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);
   }
 
   @Override
@@ -155,6 +158,13 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
         .build();
 
     ofy().save().<Object>entities(restoreEvent, autorenewEvent, autorenewPollMessage, renewEvent);
+
+    // Handle extra flow logic, if any.
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().performAdditionalDomainRestoreLogic(
+          existingResource, getClientId(), now, eppInput);
+    }
+    
     return existingResource.asBuilder()
         .setRegistrationExpirationTime(newExpirationTime)
         .setDeletionTime(END_OF_TIME)
@@ -171,6 +181,10 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
     // Update the relevant {@link ForeignKey} to cache the new deletion time.
     ofy().save().entity(ForeignKeyIndex.create(newResource, newResource.getDeletionTime()));
     ofy().delete().key(existingResource.getDeletePollMessage());
+
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().commitAdditionalLogicChanges();
+    }
   }
 
   @Override

@@ -46,7 +46,7 @@
           <fee:currency>USD</fee:currency>
           <fee:command>update</fee:command>
           <fee:period unit="y">1</fee:period>
-          <fee:fee description="renew">11.00</fee:fee>
+          <fee:fee description="update">0.00</fee:fee>
         </fee:cd>
       </fee:chkData>
     </extension>

@@ -21,11 +21,12 @@ import java.math.BigDecimal;
 
 /** A credit, in currency units specified elsewhere in the xml, and with an optional description. */
 public class Credit extends BaseFee {
-  public static Credit create(BigDecimal cost, String description) {
+  public static Credit create(BigDecimal cost, FeeType type, Object... descriptionArgs) {
     Credit instance = new Credit();
     instance.cost = checkNotNull(cost);
     checkArgument(instance.cost.signum() < 0);
-    instance.description = description;
+    instance.type = checkNotNull(type);
+    instance.generateDescription(descriptionArgs);
     return instance;
   }
 }

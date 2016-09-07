@@ -15,8 +15,12 @@
 package google.registry.flows.domain;
 
 import com.google.common.base.Optional;
+import google.registry.flows.EppException;
+import google.registry.flows.EppException.CommandFailedException;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.registry.Registry;
 import java.util.HashMap;
+import javax.annotation.Nullable;
 
 /**
  * Static class to return the correct {@link RegistryExtraFlowLogic} for a particular TLD.
@@ -36,12 +40,23 @@ public class RegistryExtraFlowLogicProxy {
     extraLogicOverrideMap.put(tld, extraLogicClass);
   }
 
-  public static Optional<RegistryExtraFlowLogic> newInstanceForTld(String tld) {
+  public static <D extends DomainBase> Optional<RegistryExtraFlowLogic>
+      newInstanceForDomain(@Nullable D domain) throws EppException {
+    if (domain == null) {
+      return Optional.absent();
+    } else {
+      return newInstanceForTld(domain.getTld());
+    }
+  }
+  
+  public static Optional<RegistryExtraFlowLogic>
+      newInstanceForTld(String tld) throws EppException {
     if (extraLogicOverrideMap.containsKey(tld)) {
       try {
-        return Optional.<RegistryExtraFlowLogic>of(extraLogicOverrideMap.get(tld).newInstance());
-      } catch (InstantiationException | IllegalAccessException e) {
-        return Optional.absent();
+        return Optional.<RegistryExtraFlowLogic>of(
+            extraLogicOverrideMap.get(tld).getConstructor().newInstance());
+      } catch (ReflectiveOperationException ex) {
+        throw new CommandFailedException();
       }
     }
     return Optional.absent();

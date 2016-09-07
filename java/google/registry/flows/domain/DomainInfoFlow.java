@@ -99,13 +99,15 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
           builder,
           getTargetId(),
           existingResource.getTld(),
+          getClientId(),
           null,
-          now);
+          now,
+          eppInput);
       extensions.add(builder.build());
     }
     // If the TLD uses the flags extension, add it to the info response.
     Optional<RegistryExtraFlowLogic> extraLogicManager =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(existingResource.getTld());
+        RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);
     if (extraLogicManager.isPresent()) {
       List<String> flags = extraLogicManager.get().getExtensionFlags(
           existingResource, this.getClientId(), now); // As-of date is always now for info commands.

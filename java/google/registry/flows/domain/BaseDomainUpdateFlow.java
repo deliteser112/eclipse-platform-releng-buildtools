@@ -58,12 +58,7 @@ public abstract class BaseDomainUpdateFlow<R extends DomainBase, B extends Build
   public final void initResourceCreateOrMutateFlow() throws EppException {
     command = cloneAndLinkReferences(command, now);
     initDomainUpdateFlow();
-    // In certain conditions (for instance, errors), there is no existing resource.
-    if (existingResource == null) {
-      extraFlowLogic = Optional.absent();
-    } else {
-      extraFlowLogic = RegistryExtraFlowLogicProxy.newInstanceForTld(existingResource.getTld());
-    }
+    extraFlowLogic = RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);
   }
 
   @SuppressWarnings("unused")
@@ -142,6 +137,18 @@ public abstract class BaseDomainUpdateFlow<R extends DomainBase, B extends Build
     validateDsData(newResource.getDsData());
     validateNameserversCountForTld(newResource.getTld(), newResource.getNameservers().size());
   }
+
+  /** Call the subclass method, then commit any extra flow logic. */
+  @Override
+  protected final void modifyRelatedResources() {
+    modifyUpdateRelatedResources();
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().commitAdditionalLogicChanges();
+    }
+  }
+
+  /** Modify any other resources that need to be informed of this update. */
+  protected void modifyUpdateRelatedResources() {}
 
   /** The secDNS:all element must have value 'true' if present. */
   static class SecDnsAllUsageException extends ParameterValuePolicyErrorException {

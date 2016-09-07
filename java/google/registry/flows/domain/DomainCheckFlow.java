@@ -171,8 +171,10 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
             builder,
             domainName,
             getTldFromDomainName(domainName),
+            getClientId(),
             topLevelCurrency,
-            now);
+            now,
+            eppInput);
         feeCheckResponseItemsBuilder
             .add(builder.setDomainNameIfSupported(domainName).build());
       }

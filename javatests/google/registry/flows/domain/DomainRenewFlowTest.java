@@ -18,6 +18,7 @@ import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWit
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -53,6 +54,7 @@ import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.TestExtraLogicManager;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
@@ -85,7 +87,9 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
 
   @Before
   public void initDomainTest() {
-    createTld("tld");
+    createTlds("tld", "flags");
+    // For flags extension tests.
+    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   private void persistDomain(StatusValue... statusValues) throws Exception {
@@ -605,6 +609,14 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(true).build());
     setEppInput("domain_renew_premium.xml");
     persistDomain();
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_flags() throws Exception {
+    setEppInput("domain_renew_flags.xml");
+    persistDomain();
+    thrown.expect(IllegalArgumentException.class, "renewed");
     runFlow();
   }
 }

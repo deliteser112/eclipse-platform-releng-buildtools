@@ -1185,7 +1185,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_addremove_flags.xml");
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(UnimplementedExtensionException.class);
+    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
     runFlow();
   }
 }

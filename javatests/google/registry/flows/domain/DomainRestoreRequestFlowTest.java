@@ -18,10 +18,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
@@ -54,6 +56,7 @@ import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.TestExtraLogicManager;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
@@ -82,7 +85,9 @@ public class DomainRestoreRequestFlowTest extends
 
   @Before
   public void initDomainTest() {
-    createTld("tld");
+    createTlds("tld", "flags");
+    // For flags extension tests.
+    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   void persistPendingDeleteDomain() throws Exception {
@@ -447,6 +452,13 @@ public class DomainRestoreRequestFlowTest extends
   }
 
   @Test
+  public void testFailure_fullyDeleted() throws Exception {
+    thrown.expect(ResourceToMutateDoesNotExistException.class);
+    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc());
+    runFlow();
+  }
+
+  @Test
   public void testFailure_withChange() throws Exception {
     thrown.expect(RestoreCommandIncludesChangesException.class);
     persistPendingDeleteDomain();
@@ -537,6 +549,14 @@ public class DomainRestoreRequestFlowTest extends
     createTld("example");
     setEppInput("domain_update_restore_request_premium.xml");
     persistPendingDeleteDomain();
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_flags() throws Exception {
+    setEppInput("domain_update_restore_request_flags.xml");
+    persistPendingDeleteDomain();
+    thrown.expect(IllegalArgumentException.class, "restored");
     runFlow();
   }
 }

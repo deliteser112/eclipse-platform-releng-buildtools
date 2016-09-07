@@ -21,6 +21,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.deleteTld;
 import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static google.registry.testing.DatastoreHelper.newContactResource;
@@ -104,6 +105,7 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.LrpToken;
+import google.registry.model.domain.TestExtraLogicManager;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -134,7 +136,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Before
   public void initCreateTest() throws Exception {
-    createTld("tld");
+    createTlds("tld", "flags");
     persistResource(Registry.get("tld").asBuilder()
         .setReservedLists(persistReservedList(
             "tld-reserved",
@@ -142,6 +144,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             "anchor,RESERVED_FOR_ANCHOR_TENANT,2fooBAR"))
         .build());
     persistClaimsList(ImmutableMap.of("example-one", CLAIMS_KEY));
+    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   /**
@@ -1603,5 +1606,21 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             clock.nowUtc().minusDays(1), Money.of(USD, 0)))
         .build());
     doSuccessfulTest("tld", "domain_create_response.xml");
+  }
+
+  @Test
+  public void testFailure_flags_feeMismatch() throws Exception {
+    persistContactsAndHosts();
+    setEppInput("domain_create_flags.xml", ImmutableMap.of("FEE", "12"));
+    thrown.expect(FeesMismatchException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_flags() throws Exception {
+    persistContactsAndHosts();
+    setEppInput("domain_create_flags.xml", ImmutableMap.of("FEE", "42"));
+    thrown.expect(IllegalArgumentException.class, "flag1,flag2");
+    runFlow();
   }
 }
