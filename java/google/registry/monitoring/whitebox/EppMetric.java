@@ -69,11 +69,11 @@ public abstract class EppMetric implements BigQueryMetric {
         requestId,
         startTimestamp,
         endTimestamp,
-        Optional.ofNullable(commandName),
-        Optional.ofNullable(clientId),
-        Optional.ofNullable(privilegeLevel),
-        Optional.ofNullable(eppTarget),
-        Optional.ofNullable(status),
+        Optional.fromNullable(commandName),
+        Optional.fromNullable(clientId),
+        Optional.fromNullable(privilegeLevel),
+        Optional.fromNullable(eppTarget),
+        Optional.fromNullable(status),
         attempts);
   }
 
