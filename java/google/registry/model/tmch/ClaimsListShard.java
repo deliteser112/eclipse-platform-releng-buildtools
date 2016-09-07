@@ -181,8 +181,9 @@ public class ClaimsListShard extends ImmutableObject {
     ofy().transactNew(new VoidWork() {
       @Override
       public void vrun() {
-        verify(getCurrentRevision() == null && oldRevision == null
-            || getCurrentRevision().equals(oldRevision),
+        verify(
+            (getCurrentRevision() == null && oldRevision == null)
+                || getCurrentRevision().equals(oldRevision),
             "ClaimsList on Registries was updated by someone else while attempting to update.");
         ofy().saveWithoutBackup().entity(ClaimsListSingleton.create(parentKey));
         // Delete the old ClaimsListShard entities.
