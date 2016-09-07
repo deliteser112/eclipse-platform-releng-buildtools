@@ -16,11 +16,13 @@ package google.registry.flows;
 
 import static org.mockito.Mockito.mock;
 
+import com.google.appengine.api.modules.ModulesService;
 import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
 import dagger.Subcomponent;
-import google.registry.monitoring.whitebox.EppMetrics;
+import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
+import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.request.RequestScope;
 import google.registry.testing.FakeClock;
 import google.registry.util.Clock;
@@ -40,11 +42,15 @@ interface EppTestComponent {
   @Module
   static class FakesAndMocksModule {
     final FakeClock clock;
-    final EppMetrics metrics;
+    final EppMetric.Builder metrics;
+    final BigQueryMetricsEnqueuer metricsEnqueuer;
+    final ModulesService modulesService;
 
     FakesAndMocksModule(FakeClock clock) {
       this.clock = clock;
-      this.metrics = mock(EppMetrics.class);
+      this.metrics = mock(EppMetric.Builder.class);
+      this.modulesService = mock(ModulesService.class);
+      this.metricsEnqueuer = mock(BigQueryMetricsEnqueuer.class);
     }
 
     @Provides
@@ -53,8 +59,18 @@ interface EppTestComponent {
     }
 
     @Provides
-    EppMetrics provideMetrics() {
+    EppMetric.Builder provideMetrics() {
       return metrics;
+    }
+
+    @Provides
+    ModulesService provideModulesService() {
+      return modulesService;
+    }
+
+    @Provides
+    BigQueryMetricsEnqueuer provideBigQueryMetricsEnqueuer() {
+      return metricsEnqueuer;
     }
   }
 

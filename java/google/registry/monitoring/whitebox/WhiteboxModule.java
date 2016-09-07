@@ -35,9 +35,9 @@ public class WhiteboxModule {
 
   @Provides
   @IntoMap
-  @StringKey(EppMetrics.TABLE_ID)
+  @StringKey(EppMetric.TABLE_ID)
   static ImmutableList<TableFieldSchema> provideEppMetricsSchema() {
-    return EppMetrics.SCHEMA_FIELDS;
+    return EppMetric.SCHEMA_FIELDS;
   }
 
   @Provides

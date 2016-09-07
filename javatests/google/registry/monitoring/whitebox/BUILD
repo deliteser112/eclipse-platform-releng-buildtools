@@ -23,6 +23,7 @@ java_library(
         "//third_party/java/appengine:appengine-api-testonly",
         "//third_party/java/appengine:appengine-stubs",
         "//third_party/java/appengine:appengine-testing",
+        "//third_party/java/auto:auto_value",
         "//third_party/java/joda_money",
         "//third_party/java/joda_time",
         "//third_party/java/junit",

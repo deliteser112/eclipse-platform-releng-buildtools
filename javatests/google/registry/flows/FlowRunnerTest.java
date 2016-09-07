@@ -35,7 +35,7 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse;
-import google.registry.monitoring.whitebox.EppMetrics;
+import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeHttpSession;
@@ -91,7 +91,7 @@ public class FlowRunnerTest extends ShardableTestCase {
     flowRunner.isDryRun = false;
     flowRunner.isSuperuser = false;
     flowRunner.isTransactional = false;
-    flowRunner.metrics = mock(EppMetrics.class);
+    flowRunner.metric = mock(EppMetric.Builder.class);
     flowRunner.sessionMetadata =
         new StatelessRequestSessionMetadata("TheRegistrar", ImmutableSet.<String>of());
     flowRunner.trid = Trid.create("client-123", "server-456");
@@ -113,7 +113,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   public void testRun_notIsTransactional_callsMetricIncrementAttempts() throws Exception {
     flowRunner.run();
 
-    verify(flowRunner.metrics).incrementAttempts();
+    verify(flowRunner.metric).incrementAttempts();
   }
 
   @Test
@@ -121,7 +121,7 @@ public class FlowRunnerTest extends ShardableTestCase {
     flowRunner.isTransactional = true;
     flowRunner.run();
 
-    verify(flowRunner.metrics).incrementAttempts();
+    verify(flowRunner.metric).incrementAttempts();
   }
 
   @Test

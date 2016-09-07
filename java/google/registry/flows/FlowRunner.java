@@ -31,7 +31,7 @@ import google.registry.flows.FlowModule.Transactional;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.monitoring.whitebox.EppMetrics;
+import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import javax.annotation.Nullable;
@@ -67,7 +67,7 @@ public class FlowRunner {
   @Inject @DryRun boolean isDryRun;
   @Inject @Superuser boolean isSuperuser;
   @Inject @Transactional boolean isTransactional;
-  @Inject EppMetrics metrics;
+  @Inject EppMetric.Builder metric;
   @Inject SessionMetadata sessionMetadata;
   @Inject Trid trid;
   @Inject FlowRunner() {}
@@ -100,7 +100,7 @@ public class FlowRunner {
             "xml", prettyXml,
             "xmlBytes", xmlBase64)));
     if (!isTransactional) {
-      metrics.incrementAttempts();
+      metric.incrementAttempts();
       return createAndInitFlow(clock.nowUtc()).run();
     }
     // We log the command in a structured format. Note that we do this before the transaction;
@@ -111,20 +111,24 @@ public class FlowRunner {
         .add("privileges", isSuperuser ? "SUPERUSER" : "NORMAL")
         .add("xmlBytes", xmlBase64));
     try {
-      EppOutput flowResult = ofy().transact(new Work<EppOutput>() {
-        @Override
-        public EppOutput run() {
-          metrics.incrementAttempts();
-          try {
-            EppOutput output = createAndInitFlow(ofy().getTransactionTime()).run();
-            if (isDryRun) {
-              throw new DryRunException(output);
-            }
-            return output;
-          } catch (EppException e) {
-            throw new RuntimeException(e);
-          }
-        }});
+      EppOutput flowResult =
+          ofy()
+              .transact(
+                  new Work<EppOutput>() {
+                    @Override
+                    public EppOutput run() {
+                      metric.incrementAttempts();
+                      try {
+                        EppOutput output = createAndInitFlow(ofy().getTransactionTime()).run();
+                        if (isDryRun) {
+                          throw new DryRunException(output);
+                        }
+                        return output;
+                      } catch (EppException e) {
+                        throw new RuntimeException(e);
+                      }
+                    }
+                  });
       logger.info("EPP_Mutation_Committed " + new JsonLogStatement(trid)
           .add("createdRepoId", flowResult.getResponse().getCreatedRepoId())
           .add("executionTime", flowResult.getResponse().getExecutionTime().getMillis()));

@@ -25,7 +25,8 @@ import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.eppoutput.Result.Code;
-import google.registry.monitoring.whitebox.EppMetrics;
+import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
+import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
@@ -41,7 +42,8 @@ public final class EppController {
 
   @Inject Clock clock;
   @Inject FlowComponent.Builder flowComponentBuilder;
-  @Inject EppMetrics metrics;
+  @Inject EppMetric.Builder metric;
+  @Inject BigQueryMetricsEnqueuer bigQueryMetricsEnqueuer;
   @Inject EppController() {}
 
   /** Read EPP XML, execute the matching flow, and return an {@link EppOutput}. */
@@ -52,20 +54,20 @@ public final class EppController {
       boolean isDryRun,
       boolean isSuperuser,
       byte[] inputXmlBytes) {
-    metrics.setClientId(sessionMetadata.getClientId());
-    metrics.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
+    metric.setClientId(sessionMetadata.getClientId());
+    metric.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
     try {
       EppInput eppInput;
       try {
         eppInput = unmarshal(EppInput.class, inputXmlBytes);
       } catch (EppException e) {
         // Send the client an error message, with no clTRID since we couldn't unmarshal it.
-        metrics.setEppStatus(e.getResult().getCode());
+        metric.setStatus(e.getResult().getCode());
         return getErrorResponse(clock, e.getResult(), Trid.create(null));
       }
-      metrics.setCommandName(eppInput.getCommandName());
+      metric.setCommandName(eppInput.getCommandName());
       if (!eppInput.getTargetIds().isEmpty()) {
-        metrics.setEppTarget(Joiner.on(',').join(eppInput.getTargetIds()));
+        metric.setEppTarget(Joiner.on(',').join(eppInput.getTargetIds()));
       }
       EppOutput output = runFlowConvertEppErrors(flowComponentBuilder
           .flowModule(new FlowModule.Builder()
@@ -79,11 +81,11 @@ public final class EppController {
               .build())
           .build());
       if (output.isResponse()) {
-        metrics.setEppStatus(output.getResponse().getResult().getCode());
+        metric.setStatus(output.getResponse().getResult().getCode());
       }
       return output;
     } finally {
-      metrics.export();
+      bigQueryMetricsEnqueuer.export(metric.build());
     }
   }
 

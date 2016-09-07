@@ -16,67 +16,54 @@ package google.registry.monitoring.whitebox;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
-import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
 
 import com.google.appengine.api.modules.ModulesService;
-import com.google.appengine.api.modules.ModulesServiceFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
-import com.google.common.base.Supplier;
-import google.registry.util.Clock;
+import com.google.common.annotations.VisibleForTesting;
 import google.registry.util.FormattingLogger;
-import google.registry.util.NonFinalForTesting;
-import google.registry.util.SystemClock;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
 
-/** A collector of metric information. */
-public abstract class Metrics {
+/**
+ * A collector of metric information. Enqueues collected metrics to a task queue to be written to
+ * BigQuery asynchronously.
+ *
+ * @see MetricsExportAction
+ */
+public class BigQueryMetricsEnqueuer {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   public static final String QUEUE = "bigquery-streaming-metrics";
 
-  @NonFinalForTesting
-  private static ModulesService modulesService = ModulesServiceFactory.getModulesService();
+  @Inject ModulesService modulesService;
 
-  @NonFinalForTesting
-  private static Clock clock = new SystemClock();
+  @Inject
+  BigQueryMetricsEnqueuer() {}
 
-  @NonFinalForTesting
-  private static Supplier<String> idGenerator =
-      new Supplier<String>() {
-        @Override
-        public String get() {
-          return UUID.randomUUID().toString();
-        }};
-
-  protected final Map<String, Object> fields = new HashMap<>();
-
-  private final long startTimeMillis = clock.nowUtc().getMillis();
-
-  public void setTableId(String tableId) {
-    fields.put("tableId", tableId);
-  }
-
-  public void export() {
+  @VisibleForTesting
+  void export(BigQueryMetric metric, String insertId) {
     try {
       String hostname = modulesService.getVersionHostname("backend", null);
-      TaskOptions opts = withUrl(MetricsExportAction.PATH)
-          .header("Host", hostname)
-          .param("insertId", idGenerator.get())
-          .param("startTime", toBigqueryTimestamp(startTimeMillis, TimeUnit.MILLISECONDS))
-          .param("endTime", toBigqueryTimestamp(clock.nowUtc().getMillis(), TimeUnit.MILLISECONDS));
-      for (Entry<String, Object> entry : fields.entrySet()) {
-        opts.param(entry.getKey(), String.valueOf(entry.getValue()));
+      TaskOptions opts =
+          withUrl(MetricsExportAction.PATH)
+              .header("Host", hostname)
+              .param("insertId", insertId);
+      for (Entry<String, String> entry : metric.getBigQueryRowEncoding().entrySet()) {
+        opts.param(entry.getKey(), entry.getValue());
       }
+      opts.param("tableId", metric.getTableId());
       getQueue(QUEUE).add(opts);
     } catch (TransientFailureException e) {
       // Log and swallow. We may drop some metrics here but this should be rare.
       logger.info(e, e.getMessage());
     }
+  }
+
+  /** Enqueue a metric to be exported to BigQuery. */
+  public void export(BigQueryMetric metric) {
+    export(metric, UUID.randomUUID().toString());
   }
 }

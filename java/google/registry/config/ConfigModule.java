@@ -648,7 +648,7 @@ public final class ConfigModule {
   }
 
   /**
-   * The reporting interval, for Metrics to be sent to a {@link
+   * The reporting interval, for BigQueryMetricsEnqueuer to be sent to a {@link
    * google.registry.monitoring.metrics.MetricWriter}.
    *
    * @see google.registry.monitoring.metrics.MetricReporter

@@ -26,7 +26,8 @@ import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.eppoutput.Result.Code;
-import google.registry.monitoring.whitebox.EppMetrics;
+import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
+import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.ShardableTestCase;
@@ -49,7 +50,9 @@ public class EppControllerTest extends ShardableTestCase {
 
   @Mock SessionMetadata sessionMetadata;
   @Mock TransportCredentials transportCredentials;
-  @Mock EppMetrics eppMetrics;
+  @Mock EppMetric.Builder eppMetricBuilder;
+  @Mock EppMetric eppMetric;
+  @Mock BigQueryMetricsEnqueuer metricsEnqueuer;
   @Mock FlowComponent.Builder flowComponentBuilder;
   @Mock FlowComponent flowComponent;
   @Mock FlowRunner flowRunner;
@@ -71,9 +74,11 @@ public class EppControllerTest extends ShardableTestCase {
     when(eppOutput.getResponse()).thenReturn(eppResponse);
     when(eppResponse.getResult()).thenReturn(result);
     when(result.getCode()).thenReturn(Code.SuccessWithNoMessages);
+    when(eppMetricBuilder.build()).thenReturn(eppMetric);
 
     eppController = new EppController();
-    eppController.metrics = eppMetrics;
+    eppController.metric = eppMetricBuilder;
+    eppController.bigQueryMetricsEnqueuer = metricsEnqueuer;
     eppController.clock = new FakeClock();
     eppController.flowComponentBuilder = flowComponentBuilder;
   }
@@ -96,10 +101,11 @@ public class EppControllerTest extends ShardableTestCase {
         false,
         new byte[0]);
 
-    verify(eppMetrics).setClientId("foo");
-    verify(eppMetrics).setPrivilegeLevel("NORMAL");
-    verify(eppMetrics).setEppStatus(Code.SyntaxError);
-    verify(eppMetrics).export();
+    verify(eppMetricBuilder).setClientId("foo");
+    verify(eppMetricBuilder).setPrivilegeLevel("NORMAL");
+    verify(eppMetricBuilder).setStatus(Code.SyntaxError);
+    verify(eppMetricBuilder).build();
+    verify(metricsEnqueuer).export(eppMetric);
   }
 
   @Test
@@ -115,11 +121,12 @@ public class EppControllerTest extends ShardableTestCase {
         true,
         domainCreateXml.getBytes(UTF_8));
 
-    verify(eppMetrics).setClientId("foo");
-    verify(eppMetrics).setPrivilegeLevel("SUPERUSER");
-    verify(eppMetrics).setEppStatus(Code.SuccessWithNoMessages);
-    verify(eppMetrics).setCommandName("Create");
-    verify(eppMetrics).setEppTarget("example.tld");
-    verify(eppMetrics).export();
+    verify(eppMetricBuilder).setClientId("foo");
+    verify(eppMetricBuilder).setPrivilegeLevel("SUPERUSER");
+    verify(eppMetricBuilder).setStatus(Code.SuccessWithNoMessages);
+    verify(eppMetricBuilder).setCommandName("Create");
+    verify(eppMetricBuilder).setEppTarget("example.tld");
+    verify(eppMetricBuilder).build();
+    verify(metricsEnqueuer).export(eppMetric);
   }
 }
