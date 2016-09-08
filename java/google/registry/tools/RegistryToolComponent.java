@@ -19,8 +19,8 @@ import google.registry.config.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.dns.writer.clouddns.CloudDnsModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
-import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.api.DummyKeyringModule;
+import google.registry.keyring.api.KeyModule;
 import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.URLFetchServiceModule;
@@ -38,13 +38,13 @@ import google.registry.util.SystemClock.SystemClockModule;
     DatastoreServiceModule.class,
     CloudDnsModule.class,
     DnsUpdateWriterModule.class,
+    DummyKeyringModule.class,
     Jackson2Module.class,
     KeyModule.class,
     RegistryToolModule.class,
     SystemClockModule.class,
     URLFetchServiceModule.class,
     VoidDnsWriterModule.class,
-    DummyKeyringModule.class,
   }
 )
 interface RegistryToolComponent {
