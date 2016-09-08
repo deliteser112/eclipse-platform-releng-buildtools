@@ -42,7 +42,8 @@ public final class EppController {
 
   @Inject Clock clock;
   @Inject FlowComponent.Builder flowComponentBuilder;
-  @Inject EppMetric.Builder metric;
+  @Inject EppMetric.Builder metricBuilder;
+  @Inject EppMetrics eppMetrics;
   @Inject BigQueryMetricsEnqueuer bigQueryMetricsEnqueuer;
   @Inject EppController() {}
 
@@ -54,20 +55,20 @@ public final class EppController {
       boolean isDryRun,
       boolean isSuperuser,
       byte[] inputXmlBytes) {
-    metric.setClientId(sessionMetadata.getClientId());
-    metric.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
+    metricBuilder.setClientId(sessionMetadata.getClientId());
+    metricBuilder.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
     try {
       EppInput eppInput;
       try {
         eppInput = unmarshal(EppInput.class, inputXmlBytes);
       } catch (EppException e) {
         // Send the client an error message, with no clTRID since we couldn't unmarshal it.
-        metric.setStatus(e.getResult().getCode());
+        metricBuilder.setStatus(e.getResult().getCode());
         return getErrorResponse(clock, e.getResult(), Trid.create(null));
       }
-      metric.setCommandName(eppInput.getCommandName());
+      metricBuilder.setCommandName(eppInput.getCommandName());
       if (!eppInput.getTargetIds().isEmpty()) {
-        metric.setEppTarget(Joiner.on(',').join(eppInput.getTargetIds()));
+        metricBuilder.setEppTarget(Joiner.on(',').join(eppInput.getTargetIds()));
       }
       EppOutput output = runFlowConvertEppErrors(flowComponentBuilder
           .flowModule(new FlowModule.Builder()
@@ -81,11 +82,14 @@ public final class EppController {
               .build())
           .build());
       if (output.isResponse()) {
-        metric.setStatus(output.getResponse().getResult().getCode());
+        metricBuilder.setStatus(output.getResponse().getResult().getCode());
       }
       return output;
     } finally {
-      bigQueryMetricsEnqueuer.export(metric.build());
+      EppMetric metric = metricBuilder.build();
+      bigQueryMetricsEnqueuer.export(metric);
+      eppMetrics.incrementEppRequests(metric);
+      eppMetrics.recordProcessingTime(metric);
     }
   }
 

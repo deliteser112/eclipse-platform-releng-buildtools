@@ -52,6 +52,7 @@ public class EppControllerTest extends ShardableTestCase {
 
   @Mock SessionMetadata sessionMetadata;
   @Mock TransportCredentials transportCredentials;
+  @Mock EppMetrics eppMetrics;
   @Mock BigQueryMetricsEnqueuer metricsEnqueuer;
   @Mock FlowComponent.Builder flowComponentBuilder;
   @Mock FlowComponent flowComponent;
@@ -76,10 +77,11 @@ public class EppControllerTest extends ShardableTestCase {
     when(result.getCode()).thenReturn(Code.SuccessWithNoMessages);
 
     eppController = new EppController();
-    eppController.metric = new EppMetric.Builder();
+    eppController.metricBuilder = new EppMetric.Builder();
     eppController.bigQueryMetricsEnqueuer = metricsEnqueuer;
     eppController.clock = new FakeClock();
     eppController.flowComponentBuilder = flowComponentBuilder;
+    eppController.eppMetrics = eppMetrics;
   }
 
   @Test
