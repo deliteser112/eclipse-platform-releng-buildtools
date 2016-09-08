@@ -48,7 +48,7 @@ interface EppTestComponent {
 
     FakesAndMocksModule(FakeClock clock) {
       this.clock = clock;
-      this.metrics = mock(EppMetric.Builder.class);
+      this.metrics = new EppMetric.Builder();
       this.modulesService = mock(ModulesService.class);
       this.metricsEnqueuer = mock(BigQueryMetricsEnqueuer.class);
     }

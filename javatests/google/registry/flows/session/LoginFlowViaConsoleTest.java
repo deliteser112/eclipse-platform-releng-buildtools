@@ -87,13 +87,12 @@ public class LoginFlowViaConsoleTest extends LoginFlowTestCase {
   }
 
   Environment login(final String name, final String authDomain, final String gaeUserId) {
+    oldEnv = ApiProxy.getCurrentEnvironment();
     // This envAttr thing is the only way to set userId.
     // see https://code.google.com/p/googleappengine/issues/detail?id=3579
-    final HashMap<String, Object> envAttr = new HashMap<>();
+    final HashMap<String, Object> envAttr = new HashMap<>(oldEnv.getAttributes());
     envAttr.put("com.google.appengine.api.users.UserService.user_id_key", gaeUserId);
 
-    // And then.. this.
-    oldEnv = ApiProxy.getCurrentEnvironment();
     final Environment e = oldEnv;
     ApiProxy.setEnvironmentForCurrentThread(new Environment() {
       @Override
