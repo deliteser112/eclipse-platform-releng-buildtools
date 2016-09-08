@@ -151,7 +151,12 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
     // Handle extra flow logic, if any.
     if (extraFlowLogic.isPresent()) {
       extraFlowLogic.get().performAdditionalDomainRenewLogic(
-          existingResource, getClientId(), now, command.getPeriod().getValue(), eppInput);
+          existingResource,
+          getClientId(),
+          now,
+          command.getPeriod().getValue(),
+          eppInput,
+          historyEntry);
     }
 
     ofy().save().<Object>entities(explicitRenewEvent, newAutorenewEvent, newAutorenewPollMessage);

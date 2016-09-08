@@ -131,7 +131,7 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
     // Handle extra flow logic, if any.
     if (extraFlowLogic.isPresent()) {
       extraFlowLogic.get().performAdditionalDomainDeleteLogic(
-          existingResource, getClientId(), now, eppInput);
+          existingResource, getClientId(), now, eppInput, historyEntry);
     }
   }
 

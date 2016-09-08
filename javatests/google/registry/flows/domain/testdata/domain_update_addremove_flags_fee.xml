@@ -17,6 +17,10 @@
           <flags:flag>flag4</flags:flag>
         </flags:rem>
       </flags:update>
+      <fee:update xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+        <fee:currency>USD</fee:currency>
+        <fee:fee>%FEE%</fee:fee>
+      </fee:update>
     </extension>
     <clTRID>ABC-12345</clTRID>
   </command>

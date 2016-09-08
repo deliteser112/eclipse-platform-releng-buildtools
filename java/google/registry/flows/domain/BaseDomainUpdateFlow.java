@@ -26,6 +26,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateNoDuplicateCo
 import static google.registry.flows.domain.DomainFlowUtils.validateRegistrantAllowedOnTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
+import static google.registry.model.domain.fee.Fee.FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -37,11 +38,13 @@ import google.registry.flows.ResourceUpdateFlow;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainBase.Builder;
 import google.registry.model.domain.DomainCommand.Update;
+import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension.Add;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension.Remove;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * An EPP flow that updates a domain application or resource.
@@ -52,10 +55,16 @@ import java.util.Set;
 public abstract class BaseDomainUpdateFlow<R extends DomainBase, B extends Builder<R, B>>
     extends ResourceUpdateFlow<R, B, Update> {
 
+  @Nullable
+  protected FeeTransformCommandExtension feeUpdate;
+
   protected Optional<RegistryExtraFlowLogic> extraFlowLogic;
 
   @Override
   public final void initResourceCreateOrMutateFlow() throws EppException {
+    registerExtensions(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    feeUpdate =
+        eppInput.getFirstExtensionOfClasses(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     command = cloneAndLinkReferences(command, now);
     initDomainUpdateFlow();
     extraFlowLogic = RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);

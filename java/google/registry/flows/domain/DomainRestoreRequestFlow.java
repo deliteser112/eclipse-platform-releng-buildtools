@@ -162,7 +162,7 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
     // Handle extra flow logic, if any.
     if (extraFlowLogic.isPresent()) {
       extraFlowLogic.get().performAdditionalDomainRestoreLogic(
-          existingResource, getClientId(), now, eppInput);
+          existingResource, getClientId(), now, eppInput, historyEntry);
     }
     
     return existingResource.asBuilder()

@@ -971,6 +971,13 @@ public class DomainFlowUtils {
     }
   }
 
+  /** Fees must be explicitly acknowledged when performing an update which is not free. */
+  static class FeesRequiredForNonFreeUpdateException extends RequiredParameterMissingException {
+    FeesRequiredForNonFreeUpdateException() {
+      super("Fees must be explicitly acknowledged when performing an update which is not free.");
+    }
+  }
+
   /** The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy. */
   static class UnsupportedFeeAttributeException extends UnimplementedOptionException {
     UnsupportedFeeAttributeException() {
@@ -1048,4 +1055,3 @@ public class DomainFlowUtils {
   }
 
 }
-

@@ -31,6 +31,7 @@ import google.registry.model.domain.flags.FlagsCreateCommandExtension;
 import google.registry.model.domain.flags.FlagsTransferCommandExtension;
 import google.registry.model.domain.flags.FlagsUpdateCommandExtension;
 import google.registry.model.eppinput.EppInput;
+import google.registry.model.reporting.HistoryEntry;
 import java.math.BigDecimal;
 import java.util.List;
 import org.joda.time.DateTime;
@@ -95,7 +96,8 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
       String clientIdentifier,
       DateTime asOfDate,
       int years,
-      EppInput eppInput) throws EppException {
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException {
     FlagsCreateCommandExtension flags =
         eppInput.getSingleExtension(FlagsCreateCommandExtension.class);
     if (flags == null) {
@@ -113,7 +115,8 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
       DomainResource domainResource,
       String clientIdentifier,
       DateTime asOfDate,
-      EppInput eppInput) throws EppException {
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException {
     messageToThrow = "deleted";
   }
 
@@ -138,7 +141,8 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
       String clientIdentifier,
       DateTime asOfDate,
       int years,
-      EppInput eppInput) throws EppException {
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException {
     messageToThrow = "renewed";
   }
 
@@ -151,7 +155,8 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
       DomainResource domainResource,
       String clientIdentifier,
       DateTime asOfDate,
-      EppInput eppInput) throws EppException {
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException {
     messageToThrow = "restored";
   }
 
@@ -165,7 +170,8 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
       String clientIdentifier,
       DateTime asOfDate,
       int years,
-      EppInput eppInput) throws EppException {
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException {
     FlagsTransferCommandExtension flags =
         eppInput.getSingleExtension(FlagsTransferCommandExtension.class);
     if (flags == null) {
@@ -197,7 +203,8 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
       DomainResource domainResource,
       String clientIdentifier,
       DateTime asOfDate,
-      EppInput eppInput) throws EppException {
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException {
     FlagsUpdateCommandExtension flags =
         eppInput.getSingleExtension(FlagsUpdateCommandExtension.class);
     if (flags == null) {

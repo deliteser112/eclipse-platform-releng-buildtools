@@ -18,6 +18,7 @@ import google.registry.flows.EppException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.eppinput.EppInput;
+import google.registry.model.reporting.HistoryEntry;
 import java.util.List;
 import org.joda.time.DateTime;
 
@@ -48,7 +49,8 @@ public interface RegistryExtraFlowLogic {
       String clientIdentifier,
       DateTime asOfDate,
       int years,
-      EppInput eppInput) throws EppException;
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
 
   /**
    * Performs additional tasks required for a delete command. Any changes should not be persisted to
@@ -58,7 +60,8 @@ public interface RegistryExtraFlowLogic {
       DomainResource domain,
       String clientIdentifier,
       DateTime asOfDate,
-      EppInput eppInput) throws EppException;
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
 
   /** Computes the expected renewal fee, for use in fee challenges and the like. */  
   public BaseFee getRenewFeeOrCredit(
@@ -77,7 +80,8 @@ public interface RegistryExtraFlowLogic {
       String clientIdentifier,
       DateTime asOfDate,
       int years,
-      EppInput eppInput) throws EppException;
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
 
   /**
    * Performs additional tasks required for a restore command. Any changes should not be persisted
@@ -87,7 +91,8 @@ public interface RegistryExtraFlowLogic {
       DomainResource domain,
       String clientIdentifier,
       DateTime asOfDate,
-      EppInput eppInput) throws EppException;
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
 
   /**
    * Performs additional tasks required for a transfer command. Any changes should not be persisted
@@ -98,7 +103,8 @@ public interface RegistryExtraFlowLogic {
       String clientIdentifier,
       DateTime asOfDate,
       int years,
-      EppInput eppInput) throws EppException;
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
 
   /** Computes the expected update fee, for use in fee challenges and the like. */  
   public BaseFee getUpdateFeeOrCredit(
@@ -115,7 +121,8 @@ public interface RegistryExtraFlowLogic {
       DomainResource domain,
       String clientIdentifier,
       DateTime asOfDate,
-      EppInput eppInput) throws EppException;
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
 
   /** Commits any changes made as a result of a call to one of the performXXX methods. */
   public void commitAdditionalLogicChanges();

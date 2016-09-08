@@ -191,7 +191,12 @@ public class DomainTransferRequestFlow
     // Handle extra flow logic, if any.
     if (extraFlowLogic.isPresent()) {
       extraFlowLogic.get().performAdditionalDomainTransferLogic(
-          existingResource, getClientId(), now, command.getPeriod().getValue(), eppInput);
+          existingResource,
+          getClientId(),
+          now,
+          command.getPeriod().getValue(),
+          eppInput,
+          historyEntry);
     }
   }
 

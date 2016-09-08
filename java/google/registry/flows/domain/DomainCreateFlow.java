@@ -195,7 +195,8 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
           getClientId(),
           now,
           command.getPeriod().getValue(),
-          eppInput);
+          eppInput,
+          historyEntry);
     }
   }
 
