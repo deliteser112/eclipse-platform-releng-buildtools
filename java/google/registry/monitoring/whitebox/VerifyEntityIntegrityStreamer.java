@@ -37,13 +37,14 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.bigquery.BigqueryFactory;
-import google.registry.config.RegistryEnvironment;
+import google.registry.config.ConfigModule.Config;
 import google.registry.util.Retrier;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
+import javax.inject.Named;
 import org.joda.time.DateTime;
 
 /**
@@ -52,22 +53,21 @@ import org.joda.time.DateTime;
 @AutoFactory(allowSubclasses = true)
 public class VerifyEntityIntegrityStreamer {
 
+  private final String projectId;
+  private final BigqueryFactory bigqueryFactory;
+  private final Supplier<String> idGenerator;
+  private final Retrier retrier;
   private final DateTime scanTime;
   private Bigquery bigquery;
 
-  BigqueryFactory bigqueryFactory;
-  RegistryEnvironment environment;
-  Retrier retrier;
-  Supplier<String> idGenerator;
-
   public VerifyEntityIntegrityStreamer(
+      @Provided @Config("projectId") String projectId,
       @Provided BigqueryFactory bigqueryFactory,
-      @Provided RegistryEnvironment environment,
       @Provided Retrier retrier,
-      @Provided Supplier<String> idGenerator,
+      @Provided @Named("insertIdGenerator") Supplier<String> idGenerator,
       DateTime scanTime) {
+    this.projectId = projectId;
     this.bigqueryFactory = bigqueryFactory;
-    this.environment = environment;
     this.retrier = retrier;
     this.idGenerator = idGenerator;
     this.scanTime = scanTime;
@@ -78,9 +78,7 @@ public class VerifyEntityIntegrityStreamer {
   // BigQuery.
   private Bigquery getBigquery() throws IOException {
     if (bigquery == null) {
-      bigquery =
-          bigqueryFactory.create(
-              environment.config().getProjectId(), DATASET, TABLE_ID);
+      bigquery = bigqueryFactory.create(projectId, DATASET, TABLE_ID);
     }
     return bigquery;
   }
@@ -179,7 +177,7 @@ public class VerifyEntityIntegrityStreamer {
           getBigquery()
               .tabledata()
               .insertAll(
-                  environment.config().getProjectId(),
+                  projectId,
                   DATASET,
                   TABLE_ID,
                   new TableDataInsertAllRequest().setRows(rows));

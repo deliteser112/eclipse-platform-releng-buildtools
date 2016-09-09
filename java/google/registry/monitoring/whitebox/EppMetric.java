@@ -23,9 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.bigquery.BigqueryUtils.FieldType;
 import google.registry.model.eppoutput.Result.Code;
-import google.registry.request.RequestScope;
 import google.registry.util.Clock;
-import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 
 /**
@@ -34,7 +32,6 @@ import org.joda.time.DateTime;
  * @see BigQueryMetricsEnqueuer
  */
 @AutoValue
-@RequestScope
 public abstract class EppMetric implements BigQueryMetric {
 
   static final String TABLE_ID = "eppMetrics";
@@ -84,12 +81,8 @@ public abstract class EppMetric implements BigQueryMetric {
     ImmutableMap.Builder<String, String> map =
         ImmutableMap.<String, String>builder()
             .put("requestId", getRequestId())
-            .put(
-                "startTime",
-                toBigqueryTimestamp(getStartTimestamp().getMillis(), TimeUnit.MILLISECONDS))
-            .put(
-                "endTime",
-                toBigqueryTimestamp(getEndTimestamp().getMillis(), TimeUnit.MILLISECONDS))
+            .put("startTime", toBigqueryTimestamp(getStartTimestamp()))
+            .put("endTime", toBigqueryTimestamp(getEndTimestamp()))
             .put("attempts", getAttempts().toString());
     // Populate optional values, if present
     addOptional("commandName", getCommandName(), map);

@@ -43,7 +43,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.bigquery.BigqueryFactory;
-import google.registry.config.RegistryEnvironment;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
@@ -108,8 +107,8 @@ public class VerifyEntityIntegrityActionTest
     inject.setStaticField(VerifyEntityIntegrityAction.class, "component", component);
     integrity =
         new VerifyEntityIntegrityStreamer(
+            "project-id",
             bigqueryFactory,
-            RegistryEnvironment.UNITTEST,
             new Retrier(new FakeSleeper(new FakeClock()), 1),
             Suppliers.ofInstance("rowid"),
             now);

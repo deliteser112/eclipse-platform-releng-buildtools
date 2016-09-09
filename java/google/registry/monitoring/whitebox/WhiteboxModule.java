@@ -65,7 +65,8 @@ public class WhiteboxModule {
   }
 
   @Provides
-  static Supplier<String> provideIdGenerator() {
+  @Named("insertIdGenerator")
+  static Supplier<String> provideInsertIdGenerator() {
     return new Supplier<String>() {
       @Override
       public String get() {

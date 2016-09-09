@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.appengine.api.modules.ModulesService;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.testing.AppEngineRule;
@@ -56,6 +57,7 @@ public class BigQueryMetricsEnqueuerTest {
   @Before
   public void setUp() {
     enqueuer = new BigQueryMetricsEnqueuer();
+    enqueuer.idGenerator = Suppliers.ofInstance("laffo");
     enqueuer.modulesService = modulesService;
     when(modulesService.getVersionHostname(Matchers.anyString(), Matchers.anyString()))
         .thenReturn("1.backend.test.localhost");
@@ -67,7 +69,7 @@ public class BigQueryMetricsEnqueuerTest {
         TestMetric.create(
             DateTime.parse("1984-12-18TZ"), DateTime.parse("1984-12-18TZ").plusMillis(1));
 
-    enqueuer.export(metric, "laffo");
+    enqueuer.export(metric);
 
     assertTasksEnqueued("bigquery-streaming-metrics",
         new TaskMatcher()
