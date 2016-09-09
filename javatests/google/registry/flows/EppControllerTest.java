@@ -32,8 +32,10 @@ import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.ShardableTestCase;
+import google.registry.util.Clock;
 import google.registry.util.SystemClock;
 import google.registry.xml.ValidationMode;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,6 +63,10 @@ public class EppControllerTest extends ShardableTestCase {
   @Mock EppResponse eppResponse;
   @Mock Result result;
 
+  private static final DateTime startTime = DateTime.parse("2016-09-01T00:00:00Z");
+
+  private final Clock clock = new FakeClock(startTime);
+
   private EppController eppController;
 
   @Before
@@ -77,9 +83,9 @@ public class EppControllerTest extends ShardableTestCase {
     when(result.getCode()).thenReturn(Code.SuccessWithNoMessages);
 
     eppController = new EppController();
-    eppController.metricBuilder = new EppMetric.Builder();
+    eppController.metricBuilder = EppMetric.builderForRequest("request-id-1", clock);
     eppController.bigQueryMetricsEnqueuer = metricsEnqueuer;
-    eppController.clock = new FakeClock();
+    eppController.clock = clock;
     eppController.flowComponentBuilder = flowComponentBuilder;
     eppController.eppMetrics = eppMetrics;
   }
@@ -105,6 +111,9 @@ public class EppControllerTest extends ShardableTestCase {
 
     verify(metricsEnqueuer).export(metricCaptor.capture());
     EppMetric metric = metricCaptor.getValue();
+    assertThat(metric.getRequestId()).isEqualTo("request-id-1");
+    assertThat(metric.getStartTimestamp()).isEqualTo(startTime);
+    assertThat(metric.getEndTimestamp()).isEqualTo(clock.nowUtc());
     assertThat(metric.getClientId()).hasValue("some-client");
     assertThat(metric.getPrivilegeLevel()).hasValue("NORMAL");
     assertThat(metric.getStatus()).hasValue(Code.SyntaxError);
@@ -126,6 +135,9 @@ public class EppControllerTest extends ShardableTestCase {
 
     verify(metricsEnqueuer).export(metricCaptor.capture());
     EppMetric metric = metricCaptor.getValue();
+    assertThat(metric.getRequestId()).isEqualTo("request-id-1");
+    assertThat(metric.getStartTimestamp()).isEqualTo(startTime);
+    assertThat(metric.getEndTimestamp()).isEqualTo(clock.nowUtc());
     assertThat(metric.getClientId()).hasValue("some-client");
     assertThat(metric.getPrivilegeLevel()).hasValue("SUPERUSER");
     assertThat(metric.getStatus()).hasValue(Code.SuccessWithNoMessages);

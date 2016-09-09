@@ -22,6 +22,7 @@ import google.registry.flows.FlowComponent;
 import google.registry.loadtest.LoadTestAction;
 import google.registry.loadtest.LoadTestModule;
 import google.registry.mapreduce.MapreduceModule;
+import google.registry.monitoring.whitebox.WhiteboxModule;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
 import google.registry.tools.server.CreateGroupsAction;
@@ -54,6 +55,7 @@ import google.registry.tools.server.javascrap.RefreshAllDomainsAction;
         MapreduceModule.class,
         RequestModule.class,
         ToolsServerModule.class,
+        WhiteboxModule.class,
     })
 interface ToolsRequestComponent {
   BackfillAutorenewBillingFlagAction backfillAutorenewBillingFlagAction();

@@ -42,13 +42,13 @@ interface EppTestComponent {
   @Module
   static class FakesAndMocksModule {
     final FakeClock clock;
-    final EppMetric.Builder metrics;
+    final EppMetric.Builder metricBuilder;
     final BigQueryMetricsEnqueuer metricsEnqueuer;
     final ModulesService modulesService;
 
     FakesAndMocksModule(FakeClock clock) {
       this.clock = clock;
-      this.metrics = new EppMetric.Builder();
+      this.metricBuilder = EppMetric.builderForRequest("request-id-1", clock);
       this.modulesService = mock(ModulesService.class);
       this.metricsEnqueuer = mock(BigQueryMetricsEnqueuer.class);
     }
@@ -60,7 +60,7 @@ interface EppTestComponent {
 
     @Provides
     EppMetric.Builder provideMetrics() {
-      return metrics;
+      return metricBuilder;
     }
 
     @Provides

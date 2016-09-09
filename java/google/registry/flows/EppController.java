@@ -18,6 +18,7 @@ import static google.registry.flows.EppXmlTransformer.unmarshal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import google.registry.flows.FlowModule.EppExceptionInProviderException;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
@@ -55,7 +56,7 @@ public final class EppController {
       boolean isDryRun,
       boolean isSuperuser,
       byte[] inputXmlBytes) {
-    metricBuilder.setClientId(sessionMetadata.getClientId());
+    metricBuilder.setClientId(Optional.fromNullable(sessionMetadata.getClientId()));
     metricBuilder.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
     try {
       EppInput eppInput;

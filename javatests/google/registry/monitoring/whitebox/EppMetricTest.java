@@ -36,21 +36,22 @@ public class EppMetricTest {
   @Test
   public void testGetBigQueryRowEncoding_encodesCorrectly() throws Exception {
     EppMetric metric =
-        new EppMetric.Builder(new DateTime(1337))
-            .setEppTarget("target")
-            .setPrivilegeLevel("level")
+        EppMetric.builder()
+            .setRequestId("request-id-1")
+            .setStartTimestamp(new DateTime(1337))
+            .setEndTimestamp(new DateTime(1338))
             .setCommandName("command")
             .setClientId("client")
+            .setPrivilegeLevel("level")
+            .setEppTarget("target")
             .setStatus(Code.CommandUseError)
             .incrementAttempts()
-            .build(new DateTime(1338));
+            .build();
 
-    // The request_id is randomly generated and hard to mock without a lot of supporting code
-    // so we just use the tested metric's request_id verbatim.
     assertThat(metric.getBigQueryRowEncoding())
         .containsExactlyEntriesIn(
             new ImmutableMap.Builder<String, String>()
-                .put("requestId", metric.getRequestId())
+                .put("requestId", "request-id-1")
                 .put("startTime", "1.337000")
                 .put("endTime", "1.338000")
                 .put("commandName", "command")
@@ -65,14 +66,17 @@ public class EppMetricTest {
   @Test
   public void testGetBigQueryRowEncoding_hasAllSchemaFields() throws Exception {
     EppMetric metric =
-        new EppMetric.Builder(new DateTime(1337))
-            .setEppTarget("target")
-            .setPrivilegeLevel("level")
+        EppMetric.builder()
+            .setRequestId("request-id-1")
+            .setStartTimestamp(new DateTime(1337))
+            .setEndTimestamp(new DateTime(1338))
             .setCommandName("command")
             .setClientId("client")
+            .setPrivilegeLevel("level")
+            .setEppTarget("target")
             .setStatus(Code.CommandUseError)
             .incrementAttempts()
-            .build(new DateTime(1338));
+            .build();
     ImmutableSet.Builder<String> schemaFieldNames = new ImmutableSet.Builder<>();
     for (TableFieldSchema schemaField : metric.getSchemaFields()) {
       schemaFieldNames.add(schemaField.getName());

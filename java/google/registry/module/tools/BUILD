@@ -24,6 +24,7 @@ java_library(
         "//java/google/registry/keyring/api",
         "//java/google/registry/loadtest",
         "//java/google/registry/mapreduce",
+        "//java/google/registry/monitoring/whitebox",
         "//java/google/registry/request",
         "//java/google/registry/request:modules",
         "//java/google/registry/tools/server",

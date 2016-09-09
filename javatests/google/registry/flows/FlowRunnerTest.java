@@ -90,7 +90,7 @@ public class FlowRunnerTest extends ShardableTestCase {
     flowRunner.isDryRun = false;
     flowRunner.isSuperuser = false;
     flowRunner.isTransactional = false;
-    flowRunner.metric = new EppMetric.Builder();
+    flowRunner.metric = EppMetric.builderForRequest("request-id-1", flowRunner.clock);
     flowRunner.sessionMetadata =
         new StatelessRequestSessionMetadata("TheRegistrar", ImmutableSet.<String>of());
     flowRunner.trid = Trid.create("client-123", "server-456");

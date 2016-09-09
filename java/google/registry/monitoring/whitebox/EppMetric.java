@@ -14,21 +14,18 @@
 
 package google.registry.monitoring.whitebox;
 
-import static com.google.apphosting.api.ApiProxy.getCurrentEnvironment;
 import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
-import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.auto.value.AutoValue;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.bigquery.BigqueryUtils.FieldType;
 import google.registry.model.eppoutput.Result.Code;
 import google.registry.request.RequestScope;
+import google.registry.util.Clock;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
 import org.joda.time.DateTime;
 
 /**
@@ -52,30 +49,6 @@ public abstract class EppMetric implements BigQueryMetric {
           new TableFieldSchema().setName("eppTarget").setType(FieldType.STRING.name()),
           new TableFieldSchema().setName("eppStatus").setType(FieldType.INTEGER.name()),
           new TableFieldSchema().setName("attempts").setType(FieldType.INTEGER.name()));
-
-  private static final String REQUEST_LOG_ID = "com.google.appengine.runtime.request_log_id";
-
-  private static EppMetric create(
-      String requestId,
-      DateTime startTimestamp,
-      DateTime endTimestamp,
-      String commandName,
-      String clientId,
-      String privilegeLevel,
-      String eppTarget,
-      Code status,
-      int attempts) {
-    return new AutoValue_EppMetric(
-        requestId,
-        startTimestamp,
-        endTimestamp,
-        Optional.fromNullable(commandName),
-        Optional.fromNullable(clientId),
-        Optional.fromNullable(privilegeLevel),
-        Optional.fromNullable(eppTarget),
-        Optional.fromNullable(status),
-        attempts);
-  }
 
   public abstract String getRequestId();
 
@@ -141,90 +114,78 @@ public abstract class EppMetric implements BigQueryMetric {
     }
   }
 
-  /** A builder to create instances of {@link EppMetric}. */
-  public static class Builder {
+  /** Create an {@link EppMetric.Builder}. */
+  public static Builder builder() {
+    return new AutoValue_EppMetric.Builder();
+  }
 
-    // Required values
-    private final String requestId;
-    private final DateTime startTimestamp;
+  /**
+   * Create an {@link EppMetric.Builder} for a request context, with the given request ID and
+   * with start and end timestamps taken from the given clock.
+   *
+   * <p>The start timestamp is recorded now, and the end timestamp at {@code build()}.
+   */
+  public static Builder builderForRequest(String requestId, Clock clock) {
+      return builder()
+          .setRequestId(requestId)
+          .setStartTimestamp(clock.nowUtc())
+          .setClock(clock);
+  }
+
+  /** A builder to create instances of {@link EppMetric}. */
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    /** Builder-only counter of the number of attempts, to support {@link #incrementAttempts()}. */
     private int attempts = 0;
 
-    // Optional values
-    private String commandName;
-    private String clientId;
-    private String privilegeLevel;
-    private String eppTarget;
-    private Code status;
+    /** Builder-only clock to support automatic recording of endTimestamp on {@link #build()}. */
+    private Clock clock = null;
 
-    /**
-     * Create an {@link EppMetric.Builder}.
-     *
-     * <p>The start timestamp of metrics created via this instance's {@link Builder#build()} will be
-     * the time that this builder was created.
-     */
-    @Inject
-    public Builder() {
-      this(DateTime.now(UTC));
-    }
+    abstract Builder setRequestId(String requestId);
 
-    @VisibleForTesting
-    Builder(DateTime startTimestamp) {
-      this.requestId = getCurrentEnvironment().getAttributes().get(REQUEST_LOG_ID).toString();
-      this.startTimestamp = startTimestamp;
-      this.attempts = 0;
-    }
+    abstract Builder setStartTimestamp(DateTime startTimestamp);
 
-    public Builder setCommandName(String value) {
-      commandName = value;
-      return this;
-    }
+    abstract Builder setEndTimestamp(DateTime endTimestamp);
 
-    public Builder setClientId(String value) {
-      clientId = value;
-      return this;
-    }
+    public abstract Builder setCommandName(String commandName);
 
-    public Builder setPrivilegeLevel(String value) {
-      privilegeLevel = value;
-      return this;
-    }
+    public abstract Builder setClientId(String clientId);
 
-    public Builder setEppTarget(String value) {
-      eppTarget = value;
-      return this;
-    }
+    public abstract Builder setClientId(Optional<String> clientId);
 
-    public Builder setStatus(Code value) {
-      status = value;
-      return this;
-    }
+    public abstract Builder setPrivilegeLevel(String privilegeLevel);
+
+    public abstract Builder setEppTarget(String eppTarget);
+
+    public abstract Builder setStatus(Code code);
+
+    abstract Builder setAttempts(Integer attempts);
 
     public Builder incrementAttempts() {
       attempts++;
       return this;
     }
 
-    @VisibleForTesting
-    EppMetric build(DateTime endTimestamp) {
-      return EppMetric.create(
-          requestId,
-          startTimestamp,
-          endTimestamp,
-          commandName,
-          clientId,
-          privilegeLevel,
-          eppTarget,
-          status,
-          attempts);
+    Builder setClock(Clock clock) {
+      this.clock = clock;
+      return this;
     }
 
     /**
      * Build an instance of {@link EppMetric} using this builder.
      *
-     * <p>The end timestamp of the metric will be the current time.
+     * <p>If a clock was provided with {@code setClock()}, the end timestamp will be set to the
+     * current timestamp of the clock; otherwise end timestamp must have been previously set.
      */
     public EppMetric build() {
-      return build(DateTime.now(UTC));
+      setAttempts(attempts);
+      if (clock != null) {
+        setEndTimestamp(clock.nowUtc());
+      }
+      return autoBuild();
     }
+
+    abstract EppMetric autoBuild();
   }
 }
