@@ -14,8 +14,7 @@
 
 package google.registry.flows;
 
-import static com.google.appengine.api.users.UserServiceFactory.getUserService;
-
+import com.google.appengine.api.users.UserService;
 import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Payload;
@@ -35,13 +34,14 @@ public class EppConsoleAction implements Runnable {
   @Inject @Payload byte[] inputXmlBytes;
   @Inject HttpSession session;
   @Inject EppRequestHandler eppRequestHandler;
+  @Inject UserService userService;
   @Inject EppConsoleAction() {}
 
   @Override
   public void run() {
     eppRequestHandler.executeEpp(
         new HttpSessionMetadata(session),
-        new GaeUserCredentials(getUserService().getCurrentUser()),
+        GaeUserCredentials.forCurrentUser(userService),
         EppRequestSource.CONSOLE,
         false,  // This endpoint is never a dry run.
         false,  // This endpoint is never a superuser.

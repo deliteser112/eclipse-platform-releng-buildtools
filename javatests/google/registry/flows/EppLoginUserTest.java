@@ -48,7 +48,7 @@ public class EppLoginUserTest extends EppTestCase {
         .setGaeUserId(user.getUserId())
         .setTypes(ImmutableSet.of(RegistrarContact.Type.ADMIN))
         .build());
-    setTransportCredentials(new GaeUserCredentials(user));
+    setTransportCredentials(GaeUserCredentials.forCurrentUser(getUserService()));
   }
 
   @Test

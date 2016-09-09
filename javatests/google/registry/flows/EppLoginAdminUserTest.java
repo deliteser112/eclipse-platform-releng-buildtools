@@ -36,7 +36,7 @@ public class EppLoginAdminUserTest extends EppTestCase {
 
   @Before
   public void initTransportCredentials() {
-    setTransportCredentials(new GaeUserCredentials(getUserService().getCurrentUser()));
+    setTransportCredentials(GaeUserCredentials.forCurrentUser(getUserService()));
   }
 
   @Test

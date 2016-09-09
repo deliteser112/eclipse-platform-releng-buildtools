@@ -178,10 +178,11 @@ public class FlowRunnerTest extends ShardableTestCase {
 
   @Test
   public void testRun_legacyLoggingStatement_gaeUserCredentials() throws Exception {
-    flowRunner.credentials = new GaeUserCredentials(new User("user@example.com", "authDomain"));
+    flowRunner.credentials =
+        GaeUserCredentials.forTestingUser(new User("user@example.com", "authDomain"), false);
     flowRunner.run();
     assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
-        .contains("GaeUserCredentials{gaeUser=user@example.com}");
+        .contains("GaeUserCredentials{gaeUser=user@example.com, isAdmin=false}");
   }
 
   @Test
