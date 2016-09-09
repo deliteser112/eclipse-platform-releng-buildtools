@@ -123,7 +123,9 @@ public abstract class EppMetric implements BigQueryMetric {
     addOptional("clientId", getClientId(), map);
     addOptional("privilegeLevel", getPrivilegeLevel(), map);
     addOptional("eppTarget", getEppTarget(), map);
-    addOptional("status", getStatus(), map);
+    if (getStatus().isPresent()) {
+      map.put("eppStatus", Integer.toString(getStatus().get().code));
+    }
 
     return map.build();
   }
