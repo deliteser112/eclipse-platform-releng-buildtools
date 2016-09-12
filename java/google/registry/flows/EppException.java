@@ -251,7 +251,7 @@ public abstract class EppException extends Exception {
     }
   }
 
-  /** Specified protocol version is not implemented. */
+  /** Command failed. */
   @EppResultCode(Code.CommandFailed)
   public static class CommandFailedException extends EppException {
     public CommandFailedException() {
