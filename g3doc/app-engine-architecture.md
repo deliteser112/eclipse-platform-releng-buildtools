@@ -105,77 +105,78 @@ query string parameter "queue" in the url specification for the cron task.
 Here are the task queues in use by the system.  All are push queues unless
 explicitly marked as otherwise.
 
-* `bigquery-streaming-metrics` -- Queue for metrics that are asynchronously
-  streamed to BigQuery in the `Metrics` class.  Tasks are enqueued during EPP
-  flows in `EppController`.  This means that there is a lag of a few seconds to
-  a few minutes between when metrics are generated and when they are queryable
-  in BigQuery, but this is preferable to slowing all EPP flows down and blocking
-  them on BigQuery streaming.
-* `brda` -- Queue for tasks to upload weekly Bulk Registration Data Access
-  (BRDA) files to a location where they are available to ICANN.  The
-  `RdeStagingReducer` (part of the RDE MapReduce) creates these tasks at the end
-  of generating an RDE dump.
-* `delete-commits` -- Cron queue for tasks to regularly delete commit logs that
-  are more than thirty days stale.  These tasks execute the
-  `DeleteOldCommitLogsAction`.
-* `dns-cron` (cron queue) and `dns-pull` (pull queue) -- A push/pull pair of
-  queues.  Cron regularly enqueues tasks in dns-cron each minute, which are then
-  executed by `ReadDnsQueueAction`, which leases a batch of tasks from the pull
-  queue, groups them by TLD, and writes them as a single task to `dns-publish`
-  to be published to the configured DNS writer for the TLD.
-* `dns-publish` -- Queue for batches of DNS updates to be pushed to DNS writers.
-* `export-bigquery-poll` -- Queue for tasks to query the success/failure of a
-  given BigQuery export job.  Tasks are enqueued by `BigqueryPollJobAction`.
-* `export-commits` -- Queue for tasks to export commit log checkpoints.  Tasks
-  are enqueued by `CommitLogCheckpointAction` (which is run every minute by
-  cron) and executed by `ExportCommitLogDiffAction`.
-* `export-reserved-terms` -- Cron queue for tasks to export the list of reserved
-  terms for each TLD.  The tasks are executed by `ExportReservedTermsAction`.
-* `export-snapshot` -- Cron and push queue for tasks to load a Datastore
-  snapshot that was stored in Google Cloud Storage and export it to BigQuery.
-  Tasks are enqueued by both cron and `CheckSnapshotServlet` and are executed by
-  both `ExportSnapshotServlet` and `LoadSnapshotAction`.
-* `export-snapshot-poll` -- Queue for tasks to check that a Datastore snapshot
-  has been successfully uploaded to Google Cloud Storage (this is an
-  asynchronous background operation that can take an indeterminate amount of
-  time).  Once the snapshot is successfully uploaded, it is imported into
-  BigQuery.  Tasks are enqueued by `ExportSnapshotServlet` and executed by
-  `CheckSnapshotServlet`.
-* `export-snapshot-update-view` -- Queue for tasks to update the BigQuery views
-  to point to the most recently uploaded snapshot.  Tasks are enqueued by
-  `LoadSnapshotAction` and executed by `UpdateSnapshotViewAction`.
-* `flows-async` -- Queue for asynchronous tasks that are enqueued during EPP
-  command flows.  Currently all of these tasks correspond to invocations of any
-  of the following three MapReduces: `DnsRefreshForHostRenameAction`,
-  `DeleteHostResourceAction`, or `DeleteContactResourceAction`.
-* `group-members-sync` -- Cron queue for tasks to sync registrar contacts (not
-  domain contacts!) to Google Groups.  Tasks are executed by
-  `SyncGroupMembersAction`.
-* `load[0-9]` -- Queues used to load-test the system by `LoadTestAction`.  These
-  queues don't need to exist except when actively running load tests (which is
-  not recommended on production environments).  There are ten of these queues to
-  provide simple sharding, because the Domain Registry system is capable of
-  handling significantly more Queries Per Second than the highest throttle limit
-  available on task queues (which is 500 qps).
-* `lordn-claims` and `lordn-sunrise` -- Pull queues for handling LORDN exports.
-  Tasks are enqueued synchronously during EPP commands depending on whether the
-  domain name in question has a claims notice ID.
-* `marksdb` -- Queue for tasks to verify that an upload to NORDN was
-  successfully received and verified.  These tasks are enqueued by
-  `NordnUploadAction` following an upload and are executed by
-  `NordnVerifyAction`.
-* `nordn` -- Cron queue used for NORDN exporting.  Tasks are executed by
-  `NordnUploadAction`, which pulls LORDN data from the `lordn-claims` and
-  `lordn-sunrise` pull queues (above).
-* `rde-report` -- Queue for tasks to upload RDE reports to ICANN following
-  successful upload of full RDE files to the escrow provider.  Tasks are
-  enqueued by `RdeUploadAction` and executed by `RdeReportAction`.
-* `rde-upload` -- Cron queue for tasks to upload already-generated RDE files
-  from Cloud Storage to the escrow provider.  Tasks are executed by
-  `RdeUploadAction`.
-* `sheet` -- Queue for tasks to sync registrar updates to a Google Sheets
-  spreadsheet.  Tasks are enqueued by `RegistrarServlet` when changes are made
-  to registrar fields and are executed by `SyncRegistrarsSheetAction`.
+*   `bigquery-streaming-metrics` -- Queue for metrics that are asynchronously
+    streamed to BigQuery in the `Metrics` class. Tasks are enqueued during EPP
+    flows in `EppController`. This means that there is a lag of a few seconds to
+    a few minutes between when metrics are generated and when they are queryable
+    in BigQuery, but this is preferable to slowing all EPP flows down and
+    blocking them on BigQuery streaming.
+*   `brda` -- Queue for tasks to upload weekly Bulk Registration Data Access
+    (BRDA) files to a location where they are available to ICANN. The
+    `RdeStagingReducer` (part of the RDE MapReduce) creates these tasks at the
+    end of generating an RDE dump.
+*   `delete-commits` -- Cron queue for tasks to regularly delete commit logs
+    that are more than thirty days stale. These tasks execute the
+    `DeleteOldCommitLogsAction`.
+*   `dns-pull` -- A pull queue to enqueue DNS modifications. Cron regularly runs
+    `ReadDnsQueueAction`, which drains the queue, batches modifications by TLD,
+    and writes the batches to `dns-publish` to be published to the configured
+    `DnsWriter` for the TLD.
+*   `dns-publish` -- Queue for batches of DNS updates to be pushed to DNS
+    writers.
+*   `export-bigquery-poll` -- Queue for tasks to query the success/failure of a
+    given BigQuery export job. Tasks are enqueued by `BigqueryPollJobAction`.
+*   `export-commits` -- Queue for tasks to export commit log checkpoints. Tasks
+    are enqueued by `CommitLogCheckpointAction` (which is run every minute by
+    cron) and executed by `ExportCommitLogDiffAction`.
+*   `export-reserved-terms` -- Cron queue for tasks to export the list of
+    reserved terms for each TLD. The tasks are executed by
+    `ExportReservedTermsAction`.
+*   `export-snapshot` -- Cron and push queue for tasks to load a Datastore
+    snapshot that was stored in Google Cloud Storage and export it to BigQuery.
+    Tasks are enqueued by both cron and `CheckSnapshotServlet` and are executed
+    by both `ExportSnapshotServlet` and `LoadSnapshotAction`.
+*   `export-snapshot-poll` -- Queue for tasks to check that a Datastore snapshot
+    has been successfully uploaded to Google Cloud Storage (this is an
+    asynchronous background operation that can take an indeterminate amount of
+    time). Once the snapshot is successfully uploaded, it is imported into
+    BigQuery. Tasks are enqueued by `ExportSnapshotServlet` and executed by
+    `CheckSnapshotServlet`.
+*   `export-snapshot-update-view` -- Queue for tasks to update the BigQuery
+    views to point to the most recently uploaded snapshot. Tasks are enqueued by
+    `LoadSnapshotAction` and executed by `UpdateSnapshotViewAction`.
+*   `flows-async` -- Queue for asynchronous tasks that are enqueued during EPP
+    command flows. Currently all of these tasks correspond to invocations of any
+    of the following three MapReduces: `DnsRefreshForHostRenameAction`,
+    `DeleteHostResourceAction`, or `DeleteContactResourceAction`.
+*   `group-members-sync` -- Cron queue for tasks to sync registrar contacts (not
+    domain contacts!) to Google Groups. Tasks are executed by
+    `SyncGroupMembersAction`.
+*   `load[0-9]` -- Queues used to load-test the system by `LoadTestAction`.
+    These queues don't need to exist except when actively running load tests
+    (which is not recommended on production environments). There are ten of
+    these queues to provide simple sharding, because the Domain Registry system
+    is capable of handling significantly more Queries Per Second than the
+    highest throttle limit available on task queues (which is 500 qps).
+*   `lordn-claims` and `lordn-sunrise` -- Pull queues for handling LORDN
+    exports. Tasks are enqueued synchronously during EPP commands depending on
+    whether the domain name in question has a claims notice ID.
+*   `marksdb` -- Queue for tasks to verify that an upload to NORDN was
+    successfully received and verified. These tasks are enqueued by
+    `NordnUploadAction` following an upload and are executed by
+    `NordnVerifyAction`.
+*   `nordn` -- Cron queue used for NORDN exporting. Tasks are executed by
+    `NordnUploadAction`, which pulls LORDN data from the `lordn-claims` and
+    `lordn-sunrise` pull queues (above).
+*   `rde-report` -- Queue for tasks to upload RDE reports to ICANN following
+    successful upload of full RDE files to the escrow provider. Tasks are
+    enqueued by `RdeUploadAction` and executed by `RdeReportAction`.
+*   `rde-upload` -- Cron queue for tasks to upload already-generated RDE files
+    from Cloud Storage to the escrow provider. Tasks are executed by
+    `RdeUploadAction`.
+*   `sheet` -- Queue for tasks to sync registrar updates to a Google Sheets
+    spreadsheet. Tasks are enqueued by `RegistrarServlet` when changes are made
+    to registrar fields and are executed by `SyncRegistrarsSheetAction`.
 
 ## Environments
 

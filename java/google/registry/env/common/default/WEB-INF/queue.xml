@@ -8,18 +8,6 @@
   </queue>
 
   <queue>
-    <name>dns-cron</name>
-    <!-- There is no point allowing more than 10/s because the pull queue that feeds
-         this job will refuse to service more than 10 qps. See
-         https://cloud.google.com/appengine/docs/java/javadoc/com/google/appengine/api/taskqueue/Queue#leaseTasks-long-java.util.concurrent.TimeUnit-long- -->
-    <rate>10/s</rate>
-    <bucket-size>100</bucket-size>
-    <retry-parameters>
-      <task-retry-limit>1</task-retry-limit>
-    </retry-parameters>
-  </queue>
-
-  <queue>
     <name>dns-pull</name>
     <mode>pull</mode>
   </queue>
