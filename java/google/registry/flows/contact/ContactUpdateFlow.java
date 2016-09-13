@@ -29,6 +29,7 @@ import javax.inject.Inject;
  * An EPP flow that updates a contact resource.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceUpdateFlow.AddRemoveSameValueEppException}
  * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
  * @error {@link google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException}
  * @error {@link google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException}
