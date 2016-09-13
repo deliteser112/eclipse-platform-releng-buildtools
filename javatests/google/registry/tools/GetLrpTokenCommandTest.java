@@ -26,8 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /** Unit tests for {@link GetLrpTokenCommand}. */
-public class GetLrpTokenCommandTest
-    extends CommandTestCase<GetLrpTokenCommand> {
+public class GetLrpTokenCommandTest extends CommandTestCase<GetLrpTokenCommand> {
 
   @Before
   public void before() {
