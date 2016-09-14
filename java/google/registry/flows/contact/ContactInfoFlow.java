@@ -14,17 +14,41 @@
 
 package google.registry.flows.contact;
 
-import google.registry.flows.ResourceInfoFlow;
+import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
+import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.eppoutput.Result.Code.Success;
+
+import google.registry.flows.EppException;
+import google.registry.flows.LoggedInFlow;
+import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.contact.ContactCommand.Info;
 import google.registry.model.contact.ContactResource;
+import google.registry.model.eppinput.ResourceCommand;
+import google.registry.model.eppoutput.EppOutput;
 import javax.inject.Inject;
 
 /**
  * An EPP flow that reads a contact.
  *
- * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
  */
-public class ContactInfoFlow extends ResourceInfoFlow<ContactResource, Info> {
-  @Inject ContactInfoFlow() {}
-}
+public class ContactInfoFlow extends LoggedInFlow {
 
+  @Inject ResourceCommand resourceCommand;
+  @Inject ContactInfoFlow() {}
+
+  @Override
+  public final EppOutput run() throws EppException {
+    Info command = (Info) resourceCommand;
+    String targetId = command.getTargetId();
+    ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
+    if (existingResource == null) {
+      throw new ResourceToQueryDoesNotExistException(ContactResource.class, targetId);
+    }
+    if (command.getAuthInfo() != null) {
+      verifyAuthInfoForResource(command.getAuthInfo(), existingResource);
+    }
+    return createOutput(Success, cloneResourceWithLinkedStatus(existingResource, now), null);
+  }
+}

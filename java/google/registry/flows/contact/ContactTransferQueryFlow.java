@@ -14,19 +14,59 @@
 
 package google.registry.flows.contact;
 
-import google.registry.flows.ResourceTransferQueryFlow;
+import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
+import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.eppoutput.Result.Code.Success;
+
+import google.registry.flows.EppException;
+import google.registry.flows.LoggedInFlow;
+import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
+import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
+import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
+import google.registry.model.eppinput.ResourceCommand;
+import google.registry.model.eppoutput.EppOutput;
 import javax.inject.Inject;
 
 /**
  * An EPP flow that queries a pending transfer on a {@link ContactResource}.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
- * @error {@link google.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException}
- * @error {@link google.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException}
+ * @error {@link google.registry.flows.exceptions.NoTransferHistoryToQueryException}
+ * @error {@link google.registry.flows.exceptions.NotAuthorizedToViewTransferException}
+ * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
  */
-public class ContactTransferQueryFlow extends ResourceTransferQueryFlow<ContactResource, Transfer> {
+public class ContactTransferQueryFlow extends LoggedInFlow {
+
+  @Inject ResourceCommand resourceCommand;
   @Inject ContactTransferQueryFlow() {}
+
+  @Override
+  public final EppOutput run() throws EppException {
+    Transfer command = (Transfer) resourceCommand;
+    String targetId = command.getTargetId();
+    ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
+    if (existingResource == null) {
+      throw new ResourceToQueryDoesNotExistException(ContactResource.class, targetId);
+    }
+    if (command.getAuthInfo() != null) {
+      verifyAuthInfoForResource(command.getAuthInfo(), existingResource);
+    }
+    // Most of the fields on the transfer response are required, so there's no way to return valid
+    // XML if the object has never been transferred (and hence the fields aren't populated).
+    if (existingResource.getTransferData().getTransferStatus() == null) {
+      throw new NoTransferHistoryToQueryException();
+    }
+    // Note that the authorization info on the command (if present) has already been verified by the
+    // parent class. If it's present, then the other checks are unnecessary.
+    if (command.getAuthInfo() == null
+        && !getClientId().equals(existingResource.getTransferData().getGainingClientId())
+        && !getClientId().equals(existingResource.getTransferData().getLosingClientId())) {
+      throw new NotAuthorizedToViewTransferException();
+    }
+    return createOutput(
+        Success, createTransferResponse(existingResource, existingResource.getTransferData(), now));
+  }
 }

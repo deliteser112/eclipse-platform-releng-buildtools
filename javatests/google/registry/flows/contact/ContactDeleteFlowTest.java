@@ -28,13 +28,13 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.flows.ResourceAsyncDeleteFlow.ResourceToDeleteIsReferencedException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
-import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
 import google.registry.flows.async.DeleteContactResourceAction;
 import google.registry.flows.async.DeleteEppResourceAction;
+import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
+import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
+import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.reporting.HistoryEntry;
