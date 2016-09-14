@@ -30,19 +30,18 @@ import com.googlecode.objectify.Key;
 import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowUtils;
 import google.registry.flows.async.DeleteContactResourceAction;
 import google.registry.flows.async.DeleteEppResourceAction;
 import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
-import google.registry.model.contact.ContactCommand.Delete;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
@@ -64,8 +63,8 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
       StatusValue.PENDING_DELETE,
       StatusValue.SERVER_DELETE_PROHIBITED);
 
-  @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @Config("asyncDeleteFlowMapreduceDelay") Duration mapreduceDelay;
   @Inject HistoryEntry.Builder historyBuilder;
@@ -78,8 +77,6 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
 
   @Override
   public final EppOutput run() throws EppException {
-    Delete command = (Delete) resourceCommand;
-    String targetId = command.getTargetId();
     failfastForAsyncDelete(
         targetId,
         now,

@@ -14,7 +14,7 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
@@ -22,17 +22,18 @@ import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.Success;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
+import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.NotPendingTransferException;
 import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
-import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
-import google.registry.model.eppinput.ResourceCommand;
+import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
@@ -49,8 +50,9 @@ import javax.inject.Inject;
  */
 public class ContactTransferRejectFlow extends LoggedInFlow implements TransactionalFlow {
 
-  @Inject ResourceCommand resourceCommand;
+  @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactTransferRejectFlow() {}
 
@@ -61,15 +63,11 @@ public class ContactTransferRejectFlow extends LoggedInFlow implements Transacti
 
   @Override
   protected final EppOutput run() throws EppException {
-    Transfer command = (Transfer) resourceCommand;
-    String targetId = command.getTargetId();
     ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
     if (existingResource == null) {
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
     }
-    if (command.getAuthInfo() != null) {
-      verifyAuthInfoForResource(command.getAuthInfo(), existingResource);
-    }
+    verifyOptionalAuthInfoForResource(authInfo, existingResource);
     if (existingResource.getTransferData().getTransferStatus() != TransferStatus.PENDING) {
       throw new NotPendingTransferException(targetId);
     }

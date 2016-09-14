@@ -186,6 +186,13 @@ public class FlowModule {
     return Optional.fromNullable(((SingleResourceCommand) resourceCommand).getAuthInfo());
   }
 
+  @Provides
+  @FlowScope
+  @TargetId
+  static String provideTargetId(ResourceCommand resourceCommand) {
+    return ((SingleResourceCommand) resourceCommand).getTargetId();
+  }
+
   /**
    * Provides a partially filled in {@link HistoryEntry} builder.
    *
@@ -233,6 +240,11 @@ public class FlowModule {
   @Qualifier
   @Documented
   public @interface ClientId {}
+
+  /** Dagger qualifier for the target id (foreign key) for single resource flows. */
+  @Qualifier
+  @Documented
+  public @interface TargetId {}
 
   /** Dagger qualifier for whether a flow is in dry run mode. */
   @Qualifier

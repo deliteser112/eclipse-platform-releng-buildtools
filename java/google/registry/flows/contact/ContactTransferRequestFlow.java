@@ -29,18 +29,17 @@ import com.googlecode.objectify.Key;
 import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
 import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
-import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
@@ -66,9 +65,9 @@ public class ContactTransferRequestFlow extends LoggedInFlow implements Transact
       StatusValue.PENDING_DELETE,
       StatusValue.SERVER_TRANSFER_PROHIBITED);
 
-  @Inject ResourceCommand resourceCommand;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String gainingClientId;
+  @Inject @TargetId String targetId;
   @Inject @Config("contactAutomaticTransferLength") Duration automaticTransferLength;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactTransferRequestFlow() {}
@@ -80,8 +79,6 @@ public class ContactTransferRequestFlow extends LoggedInFlow implements Transact
 
   @Override
   protected final EppOutput run() throws EppException {
-    Transfer command = (Transfer) resourceCommand;
-    String targetId = command.getTargetId();
     ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
     if (existingResource == null) {
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);

@@ -22,14 +22,13 @@ import static google.registry.model.eppoutput.Result.Code.Success;
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
 import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
 import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
-import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo;
-import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import javax.inject.Inject;
 
@@ -43,15 +42,13 @@ import javax.inject.Inject;
  */
 public class ContactTransferQueryFlow extends LoggedInFlow {
 
-  @Inject ResourceCommand resourceCommand;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
   @Inject ContactTransferQueryFlow() {}
 
   @Override
   public final EppOutput run() throws EppException {
-    Transfer command = (Transfer) resourceCommand;
-    String targetId = command.getTargetId();
     ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
     if (existingResource == null) {
       throw new ResourceToQueryDoesNotExistException(ContactResource.class, targetId);
@@ -64,7 +61,7 @@ public class ContactTransferQueryFlow extends LoggedInFlow {
     }
     // Note that the authorization info on the command (if present) has already been verified. If
     // it's present, then the other checks are unnecessary.
-    if (command.getAuthInfo() == null
+    if (!authInfo.isPresent()
         && !clientId.equals(existingResource.getTransferData().getGainingClientId())
         && !clientId.equals(existingResource.getTransferData().getLosingClientId())) {
       throw new NotAuthorizedToViewTransferException();

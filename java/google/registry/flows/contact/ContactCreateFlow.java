@@ -24,6 +24,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
@@ -51,6 +52,7 @@ public class ContactCreateFlow extends LoggedInFlow implements TransactionalFlow
 
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactCreateFlow() {}
 
@@ -62,8 +64,8 @@ public class ContactCreateFlow extends LoggedInFlow implements TransactionalFlow
   @Override
   protected final EppOutput run() throws EppException {
     Create command = (Create) resourceCommand;
-    if (loadByUniqueId(ContactResource.class, command.getTargetId(), now) != null) {
-      throw new ResourceAlreadyExistsException(command.getTargetId());
+    if (loadByUniqueId(ContactResource.class, targetId, now) != null) {
+      throw new ResourceAlreadyExistsException(targetId);
     }
     Builder builder = new Builder();
     command.applyTo(builder);

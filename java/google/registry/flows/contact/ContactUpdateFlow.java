@@ -29,6 +29,7 @@ import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.AddRemoveSameValueEppException;
@@ -73,6 +74,7 @@ public class ContactUpdateFlow extends LoggedInFlow implements TransactionalFlow
   @Inject ResourceCommand resourceCommand;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactUpdateFlow() {}
 
@@ -84,7 +86,6 @@ public class ContactUpdateFlow extends LoggedInFlow implements TransactionalFlow
   @Override
   public final EppOutput run() throws EppException {
     Update command = (Update) resourceCommand;
-    String targetId = command.getTargetId();
     ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
     if (existingResource == null) {
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);

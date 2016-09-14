@@ -21,12 +21,11 @@ import static google.registry.model.eppoutput.Result.Code.Success;
 
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
-import google.registry.model.contact.ContactCommand.Info;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo;
-import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import javax.inject.Inject;
 
@@ -37,14 +36,12 @@ import javax.inject.Inject;
  */
 public class ContactInfoFlow extends LoggedInFlow {
 
-  @Inject ResourceCommand resourceCommand;
+  @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;
   @Inject ContactInfoFlow() {}
 
   @Override
   public final EppOutput run() throws EppException {
-    Info command = (Info) resourceCommand;
-    String targetId = command.getTargetId();
     ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
     if (existingResource == null) {
       throw new ResourceToQueryDoesNotExistException(ContactResource.class, targetId);

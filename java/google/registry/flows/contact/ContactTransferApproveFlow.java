@@ -26,11 +26,11 @@ import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.NotPendingTransferException;
 import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
-import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
@@ -53,6 +53,7 @@ public class ContactTransferApproveFlow extends LoggedInFlow implements Transact
 
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactTransferApproveFlow() {}
@@ -64,8 +65,6 @@ public class ContactTransferApproveFlow extends LoggedInFlow implements Transact
 
   @Override
   public final EppOutput run() throws EppException {
-    Transfer command = (Transfer) resourceCommand;
-    String targetId = command.getTargetId();
     ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
     if (existingResource == null) {
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
