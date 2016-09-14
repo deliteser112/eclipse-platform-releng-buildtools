@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
+import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
@@ -61,6 +62,7 @@ import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.TestExtraLogicManager;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
@@ -95,6 +97,8 @@ public class DomainTransferRequestFlowTest
     setEppInput("domain_transfer_request.xml");
     setClientIdForFlow("NewRegistrar");
     setupDomain("tld");
+    createTld("flags");
+    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   private void assertTransferRequested(EppResource resource) throws Exception {
@@ -759,5 +763,14 @@ public class DomainTransferRequestFlowTest
     domain = persistResource(
         domain.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build());
     doFailingTest("domain_transfer_request.xml");
+  }
+
+  @Test
+  public void testSuccess_flags() throws Exception {
+    setEppInput("domain_transfer_request_flags.xml");
+    setupDomain("example", "flags");
+    eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
+    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
+    runFlow();
   }
 }

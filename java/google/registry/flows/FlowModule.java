@@ -16,13 +16,21 @@ package google.registry.flows;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.flows.exceptions.OnlyToolCanPassMetadataException;
 import google.registry.flows.picker.FlowPicker;
+import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
+import google.registry.model.eppinput.ResourceCommand;
+import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.reporting.HistoryEntry;
 import java.lang.annotation.Documented;
-import javax.annotation.Nullable;
 import javax.inject.Qualifier;
 
 /** Module to choose and instantiate an EPP flow. */
@@ -142,10 +150,11 @@ public class FlowModule {
 
   @Provides
   @FlowScope
-  @Nullable
   @ClientId
   static String provideClientId(SessionMetadata sessionMetadata) {
-    return sessionMetadata.getClientId();
+    // Treat a missing clientId as null so we can always inject a non-null value. All we do with the
+    // clientId is log it (as "") or detect its absence, both of which work fine with empty.
+    return Strings.nullToEmpty(sessionMetadata.getClientId());
   }
 
   @Provides
@@ -162,6 +171,50 @@ public class FlowModule {
     } catch (EppException e) {
       throw new EppExceptionInProviderException(e);
     }
+  }
+
+  @Provides
+  @FlowScope
+  static ResourceCommand provideResourceCommand(EppInput eppInput) {
+    return ((ResourceCommandWrapper) eppInput.getCommandWrapper().getCommand())
+        .getResourceCommand();
+  }
+
+  @Provides
+  @FlowScope
+  static Optional<AuthInfo> provideAuthInfo(ResourceCommand resourceCommand) {
+    return Optional.fromNullable(((SingleResourceCommand) resourceCommand).getAuthInfo());
+  }
+
+  /**
+   * Provides a partially filled in {@link HistoryEntry} builder.
+   *
+   * <p>This is not marked with {@link FlowScope} so that each retry gets a fresh one. Otherwise,
+   * the fact that the builder is one-use would cause NPEs.
+   */
+  @Provides
+  static HistoryEntry.Builder provideHistoryEntryBuilder(
+      Trid trid,
+      @InputXml byte[] inputXmlBytes,
+      @Superuser boolean isSuperuser,
+      @ClientId String clientId,
+      EppRequestSource eppRequestSource,
+      EppInput eppInput) {
+    HistoryEntry.Builder historyBuilder = new HistoryEntry.Builder()
+        .setTrid(trid)
+        .setXmlBytes(inputXmlBytes)
+        .setBySuperuser(isSuperuser)
+        .setClientId(clientId);
+    MetadataExtension metadataExtension = eppInput.getSingleExtension(MetadataExtension.class);
+    if (metadataExtension != null) {
+      if (!eppRequestSource.equals(EppRequestSource.TOOL)) {
+        throw new EppExceptionInProviderException(new OnlyToolCanPassMetadataException());
+      }
+      historyBuilder
+          .setReason(metadataExtension.getReason())
+          .setRequestedByRegistrar(metadataExtension.getRequestedByRegistrar());
+    }
+    return historyBuilder;
   }
 
   /** Wrapper class to carry an {@link EppException} to the calling code. */

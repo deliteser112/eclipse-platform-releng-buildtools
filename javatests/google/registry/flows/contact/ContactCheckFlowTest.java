@@ -18,8 +18,8 @@ import static google.registry.model.eppoutput.CheckData.ContactCheck.create;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 
-import google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
 import google.registry.flows.ResourceCheckFlowTestCase;
+import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.contact.ContactResource;
 import org.junit.Test;
 

@@ -658,4 +658,22 @@ public final class ConfigModule {
   public static Duration provideMetricsWriteInterval() {
     return Duration.standardSeconds(60);
   }
+
+  @Provides
+  @Config("contactAutomaticTransferLength")
+  public static Duration provideContactAutomaticTransferLength(RegistryConfig config) {
+    return config.getContactAutomaticTransferLength();
+  }
+
+  @Provides
+  @Config("asyncDeleteFlowMapreduceDelay")
+  public static Duration provideAsyncDeleteFlowMapreduceDelay(RegistryConfig config) {
+    return config.getAsyncDeleteFlowMapreduceDelay();
+  }
+
+  @Provides
+  @Config("maxChecks")
+  public static int provideMaxChecks(RegistryConfig config) {
+    return config.getMaxChecks();
+  }
 }

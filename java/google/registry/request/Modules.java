@@ -32,6 +32,7 @@ import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
@@ -211,6 +212,10 @@ public final class Modules {
      * Provides a GoogleCredential that will connect to GAE using delegated admin access.  This is
      * needed for API calls requiring domain admin access to the relevant GAFYD using delegated
      * scopes, e.g. the Directory API and the Groupssettings API.
+     *
+     * <p>Note that you must call {@link GoogleCredential#createScoped} on the credential provided
+     * by this method first before using it, as this does not and cannot set the scopes, and a
+     * credential without scopes doesn't actually provide access to do anything.
      */
     @Provides
     @Singleton
@@ -226,7 +231,11 @@ public final class Modules {
           .setServiceAccountPrivateKey(googleCredential.getServiceAccountPrivateKey())
           // TODO(b/31317128): Also set serviceAccountProjectId from value off googleCredential when
           // that functionality is publicly released.
-          .setServiceAccountScopes(googleCredential.getServiceAccountScopes())
+          // Set the scopes to empty because the default value is null, which throws an NPE in the
+          // GoogleCredential constructor.  We don't yet know the actual scopes to use here, and it
+          // is thus the responsibility of every user of a delegated admin credential to call
+          // createScoped() on it first to get the version with the correct scopes set.
+          .setServiceAccountScopes(ImmutableSet.<String>of())
           .setServiceAccountUser(googleAppsAdminEmailAddress)
           .build();
     }

@@ -15,18 +15,29 @@
 package google.registry.flows;
 
 import static com.google.common.base.Preconditions.checkState;
+import static google.registry.model.EppResourceUtils.queryDomainsUsingResource;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Work;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.InvalidAuthorizationInformationErrorException;
+import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
+import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
+import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.EppResource;
 import google.registry.model.EppResource.Builder;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.AuthInfo.BadAuthInfoException;
@@ -43,6 +54,8 @@ import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
+import java.util.List;
+import java.util.Set;
 import org.joda.time.DateTime;
 
 /** Static utility functions for resource transfer flows. */
@@ -51,6 +64,9 @@ public class ResourceFlowUtils {
   /** Statuses for which an exDate should be added to transfer responses. */
   private static final ImmutableSet<TransferStatus> ADD_EXDATE_STATUSES = Sets.immutableEnumSet(
       TransferStatus.PENDING, TransferStatus.CLIENT_APPROVED, TransferStatus.SERVER_APPROVED);
+
+  /** In {@link #failfastForAsyncDelete}, check this (arbitrary) number of query results. */
+  private static final int FAILFAST_CHECK_COUNT = 5;
 
   /**
    * Create a transfer response using the id and type of this resource and the specified
@@ -166,10 +182,53 @@ public class ResourceFlowUtils {
     }
   }
 
+  /** Check whether an asynchronous delete would obviously fail, and throw an exception if so. */
+  public static <R extends EppResource> void failfastForAsyncDelete(
+      final String targetId,
+      final DateTime now,
+      final Class<R> resourceClass,
+      final Function<DomainBase, ImmutableSet<?>> getPotentialReferences) throws EppException {
+    // Enter a transactionless context briefly.
+    EppException failfastException = ofy().doTransactionless(new Work<EppException>() {
+      @Override
+      public EppException run() {
+        final ForeignKeyIndex<R> fki = ForeignKeyIndex.load(resourceClass, targetId, now);
+        if (fki == null) {
+          return new ResourceToMutateDoesNotExistException(resourceClass, targetId);
+        }
+        // Query for the first few linked domains, and if found, actually load them. The query is
+        // eventually consistent and so might be very stale, but the direct load will not be stale,
+        // just non-transactional. If we find at least one actual reference then we can reliably
+        // fail. If we don't find any, we can't trust the query and need to do the full mapreduce.
+        List<Key<DomainBase>> keys = queryDomainsUsingResource(
+            resourceClass, fki.getResourceKey(), now, FAILFAST_CHECK_COUNT);
+        Predicate<DomainBase> predicate = new Predicate<DomainBase>() {
+          @Override
+          public boolean apply(DomainBase domain) {
+            return getPotentialReferences.apply(domain).contains(fki.getResourceKey());
+          }};
+        return Iterables.any(ofy().load().keys(keys).values(), predicate)
+            ? new ResourceToDeleteIsReferencedException()
+            : null;
+      }
+    });
+    if (failfastException != null) {
+      throw failfastException;
+    }
+  }
+
   /** The specified resource belongs to another client. */
   public static class ResourceNotOwnedException extends AuthorizationErrorException {
     public ResourceNotOwnedException() {
       super("The specified resource belongs to another client");
+    }
+  }
+
+  /** Check that the given AuthInfo is either missing or else is valid for the given resource. */
+  public static void verifyOptionalAuthInfoForResource(
+      Optional<AuthInfo> authInfo, EppResource resource) throws EppException {
+    if (authInfo.isPresent()) {
+      verifyAuthInfoForResource(authInfo.get(), resource);
     }
   }
 
@@ -180,6 +239,15 @@ public class ResourceFlowUtils {
       authInfo.verifyAuthorizedFor(resource);
     } catch (BadAuthInfoException e) {
       throw new BadAuthInfoForResourceException();
+    }
+  }
+
+  /** Check that the resource does not have any disallowed status values. */
+  public static void verifyNoDisallowedStatuses(
+      EppResource resource, ImmutableSet<StatusValue> disallowedStatuses) throws EppException {
+    Set<StatusValue> problems = Sets.intersection(resource.getStatusValues(), disallowedStatuses);
+    if (!problems.isEmpty()) {
+      throw new ResourceStatusProhibitsOperationException(problems);
     }
   }
 

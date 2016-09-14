@@ -32,18 +32,13 @@ public class FeeCheckCommandExtensionV06 extends ImmutableObject
     implements FeeCheckCommandExtension<
         FeeCheckCommandExtensionItemV06,
         FeeCheckResponseExtensionV06> {
-  
+
   @XmlElement(name = "domain")
   Set<FeeCheckCommandExtensionItemV06> items;
 
   @Override
-  public boolean isCurrencySupported() {
-    return false;
-  }
-
-  @Override
   public CurrencyUnit getCurrency() {
-    throw new UnsupportedOperationException("Currency not supported");
+    return null;  // This version of the fee extension doesn't specify a top-level currency.
   }
 
   @Override

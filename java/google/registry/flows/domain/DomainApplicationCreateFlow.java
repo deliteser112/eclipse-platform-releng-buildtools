@@ -16,7 +16,6 @@ package google.registry.flows.domain;
 
 import static google.registry.flows.domain.DomainFlowUtils.DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
-import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.eppoutput.Result.Code.Success;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
@@ -118,7 +117,6 @@ public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainAppl
   @Override
   protected void initDomainCreateFlow() {
     registerExtensions(LaunchCreateExtension.class);
-    registerExtensions(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
   }
 
   @Override
@@ -215,6 +213,7 @@ public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainAppl
       responseExtensionsBuilder.add(feeCreate.createResponseBuilder()
           .setCurrency(commandOperations.getCurrency())
           .setFees(commandOperations.getFees())
+          .setCredits(commandOperations.getCredits())
           .build());
     }
 

@@ -101,7 +101,10 @@ public abstract class LoggedInFlow extends Flow {
       allowedTlds = registrar.getAllowedTlds();
     }
     initLoggedInFlow();
-    if (!difference(extensionClasses, getValidRequestExtensions()).isEmpty()) {
+    Set<Class<? extends CommandExtension>> unimplementedExtensions =
+        difference(extensionClasses, getValidRequestExtensions());
+    if (!unimplementedExtensions.isEmpty()) {
+      logger.infofmt("Unimplemented extensions: %s", unimplementedExtensions);
       throw new UnimplementedExtensionException();
     }
   }

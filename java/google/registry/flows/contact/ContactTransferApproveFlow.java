@@ -14,11 +14,31 @@
 
 package google.registry.flows.contact;
 
-import google.registry.flows.ResourceTransferApproveFlow;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
+import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
+import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+
+import com.google.common.base.Optional;
+import com.googlecode.objectify.Key;
+import google.registry.flows.EppException;
+import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.LoggedInFlow;
+import google.registry.flows.TransactionalFlow;
+import google.registry.flows.exceptions.NotPendingTransferException;
+import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.contact.ContactResource.Builder;
+import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppinput.ResourceCommand;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
 
 /**
@@ -26,16 +46,52 @@ import javax.inject.Inject;
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link google.registry.flows.ResourceMutatePendingTransferFlow.NotPendingTransferException}
+ * @error {@link google.registry.flows.exceptions.NotPendingTransferException}
+ * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
  */
-public class ContactTransferApproveFlow
-    extends ResourceTransferApproveFlow<ContactResource, Builder, Transfer> {
+public class ContactTransferApproveFlow extends LoggedInFlow implements TransactionalFlow {
 
+  @Inject ResourceCommand resourceCommand;
+  @Inject @ClientId String clientId;
+  @Inject Optional<AuthInfo> authInfo;
+  @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactTransferApproveFlow() {}
 
   @Override
-  protected final HistoryEntry.Type getHistoryEntryType() {
-    return HistoryEntry.Type.CONTACT_TRANSFER_APPROVE;
+  protected final void initLoggedInFlow() throws EppException {
+    registerExtensions(MetadataExtension.class);
+  }
+
+  @Override
+  public final EppOutput run() throws EppException {
+    Transfer command = (Transfer) resourceCommand;
+    String targetId = command.getTargetId();
+    ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
+    if (existingResource == null) {
+      throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
+    }
+    verifyOptionalAuthInfoForResource(authInfo, existingResource);
+    if (existingResource.getTransferData().getTransferStatus() != TransferStatus.PENDING) {
+      throw new NotPendingTransferException(targetId);
+    }
+    verifyResourceOwnership(clientId, existingResource);
+    ContactResource newResource = existingResource.asBuilder()
+        .clearPendingTransfer(TransferStatus.CLIENT_APPROVED, now)
+        .setLastTransferTime(now)
+        .setCurrentSponsorClientId(existingResource.getTransferData().getGainingClientId())
+        .build();
+    HistoryEntry historyEntry = historyBuilder
+        .setType(HistoryEntry.Type.CONTACT_TRANSFER_APPROVE)
+        .setModificationTime(now)
+        .setParent(Key.create(existingResource))
+        .build();
+    // Create a poll message for the gaining client.
+    PollMessage gainingPollMessage =
+        createGainingTransferPollMessage(targetId, newResource.getTransferData(), historyEntry);
+    ofy().save().<Object>entities(newResource, historyEntry, gainingPollMessage);
+    // Delete the billing event and poll messages that were written in case the transfer would have
+    // been implicitly server approved.
+    ofy().delete().keys(existingResource.getTransferData().getServerApproveEntities());
+    return createOutput(Success, createTransferResponse(targetId, newResource.getTransferData()));
   }
 }

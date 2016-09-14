@@ -24,10 +24,10 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import google.registry.config.RegistryEnvironment;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
-import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
-import google.registry.flows.ResourceTransferRequestFlow.AlreadyPendingTransferException;
-import google.registry.flows.ResourceTransferRequestFlow.MissingTransferRequestAuthInfoException;
-import google.registry.flows.ResourceTransferRequestFlow.ObjectAlreadySponsoredException;
+import google.registry.flows.exceptions.AlreadyPendingTransferException;
+import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
+import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
+import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;

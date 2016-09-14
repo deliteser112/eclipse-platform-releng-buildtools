@@ -50,4 +50,8 @@ public enum TransferStatus {
   public String getXmlName() {
     return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, toString());
   }
+
+  public boolean isApproved() {
+    return this.equals(CLIENT_APPROVED) || this.equals(SERVER_APPROVED);
+  }
 }

@@ -44,6 +44,7 @@ java_library(
         "//java/google/registry/mapreduce",
         "//java/google/registry/mapreduce/inputs",
         "//java/google/registry/model",
+        "//java/google/registry/monitoring/metrics",
         "//java/google/registry/monitoring/whitebox",
         "//java/google/registry/pricing",
         "//java/google/registry/request",

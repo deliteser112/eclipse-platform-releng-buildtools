@@ -18,6 +18,7 @@ import static google.registry.model.contact.PostalInfo.Type.INTERNATIONALIZED;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
@@ -25,6 +26,11 @@ import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
+import google.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
+import google.registry.model.poll.PollMessage;
+import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -50,12 +56,55 @@ public class ContactFlowUtils {
       }
     }
   }
-  
+
   /** Check contact's state against server policy. */
   static void validateContactAgainstPolicy(ContactResource contact) throws EppException {
     if (contact.getDisclose() != null && !contact.getDisclose().getFlag()) {
       throw new DeclineContactDisclosureFieldDisallowedPolicyException();
     }
+  }
+
+  /** Create a poll message for the gaining client in a transfer. */
+  static PollMessage createGainingTransferPollMessage(
+      String targetId, TransferData transferData, HistoryEntry historyEntry) {
+    return new PollMessage.OneTime.Builder()
+        .setClientId(transferData.getGainingClientId())
+        .setEventTime(transferData.getPendingTransferExpirationTime())
+        .setMsg(transferData.getTransferStatus().getMessage())
+        .setResponseData(ImmutableList.of(
+            createTransferResponse(targetId, transferData),
+            ContactPendingActionNotificationResponse.create(
+                  targetId,
+                  transferData.getTransferStatus().isApproved(),
+                  transferData.getTransferRequestTrid(),
+                  historyEntry.getModificationTime())))
+        .setParent(historyEntry)
+        .build();
+  }
+
+  /** Create a poll message for the losing client in a transfer. */
+  static PollMessage createLosingTransferPollMessage(
+      String targetId, TransferData transferData, HistoryEntry historyEntry) {
+    return new PollMessage.OneTime.Builder()
+        .setClientId(transferData.getLosingClientId())
+        .setEventTime(transferData.getPendingTransferExpirationTime())
+        .setMsg(transferData.getTransferStatus().getMessage())
+        .setResponseData(ImmutableList.of(createTransferResponse(targetId, transferData)))
+        .setParent(historyEntry)
+        .build();
+  }
+
+  /** Create a {@link ContactTransferResponse} off of the info in a {@link TransferData}. */
+  static ContactTransferResponse createTransferResponse(
+      String targetId, TransferData transferData) {
+    return new ContactTransferResponse.Builder()
+        .setContactId(targetId)
+        .setGainingClientId(transferData.getGainingClientId())
+        .setLosingClientId(transferData.getLosingClientId())
+        .setPendingTransferExpirationTime(transferData.getPendingTransferExpirationTime())
+        .setTransferRequestTime(transferData.getTransferRequestTime())
+        .setTransferStatus(transferData.getTransferStatus())
+        .build();
   }
 
   /** Declining contact disclosure is disallowed by server policy. */
@@ -65,7 +114,7 @@ public class ContactFlowUtils {
       super("Declining contact disclosure is disallowed by server policy.");
     }
   }
-  
+
   /** Internationalized postal infos can only contain ASCII characters. */
   static class BadInternationalizedPostalInfoException extends ParameterValueSyntaxErrorException {
     public BadInternationalizedPostalInfoException() {

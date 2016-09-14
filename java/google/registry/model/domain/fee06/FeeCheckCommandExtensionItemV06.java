@@ -29,7 +29,7 @@ public class FeeCheckCommandExtensionItemV06
   String name;
 
   CurrencyUnit currency;
-  
+
   @Override
   public boolean isDomainNameSupported() {
     return true;
@@ -38,11 +38,6 @@ public class FeeCheckCommandExtensionItemV06
   @Override
   public String getDomainName() {
     return name;
-  }
-
-  @Override
-  public boolean isCurrencySupported() {
-    return true;
   }
 
   @Override

@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
@@ -91,7 +90,7 @@ public class FlowRunnerTest extends ShardableTestCase {
     flowRunner.isDryRun = false;
     flowRunner.isSuperuser = false;
     flowRunner.isTransactional = false;
-    flowRunner.metric = mock(EppMetric.Builder.class);
+    flowRunner.metric = EppMetric.builderForRequest("request-id-1", flowRunner.clock);
     flowRunner.sessionMetadata =
         new StatelessRequestSessionMetadata("TheRegistrar", ImmutableSet.<String>of());
     flowRunner.trid = Trid.create("client-123", "server-456");
@@ -110,23 +109,21 @@ public class FlowRunnerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testRun_notIsTransactional_callsMetricIncrementAttempts() throws Exception {
+  public void testRun_notIsTransactional_incrementsMetricAttempts() throws Exception {
     flowRunner.run();
-
-    verify(flowRunner.metric).incrementAttempts();
+    assertThat(flowRunner.metric.build().getAttempts()).isEqualTo(1);
   }
 
   @Test
-  public void testRun_isTransactional_callsMetricIncrementAttempts() throws Exception {
+  public void testRun_isTransactional_incrementsMetricAttempts() throws Exception {
     flowRunner.isTransactional = true;
     flowRunner.run();
-
-    verify(flowRunner.metric).incrementAttempts();
+    assertThat(flowRunner.metric.build().getAttempts()).isEqualTo(1);
   }
 
   @Test
   public void testRun_reportingLogStatement_noClientId() throws Exception {
-    flowRunner.clientId = null;
+    flowRunner.clientId = "";
     flowRunner.run();
     assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
         .containsExactly(
@@ -181,10 +178,11 @@ public class FlowRunnerTest extends ShardableTestCase {
 
   @Test
   public void testRun_legacyLoggingStatement_gaeUserCredentials() throws Exception {
-    flowRunner.credentials = new GaeUserCredentials(new User("user@example.com", "authDomain"));
+    flowRunner.credentials =
+        GaeUserCredentials.forTestingUser(new User("user@example.com", "authDomain"), false);
     flowRunner.run();
     assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
-        .contains("GaeUserCredentials{gaeUser=user@example.com}");
+        .contains("GaeUserCredentials{gaeUser=user@example.com, isAdmin=false}");
   }
 
   @Test

@@ -14,11 +14,12 @@
 
 package google.registry.flows;
 
-import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Strings.nullToEmpty;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.appengine.api.users.User;
+import com.google.appengine.api.users.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import google.registry.flows.EppException.AuthenticationErrorException;
 import google.registry.model.registrar.Registrar;
@@ -28,11 +29,41 @@ import javax.annotation.Nullable;
 /** Credentials provided by {@link com.google.appengine.api.users.UserService}. */
 public class GaeUserCredentials implements TransportCredentials {
 
-  final User gaeUser;
+  private final User gaeUser;
+  private final Boolean isAdmin;
+
+  /**
+   * Create an instance for the current user, as determined by {@code UserService}.
+   *
+   * <p>Note that the current user may be null (i.e. there is no logged in user).
+   */
+  public static GaeUserCredentials forCurrentUser(UserService userService) {
+    User user = userService.getCurrentUser();
+    return new GaeUserCredentials(user, user != null ? userService.isUserAdmin() : null);
+  }
+
+  /** Create an instance that represents an explicit user (for testing purposes). */
+  @VisibleForTesting
+  public static GaeUserCredentials forTestingUser(User gaeUser, Boolean isAdmin) {
+    checkArgumentNotNull(gaeUser);
+    checkArgumentNotNull(isAdmin);
+    return new GaeUserCredentials(gaeUser, isAdmin);
+  }
+
+  /** Create an instance that represents a non-logged in user (for testing purposes). */
+  @VisibleForTesting
+  public static GaeUserCredentials forLoggedOutUser() {
+    return new GaeUserCredentials(null, null);
+  }
+
+  private GaeUserCredentials(@Nullable User gaeUser, @Nullable Boolean isAdmin) {
+    this.gaeUser = gaeUser;
+    this.isAdmin = isAdmin;
+  }
 
   @VisibleForTesting
-  public GaeUserCredentials(@Nullable User gaeUser) {
-    this.gaeUser = gaeUser;
+  User getUser() {
+    return gaeUser;
   }
 
   @Override
@@ -42,7 +73,7 @@ public class GaeUserCredentials implements TransportCredentials {
       throw new UserNotLoggedInException();
     }
     // Allow admins to act as any registrar.
-    if (getUserService().isUserAdmin()) {
+    if (Boolean.TRUE.equals(isAdmin)) {
       return;
     }
     // Check Registrar's contacts to see if any are associated with this gaeUserId.
@@ -59,6 +90,7 @@ public class GaeUserCredentials implements TransportCredentials {
   public String toString() {
     return toStringHelper(getClass())
         .add("gaeUser", gaeUser)
+        .add("isAdmin", isAdmin)
         .toString();
   }
 

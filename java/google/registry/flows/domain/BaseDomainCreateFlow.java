@@ -51,12 +51,14 @@ import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.EppException.UnimplementedOptionException;
 import google.registry.flows.ResourceCreateFlow;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainBase.Builder;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.LrpToken;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
+import google.registry.model.domain.flags.FlagsCreateCommandExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
@@ -67,8 +69,6 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.smd.SignedMark;
 import google.registry.model.tmch.ClaimsListShard;
-import google.registry.pricing.TldSpecificLogicProxy;
-import google.registry.pricing.TldSpecificLogicProxy.EppCommandOperations;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -95,16 +95,20 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
   protected TldState tldState;
   protected Optional<LrpToken> lrpToken;
 
+  protected Optional<RegistryExtraFlowLogic> extraFlowLogic;
+
   @Override
   public final void initResourceCreateOrMutateFlow() throws EppException {
     command = cloneAndLinkReferences(command, now);
-    registerExtensions(SecDnsCreateExtension.class);
+    registerExtensions(SecDnsCreateExtension.class, FlagsCreateCommandExtension.class);
+    registerExtensions(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     secDnsCreate = eppInput.getSingleExtension(SecDnsCreateExtension.class);
     launchCreate = eppInput.getSingleExtension(LaunchCreateExtension.class);
     feeCreate =
         eppInput.getFirstExtensionOfClasses(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     hasSignedMarks = launchCreate != null && !launchCreate.getSignedMarks().isEmpty();
     initDomainCreateFlow();
+    // We can't initialize extraFlowLogic here, because the TLD has not been checked yet.
   }
 
   @Override
@@ -181,9 +185,19 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
     Registry registry = Registry.get(tld);
     tldState = registry.getTldState(now);
     checkRegistryStateForTld(tld);
+    // Now that the TLD has been verified, we can go ahead and initialize extraFlowLogic. The
+    // initialization and matching commit are done at the topmost possible level in the flow
+    // hierarchy, but the actual processing takes place only when needed in the children, e.g.
+    // DomainCreateFlow.
+    extraFlowLogic = RegistryExtraFlowLogicProxy.newInstanceForTld(tld);
     domainLabel = domainName.parts().get(0);
     commandOperations = TldSpecificLogicProxy.getCreatePrice(
-        registry, domainName.toString(), now, command.getPeriod().getValue());
+        registry,
+        domainName.toString(),
+        getClientId(),
+        now,
+        command.getPeriod().getValue(),
+        eppInput);
     // The TLD should always be the parent of the requested domain name.
     isAnchorTenantViaReservation = matchesAnchorTenantReservation(
         domainLabel, tld, command.getAuthInfo().getPw().getValue());
@@ -251,6 +265,9 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
       ofy().save().entity(lrpToken.get().asBuilder()
           .setRedemptionHistoryEntry(Key.create(historyEntry))
           .build());
+    }
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().commitAdditionalLogicChanges();
     }
   }
 

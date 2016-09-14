@@ -76,7 +76,7 @@ public class EppLifecycleContactTest extends EppTestCase {
         DateTime.parse("2000-06-08T22:01:00Z"));
     assertCommandAndResponse(
         "poll_ack.xml",
-        ImmutableMap.of("ID", "2-1-ROID-3-4"),
+        ImmutableMap.of("ID", "2-1-ROID-3-6"),
         "poll_ack_response_empty.xml",
         null,
         DateTime.parse("2000-06-08T22:02:00Z"));

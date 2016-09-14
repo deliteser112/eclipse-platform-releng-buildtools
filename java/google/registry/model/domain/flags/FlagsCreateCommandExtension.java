@@ -30,4 +30,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class FlagsCreateCommandExtension implements CommandExtension {
   @XmlElement(name = "flag")
   List<String> flags;
+  
+  public List<String> getFlags() {
+    return flags;
+  }
 }

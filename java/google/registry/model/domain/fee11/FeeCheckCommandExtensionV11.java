@@ -52,22 +52,20 @@ public class FeeCheckCommandExtensionV11 extends ImmutableObject
 
   /** Three-letter currency code in which results should be returned. */
   CurrencyUnit currency;
-  
+
   /** The period to check. */
   Period period;
 
   /** The class to check. */
   @XmlElement(name = "class")
   String feeClass;
-  
-  @Override
-  public boolean isCurrencySupported() {
-    return false;
-  }
-  
+
   @Override
   public CurrencyUnit getCurrency() {
-    throw new UnsupportedOperationException("Currency not supported");
+    // This version of the fee extension does not have any items, and although the currency is
+    // specified at the top level we've modeled it as a single fake item with the currency inside,
+    // so there's no top level currency to return here.
+    return null;  
   }
 
   @Override
@@ -96,13 +94,13 @@ public class FeeCheckCommandExtensionV11 extends ImmutableObject
     public CommandName getCommandName() {
       return command.getCommand();
     }
-  
+
     /** The command name before being parsed into an enum, for use in error strings. */
     @Override
     public String getUnparsedCommandName() {
       return command.getUnparsedCommandName();
     }
-  
+
     /** The phase of the command being checked. */
     @Override
     public String getPhase() {
@@ -119,20 +117,15 @@ public class FeeCheckCommandExtensionV11 extends ImmutableObject
     public Period getPeriod() {
       return Optional.fromNullable(period).or(DEFAULT_PERIOD);
     }
-    
+
     @Override
     public boolean isDomainNameSupported() {
       return false;
     }
-    
+
     @Override
     public String getDomainName() {
       throw new UnsupportedOperationException("Domain not supported");
-    }
-
-    @Override
-    public boolean isCurrencySupported() {
-      return true;
     }
 
     @Override

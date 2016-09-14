@@ -32,6 +32,7 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppResponse.ResponseData;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
 import java.util.Set;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -301,6 +302,27 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
     public B setRepoId(String repoId) {
       getInstance().repoId = repoId;
       return thisCastToDerived();
+    }
+
+    /**
+     * Remove a pending transfer.
+     *
+     * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, clears all the
+     * server-approve fields on the {@link TransferData} including the extended registration years
+     * field, and sets the expiration time of the last pending transfer (i.e. the one being cleared)
+     * to now.
+     */
+    public B clearPendingTransfer(TransferStatus transferStatus, DateTime now) {
+      removeStatusValue(StatusValue.PENDING_TRANSFER);
+      return setTransferData(getInstance().getTransferData().asBuilder()
+          .setExtendedRegistrationYears(null)
+          .setServerApproveEntities(null)
+          .setServerApproveBillingEvent(null)
+          .setServerApproveAutorenewEvent(null)
+          .setServerApproveAutorenewPollMessage(null)
+          .setTransferStatus(transferStatus)
+          .setPendingTransferExpirationTime(now)
+          .build());
     }
 
     /** Wipe out any personal information in the resource. */

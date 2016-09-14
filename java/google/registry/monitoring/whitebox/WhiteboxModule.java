@@ -17,6 +17,7 @@ package google.registry.monitoring.whitebox;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.apphosting.api.ApiProxy;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import dagger.Module;
@@ -24,7 +25,9 @@ import dagger.Provides;
 import dagger.multibindings.IntoMap;
 import dagger.multibindings.StringKey;
 import google.registry.request.Parameter;
+import google.registry.util.Clock;
 import java.util.UUID;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -32,6 +35,8 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Module
 public class WhiteboxModule {
+
+  private static final String REQUEST_LOG_ID = "com.google.appengine.runtime.request_log_id";
 
   @Provides
   @IntoMap
@@ -60,12 +65,26 @@ public class WhiteboxModule {
   }
 
   @Provides
-  static Supplier<String> provideIdGenerator() {
+  @Named("insertIdGenerator")
+  static Supplier<String> provideInsertIdGenerator() {
     return new Supplier<String>() {
       @Override
       public String get() {
         return UUID.randomUUID().toString();
       }
     };
+  }
+
+  @Provides
+  @Named("requestLogId")
+  static String provideRequestLogId() {
+    return ApiProxy.getCurrentEnvironment().getAttributes().get(REQUEST_LOG_ID).toString();
+  }
+
+  /** Provides an EppMetric builder with the request ID and startTimestamp already initialized. */
+  @Provides
+  static EppMetric.Builder provideEppMetricBuilder(
+      @Named("requestLogId") String requestLogId, Clock clock) {
+    return EppMetric.builderForRequest(requestLogId, clock);
   }
 }

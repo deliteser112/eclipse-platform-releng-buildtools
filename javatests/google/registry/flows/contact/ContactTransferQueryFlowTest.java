@@ -20,9 +20,9 @@ import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
-import google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException;
-import google.registry.flows.ResourceTransferQueryFlow.NoTransferHistoryToQueryException;
-import google.registry.flows.ResourceTransferQueryFlow.NotAuthorizedToViewTransferException;
+import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
+import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
+import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;

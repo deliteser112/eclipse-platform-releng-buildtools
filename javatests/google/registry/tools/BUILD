@@ -28,6 +28,7 @@ java_library(
         "//third_party/java/joda_money",
         "//third_party/java/joda_time",
         "//third_party/java/json_simple",
+        "//third_party/java/jsr305_annotations",
         "//third_party/java/jsr330_inject",
         "//third_party/java/junit",
         "//third_party/java/mockito",

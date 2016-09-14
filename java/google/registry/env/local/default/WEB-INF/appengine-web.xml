@@ -6,14 +6,11 @@
   <module>default</module>
   <threadsafe>true</threadsafe>
   <sessions-enabled>true</sessions-enabled>
-  <instance-class>F4_1G</instance-class>
-  <automatic-scaling>
-    <min-idle-instances>1</min-idle-instances>
-    <max-idle-instances>automatic</max-idle-instances>
-    <min-pending-latency>automatic</min-pending-latency>
-    <max-pending-latency>100ms</max-pending-latency>
-    <max-concurrent-requests>10</max-concurrent-requests>
-  </automatic-scaling>
+  <instance-class>B4_1G</instance-class>
+  <basic-scaling>
+    <max-instances>10</max-instances>
+    <idle-timeout>10m</idle-timeout>
+  </basic-scaling>
 
 
   <system-properties>

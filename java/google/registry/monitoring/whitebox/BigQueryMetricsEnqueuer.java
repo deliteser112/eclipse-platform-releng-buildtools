@@ -20,11 +20,11 @@ import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Supplier;
 import google.registry.util.FormattingLogger;
 import java.util.Map.Entry;
-import java.util.UUID;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  * A collector of metric information. Enqueues collected metrics to a task queue to be written to
@@ -39,18 +39,17 @@ public class BigQueryMetricsEnqueuer {
   public static final String QUEUE = "bigquery-streaming-metrics";
 
   @Inject ModulesService modulesService;
+  @Inject @Named("insertIdGenerator") Supplier<String> idGenerator;
 
-  @Inject
-  BigQueryMetricsEnqueuer() {}
+  @Inject BigQueryMetricsEnqueuer() {}
 
-  @VisibleForTesting
-  void export(BigQueryMetric metric, String insertId) {
+  public void export(BigQueryMetric metric) {
     try {
       String hostname = modulesService.getVersionHostname("backend", null);
       TaskOptions opts =
           withUrl(MetricsExportAction.PATH)
               .header("Host", hostname)
-              .param("insertId", insertId);
+              .param("insertId", idGenerator.get());
       for (Entry<String, String> entry : metric.getBigQueryRowEncoding().entrySet()) {
         opts.param(entry.getKey(), entry.getValue());
       }
@@ -60,10 +59,5 @@ public class BigQueryMetricsEnqueuer {
       // Log and swallow. We may drop some metrics here but this should be rare.
       logger.info(e, e.getMessage());
     }
-  }
-
-  /** Enqueue a metric to be exported to BigQuery. */
-  public void export(BigQueryMetric metric) {
-    export(metric, UUID.randomUUID().toString());
   }
 }

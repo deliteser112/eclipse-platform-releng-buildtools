@@ -24,7 +24,7 @@ import org.joda.money.CurrencyUnit;
  * of items requesting the fees for particular commands and domains. For some versions of the fee
  * extension, the currency is also specified here; for other versions it is contained in the
  * individual items.
- * 
+ *
  * @type C the type of extension item used by this command (e.g. v6 items for a v6 extension)
  * @type R the type of response returned for for this command (e.g. v6 responses for a v6 extension)
  */
@@ -33,13 +33,14 @@ public interface FeeCheckCommandExtension<
         R extends FeeCheckResponseExtension<?>>
     extends CommandExtension {
 
-  /** True if this version of the fee extension specifies the currency at the top level. */
-  public boolean isCurrencySupported();
+  /**
+   * Three-character ISO4217 currency code.
+   *
+   * <p>Returns null if this version of the fee extension doesn't specify currency at the top level.
+   */
+  public CurrencyUnit getCurrency();
 
-  /** Three-character currency code; throws an exception if currency is not supported. */
-  public CurrencyUnit getCurrency() throws UnsupportedOperationException;
-  
   public ImmutableSet<C> getItems();
-    
+
   public R createResponse(ImmutableList<? extends FeeCheckResponseExtensionItem> items);
 }

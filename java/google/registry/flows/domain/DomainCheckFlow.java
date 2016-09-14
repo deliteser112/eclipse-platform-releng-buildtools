@@ -23,7 +23,6 @@ import static google.registry.model.index.DomainApplicationIndex.loadActiveAppli
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
 import static google.registry.util.CollectionUtils.nullToEmpty;
-import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -49,7 +48,6 @@ import google.registry.model.registry.label.ReservationType;
 import java.util.Collections;
 import java.util.Set;
 import javax.inject.Inject;
-import org.joda.money.CurrencyUnit;
 
 /**
  * An EPP flow that checks whether a domain can be provisioned.
@@ -148,7 +146,7 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
       // If this version of the fee extension is nameless, use the full list of domains.
       return domainNames.keySet();
     }
-  }   
+  }
 
   /** Handle the fee check extension. */
   @Override
@@ -160,7 +158,6 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
     if (feeCheck == null) {
       return null;  // No fee checks were requested.
     }
-    CurrencyUnit topLevelCurrency = feeCheck.isCurrencySupported() ? feeCheck.getCurrency() : null;
     ImmutableList.Builder<FeeCheckResponseExtensionItem> feeCheckResponseItemsBuilder =
         new ImmutableList.Builder<>();
     for (FeeCheckCommandExtensionItem feeCheckItem : feeCheck.getItems()) {
@@ -169,10 +166,11 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
         handleFeeRequest(
             feeCheckItem,
             builder,
-            domainName,
-            getTldFromDomainName(domainName),
-            topLevelCurrency,
-            now);
+            domainNames.get(domainName),
+            getClientId(),
+            feeCheck.getCurrency(),
+            now,
+            eppInput);
         feeCheckResponseItemsBuilder
             .add(builder.setDomainNameIfSupported(domainName).build());
       }
@@ -180,7 +178,7 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
     return ImmutableList.<ResponseExtension>of(
         feeCheck.createResponse(feeCheckResponseItemsBuilder.build()));
   }
-  
+
   /** By server policy, fee check names must be listed in the availability check. */
   static class OnlyCheckedNamesCanBeFeeCheckedException extends ParameterValuePolicyErrorException {
     OnlyCheckedNamesCanBeFeeCheckedException() {

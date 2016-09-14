@@ -61,6 +61,7 @@ import google.registry.model.domain.DomainCommand.CreateOrUpdate;
 import google.registry.model.domain.DomainCommand.InvalidReferencesException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
+import google.registry.model.domain.fee.Credit;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
 import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
@@ -71,6 +72,7 @@ import google.registry.model.domain.launch.LaunchExtension;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 import google.registry.model.host.HostResource;
 import google.registry.model.mark.Mark;
@@ -86,7 +88,6 @@ import google.registry.model.smd.AbstractSignedMark;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
 import google.registry.model.smd.SignedMarkRevocationList;
-import google.registry.pricing.TldSpecificLogicProxy;
 import google.registry.tmch.TmchXmlSignature;
 import google.registry.tmch.TmchXmlSignature.CertificateSignatureException;
 import google.registry.util.Idn;
@@ -563,12 +564,13 @@ public class DomainFlowUtils {
   static void handleFeeRequest(
       FeeQueryCommandExtensionItem feeRequest,
       FeeQueryResponseExtensionItem.Builder builder,
-      String domainName,
-      String tld,
+      InternetDomainName domain,
+      String clientIdentifier,
       @Nullable CurrencyUnit topLevelCurrency,
-      DateTime now) throws EppException {
-    InternetDomainName domain = InternetDomainName.from(domainName);
-    Registry registry = Registry.get(tld);
+      DateTime now,
+      EppInput eppInput) throws EppException {
+    String domainNameString = domain.toString();
+    Registry registry = Registry.get(domain.parent().toString());
     int years = verifyUnitIsYears(feeRequest.getPeriod()).getValue();
     boolean isSunrise = registry.getTldState(now).equals(TldState.SUNRISE);
 
@@ -577,7 +579,7 @@ public class DomainFlowUtils {
     }
 
     CurrencyUnit currency =
-        feeRequest.isCurrencySupported() ? feeRequest.getCurrency() : topLevelCurrency;
+        feeRequest.getCurrency() != null ? feeRequest.getCurrency() : topLevelCurrency;
     if ((currency != null) && !currency.equals(registry.getCurrency())) {
       throw new CurrencyUnitMismatchException();
     }
@@ -586,11 +588,9 @@ public class DomainFlowUtils {
         .setCommand(feeRequest.getCommandName(), feeRequest.getPhase(), feeRequest.getSubphase())
         .setCurrencyIfSupported(registry.getCurrency())
         .setPeriod(feeRequest.getPeriod())
-        .setClass(TldSpecificLogicProxy.getFeeClass(domainName, now).orNull());
+        .setClass(TldSpecificLogicProxy.getFeeClass(domainNameString, now).orNull());
 
     switch (feeRequest.getCommandName()) {
-      case UNKNOWN:
-        throw new UnknownFeeCommandException(feeRequest.getUnparsedCommandName());
       case CREATE:
         if (isReserved(domain, isSunrise)) {  // Don't return a create price for reserved names.
           builder.setClass("reserved");  // Override whatever class we've set above.
@@ -598,24 +598,35 @@ public class DomainFlowUtils {
           builder.setReasonIfSupported("reserved");
         } else {
           builder.setAvailIfSupported(true);
-          builder.setFees(
-              TldSpecificLogicProxy.getCreatePrice(registry, domainName, now, years).getFees());
+          builder.setFees(TldSpecificLogicProxy.getCreatePrice(
+              registry, domainNameString, clientIdentifier, now, years, eppInput).getFees());
         }
+        break;
+      case RENEW:
+        builder.setAvailIfSupported(true);
+        builder.setFees(TldSpecificLogicProxy.getRenewPrice(
+            registry, domainNameString, clientIdentifier, now, years, eppInput).getFees());
         break;
       case RESTORE:
         if (years != 1) {
           throw new RestoresAreAlwaysForOneYearException();
         }
         builder.setAvailIfSupported(true);
-        builder.setFees(
-            TldSpecificLogicProxy.getRestorePrice(registry, domainName, now, years).getFees());
+        builder.setFees(TldSpecificLogicProxy.getRestorePrice(
+            registry, domainNameString, clientIdentifier, now, eppInput).getFees());
         break;
-      // TODO(mountford): handle UPDATE
-      default:
-        // Anything else (transfer|renew) will have a "renew" fee.
+      case TRANSFER:
         builder.setAvailIfSupported(true);
-        builder.setFees(
-            TldSpecificLogicProxy.getRenewPrice(registry, domainName, now, years).getFees());
+        builder.setFees(TldSpecificLogicProxy.getTransferPrice(
+            registry, domainNameString, clientIdentifier, now, years, eppInput).getFees());
+        break;
+      case UPDATE:
+        builder.setAvailIfSupported(true);
+        builder.setFees(TldSpecificLogicProxy.getUpdatePrice(
+            registry, domainNameString, clientIdentifier, now, eppInput).getFees());
+        break;
+      default:
+        throw new UnknownFeeCommandException(feeRequest.getUnparsedCommandName());
     }
   }
 
@@ -645,6 +656,12 @@ public class DomainFlowUtils {
         throw new UnsupportedFeeAttributeException();
       }
       total = total.add(fee.getCost());
+    }
+    for (Credit credit : feeCommand.getCredits()) {
+      if (!credit.hasDefaultAttributes()) {
+        throw new UnsupportedFeeAttributeException();
+      }
+      total = total.add(credit.getCost());
     }
 
     Money feeTotal = null;
@@ -953,6 +970,13 @@ public class DomainFlowUtils {
     }
   }
 
+  /** Fees must be explicitly acknowledged when performing an update which is not free. */
+  static class FeesRequiredForNonFreeUpdateException extends RequiredParameterMissingException {
+    FeesRequiredForNonFreeUpdateException() {
+      super("Fees must be explicitly acknowledged when performing an update which is not free.");
+    }
+  }
+
   /** The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy. */
   static class UnsupportedFeeAttributeException extends UnimplementedOptionException {
     UnsupportedFeeAttributeException() {
@@ -1030,4 +1054,3 @@ public class DomainFlowUtils {
   }
 
 }
-

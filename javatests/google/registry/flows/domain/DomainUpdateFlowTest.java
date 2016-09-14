@@ -55,6 +55,8 @@ import google.registry.flows.domain.BaseDomainUpdateFlow.MaxSigLifeChangeNotSupp
 import google.registry.flows.domain.BaseDomainUpdateFlow.SecDnsAllUsageException;
 import google.registry.flows.domain.BaseDomainUpdateFlow.UrgentAttributeNotSupportedException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
+import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
+import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourceInPendingDeleteProhibitsOperationException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
@@ -1181,11 +1183,29 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   @Test
-  public void testAddAndRemoveFlags() throws Exception {
+  public void testAddAndRemoveFlags_noFee() throws Exception {
     setEppInput("domain_update_addremove_flags.xml");
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(UnimplementedExtensionException.class);
+    thrown.expect(FeesRequiredForNonFreeUpdateException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testAddAndRemoveFlags_wrongFee() throws Exception {
+    setEppInput("domain_update_addremove_flags_fee.xml", ImmutableMap.of("FEE", "11.00"));
+    persistReferencedEntities();
+    persistDomain();
+    thrown.expect(FeesMismatchException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testAddAndRemoveFlags_correctFee() throws Exception {
+    setEppInput("domain_update_addremove_flags_fee.xml", ImmutableMap.of("FEE", "13.00"));
+    persistReferencedEntities();
+    persistDomain();
+    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
     runFlow();
   }
 }

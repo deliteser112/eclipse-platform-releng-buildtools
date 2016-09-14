@@ -17,6 +17,10 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
+import com.google.common.collect.ImmutableList;
+
+import java.util.Collection;
+
 /** String generator. */
 abstract class StringGenerator {
 
@@ -41,4 +45,13 @@ abstract class StringGenerator {
 
   /** Generates a string of a specified length. */
   abstract String createString(int length);
+
+  /** Batch-generates an {@link ImmutableList} of strings of a specified length. */
+  public Collection<String> createStrings(int length, int count) {
+    ImmutableList.Builder<String> listBuilder = new ImmutableList.Builder<>();
+    for (int i = 0; i < count; i++) {
+      listBuilder.add(createString(length));
+    }
+    return listBuilder.build();
+  }
 }

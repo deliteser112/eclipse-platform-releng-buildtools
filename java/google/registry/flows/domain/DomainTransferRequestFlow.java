@@ -25,6 +25,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -39,6 +40,7 @@ import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
+import google.registry.model.domain.flags.FlagsTransferCommandExtension;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
@@ -87,6 +89,9 @@ public class DomainTransferRequestFlow
 
   /** The amount that this transfer will cost due to the implied renew. */
   private Money renewCost;
+  
+  /** Extra flow logic instance. */
+  protected Optional<RegistryExtraFlowLogic> extraFlowLogic;
 
   /**
    * An optional extension from the client specifying how much they think the transfer should cost.
@@ -101,7 +106,8 @@ public class DomainTransferRequestFlow
   }
 
   @Override
-  protected final void initResourceTransferRequestFlow() {
+  protected final void initResourceTransferRequestFlow() throws EppException {
+    registerExtensions(FlagsTransferCommandExtension.class);
     registerExtensions(FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     feeTransfer = eppInput.getFirstExtensionOfClasses(
         FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
@@ -146,6 +152,7 @@ public class DomainTransferRequestFlow
         .setMsg("Domain was auto-renewed.")
         .setParent(historyEntry)
         .build();
+    extraFlowLogic = RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);
   }
 
   @Override
@@ -174,12 +181,23 @@ public class DomainTransferRequestFlow
   }
 
   @Override
-  protected void setTransferDataProperties(TransferData.Builder builder) {
+  protected void setTransferDataProperties(TransferData.Builder builder) throws EppException {
     builder
         .setServerApproveBillingEvent(Key.create(transferBillingEvent))
         .setServerApproveAutorenewEvent(Key.create(gainingClientAutorenewEvent))
         .setServerApproveAutorenewPollMessage(Key.create(gainingClientAutorenewPollMessage))
         .setExtendedRegistrationYears(command.getPeriod().getValue());
+
+    // Handle extra flow logic, if any.
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().performAdditionalDomainTransferLogic(
+          existingResource,
+          getClientId(),
+          now,
+          command.getPeriod().getValue(),
+          eppInput,
+          historyEntry);
+    }
   }
 
   /**
@@ -233,6 +251,10 @@ public class DomainTransferRequestFlow
     // transfer occurs, then the logic in cloneProjectedAtTime() will move the
     // serverApproveAutoRenewEvent into the autoRenewEvent field.
     updateAutorenewRecurrenceEndTime(existingResource, automaticTransferTime);
+
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().commitAdditionalLogicChanges();
+    }
   }
 
   @Override

@@ -14,6 +14,7 @@
 
 package google.registry.flows;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppXmlTransformer.marshal;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -31,12 +32,15 @@ import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.ShardableTestCase;
+import google.registry.util.Clock;
 import google.registry.util.SystemClock;
 import google.registry.xml.ValidationMode;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -50,8 +54,7 @@ public class EppControllerTest extends ShardableTestCase {
 
   @Mock SessionMetadata sessionMetadata;
   @Mock TransportCredentials transportCredentials;
-  @Mock EppMetric.Builder eppMetricBuilder;
-  @Mock EppMetric eppMetric;
+  @Mock EppMetrics eppMetrics;
   @Mock BigQueryMetricsEnqueuer metricsEnqueuer;
   @Mock FlowComponent.Builder flowComponentBuilder;
   @Mock FlowComponent flowComponent;
@@ -60,11 +63,15 @@ public class EppControllerTest extends ShardableTestCase {
   @Mock EppResponse eppResponse;
   @Mock Result result;
 
+  private static final DateTime startTime = DateTime.parse("2016-09-01T00:00:00Z");
+
+  private final Clock clock = new FakeClock(startTime);
+
   private EppController eppController;
 
   @Before
   public void setUp() throws Exception {
-    when(sessionMetadata.getClientId()).thenReturn("foo");
+    when(sessionMetadata.getClientId()).thenReturn("some-client");
     when(flowComponentBuilder.flowModule(Matchers.<FlowModule>any()))
         .thenReturn(flowComponentBuilder);
     when(flowComponentBuilder.build()).thenReturn(flowComponent);
@@ -74,13 +81,13 @@ public class EppControllerTest extends ShardableTestCase {
     when(eppOutput.getResponse()).thenReturn(eppResponse);
     when(eppResponse.getResult()).thenReturn(result);
     when(result.getCode()).thenReturn(Code.SuccessWithNoMessages);
-    when(eppMetricBuilder.build()).thenReturn(eppMetric);
 
     eppController = new EppController();
-    eppController.metric = eppMetricBuilder;
+    eppController.metricBuilder = EppMetric.builderForRequest("request-id-1", clock);
     eppController.bigQueryMetricsEnqueuer = metricsEnqueuer;
-    eppController.clock = new FakeClock();
+    eppController.clock = clock;
     eppController.flowComponentBuilder = flowComponentBuilder;
+    eppController.eppMetrics = eppMetrics;
   }
 
   @Test
@@ -93,6 +100,7 @@ public class EppControllerTest extends ShardableTestCase {
 
   @Test
   public void testHandleEppCommand_unmarshallableData_exportsMetric() {
+    ArgumentCaptor<EppMetric> metricCaptor = ArgumentCaptor.forClass(EppMetric.class);
     eppController.handleEppCommand(
         sessionMetadata,
         transportCredentials,
@@ -101,15 +109,19 @@ public class EppControllerTest extends ShardableTestCase {
         false,
         new byte[0]);
 
-    verify(eppMetricBuilder).setClientId("foo");
-    verify(eppMetricBuilder).setPrivilegeLevel("NORMAL");
-    verify(eppMetricBuilder).setStatus(Code.SyntaxError);
-    verify(eppMetricBuilder).build();
-    verify(metricsEnqueuer).export(eppMetric);
+    verify(metricsEnqueuer).export(metricCaptor.capture());
+    EppMetric metric = metricCaptor.getValue();
+    assertThat(metric.getRequestId()).isEqualTo("request-id-1");
+    assertThat(metric.getStartTimestamp()).isEqualTo(startTime);
+    assertThat(metric.getEndTimestamp()).isEqualTo(clock.nowUtc());
+    assertThat(metric.getClientId()).hasValue("some-client");
+    assertThat(metric.getPrivilegeLevel()).hasValue("NORMAL");
+    assertThat(metric.getStatus()).hasValue(Code.SyntaxError);
   }
 
   @Test
   public void testHandleEppCommand_regularEppCommand_exportsMetric() {
+    ArgumentCaptor<EppMetric> metricCaptor = ArgumentCaptor.forClass(EppMetric.class);
     String domainCreateXml =
         loadFileWithSubstitutions(
             getClass(), "domain_create_prettyprinted.xml", ImmutableMap.<String, String>of());
@@ -121,12 +133,15 @@ public class EppControllerTest extends ShardableTestCase {
         true,
         domainCreateXml.getBytes(UTF_8));
 
-    verify(eppMetricBuilder).setClientId("foo");
-    verify(eppMetricBuilder).setPrivilegeLevel("SUPERUSER");
-    verify(eppMetricBuilder).setStatus(Code.SuccessWithNoMessages);
-    verify(eppMetricBuilder).setCommandName("Create");
-    verify(eppMetricBuilder).setEppTarget("example.tld");
-    verify(eppMetricBuilder).build();
-    verify(metricsEnqueuer).export(eppMetric);
+    verify(metricsEnqueuer).export(metricCaptor.capture());
+    EppMetric metric = metricCaptor.getValue();
+    assertThat(metric.getRequestId()).isEqualTo("request-id-1");
+    assertThat(metric.getStartTimestamp()).isEqualTo(startTime);
+    assertThat(metric.getEndTimestamp()).isEqualTo(clock.nowUtc());
+    assertThat(metric.getClientId()).hasValue("some-client");
+    assertThat(metric.getPrivilegeLevel()).hasValue("SUPERUSER");
+    assertThat(metric.getStatus()).hasValue(Code.SuccessWithNoMessages);
+    assertThat(metric.getCommandName()).hasValue("Create");
+    assertThat(metric.getEppTarget()).hasValue("example.tld");
   }
 }

@@ -14,7 +14,7 @@
 
 
 package google.registry.flows;
-
+import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.eq;
@@ -49,6 +49,7 @@ public class EppConsoleActionTest extends ShardableTestCase {
     action.session = new FakeHttpSession();
     action.session.setAttribute("CLIENT_ID", "ClientIdentifier");
     action.eppRequestHandler = mock(EppRequestHandler.class);
+    action.userService = getUserService();
     action.run();
     ArgumentCaptor<TransportCredentials> credentialsCaptor =
         ArgumentCaptor.forClass(TransportCredentials.class);
@@ -60,7 +61,7 @@ public class EppConsoleActionTest extends ShardableTestCase {
         eq(false),
         eq(false),
         eq(INPUT_XML_BYTES));
-    assertThat(((GaeUserCredentials) credentialsCaptor.getValue()).gaeUser.getEmail())
+    assertThat(((GaeUserCredentials) credentialsCaptor.getValue()).getUser().getEmail())
         .isEqualTo("person@example.com");
     assertThat(metadataCaptor.getValue().getClientId()).isEqualTo("ClientIdentifier");
   }

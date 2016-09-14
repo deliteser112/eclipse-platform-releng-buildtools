@@ -19,6 +19,7 @@ import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
@@ -97,15 +98,16 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
       handleFeeRequest(
           feeInfo,
           builder,
-          getTargetId(),
-          existingResource.getTld(),
+          InternetDomainName.from(getTargetId()),
+          getClientId(),
           null,
-          now);
+          now,
+          eppInput);
       extensions.add(builder.build());
     }
     // If the TLD uses the flags extension, add it to the info response.
     Optional<RegistryExtraFlowLogic> extraLogicManager =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(existingResource.getTld());
+        RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);
     if (extraLogicManager.isPresent()) {
       List<String> flags = extraLogicManager.get().getExtensionFlags(
           existingResource, this.getClientId(), now); // As-of date is always now for info commands.

@@ -15,19 +15,15 @@
 package google.registry.flows.session;
 
 
-import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.apphosting.api.ApiProxy;
-import com.google.apphosting.api.ApiProxy.Environment;
+import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.GaeUserCredentials;
 import google.registry.flows.GaeUserCredentials.BadGaeUserIdException;
 import google.registry.flows.GaeUserCredentials.UserNotLoggedInException;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.Test;
 
 /**
@@ -39,124 +35,43 @@ public class LoginFlowViaConsoleTest extends LoginFlowTestCase {
   private static final String GAE_USER_ID1 = "12345";
   private static final String GAE_USER_ID2 = "54321";
 
-  Environment oldEnv = null;
-
   @Test
   public void testSuccess_withLoginAndLinkedAccount() throws Exception {
     persistLinkedAccount("person@example.com", GAE_USER_ID1);
-    login("person", "example.com", GAE_USER_ID1);
-    try {
-      doSuccessfulTest("login_valid.xml");
-    } finally {
-      ApiProxy.setEnvironmentForCurrentThread(oldEnv);
-    }
+    credentials =
+        GaeUserCredentials.forTestingUser(new User("person", "example.com", GAE_USER_ID1), false);
+    doSuccessfulTest("login_valid.xml");
   }
 
   @Test
   public void testFailure_withoutLoginAndLinkedAccount() throws Exception {
     persistLinkedAccount("person@example.com", GAE_USER_ID1);
-    noLogin();
+    credentials = GaeUserCredentials.forLoggedOutUser();
     doFailingTest("login_valid.xml", UserNotLoggedInException.class);
   }
 
   @Test
   public void testFailure_withoutLoginAndWithoutLinkedAccount() throws Exception {
-    noLogin();
+    credentials = GaeUserCredentials.forLoggedOutUser();
     doFailingTest("login_valid.xml", UserNotLoggedInException.class);
   }
 
   @Test
   public void testFailure_withLoginAndWithoutLinkedAccount() throws Exception {
-    login("person", "example.com", GAE_USER_ID1);
-    try {
-      doFailingTest("login_valid.xml", BadGaeUserIdException.class);
-    } finally {
-      ApiProxy.setEnvironmentForCurrentThread(oldEnv);
-    }
+    credentials =
+        GaeUserCredentials.forTestingUser(new User("person", "example.com", GAE_USER_ID1), false);
+    doFailingTest("login_valid.xml", BadGaeUserIdException.class);
   }
 
   @Test
   public void testFailure_withLoginAndNoMatchingLinkedAccount() throws Exception {
     persistLinkedAccount("joe@example.com", GAE_USER_ID2);
-    login("person", "example.com", GAE_USER_ID1);
-    try {
-      doFailingTest("login_valid.xml", BadGaeUserIdException.class);
-    } finally {
-      ApiProxy.setEnvironmentForCurrentThread(oldEnv);
-    }
+    credentials =
+        GaeUserCredentials.forTestingUser(new User("person", "example.com", GAE_USER_ID1), false);
+    doFailingTest("login_valid.xml", BadGaeUserIdException.class);
   }
 
-  Environment login(final String name, final String authDomain, final String gaeUserId) {
-    // This envAttr thing is the only way to set userId.
-    // see https://code.google.com/p/googleappengine/issues/detail?id=3579
-    final HashMap<String, Object> envAttr = new HashMap<>();
-    envAttr.put("com.google.appengine.api.users.UserService.user_id_key", gaeUserId);
-
-    // And then.. this.
-    oldEnv = ApiProxy.getCurrentEnvironment();
-    final Environment e = oldEnv;
-    ApiProxy.setEnvironmentForCurrentThread(new Environment() {
-      @Override
-      public String getAppId() {
-        return e.getAppId();
-      }
-
-      @Override
-      public String getModuleId() {
-        return e.getModuleId();
-      }
-
-      @Override
-      public String getVersionId() {
-        return e.getVersionId();
-      }
-
-      @Override
-      public String getEmail() {
-        return name + "@" + authDomain;
-      }
-
-      @Override
-      public boolean isLoggedIn() {
-        return true;
-      }
-
-      @Override
-      public boolean isAdmin() {
-        return e.isAdmin();
-      }
-
-      @Override
-      public String getAuthDomain() {
-        return authDomain;
-      }
-
-      @Override
-      @SuppressWarnings("deprecation")
-      public String getRequestNamespace() {
-        return e.getRequestNamespace();
-      }
-
-      @Override
-      public long getRemainingMillis() {
-        return e.getRemainingMillis();
-      }
-
-      @Override
-      public Map<String, Object> getAttributes() {
-        return envAttr;
-      }
-    });
-    credentials = new GaeUserCredentials(getUserService().getCurrentUser());
-    return oldEnv;
-  }
-
-  void noLogin() {
-    oldEnv = ApiProxy.getCurrentEnvironment();
-    credentials = new GaeUserCredentials(getUserService().getCurrentUser());
-  }
-
-  void persistLinkedAccount(String email, String gaeUserId) {
+  private void persistLinkedAccount(String email, String gaeUserId) {
     Registrar registrar = Registrar.loadByClientId("NewRegistrar");
     RegistrarContact c = new RegistrarContact.Builder()
         .setParent(registrar)

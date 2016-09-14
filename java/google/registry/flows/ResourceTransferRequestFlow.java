@@ -77,7 +77,7 @@ import org.joda.time.Duration;
       }};
 
   @Override
-  protected final void initResourceCreateOrMutateFlow() {
+  protected final void initResourceCreateOrMutateFlow() throws EppException {
     initResourceTransferRequestFlow();
   }
 
@@ -100,7 +100,8 @@ import org.joda.time.Duration;
     verifyTransferRequestIsAllowed();
   }
 
-  private TransferData.Builder createTransferDataBuilder(TransferStatus transferStatus) {
+  private TransferData.Builder
+      createTransferDataBuilder(TransferStatus transferStatus) throws EppException {
     TransferData.Builder builder = new TransferData.Builder()
         .setGainingClientId(gainingClient.getId())
         .setTransferRequestTime(now)
@@ -113,7 +114,7 @@ import org.joda.time.Duration;
   }
 
   private PollMessage createPollMessage(
-      Client client, TransferStatus transferStatus, DateTime eventTime) {
+      Client client, TransferStatus transferStatus, DateTime eventTime) throws EppException {
     ImmutableList.Builder<ResponseData> responseData = new ImmutableList.Builder<>();
     responseData.add(createTransferResponse(
         existingResource, createTransferDataBuilder(transferStatus).build(), now));
@@ -132,7 +133,7 @@ import org.joda.time.Duration;
 
   @Override
   @SuppressWarnings("unchecked")
-  protected final R createOrMutateResource() {
+  protected final R createOrMutateResource() throws EppException {
     // Figure out transfer expiration time once we've verified that the existingResource does in
     // fact exist (otherwise we won't know which TLD to get this figure off of).
     transferExpirationTime = now.plus(getAutomaticTransferLength());
@@ -158,7 +159,7 @@ import org.joda.time.Duration;
   }
 
   /** Subclasses can override this to do further initialization. */
-  protected void initResourceTransferRequestFlow() {}
+  protected void initResourceTransferRequestFlow() throws EppException {}
 
   /**
    * Subclasses can override this to return the keys of any entities that need to be deleted if the
@@ -173,8 +174,8 @@ import org.joda.time.Duration;
   protected void verifyTransferRequestIsAllowed() throws EppException {}
 
   /** Subclasses can override this to modify fields on the transfer data builder. */
-  protected void setTransferDataProperties(
-      @SuppressWarnings("unused") TransferData.Builder builder) {}
+  @SuppressWarnings("unused") 
+  protected void setTransferDataProperties(TransferData.Builder builder) throws EppException {}
 
   @Override
   protected final EppOutput getOutput() throws EppException {

@@ -25,14 +25,9 @@ import org.joda.money.CurrencyUnit;
 @XmlType(propOrder = {"currency", "command", "period"})
 public class FeeInfoCommandExtensionV06
     extends FeeQueryCommandExtensionItemImpl implements CommandExtension {
-  
+
   /** A three-character ISO4217 currency code. */
   CurrencyUnit currency;
-
-  @Override
-  public boolean isCurrencySupported() {
-    return true;
-  }
 
   @Override
   public CurrencyUnit getCurrency() {

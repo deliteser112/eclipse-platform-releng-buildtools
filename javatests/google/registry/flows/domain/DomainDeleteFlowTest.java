@@ -19,7 +19,7 @@ import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWit
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
-import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
@@ -56,6 +56,7 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.TestExtraLogicManager;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppcommon.StatusValue;
@@ -100,7 +101,9 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Before
   public void initDomainTest() throws Exception {
-    createTld("tld");
+    createTlds("tld", "flags");
+    // For flags extension tests.
+    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   private void setupSuccessfulTest() throws Exception {
@@ -694,6 +697,14 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     thrown.expect(OnlyToolCanPassMetadataException.class);
     setEppInput("domain_delete_metadata.xml");
     persistResource(newDomainResource(getUniqueIdFromCommand()));
+    runFlow();
+  }
+  
+  @Test
+  public void testSuccess_flags() throws Exception {
+    setEppInput("domain_delete_flags.xml");
+    setupSuccessfulTest();
+    thrown.expect(IllegalArgumentException.class, "deleted");
     runFlow();
   }
 }

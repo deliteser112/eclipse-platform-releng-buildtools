@@ -110,6 +110,7 @@ public abstract class DomainCreateOrAllocateFlow
             feeCreate.createResponseBuilder()
                 .setCurrency(commandOperations.getCurrency())
                 .setFees(commandOperations.getFees())
+                .setCredits(commandOperations.getCredits())
                 .build()));
   }
 }

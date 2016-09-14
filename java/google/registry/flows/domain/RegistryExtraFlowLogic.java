@@ -16,7 +16,9 @@ package google.registry.flows.domain;
 
 import google.registry.flows.EppException;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.eppinput.EppInput;
+import google.registry.model.reporting.HistoryEntry;
 import java.util.List;
 import org.joda.time.DateTime;
 
@@ -26,20 +28,102 @@ import org.joda.time.DateTime;
  */
 public interface RegistryExtraFlowLogic {
 
-  /** Get the flags to be used in the EPP flags extension. This is used for EPP info commands. */
+  /** Gets the flags to be used in the EPP flags extension. This is used for EPP info commands. */
   public List<String> getExtensionFlags(
       DomainResource domainResource, String clientIdentifier, DateTime asOfDate);
 
+  /** Computes the expected creation fee, for use in fee challenges and the like. */  
+  public BaseFee getCreateFeeOrCredit(
+      String domainName,
+      String clientIdentifier,
+      DateTime asOfDate,
+      int years,
+      EppInput eppInput) throws EppException;
+
   /**
-   * Add and remove flags passed via the EPP flags extension. Any changes should not be persisted to
-   * Datastore until commitAdditionalDomainUpdates is called. Name suggested by Benjamin McIlwain.
+   * Performs additional tasks required for a create command. Any changes should not be persisted to
+   * Datastore until commitAdditionalLogicChanges is called.
    */
-  public void performAdditionalDomainUpdateLogic(
-      DomainResource domainResource,
+  public void performAdditionalDomainCreateLogic(
+      DomainResource domain,
+      String clientIdentifier,
+      DateTime asOfDate,
+      int years,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
+
+  /**
+   * Performs additional tasks required for a delete command. Any changes should not be persisted to
+   * Datastore until commitAdditionalLogicChanges is called.
+   */
+  public void performAdditionalDomainDeleteLogic(
+      DomainResource domain,
+      String clientIdentifier,
+      DateTime asOfDate,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
+
+  /** Computes the expected renewal fee, for use in fee challenges and the like. */  
+  public BaseFee getRenewFeeOrCredit(
+      DomainResource domain,
+      String clientIdentifier,
+      DateTime asOfDate,
+      int years,
+      EppInput eppInput) throws EppException;
+
+  /**
+   * Performs additional tasks required for a renew command. Any changes should not be persisted
+   * to Datastore until commitAdditionalLogicChanges is called.
+   */
+  public void performAdditionalDomainRenewLogic(
+      DomainResource domain,
+      String clientIdentifier,
+      DateTime asOfDate,
+      int years,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
+
+  /**
+   * Performs additional tasks required for a restore command. Any changes should not be persisted
+   * to Datastore until commitAdditionalLogicChanges is called.
+   */
+  public void performAdditionalDomainRestoreLogic(
+      DomainResource domain,
+      String clientIdentifier,
+      DateTime asOfDate,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
+
+  /**
+   * Performs additional tasks required for a transfer command. Any changes should not be persisted
+   * to Datastore until commitAdditionalLogicChanges is called.
+   */
+  public void performAdditionalDomainTransferLogic(
+      DomainResource domain,
+      String clientIdentifier,
+      DateTime asOfDate,
+      int years,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
+
+  /** Computes the expected update fee, for use in fee challenges and the like. */  
+  public BaseFee getUpdateFeeOrCredit(
+      DomainResource domain,
       String clientIdentifier,
       DateTime asOfDate,
       EppInput eppInput) throws EppException;
 
-  /** Commit any changes made as a result of a call to performAdditionalDomainUpdateLogic(). */
-  public void commitAdditionalDomainUpdates();
+  /**
+   * Performs additional tasks required for an update command. Any changes should not be persisted
+   * to Datastore until commitAdditionalLogicChanges is called.
+   */
+  public void performAdditionalDomainUpdateLogic(
+      DomainResource domain,
+      String clientIdentifier,
+      DateTime asOfDate,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
+
+  /** Commits any changes made as a result of a call to one of the performXXX methods. */
+  public void commitAdditionalLogicChanges();
 }

@@ -16,10 +16,8 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.Sets.union;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
-import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -127,7 +125,6 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
   @Override
   protected final void initDomainCreateOrAllocateFlow() {
     registerExtensions(LaunchCreateExtension.class);
-    registerExtensions(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
   }
 
   @Override
@@ -189,6 +186,17 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
       builder
           .setLaunchNotice(launchCreate.getNotice())
           .setSmdId(signedMark == null ? null : signedMark.getId());
+    }
+    // Handle extra flow logic, if any. The initialization and commit are performed higher up in the
+    // flow hierarchy, in BaseDomainCreateFlow.
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().performAdditionalDomainCreateLogic(
+          existingResource,
+          getClientId(),
+          now,
+          command.getPeriod().getValue(),
+          eppInput,
+          historyEntry);
     }
   }
 

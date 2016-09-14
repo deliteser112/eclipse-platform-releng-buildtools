@@ -33,6 +33,24 @@ import javax.inject.Named;
 class DeterministicStringGenerator extends StringGenerator {
 
   private Iterator<Character> iterator;
+  private final Rule rule;
+  private int counter = 0;
+
+  /** String generation rules. */
+  enum Rule {
+
+    /**
+     * Simple string generation, cycling through sequential letters in the alphabet. May produce
+     * duplicates.
+     */
+    DEFAULT,
+
+    /**
+     * Same cyclical pattern as {@link Rule#DEFAULT}, prepending the iteration number and an
+     * underscore. Intended to avoid duplicates.
+     */
+    PREPEND_COUNTER
+  }
 
   /**
    * Generates a string using sequential characters in the generator's alphabet, cycling back to the
@@ -45,11 +63,22 @@ class DeterministicStringGenerator extends StringGenerator {
     for (int i = 0; i < length; i++) {
       password += iterator.next();
     }
-    return password;
+    switch (rule) {
+      case PREPEND_COUNTER:
+        return String.format("%04d_%s", counter++, password);
+      case DEFAULT:
+      default:
+        return password;
+    }
+  }
+
+  public DeterministicStringGenerator(@Named("alphabet") String alphabet, Rule rule) {
+    super(alphabet);
+    iterator = Iterators.cycle(charactersOf(alphabet));
+    this.rule = rule;
   }
 
   public DeterministicStringGenerator(@Named("alphabet") String alphabet) {
-    super(alphabet);
-    iterator = Iterators.cycle(charactersOf(alphabet));
+    this(alphabet, Rule.DEFAULT);
   }
 }

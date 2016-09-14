@@ -14,6 +14,8 @@
 
 package google.registry.model.domain.fee;
 
+import static google.registry.util.CollectionUtils.nullToEmpty;
+
 import google.registry.model.ImmutableObject;
 import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
@@ -51,6 +53,6 @@ public abstract class FeeTransformCommandExtensionImpl
 
   @Override
   public List<Credit> getCredits() {
-    return credits;
+    return nullToEmpty(credits);
   }
 }

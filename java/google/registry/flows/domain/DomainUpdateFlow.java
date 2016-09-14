@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.collect.Sets.symmetricDifference;
+import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.earliestOf;
 
@@ -23,6 +24,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
+import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeUpdateException;
+import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
@@ -55,6 +58,8 @@ import org.joda.time.DateTime;
  * @error {@link BaseDomainUpdateFlow.SecDnsAllUsageException}
  * @error {@link BaseDomainUpdateFlow.UrgentAttributeNotSupportedException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
+ * @error {@link DomainFlowUtils.FeesMismatchException}
+ * @error {@link DomainFlowUtils.FeesRequiredForNonFreeUpdateException}
  * @error {@link DomainFlowUtils.LinkedResourcesDoNotExistException}
  * @error {@link DomainFlowUtils.LinkedResourceInPendingDeleteProhibitsOperationException}
  * @error {@link DomainFlowUtils.MissingAdminContactException}
@@ -132,13 +137,29 @@ public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Build
     // Handle extra flow logic, if any.
     if (extraFlowLogic.isPresent()) {
       extraFlowLogic.get().performAdditionalDomainUpdateLogic(
-          existingResource, getClientId(), now, eppInput);
+          existingResource, getClientId(), now, eppInput, historyEntry);
     }
     return builder;
   }
 
   @Override
-  protected final void modifyRelatedResources() {
+  protected final void verifyDomainUpdateIsAllowed() throws EppException {
+    EppCommandOperations commandOperations = TldSpecificLogicProxy.getUpdatePrice(
+        Registry.get(existingResource.getTld()),
+        existingResource.getFullyQualifiedDomainName(),
+        getClientId(),
+        now,
+        eppInput);
+    // The fee extension must be present if the update is not free.
+    if ((feeUpdate == null) && !commandOperations.getTotalCost().isZero()) {
+      throw new FeesRequiredForNonFreeUpdateException();
+    }
+    validateFeeChallenge(
+        targetId, existingResource.getTld(), now, feeUpdate, commandOperations.getTotalCost());
+  }
+
+  @Override
+  protected final void modifyUpdateRelatedResources() {
     // Determine the status changes, and filter to server statuses.
     // If any of these statuses have been added or removed, bill once.
     if (metadataExtension != null && metadataExtension.getRequestedByRegistrar()) {
@@ -160,10 +181,6 @@ public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Build
           .build();
         ofy().save().entity(billingEvent);
       }
-    }
-
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().commitAdditionalDomainUpdates();
     }
   }
 

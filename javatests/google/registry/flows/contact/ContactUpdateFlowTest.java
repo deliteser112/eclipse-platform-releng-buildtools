@@ -25,12 +25,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
-import google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException;
-import google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException;
-import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
 import google.registry.flows.contact.ContactFlowUtils.BadInternationalizedPostalInfoException;
 import google.registry.flows.contact.ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException;
+import google.registry.flows.exceptions.AddRemoveSameValueEppException;
+import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
+import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
+import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
+import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
@@ -255,6 +256,14 @@ public class ContactUpdateFlowTest
   public void testFailure_declineDisclosure() throws Exception {
     thrown.expect(DeclineContactDisclosureFieldDisallowedPolicyException.class);
     setEppInput("contact_update_decline_disclosure.xml");
+    persistActiveContact(getUniqueIdFromCommand());
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_addRemoveSameValue() throws Exception {
+    thrown.expect(AddRemoveSameValueEppException.class);
+    setEppInput("contact_update_add_remove_same.xml");
     persistActiveContact(getUniqueIdFromCommand());
     runFlow();
   }
