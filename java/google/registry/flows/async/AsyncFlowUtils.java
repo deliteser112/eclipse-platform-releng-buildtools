@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import org.joda.time.Duration;
 
 /** Utility methods specific to async flows. */
+// TODO(b/26140521): Delete this class once non-batched async operations are deleted.
 public final class AsyncFlowUtils {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

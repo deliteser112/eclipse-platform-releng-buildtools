@@ -241,15 +241,26 @@
   </servlet-mapping>
 
   <!-- Deletes the specified contact resource if it is not referenced by any domains. -->
+  <!-- TODO(b/26140521): Delete this mapping once non-batched async operations are deleted. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/deleteContactResource</url-pattern>
   </servlet-mapping>
 
   <!-- Deletes the specified host resource if it is not referenced by any domains. -->
+  <!-- TODO(b/26140521): Delete this mapping once non-batched async operations are deleted. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/deleteHostResource</url-pattern>
+  </servlet-mapping>
+
+  <!--
+    Deletes contacts and hosts enqueued for asynchronous deletion if they are
+    not referenced by any domain.
+  -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/deleteContactsAndHosts</url-pattern>
   </servlet-mapping>
 
   <!-- Enqueues DNS update tasks following a host rename. -->

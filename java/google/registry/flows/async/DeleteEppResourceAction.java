@@ -53,6 +53,7 @@ import org.joda.time.DateTime;
  * A mapreduce to delete the specified EPP resource, but ONLY if it is not referred to by any
  * existing DomainBase entity.
  */
+// TODO(b/26140521): Delete this class once non-batched async operations are deleted.
 public abstract class DeleteEppResourceAction<T extends EppResource> implements Runnable {
 
   /** The HTTP parameter name used to specify the websafe key of the resource to delete. */

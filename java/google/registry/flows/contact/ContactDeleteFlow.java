@@ -33,6 +33,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.async.AsyncFlowUtils;
 import google.registry.flows.async.DeleteContactResourceAction;
 import google.registry.flows.async.DeleteEppResourceAction;
@@ -63,6 +64,7 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
       StatusValue.PENDING_DELETE,
       StatusValue.SERVER_DELETE_PROHIBITED);
 
+  @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;
@@ -105,6 +107,8 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
             DeleteEppResourceAction.PARAM_IS_SUPERUSER,
             Boolean.toString(isSuperuser)),
         mapreduceDelay);
+    // TODO(b/26140521): Switch over to batch async operations as follows:
+    // asyncFlowEnqueuer.enqueueAsyncDelete(existingResource, getClientId(), isSuperuser);
     ContactResource newResource =
         existingResource.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();
     historyBuilder

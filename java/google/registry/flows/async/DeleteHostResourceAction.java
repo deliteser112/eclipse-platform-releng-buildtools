@@ -31,6 +31,7 @@ import org.joda.time.DateTime;
  * existing DomainBase entity.
  */
 @Action(path = "/_dr/task/deleteHostResource")
+// TODO(b/26140521): Delete this class once non-batched async operations are deleted.
 public class DeleteHostResourceAction extends DeleteEppResourceAction<HostResource> {
 
   @Inject

@@ -229,6 +229,7 @@ public interface RegistryConfig {
    * fails the delete). Without this delay, the mapreduce might have started before the domain flow
    * committed, and could potentially miss the reference.
    */
+  // TODO(b/26140521): Remove this configuration option along with non-batched async operations.
   public Duration getAsyncDeleteFlowMapreduceDelay();
 
   /**
@@ -237,6 +238,7 @@ public interface RegistryConfig {
    * This should be ~orders of magnitude larger than the rate on the queue, in order to prevent
    * the logs from filling up with unnecessarily failures.
    */
+  // TODO(b/26140521): Remove this configuration option along with non-batched async operations.
   public Duration getAsyncFlowFailureBackoff();
 
   // XXX: Please consider using ConfigModule instead of adding new methods to this file.

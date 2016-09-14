@@ -31,6 +31,7 @@ java_library(
         "//java/com/google/common/net",
         "//third_party/java/appengine:appengine-api",
         "//third_party/java/appengine_mapreduce2:appengine_mapreduce",
+        "//third_party/java/auto:auto_value",
         "//third_party/java/dagger",
         "//third_party/java/joda_money",
         "//third_party/java/joda_time",

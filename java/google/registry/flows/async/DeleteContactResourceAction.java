@@ -30,6 +30,7 @@ import org.joda.time.DateTime;
  * existing DomainBase entity.
  */
 @Action(path = "/_dr/task/deleteContactResource")
+// TODO(b/26140521): Delete this class once non-batched async operations are deleted.
 public class DeleteContactResourceAction extends DeleteEppResourceAction<ContactResource> {
 
   @Inject

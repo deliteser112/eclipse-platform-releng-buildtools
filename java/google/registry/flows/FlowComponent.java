@@ -17,6 +17,8 @@ package google.registry.flows;
 import dagger.Module;
 import dagger.Provides;
 import dagger.Subcomponent;
+import google.registry.config.ConfigModule;
+import google.registry.flows.async.AsyncFlowsModule;
 import google.registry.flows.contact.ContactCheckFlow;
 import google.registry.flows.contact.ContactCreateFlow;
 import google.registry.flows.contact.ContactDeleteFlow;
@@ -56,12 +58,16 @@ import google.registry.flows.session.HelloFlow;
 import google.registry.flows.session.LoginFlow;
 import google.registry.flows.session.LogoutFlow;
 import google.registry.model.eppcommon.Trid;
+import google.registry.util.SystemSleeper.SystemSleeperModule;
 
 /** Dagger component for flow classes. */
 @FlowScope
 @Subcomponent(modules = {
+    AsyncFlowsModule.class,
+    ConfigModule.class,
     FlowModule.class,
-    FlowComponent.FlowComponentModule.class})
+    FlowComponent.FlowComponentModule.class,
+    SystemSleeperModule.class})
 public interface FlowComponent {
 
   Trid trid();

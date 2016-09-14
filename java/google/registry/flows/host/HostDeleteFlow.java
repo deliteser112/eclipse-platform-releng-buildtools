@@ -24,6 +24,7 @@ import com.googlecode.objectify.Key;
 import google.registry.config.RegistryEnvironment;
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceAsyncDeleteFlow;
+import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.async.AsyncFlowUtils;
 import google.registry.flows.async.DeleteEppResourceAction;
 import google.registry.flows.async.DeleteHostResourceAction;
@@ -47,6 +48,7 @@ public class HostDeleteFlow extends ResourceAsyncDeleteFlow<HostResource, Builde
   /** In {@link #isLinkedForFailfast}, check this (arbitrary) number of resources from the query. */
   private static final int FAILFAST_CHECK_COUNT = 5;
 
+  @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
   @Inject HostDeleteFlow() {}
 
   @Override
@@ -66,7 +68,7 @@ public class HostDeleteFlow extends ResourceAsyncDeleteFlow<HostResource, Builde
             }});
   }
 
-  /** Enqueues a host resource deletion on the mapreduce queue. */
+  /** Enqueues an asynchronous host resource deletion. */
   @Override
   protected final void enqueueTasks() throws EppException {
     AsyncFlowUtils.enqueueMapreduceAction(
@@ -79,6 +81,8 @@ public class HostDeleteFlow extends ResourceAsyncDeleteFlow<HostResource, Builde
             DeleteEppResourceAction.PARAM_IS_SUPERUSER,
             Boolean.toString(isSuperuser)),
         RegistryEnvironment.get().config().getAsyncDeleteFlowMapreduceDelay());
+    // TODO(b/26140521): Switch over to batch async operations as follows:
+    // asyncFlowEnqueuer.enqueueAsyncDelete(existingResource, getClientId(), isSuperuser);
   }
 
   @Override

@@ -42,6 +42,7 @@ import google.registry.export.sheet.SheetModule;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.flows.async.AsyncFlowsModule;
 import google.registry.flows.async.DeleteContactResourceAction;
+import google.registry.flows.async.DeleteContactsAndHostsAction;
 import google.registry.flows.async.DeleteHostResourceAction;
 import google.registry.flows.async.DnsRefreshForHostRenameAction;
 import google.registry.mapreduce.MapreduceModule;
@@ -88,7 +89,9 @@ interface BackendRequestComponent {
   BrdaCopyAction brdaCopyAction();
   CommitLogCheckpointAction commitLogCheckpointAction();
   CommitLogFanoutAction commitLogFanoutAction();
+  // TODO(b/26140521): Remove separate contact/host actions here.
   DeleteContactResourceAction deleteContactResourceAction();
+  DeleteContactsAndHostsAction deleteContactsAndHostsAction();
   DeleteHostResourceAction deleteHostResourceAction();
   DeleteOldCommitLogsAction deleteOldCommitLogsAction();
   DnsRefreshForHostRenameAction dnsRefreshForHostRenameAction();

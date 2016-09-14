@@ -236,6 +236,13 @@ abstract class AbstractEppResourceSubject
     return andChainer();
   }
 
+  public And<S> isNotActiveAt(DateTime time) {
+    if (isActive(getSubject(), time)) {
+      fail("is not active at " + time);
+    }
+    return andChainer();
+  }
+
   protected void failWithBadResults(String dualVerb, Object expected, Object actual) {
     failWithBadResults(dualVerb, expected, dualVerb, actual);
   }
