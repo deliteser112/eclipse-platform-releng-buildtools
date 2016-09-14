@@ -564,14 +564,13 @@ public class DomainFlowUtils {
   static void handleFeeRequest(
       FeeQueryCommandExtensionItem feeRequest,
       FeeQueryResponseExtensionItem.Builder builder,
-      String domainName,
-      String tld,
+      InternetDomainName domain,
       String clientIdentifier,
       @Nullable CurrencyUnit topLevelCurrency,
       DateTime now,
       EppInput eppInput) throws EppException {
-    InternetDomainName domain = InternetDomainName.from(domainName);
-    Registry registry = Registry.get(tld);
+    String domainNameString = domain.toString();
+    Registry registry = Registry.get(domain.parent().toString());
     int years = verifyUnitIsYears(feeRequest.getPeriod()).getValue();
     boolean isSunrise = registry.getTldState(now).equals(TldState.SUNRISE);
 
@@ -580,7 +579,7 @@ public class DomainFlowUtils {
     }
 
     CurrencyUnit currency =
-        feeRequest.isCurrencySupported() ? feeRequest.getCurrency() : topLevelCurrency;
+        feeRequest.getCurrency() != null ? feeRequest.getCurrency() : topLevelCurrency;
     if ((currency != null) && !currency.equals(registry.getCurrency())) {
       throw new CurrencyUnitMismatchException();
     }
@@ -589,7 +588,7 @@ public class DomainFlowUtils {
         .setCommand(feeRequest.getCommandName(), feeRequest.getPhase(), feeRequest.getSubphase())
         .setCurrencyIfSupported(registry.getCurrency())
         .setPeriod(feeRequest.getPeriod())
-        .setClass(TldSpecificLogicProxy.getFeeClass(domainName, now).orNull());
+        .setClass(TldSpecificLogicProxy.getFeeClass(domainNameString, now).orNull());
 
     switch (feeRequest.getCommandName()) {
       case CREATE:
@@ -600,13 +599,13 @@ public class DomainFlowUtils {
         } else {
           builder.setAvailIfSupported(true);
           builder.setFees(TldSpecificLogicProxy.getCreatePrice(
-              registry, domainName, clientIdentifier, now, years, eppInput).getFees());
+              registry, domainNameString, clientIdentifier, now, years, eppInput).getFees());
         }
         break;
       case RENEW:
         builder.setAvailIfSupported(true);
         builder.setFees(TldSpecificLogicProxy.getRenewPrice(
-            registry, domainName, clientIdentifier, now, years, eppInput).getFees());
+            registry, domainNameString, clientIdentifier, now, years, eppInput).getFees());
         break;
       case RESTORE:
         if (years != 1) {
@@ -614,17 +613,17 @@ public class DomainFlowUtils {
         }
         builder.setAvailIfSupported(true);
         builder.setFees(TldSpecificLogicProxy.getRestorePrice(
-            registry, domainName, clientIdentifier, now, eppInput).getFees());
+            registry, domainNameString, clientIdentifier, now, eppInput).getFees());
         break;
       case TRANSFER:
         builder.setAvailIfSupported(true);
         builder.setFees(TldSpecificLogicProxy.getTransferPrice(
-            registry, domainName, clientIdentifier, now, years, eppInput).getFees());
+            registry, domainNameString, clientIdentifier, now, years, eppInput).getFees());
         break;
       case UPDATE:
         builder.setAvailIfSupported(true);
         builder.setFees(TldSpecificLogicProxy.getUpdatePrice(
-            registry, domainName, clientIdentifier, now, eppInput).getFees());
+            registry, domainNameString, clientIdentifier, now, eppInput).getFees());
         break;
       default:
         throw new UnknownFeeCommandException(feeRequest.getUnparsedCommandName());

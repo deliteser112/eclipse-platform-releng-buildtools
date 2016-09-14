@@ -19,6 +19,7 @@ import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
@@ -97,8 +98,7 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
       handleFeeRequest(
           feeInfo,
           builder,
-          getTargetId(),
-          existingResource.getTld(),
+          InternetDomainName.from(getTargetId()),
           getClientId(),
           null,
           now,

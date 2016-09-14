@@ -30,13 +30,13 @@ import org.joda.time.DateTime;
 /**
  * An individual price check item in version 0.12 of the fee extension on domain check commands.
  * Items look like:
- * 
+ *
  * <fee:command name="renew" phase="sunrise" subphase="hello">
  *   <fee:period unit="y">1</fee:period>
  *   <fee:class>premium</fee:class>
  *   <fee:date>2017-05-17T13:22:21.0Z</fee:date>
  * </fee:command>
- * 
+ *
  * In a change from previous versions of the extension, items do not contain domain names; instead,
  * the names from the non-extension check element are used.
  */
@@ -49,7 +49,7 @@ public class FeeCheckCommandExtensionItemV12
 
   @XmlAttribute(name = "name")
   String commandName;
-  
+
   @XmlAttribute
   String phase;
 
@@ -58,10 +58,10 @@ public class FeeCheckCommandExtensionItemV12
 
   @XmlElement
   Period period;
- 
+
   @XmlElement(name = "class")
   String feeClass;
-  
+
   @XmlElement(name = "date")
   DateTime feeDate;
 
@@ -75,22 +75,17 @@ public class FeeCheckCommandExtensionItemV12
   public String getDomainName() {
     throw new UnsupportedOperationException("Domain not supported");
   }
-  
-  @Override
-  public boolean isCurrencySupported() {
-    return false;
-  }
-  
+
   @Override
   public CurrencyUnit getCurrency() {
-    throw new UnsupportedOperationException("Currency not supported");
+    return null;  // This version of the fee extension doesn't specify currency per-item.
   }
-  
+
   @Override
   public String getUnparsedCommandName() {
     return commandName;
   }
-  
+
   @Override
   public CommandName getCommandName() {
     // Require the xml string to be lowercase.
@@ -108,7 +103,7 @@ public class FeeCheckCommandExtensionItemV12
   public String getPhase() {
     return phase;
   }
-  
+
   @Override
   public String getSubphase() {
     return subphase;

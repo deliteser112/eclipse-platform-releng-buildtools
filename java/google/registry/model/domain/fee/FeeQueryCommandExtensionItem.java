@@ -35,18 +35,19 @@ public interface FeeQueryCommandExtensionItem {
     UPDATE
   }
 
-  /** True if this version of fee extension includes a currency in this type of query item. */
-  public boolean isCurrencySupported();
-
-  /** A three-character ISO4217 currency code; throws an exception if currency is not supported. */
-  public CurrencyUnit getCurrency() throws UnsupportedOperationException;
+  /**
+   * Three-character ISO4217 currency code.
+   *
+   * <p>Returns null if this version of the fee extension doesn't specify currency at the top level.
+   */
+  public CurrencyUnit getCurrency();
 
   /** The name of the command being checked. */
   public CommandName getCommandName();
-  
+
   /** The unparse name of the command being checked, for use in error strings. */
   public String getUnparsedCommandName();
-  
+
   /** The phase of the command being checked. */
   public String getPhase();
 

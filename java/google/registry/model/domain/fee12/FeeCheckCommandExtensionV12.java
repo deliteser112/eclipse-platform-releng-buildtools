@@ -36,17 +36,12 @@ public class FeeCheckCommandExtensionV12 extends ImmutableObject
         FeeCheckResponseExtensionV12> {
 
   CurrencyUnit currency;
-  
-  @Override
-  public boolean isCurrencySupported() {
-    return true;
-  }
 
   @Override
   public CurrencyUnit getCurrency() {
     return currency;
   }
-  
+
   @XmlElement(name = "command")
   Set<FeeCheckCommandExtensionItemV12> items;
 
