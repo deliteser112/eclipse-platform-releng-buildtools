@@ -123,7 +123,7 @@ public class FlowRunnerTest extends ShardableTestCase {
 
   @Test
   public void testRun_reportingLogStatement_noClientId() throws Exception {
-    flowRunner.clientId = null;
+    flowRunner.clientId = "";
     flowRunner.run();
     assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
         .containsExactly(

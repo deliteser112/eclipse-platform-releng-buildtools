@@ -16,6 +16,7 @@ package google.registry.flows;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.base.Strings;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.flows.exceptions.OnlyToolCanPassMetadataException;
@@ -27,7 +28,6 @@ import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.reporting.HistoryEntry;
 import java.lang.annotation.Documented;
-import javax.annotation.Nullable;
 import javax.inject.Qualifier;
 
 /** Module to choose and instantiate an EPP flow. */
@@ -147,10 +147,11 @@ public class FlowModule {
 
   @Provides
   @FlowScope
-  @Nullable
   @ClientId
   static String provideClientId(SessionMetadata sessionMetadata) {
-    return sessionMetadata.getClientId();
+    // Treat a missing clientId as null so we can always inject a non-null value. All we do with the
+    // clientId is log it (as "") or detect its absence, both of which work fine with empty.
+    return Strings.nullToEmpty(sessionMetadata.getClientId());
   }
 
   @Provides
@@ -187,7 +188,7 @@ public class FlowModule {
       Trid trid,
       @InputXml byte[] inputXmlBytes,
       @Superuser boolean isSuperuser,
-      @ClientId @Nullable String clientId,
+      @ClientId String clientId,
       EppRequestSource eppRequestSource,
       EppInput eppInput) {
     HistoryEntry.Builder historyBuilder = new HistoryEntry.Builder()

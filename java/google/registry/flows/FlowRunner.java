@@ -14,7 +14,6 @@
 
 package google.registry.flows;
 
-import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static com.google.common.io.BaseEncoding.base64;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -34,7 +33,6 @@ import google.registry.model.eppoutput.EppOutput;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import org.joda.time.DateTime;
@@ -57,7 +55,7 @@ public class FlowRunner {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject @Nullable @ClientId String clientId;
+  @Inject @ClientId String clientId;
   @Inject Clock clock;
   @Inject TransportCredentials credentials;
   @Inject EppInput eppInput;
@@ -96,7 +94,7 @@ public class FlowRunner {
         REPORTING_LOG_SIGNATURE,
         JSONValue.toJSONString(ImmutableMap.<String, Object>of(
             "trid", trid.getServerTransactionId(),
-            "clientId", nullToEmpty(clientId),
+            "clientId", clientId,
             "xml", prettyXml,
             "xmlBytes", xmlBase64)));
     if (!isTransactional) {
