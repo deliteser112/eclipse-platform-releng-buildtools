@@ -21,6 +21,7 @@ import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
 import dagger.Subcomponent;
+import google.registry.config.ConfigModule;
 import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.request.RequestScope;
@@ -32,6 +33,7 @@ import javax.inject.Singleton;
 @Singleton
 @Component(
     modules = {
+        ConfigModule.class,
         EppTestComponent.FakesAndMocksModule.class
     })
 interface EppTestComponent {
@@ -82,3 +84,4 @@ interface EppTestComponent {
     FlowComponent.Builder flowComponentBuilder();
   }
 }
+
