@@ -71,11 +71,9 @@ public class ContactTransferCancelFlow extends LoggedInFlow implements Transacti
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
     }
     verifyOptionalAuthInfoForResource(authInfo, existingResource);
-    // Fail if object doesn't have a pending transfer, or if authinfo doesn't match. */
     if (existingResource.getTransferData().getTransferStatus() != TransferStatus.PENDING) {
       throw new NotPendingTransferException(targetId);
     }
-    // TODO(b/18997997): Determine if authInfo is necessary to cancel a transfer.
     if (!clientId.equals(existingResource.getTransferData().getGainingClientId())) {
       throw new NotTransferInitiatorException();
     }

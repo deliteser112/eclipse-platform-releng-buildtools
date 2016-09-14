@@ -39,7 +39,6 @@ public abstract class ResourceTransferCancelFlow
   /** Verify that this is the correct client to cancel this pending transfer. */
   @Override
   protected final void verifyPendingTransferMutationAllowed() throws EppException {
-    // TODO(b/18997997): Determine if authInfo is necessary to cancel a transfer.
     if (!getClientId().equals(existingResource.getTransferData().getGainingClientId())) {
       throw new NotTransferInitiatorException();
     }
