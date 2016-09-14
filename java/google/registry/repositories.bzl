@@ -78,8 +78,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "auto_common",
-      artifact = "com.google.auto:auto-common:0.5",
-      sha1 = "27185563ca9551183fa5379807c3034c0012c8c4",
+      artifact = "com.google.auto:auto-common:0.7",
+      sha1 = "910d8b3ff71063135ae743d43d3dde3435c8648c",
   )
 
   native.maven_jar(
@@ -96,8 +96,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "auto_value",
-      artifact = "com.google.auto.value:auto-value:1.1",
-      sha1 = "f6951c141ea3e89c0f8b01da16834880a1ebf162",
+      artifact = "com.google.auto.value:auto-value:1.3",
+      sha1 = "4961194f62915eb45e21940537d60ac53912c57d",
   )
 
   native.maven_jar(
