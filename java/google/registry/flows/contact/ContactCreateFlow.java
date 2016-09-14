@@ -23,6 +23,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
@@ -49,6 +50,7 @@ import javax.inject.Inject;
 public class ContactCreateFlow extends LoggedInFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
+  @Inject @ClientId String clientId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactCreateFlow() {}
 
@@ -66,8 +68,8 @@ public class ContactCreateFlow extends LoggedInFlow implements TransactionalFlow
     Builder builder = new Builder();
     command.applyTo(builder);
     ContactResource newResource = builder
-        .setCreationClientId(getClientId())
-        .setCurrentSponsorClientId(getClientId())
+        .setCreationClientId(clientId)
+        .setCurrentSponsorClientId(clientId)
         .setRepoId(createContactHostRoid(ObjectifyService.allocateId()))
         .build();
     validateAsciiPostalInfo(newResource.getInternationalizedPostalInfo());

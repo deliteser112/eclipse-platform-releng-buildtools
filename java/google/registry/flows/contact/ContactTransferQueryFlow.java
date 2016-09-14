@@ -14,18 +14,21 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
-import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.Success;
 
+import com.google.common.base.Optional;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
 import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
 import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
+import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import javax.inject.Inject;
@@ -41,6 +44,8 @@ import javax.inject.Inject;
 public class ContactTransferQueryFlow extends LoggedInFlow {
 
   @Inject ResourceCommand resourceCommand;
+  @Inject Optional<AuthInfo> authInfo;
+  @Inject @ClientId String clientId;
   @Inject ContactTransferQueryFlow() {}
 
   @Override
@@ -51,22 +56,20 @@ public class ContactTransferQueryFlow extends LoggedInFlow {
     if (existingResource == null) {
       throw new ResourceToQueryDoesNotExistException(ContactResource.class, targetId);
     }
-    if (command.getAuthInfo() != null) {
-      verifyAuthInfoForResource(command.getAuthInfo(), existingResource);
-    }
+    verifyOptionalAuthInfoForResource(authInfo, existingResource);
     // Most of the fields on the transfer response are required, so there's no way to return valid
     // XML if the object has never been transferred (and hence the fields aren't populated).
     if (existingResource.getTransferData().getTransferStatus() == null) {
       throw new NoTransferHistoryToQueryException();
     }
-    // Note that the authorization info on the command (if present) has already been verified by the
-    // parent class. If it's present, then the other checks are unnecessary.
+    // Note that the authorization info on the command (if present) has already been verified. If
+    // it's present, then the other checks are unnecessary.
     if (command.getAuthInfo() == null
-        && !getClientId().equals(existingResource.getTransferData().getGainingClientId())
-        && !getClientId().equals(existingResource.getTransferData().getLosingClientId())) {
+        && !clientId.equals(existingResource.getTransferData().getGainingClientId())
+        && !clientId.equals(existingResource.getTransferData().getLosingClientId())) {
       throw new NotAuthorizedToViewTransferException();
     }
     return createOutput(
-        Success, createTransferResponse(existingResource, existingResource.getTransferData(), now));
+        Success, createTransferResponse(targetId, existingResource.getTransferData()));
   }
 }

@@ -14,16 +14,18 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.Success;
 
+import com.google.common.base.Optional;
 import google.registry.flows.EppException;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.contact.ContactCommand.Info;
 import google.registry.model.contact.ContactResource;
+import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import javax.inject.Inject;
@@ -36,6 +38,7 @@ import javax.inject.Inject;
 public class ContactInfoFlow extends LoggedInFlow {
 
   @Inject ResourceCommand resourceCommand;
+  @Inject Optional<AuthInfo> authInfo;
   @Inject ContactInfoFlow() {}
 
   @Override
@@ -46,9 +49,7 @@ public class ContactInfoFlow extends LoggedInFlow {
     if (existingResource == null) {
       throw new ResourceToQueryDoesNotExistException(ContactResource.class, targetId);
     }
-    if (command.getAuthInfo() != null) {
-      verifyAuthInfoForResource(command.getAuthInfo(), existingResource);
-    }
-    return createOutput(Success, cloneResourceWithLinkedStatus(existingResource, now), null);
+    verifyOptionalAuthInfoForResource(authInfo, existingResource);
+    return createOutput(Success, cloneResourceWithLinkedStatus(existingResource, now));
   }
 }

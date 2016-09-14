@@ -55,6 +55,6 @@ public class ContactCheckFlow extends LoggedInFlow {
       boolean unused = !existingIds.contains(id);
       checks.add(ContactCheck.create(unused, id, unused ? null : "In use"));
     }
-    return createOutput(Success, ContactCheckData.create(checks.build()), null);
+    return createOutput(Success, ContactCheckData.create(checks.build()));
   }
 }

@@ -20,6 +20,7 @@ import static google.registry.model.domain.DomainResource.extendRegistrationWith
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -220,6 +221,14 @@ public class ResourceFlowUtils {
   public static class ResourceNotOwnedException extends AuthorizationErrorException {
     public ResourceNotOwnedException() {
       super("The specified resource belongs to another client");
+    }
+  }
+
+  /** Check that the given AuthInfo is either missing or else is valid for the given resource. */
+  public static void verifyOptionalAuthInfoForResource(
+      Optional<AuthInfo> authInfo, EppResource resource) throws EppException {
+    if (authInfo.isPresent()) {
+      verifyAuthInfoForResource(authInfo.get(), resource);
     }
   }
 

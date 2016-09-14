@@ -14,15 +14,17 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
-import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.contact.ContactFlowUtils.createLosingTransferPollMessage;
+import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.Success;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.NotPendingTransferException;
@@ -31,7 +33,7 @@ import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
-import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.poll.PollMessage;
@@ -50,6 +52,8 @@ import javax.inject.Inject;
 public class ContactTransferCancelFlow extends LoggedInFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
+  @Inject Optional<AuthInfo> authInfo;
+  @Inject @ClientId String clientId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactTransferCancelFlow() {}
 
@@ -67,28 +71,17 @@ public class ContactTransferCancelFlow extends LoggedInFlow implements Transacti
     if (existingResource == null) {
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
     }
-    if (command.getAuthInfo() != null) {
-      verifyAuthInfoForResource(command.getAuthInfo(), existingResource);
-    }
+    verifyOptionalAuthInfoForResource(authInfo, existingResource);
     // Fail if object doesn't have a pending transfer, or if authinfo doesn't match. */
     if (existingResource.getTransferData().getTransferStatus() != TransferStatus.PENDING) {
       throw new NotPendingTransferException(targetId);
     }
     // TODO(b/18997997): Determine if authInfo is necessary to cancel a transfer.
-    if (!getClientId().equals(existingResource.getTransferData().getGainingClientId())) {
+    if (!clientId.equals(existingResource.getTransferData().getGainingClientId())) {
       throw new NotTransferInitiatorException();
     }
     ContactResource newResource = existingResource.asBuilder()
-        .removeStatusValue(StatusValue.PENDING_TRANSFER)
-        .setTransferData(existingResource.getTransferData().asBuilder()
-            .setTransferStatus(TransferStatus.CLIENT_CANCELLED)
-            .setPendingTransferExpirationTime(now)
-            .setExtendedRegistrationYears(null)
-            .setServerApproveEntities(null)
-            .setServerApproveBillingEvent(null)
-            .setServerApproveAutorenewEvent(null)
-            .setServerApproveAutorenewPollMessage(null)
-            .build())
+        .clearPendingTransfer(TransferStatus.CLIENT_CANCELLED, now)
         .build();
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.CONTACT_TRANSFER_CANCEL)
@@ -96,19 +89,12 @@ public class ContactTransferCancelFlow extends LoggedInFlow implements Transacti
         .setParent(Key.create(existingResource))
         .build();
     // Create a poll message for the losing client.
-    PollMessage losingPollMessage = new PollMessage.OneTime.Builder()
-        .setClientId(existingResource.getTransferData().getLosingClientId())
-        .setEventTime(now)
-        .setMsg(TransferStatus.CLIENT_CANCELLED.getMessage())
-        .setResponseData(ImmutableList.of(
-            createTransferResponse(newResource, newResource.getTransferData(), now)))
-        .setParent(historyEntry)
-        .build();
+    PollMessage losingPollMessage =
+        createLosingTransferPollMessage(targetId, newResource.getTransferData(), historyEntry);
     ofy().save().<Object>entities(newResource, historyEntry, losingPollMessage);
     // Delete the billing event and poll messages that were written in case the transfer would have
     // been implicitly server approved.
     ofy().delete().keys(existingResource.getTransferData().getServerApproveEntities());
-    return createOutput(
-        Success, createTransferResponse(newResource, newResource.getTransferData(), now));
+    return createOutput(Success, createTransferResponse(targetId, newResource.getTransferData()));
   }
 }

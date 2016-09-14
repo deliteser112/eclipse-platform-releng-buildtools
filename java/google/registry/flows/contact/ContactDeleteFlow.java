@@ -15,19 +15,21 @@
 package google.registry.flows.contact;
 
 import static google.registry.flows.ResourceFlowUtils.failfastForAsyncDelete;
-import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowUtils;
@@ -38,6 +40,7 @@ import google.registry.model.contact.ContactCommand.Delete;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
@@ -62,6 +65,8 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
       StatusValue.SERVER_DELETE_PROHIBITED);
 
   @Inject ResourceCommand resourceCommand;
+  @Inject @ClientId String clientId;
+  @Inject Optional<AuthInfo> authInfo;
   @Inject @Config("asyncDeleteFlowMapreduceDelay") Duration mapreduceDelay;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactDeleteFlow() {}
@@ -89,11 +94,9 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
     }
     verifyNoDisallowedStatuses(existingResource, DISALLOWED_STATUSES);
-    if (command.getAuthInfo() != null) {
-      verifyAuthInfoForResource(command.getAuthInfo(), existingResource);
-    }
+    verifyOptionalAuthInfoForResource(authInfo, existingResource);
     if (!isSuperuser) {
-      verifyResourceOwnership(getClientId(), existingResource);
+      verifyResourceOwnership(clientId, existingResource);
     }
     AsyncFlowUtils.enqueueMapreduceAction(
         DeleteContactResourceAction.class,
@@ -101,7 +104,7 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
             DeleteEppResourceAction.PARAM_RESOURCE_KEY,
             Key.create(existingResource).getString(),
             DeleteEppResourceAction.PARAM_REQUESTING_CLIENT_ID,
-            getClientId(),
+            clientId,
             DeleteEppResourceAction.PARAM_IS_SUPERUSER,
             Boolean.toString(isSuperuser)),
         mapreduceDelay);
@@ -112,6 +115,6 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
         .setModificationTime(now)
         .setParent(Key.create(existingResource));
     ofy().save().<Object>entities(newResource, historyBuilder.build());
-    return createOutput(SuccessWithActionPending, null, null);
+    return createOutput(SuccessWithActionPending);
   }
 }

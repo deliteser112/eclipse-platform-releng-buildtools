@@ -14,8 +14,8 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
 import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
@@ -23,10 +23,12 @@ import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.Success;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.AddRemoveSameValueEppException;
@@ -37,6 +39,7 @@ import google.registry.model.contact.ContactCommand.Update;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.ContactResource.Builder;
 import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppinput.ResourceCommand.AddRemoveSameValueException;
@@ -68,6 +71,8 @@ public class ContactUpdateFlow extends LoggedInFlow implements TransactionalFlow
       StatusValue.SERVER_UPDATE_PROHIBITED);
 
   @Inject ResourceCommand resourceCommand;
+  @Inject Optional<AuthInfo> authInfo;
+  @Inject @ClientId String clientId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactUpdateFlow() {}
 
@@ -84,11 +89,9 @@ public class ContactUpdateFlow extends LoggedInFlow implements TransactionalFlow
     if (existingResource == null) {
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
     }
-    if (command.getAuthInfo() != null) {
-      verifyAuthInfoForResource(command.getAuthInfo(), existingResource);
-    }
+    verifyOptionalAuthInfoForResource(authInfo, existingResource);
     if (!isSuperuser) {
-      verifyResourceOwnership(getClientId(), existingResource);
+      verifyResourceOwnership(clientId, existingResource);
     }
     for (StatusValue statusValue : Sets.union(
         command.getInnerAdd().getStatusValues(),
@@ -111,7 +114,7 @@ public class ContactUpdateFlow extends LoggedInFlow implements TransactionalFlow
     }
     ContactResource newResource = builder
         .setLastEppUpdateTime(now)
-        .setLastEppUpdateClientId(getClientId())
+        .setLastEppUpdateClientId(clientId)
         .build();
     // If the resource is marked with clientUpdateProhibited, and this update did not clear that
     // status, then the update must be disallowed (unless a superuser is requesting the change).

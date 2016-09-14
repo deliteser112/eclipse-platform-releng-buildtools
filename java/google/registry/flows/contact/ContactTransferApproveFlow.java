@@ -14,17 +14,18 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.createPendingTransferNotificationResponse;
-import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
-import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
+import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
+import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.Success;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.NotPendingTransferException;
@@ -32,12 +33,11 @@ import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
-import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
 
@@ -52,6 +52,8 @@ import javax.inject.Inject;
 public class ContactTransferApproveFlow extends LoggedInFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
+  @Inject @ClientId String clientId;
+  @Inject Optional<AuthInfo> authInfo;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactTransferApproveFlow() {}
 
@@ -68,27 +70,15 @@ public class ContactTransferApproveFlow extends LoggedInFlow implements Transact
     if (existingResource == null) {
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
     }
-    if (command.getAuthInfo() != null) {
-      verifyAuthInfoForResource(command.getAuthInfo(), existingResource);
-    }
+    verifyOptionalAuthInfoForResource(authInfo, existingResource);
     if (existingResource.getTransferData().getTransferStatus() != TransferStatus.PENDING) {
       throw new NotPendingTransferException(targetId);
     }
-    verifyResourceOwnership(getClientId(), existingResource);
-    TransferData oldTransferData = existingResource.getTransferData();
+    verifyResourceOwnership(clientId, existingResource);
     ContactResource newResource = existingResource.asBuilder()
-        .removeStatusValue(StatusValue.PENDING_TRANSFER)
+        .clearPendingTransfer(TransferStatus.CLIENT_APPROVED, now)
         .setLastTransferTime(now)
         .setCurrentSponsorClientId(existingResource.getTransferData().getGainingClientId())
-        .setTransferData(oldTransferData.asBuilder()
-            .setTransferStatus(TransferStatus.CLIENT_APPROVED)
-            .setPendingTransferExpirationTime(now)
-            .setExtendedRegistrationYears(null)
-            .setServerApproveEntities(null)
-            .setServerApproveBillingEvent(null)
-            .setServerApproveAutorenewEvent(null)
-            .setServerApproveAutorenewPollMessage(null)
-            .build())
         .build();
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.CONTACT_TRANSFER_APPROVE)
@@ -96,21 +86,12 @@ public class ContactTransferApproveFlow extends LoggedInFlow implements Transact
         .setParent(Key.create(existingResource))
         .build();
     // Create a poll message for the gaining client.
-    PollMessage gainingPollMessage = new PollMessage.OneTime.Builder()
-        .setClientId(oldTransferData.getGainingClientId())
-        .setEventTime(now)
-        .setMsg(TransferStatus.CLIENT_APPROVED.getMessage())
-        .setResponseData(ImmutableList.of(
-            createTransferResponse(newResource, newResource.getTransferData(), now),
-            createPendingTransferNotificationResponse(
-                existingResource, oldTransferData.getTransferRequestTrid(), true, now)))
-        .setParent(historyEntry)
-        .build();
+    PollMessage gainingPollMessage =
+        createGainingTransferPollMessage(targetId, newResource.getTransferData(), historyEntry);
     ofy().save().<Object>entities(newResource, historyEntry, gainingPollMessage);
     // Delete the billing event and poll messages that were written in case the transfer would have
     // been implicitly server approved.
     ofy().delete().keys(existingResource.getTransferData().getServerApproveEntities());
-    return createOutput(
-        Success, createTransferResponse(newResource, newResource.getTransferData(), now));
+    return createOutput(Success, createTransferResponse(targetId, newResource.getTransferData()));
   }
 }

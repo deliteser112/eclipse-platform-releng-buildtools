@@ -14,19 +14,21 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.createPendingTransferNotificationResponse;
-import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
 import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
+import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
+import static google.registry.flows.contact.ContactFlowUtils.createLosingTransferPollMessage;
+import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
@@ -36,6 +38,7 @@ import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.contact.ContactCommand.Transfer;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
@@ -64,6 +67,8 @@ public class ContactTransferRequestFlow extends LoggedInFlow implements Transact
       StatusValue.SERVER_TRANSFER_PROHIBITED);
 
   @Inject ResourceCommand resourceCommand;
+  @Inject Optional<AuthInfo> authInfo;
+  @Inject @ClientId String gainingClientId;
   @Inject @Config("contactAutomaticTransferLength") Duration automaticTransferLength;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactTransferRequestFlow() {}
@@ -81,21 +86,19 @@ public class ContactTransferRequestFlow extends LoggedInFlow implements Transact
     if (existingResource == null) {
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
     }
-    if (command.getAuthInfo() == null) {
+    if (!authInfo.isPresent()) {
       throw new MissingTransferRequestAuthInfoException();
     }
-    verifyAuthInfoForResource(command.getAuthInfo(), existingResource);
+    verifyAuthInfoForResource(authInfo.get(), existingResource);
     // Verify that the resource does not already have a pending transfer.
     if (TransferStatus.PENDING.equals(existingResource.getTransferData().getTransferStatus())) {
       throw new AlreadyPendingTransferException(targetId);
     }
-    String gainingClientId = getClientId();
     String losingClientId = existingResource.getCurrentSponsorClientId();
     // Verify that this client doesn't already sponsor this resource.
     if (gainingClientId.equals(losingClientId)) {
       throw new ObjectAlreadySponsoredException();
     }
-    verifyAuthInfoForResource(command.getAuthInfo(), existingResource);
     verifyNoDisallowedStatuses(existingResource, DISALLOWED_STATUSES);
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.CONTACT_TRANSFER_REQUEST)
@@ -112,24 +115,11 @@ public class ContactTransferRequestFlow extends LoggedInFlow implements Transact
         .setTransferStatus(TransferStatus.SERVER_APPROVED)
         .build();
     // If the transfer is server approved, this message will be sent to the losing registrar. */
-    PollMessage.OneTime serverApproveLosingPollMessage = new PollMessage.OneTime.Builder()
-        .setClientId(losingClientId)
-        .setMsg(TransferStatus.SERVER_APPROVED.getMessage())
-        .setParent(historyEntry)
-            .setEventTime(transferExpirationTime)
-            .setResponseData(ImmutableList.of(
-                createTransferResponse(existingResource, serverApproveTransferData, now)))
-            .build();
+    PollMessage serverApproveLosingPollMessage =
+        createLosingTransferPollMessage(targetId, serverApproveTransferData, historyEntry);
     // If the transfer is server approved, this message will be sent to the gaining registrar. */
-    PollMessage.OneTime serverApproveGainingPollMessage = new PollMessage.OneTime.Builder()
-        .setClientId(gainingClientId)
-        .setMsg(TransferStatus.SERVER_APPROVED.getMessage())
-        .setParent(historyEntry)
-            .setEventTime(transferExpirationTime)
-            .setResponseData(ImmutableList.of(
-                createTransferResponse(existingResource, serverApproveTransferData, now),
-                createPendingTransferNotificationResponse(existingResource, trid, true, now)))
-            .build();
+    PollMessage serverApproveGainingPollMessage =
+        createGainingTransferPollMessage(targetId, serverApproveTransferData, historyEntry);
     TransferData pendingTransferData = serverApproveTransferData.asBuilder()
         .setTransferStatus(TransferStatus.PENDING)
         .setServerApproveEntities(
@@ -138,13 +128,9 @@ public class ContactTransferRequestFlow extends LoggedInFlow implements Transact
                 Key.create(serverApproveLosingPollMessage)))
         .build();
     // When a transfer is requested, a poll message is created to notify the losing registrar.
-    PollMessage.OneTime requestPollMessage = new PollMessage.OneTime.Builder()
-        .setClientId(losingClientId)
-        .setMsg(TransferStatus.PENDING.getMessage())
-        .setParent(historyEntry)
-            .setEventTime(now)
-            .setResponseData(ImmutableList.of(
-                createTransferResponse(existingResource, pendingTransferData, now)))
+    PollMessage requestPollMessage =
+        createLosingTransferPollMessage(targetId, pendingTransferData, historyEntry).asBuilder()
+            .setEventTime(now)  // Unlike the serverApprove messages, this applies immediately.
             .build();
     ContactResource newResource = existingResource.asBuilder()
         .setTransferData(pendingTransferData)
@@ -157,8 +143,7 @@ public class ContactTransferRequestFlow extends LoggedInFlow implements Transact
         serverApproveGainingPollMessage,
         serverApproveLosingPollMessage);
     return createOutput(
-        SuccessWithActionPending,
-        createTransferResponse(newResource, newResource.getTransferData(), now),
-        null);
+        SuccessWithActionPending, createTransferResponse(targetId, newResource.getTransferData()));
   }
 }
+
