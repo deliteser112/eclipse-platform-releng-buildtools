@@ -28,6 +28,7 @@ java_library(
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
+        "//java/com/google/common/math",
         "//java/com/google/common/net",
         "//third_party/java/appengine:appengine-api",
         "//third_party/java/appengine_mapreduce2:appengine_mapreduce",

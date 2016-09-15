@@ -18,6 +18,7 @@ import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.math.IntMath.divide;
 import static com.googlecode.objectify.Key.getKind;
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 import static google.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
@@ -32,6 +33,7 @@ import static google.registry.model.reporting.HistoryEntry.Type.HOST_DELETE;
 import static google.registry.model.reporting.HistoryEntry.Type.HOST_DELETE_FAILURE;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.PipelineUtils.createJobPath;
+import static java.math.RoundingMode.CEILING;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
@@ -42,9 +44,11 @@ import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Multiset;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import google.registry.dns.DnsQueue;
@@ -89,6 +93,8 @@ public class DeleteContactsAndHostsAction implements Runnable {
 
   private static final long LEASE_MINUTES = 20;
   private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final int MAX_REDUCE_SHARDS = 50;
+  private static final int DELETES_PER_SHARD = 5;
 
   @Inject Clock clock;
   @Inject MapreduceRunner mrRunner;
@@ -104,10 +110,13 @@ public class DeleteContactsAndHostsAction implements Runnable {
     if (tasks.isEmpty()) {
       return;
     }
+    Multiset<String> kindCounts = HashMultiset.create(2);
     ImmutableList.Builder<DeletionRequest> builder = new ImmutableList.Builder<>();
     for (TaskHandle task : tasks) {
       try {
-        builder.add(DeletionRequest.createFromTask(task, clock.nowUtc()));
+        DeletionRequest deletionRequest = DeletionRequest.createFromTask(task, clock.nowUtc());
+        builder.add(deletionRequest);
+        kindCounts.add(deletionRequest.key().getKind());
       } catch (Exception e) {
         logger.severefmt(
             e, "Could not parse async deletion request, delaying task for a day: %s", task);
@@ -118,15 +127,19 @@ public class DeleteContactsAndHostsAction implements Runnable {
     }
     ImmutableList<DeletionRequest> deletionRequests = builder.build();
     logger.infofmt(
-        "Processing asynchronous deletion of %d contacts and hosts.", deletionRequests.size());
+        "Processing asynchronous deletion of %d contacts and %d hosts.",
+        kindCounts.count(KIND_CONTACT), kindCounts.count(KIND_HOST));
     runMapreduce(deletionRequests);
   }
 
   private void runMapreduce(ImmutableList<DeletionRequest> deletionRequests) {
     try {
+      int numReducers =
+          Math.min(MAX_REDUCE_SHARDS, divide(deletionRequests.size(), DELETES_PER_SHARD, CEILING));
       response.sendJavaScriptRedirect(createJobPath(mrRunner
           .setJobName("Check for EPP resource references and then delete")
           .setModuleName("backend")
+          .setDefaultReduceShards(numReducers)
           .runMapreduce(
               new DeleteContactsAndHostsMapper(deletionRequests),
               new DeleteEppResourceReducer(),
