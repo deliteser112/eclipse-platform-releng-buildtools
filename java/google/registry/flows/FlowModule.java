@@ -26,6 +26,7 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppinput.EppInput.Poll;
 import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
@@ -193,6 +194,13 @@ public class FlowModule {
     return ((SingleResourceCommand) resourceCommand).getTargetId();
   }
 
+  @Provides
+  @FlowScope
+  @PollMessageId
+  static String providePollMessageId(EppInput eppInput) {
+    return Strings.nullToEmpty(((Poll) eppInput.getCommandWrapper().getCommand()).getMessageId());
+  }
+
   /**
    * Provides a partially filled in {@link HistoryEntry} builder.
    *
@@ -245,6 +253,11 @@ public class FlowModule {
   @Qualifier
   @Documented
   public @interface TargetId {}
+
+  /** Dagger qualifier for the message id for poll flows. */
+  @Qualifier
+  @Documented
+  public @interface PollMessageId {}
 
   /** Dagger qualifier for whether a flow is in dry run mode. */
   @Qualifier

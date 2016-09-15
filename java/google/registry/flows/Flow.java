@@ -24,6 +24,7 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.EppResponse.ResponseData;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.eppoutput.Result;
+import google.registry.model.poll.MessageQueueInfo;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -82,13 +83,22 @@ public abstract class Flow {
       Result.Code code,
       @Nullable ResponseData responseData,
       @Nullable ImmutableList<? extends ResponseExtension> extensions) {
+    return createOutput(
+        code, responseData == null ? null : ImmutableList.of(responseData), extensions, null);
+  }
+
+  protected EppOutput createOutput(
+      Result.Code code,
+      @Nullable ImmutableList<ResponseData> responseData,
+      @Nullable ImmutableList<? extends ResponseExtension> responseExtensions,
+      @Nullable MessageQueueInfo messageQueueInfo) {
     return EppOutput.create(new EppResponse.Builder()
         .setTrid(trid)
         .setResult(Result.create(code))
+        .setMessageQueueInfo(messageQueueInfo)
+        .setResData(responseData)
+        .setExtensions(responseExtensions)
         .setExecutionTime(now)
-        .setCreatedRepoId(getCreatedRepoId())
-        .setResData(responseData == null ? null : ImmutableList.of(responseData))
-        .setExtensions(extensions)
         .build());
   }
 
