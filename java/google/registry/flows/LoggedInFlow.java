@@ -28,11 +28,13 @@ import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.SyntaxErrorException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
+import google.registry.flows.FlowModule.ClientId;
 import google.registry.model.eppcommon.ProtocolDefinition;
 import google.registry.model.eppinput.EppInput.CommandExtension;
 import google.registry.model.registrar.Registrar;
 import google.registry.util.FormattingLogger;
 import java.util.Set;
+import javax.inject.Inject;
 
 /** A flow that requires being logged in. */
 public abstract class LoggedInFlow extends Flow {
@@ -50,13 +52,15 @@ public abstract class LoggedInFlow extends Flow {
    */
   private ImmutableSet<String> allowedTlds;
 
+  @Inject @ClientId String clientId;
+
   protected ImmutableSet<String> getAllowedTlds() {
     return allowedTlds;
   }
 
   @Override
   public final void initFlow() throws EppException {
-    if (getClientId() == null) {
+    if (clientId.isEmpty()) {
       throw new NotLoggedInException();
     }
     // Validate that the extensions in the input match what this flow expects.
@@ -89,15 +93,15 @@ public abstract class LoggedInFlow extends Flow {
       } else {
         logger.infofmt(
             "Client (%s) is attempting to run flow (%s) without declaring URIs %s on login",
-            getClientId(), getClass().getSimpleName(), undeclaredUris);
+            clientId, getClass().getSimpleName(), undeclaredUris);
       }
     }
     if (isSuperuser) {
       allowedTlds = getTlds();
     } else {
       Registrar registrar = verifyNotNull(
-          Registrar.loadByClientId(sessionMetadata.getClientId()),
-          "Could not load registrar %s", sessionMetadata.getClientId());
+          Registrar.loadByClientId(clientId),
+          "Could not load registrar %s", clientId);
       allowedTlds = registrar.getAllowedTlds();
     }
     initLoggedInFlow();
