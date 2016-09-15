@@ -17,7 +17,7 @@ package google.registry.flows.contact;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
@@ -67,6 +67,6 @@ public class ContactTransferQueryFlow extends LoggedInFlow {
       throw new NotAuthorizedToViewTransferException();
     }
     return createOutput(
-        Success, createTransferResponse(targetId, existingResource.getTransferData()));
+        SUCCESS, createTransferResponse(targetId, existingResource.getTransferData()));
   }
 }

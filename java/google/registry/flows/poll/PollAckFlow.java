@@ -16,8 +16,8 @@ package google.registry.flows.poll;
 
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.flows.poll.PollFlowUtils.getPollMessagesQuery;
-import static google.registry.model.eppoutput.Result.Code.Success;
-import static google.registry.model.eppoutput.Result.Code.SuccessWithNoMessages;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_NO_MESSAGES;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
@@ -117,9 +117,9 @@ public class PollAckFlow extends LoggedInFlow implements TransactionalFlow {
       messageCount--;
     }
     if (messageCount <= 0) {
-      return createOutput(SuccessWithNoMessages);
+      return createOutput(SUCCESS_WITH_NO_MESSAGES);
     }
-    return createOutput(Success, null, null, MessageQueueInfo.create(
+    return createOutput(SUCCESS, null, null, MessageQueueInfo.create(
         null,  // eventTime
         null,  // msg
         messageCount,

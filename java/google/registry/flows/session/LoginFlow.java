@@ -132,7 +132,7 @@ public class LoginFlow extends Flow {
     sessionMetadata.resetFailedLoginAttempts();
     sessionMetadata.setClientId(login.getClientId());
     sessionMetadata.setServiceExtensionUris(serviceExtensionUrisBuilder.build());
-    return createOutput(Code.Success);
+    return createOutput(Code.SUCCESS);
   }
 
   /** Registrar with this client ID could not be found. */

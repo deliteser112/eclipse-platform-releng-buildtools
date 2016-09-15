@@ -16,7 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.flows.domain.DomainFlowUtils.DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 
@@ -218,7 +218,7 @@ public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainAppl
     }
 
     return createOutput(
-        Success,
+        SUCCESS,
         DomainCreateData.create(newResource.getFullyQualifiedDomainName(), now, null),
         responseExtensionsBuilder.build());
   }

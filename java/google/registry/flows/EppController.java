@@ -105,7 +105,7 @@ public final class EppController {
     } catch (Throwable e) {
       // Something bad and unexpected happened. Send the client a generic error, and log it.
       logger.severe(e, "Unexpected failure");
-      return getErrorResponse(clock, Result.create(Code.CommandFailed), flowComponent.trid());
+      return getErrorResponse(clock, Result.create(Code.COMMAND_FAILED), flowComponent.trid());
     }
   }
 

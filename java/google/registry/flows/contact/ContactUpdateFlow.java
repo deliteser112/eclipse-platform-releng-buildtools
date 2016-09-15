@@ -20,7 +20,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
 import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
@@ -127,6 +127,6 @@ public class ContactUpdateFlow extends LoggedInFlow implements TransactionalFlow
     validateAsciiPostalInfo(newResource.getInternationalizedPostalInfo());
     validateContactAgainstPolicy(newResource);
     ofy().save().<Object>entities(newResource, historyBuilder.build());
-    return createOutput(Success);
+    return createOutput(SUCCESS);
   }
 }

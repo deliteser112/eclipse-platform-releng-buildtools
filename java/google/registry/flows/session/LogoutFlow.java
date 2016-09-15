@@ -14,7 +14,7 @@
 
 package google.registry.flows.session;
 
-import static google.registry.model.eppoutput.Result.Code.SuccessAndClose;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_AND_CLOSE;
 
 import google.registry.flows.EppException;
 import google.registry.flows.LoggedInFlow;
@@ -33,6 +33,6 @@ public class LogoutFlow extends LoggedInFlow {
   @Override
   public final EppOutput run() throws EppException {
     sessionMetadata.invalidate();
-    return createOutput(SuccessAndClose);
+    return createOutput(SUCCESS_AND_CLOSE);
   }
 }

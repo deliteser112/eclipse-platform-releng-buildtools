@@ -431,7 +431,7 @@ public class DomainResourceTest extends EntityTestCase {
     int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
     EppXmlTransformer.marshal(
         EppOutput.create(new EppResponse.Builder()
-            .setResult(Result.create(Code.Success))
+            .setResult(Result.create(Code.SUCCESS))
             .setResData(ImmutableList.of(domain))
             .setTrid(Trid.create(null, "abc"))
             .build()),

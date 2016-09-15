@@ -44,7 +44,7 @@ public class EppMetricTest {
             .setClientId("client")
             .setPrivilegeLevel("level")
             .setEppTarget("target")
-            .setStatus(Code.CommandUseError)
+            .setStatus(Code.COMMAND_USE_ERROR)
             .incrementAttempts()
             .build();
 
@@ -74,7 +74,7 @@ public class EppMetricTest {
             .setClientId("client")
             .setPrivilegeLevel("level")
             .setEppTarget("target")
-            .setStatus(Code.CommandUseError)
+            .setStatus(Code.COMMAND_USE_ERROR)
             .incrementAttempts()
             .build();
     ImmutableSet.Builder<String> schemaFieldNames = new ImmutableSet.Builder<>();

@@ -17,8 +17,8 @@ package google.registry.flows.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
-import static google.registry.model.eppoutput.Result.Code.Success;
-import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.nullToEmpty;
@@ -187,7 +187,7 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
   @Override
   protected final Code getDeleteResultCode() {
     return newResource.getDeletionTime().isAfter(now)
-        ? SuccessWithActionPending : Success;
+        ? SUCCESS_WITH_ACTION_PENDING : SUCCESS;
   }
 
   @Nullable

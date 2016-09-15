@@ -15,7 +15,7 @@
 package google.registry.flows.contact;
 
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.config.ConfigModule.Config;
@@ -55,6 +55,6 @@ public class ContactCheckFlow extends LoggedInFlow {
       boolean unused = !existingIds.contains(id);
       checks.add(ContactCheck.create(unused, id, unused ? null : "In use"));
     }
-    return createOutput(Success, ContactCheckData.create(checks.build()));
+    return createOutput(SUCCESS, ContactCheckData.create(checks.build()));
   }
 }

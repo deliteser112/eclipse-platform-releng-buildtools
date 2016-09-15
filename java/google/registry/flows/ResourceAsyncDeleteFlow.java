@@ -14,7 +14,7 @@
 
 package google.registry.flows;
 
-import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.Key;
@@ -71,7 +71,7 @@ public abstract class ResourceAsyncDeleteFlow
   /** Subclasses can override this to return a different success result code. */
   @Override
   protected Code getDeleteResultCode() {
-    return SuccessWithActionPending;
+    return SUCCESS_WITH_ACTION_PENDING;
   }
 
   /** Resource to be deleted has active incoming references. */

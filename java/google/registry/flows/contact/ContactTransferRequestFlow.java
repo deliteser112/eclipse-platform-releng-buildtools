@@ -20,7 +20,7 @@ import static google.registry.flows.contact.ContactFlowUtils.createGainingTransf
 import static google.registry.flows.contact.ContactFlowUtils.createLosingTransferPollMessage;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
-import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
@@ -140,7 +140,8 @@ public class ContactTransferRequestFlow extends LoggedInFlow implements Transact
         serverApproveGainingPollMessage,
         serverApproveLosingPollMessage);
     return createOutput(
-        SuccessWithActionPending, createTransferResponse(targetId, newResource.getTransferData()));
+        SUCCESS_WITH_ACTION_PENDING,
+        createTransferResponse(targetId, newResource.getTransferData()));
   }
 }
 

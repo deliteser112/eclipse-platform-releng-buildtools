@@ -19,7 +19,7 @@ import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.flows.host.HostFlowUtils.verifyDomainIsSameRegistrar;
 import static google.registry.model.EppResourceUtils.createContactHostRoid;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.CollectionUtils.union;
@@ -126,7 +126,7 @@ public class HostCreateFlow extends LoggedInFlow implements TransactionalFlow {
       DnsQueue.create().addHostRefreshTask(targetId);
     }
     ofy().save().entities(entitiesToSave);
-    return createOutput(Success, HostCreateData.create(targetId, now));
+    return createOutput(SUCCESS, HostCreateData.create(targetId, now));
   }
 
   /** Subordinate hosts must have an ip address. */

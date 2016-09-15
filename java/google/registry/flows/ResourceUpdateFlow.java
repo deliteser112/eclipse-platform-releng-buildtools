@@ -14,7 +14,7 @@
 
 package google.registry.flows;
 
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -105,7 +105,7 @@ public abstract class ResourceUpdateFlow
 
   @Override
   protected final EppOutput getOutput() {
-    return createOutput(Success);
+    return createOutput(SUCCESS);
   }
 
   /** The specified status value cannot be set by clients. */

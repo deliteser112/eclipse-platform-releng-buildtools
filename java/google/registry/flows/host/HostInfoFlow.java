@@ -17,7 +17,7 @@ package google.registry.flows.host;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
@@ -50,6 +50,6 @@ public class HostInfoFlow extends LoggedInFlow {
       throw new ResourceToQueryDoesNotExistException(HostResource.class, targetId);
     }
     verifyOptionalAuthInfoForResource(authInfo, existingResource);
-    return createOutput(Success, cloneResourceWithLinkedStatus(existingResource, now));
+    return createOutput(SUCCESS, cloneResourceWithLinkedStatus(existingResource, now));
   }
 }

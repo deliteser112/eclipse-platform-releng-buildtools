@@ -14,7 +14,7 @@
 
 package google.registry.flows;
 
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.config.RegistryEnvironment;
@@ -46,7 +46,7 @@ public abstract class ResourceCheckFlow<R extends EppResource, C extends Resourc
   @Override
   protected final EppOutput runResourceFlow() throws EppException {
     return createOutput(
-        Success,
+        SUCCESS,
         getCheckData(),
         getResponseExtensions());
   }

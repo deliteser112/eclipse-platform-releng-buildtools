@@ -22,7 +22,7 @@ import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.flows.host.HostFlowUtils.verifyDomainIsSameRegistrar;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
@@ -156,7 +156,7 @@ public class HostUpdateFlow extends LoggedInFlow implements TransactionalFlow {
         .setParent(Key.create(existingResource))
         .build());
     ofy().save().entities(entitiesToSave.build());
-    return createOutput(Success);
+    return createOutput(SUCCESS);
   }
 
   private void verifyUpdateAllowed(

@@ -15,7 +15,7 @@
 package google.registry.flows;
 
 import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import google.registry.flows.EppException.ObjectNotPendingTransferException;
@@ -92,7 +92,7 @@ public abstract class ResourceMutatePendingTransferFlow
   @Override
   protected final EppOutput getOutput() throws EppException {
     return createOutput(
-        Success, createTransferResponse(newResource, newResource.getTransferData(), now));
+        SUCCESS, createTransferResponse(newResource, newResource.getTransferData(), now));
   }
 
   /** The resource does not have a pending transfer. */

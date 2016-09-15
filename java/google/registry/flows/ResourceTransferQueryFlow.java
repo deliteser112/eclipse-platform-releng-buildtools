@@ -15,7 +15,7 @@
 package google.registry.flows;
 
 import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.CommandUseErrorException;
@@ -52,7 +52,7 @@ public abstract class ResourceTransferQueryFlow<R extends EppResource,
   @Override
   public final EppOutput runResourceFlow() throws EppException {
     return createOutput(
-        Success, createTransferResponse(existingResource, existingResource.getTransferData(), now));
+        SUCCESS, createTransferResponse(existingResource, existingResource.getTransferData(), now));
   }
 
   /** Registrar is not authorized to view transfer status. */

@@ -19,7 +19,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
-import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Function;
@@ -114,6 +114,6 @@ public class HostDeleteFlow extends LoggedInFlow implements TransactionalFlow {
         .setModificationTime(now)
         .setParent(Key.create(existingResource));
     ofy().save().<Object>entities(newResource, historyBuilder.build());
-    return createOutput(SuccessWithActionPending);
+    return createOutput(SUCCESS_WITH_ACTION_PENDING);
   }
 }

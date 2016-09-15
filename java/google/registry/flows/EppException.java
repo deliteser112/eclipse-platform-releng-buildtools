@@ -63,7 +63,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.AuthenticationError)
+  @EppResultCode(Code.AUTHENTICATION_ERROR)
   public abstract static class AuthenticationErrorException extends EppException {
     public AuthenticationErrorException(String message) {
       super(message);
@@ -71,7 +71,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.AuthenticationErrorClosingConnection)
+  @EppResultCode(Code.AUTHENTICATION_ERROR_CLOSING_CONNECTION)
   public abstract static class AuthenticationErrorClosingConnectionException extends EppException {
     public AuthenticationErrorClosingConnectionException(String message) {
       super(message);
@@ -79,7 +79,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.AuthorizationError)
+  @EppResultCode(Code.AUTHORIZATION_ERROR)
   public abstract static class AuthorizationErrorException extends EppException {
     public AuthorizationErrorException(String message) {
       super(message);
@@ -87,7 +87,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.InvalidAuthorizationInformationError)
+  @EppResultCode(Code.INVALID_AUTHORIZATION_INFORMATION_ERROR)
   public abstract static class InvalidAuthorizationInformationErrorException extends EppException {
     public InvalidAuthorizationInformationErrorException(String message) {
       super(message);
@@ -95,7 +95,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.CommandUseError)
+  @EppResultCode(Code.COMMAND_USE_ERROR)
   public abstract static class CommandUseErrorException extends EppException {
     public CommandUseErrorException(String message) {
       super(message);
@@ -103,7 +103,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.ObjectExists)
+  @EppResultCode(Code.OBJECT_EXISTS)
   public abstract static class ObjectAlreadyExistsException extends EppException {
     public ObjectAlreadyExistsException(String message) {
       super(message);
@@ -111,7 +111,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.ObjectDoesNotExist)
+  @EppResultCode(Code.OBJECT_DOES_NOT_EXIST)
   public abstract static class ObjectDoesNotExistException extends EppException {
     public ObjectDoesNotExistException(Class<?> type, String id) {
       super(
@@ -135,7 +135,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.ObjectPendingTransfer)
+  @EppResultCode(Code.OBJECT_PENDING_TRANSFER)
   public abstract static class ObjectPendingTransferException extends EppException {
     public ObjectPendingTransferException(String id) {
       super(String.format("Object with given ID (%s) already has a pending transfer.", id));
@@ -143,7 +143,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.ObjectNotPendingTransfer)
+  @EppResultCode(Code.OBJECT_NOT_PENDING_TRANSFER)
   public abstract static class ObjectNotPendingTransferException extends EppException {
     public ObjectNotPendingTransferException(String id) {
       super(String.format("Object with given ID (%s) does not have a pending transfer.", id));
@@ -151,7 +151,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.AssociationProhibitsOperation)
+  @EppResultCode(Code.ASSOCIATION_PROHIBITS_OPERATION)
   public abstract static class AssociationProhibitsOperationException extends EppException {
     public AssociationProhibitsOperationException(String message) {
       super(message);
@@ -159,7 +159,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.ParameterValuePolicyError)
+  @EppResultCode(Code.PARAMETER_VALUE_POLICY_ERROR)
   public abstract static class ParameterValuePolicyErrorException extends EppException {
     public ParameterValuePolicyErrorException(String message) {
       super(message);
@@ -167,7 +167,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.ParameterValueRangeError)
+  @EppResultCode(Code.PARAMETER_VALUE_RANGE_ERROR)
   public abstract static class ParameterValueRangeErrorException extends EppException {
     public ParameterValueRangeErrorException(String message) {
       super(message);
@@ -175,7 +175,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.ParameterValueSyntaxError)
+  @EppResultCode(Code.PARAMETER_VALUE_SYNTAX_ERROR)
   public abstract static class ParameterValueSyntaxErrorException extends EppException {
     public ParameterValueSyntaxErrorException(String message) {
       super(message);
@@ -183,7 +183,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.RequiredParameterMissing)
+  @EppResultCode(Code.REQUIRED_PARAMETER_MISSING)
   public abstract static class RequiredParameterMissingException extends EppException {
     public RequiredParameterMissingException(String message) {
       super(message);
@@ -191,7 +191,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.StatusProhibitsOperation)
+  @EppResultCode(Code.STATUS_PROHIBITS_OPERATION)
   public abstract static class StatusProhibitsOperationException extends EppException {
     public StatusProhibitsOperationException(String message) {
       super(message);
@@ -199,7 +199,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.SyntaxError)
+  @EppResultCode(Code.SYNTAX_ERROR)
   public abstract static class SyntaxErrorException extends EppException {
     public SyntaxErrorException(String message) {
       super(message);
@@ -207,7 +207,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Specified command is not implemented. */
-  @EppResultCode(Code.UnimplementedCommand)
+  @EppResultCode(Code.UNIMPLEMENTED_COMMAND)
   public static class UnimplementedCommandException extends EppException {
     public UnimplementedCommandException(InnerCommand command) {
       super(String.format(
@@ -220,7 +220,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Abstract exception class. Do not throw this directly or catch in tests. */
-  @EppResultCode(Code.UnimplementedOption)
+  @EppResultCode(Code.UNIMPLEMENTED_OPTION)
   public abstract static class UnimplementedOptionException extends EppException {
     public UnimplementedOptionException(String message) {
       super(message);
@@ -228,7 +228,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Specified extension is not implemented. */
-  @EppResultCode(Code.UnimplementedExtension)
+  @EppResultCode(Code.UNIMPLEMENTED_EXTENSION)
   public static class UnimplementedExtensionException extends EppException {
     public UnimplementedExtensionException() {
       super("Specified extension is not implemented");
@@ -236,7 +236,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Specified object service is not implemented. */
-  @EppResultCode(Code.UnimplementedObjectService)
+  @EppResultCode(Code.UNIMPLEMENTED_OBJECT_SERVICE)
   public static class UnimplementedObjectServiceException extends EppException {
     public UnimplementedObjectServiceException() {
       super("Specified object service is not implemented");
@@ -244,7 +244,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Specified protocol version is not implemented. */
-  @EppResultCode(Code.UnimplementedProtocolVersion)
+  @EppResultCode(Code.UNIMPLEMENTED_PROTOCOL_VERSION)
   public static class UnimplementedProtocolVersionException extends EppException {
     public UnimplementedProtocolVersionException() {
       super("Specified protocol version is not implemented");
@@ -252,7 +252,7 @@ public abstract class EppException extends Exception {
   }
 
   /** Command failed. */
-  @EppResultCode(Code.CommandFailed)
+  @EppResultCode(Code.COMMAND_FAILED)
   public static class CommandFailedException extends EppException {
     public CommandFailedException() {
       super("Command failed");

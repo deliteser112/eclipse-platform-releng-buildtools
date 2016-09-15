@@ -14,7 +14,7 @@
 
 package google.registry.flows;
 
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -55,7 +55,7 @@ public abstract class ResourceDeleteFlow<R extends EppResource, C extends Single
 
   /** Subclasses can override this to return a different success result code. */
   protected Code getDeleteResultCode() {
-    return Success;
+    return SUCCESS;
   }
 
   /** Subclasses can override this to return response extensions. */

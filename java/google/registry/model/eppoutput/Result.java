@@ -40,88 +40,88 @@ public class Result extends ImmutableObject {
    */
   public enum Code {
     @XmlEnumValue("1000")
-    Success("Command completed successfully"),
+    SUCCESS("Command completed successfully"),
 
     @XmlEnumValue("1001")
-    SuccessWithActionPending("Command completed successfully; action pending"),
+    SUCCESS_WITH_ACTION_PENDING("Command completed successfully; action pending"),
 
     @XmlEnumValue("1300")
-    SuccessWithNoMessages("Command completed successfully; no messages"),
+    SUCCESS_WITH_NO_MESSAGES("Command completed successfully; no messages"),
 
     @XmlEnumValue("1301")
-    SuccessWithAckMessage("Command completed successfully; ack to dequeue"),
+    SUCCESS_WITH_ACK_MESSAGE("Command completed successfully; ack to dequeue"),
 
     @XmlEnumValue("1500")
-    SuccessAndClose("Command completed successfully; ending session"),
+    SUCCESS_AND_CLOSE("Command completed successfully; ending session"),
 
     @XmlEnumValue("2000")
-    UnknownCommand("Unknown command"),
+    UNKNOWN_COMMAND("Unknown command"),
 
     @XmlEnumValue("2001")
-    SyntaxError("Command syntax error"),
+    SYNTAX_ERROR("Command syntax error"),
 
     @XmlEnumValue("2002")
-    CommandUseError("Command use error"),
+    COMMAND_USE_ERROR("Command use error"),
 
     @XmlEnumValue("2003")
-    RequiredParameterMissing("Required parameter missing"),
+    REQUIRED_PARAMETER_MISSING("Required parameter missing"),
 
     @XmlEnumValue("2004")
-    ParameterValueRangeError("Parameter value range error"),
+    PARAMETER_VALUE_RANGE_ERROR("Parameter value range error"),
 
     @XmlEnumValue("2005")
-    ParameterValueSyntaxError("Parameter value syntax error"),
+    PARAMETER_VALUE_SYNTAX_ERROR("Parameter value syntax error"),
 
     @XmlEnumValue("2100")
-    UnimplementedProtocolVersion("Unimplemented protocol version"),
+    UNIMPLEMENTED_PROTOCOL_VERSION("Unimplemented protocol version"),
 
     @XmlEnumValue("2101")
-    UnimplementedCommand("Unimplemented command"),
+    UNIMPLEMENTED_COMMAND("Unimplemented command"),
 
     @XmlEnumValue("2102")
-    UnimplementedOption("Unimplemented option"),
+    UNIMPLEMENTED_OPTION("Unimplemented option"),
 
     @XmlEnumValue("2103")
-    UnimplementedExtension("Unimplemented extension"),
+    UNIMPLEMENTED_EXTENSION("Unimplemented extension"),
 
     @XmlEnumValue("2200")
-    AuthenticationError("Authentication error"),
+    AUTHENTICATION_ERROR("Authentication error"),
 
     @XmlEnumValue("2201")
-    AuthorizationError("Authorization error"),
+    AUTHORIZATION_ERROR("Authorization error"),
 
     @XmlEnumValue("2202")
-    InvalidAuthorizationInformationError("Invalid authorization information"),
+    INVALID_AUTHORIZATION_INFORMATION_ERROR("Invalid authorization information"),
 
     @XmlEnumValue("2300")
-    ObjectPendingTransfer("Object pending transfer"),
+    OBJECT_PENDING_TRANSFER("Object pending transfer"),
 
     @XmlEnumValue("2301")
-    ObjectNotPendingTransfer("Object not pending transfer"),
+    OBJECT_NOT_PENDING_TRANSFER("Object not pending transfer"),
 
     @XmlEnumValue("2302")
-    ObjectExists("Object exists"),
+    OBJECT_EXISTS("Object exists"),
 
     @XmlEnumValue("2303")
-    ObjectDoesNotExist("Object does not exist"),
+    OBJECT_DOES_NOT_EXIST("Object does not exist"),
 
     @XmlEnumValue("2304")
-    StatusProhibitsOperation("Object status prohibits operation"),
+    STATUS_PROHIBITS_OPERATION("Object status prohibits operation"),
 
     @XmlEnumValue("2305")
-    AssociationProhibitsOperation("Object association prohibits operation"),
+    ASSOCIATION_PROHIBITS_OPERATION("Object association prohibits operation"),
 
     @XmlEnumValue("2306")
-    ParameterValuePolicyError("Parameter value policy error"),
+    PARAMETER_VALUE_POLICY_ERROR("Parameter value policy error"),
 
     @XmlEnumValue("2307")
-    UnimplementedObjectService("Unimplemented object service"),
+    UNIMPLEMENTED_OBJECT_SERVICE("Unimplemented object service"),
 
     @XmlEnumValue("2400")
-    CommandFailed("Command failed"),
+    COMMAND_FAILED("Command failed"),
 
     @XmlEnumValue("2501")
-    AuthenticationErrorClosingConnection("Authentication error; server closing connection");
+    AUTHENTICATION_ERROR_CLOSING_CONNECTION("Authentication error; server closing connection");
 
     /** A four-digit (positive) number that describes the success or failure of the command. */
     public final int code;

@@ -15,8 +15,8 @@
 package google.registry.flows.poll;
 
 import static google.registry.flows.poll.PollFlowUtils.getPollMessagesQuery;
-import static google.registry.model.eppoutput.Result.Code.SuccessWithAckMessage;
-import static google.registry.model.eppoutput.Result.Code.SuccessWithNoMessages;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACK_MESSAGE;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_NO_MESSAGES;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
 
 import com.googlecode.objectify.Key;
@@ -49,10 +49,10 @@ public class PollRequestFlow extends LoggedInFlow {
     // Return the oldest message from the queue.
     PollMessage pollMessage = getPollMessagesQuery(clientId, now).first().now();
     if (pollMessage == null) {
-      return createOutput(SuccessWithNoMessages);
+      return createOutput(SUCCESS_WITH_NO_MESSAGES);
     }
     return createOutput(
-        SuccessWithAckMessage,
+        SUCCESS_WITH_ACK_MESSAGE,
         forceEmptyToNull(pollMessage.getResponseData()),
         forceEmptyToNull(pollMessage.getResponseExtensions()),
         MessageQueueInfo.create(

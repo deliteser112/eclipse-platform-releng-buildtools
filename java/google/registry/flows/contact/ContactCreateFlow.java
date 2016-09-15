@@ -18,7 +18,7 @@ import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostal
 import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
 import static google.registry.model.EppResourceUtils.createContactHostRoid;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.Key;
@@ -86,6 +86,6 @@ public class ContactCreateFlow extends LoggedInFlow implements TransactionalFlow
         historyBuilder.build(),
         ForeignKeyIndex.create(newResource, newResource.getDeletionTime()),
         EppResourceIndex.create(Key.create(newResource)));
-    return createOutput(Success, ContactCreateData.create(newResource.getContactId(), now));
+    return createOutput(SUCCESS, ContactCreateData.create(newResource.getContactId(), now));
   }
 }

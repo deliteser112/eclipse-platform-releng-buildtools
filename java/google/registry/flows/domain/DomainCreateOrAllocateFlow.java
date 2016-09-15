@@ -101,7 +101,7 @@ public abstract class DomainCreateOrAllocateFlow
   @Override
   protected final EppOutput getOutput() {
     return createOutput(
-        Result.Code.Success,
+        Result.Code.SUCCESS,
         DomainCreateData.create(
             newResource.getFullyQualifiedDomainName(),
             now,

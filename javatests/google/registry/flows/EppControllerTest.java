@@ -80,7 +80,7 @@ public class EppControllerTest extends ShardableTestCase {
     when(eppOutput.isResponse()).thenReturn(true);
     when(eppOutput.getResponse()).thenReturn(eppResponse);
     when(eppResponse.getResult()).thenReturn(result);
-    when(result.getCode()).thenReturn(Code.SuccessWithNoMessages);
+    when(result.getCode()).thenReturn(Code.SUCCESS_WITH_NO_MESSAGES);
 
     eppController = new EppController();
     eppController.metricBuilder = EppMetric.builderForRequest("request-id-1", clock);
@@ -94,7 +94,7 @@ public class EppControllerTest extends ShardableTestCase {
   public void testMarshallingUnknownError() throws Exception {
     marshal(
         EppController.getErrorResponse(
-            new SystemClock(), Result.create(Code.CommandFailed), Trid.create(null)),
+            new SystemClock(), Result.create(Code.COMMAND_FAILED), Trid.create(null)),
         ValidationMode.STRICT);
   }
 
@@ -116,7 +116,7 @@ public class EppControllerTest extends ShardableTestCase {
     assertThat(metric.getEndTimestamp()).isEqualTo(clock.nowUtc());
     assertThat(metric.getClientId()).hasValue("some-client");
     assertThat(metric.getPrivilegeLevel()).hasValue("NORMAL");
-    assertThat(metric.getStatus()).hasValue(Code.SyntaxError);
+    assertThat(metric.getStatus()).hasValue(Code.SYNTAX_ERROR);
   }
 
   @Test
@@ -140,7 +140,7 @@ public class EppControllerTest extends ShardableTestCase {
     assertThat(metric.getEndTimestamp()).isEqualTo(clock.nowUtc());
     assertThat(metric.getClientId()).hasValue("some-client");
     assertThat(metric.getPrivilegeLevel()).hasValue("SUPERUSER");
-    assertThat(metric.getStatus()).hasValue(Code.SuccessWithNoMessages);
+    assertThat(metric.getStatus()).hasValue(Code.SUCCESS_WITH_NO_MESSAGES);
     assertThat(metric.getCommandName()).hasValue("Create");
     assertThat(metric.getEppTarget()).hasValue("example.tld");
   }

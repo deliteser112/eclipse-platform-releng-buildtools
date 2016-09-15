@@ -18,7 +18,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForR
 import static google.registry.flows.contact.ContactFlowUtils.createLosingTransferPollMessage;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
@@ -92,6 +92,6 @@ public class ContactTransferCancelFlow extends LoggedInFlow implements Transacti
     // Delete the billing event and poll messages that were written in case the transfer would have
     // been implicitly server approved.
     ofy().delete().keys(existingResource.getTransferData().getServerApproveEntities());
-    return createOutput(Success, createTransferResponse(targetId, newResource.getTransferData()));
+    return createOutput(SUCCESS, createTransferResponse(targetId, newResource.getTransferData()));
   }
 }

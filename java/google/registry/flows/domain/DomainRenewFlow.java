@@ -23,7 +23,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
 import static google.registry.model.domain.fee.Fee.FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
-import static google.registry.model.eppoutput.Result.Code.Success;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
@@ -197,7 +197,7 @@ public class DomainRenewFlow extends OwnedResourceMutateFlow<DomainResource, Ren
   @Override
   protected final EppOutput getOutput() {
     return createOutput(
-        Success,
+        SUCCESS,
         DomainRenewData.create(
             newResource.getFullyQualifiedDomainName(), newResource.getRegistrationExpirationTime()),
         (feeRenew == null)

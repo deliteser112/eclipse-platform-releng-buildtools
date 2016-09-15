@@ -17,7 +17,7 @@ package google.registry.flows;
 import static google.registry.flows.ResourceFlowUtils.createPendingTransferNotificationResponse;
 import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
 import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
-import static google.registry.model.eppoutput.Result.Code.SuccessWithActionPending;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.union;
 
@@ -180,7 +180,7 @@ import org.joda.time.Duration;
   @Override
   protected final EppOutput getOutput() throws EppException {
     return createOutput(
-        SuccessWithActionPending,
+        SUCCESS_WITH_ACTION_PENDING,
         createTransferResponse(newResource, newResource.getTransferData(), now),
         getTransferResponseExtensions());
   }
