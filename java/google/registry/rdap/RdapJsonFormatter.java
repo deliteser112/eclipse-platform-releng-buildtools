@@ -133,8 +133,7 @@ public class RdapJsonFormatter {
       this.rfc7483String = rfc7483String;
     }
 
-    @Override
-    public String toString() {
+    public String getDisplayName() {
       return rfc7483String;
     }
   }
@@ -211,8 +210,7 @@ public class RdapJsonFormatter {
       this.rfc7483String = rfc7483String;
     }
 
-    @Override
-    public String toString() {
+    public String getDisplayName() {
       return rfc7483String;
     }
   }
@@ -821,7 +819,7 @@ public class RdapJsonFormatter {
   private static ImmutableMap<String, Object> makeEvent(
       RdapEventAction eventAction, @Nullable String eventActor, DateTime eventDate) {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("eventAction", eventAction.toString());
+    builder.put("eventAction", eventAction.getDisplayName());
     if (eventActor != null) {
       builder.put("eventActor", eventActor);
     }
@@ -901,7 +899,11 @@ public class RdapJsonFormatter {
     return FluentIterable
         .from(statusValues)
         .transform(Functions.forMap(statusToRdapStatusMap, RdapStatus.OBSCURED))
-        .transform(Functions.toStringFunction())
+        .transform(new Function<RdapStatus, String>() {
+          @Override
+          public String apply(RdapStatus status) {
+            return status.getDisplayName();
+          }})
         .toSortedSet(Ordering.natural())
         .asList();
   }
