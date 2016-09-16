@@ -139,7 +139,7 @@ public class RegistrarServlet extends ResourceServlet {
       String registrarName,
       Map<String, Object> existingRegistrar,
       Map<String, Object> updatedRegistrar) {
-    Map<?, ?> diffs = DiffUtils.deepDiff(existingRegistrar, updatedRegistrar);
+    Map<?, ?> diffs = DiffUtils.deepDiff(existingRegistrar, updatedRegistrar, true);
     @SuppressWarnings("unchecked")
     Set<String> changedKeys = (Set<String>) diffs.keySet();
     if (CollectionUtils.difference(changedKeys, "lastUpdateTime").isEmpty()) {

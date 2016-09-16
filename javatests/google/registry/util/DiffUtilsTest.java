@@ -15,9 +15,12 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.util.DiffUtils.prettyPrintEntityDeepDiff;
 import static google.registry.util.DiffUtils.prettyPrintSetDiff;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -55,6 +58,18 @@ public class DiffUtilsTest {
     assertThat(prettyPrintSetDiff(
         ImmutableSet.of("a", "b", "c"), ImmutableSet.of("a", "y", "z")))
         .isEqualTo("\n    ADDED: [y, z]\n    REMOVED: [b, c]\n    FINAL CONTENTS: [a, y, z]");
+  }
+
+  @Test
+  public void test_emptyToNullCollection_doesntDisplay() {
+    Map<String, Object> mapA = new HashMap<String, Object>();
+    mapA.put("a", "jim");
+    mapA.put("b", null);
+    Map<String, Object> mapB = new HashMap<String, Object>();
+    mapB.put("a", "tim");
+    mapB.put("b", ImmutableSet.of());
+    // This ensures that it is not outputting a diff of [b -> [null, []].
+    assertThat(prettyPrintEntityDeepDiff(mapA, mapB)).isEqualTo("a -> [jim, tim]\n");
   }
 
   @Test

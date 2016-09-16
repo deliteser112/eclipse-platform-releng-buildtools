@@ -26,6 +26,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -57,25 +58,37 @@ public final class DiffUtils {
     }
   }
 
-  /** Pretty-prints a deep diff between two maps. */
-  public static String prettyPrintDeepDiff(Map<?, ?> a, Map<?, ?> b) {
-    return prettyPrintDiffedMap(deepDiff(a, b), null);
+  /** Pretty-prints a deep diff between two maps that represent Datastore entities. */
+  public static String prettyPrintEntityDeepDiff(Map<?, ?> a, Map<?, ?> b) {
+    return prettyPrintDiffedMap(deepDiff(a, b, true), null);
   }
 
   /**
-   * Pretty-prints a deep diff between two maps. Path is prefixed to each output line of the diff.
+   * Pretty-prints a deep diff between two maps that represent XML documents. Path is prefixed to
+   * each output line of the diff.
    */
-  public static String prettyPrintDeepDiff(Map<?, ?> a, Map<?, ?> b, @Nullable String path) {
-    return prettyPrintDiffedMap(deepDiff(a, b), path);
+  public static String prettyPrintXmlDeepDiff(Map<?, ?> a, Map<?, ?> b, @Nullable String path) {
+    return prettyPrintDiffedMap(deepDiff(a, b, false), path);
   }
 
   /** Compare two maps and return a map containing, at each key where they differed, both values. */
-  public static ImmutableMap<?, ?> deepDiff(Map<?, ?> a, Map<?, ?> b) {
+  public static ImmutableMap<?, ?> deepDiff(
+      Map<?, ?> a, Map<?, ?> b, boolean ignoreNullToCollection) {
     ImmutableMap.Builder<Object, Object> diff = new ImmutableMap.Builder<>();
     for (Object key : Sets.union(a.keySet(), b.keySet())) {
       Object aValue = a.get(key);
       Object bValue = b.get(key);
-      if (!Objects.equals(aValue, bValue)) {
+      if (Objects.equals(aValue, bValue)) {
+        // The objects are equal, so print nothing.
+      } else if (ignoreNullToCollection
+          && aValue == null
+          && bValue instanceof Collection
+          && ((Collection<?>) bValue).isEmpty()) {
+        // Ignore a mismatch between Objectify's use of null to store empty collections and our
+        // code's builder methods, which yield empty collections for the same fields.  This
+        // prevents useless lines of the form "[null, []]" from appearing in diffs.
+      } else {
+        // The objects aren't equal, so output a diff.
         if (aValue instanceof String && bValue instanceof String
             && a.toString().contains("\n") && b.toString().contains("\n")) {
           aValue = stringToMap((String) aValue);
@@ -87,7 +100,7 @@ public final class DiffUtils {
           bValue = iterableToSortedMap((Iterable<?>) bValue);
         }
         diff.put(key, (aValue instanceof Map && bValue instanceof Map)
-            ? deepDiff((Map<?, ?>) aValue, (Map<?, ?>) bValue)
+            ? deepDiff((Map<?, ?>) aValue, (Map<?, ?>) bValue, ignoreNullToCollection)
             : new DiffPair(aValue, bValue));
       }
     }

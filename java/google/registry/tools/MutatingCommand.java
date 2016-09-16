@@ -23,7 +23,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.emptyToNull;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DatastoreServiceUtils.getNameOrId;
-import static google.registry.util.DiffUtils.prettyPrintDeepDiff;
+import static google.registry.util.DiffUtils.prettyPrintEntityDeepDiff;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -101,16 +101,17 @@ public abstract class MutatingCommand extends ConfirmingCommand implements Remot
     /** Returns a string representation of this entity change. */
     @Override
     public String toString() {
+      String changeText;
+      if (type == ChangeType.UPDATE) {
+        String diffText = prettyPrintEntityDeepDiff(
+            oldEntity.toDiffableFieldMap(), newEntity.toDiffableFieldMap());
+        changeText = Optional.fromNullable(emptyToNull(diffText)).or("[no changes]\n");
+      } else {
+        changeText = MoreObjects.firstNonNull(oldEntity, newEntity) + "\n";
+      }
       return String.format(
           "%s %s\n%s",
-          UPPER_UNDERSCORE.to(UPPER_CAMEL, type.toString()),
-          getEntityId(),
-          type == ChangeType.UPDATE
-              ? Optional
-                  .fromNullable(emptyToNull(prettyPrintDeepDiff(
-                      oldEntity.toDiffableFieldMap(), newEntity.toDiffableFieldMap())))
-                  .or("[no changes]\n")
-              : (MoreObjects.firstNonNull(oldEntity, newEntity) + "\n"));
+          UPPER_UNDERSCORE.to(UPPER_CAMEL, type.toString()), getEntityId(), changeText);
     }
   }
 
@@ -153,7 +154,7 @@ public abstract class MutatingCommand extends ConfirmingCommand implements Remot
             checkState(
                 Objects.equals(change.oldEntity, existingEntity),
                 "Entity changed since init() was called.\n%s",
-                prettyPrintDeepDiff(
+                prettyPrintEntityDeepDiff(
                     change.oldEntity == null ? ImmutableMap.of()
                         : change.oldEntity.toDiffableFieldMap(),
                     existingEntity == null ? ImmutableMap.of()

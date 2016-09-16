@@ -23,7 +23,7 @@ import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Multisets.containsOccurrences;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
-import static google.registry.util.DiffUtils.prettyPrintDeepDiff;
+import static google.registry.util.DiffUtils.prettyPrintEntityDeepDiff;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
@@ -227,7 +227,7 @@ public class TaskQueueHelper {
                 .transform(new Function<TaskStateInfo, String>() {
                     @Override
                     public String apply(TaskStateInfo input) {
-                      return prettyPrintDeepDiff(
+                      return prettyPrintEntityDeepDiff(
                           taskMatcherMap,
                           Maps.filterKeys(
                               new MatchableTaskInfo(input).toMap(),

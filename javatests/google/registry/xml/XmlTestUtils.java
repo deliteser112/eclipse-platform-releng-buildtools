@@ -16,7 +16,7 @@ package google.registry.xml;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assert_;
-import static google.registry.util.DiffUtils.prettyPrintDeepDiff;
+import static google.registry.util.DiffUtils.prettyPrintXmlDeepDiff;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Splitter;
@@ -59,7 +59,7 @@ public class XmlTestUtils {
           message,
           expected,
           actual,
-          prettyPrintDeepDiff(expectedMap, actualMap, null)));
+          prettyPrintXmlDeepDiff(expectedMap, actualMap, null)));
     }
   }
 
