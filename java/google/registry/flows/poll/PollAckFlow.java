@@ -119,11 +119,15 @@ public class PollAckFlow extends LoggedInFlow implements TransactionalFlow {
     if (messageCount <= 0) {
       return createOutput(SUCCESS_WITH_NO_MESSAGES);
     }
-    return createOutput(SUCCESS, null, null, MessageQueueInfo.create(
-        null,  // eventTime
-        null,  // msg
-        messageCount,
-        messageId));
+    return createOutput(
+        SUCCESS,
+        null,  // responseData
+        null,  // responseExtensions
+        MessageQueueInfo.create(
+            null,  // eventTime
+            null,  // msg
+            messageCount,
+            messageId));
   }
 
   /** Registrar is not authorized to ack this message. */
