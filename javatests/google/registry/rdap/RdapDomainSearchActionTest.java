@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
+import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
 import google.registry.model.host.HostResource;
@@ -45,6 +46,8 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
+import java.util.List;
+import java.util.Map;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -71,9 +74,13 @@ public class RdapDomainSearchActionTest {
 
   private final RdapDomainSearchAction action = new RdapDomainSearchAction();
 
+  private Registrar registrar;
   private DomainResource domainCatLol;
   private DomainResource domainCatLol2;
   private DomainResource domainCatExample;
+  private ContactResource contact1;
+  private ContactResource contact2;
+  private ContactResource contact3;
   private HostResource hostNs1CatLol;
   private HostResource hostNs2CatLol;
 
@@ -103,6 +110,7 @@ public class RdapDomainSearchActionTest {
         action.nsIpParam = Optional.absent();
         break;
     }
+    action.rdapResultSetMaxSize = 5;
     action.run();
     return JSONValue.parse(response.getPayload());
   }
@@ -113,22 +121,23 @@ public class RdapDomainSearchActionTest {
 
     // cat.lol and cat2.lol
     createTld("lol");
-    Registrar registrar = persistResource(
+    registrar = persistResource(
         makeRegistrar("evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrar));
-    domainCatLol = persistResource(makeDomainResource(
+    domainCatLol = persistResource(
+        makeDomainResource(
             "cat.lol",
-            makeAndPersistContactResource(
+            contact1 = makeAndPersistContactResource(
                 "5372808-ERL",
                 "Goblin Market",
                 "lol@cat.lol",
                 clock.nowUtc().minusYears(1)),
-            makeAndPersistContactResource(
+            contact2 = makeAndPersistContactResource(
                 "5372808-IRL",
                 "Santa Claus",
                 "BOFH@cat.lol",
                 clock.nowUtc().minusYears(2)),
-            makeAndPersistContactResource(
+            contact3 = makeAndPersistContactResource(
                 "5372808-TRL",
                 "The Raven",
                 "bog@cat.lol",
@@ -142,84 +151,99 @@ public class RdapDomainSearchActionTest {
                 "bad:f00d:cafe::15:beef",
                 clock.nowUtc().minusYears(2)),
             registrar)
-        .asBuilder().setSubordinateHosts(ImmutableSet.of("ns1.cat.lol", "ns2.cat.lol")).build());
+        .asBuilder()
+        .setSubordinateHosts(ImmutableSet.of("ns1.cat.lol", "ns2.cat.lol"))
+        .setCreationTimeForTest(clock.nowUtc().minusYears(3))
+        .build());
     persistResource(
         hostNs1CatLol.asBuilder().setSuperordinateDomain(Key.create(domainCatLol)).build());
     persistResource(
         hostNs2CatLol.asBuilder().setSuperordinateDomain(Key.create(domainCatLol)).build());
-    domainCatLol2 = persistResource(makeDomainResource(
-        "cat2.lol",
-        makeAndPersistContactResource(
-            "6372808-ERL",
-            "Siegmund",
-            "siegmund@cat2.lol",
-            clock.nowUtc().minusYears(1)),
-        makeAndPersistContactResource(
-            "6372808-IRL",
-            "Sieglinde",
-            "sieglinde@cat2.lol",
-            clock.nowUtc().minusYears(2)),
-        makeAndPersistContactResource(
-            "6372808-TRL",
-            "Siegfried",
-            "siegfried@cat2.lol",
-            clock.nowUtc().minusYears(3)),
-        makeAndPersistHostResource(
-            "ns1.cat.example", "10.20.30.40", clock.nowUtc().minusYears(1)),
-        makeAndPersistHostResource(
-            "ns2.dog.lol", "12:feed:5000::15:beef", clock.nowUtc().minusYears(2)),
-        registrar));
+    domainCatLol2 = persistResource(
+        makeDomainResource(
+            "cat2.lol",
+            makeAndPersistContactResource(
+                "6372808-ERL",
+                "Siegmund",
+                "siegmund@cat2.lol",
+                clock.nowUtc().minusYears(1)),
+            makeAndPersistContactResource(
+                "6372808-IRL",
+                "Sieglinde",
+                "sieglinde@cat2.lol",
+                clock.nowUtc().minusYears(2)),
+            makeAndPersistContactResource(
+                "6372808-TRL",
+                "Siegfried",
+                "siegfried@cat2.lol",
+                clock.nowUtc().minusYears(3)),
+            makeAndPersistHostResource(
+                "ns1.cat.example", "10.20.30.40", clock.nowUtc().minusYears(1)),
+            makeAndPersistHostResource(
+                "ns2.dog.lol", "12:feed:5000::15:beef", clock.nowUtc().minusYears(2)),
+            registrar)
+        .asBuilder()
+        .setCreationTimeForTest(clock.nowUtc().minusYears(3))
+        .build());
     // cat.example
     createTld("example");
     registrar = persistResource(
         makeRegistrar("goodregistrar", "St. John Chrysostom", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrar));
-    domainCatExample = persistResource(makeDomainResource(
-        "cat.example",
-        makeAndPersistContactResource(
-            "7372808-ERL",
-            "Matthew",
-            "lol@cat.lol",
-            clock.nowUtc().minusYears(1)),
-        makeAndPersistContactResource(
-            "7372808-IRL",
-            "Mark",
-            "BOFH@cat.lol",
-            clock.nowUtc().minusYears(2)),
-        makeAndPersistContactResource(
-            "7372808-TRL",
-            "Luke",
-            "bog@cat.lol",
-            clock.nowUtc().minusYears(3)),
-        hostNs1CatLol,
-        makeAndPersistHostResource(
-            "ns2.external.tld", "bad:f00d:cafe::15:beef", clock.nowUtc().minusYears(2)),
-        registrar));
+    domainCatExample = persistResource(
+        makeDomainResource(
+            "cat.example",
+            makeAndPersistContactResource(
+                "7372808-ERL",
+                "Matthew",
+                "lol@cat.lol",
+                clock.nowUtc().minusYears(1)),
+            makeAndPersistContactResource(
+                "7372808-IRL",
+                "Mark",
+                "BOFH@cat.lol",
+                clock.nowUtc().minusYears(2)),
+            makeAndPersistContactResource(
+                "7372808-TRL",
+                "Luke",
+                "bog@cat.lol",
+                clock.nowUtc().minusYears(3)),
+            hostNs1CatLol,
+            makeAndPersistHostResource(
+                "ns2.external.tld", "bad:f00d:cafe::15:beef", clock.nowUtc().minusYears(2)),
+            registrar)
+        .asBuilder()
+        .setCreationTimeForTest(clock.nowUtc().minusYears(3))
+        .build());
     // cat.みんな
     createTld("xn--q9jyb4c");
     registrar = persistResource(makeRegistrar("unicoderegistrar", "みんな", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrar));
-    persistResource(makeDomainResource(
-        "cat.みんな",
-        makeAndPersistContactResource(
-            "8372808-ERL",
-            "(◕‿◕)",
-            "lol@cat.みんな",
-            clock.nowUtc().minusYears(1)),
-        makeAndPersistContactResource(
-            "8372808-IRL",
-            "Santa Claus",
-            "BOFH@cat.みんな",
-            clock.nowUtc().minusYears(2)),
-        makeAndPersistContactResource(
-            "8372808-TRL",
-            "The Raven",
-            "bog@cat.みんな",
-            clock.nowUtc().minusYears(3)),
-        makeAndPersistHostResource("ns1.cat.みんな", "1.2.3.5", clock.nowUtc().minusYears(1)),
-        makeAndPersistHostResource(
-            "ns2.cat.みんな", "bad:f00d:cafe::14:beef", clock.nowUtc().minusYears(2)),
-        registrar));
+    persistResource(
+        makeDomainResource(
+            "cat.みんな",
+            makeAndPersistContactResource(
+                "8372808-ERL",
+                "(◕‿◕)",
+                "lol@cat.みんな",
+                clock.nowUtc().minusYears(1)),
+            makeAndPersistContactResource(
+                "8372808-IRL",
+                "Santa Claus",
+                "BOFH@cat.みんな",
+                clock.nowUtc().minusYears(2)),
+            makeAndPersistContactResource(
+                "8372808-TRL",
+                "The Raven",
+                "bog@cat.みんな",
+                clock.nowUtc().minusYears(3)),
+            makeAndPersistHostResource("ns1.cat.みんな", "1.2.3.5", clock.nowUtc().minusYears(1)),
+            makeAndPersistHostResource(
+                "ns2.cat.みんな", "bad:f00d:cafe::14:beef", clock.nowUtc().minusYears(2)),
+            registrar)
+        .asBuilder()
+        .setCreationTimeForTest(clock.nowUtc().minusYears(3))
+        .build());
     // cat.1.test
     createTld("1.test");
     registrar =
@@ -246,7 +270,10 @@ public class RdapDomainSearchActionTest {
             makeAndPersistHostResource(
                 "ns2.cat.2.test", "bad:f00d:cafe::14:beef", clock.nowUtc().minusYears(2)),
             registrar)
-        .asBuilder().setSubordinateHosts(ImmutableSet.of("ns1.cat.1.test")).build());
+        .asBuilder()
+        .setSubordinateHosts(ImmutableSet.of("ns1.cat.1.test"))
+        .setCreationTimeForTest(clock.nowUtc().minusYears(3))
+        .build());
 
     // history entries
     persistResource(
@@ -488,6 +515,66 @@ public class RdapDomainSearchActionTest {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
     generateActualJson(RequestType.NAME, "cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  private void createManyDomains(int numActiveDomains, int numTotalDomainsPerActiveDomain) {
+    for (int i = 1; i <= numActiveDomains * numTotalDomainsPerActiveDomain; i++) {
+      String domainName = String.format("domain%d.lol", i);
+      DomainResource domain =
+          makeDomainResource(
+              domainName, contact1, contact2, contact3, hostNs1CatLol, hostNs2CatLol, registrar)
+          .asBuilder()
+          .setCreationTimeForTest(clock.nowUtc().minusYears(3))
+          .build();
+      if (i % numTotalDomainsPerActiveDomain == 0) {
+        persistResource(domain);
+      } else {
+        persistDomainAsDeleted(domain, clock.nowUtc());
+      }
+    }
+  }
+
+  private void checkNumberOfDomainsInResult(Object obj, int expected) {
+    assertThat(obj).isInstanceOf(Map.class);
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> map = (Map<String, Object>) obj;
+
+    @SuppressWarnings("unchecked")
+    List<Object> domains = (List<Object>) map.get("domainSearchResults");
+
+    assertThat(domains).hasSize(expected);
+  }
+
+  @Test
+  public void testDomainMatch_manyDeletedDomains_fullResultSet() throws Exception {
+    // There are enough domains to fill a full result set; deleted domains are ignored.
+    createManyDomains(5, 4);
+    Object obj = generateActualJson(RequestType.NAME, "domain*.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+    checkNumberOfDomainsInResult(obj, 5);
+  }
+
+  @Test
+  public void testDomainMatch_manyDeletedDomains_partialResultSetDueToInsufficientDomains()
+      throws Exception {
+    // There are not enough domains to fill a full result set.
+    createManyDomains(3, 100);
+    Object obj = generateActualJson(RequestType.NAME, "domain*.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+    checkNumberOfDomainsInResult(obj, 3);
+  }
+
+  @Test
+  public void testDomainMatch_manyDeletedDomains_partialResultSetDueToFetchingLimit()
+      throws Exception {
+    // This is not exactly desired behavior, but expected: There are enough domains to fill a full
+    // result set, but there are so many deleted domains that we run out of patience before we work
+    // our way through all of them.
+    createManyDomains(5, 150);
+    Object obj = generateActualJson(RequestType.NAME, "domain*.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+    checkNumberOfDomainsInResult(obj, 3);
   }
 
   @Test

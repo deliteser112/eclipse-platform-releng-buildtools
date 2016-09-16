@@ -29,6 +29,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.Booleans;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
+import google.registry.config.ConfigModule.Config;
+import google.registry.model.EppResourceUtils;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
@@ -58,11 +60,15 @@ import org.joda.time.DateTime;
 public class RdapDomainSearchAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/domains";
+  
+  public static final int CHUNK_SIZE_SCALING_FACTOR = 5;
+  public static final int MAX_CHUNK_FETCHES = 20;
 
   @Inject Clock clock;
   @Inject @Parameter("name") Optional<String> nameParam;
   @Inject @Parameter("nsLdhName") Optional<String> nsLdhNameParam;
   @Inject @Parameter("nsIp") Optional<InetAddress> nsIpParam;
+  @Inject @Config("rdapResultSetMaxSize") int rdapResultSetMaxSize;
   @Inject RdapDomainSearchAction() {}
 
   @Override
@@ -137,21 +143,55 @@ public class RdapDomainSearchAction extends RdapActionBase {
               domainResource, false, rdapLinkBase, rdapWhoisServer, now));
     // Handle queries with a wildcard.
     } else {
-      Query<DomainResource> query = ofy().load()
-          .type(DomainResource.class)
-          // TODO(b/24463238): figure out how to limit the size of these queries effectively
-          .filter("fullyQualifiedDomainName >=", partialStringQuery.getInitialString())
-          .filter("fullyQualifiedDomainName <", partialStringQuery.getNextInitialString())
-          .limit(1000);
-      if (partialStringQuery.getSuffix() != null) {
-        query = query.filter("tld", partialStringQuery.getSuffix());
-      }
+      // We can't query for undeleted domains as part of the query itself; that would require an
+      // inequality query on deletion time, and we are already using inequality queries on
+      // fullyQualifiedDomainName. So we need another way to limit the result set to the desired
+      // number of undeleted domains, which we do as follows. We query a batch of domains up to five
+      // times the size of the result set size limit (a factor picked out of thin air), and weed out
+      // all deleted domains. If we still have space in the result set (because there were an
+      // incredibly large number of deleted domains), we go back and query some more domains to try
+      // and find more results. We try this 20 times (meaning we search for 100 times as many
+      // domains as the result set size limit), then give up and return a result set that is smaller
+      // than the limit. Ugly? You bet!
+      // TODO(b/31546493): Add metrics to figure out how well this algorithm works.
       ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
-      for (DomainResource domainResource : query) {
-        if (domainResource.getDeletionTime().isAfter(now)) {
-          builder.add(
-              RdapJsonFormatter.makeRdapJsonForDomain(
-                  domainResource, false, rdapLinkBase, rdapWhoisServer, now));
+      String previousChunkEnd = null;
+      for (int numResultsFound = 0, retry = 0;
+          (retry < MAX_CHUNK_FETCHES) && (numResultsFound < rdapResultSetMaxSize);
+          retry++) {
+        // Construct the query.
+        Query<DomainResource> query = ofy().load()
+            .type(DomainResource.class)
+            .filter("fullyQualifiedDomainName <", partialStringQuery.getNextInitialString());
+        if (previousChunkEnd == null) {
+          query = query.filter(
+              "fullyQualifiedDomainName >=", partialStringQuery.getInitialString());
+        } else {
+          query = query.filter("fullyQualifiedDomainName >", previousChunkEnd);
+        }
+        if (partialStringQuery.getSuffix() != null) {
+          query = query.filter("tld", partialStringQuery.getSuffix());
+        }
+        // Perform the query and weed out deleted domains.
+        previousChunkEnd = null;
+        int numDomainsInChunk = 0;
+        for (DomainResource domainResource :
+            query.limit(rdapResultSetMaxSize * CHUNK_SIZE_SCALING_FACTOR)) {
+          previousChunkEnd = domainResource.getFullyQualifiedDomainName();
+          numDomainsInChunk++;
+          if (EppResourceUtils.isActive(domainResource, now)) {
+            builder.add(
+                RdapJsonFormatter.makeRdapJsonForDomain(
+                    domainResource, false, rdapLinkBase, rdapWhoisServer, now));
+            numResultsFound++;
+            if (numResultsFound >= rdapResultSetMaxSize) {
+              return builder.build();
+            }
+          }
+        }
+        if ((previousChunkEnd == null)
+            || (numDomainsInChunk < rdapResultSetMaxSize * CHUNK_SIZE_SCALING_FACTOR)) {
+          break;
         }
       }
       return builder.build();
