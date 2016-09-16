@@ -14,11 +14,13 @@
 
 package google.registry.model.domain.fee06;
 
+import com.google.common.base.Optional;
 import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
 import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
 import google.registry.model.domain.fee.FeeQueryCommandExtensionItemImpl;
 import javax.xml.bind.annotation.XmlType;
 import org.joda.money.CurrencyUnit;
+import org.joda.time.DateTime;
 
 /** An individual price check item in version 0.6 of the fee extension on Check commands. */
 @XmlType(propOrder = {"name", "currency", "command", "period"})
@@ -48,5 +50,10 @@ public class FeeCheckCommandExtensionItemV06
   @Override
   public FeeCheckResponseExtensionItem.Builder createResponseBuilder() {
     return new FeeCheckResponseExtensionItemV06.Builder();
+  }
+
+  @Override
+  public Optional<DateTime> getEffectiveDate() {
+    return Optional.absent();
   }
 }

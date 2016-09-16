@@ -169,7 +169,9 @@ public class DomainCheckFlow extends BaseDomainCheckFlow {
             domainNames.get(domainName),
             getClientId(),
             feeCheck.getCurrency(),
-            now,
+            feeCheckItem.getEffectiveDate().isPresent()
+                ? feeCheckItem.getEffectiveDate().get()
+                : now,
             eppInput);
         feeCheckResponseItemsBuilder
             .add(builder.setDomainNameIfSupported(domainName).build());

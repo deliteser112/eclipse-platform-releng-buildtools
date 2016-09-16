@@ -776,7 +776,8 @@ public class DomainCheckFlowTest
         .setEapFeeSchedule(ImmutableSortedMap.of(
             START_OF_TIME, Money.of(USD, 0),
             clock.nowUtc().minusDays(1), Money.of(USD, 100),
-            clock.nowUtc().plusDays(1), Money.of(USD, 0)))
+            clock.nowUtc().plusDays(1), Money.of(USD, 50),
+            clock.nowUtc().plusDays(2), Money.of(USD, 0)))
         .build());
     setEppInput(inputFile);
     runFlowAssertResponse(readFile(outputFile));
@@ -796,4 +797,11 @@ public class DomainCheckFlowTest
   public void testSuccess_eapFeeCheck_v12() throws Exception {
     runEapFeeCheckTest("domain_check_fee_v12.xml", "domain_check_eap_fee_response_v12.xml");
   }
+
+  @Test
+  public void testSuccess_eapFeeCheck_date_v12() throws Exception {
+    runEapFeeCheckTest("domain_check_fee_date_v12.xml",
+        "domain_check_eap_fee_response_date_v12.xml");
+  }
+
 }

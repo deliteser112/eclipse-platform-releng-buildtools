@@ -101,7 +101,7 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
           InternetDomainName.from(getTargetId()),
           getClientId(),
           null,
-          now,
+          feeInfo.getEffectiveDate().isPresent() ? feeInfo.getEffectiveDate().get() : now,
           eppInput);
       extensions.add(builder.build());
     }

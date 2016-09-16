@@ -16,6 +16,7 @@
         <fee:command name="create">
           <fee:period unit="y">1</fee:period>
           <fee:class>premium</fee:class>
+          <fee:date>2010-01-02T13:22:21Z</fee:date>
         </fee:command>
       </fee:check>
     </extension>

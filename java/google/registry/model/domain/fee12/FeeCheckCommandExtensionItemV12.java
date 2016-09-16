@@ -118,4 +118,9 @@ public class FeeCheckCommandExtensionItemV12
   public FeeCheckResponseExtensionItem.Builder createResponseBuilder() {
     return new FeeCheckResponseExtensionItemV12.Builder();
   }
+
+  @Override
+  public Optional<DateTime> getEffectiveDate() {
+    return Optional.fromNullable(feeDate);
+  }
 }

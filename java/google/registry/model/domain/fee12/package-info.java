@@ -17,13 +17,17 @@
     xmlns = @XmlNs(prefix = "fee12", namespaceURI = "urn:ietf:params:xml:ns:fee-0.12"),
     elementFormDefault = XmlNsForm.QUALIFIED)
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlJavaTypeAdapter(CurrencyUnitAdapter.class)
+@XmlJavaTypeAdapters({
+    @XmlJavaTypeAdapter(CurrencyUnitAdapter.class),
+    @XmlJavaTypeAdapter(UtcDateTimeAdapter.class)})
 package google.registry.model.domain.fee12;
 
 import google.registry.model.translators.CurrencyUnitAdapter;
+import google.registry.xml.UtcDateTimeAdapter;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlNs;
 import javax.xml.bind.annotation.XmlNsForm;
 import javax.xml.bind.annotation.XmlSchema;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;

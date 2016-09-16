@@ -14,8 +14,10 @@
 
 package google.registry.model.domain.fee;
 
+import com.google.common.base.Optional;
 import google.registry.model.domain.Period;
 import org.joda.money.CurrencyUnit;
+import org.joda.time.DateTime;
 
 /**
  * Interface for individual query items in Check and Info commands. Each item indicates the command
@@ -41,6 +43,9 @@ public interface FeeQueryCommandExtensionItem {
    * <p>Returns null if this version of the fee extension doesn't specify currency at the top level.
    */
   public CurrencyUnit getCurrency();
+
+  /** The as-of date for the fee extension to run. */
+  public Optional<DateTime> getEffectiveDate();
 
   /** The name of the command being checked. */
   public CommandName getCommandName();

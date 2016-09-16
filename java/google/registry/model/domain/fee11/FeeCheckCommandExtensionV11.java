@@ -31,6 +31,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import org.joda.money.CurrencyUnit;
+import org.joda.time.DateTime;
 
 /**
  * Version 0.11 of the fee extension that may be present on domain check commands. Unlike other
@@ -136,6 +137,11 @@ public class FeeCheckCommandExtensionV11 extends ImmutableObject
     @Override
     public Builder createResponseBuilder() {
       return new FeeCheckResponseExtensionItemV11.Builder();
+    }
+    
+    @Override
+    public Optional<DateTime> getEffectiveDate() {
+      return Optional.absent();
     }
   }
 }
