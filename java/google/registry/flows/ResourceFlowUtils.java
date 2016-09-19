@@ -217,6 +217,60 @@ public class ResourceFlowUtils {
     }
   }
 
+  /**
+   * Turn a resource into a builder with its pending transfer resolved.
+   *
+   * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, sets the
+   * {@link TransferStatus}, clears all the server-approve fields on the {@link TransferData}
+   * including the extended registration years field, and sets the expiration time of the last
+   * pending transfer to now.
+   */
+  @SuppressWarnings("unchecked")
+  private static <R extends EppResource> EppResource.Builder<R, ?> resolvePendingTransfer(
+      R resource, TransferStatus transferStatus, DateTime now) {
+    return (EppResource.Builder<R, ?>) resource.asBuilder()
+        .removeStatusValue(StatusValue.PENDING_TRANSFER)
+        .setTransferData(resource.getTransferData().asBuilder()
+            .setExtendedRegistrationYears(null)
+            .setServerApproveEntities(null)
+            .setServerApproveBillingEvent(null)
+            .setServerApproveAutorenewEvent(null)
+            .setServerApproveAutorenewPollMessage(null)
+            .setTransferStatus(transferStatus)
+            .setPendingTransferExpirationTime(now)
+            .build());
+  }
+
+  /**
+   * Resolve a pending transfer by awarding it to the gaining client.
+   *
+   * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, sets the
+   * {@link TransferStatus}, clears all the server-approve fields on the {@link TransferData}
+   * including the extended registration years field, and sets the expiration time of the last
+   * pending transfer to now.
+   */
+  public static <R extends EppResource> R approvePendingTransfer(
+      R resource, TransferStatus transferStatus, DateTime now) {
+    Builder<R, ?> builder = resolvePendingTransfer(resource, transferStatus, now);
+    builder
+        .setLastTransferTime(now)
+        .setCurrentSponsorClientId(resource.getTransferData().getGainingClientId());
+    return builder.build();
+  }
+
+  /**
+   * Resolve a pending transfer by denying it.
+   *
+   * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, sets the
+   * {@link TransferStatus}, clears all the server-approve fields on the {@link TransferData}
+   * including the extended registration years field, sets the new client id, and sets the last
+   * transfer time and the expiration time of the last pending transfer to now.
+   */
+  public static <R extends EppResource> R denyPendingTransfer(
+      R resource, TransferStatus transferStatus, DateTime now) {
+    return resolvePendingTransfer(resource, transferStatus, now).build();
+  }
+
   /** The specified resource belongs to another client. */
   public static class ResourceNotOwnedException extends AuthorizationErrorException {
     public ResourceNotOwnedException() {

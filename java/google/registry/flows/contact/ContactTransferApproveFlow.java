@@ -14,6 +14,7 @@
 
 package google.registry.flows.contact;
 
+import static google.registry.flows.ResourceFlowUtils.approvePendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
@@ -38,6 +39,7 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
 
@@ -70,15 +72,13 @@ public class ContactTransferApproveFlow extends LoggedInFlow implements Transact
       throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
     }
     verifyOptionalAuthInfoForResource(authInfo, existingResource);
-    if (existingResource.getTransferData().getTransferStatus() != TransferStatus.PENDING) {
+    TransferData transferData = existingResource.getTransferData();
+    if (transferData.getTransferStatus() != TransferStatus.PENDING) {
       throw new NotPendingTransferException(targetId);
     }
     verifyResourceOwnership(clientId, existingResource);
-    ContactResource newResource = existingResource.asBuilder()
-        .clearPendingTransfer(TransferStatus.CLIENT_APPROVED, now)
-        .setLastTransferTime(now)
-        .setCurrentSponsorClientId(existingResource.getTransferData().getGainingClientId())
-        .build();
+    ContactResource newResource =
+        approvePendingTransfer(existingResource, TransferStatus.CLIENT_APPROVED, now);
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.CONTACT_TRANSFER_APPROVE)
         .setModificationTime(now)
@@ -90,7 +90,7 @@ public class ContactTransferApproveFlow extends LoggedInFlow implements Transact
     ofy().save().<Object>entities(newResource, historyEntry, gainingPollMessage);
     // Delete the billing event and poll messages that were written in case the transfer would have
     // been implicitly server approved.
-    ofy().delete().keys(existingResource.getTransferData().getServerApproveEntities());
+    ofy().delete().keys(transferData.getServerApproveEntities());
     return createOutput(SUCCESS, createTransferResponse(targetId, newResource.getTransferData()));
   }
 }
