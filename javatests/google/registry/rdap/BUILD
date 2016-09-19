@@ -36,6 +36,7 @@ java_library(
 
 GenTestRules(
     name = "GeneratedTestRules",
+    medium_tests = ["RdapDomainSearchActionTest"],
     test_files = glob(["*Test.java"]),
     deps = [":rdap"],
 )
