@@ -171,7 +171,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     Money cost = getPricesForDomainName(getUniqueIdFromCommand(), clock.nowUtc()).isPremium()
         ? Money.of(USD, 200)
         : Money.of(USD, 26);
-    Money eapFee = Registry.get(domainTld).getEapFeeFor(clock.nowUtc()).getCost();
+    Money eapFee = Money.of(Registry.get(domainTld).getCurrency(),
+        Registry.get(domainTld).getEapFeeFor(clock.nowUtc()).getCost());
 
     DateTime billingTime = isAnchorTenant
         ? clock.nowUtc().plus(Registry.get(domainTld).getAnchorTenantAddGracePeriodLength())

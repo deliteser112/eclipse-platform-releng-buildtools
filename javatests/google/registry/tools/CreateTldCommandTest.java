@@ -32,6 +32,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.math.BigDecimal;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -103,10 +104,12 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "xn--q9jyb4c");
 
     Registry registry = Registry.get("xn--q9jyb4c");
-    assertThat(registry.getEapFeeFor(now.minusHours(1)).getCost()).isEqualTo(Money.zero(USD));
-    assertThat(registry.getEapFeeFor(now.plusHours(1)).getCost()).isEqualTo(Money.of(USD, 50));
+    assertThat(registry.getEapFeeFor(now.minusHours(1)).getCost())
+        .isEqualTo(BigDecimal.ZERO.setScale(2));
+    assertThat(registry.getEapFeeFor(now.plusHours(1)).getCost())
+        .isEqualTo(new BigDecimal("50.00"));
     assertThat(registry.getEapFeeFor(now.plusDays(1).plusHours(1)).getCost())
-        .isEqualTo(Money.of(USD, 10));
+        .isEqualTo(new BigDecimal("10.00"));
   }
 
   @Test
@@ -155,8 +158,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testSuccess_createBillingCostFlag() throws Exception {
-    runCommandForced(
-        "--create_billing_cost=\"USD 42.42\"", "--roid_suffix=Q9JYB4C", "xn--q9jyb4c");
+    runCommandForced("--create_billing_cost=\"USD 42.42\"", "--roid_suffix=Q9JYB4C", "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getStandardCreateCost()).isEqualTo(Money.of(USD, 42.42));
   }
 
@@ -218,8 +220,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--initial_tld_state=SUNRISE",
         "--roid_suffix=Q9JYB4C",
         "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getLrpTldStates())
-        .containsExactly(TldState.SUNRISE);
+    assertThat(Registry.get("xn--q9jyb4c").getLrpTldStates()).containsExactly(TldState.SUNRISE);
   }
 
   @Test
@@ -272,7 +273,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         String.format("--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE", now, now.plus(1)),
         "--initial_tld_state=GENERAL_AVAILABILITY",
         "xn--q9jyb4c");
-    }
+  }
 
   @Test
   public void testFailure_negativeInitialRenewBillingCost() throws Exception {
@@ -286,8 +287,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     thrown.expect(IllegalArgumentException.class);
     runCommandForced(
         String.format(
-            "--eap_fee_schedule=\"%s=JPY 123456\"",
-            START_OF_TIME.toString(DATETIME_FORMAT)),
+            "--eap_fee_schedule=\"%s=JPY 123456\"", START_OF_TIME.toString(DATETIME_FORMAT)),
         "--roid_suffix=Q9JYB4C",
         "xn--q9jyb4c");
   }
@@ -351,7 +351,8 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_setReservedListFromOtherTld() throws Exception {
-    runFailureReservedListsTest("tld_banned",
+    runFailureReservedListsTest(
+        "tld_banned",
         IllegalArgumentException.class,
         "The reserved list(s) tld_banned cannot be applied to the tld xn--q9jyb4c");
   }
@@ -363,7 +364,8 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_setCommonAndReservedListFromOtherTld() throws Exception {
-    runFailureReservedListsTest("common_abuse,tld_banned",
+    runFailureReservedListsTest(
+        "common_abuse,tld_banned",
         IllegalArgumentException.class,
         "The reserved list(s) tld_banned cannot be applied to the tld xn--q9jyb4c");
   }
@@ -381,7 +383,8 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_setMultipleReservedListsFromOtherTld() throws Exception {
-    runFailureReservedListsTest("tld_banned,soy_expurgated",
+    runFailureReservedListsTest(
+        "tld_banned,soy_expurgated",
         IllegalArgumentException.class,
         "The reserved list(s) tld_banned, soy_expurgated cannot be applied to the tld xn--q9jyb4c");
   }
@@ -393,7 +396,8 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_setNonExistentReservedLists() throws Exception {
-    runFailureReservedListsTest("xn--q9jyb4c_asdf,common_asdsdgh",
+    runFailureReservedListsTest(
+        "xn--q9jyb4c_asdf,common_asdsdgh",
         IllegalStateException.class,
         "Could not find reserved list xn--q9jyb4c_asdf to add to the tld");
   }
@@ -458,7 +462,8 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   private void runReservedListsTestOverride(String reservedLists) throws Exception {
-    runCommandForced("--override_reserved_list_rules",
+    runCommandForced(
+        "--override_reserved_list_rules",
         "--reserved_lists",
         reservedLists,
         "--roid_suffix=Q9JYB4C",
@@ -466,9 +471,8 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   private void runFailureReservedListsTest(
-      String reservedLists,
-      Class<? extends Exception> errorClass,
-      String errorMsg) throws Exception {
+      String reservedLists, Class<? extends Exception> errorClass, String errorMsg)
+      throws Exception {
     thrown.expect(errorClass, errorMsg);
     runCommandForced("--reserved_lists", reservedLists, "--roid_suffix=Q9JYB4C", "xn--q9jyb4c");
   }

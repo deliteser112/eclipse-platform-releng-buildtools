@@ -17,6 +17,7 @@ package google.registry.model.domain.fee;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.collect.Range;
 import google.registry.model.ImmutableObject;
 import google.registry.xml.PeriodAdapter;
 import java.math.BigDecimal;
@@ -25,6 +26,7 @@ import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 /** Base class for the fee and credit types. */
@@ -75,9 +77,12 @@ public abstract class BaseFee extends ImmutableObject {
 
   @XmlValue
   BigDecimal cost;
-  
+
   @XmlTransient
   FeeType type;
+  
+  @XmlTransient
+  Range<DateTime> validDateRange;
 
   public String getDescription() {
     return description;
@@ -109,10 +114,18 @@ public abstract class BaseFee extends ImmutableObject {
   public FeeType getType() {
     return type;
   }
+  
+  public boolean hasValidDateRange() {
+    return validDateRange != null;
+  }
 
   protected void generateDescription(Object... args) {
     checkState(type != null);
     description = type.renderDescription(args);
+  }
+  
+  public boolean hasZeroCost() {
+    return cost.signum() == 0;
   }
 
   public boolean hasDefaultAttributes() {

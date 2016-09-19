@@ -38,6 +38,7 @@ import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.testing.ExceptionRule;
+import java.math.BigDecimal;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -414,7 +415,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testEapFee_undefined() {
     assertThat(Registry.get("tld").getEapFeeFor(clock.nowUtc()).getCost())
-        .isEqualTo(Money.of(USD, 0));
+        .isEqualTo(BigDecimal.ZERO.setScale(2));
   }
 
   @Test
@@ -428,11 +429,12 @@ public class RegistryTest extends EntityTestCase {
                 a, Money.of(USD, 100),
                 b, Money.of(USD, 50))).build();
 
-    assertThat(registry.getEapFeeFor(clock.nowUtc()).getCost()).isEqualTo(Money.of(USD, 100));
+    assertThat(registry.getEapFeeFor(clock.nowUtc()).getCost())
+        .isEqualTo(new BigDecimal("100.00"));
     assertThat(registry.getEapFeeFor(clock.nowUtc().minusDays(2)).getCost())
-        .isEqualTo(Money.of(USD, 0));
+        .isEqualTo(BigDecimal.ZERO.setScale(2));
     assertThat(registry.getEapFeeFor(clock.nowUtc().plusDays(2)).getCost())
-        .isEqualTo(Money.of(USD, 50));
+        .isEqualTo(new BigDecimal("50.00"));
   }
 
   @Test

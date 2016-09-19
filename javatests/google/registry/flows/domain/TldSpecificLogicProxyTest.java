@@ -24,6 +24,7 @@ import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Range;
 import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
 import google.registry.model.domain.DomainResource;
@@ -56,14 +57,11 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class TldSpecificLogicProxyTest extends ShardableTestCase {
 
-  @Rule
-  public final InjectRule inject = new InjectRule();
+  @Rule public final InjectRule inject = new InjectRule();
 
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExceptionRule thrown = new ExceptionRule();
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   final FakeClock clock = new FakeClock(DateTime.parse("2010-01-01T10:00:00Z"));
 
@@ -97,26 +95,36 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
     assertThat(createPrice.getTotalCost()).isEqualTo(basicCreateCost);
     assertThat(createPrice.getFees()).hasSize(1);
   }
-  
+
   @Test
   public void test_eap() throws Exception {
     TldSpecificLogicProxy.EppCommandOperations createPrice =
         TldSpecificLogicProxy.getCreatePrice(
             Registry.get("eap"), "example.eap", "clientIdentifier", clock.nowUtc(), 1, null);
+    Range<DateTime> eapValidPeriod =
+        Range.closedOpen(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1));
     assertThat(createPrice.getTotalCost()).isEqualTo(basicCreateCost.plus(Money.of(USD, 100)));
     assertThat(createPrice.getCurrency()).isEqualTo(USD);
     assertThat(createPrice.getFees().get(0))
         .isEqualTo(Fee.create(basicCreateCost.getAmount(), FeeType.CREATE));
     assertThat(createPrice.getFees().get(1))
         .isEqualTo(
-            Fee.create(Money.of(USD, 100).getAmount(), FeeType.EAP, clock.nowUtc().plusDays(1)));
+            Fee.create(
+                new BigDecimal("100.00"),
+                FeeType.EAP,
+                eapValidPeriod,
+                clock.nowUtc().plusDays(1)));
     assertThat(createPrice.getFees())
         .containsExactly(
             Fee.create(basicCreateCost.getAmount(), FeeType.CREATE),
-            Fee.create(Money.of(USD, 100).getAmount(), FeeType.EAP, clock.nowUtc().plusDays(1)))
+            Fee.create(
+                new BigDecimal("100.00"),
+                FeeType.EAP,
+                eapValidPeriod,
+                clock.nowUtc().plusDays(1)))
         .inOrder();
   }
-  
+
   @Test
   public void test_extraLogic_createPrice() throws Exception {
     TldSpecificLogicProxy.EppCommandOperations price =
@@ -128,7 +136,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
     assertThat(price.getFees().get(0).getDescription()).isEqualTo("create");
     assertThat(price.getCredits()).isEmpty();
   }
-  
+
   @Test
   public void test_extraLogic_renewPrice() throws Exception {
     persistActiveDomain("renew--13.test");
@@ -141,34 +149,40 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
     assertThat(price.getCredits().get(0).getCost()).isEqualTo(new BigDecimal(-13));
     assertThat(price.getCredits().get(0).getDescription()).isEqualTo("renew");
   }
-  
+
   @Test
   public void test_extraLogic_renewPrice_noDomain() throws Exception {
     thrown.expect(ResourceToMutateDoesNotExistException.class);
     TldSpecificLogicProxy.getRenewPrice(
         Registry.get("test"), "renew--13.test", "clientIdentifier", clock.nowUtc(), 1, null);
   }
-  
+
   void persistPendingDeleteDomain(String domainName, DateTime now) throws Exception {
     DomainResource domain = newDomainResource(domainName);
-    HistoryEntry historyEntry = persistResource(
-        new HistoryEntry.Builder()
-            .setType(HistoryEntry.Type.DOMAIN_DELETE)
-            .setParent(domain)
-            .build());
-    domain = persistResource(domain.asBuilder()
-        .setRegistrationExpirationTime(now.plusYears(5).plusDays(45))
-        .setDeletionTime(now.plusDays(35))
-        .addGracePeriod(GracePeriod.create(
-            GracePeriodStatus.REDEMPTION, now.plusDays(1), "foo", null))
-        .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
-        .setDeletePollMessage(Key.create(persistResource(
-            new PollMessage.OneTime.Builder()
-                .setClientId("TheRegistrar")
-                .setEventTime(now.plusDays(5))
-                .setParent(historyEntry)
-                .build())))
-        .build());
+    HistoryEntry historyEntry =
+        persistResource(
+            new HistoryEntry.Builder()
+                .setType(HistoryEntry.Type.DOMAIN_DELETE)
+                .setParent(domain)
+                .build());
+    domain =
+        persistResource(
+            domain
+                .asBuilder()
+                .setRegistrationExpirationTime(now.plusYears(5).plusDays(45))
+                .setDeletionTime(now.plusDays(35))
+                .addGracePeriod(
+                    GracePeriod.create(GracePeriodStatus.REDEMPTION, now.plusDays(1), "foo", null))
+                .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
+                .setDeletePollMessage(
+                    Key.create(
+                        persistResource(
+                            new PollMessage.OneTime.Builder()
+                                .setClientId("TheRegistrar")
+                                .setEventTime(now.plusDays(5))
+                                .setParent(historyEntry)
+                                .build())))
+                .build());
     clock.advanceOneMilli();
   }
 
@@ -185,14 +199,14 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
     assertThat(price.getFees().get(1).getDescription()).isEqualTo("restore");
     assertThat(price.getCredits()).isEmpty();
   }
-  
+
   @Test
   public void test_extraLogic_restorePrice_noDomain() throws Exception {
     thrown.expect(ResourceToMutateDoesNotExistException.class);
     TldSpecificLogicProxy.getRestorePrice(
         Registry.get("test"), "renew-13.test", "clientIdentifier", clock.nowUtc(), null);
   }
-  
+
   @Test
   public void test_extraLogic_transferPrice() throws Exception {
     persistActiveDomain("renew-26.test");
@@ -205,7 +219,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
     assertThat(price.getFees().get(0).getDescription()).isEqualTo("renew");
     assertThat(price.getCredits()).isEmpty();
   }
-  
+
   @Test
   public void test_extraLogic_updatePrice() throws Exception {
     persistActiveDomain("update-13.test");

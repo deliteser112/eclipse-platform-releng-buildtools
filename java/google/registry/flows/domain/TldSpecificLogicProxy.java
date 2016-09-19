@@ -15,7 +15,6 @@
 package google.registry.flows.domain;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
@@ -34,7 +33,6 @@ import google.registry.model.domain.LrpToken;
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Credit;
-import google.registry.model.domain.fee.EapFee;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
@@ -160,14 +158,9 @@ public final class TldSpecificLogicProxy {
     }
 
     // Create fees for the cost and the EAP fee, if any.
-    EapFee eapFee = registry.getEapFeeFor(date);
-    Money eapFeeCost = eapFee.getCost();
-    checkState(eapFeeCost.getCurrencyUnit().equals(currency));
-    if (!eapFeeCost.getAmount().equals(Money.zero(currency).getAmount())) {
-      return new EppCommandOperations(
-          currency,
-          createFeeOrCredit,
-          Fee.create(eapFeeCost.getAmount(), FeeType.EAP, eapFee.getPeriod().upperEndpoint()));
+    Fee eapFee = registry.getEapFeeFor(date);
+    if (!eapFee.hasZeroCost()) {
+      return new EppCommandOperations(currency, createFeeOrCredit, eapFee);
     } else {
       return new EppCommandOperations(currency, createFeeOrCredit);
     }
