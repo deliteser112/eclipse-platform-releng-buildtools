@@ -126,7 +126,7 @@ public class DeleteContactsAndHostsActionTest
   public void setup() throws Exception {
     enqueuer = new AsyncFlowEnqueuer();
     enqueuer.asyncDeleteDelay = Duration.ZERO;
-    enqueuer.queue = QueueFactory.getQueue(QUEUE_ASYNC_DELETE);
+    enqueuer.asyncDeletePullQueue = QueueFactory.getQueue(QUEUE_ASYNC_DELETE);
     enqueuer.retrier = new Retrier(new FakeSleeper(clock), 1);
 
     action = new DeleteContactsAndHostsAction();

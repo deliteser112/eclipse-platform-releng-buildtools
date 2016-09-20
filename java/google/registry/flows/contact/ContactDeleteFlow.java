@@ -24,7 +24,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.config.ConfigModule.Config;
@@ -34,9 +33,6 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowEnqueuer;
-import google.registry.flows.async.AsyncFlowUtils;
-import google.registry.flows.async.DeleteContactResourceAction;
-import google.registry.flows.async.DeleteEppResourceAction;
 import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
@@ -96,18 +92,7 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingResource);
     }
-    AsyncFlowUtils.enqueueMapreduceAction(
-        DeleteContactResourceAction.class,
-        ImmutableMap.of(
-            DeleteEppResourceAction.PARAM_RESOURCE_KEY,
-            Key.create(existingResource).getString(),
-            DeleteEppResourceAction.PARAM_REQUESTING_CLIENT_ID,
-            clientId,
-            DeleteEppResourceAction.PARAM_IS_SUPERUSER,
-            Boolean.toString(isSuperuser)),
-        mapreduceDelay);
-    // TODO(b/26140521): Switch over to batch async operations as follows:
-    // asyncFlowEnqueuer.enqueueAsyncDelete(existingResource, getClientId(), isSuperuser);
+    asyncFlowEnqueuer.enqueueAsyncDelete(existingResource, clientId, isSuperuser);
     ContactResource newResource =
         existingResource.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();
     historyBuilder

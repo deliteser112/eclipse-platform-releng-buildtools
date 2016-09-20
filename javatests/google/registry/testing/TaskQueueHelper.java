@@ -44,6 +44,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import google.registry.dns.DnsConstants;
+import google.registry.model.ImmutableObject;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
@@ -277,7 +278,7 @@ public class TaskQueueHelper {
   }
 
   /** An adapter to clean up a {@link TaskStateInfo} for ease of matching. */
-  private static class MatchableTaskInfo {
+  private static class MatchableTaskInfo extends ImmutableObject {
 
     String taskName;
     String method;

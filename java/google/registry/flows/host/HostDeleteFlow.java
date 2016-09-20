@@ -24,7 +24,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.config.ConfigModule.Config;
@@ -32,9 +31,7 @@ import google.registry.flows.EppException;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.async.AsyncFlowUtils;
-import google.registry.flows.async.DeleteEppResourceAction;
-import google.registry.flows.async.DeleteHostResourceAction;
+import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -71,6 +68,7 @@ public class HostDeleteFlow extends LoggedInFlow implements TransactionalFlow {
           return domain.getNameservers();
         }};
 
+  @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
   @Inject ResourceCommand resourceCommand;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
@@ -97,16 +95,7 @@ public class HostDeleteFlow extends LoggedInFlow implements TransactionalFlow {
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingResource);
     }
-    AsyncFlowUtils.enqueueMapreduceAction(
-        DeleteHostResourceAction.class,
-        ImmutableMap.of(
-            DeleteEppResourceAction.PARAM_RESOURCE_KEY,
-            Key.create(existingResource).getString(),
-            DeleteEppResourceAction.PARAM_REQUESTING_CLIENT_ID,
-            clientId,
-            DeleteEppResourceAction.PARAM_IS_SUPERUSER,
-            Boolean.toString(isSuperuser)),
-        mapreduceDelay);
+    asyncFlowEnqueuer.enqueueAsyncDelete(existingResource, clientId, isSuperuser);
     HostResource newResource =
         existingResource.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();
     historyBuilder

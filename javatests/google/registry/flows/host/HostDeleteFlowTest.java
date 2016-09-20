@@ -13,9 +13,6 @@
 // limitations under the License.
 
 package google.registry.flows.host;
-
-import static google.registry.flows.async.AsyncFlowUtils.ASYNC_FLOW_QUEUE_NAME;
-import static google.registry.request.Actions.getPathForAction;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
@@ -26,22 +23,17 @@ import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
-import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import google.registry.flows.async.DeleteEppResourceAction;
-import google.registry.flows.async.DeleteHostResourceAction;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
 import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.testing.TaskQueueHelper.TaskMatcher;
-import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -77,18 +69,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     runFlowAssertResponse(readFile("host_delete_response.xml"));
     HostResource deletedHost = reloadResourceByUniqueId();
     assertAboutHosts().that(deletedHost).hasStatusValue(StatusValue.PENDING_DELETE);
-    assertTasksEnqueued(ASYNC_FLOW_QUEUE_NAME, new TaskMatcher()
-        .url(getPathForAction(DeleteHostResourceAction.class))
-        .etaDelta(Duration.standardSeconds(75), Duration.standardSeconds(105)) // expected: 90
-        .param(
-            DeleteEppResourceAction.PARAM_REQUESTING_CLIENT_ID,
-            "TheRegistrar")
-        .param(
-            DeleteEppResourceAction.PARAM_IS_SUPERUSER,
-            Boolean.toString(false))
-        .param(
-            DeleteEppResourceAction.PARAM_RESOURCE_KEY,
-            Key.create(deletedHost).getString()));
+    assertAsyncDeletionTaskEnqueued(deletedHost, "TheRegistrar", false);
     assertAboutHosts().that(deletedHost)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.HOST_PENDING_DELETE);
@@ -148,18 +129,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
         CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("host_delete_response.xml"));
     HostResource deletedHost = reloadResourceByUniqueId();
     assertAboutHosts().that(deletedHost).hasStatusValue(StatusValue.PENDING_DELETE);
-    assertTasksEnqueued(ASYNC_FLOW_QUEUE_NAME, new TaskMatcher()
-        .url(getPathForAction(DeleteHostResourceAction.class))
-        .etaDelta(Duration.standardSeconds(75), Duration.standardSeconds(105)) // expected: 90
-        .param(
-            DeleteEppResourceAction.PARAM_REQUESTING_CLIENT_ID,
-            "NewRegistrar")
-        .param(
-            DeleteEppResourceAction.PARAM_IS_SUPERUSER,
-            Boolean.toString(true))
-        .param(
-            DeleteEppResourceAction.PARAM_RESOURCE_KEY,
-            Key.create(deletedHost).getString()));
+    assertAsyncDeletionTaskEnqueued(deletedHost, "NewRegistrar", true);
     assertAboutHosts().that(deletedHost)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.HOST_PENDING_DELETE);

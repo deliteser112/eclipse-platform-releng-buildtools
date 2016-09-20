@@ -15,7 +15,6 @@
 package google.registry.flows.host;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.flows.async.AsyncFlowUtils.ASYNC_FLOW_QUEUE_NAME;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.request.Actions.getPathForAction;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
@@ -161,7 +160,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     HostResource renamedHost = doSuccessfulTest();
     assertThat(renamedHost.getSuperordinateDomain()).isNull();
     // Task enqueued to change the NS record of the referencing domain via mapreduce.
-    assertTasksEnqueued(ASYNC_FLOW_QUEUE_NAME, new TaskMatcher()
+    assertTasksEnqueued("flows-async", new TaskMatcher()
         .url(getPathForAction(DnsRefreshForHostRenameAction.class))
         .param(DnsRefreshForHostRenameAction.PARAM_HOST_KEY, Key.create(renamedHost).getString()));
   }

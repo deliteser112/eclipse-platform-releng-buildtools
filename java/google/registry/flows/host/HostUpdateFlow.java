@@ -28,7 +28,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
@@ -41,8 +40,7 @@ import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.async.AsyncFlowUtils;
-import google.registry.flows.async.DnsRefreshForHostRenameAction;
+import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.exceptions.AddRemoveSameValueEppException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
@@ -62,7 +60,6 @@ import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Objects;
 import javax.inject.Inject;
-import org.joda.time.Duration;
 
 /**
  * An EPP flow that updates a host resource.
@@ -96,6 +93,7 @@ public class HostUpdateFlow extends LoggedInFlow implements TransactionalFlow {
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject HistoryEntry.Builder historyBuilder;
+  @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
   @Inject HostUpdateFlow() {}
 
   @Override
@@ -225,12 +223,7 @@ public class HostUpdateFlow extends LoggedInFlow implements TransactionalFlow {
       }
       // We must also enqueue updates for all domains that use this host as their nameserver so
       // that their NS records can be updated to point at the new name.
-      AsyncFlowUtils.enqueueMapreduceAction(
-          DnsRefreshForHostRenameAction.class,
-          ImmutableMap.of(
-              DnsRefreshForHostRenameAction.PARAM_HOST_KEY,
-              Key.create(existingResource).getString()),
-          Duration.ZERO);
+      asyncFlowEnqueuer.enqueueAsyncDnsRefresh(existingResource);
     }
   }
 
