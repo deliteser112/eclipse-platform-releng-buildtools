@@ -28,7 +28,8 @@ import google.registry.model.reporting.HistoryEntry;
 import java.util.List;
 
 /**
- * A converter between external key strings for PollMessages and Objectify Keys to the resource.
+ * A converter between external key strings for {@link PollMessage}s (i.e. what registrars use to
+ * identify and ACK them) and Datastore keys to the resource.
  *
  * <p>The format of the key string is A-B-C-D-E as follows:
  *

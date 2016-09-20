@@ -50,11 +50,30 @@ import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import java.util.List;
 import org.joda.time.DateTime;
 
-/** A poll message that is pending for a registrar. */
+/**
+ * A poll message that is pending for a registrar.
+ *
+ * <p>Poll messages are not delivered until their {@link #eventTime} has passed. Poll messages can
+ * be speculatively enqueued for future delivery, and then modified or deleted before that date has
+ * passed. Unlike most other entities in Datastore, which are marked as deleted but otherwise
+ * retained for historical purposes, poll messages are truly deleted once they have been delivered
+ * and ACKed.
+ *
+ * <p>Poll messages are parented off of the {@link HistoryEntry} that resulted in their creation.
+ * This means that poll messages are contained in the Datastore entity group of the parent {@link
+ * EppResource} (which can be a domain, application, contact, or host). It is thus possible to
+ * perform a strongly consistent query to find all poll messages associated with a given EPP
+ * resource.
+ *
+ * <p>Poll messages are identified externally by registrars using the format defined in {@link
+ * PollMessageExternalKeyConverter}.
+ *
+ * @see "https://tools.ietf.org/html/rfc5730#section-2.9.2.3"
+ */
 @Entity
 @ExternalMessagingName("message")
-public abstract class PollMessage
-    extends ImmutableObject implements Buildable, TransferServerApproveEntity {
+public abstract class PollMessage extends ImmutableObject
+    implements Buildable, TransferServerApproveEntity {
 
 
   public static final Converter<Key<PollMessage>, String> EXTERNAL_KEY_CONVERTER =
@@ -158,7 +177,11 @@ public abstract class PollMessage
     }
   }
 
-  /** A one-time poll message. */
+  /**
+   * A one-time poll message.
+   *
+   * <p>One-time poll messages are deleted from Datastore once they have been delivered and ACKed.
+   */
   @EntitySubclass(index = false)
   public static class OneTime extends PollMessage {
 
@@ -252,7 +275,13 @@ public abstract class PollMessage
     }
   }
 
-  /** An autorenew poll message which recurs annually. */
+  /**
+   * An auto-renew poll message which recurs annually.
+   *
+   * <p>Auto-renew poll messages are not deleted until the registration of their parent domain has
+   * been canceled, because there will always be a speculative renewal for next year until that
+   * happens.
+   */
   @EntitySubclass(index = false)
   public static class Autorenew extends PollMessage {
 

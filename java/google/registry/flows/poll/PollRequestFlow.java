@@ -28,10 +28,17 @@ import google.registry.flows.LoggedInFlow;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.poll.MessageQueueInfo;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.poll.PollMessageExternalKeyConverter;
 import javax.inject.Inject;
 
 /**
- * An EPP flow for requesting poll messages.
+ * An EPP flow for requesting {@link PollMessage}s.
+ *
+ * <p>This flow uses an eventually consistent Datastore query to return the oldest poll message for
+ * the registrar, as well as the total number of pending messages. Note that poll messages whose
+ * event time is in the future (i.e. they are speculative and could still be changed or rescinded)
+ * are ignored. The externally visible id for the poll message that the registrar sees is generated
+ * by {@link PollMessageExternalKeyConverter}.
  *
  * @error {@link PollRequestFlow.UnexpectedMessageIdException}
  */
