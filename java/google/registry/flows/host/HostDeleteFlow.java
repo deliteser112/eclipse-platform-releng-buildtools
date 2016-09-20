@@ -15,10 +15,10 @@
 package google.registry.flows.host;
 
 import static google.registry.flows.ResourceFlowUtils.failfastForAsyncDelete;
+import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -26,24 +26,20 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowEnqueuer;
-import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.host.HostCommand.Delete;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
-import org.joda.time.Duration;
 
 /**
  * An EPP flow that deletes a host resource.
@@ -69,10 +65,9 @@ public class HostDeleteFlow extends LoggedInFlow implements TransactionalFlow {
         }};
 
   @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
-  @Inject ResourceCommand resourceCommand;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
-  @Inject @Config("asyncDeleteFlowMapreduceDelay") Duration mapreduceDelay;
+  @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject HostDeleteFlow() {}
 
@@ -83,13 +78,8 @@ public class HostDeleteFlow extends LoggedInFlow implements TransactionalFlow {
 
   @Override
   public final EppOutput run() throws EppException {
-    Delete command = (Delete) resourceCommand;
-    String targetId = command.getTargetId();
     failfastForAsyncDelete(targetId, now, HostResource.class, GET_NAMESERVERS);
-    HostResource existingResource = loadByUniqueId(HostResource.class, targetId, now);
-    if (existingResource == null) {
-      throw new ResourceToMutateDoesNotExistException(HostResource.class, targetId);
-    }
+    HostResource existingResource = loadResourceToMutate(HostResource.class, targetId, now);
     verifyNoDisallowedStatuses(existingResource, DISALLOWED_STATUSES);
     verifyOptionalAuthInfoForResource(authInfo, existingResource);
     if (!isSuperuser) {

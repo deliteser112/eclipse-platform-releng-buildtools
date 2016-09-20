@@ -14,11 +14,11 @@
 
 package google.registry.flows.host;
 
+import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.flows.host.HostFlowUtils.verifyDomainIsSameRegistrar;
 import static google.registry.model.EppResourceUtils.createContactHostRoid;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
@@ -32,9 +32,9 @@ import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -66,6 +66,7 @@ public class HostCreateFlow extends LoggedInFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject HostCreateFlow() {}
 
@@ -78,16 +79,12 @@ public class HostCreateFlow extends LoggedInFlow implements TransactionalFlow {
   @Override
   protected final EppOutput run() throws EppException {
     Create command = (Create) resourceCommand;
-    String targetId = command.getTargetId();
-    HostResource existingResource = loadByUniqueId(HostResource.class, targetId, now);
-    if (existingResource != null) {
-      throw new ResourceAlreadyExistsException(targetId);
-    }
+    verifyResourceDoesNotExist(HostResource.class, targetId, now);
     // The superordinate domain of the host object if creating an in-bailiwick host, or null if
     // creating an external host. This is looked up before we actually create the Host object so
     // we can detect error conditions earlier.
     Optional<DomainResource> superordinateDomain = Optional.fromNullable(
-        lookupSuperordinateDomain(validateHostName(command.getFullyQualifiedHostName()), now));
+        lookupSuperordinateDomain(validateHostName(targetId), now));
     verifyDomainIsSameRegistrar(superordinateDomain.orNull(), clientId);
     boolean willBeSubordinate = superordinateDomain.isPresent();
     boolean hasIpAddresses = !isNullOrEmpty(command.getInetAddresses());

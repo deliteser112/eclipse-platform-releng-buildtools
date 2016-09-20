@@ -14,19 +14,17 @@
 
 package google.registry.flows.host;
 
+import static google.registry.flows.ResourceFlowUtils.loadResourceForQuery;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
-import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.eppcommon.AuthInfo;
-import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.host.HostCommand.Info;
 import google.registry.model.host.HostResource;
 import javax.inject.Inject;
 
@@ -37,18 +35,13 @@ import javax.inject.Inject;
  */
 public class HostInfoFlow extends LoggedInFlow {
 
-  @Inject ResourceCommand resourceCommand;
+  @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;
   @Inject HostInfoFlow() {}
 
   @Override
   public EppOutput run() throws EppException {
-    Info command = (Info) resourceCommand;
-    String targetId = command.getTargetId();
-    HostResource existingResource = loadByUniqueId(HostResource.class, targetId, now);
-    if (existingResource == null) {
-      throw new ResourceToQueryDoesNotExistException(HostResource.class, targetId);
-    }
+    HostResource existingResource = loadResourceForQuery(HostResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, existingResource);
     return createOutput(SUCCESS, cloneResourceWithLinkedStatus(existingResource, now));
   }

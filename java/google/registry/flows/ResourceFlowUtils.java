@@ -15,6 +15,7 @@
 package google.registry.flows;
 
 import static com.google.common.base.Preconditions.checkState;
+import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.EppResourceUtils.queryDomainsUsingResource;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -30,9 +31,11 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.InvalidAuthorizationInformationErrorException;
+import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
 import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
+import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.EppResource;
 import google.registry.model.EppResource.Builder;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
@@ -269,6 +272,31 @@ public class ResourceFlowUtils {
   public static <R extends EppResource> R denyPendingTransfer(
       R resource, TransferStatus transferStatus, DateTime now) {
     return resolvePendingTransfer(resource, transferStatus, now).build();
+  }
+
+  public static <R extends EppResource> R loadResourceForQuery(
+      Class<R> clazz, String targetId, DateTime now) throws ResourceToQueryDoesNotExistException {
+    R existingResource = loadByUniqueId(clazz, targetId, now);
+    if (existingResource == null) {
+      throw new ResourceToQueryDoesNotExistException(clazz, targetId);
+    }
+    return existingResource;
+  }
+
+  public static <R extends EppResource> R loadResourceToMutate(
+      Class<R> clazz, String targetId, DateTime now) throws ResourceToMutateDoesNotExistException {
+    R existingResource = loadByUniqueId(clazz, targetId, now);
+    if (existingResource == null) {
+      throw new ResourceToMutateDoesNotExistException(clazz, targetId);
+    }
+    return existingResource;
+  }
+
+  public static <R extends EppResource> void verifyResourceDoesNotExist(
+      Class<R> clazz, String targetId, DateTime now)  throws EppException {
+    if (loadByUniqueId(clazz, targetId, now) != null) {
+      throw new ResourceAlreadyExistsException(targetId);
+    }
   }
 
   /** The specified resource belongs to another client. */

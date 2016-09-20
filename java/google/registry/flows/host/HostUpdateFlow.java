@@ -15,13 +15,13 @@
 package google.registry.flows.host;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.flows.host.HostFlowUtils.verifyDomainIsSameRegistrar;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -38,12 +38,12 @@ import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.exceptions.AddRemoveSameValueEppException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
-import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainResource;
@@ -92,6 +92,7 @@ public class HostUpdateFlow extends LoggedInFlow implements TransactionalFlow {
   @Inject ResourceCommand resourceCommand;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
   @Inject HostUpdateFlow() {}
@@ -105,11 +106,7 @@ public class HostUpdateFlow extends LoggedInFlow implements TransactionalFlow {
   public final EppOutput run() throws EppException {
     Update command = (Update) resourceCommand;
     String suppliedNewHostName = command.getInnerChange().getFullyQualifiedHostName();
-    String targetId = command.getTargetId();
-    HostResource existingResource = loadByUniqueId(HostResource.class, targetId, now);
-    if (existingResource == null) {
-      throw new ResourceToMutateDoesNotExistException(HostResource.class, targetId);
-    }
+    HostResource existingResource = loadResourceToMutate(HostResource.class, targetId, now);
     boolean isHostRename = suppliedNewHostName != null;
     String oldHostName = targetId;
     String newHostName = firstNonNull(suppliedNewHostName, oldHostName);
