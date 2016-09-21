@@ -17,9 +17,9 @@ package google.registry.rde;
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-import google.registry.xjc.XjcXmlTransformer;
 import google.registry.xjc.rdecontact.XjcRdeContact;
 import google.registry.xjc.rdecontact.XjcRdeContactElement;
 import google.registry.xjc.rdedomain.XjcRdeDomain;
@@ -37,17 +37,17 @@ import google.registry.xjc.rdenndn.XjcRdeNndn;
 import google.registry.xjc.rdenndn.XjcRdeNndnElement;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrarElement;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stax.StAXSource;
-import javax.xml.transform.stream.StreamResult;
 
 /**
  * RDE escrow deposit file parser
@@ -75,7 +75,7 @@ import javax.xml.transform.stream.StreamResult;
  * parser.
  */
 @NotThreadSafe
-public class RdeParser {
+public class RdeParser implements Closeable {
 
   private static final String RDE_DOMAIN_URI = "urn:ietf:params:xml:ns:rdeDomain-1.0";
   private static final String RDE_HOST_URI = "urn:ietf:params:xml:ns:rdeHost-1.0";
@@ -85,6 +85,23 @@ public class RdeParser {
   private static final String RDE_NNDN_URI = "urn:ietf:params:xml:ns:rdeNNDN-1.0";
   private static final String RDE_EPP_PARAMS_URI = "urn:ietf:params:xml:ns:rdeEppParams-1.0";
   private static final String RDE_HEADER_URI = "urn:ietf:params:xml:ns:rdeHeader-1.0";
+
+  /** List of packages to initialize JAXBContext. **/
+  private static final String JAXB_CONTEXT_PACKAGES = Joiner.on(":")
+      .join(Arrays.asList(
+          "google.registry.xjc.contact",
+          "google.registry.xjc.domain",
+          "google.registry.xjc.host",
+          "google.registry.xjc.mark",
+          "google.registry.xjc.rde",
+          "google.registry.xjc.rdecontact",
+          "google.registry.xjc.rdedomain",
+          "google.registry.xjc.rdeeppparams",
+          "google.registry.xjc.rdeheader",
+          "google.registry.xjc.rdeidn",
+          "google.registry.xjc.rdenndn",
+          "google.registry.xjc.rderegistrar",
+          "google.registry.xjc.smd"));
 
   /**
    * Convenient immutable java representation of an RDE header
@@ -136,18 +153,23 @@ public class RdeParser {
     }
   }
 
+  private final InputStream xmlInput;
   private final XMLStreamReader reader;
+  private final Unmarshaller unmarshaller;
+
   private RdeHeader header;
 
   /**
    * Creates a new instance of {@link RdeParser}
    *
    * @param xmlInput Contents of the escrow deposit file
+   * @throws JAXBException
    */
-  public RdeParser(InputStream xmlInput) throws XMLStreamException {
-    XMLInputFactory factory = XMLInputFactory.newInstance();
-    reader = factory.createXMLStreamReader(xmlInput);
-    header = new RdeHeader(readHeader());
+  public RdeParser(InputStream xmlInput) throws XMLStreamException, JAXBException {
+    this.xmlInput = xmlInput;
+    this.unmarshaller = JAXBContext.newInstance(JAXB_CONTEXT_PACKAGES).createUnmarshaller();
+    this.reader = XMLInputFactory.newInstance().createXMLStreamReader(xmlInput);
+    this.header = new RdeHeader(readHeader());
   }
 
   /**
@@ -176,12 +198,7 @@ public class RdeParser {
     checkArgumentNotNull(uri, "uri cannot be null");
     try {
       if (isAtElement(uri, name)) {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer t = tf.newTransformer();
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        t.transform(new StAXSource(reader), new StreamResult(bout));
-        ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
-        Object element = XjcXmlTransformer.unmarshal(Object.class, bin);
+        Object element = unmarshaller.unmarshal(reader);
         return element;
       } else {
         throw new IllegalStateException(String.format("Not at element %s:%s", uri, name));
@@ -561,5 +578,15 @@ public class RdeParser {
     XjcRdeEppParamsElement element =
         (XjcRdeEppParamsElement) unmarshalElement(RDE_EPP_PARAMS_URI, "eppParams");
     return element.getValue();
+  }
+
+  /**
+   * Closes the underlying InputStream
+   *
+   * @throws IOException if the underlying stream throws {@link IOException} on close.
+   */
+  @Override
+  public void close() throws IOException {
+    xmlInput.close();
   }
 }
