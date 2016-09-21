@@ -407,6 +407,18 @@ public final class ConfigModule {
   }
 
   /**
+   * Returns the identity (an email address) used for the SSH keys used in RDE SFTP uploads.
+   *
+   * @see google.registry.keyring.api.Keyring#getRdeSshClientPublicKey()
+   * @see google.registry.keyring.api.Keyring#getRdeSshClientPrivateKey()
+   */
+  @Provides
+  @Config("rdeSshIdentity")
+  public static String provideSshIdentity() {
+    return "rde@charlestonroadregistry.com";
+  }
+
+  /**
    * Returns SFTP URL containing a username, hostname, port (optional), and directory (optional) to
    * which cloud storage files are uploaded. The password should not be included, as it's better to
    * use public key authentication.
