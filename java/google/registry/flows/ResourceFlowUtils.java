@@ -31,6 +31,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.InvalidAuthorizationInformationErrorException;
+import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
@@ -312,6 +313,15 @@ public class ResourceFlowUtils {
     if (authInfo.isPresent()) {
       verifyAuthInfoForResource(authInfo.get(), resource);
     }
+  }
+
+  /** Check that the given AuthInfo is present and valid for a resource being transferred. */
+  public static void verifyRequiredAuthInfoForResourceTransfer(
+      Optional<AuthInfo> authInfo, ContactResource existingContact) throws EppException {
+    if (!authInfo.isPresent()) {
+      throw new MissingTransferRequestAuthInfoException();
+    }
+    verifyOptionalAuthInfoForResource(authInfo, existingContact);
   }
 
   /** Check that the given AuthInfo is valid for the given resource. */

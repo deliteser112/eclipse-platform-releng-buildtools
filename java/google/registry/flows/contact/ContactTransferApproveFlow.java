@@ -15,11 +15,11 @@
 package google.registry.flows.contact;
 
 import static google.registry.flows.ResourceFlowUtils.approvePendingTransfer;
+import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -31,7 +31,6 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.NotPendingTransferException;
-import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
@@ -67,30 +66,27 @@ public class ContactTransferApproveFlow extends LoggedInFlow implements Transact
 
   @Override
   public final EppOutput run() throws EppException {
-    ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
-    if (existingResource == null) {
-      throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
-    }
-    verifyOptionalAuthInfoForResource(authInfo, existingResource);
-    TransferData transferData = existingResource.getTransferData();
+    ContactResource existingContact = loadResourceToMutate(ContactResource.class, targetId, now);
+    verifyOptionalAuthInfoForResource(authInfo, existingContact);
+    TransferData transferData = existingContact.getTransferData();
     if (transferData.getTransferStatus() != TransferStatus.PENDING) {
       throw new NotPendingTransferException(targetId);
     }
-    verifyResourceOwnership(clientId, existingResource);
-    ContactResource newResource =
-        approvePendingTransfer(existingResource, TransferStatus.CLIENT_APPROVED, now);
+    verifyResourceOwnership(clientId, existingContact);
+    ContactResource newContact =
+        approvePendingTransfer(existingContact, TransferStatus.CLIENT_APPROVED, now);
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.CONTACT_TRANSFER_APPROVE)
         .setModificationTime(now)
-        .setParent(Key.create(existingResource))
+        .setParent(Key.create(existingContact))
         .build();
     // Create a poll message for the gaining client.
     PollMessage gainingPollMessage =
-        createGainingTransferPollMessage(targetId, newResource.getTransferData(), historyEntry);
-    ofy().save().<Object>entities(newResource, historyEntry, gainingPollMessage);
+        createGainingTransferPollMessage(targetId, newContact.getTransferData(), historyEntry);
+    ofy().save().<Object>entities(newContact, historyEntry, gainingPollMessage);
     // Delete the billing event and poll messages that were written in case the transfer would have
     // been implicitly server approved.
     ofy().delete().keys(transferData.getServerApproveEntities());
-    return createOutput(SUCCESS, createTransferResponse(targetId, newResource.getTransferData()));
+    return createOutput(SUCCESS, createTransferResponse(targetId, newContact.getTransferData()));
   }
 }

@@ -14,10 +14,10 @@
 
 package google.registry.flows.contact;
 
+import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
 import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
 import static google.registry.model.EppResourceUtils.createContactHostRoid;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -27,7 +27,6 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.model.contact.ContactCommand.Create;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.ContactResource.Builder;
@@ -64,28 +63,26 @@ public class ContactCreateFlow extends LoggedInFlow implements TransactionalFlow
   @Override
   protected final EppOutput run() throws EppException {
     Create command = (Create) resourceCommand;
-    if (loadByUniqueId(ContactResource.class, targetId, now) != null) {
-      throw new ResourceAlreadyExistsException(targetId);
-    }
+    verifyResourceDoesNotExist(ContactResource.class, targetId, now);
     Builder builder = new Builder();
     command.applyTo(builder);
-    ContactResource newResource = builder
+    ContactResource newContact = builder
         .setCreationClientId(clientId)
         .setCurrentSponsorClientId(clientId)
         .setRepoId(createContactHostRoid(ObjectifyService.allocateId()))
         .build();
-    validateAsciiPostalInfo(newResource.getInternationalizedPostalInfo());
-    validateContactAgainstPolicy(newResource);
+    validateAsciiPostalInfo(newContact.getInternationalizedPostalInfo());
+    validateContactAgainstPolicy(newContact);
     historyBuilder
         .setType(HistoryEntry.Type.CONTACT_CREATE)
         .setModificationTime(now)
         .setXmlBytes(null)  // We don't want to store contact details in the history entry.
-        .setParent(Key.create(newResource));
+        .setParent(Key.create(newContact));
     ofy().save().entities(
-        newResource,
+        newContact,
         historyBuilder.build(),
-        ForeignKeyIndex.create(newResource, newResource.getDeletionTime()),
-        EppResourceIndex.create(Key.create(newResource)));
-    return createOutput(SUCCESS, ContactCreateData.create(newResource.getContactId(), now));
+        ForeignKeyIndex.create(newContact, newContact.getDeletionTime()),
+        EppResourceIndex.create(Key.create(newContact)));
+    return createOutput(SUCCESS, ContactCreateData.create(newContact.getContactId(), now));
   }
 }

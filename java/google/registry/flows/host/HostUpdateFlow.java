@@ -106,17 +106,17 @@ public class HostUpdateFlow extends LoggedInFlow implements TransactionalFlow {
   public final EppOutput run() throws EppException {
     Update command = (Update) resourceCommand;
     String suppliedNewHostName = command.getInnerChange().getFullyQualifiedHostName();
-    HostResource existingResource = loadResourceToMutate(HostResource.class, targetId, now);
+    HostResource existingHost = loadResourceToMutate(HostResource.class, targetId, now);
     boolean isHostRename = suppliedNewHostName != null;
     String oldHostName = targetId;
     String newHostName = firstNonNull(suppliedNewHostName, oldHostName);
     Optional<DomainResource> superordinateDomain =
         Optional.fromNullable(lookupSuperordinateDomain(validateHostName(newHostName), now));
-    verifyUpdateAllowed(command, existingResource, superordinateDomain.orNull());
+    verifyUpdateAllowed(command, existingHost, superordinateDomain.orNull());
     if (isHostRename && loadAndGetKey(HostResource.class, newHostName, now) != null) {
       throw new HostAlreadyExistsException(newHostName);
     }
-    Builder builder = existingResource.asBuilder();
+    Builder builder = existingHost.asBuilder();
     try {
       command.applyTo(builder);
     } catch (AddRemoveSameValueException e) {
@@ -132,23 +132,23 @@ public class HostUpdateFlow extends LoggedInFlow implements TransactionalFlow {
             superordinateDomain.isPresent() ? Key.create(superordinateDomain.get()) : null)
         .setLastSuperordinateChange(superordinateDomain == null ? null : now);
     // Rely on the host's cloneProjectedAtTime() method to handle setting of transfer data.
-    HostResource newResource = builder.build().cloneProjectedAtTime(now);
-    verifyHasIpsIffIsExternal(command, existingResource, newResource);
+    HostResource newHost = builder.build().cloneProjectedAtTime(now);
+    verifyHasIpsIffIsExternal(command, existingHost, newHost);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
-    entitiesToSave.add(newResource);
+    entitiesToSave.add(newHost);
     // Keep the {@link ForeignKeyIndex} for this host up to date.
     if (isHostRename) {
       // Update the foreign key for the old host name and save one for the new host name.
       entitiesToSave.add(
-          ForeignKeyIndex.create(existingResource, now),
-          ForeignKeyIndex.create(newResource, newResource.getDeletionTime()));
-      updateSuperordinateDomains(existingResource, newResource);
+          ForeignKeyIndex.create(existingHost, now),
+          ForeignKeyIndex.create(newHost, newHost.getDeletionTime()));
+      updateSuperordinateDomains(existingHost, newHost);
     }
-    enqueueTasks(existingResource, newResource);
+    enqueueTasks(existingHost, newHost);
     entitiesToSave.add(historyBuilder
         .setType(HistoryEntry.Type.HOST_UPDATE)
         .setModificationTime(now)
-        .setParent(Key.create(existingResource))
+        .setParent(Key.create(existingHost))
         .build());
     ofy().save().entities(entitiesToSave.build());
     return createOutput(SUCCESS);

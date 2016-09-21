@@ -14,12 +14,12 @@
 
 package google.registry.flows.contact;
 
+import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
 import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -34,7 +34,6 @@ import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.AddRemoveSameValueEppException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
-import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.contact.ContactCommand.Update;
 import google.registry.model.contact.ContactResource;
@@ -86,13 +85,10 @@ public class ContactUpdateFlow extends LoggedInFlow implements TransactionalFlow
   @Override
   public final EppOutput run() throws EppException {
     Update command = (Update) resourceCommand;
-    ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
-    if (existingResource == null) {
-      throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
-    }
-    verifyOptionalAuthInfoForResource(authInfo, existingResource);
+    ContactResource existingContact = loadResourceToMutate(ContactResource.class, targetId, now);
+    verifyOptionalAuthInfoForResource(authInfo, existingContact);
     if (!isSuperuser) {
-      verifyResourceOwnership(clientId, existingResource);
+      verifyResourceOwnership(clientId, existingContact);
     }
     for (StatusValue statusValue : Sets.union(
         command.getInnerAdd().getStatusValues(),
@@ -101,32 +97,32 @@ public class ContactUpdateFlow extends LoggedInFlow implements TransactionalFlow
         throw new StatusNotClientSettableException(statusValue.getXmlName());
       }
     }
-    verifyNoDisallowedStatuses(existingResource, DISALLOWED_STATUSES);
+    verifyNoDisallowedStatuses(existingContact, DISALLOWED_STATUSES);
     historyBuilder
         .setType(HistoryEntry.Type.CONTACT_UPDATE)
         .setModificationTime(now)
         .setXmlBytes(null)  // We don't want to store contact details in the history entry.
-        .setParent(Key.create(existingResource));
-    Builder builder = existingResource.asBuilder();
+        .setParent(Key.create(existingContact));
+    Builder builder = existingContact.asBuilder();
     try {
       command.applyTo(builder);
     } catch (AddRemoveSameValueException e) {
       throw new AddRemoveSameValueEppException();
     }
-    ContactResource newResource = builder
+    ContactResource newContact = builder
         .setLastEppUpdateTime(now)
         .setLastEppUpdateClientId(clientId)
         .build();
     // If the resource is marked with clientUpdateProhibited, and this update did not clear that
     // status, then the update must be disallowed (unless a superuser is requesting the change).
     if (!isSuperuser
-        && existingResource.getStatusValues().contains(StatusValue.CLIENT_UPDATE_PROHIBITED)
-        && newResource.getStatusValues().contains(StatusValue.CLIENT_UPDATE_PROHIBITED)) {
+        && existingContact.getStatusValues().contains(StatusValue.CLIENT_UPDATE_PROHIBITED)
+        && newContact.getStatusValues().contains(StatusValue.CLIENT_UPDATE_PROHIBITED)) {
       throw new ResourceHasClientUpdateProhibitedException();
     }
-    validateAsciiPostalInfo(newResource.getInternationalizedPostalInfo());
-    validateContactAgainstPolicy(newResource);
-    ofy().save().<Object>entities(newResource, historyBuilder.build());
+    validateAsciiPostalInfo(newContact.getInternationalizedPostalInfo());
+    validateContactAgainstPolicy(newContact);
+    ofy().save().<Object>entities(newContact, historyBuilder.build());
     return createOutput(SUCCESS);
   }
 }

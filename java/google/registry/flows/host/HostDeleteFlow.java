@@ -79,20 +79,20 @@ public class HostDeleteFlow extends LoggedInFlow implements TransactionalFlow {
   @Override
   public final EppOutput run() throws EppException {
     failfastForAsyncDelete(targetId, now, HostResource.class, GET_NAMESERVERS);
-    HostResource existingResource = loadResourceToMutate(HostResource.class, targetId, now);
-    verifyNoDisallowedStatuses(existingResource, DISALLOWED_STATUSES);
-    verifyOptionalAuthInfoForResource(authInfo, existingResource);
+    HostResource existingHost = loadResourceToMutate(HostResource.class, targetId, now);
+    verifyNoDisallowedStatuses(existingHost, DISALLOWED_STATUSES);
+    verifyOptionalAuthInfoForResource(authInfo, existingHost);
     if (!isSuperuser) {
-      verifyResourceOwnership(clientId, existingResource);
+      verifyResourceOwnership(clientId, existingHost);
     }
-    asyncFlowEnqueuer.enqueueAsyncDelete(existingResource, clientId, isSuperuser);
-    HostResource newResource =
-        existingResource.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();
+    asyncFlowEnqueuer.enqueueAsyncDelete(existingHost, clientId, isSuperuser);
+    HostResource newHost =
+        existingHost.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();
     historyBuilder
         .setType(HistoryEntry.Type.HOST_PENDING_DELETE)
         .setModificationTime(now)
-        .setParent(Key.create(existingResource));
-    ofy().save().<Object>entities(newResource, historyBuilder.build());
+        .setParent(Key.create(existingHost));
+    ofy().save().<Object>entities(newHost, historyBuilder.build());
     return createOutput(SUCCESS_WITH_ACTION_PENDING);
   }
 }

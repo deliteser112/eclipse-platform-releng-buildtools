@@ -96,7 +96,7 @@ public class HostCreateFlow extends LoggedInFlow implements TransactionalFlow {
     }
     Builder builder = new Builder();
     command.applyTo(builder);
-    HostResource newResource = builder
+    HostResource newHost = builder
         .setCreationClientId(clientId)
         .setCurrentSponsorClientId(clientId)
         .setRepoId(createContactHostRoid(ObjectifyService.allocateId()))
@@ -106,12 +106,12 @@ public class HostCreateFlow extends LoggedInFlow implements TransactionalFlow {
     historyBuilder
         .setType(HistoryEntry.Type.HOST_CREATE)
         .setModificationTime(now)
-        .setParent(Key.create(newResource));
+        .setParent(Key.create(newHost));
     ImmutableSet<ImmutableObject> entitiesToSave = ImmutableSet.of(
-        newResource,
+        newHost,
         historyBuilder.build(),
-        ForeignKeyIndex.create(newResource, newResource.getDeletionTime()),
-        EppResourceIndex.create(Key.create(newResource)));
+        ForeignKeyIndex.create(newHost, newHost.getDeletionTime()),
+        EppResourceIndex.create(Key.create(newHost)));
     if (superordinateDomain.isPresent()) {
       entitiesToSave = union(
           entitiesToSave,

@@ -14,16 +14,15 @@
 
 package google.registry.flows.contact;
 
+import static google.registry.flows.ResourceFlowUtils.loadResourceForQuery;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
-import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppoutput.EppOutput;
@@ -42,11 +41,8 @@ public class ContactInfoFlow extends LoggedInFlow {
 
   @Override
   public final EppOutput run() throws EppException {
-    ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
-    if (existingResource == null) {
-      throw new ResourceToQueryDoesNotExistException(ContactResource.class, targetId);
-    }
-    verifyOptionalAuthInfoForResource(authInfo, existingResource);
-    return createOutput(SUCCESS, cloneResourceWithLinkedStatus(existingResource, now));
+    ContactResource contact = loadResourceForQuery(ContactResource.class, targetId, now);
+    verifyOptionalAuthInfoForResource(authInfo, contact);
+    return createOutput(SUCCESS, cloneResourceWithLinkedStatus(contact, now));
   }
 }

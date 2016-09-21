@@ -41,8 +41,8 @@ public class HostInfoFlow extends LoggedInFlow {
 
   @Override
   public EppOutput run() throws EppException {
-    HostResource existingResource = loadResourceForQuery(HostResource.class, targetId, now);
-    verifyOptionalAuthInfoForResource(authInfo, existingResource);
-    return createOutput(SUCCESS, cloneResourceWithLinkedStatus(existingResource, now));
+    HostResource host = loadResourceForQuery(HostResource.class, targetId, now);
+    verifyOptionalAuthInfoForResource(authInfo, host);
+    return createOutput(SUCCESS, cloneResourceWithLinkedStatus(host, now));
   }
 }

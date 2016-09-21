@@ -15,10 +15,10 @@
 package google.registry.flows.contact;
 
 import static google.registry.flows.ResourceFlowUtils.failfastForAsyncDelete;
+import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -33,7 +33,6 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowEnqueuer;
-import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -83,23 +82,20 @@ public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow
   @Override
   public final EppOutput run() throws EppException {
     failfastForAsyncDelete(targetId, now, ContactResource.class, GET_REFERENCED_CONTACTS);
-    ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
-    if (existingResource == null) {
-      throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
-    }
-    verifyNoDisallowedStatuses(existingResource, DISALLOWED_STATUSES);
-    verifyOptionalAuthInfoForResource(authInfo, existingResource);
+    ContactResource existingContact = loadResourceToMutate(ContactResource.class, targetId, now);
+    verifyNoDisallowedStatuses(existingContact, DISALLOWED_STATUSES);
+    verifyOptionalAuthInfoForResource(authInfo, existingContact);
     if (!isSuperuser) {
-      verifyResourceOwnership(clientId, existingResource);
+      verifyResourceOwnership(clientId, existingContact);
     }
-    asyncFlowEnqueuer.enqueueAsyncDelete(existingResource, clientId, isSuperuser);
-    ContactResource newResource =
-        existingResource.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();
+    asyncFlowEnqueuer.enqueueAsyncDelete(existingContact, clientId, isSuperuser);
+    ContactResource newContact =
+        existingContact.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();
     historyBuilder
         .setType(HistoryEntry.Type.CONTACT_PENDING_DELETE)
         .setModificationTime(now)
-        .setParent(Key.create(existingResource));
-    ofy().save().<Object>entities(newResource, historyBuilder.build());
+        .setParent(Key.create(existingContact));
+    ofy().save().<Object>entities(newContact, historyBuilder.build());
     return createOutput(SUCCESS_WITH_ACTION_PENDING);
   }
 }

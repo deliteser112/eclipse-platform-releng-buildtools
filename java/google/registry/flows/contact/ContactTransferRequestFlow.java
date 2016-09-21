@@ -14,12 +14,12 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
+import static google.registry.flows.ResourceFlowUtils.verifyRequiredAuthInfoForResourceTransfer;
 import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
 import static google.registry.flows.contact.ContactFlowUtils.createLosingTransferPollMessage;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -33,9 +33,7 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
-import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
-import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
@@ -79,28 +77,22 @@ public class ContactTransferRequestFlow extends LoggedInFlow implements Transact
 
   @Override
   protected final EppOutput run() throws EppException {
-    ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
-    if (existingResource == null) {
-      throw new ResourceToMutateDoesNotExistException(ContactResource.class, targetId);
-    }
-    if (!authInfo.isPresent()) {
-      throw new MissingTransferRequestAuthInfoException();
-    }
-    verifyAuthInfoForResource(authInfo.get(), existingResource);
+    ContactResource existingContact = loadResourceToMutate(ContactResource.class, targetId, now);
+    verifyRequiredAuthInfoForResourceTransfer(authInfo, existingContact);
     // Verify that the resource does not already have a pending transfer.
-    if (TransferStatus.PENDING.equals(existingResource.getTransferData().getTransferStatus())) {
+    if (TransferStatus.PENDING.equals(existingContact.getTransferData().getTransferStatus())) {
       throw new AlreadyPendingTransferException(targetId);
     }
-    String losingClientId = existingResource.getCurrentSponsorClientId();
+    String losingClientId = existingContact.getCurrentSponsorClientId();
     // Verify that this client doesn't already sponsor this resource.
     if (gainingClientId.equals(losingClientId)) {
       throw new ObjectAlreadySponsoredException();
     }
-    verifyNoDisallowedStatuses(existingResource, DISALLOWED_STATUSES);
+    verifyNoDisallowedStatuses(existingContact, DISALLOWED_STATUSES);
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.CONTACT_TRANSFER_REQUEST)
         .setModificationTime(now)
-        .setParent(Key.create(existingResource))
+        .setParent(Key.create(existingContact))
         .build();
     DateTime transferExpirationTime = now.plus(automaticTransferLength);
     TransferData serverApproveTransferData = new TransferData.Builder()
@@ -129,19 +121,19 @@ public class ContactTransferRequestFlow extends LoggedInFlow implements Transact
         createLosingTransferPollMessage(targetId, pendingTransferData, historyEntry).asBuilder()
             .setEventTime(now)  // Unlike the serverApprove messages, this applies immediately.
             .build();
-    ContactResource newResource = existingResource.asBuilder()
+    ContactResource newContact = existingContact.asBuilder()
         .setTransferData(pendingTransferData)
         .addStatusValue(StatusValue.PENDING_TRANSFER)
         .build();
     ofy().save().<Object>entities(
-        newResource,
+        newContact,
         historyEntry,
         requestPollMessage,
         serverApproveGainingPollMessage,
         serverApproveLosingPollMessage);
     return createOutput(
         SUCCESS_WITH_ACTION_PENDING,
-        createTransferResponse(targetId, newResource.getTransferData()));
+        createTransferResponse(targetId, newContact.getTransferData()));
   }
 }
 

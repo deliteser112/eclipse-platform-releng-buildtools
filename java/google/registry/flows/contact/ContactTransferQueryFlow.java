@@ -14,9 +14,9 @@
 
 package google.registry.flows.contact;
 
+import static google.registry.flows.ResourceFlowUtils.loadResourceForQuery;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
@@ -26,7 +26,6 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
 import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
-import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppoutput.EppOutput;
@@ -49,24 +48,20 @@ public class ContactTransferQueryFlow extends LoggedInFlow {
 
   @Override
   public final EppOutput run() throws EppException {
-    ContactResource existingResource = loadByUniqueId(ContactResource.class, targetId, now);
-    if (existingResource == null) {
-      throw new ResourceToQueryDoesNotExistException(ContactResource.class, targetId);
-    }
-    verifyOptionalAuthInfoForResource(authInfo, existingResource);
+    ContactResource contact = loadResourceForQuery(ContactResource.class, targetId, now);
+    verifyOptionalAuthInfoForResource(authInfo, contact);
     // Most of the fields on the transfer response are required, so there's no way to return valid
     // XML if the object has never been transferred (and hence the fields aren't populated).
-    if (existingResource.getTransferData().getTransferStatus() == null) {
+    if (contact.getTransferData().getTransferStatus() == null) {
       throw new NoTransferHistoryToQueryException();
     }
     // Note that the authorization info on the command (if present) has already been verified. If
     // it's present, then the other checks are unnecessary.
     if (!authInfo.isPresent()
-        && !clientId.equals(existingResource.getTransferData().getGainingClientId())
-        && !clientId.equals(existingResource.getTransferData().getLosingClientId())) {
+        && !clientId.equals(contact.getTransferData().getGainingClientId())
+        && !clientId.equals(contact.getTransferData().getLosingClientId())) {
       throw new NotAuthorizedToViewTransferException();
     }
-    return createOutput(
-        SUCCESS, createTransferResponse(targetId, existingResource.getTransferData()));
+    return createOutput(SUCCESS, createTransferResponse(targetId, contact.getTransferData()));
   }
 }
