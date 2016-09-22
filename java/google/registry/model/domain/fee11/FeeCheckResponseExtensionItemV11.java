@@ -20,6 +20,7 @@ import google.registry.model.domain.fee.FeeQueryResponseExtensionItemImpl;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 import org.joda.money.CurrencyUnit;
+import org.joda.time.DateTime;
 
 /** The version 0.11 response for a domain check on a single resource. */
 @XmlType(propOrder = {"object", "command", "currency", "period", "fee", "feeClass", "reason"})
@@ -64,6 +65,16 @@ public class FeeCheckResponseExtensionItemV11
     @Override
     public Builder setReasonIfSupported(String reason) {
       getInstance().reason = reason;
+      return this;
+    }
+
+    @Override
+    public Builder setEffectiveDateIfSupported(DateTime effectiveDate) {
+      return this;
+    }
+
+    @Override
+    public Builder setNotAfterDateIfSupported(DateTime notAfterDate) {
       return this;
     }
   }

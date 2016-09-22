@@ -18,6 +18,7 @@ import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.FeeQueryCommandExtensionItem.CommandName;
 import java.util.List;
 import org.joda.money.CurrencyUnit;
+import org.joda.time.DateTime;
 
 /**
  * Interface for individual query items in Check and Info response. Each item indicates the fees and
@@ -50,10 +51,16 @@ public interface FeeQueryResponseExtensionItem {
     /** The reason that the check item cannot be calculated. */
     public Builder setReasonIfSupported(String reason);
 
+    /** The effective date that the check is run on. */
+    public Builder setEffectiveDateIfSupported(DateTime effectiveDate);
+
+    /** The date after which the quoted fees are no longer valid. */
+    public Builder setNotAfterDateIfSupported(DateTime notAfterDate);
+
     public Builder setCommand(CommandName commandName, String phase, String subphase);
     
     public Builder setPeriod(Period period);
-    
+
     public Builder setFees(List<Fee> fees);
     
     public Builder setClass(String feeClass);

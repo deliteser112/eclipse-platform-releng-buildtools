@@ -128,7 +128,7 @@ public final class DomainInfoFlow extends LoggedInFlow {
           InternetDomainName.from(targetId),
           clientId,
           null,
-          feeInfo.getEffectiveDate().isPresent() ? feeInfo.getEffectiveDate().get() : now,
+          now,
           eppInput);
       extensions.add(builder.build());
     }

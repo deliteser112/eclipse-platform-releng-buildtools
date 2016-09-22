@@ -60,6 +60,7 @@ import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /** Unit tests for {@link DomainCheckFlow}. */
@@ -803,5 +804,11 @@ public class DomainCheckFlowTest
     runEapFeeCheckTest("domain_check_fee_date_v12.xml",
         "domain_check_eap_fee_response_date_v12.xml");
   }
-
+  
+  @Ignore
+  @Test
+  public void testSuccess_feeCheck_multipleRanges() throws Exception {
+    // TODO: If at some point we have more than one type of fees that are time dependent, populate
+    // this test to test if the notAfter date is the earliest of the end points of the ranges.
+  }
 }

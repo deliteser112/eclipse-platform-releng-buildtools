@@ -187,9 +187,7 @@ public final class DomainCheckFlow extends LoggedInFlow {
             domainNames.get(domainName),
             clientId,
             feeCheck.getCurrency(),
-            feeCheckItem.getEffectiveDate().isPresent()
-                ? feeCheckItem.getEffectiveDate().get()
-                : now,
+            now,
             eppInput);
         responseItems.add(builder.setDomainNameIfSupported(domainName).build());
       }

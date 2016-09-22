@@ -27,6 +27,7 @@ import static google.registry.model.registry.label.ReservedList.getReservation;
 import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
 import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
 import static google.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
@@ -64,8 +65,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.Credit;
 import google.registry.model.domain.fee.Fee;
-import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
-import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
 import google.registry.model.domain.fee.FeeQueryCommandExtensionItem;
 import google.registry.model.domain.fee.FeeQueryResponseExtensionItem;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
@@ -570,8 +569,8 @@ public class DomainFlowUtils {
   }
 
   /**
-   * Validates a {@link FeeCheckCommandExtensionItem} and sets the appropriate fields on a
-   * {@link FeeCheckResponseExtensionItem} builder.
+   * Validates a {@link FeeQueryCommandExtensionItem} and sets the appropriate fields on a {@link
+   * FeeQueryResponseExtensionItem} builder.
    */
   static void handleFeeRequest(
       FeeQueryCommandExtensionItem feeRequest,
@@ -579,8 +578,14 @@ public class DomainFlowUtils {
       InternetDomainName domain,
       String clientId,
       @Nullable CurrencyUnit topLevelCurrency,
-      DateTime now,
+      DateTime currentDate,
       EppInput eppInput) throws EppException {
+    DateTime now = currentDate;
+    // Use the custom effective date specified in the fee check request, if there is one.
+    if (feeRequest.getEffectiveDate().isPresent()) {
+      now = feeRequest.getEffectiveDate().get();
+      builder.setEffectiveDateIfSupported(now);
+    }
     String domainNameString = domain.toString();
     Registry registry = Registry.get(domain.parent().toString());
     int years = verifyUnitIsYears(feeRequest.getPeriod()).getValue();
@@ -602,6 +607,7 @@ public class DomainFlowUtils {
         .setPeriod(feeRequest.getPeriod())
         .setClass(TldSpecificLogicProxy.getFeeClass(domainNameString, now).orNull());
 
+    List<Fee> fees = ImmutableList.of();
     switch (feeRequest.getCommandName()) {
       case CREATE:
         if (isReserved(domain, isSunrise)) {  // Don't return a create price for reserved names.
@@ -610,35 +616,52 @@ public class DomainFlowUtils {
           builder.setReasonIfSupported("reserved");
         } else {
           builder.setAvailIfSupported(true);
-          builder.setFees(TldSpecificLogicProxy.getCreatePrice(
-              registry, domainNameString, clientId, now, years, eppInput).getFees());
+          fees = TldSpecificLogicProxy.getCreatePrice(
+              registry, domainNameString, clientId, now, years, eppInput).getFees();
         }
         break;
       case RENEW:
         builder.setAvailIfSupported(true);
-        builder.setFees(TldSpecificLogicProxy.getRenewPrice(
-            registry, domainNameString, clientId, now, years, eppInput).getFees());
+        fees = TldSpecificLogicProxy.getRenewPrice(
+            registry, domainNameString, clientId, now, years, eppInput).getFees();
         break;
       case RESTORE:
         if (years != 1) {
           throw new RestoresAreAlwaysForOneYearException();
         }
         builder.setAvailIfSupported(true);
-        builder.setFees(TldSpecificLogicProxy.getRestorePrice(
-            registry, domainNameString, clientId, now, eppInput).getFees());
+        fees = TldSpecificLogicProxy.getRestorePrice(
+            registry, domainNameString, clientId, now, eppInput).getFees();
         break;
       case TRANSFER:
         builder.setAvailIfSupported(true);
-        builder.setFees(TldSpecificLogicProxy.getTransferPrice(
-            registry, domainNameString, clientId, now, years, eppInput).getFees());
+        fees = TldSpecificLogicProxy.getTransferPrice(
+            registry, domainNameString, clientId, now, years, eppInput).getFees();
         break;
       case UPDATE:
         builder.setAvailIfSupported(true);
-        builder.setFees(TldSpecificLogicProxy.getUpdatePrice(
-            registry, domainNameString, clientId, now, eppInput).getFees());
+        fees = TldSpecificLogicProxy.getUpdatePrice(
+            registry, domainNameString, clientId, now, eppInput).getFees();
         break;
       default:
         throw new UnknownFeeCommandException(feeRequest.getUnparsedCommandName());
+    }
+
+    // Set the fees, and based on the validDateRange of the fees, set the notAfterDate.
+    if (!fees.isEmpty()) {
+      builder.setFees(fees);
+      DateTime notAfterDate = null;
+      for (Fee fee : fees) {
+        if (fee.hasValidDateRange()) {
+          DateTime endDate = fee.getValidDateRange().upperEndpoint();
+          if (notAfterDate == null || notAfterDate.isAfter(endDate)) {
+            notAfterDate = endDate;
+          }
+        }
+      }
+      if (notAfterDate != null && !notAfterDate.equals(END_OF_TIME)) {
+        builder.setNotAfterDateIfSupported(notAfterDate);
+      }
     }
   }
 

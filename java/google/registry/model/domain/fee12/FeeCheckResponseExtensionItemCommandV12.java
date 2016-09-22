@@ -27,11 +27,10 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
+import org.joda.time.DateTime;
 
-/**
- * The version 0.12 response command entity for a domain check on a single resource.
- */
-@XmlType(propOrder = {"period", "fee", "feeClass"})
+/** The version 0.12 response command entity for a domain check on a single resource. */
+@XmlType(propOrder = {"period", "fee", "feeClass", "effectiveDate", "notAfterDate"})
 public class FeeCheckResponseExtensionItemCommandV12 extends ImmutableObject {
 
   /** The command that was checked. */
@@ -63,6 +62,15 @@ public class FeeCheckResponseExtensionItemCommandV12 extends ImmutableObject {
    */
   @XmlElement(name = "class")
   String feeClass;
+  
+  /** The effective date that the check is to be performed on (if specified in the query). */
+  @XmlElement(name = "date")
+  DateTime effectiveDate;
+
+  /** The date after which the quoted fee is no longer valid (if applicable). */
+  @XmlElement(name = "notAfter")
+  DateTime notAfterDate;
+
 
   public String getFeeClass() {
     return feeClass;
@@ -89,6 +97,16 @@ public class FeeCheckResponseExtensionItemCommandV12 extends ImmutableObject {
 
     public Builder setPeriod(Period period) {
       getInstance().period = period;
+      return this;
+    }
+
+    public Builder setEffectiveDate(DateTime effectiveDate) {
+      getInstance().effectiveDate = effectiveDate;
+      return this;
+    }
+
+    public Builder setNotAfterDate(DateTime notAfterDate) {
+      getInstance().notAfterDate = notAfterDate;
       return this;
     }
 

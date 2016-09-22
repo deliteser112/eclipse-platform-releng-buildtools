@@ -27,6 +27,7 @@ import google.registry.model.domain.fee.FeeQueryCommandExtensionItem.CommandName
 import java.util.List;
 import javax.xml.bind.annotation.XmlType;
 import org.joda.money.CurrencyUnit;
+import org.joda.time.DateTime;
 
 /**
  * The version 0.12 response for a domain check on a single resource.
@@ -110,6 +111,18 @@ public class FeeCheckResponseExtensionItemV12
     public FeeCheckResponseExtensionItemV12 build() {
       getInstance().command = commandBuilder.build();
       return super.build();
+    }
+
+    @Override
+    public Builder setEffectiveDateIfSupported(DateTime effectiveDate) {
+      commandBuilder.setEffectiveDate(effectiveDate);
+      return this;
+    }
+
+    @Override
+    public Builder setNotAfterDateIfSupported(DateTime notAfterDate) {
+      commandBuilder.setNotAfterDate(notAfterDate);
+      return this;
     }
   }
 }

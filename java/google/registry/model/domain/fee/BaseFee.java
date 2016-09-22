@@ -118,6 +118,11 @@ public abstract class BaseFee extends ImmutableObject {
   public boolean hasValidDateRange() {
     return validDateRange != null;
   }
+  
+  public Range<DateTime> getValidDateRange() {
+    checkState(hasValidDateRange());
+    return validDateRange;
+  }
 
   protected void generateDescription(Object... args) {
     checkState(type != null);

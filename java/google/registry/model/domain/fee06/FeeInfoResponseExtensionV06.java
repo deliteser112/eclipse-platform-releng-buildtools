@@ -20,6 +20,7 @@ import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import org.joda.money.CurrencyUnit;
+import org.joda.time.DateTime;
 
 /**
  * An XML data object that represents a fee extension that may be present on the response to EPP
@@ -50,6 +51,16 @@ public class FeeInfoResponseExtensionV06
     public FeeQueryResponseExtensionItem.Builder
         setCurrencyIfSupported(CurrencyUnit currency) {
       getInstance().currency = currency;
+      return this;
+    }
+
+    @Override
+    public Builder setEffectiveDateIfSupported(DateTime effectiveDate) {
+      return this;
+    }
+
+    @Override
+    public Builder setNotAfterDateIfSupported(DateTime notAfterDate) {
       return this;
     }
   }
