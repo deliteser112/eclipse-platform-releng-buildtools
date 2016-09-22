@@ -20,11 +20,11 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import google.registry.flows.ResourceCheckFlow.TooManyResourceChecksException;
-import google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
+import google.registry.flows.exceptions.BadCommandForRegistryPhaseException;
+import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;

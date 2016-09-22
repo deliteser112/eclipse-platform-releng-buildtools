@@ -39,6 +39,7 @@ import google.registry.flows.exceptions.ResourceStatusProhibitsOperationExceptio
 import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
 import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
+import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.EppResource;
 import google.registry.model.EppResource.Builder;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
@@ -316,13 +317,6 @@ public class ResourceFlowUtils {
     }
   }
 
-  /** The specified resource belongs to another client. */
-  public static class ResourceNotOwnedException extends AuthorizationErrorException {
-    public ResourceNotOwnedException() {
-      super("The specified resource belongs to another client");
-    }
-  }
-
   /** Check that the given AuthInfo is either missing or else is valid for the given resource. */
   public static void verifyOptionalAuthInfoForResource(
       Optional<AuthInfo> authInfo, EppResource resource) throws EppException {
@@ -356,6 +350,21 @@ public class ResourceFlowUtils {
     Set<StatusValue> problems = Sets.intersection(resource.getStatusValues(), disallowedStatuses);
     if (!problems.isEmpty()) {
       throw new ResourceStatusProhibitsOperationException(problems);
+    }
+  }
+
+  /** Get the list of target ids from a check command. */
+  public static void verifyTargetIdCount(List<String> targetIds, int maxChecks)
+      throws TooManyResourceChecksException {
+    if (targetIds.size() > maxChecks) {
+      throw new TooManyResourceChecksException(maxChecks);
+    }
+  }
+
+  /** The specified resource belongs to another client. */
+  public static class ResourceNotOwnedException extends AuthorizationErrorException {
+    public ResourceNotOwnedException() {
+      super("The specified resource belongs to another client");
     }
   }
 

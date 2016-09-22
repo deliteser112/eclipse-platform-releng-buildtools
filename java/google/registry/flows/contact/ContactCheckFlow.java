@@ -14,6 +14,7 @@
 
 package google.registry.flows.contact;
 
+import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
@@ -21,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.LoggedInFlow;
-import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.contact.ContactCommand.Check;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppinput.ResourceCommand;
@@ -48,9 +48,7 @@ public final class ContactCheckFlow extends LoggedInFlow {
   @Override
   public final EppOutput run() throws EppException {
     List<String> targetIds = ((Check) resourceCommand).getTargetIds();
-    if (targetIds.size() > maxChecks) {
-      throw new TooManyResourceChecksException(maxChecks);
-    }
+    verifyTargetIdCount(targetIds, maxChecks);
     Set<String> existingIds = checkResourcesExist(ContactResource.class, targetIds, now);
     ImmutableList.Builder<ContactCheck> checks = new ImmutableList.Builder<>();
     for (String id : targetIds) {
