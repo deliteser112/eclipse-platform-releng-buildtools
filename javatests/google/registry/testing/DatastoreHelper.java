@@ -732,6 +732,25 @@ public class DatastoreHelper {
     return persistResource(resource, true);
   }
 
+  private static <R> void saveResource(final R resource, final boolean wantBackup) {
+    Saver saver = wantBackup ? ofy().save() : ofy().saveWithoutBackup();
+    saver.entity(resource);
+    if (resource instanceof EppResource) {
+      EppResource eppResource = (EppResource) resource;
+      assertWithMessage("Cannot persist an EppResource with a missing repoId in tests")
+          .that(eppResource.getRepoId()).isNotEmpty();
+      Key<EppResource> eppResourceKey = Key.create(eppResource);
+      saver.entity(EppResourceIndex.create(eppResourceKey));
+      if (resource instanceof ForeignKeyedEppResource) {
+        saver.entity(ForeignKeyIndex.create(eppResource, eppResource.getDeletionTime()));
+      }
+      if (resource instanceof DomainApplication) {
+        saver.entity(
+            DomainApplicationIndex.createUpdatedInstance((DomainApplication) resource));
+      }
+    }
+  }
+
   private static <R> R persistResource(final R resource, final boolean wantBackup) {
     assertWithMessage("Attempting to persist a Builder is almost certainly an error in test code")
         .that(resource)
@@ -739,27 +758,40 @@ public class DatastoreHelper {
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
-        Saver saver = wantBackup ? ofy().save() : ofy().saveWithoutBackup();
-        saver.entity(resource);
-        if (resource instanceof EppResource) {
-          EppResource eppResource = (EppResource) resource;
-          assertWithMessage("Cannot persist an EppResource with a missing repoId in tests")
-              .that(eppResource.getRepoId()).isNotEmpty();
-          Key<EppResource> eppResourceKey = Key.create(eppResource);
-          saver.entity(EppResourceIndex.create(eppResourceKey));
-          if (resource instanceof ForeignKeyedEppResource) {
-            saver.entity(ForeignKeyIndex.create(eppResource, eppResource.getDeletionTime()));
-          }
-          if (resource instanceof DomainApplication) {
-            saver.entity(
-                DomainApplicationIndex.createUpdatedInstance((DomainApplication) resource));
-          }
-        }
+        saveResource(resource, wantBackup);
       }});
     // Force the session to be cleared so that when we read it back, we read from the datastore
     // and not from the transaction cache or memcache.
     ofy().clearSessionCache();
     return ofy().load().entity(resource).now();
+  }
+
+  public static <R> void persistResources(final Iterable<R> resources) {
+    persistResources(resources, false);
+  }
+
+  private static <R> void persistResources(final Iterable<R> resources, final boolean wantBackup) {
+    for (R resource : resources) {
+      assertWithMessage("Attempting to persist a Builder is almost certainly an error in test code")
+          .that(resource)
+          .isNotInstanceOf(Buildable.Builder.class);
+    }
+    // Persist domains ten at a time, to avoid exceeding the entity group limit.
+    for (final List<R> chunk : Iterables.partition(resources, 10)) {
+      ofy().transact(new VoidWork() {
+        @Override
+        public void vrun() {
+          for (R resource : chunk) {
+            saveResource(resource, wantBackup);
+          }
+        }});
+    }
+    // Force the session to be cleared so that when we read it back, we read from the datastore
+    // and not from the transaction cache or memcache.
+    ofy().clearSessionCache();
+    for (R resource : resources) {
+      ofy().load().entity(resource).now();
+    }
   }
 
   /**

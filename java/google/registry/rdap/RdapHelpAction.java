@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableMap;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.MakeRdapJsonNoticeParameters;
 import google.registry.request.Action;
-import google.registry.request.HttpException;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.util.Clock;
@@ -130,7 +129,7 @@ public class RdapHelpAction extends RdapActionBase {
 
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
+      String pathSearchString, boolean isHeadRequest, String linkBase) {
     // We rely on addTopLevelEntries to notice if we are sending the TOS notice, and not add a
     // duplicate boilerplate entry.
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
@@ -138,6 +137,7 @@ public class RdapHelpAction extends RdapActionBase {
         builder,
         BoilerplateType.OTHER,
         ImmutableList.of(getJsonHelpNotice(pathSearchString, rdapLinkBase)),
+        ImmutableList.of(),
         rdapLinkBase);
     return builder.build();
   }

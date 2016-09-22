@@ -1,0 +1,31 @@
+{
+  "objectClassName" : "domain",
+  "handle" : "10-Q9JYB4C",
+  "ldhName" : "cat.xn--q9jyb4c",
+  "unicodeName" : "cat.みんな",
+  "status" :
+    [
+      "client delete prohibited",
+      "client renew prohibited",
+      "client transfer prohibited",
+      "server update prohibited"
+    ],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.google.com/domain/cat.xn--q9jyb4c",
+      "rel" : "self",
+      "href" : "http://myserver.google.com/domain/cat.xn--q9jyb4c",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "remarks": [
+    {
+      "title": "Incomplete Data",
+      "description": [
+        "Summary data only. For complete data, send a specific query for the object."
+      ],
+      "type": "object truncated due to unexplainable reasons"
+    }
+  ]
+}

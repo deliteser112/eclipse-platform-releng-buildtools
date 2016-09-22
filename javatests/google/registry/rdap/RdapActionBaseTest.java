@@ -21,10 +21,10 @@ import static google.registry.request.Action.Method.HEAD;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.ofy.Ofy;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
-import google.registry.request.HttpException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
@@ -55,7 +55,7 @@ public class RdapActionBaseTest {
   /**
    * Dummy RdapActionBase subclass used for testing.
    */
-  class RdapTestAction extends RdapActionBase {
+  static class RdapTestAction extends RdapActionBase {
 
     public static final String PATH = "/rdap/test/";
 
@@ -71,7 +71,7 @@ public class RdapActionBaseTest {
 
     @Override
     public ImmutableMap<String, Object> getJsonObjectForResource(
-        String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
+        String pathSearchString, boolean isHeadRequest, String linkBase) {
       if (pathSearchString.equals("IllegalArgumentException")) {
         throw new IllegalArgumentException();
       }
@@ -83,7 +83,8 @@ public class RdapActionBaseTest {
       RdapJsonFormatter.addTopLevelEntries(
           builder,
           BoilerplateType.OTHER,
-          null,
+          ImmutableList.of(),
+          ImmutableList.of(),
           "http://myserver.google.com/");
       return builder.build();
     }

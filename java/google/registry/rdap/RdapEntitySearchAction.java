@@ -29,13 +29,15 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
+import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.request.Action;
-import google.registry.request.HttpException;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
+import java.util.ArrayList;
+import java.util.List;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -73,7 +75,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
   /** Parses the parameters and calls the appropriate search function. */
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
+      String pathSearchString, boolean isHeadRequest, String linkBase) {
     DateTime now = clock.nowUtc();
     // RDAP syntax example: /rdap/entities?fn=Bobby%20Joe*.
     // The pathSearchString is not used by search commands.
@@ -96,10 +98,11 @@ public class RdapEntitySearchAction extends RdapActionBase {
     if (results.isEmpty()) {
       throw new NotFoundException("No entities found");
     }
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("entitySearchResults", results);
-    RdapJsonFormatter.addTopLevelEntries(builder, BoilerplateType.ENTITY, null, rdapLinkBase);
-    return builder.build();
+    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
+    jsonBuilder.put("entitySearchResults", results);
+    RdapJsonFormatter.addTopLevelEntries(
+        jsonBuilder, BoilerplateType.ENTITY, ImmutableList.of(), ImmutableList.of(), rdapLinkBase);
+    return jsonBuilder.build();
   }
 
   /**
@@ -117,7 +120,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
    * assume that entity names are regular unicode.
    */
   private ImmutableList<ImmutableMap<String, Object>>
-      searchByName(final RdapSearchPattern partialStringQuery, DateTime now) throws HttpException {
+      searchByName(final RdapSearchPattern partialStringQuery, DateTime now) {
     // Handle queries without a wildcard -- load by name, which may not be unique.
     if (!partialStringQuery.getHasWildcard()) {
       Registrar registrar = Registrar.loadByName(partialStringQuery.getInitialString());
@@ -126,7 +129,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
               .type(ContactResource.class)
               .filter("searchName", partialStringQuery.getInitialString())
               .filter("deletionTime", END_OF_TIME)
-              .limit(rdapResultSetMaxSize),
+              .limit(rdapResultSetMaxSize)
+              .list(),
           (registrar == null)
               ? ImmutableList.<Registrar>of() : ImmutableList.of(registrar),
           now);
@@ -141,11 +145,12 @@ public class RdapEntitySearchAction extends RdapActionBase {
               .filter("searchName >=", partialStringQuery.getInitialString())
               .filter("searchName <", partialStringQuery.getNextInitialString())
               .filter("deletionTime", END_OF_TIME)
-              .limit(rdapResultSetMaxSize),
-          Registrar.loadByNameRange(
+              .limit(rdapResultSetMaxSize)
+              .list(),
+          ImmutableList.copyOf(Registrar.loadByNameRange(
               partialStringQuery.getInitialString(),
               partialStringQuery.getNextInitialString(),
-              rdapResultSetMaxSize),
+              rdapResultSetMaxSize)),
           now);
     // Don't allow suffixes in entity name search queries.
     } else {
@@ -155,7 +160,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
 
   /** Searches for entities by handle, returning a JSON array of entity info maps. */
   private ImmutableList<ImmutableMap<String, Object>> searchByHandle(
-      final RdapSearchPattern partialStringQuery, DateTime now) throws HttpException {
+      final RdapSearchPattern partialStringQuery, DateTime now) {
     // Handle queries without a wildcard -- load by ID.
     if (!partialStringQuery.getHasWildcard()) {
       ContactResource contactResource = ofy().load()
@@ -183,7 +188,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
               .filterKey(
                   "<", Key.create(ContactResource.class, partialStringQuery.getNextInitialString()))
               .filter("deletionTime", END_OF_TIME)
-              .limit(rdapResultSetMaxSize),
+              .limit(rdapResultSetMaxSize)
+              .list(),
           ImmutableList.<Registrar>of(),
           now);
     // Don't allow suffixes in entity handle search queries.
@@ -207,29 +213,58 @@ public class RdapEntitySearchAction extends RdapActionBase {
 
   /** Builds a JSON array of entity info maps based on the specified contacts and registrars. */
   private ImmutableList<ImmutableMap<String, Object>> makeSearchResults(
-      Iterable<ContactResource> contactResources, Iterable<Registrar> registrars, DateTime now)
-      throws HttpException {
-    ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
-    for (ContactResource contact : contactResources) {
+      List<ContactResource> contacts,
+      List<Registrar> registrars,
+      DateTime now) {
+
+    // Determine what output data type to use, depending on whether more than one entity will be
+    // returned.
+    int numEntities = contacts.size();
+    OutputDataType outputDataType;
+    // If there's more than one contact, then we know already that we need SUMMARY mode.
+    if (numEntities > 1) {
+      outputDataType = OutputDataType.SUMMARY;
+    // If there are fewer than two contacts, loop through and compute the total number of contacts
+    // and registrars, stopping as soon as we find two.
+    } else {
+      outputDataType = OutputDataType.FULL;
+      for (Registrar registrar : registrars) {
+        if (registrar.isActiveAndPubliclyVisible()) {
+          numEntities++;
+          if (numEntities > 1) {
+            outputDataType = OutputDataType.SUMMARY;
+            break;
+          }
+        }
+      }
+    }
+
+    List<ImmutableMap<String, Object>> jsonOutputList = new ArrayList<>();
+    // In theory, there could be more results than our max size, so limit the size.
+    for (ContactResource contact : contacts) {
+      if (jsonOutputList.size() >= rdapResultSetMaxSize) {
+        break;
+      }
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
-      builder.add(RdapJsonFormatter.makeRdapJsonForContact(
+      jsonOutputList.add(RdapJsonFormatter.makeRdapJsonForContact(
           contact,
           false,
           Optional.<DesignatedContact.Type>absent(),
           rdapLinkBase,
-          rdapWhoisServer, now));
+          rdapWhoisServer,
+          now,
+          outputDataType));
     }
     for (Registrar registrar : registrars) {
+      if (jsonOutputList.size() >= rdapResultSetMaxSize) {
+        break;
+      }
       if (registrar.isActiveAndPubliclyVisible()) {
-        builder.add(RdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar, false, rdapLinkBase, rdapWhoisServer, now));
+        jsonOutputList.add(RdapJsonFormatter.makeRdapJsonForRegistrar(
+            registrar, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
       }
     }
-    // In theory, there could be more results than our max size, so limit the size.
-    ImmutableList<ImmutableMap<String, Object>> resultSet = builder.build();
-    return (resultSet.size() <= rdapResultSetMaxSize)
-        ? resultSet
-        : resultSet.subList(0, rdapResultSetMaxSize);
+    return ImmutableList.copyOf(jsonOutputList);
   }
 }

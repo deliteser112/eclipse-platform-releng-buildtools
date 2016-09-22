@@ -34,14 +34,15 @@ import google.registry.model.EppResourceUtils;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
+import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.request.Action;
-import google.registry.request.HttpException;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
 import google.registry.util.Idn;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -60,7 +61,7 @@ import org.joda.time.DateTime;
 public class RdapDomainSearchAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/domains";
-  
+
   public static final int CHUNK_SIZE_SCALING_FACTOR = 5;
   public static final int MAX_CHUNK_FETCHES = 20;
 
@@ -84,7 +85,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
   /** Parses the parameters and calls the appropriate search function. */
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
+      String pathSearchString, boolean isHeadRequest, String linkBase) {
     DateTime now = clock.nowUtc();
     // RDAP syntax example: /rdap/domains?name=exam*.com.
     // The pathSearchString is not used by search commands.
@@ -124,7 +125,8 @@ public class RdapDomainSearchAction extends RdapActionBase {
     }
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("domainSearchResults", results);
-    RdapJsonFormatter.addTopLevelEntries(builder, BoilerplateType.DOMAIN, null, rdapLinkBase);
+    RdapJsonFormatter.addTopLevelEntries(
+        builder, BoilerplateType.DOMAIN, ImmutableList.of(), ImmutableList.of(), rdapLinkBase);
     return builder.build();
   }
 
@@ -138,9 +140,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
       if (domainResource == null) {
         return ImmutableList.of();
       }
-      return ImmutableList.of(
-          RdapJsonFormatter.makeRdapJsonForDomain(
-              domainResource, false, rdapLinkBase, rdapWhoisServer, now));
+      return makeSearchResults(ImmutableList.of(domainResource), now);
     // Handle queries with a wildcard.
     } else {
       // We can't query for undeleted domains as part of the query itself; that would require an
@@ -154,54 +154,49 @@ public class RdapDomainSearchAction extends RdapActionBase {
       // domains as the result set size limit), then give up and return a result set that is smaller
       // than the limit. Ugly? You bet!
       // TODO(b/31546493): Add metrics to figure out how well this algorithm works.
-      ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
-      String previousChunkEnd = null;
-      for (int numResultsFound = 0, retry = 0;
-          (retry < MAX_CHUNK_FETCHES) && (numResultsFound < rdapResultSetMaxSize);
-          retry++) {
+      List<DomainResource> domainList = new ArrayList<>();
+      String previousChunkEndString = null;
+      for (int numChunkFetches = 0;
+          (numChunkFetches < MAX_CHUNK_FETCHES) && (domainList.size() < rdapResultSetMaxSize);
+          numChunkFetches++) {
         // Construct the query.
         Query<DomainResource> query = ofy().load()
             .type(DomainResource.class)
             .filter("fullyQualifiedDomainName <", partialStringQuery.getNextInitialString());
-        if (previousChunkEnd == null) {
+        if (previousChunkEndString == null) {
           query = query.filter(
               "fullyQualifiedDomainName >=", partialStringQuery.getInitialString());
         } else {
-          query = query.filter("fullyQualifiedDomainName >", previousChunkEnd);
+          query = query.filter("fullyQualifiedDomainName >", previousChunkEndString);
         }
         if (partialStringQuery.getSuffix() != null) {
           query = query.filter("tld", partialStringQuery.getSuffix());
         }
         // Perform the query and weed out deleted domains.
-        previousChunkEnd = null;
+        previousChunkEndString = null;
         int numDomainsInChunk = 0;
-        for (DomainResource domainResource :
+        for (DomainResource domain :
             query.limit(rdapResultSetMaxSize * CHUNK_SIZE_SCALING_FACTOR)) {
-          previousChunkEnd = domainResource.getFullyQualifiedDomainName();
+          previousChunkEndString = domain.getFullyQualifiedDomainName();
           numDomainsInChunk++;
-          if (EppResourceUtils.isActive(domainResource, now)) {
-            builder.add(
-                RdapJsonFormatter.makeRdapJsonForDomain(
-                    domainResource, false, rdapLinkBase, rdapWhoisServer, now));
-            numResultsFound++;
-            if (numResultsFound >= rdapResultSetMaxSize) {
-              return builder.build();
+          if (EppResourceUtils.isActive(domain, now)) {
+            domainList.add(domain);
+            if (domainList.size() >= rdapResultSetMaxSize) {
+              break;
             }
           }
         }
-        if ((previousChunkEnd == null)
-            || (numDomainsInChunk < rdapResultSetMaxSize * CHUNK_SIZE_SCALING_FACTOR)) {
+        if (numDomainsInChunk < rdapResultSetMaxSize * CHUNK_SIZE_SCALING_FACTOR) {
           break;
         }
       }
-      return builder.build();
+      return makeSearchResults(domainList, now);
     }
   }
 
   /** Searches for domains by nameserver name, returning a JSON array of domain info maps. */
   private ImmutableList<ImmutableMap<String, Object>>
-      searchByNameserverLdhName(final RdapSearchPattern partialStringQuery, final DateTime now)
-          throws HttpException {
+      searchByNameserverLdhName(final RdapSearchPattern partialStringQuery, final DateTime now) {
     Iterable<Key<HostResource>> hostKeys;
     // Handle queries without a wildcard; just load the host by foreign key in the usual way.
     if (!partialStringQuery.getHasWildcard()) {
@@ -278,19 +273,29 @@ public class RdapDomainSearchAction extends RdapActionBase {
   private ImmutableList<ImmutableMap<String, Object>>
       searchByNameserverRefs(final Iterable<Key<HostResource>> hostKeys, final DateTime now) {
     // We must break the query up into chunks, because the in operator is limited to 30 subqueries.
-    ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
+    ImmutableList.Builder<DomainResource> domainListBuilder = new ImmutableList.Builder<>();
     for (List<Key<HostResource>> chunk : Iterables.partition(hostKeys, 30)) {
-      Query<DomainResource> query = ofy().load()
-          .type(DomainResource.class)
-          .filter("nameservers.linked in", chunk)
-          .filter("deletionTime >", now)
-          .limit(1000);
-      for (DomainResource domainResource : query) {
-        builder.add(
-            RdapJsonFormatter.makeRdapJsonForDomain(
-                domainResource, false, rdapLinkBase, rdapWhoisServer, now));
-      }
+      domainListBuilder.addAll(
+          ofy().load()
+              .type(DomainResource.class)
+              .filter("nameservers.linked in", chunk)
+              .filter("deletionTime >", now)
+              .limit(1000));
     }
-    return builder.build();
+    return makeSearchResults(domainListBuilder.build(), now);
+  }
+
+  /** Output JSON for a list of domains. */
+  private ImmutableList<ImmutableMap<String, Object>> makeSearchResults(
+      List<DomainResource> domains, DateTime now) {
+    OutputDataType outputDataType =
+        (domains.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
+    ImmutableList.Builder<ImmutableMap<String, Object>> jsonBuilder = new ImmutableList.Builder<>();
+    for (DomainResource domain : domains) {
+      jsonBuilder.add(
+          RdapJsonFormatter.makeRdapJsonForDomain(
+              domain, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
+    }
+    return jsonBuilder.build();
   }
 }

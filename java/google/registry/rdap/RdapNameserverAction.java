@@ -20,8 +20,8 @@ import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.host.HostResource;
+import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.request.Action;
-import google.registry.request.HttpException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.util.Clock;
 import javax.inject.Inject;
@@ -50,7 +50,7 @@ public class RdapNameserverAction extends RdapActionBase {
 
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
+      String pathSearchString, boolean isHeadRequest, String linkBase) {
     DateTime now = clock.nowUtc();
     pathSearchString = canonicalizeName(pathSearchString);
     // The RDAP syntax is /rdap/nameserver/ns1.mydomain.com.
@@ -61,6 +61,6 @@ public class RdapNameserverAction extends RdapActionBase {
       throw new NotFoundException(pathSearchString + " not found");
     }
     return RdapJsonFormatter.makeRdapJsonForHost(
-        hostResource, true, rdapLinkBase, rdapWhoisServer, now);
+        hostResource, true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
   }
 }

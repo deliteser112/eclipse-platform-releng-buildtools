@@ -1,0 +1,50 @@
+{
+  "objectClassName" : "entity",
+  "handle" : "1",
+  "status" : ["active"],
+  "roles" : ["registrar"],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.google.com/entity/1",
+      "rel" : "self",
+      "href" : "http://myserver.google.com/entity/1",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "publicIds" :
+  [
+    {
+      "type" : "IANA Registrar ID",
+      "identifier" : "1"
+    }
+  ],
+  "vcardArray" :
+  [
+    "vcard",
+    [
+      ["version", {}, "text", "4.0"],
+      ["fn", {}, "text", "みんな"],
+      ["adr", {}, "text", [
+        "",
+        "",
+        "123 Example Boulevard <script>",
+        "Williamsburg <script>",
+        "NY",
+        "11211",
+        "United States"]],
+      ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
+      ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+      ["email", {}, "text", "contact-us@example.com"]
+    ]
+  ],
+  "remarks": [
+    {
+      "title": "Incomplete Data",
+      "description": [
+        "Summary data only. For complete data, send a specific query for the object."
+      ],
+      "type": "object truncated due to unexplainable reasons"
+    }
+  ]
+}

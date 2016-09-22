@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.persistResources;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
@@ -110,7 +111,7 @@ public class RdapDomainSearchActionTest {
         action.nsIpParam = Optional.absent();
         break;
     }
-    action.rdapResultSetMaxSize = 5;
+    action.rdapResultSetMaxSize = 4;
     action.run();
     return JSONValue.parse(response.getPayload());
   }
@@ -518,20 +519,21 @@ public class RdapDomainSearchActionTest {
   }
 
   private void createManyDomains(int numActiveDomains, int numTotalDomainsPerActiveDomain) {
+    // Create all the domains at once, then persist them in parallel, for increased efficiency.
+    ImmutableList.Builder<DomainResource> domainsBuilder = new ImmutableList.Builder<>();
     for (int i = 1; i <= numActiveDomains * numTotalDomainsPerActiveDomain; i++) {
       String domainName = String.format("domain%d.lol", i);
-      DomainResource domain =
+      DomainResource.Builder builder =
           makeDomainResource(
               domainName, contact1, contact2, contact3, hostNs1CatLol, hostNs2CatLol, registrar)
           .asBuilder()
-          .setCreationTimeForTest(clock.nowUtc().minusYears(3))
-          .build();
-      if (i % numTotalDomainsPerActiveDomain == 0) {
-        persistResource(domain);
-      } else {
-        persistDomainAsDeleted(domain, clock.nowUtc());
+          .setCreationTimeForTest(clock.nowUtc().minusYears(3));
+      if (i % numTotalDomainsPerActiveDomain != 0) {
+        builder = builder.setDeletionTime(clock.nowUtc().minusDays(1));
       }
+      domainsBuilder.add(builder.build());
     }
+    persistResources(domainsBuilder.build());
   }
 
   private void checkNumberOfDomainsInResult(Object obj, int expected) {
@@ -549,10 +551,10 @@ public class RdapDomainSearchActionTest {
   @Test
   public void testDomainMatch_manyDeletedDomains_fullResultSet() throws Exception {
     // There are enough domains to fill a full result set; deleted domains are ignored.
-    createManyDomains(5, 4);
+    createManyDomains(4, 4);
     Object obj = generateActualJson(RequestType.NAME, "domain*.lol");
     assertThat(response.getStatus()).isEqualTo(200);
-    checkNumberOfDomainsInResult(obj, 5);
+    checkNumberOfDomainsInResult(obj, 4);
   }
 
   @Test
@@ -571,7 +573,7 @@ public class RdapDomainSearchActionTest {
     // This is not exactly desired behavior, but expected: There are enough domains to fill a full
     // result set, but there are so many deleted domains that we run out of patience before we work
     // our way through all of them.
-    createManyDomains(5, 150);
+    createManyDomains(4, 150);
     Object obj = generateActualJson(RequestType.NAME, "domain*.lol");
     assertThat(response.getStatus()).isEqualTo(200);
     checkNumberOfDomainsInResult(obj, 3);
@@ -587,7 +589,8 @@ public class RdapDomainSearchActionTest {
   @Test
   public void testNameserverMatchWithWildcard_found() throws Exception {
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns2.cat.l*"))
-        .isEqualTo(generateExpectedJsonForDomain("cat.lol", null, "C-LOL", "rdap_domain.json"));
+        .isEqualTo(
+            generateExpectedJsonForDomain("cat.lol", null, "C-LOL", "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -672,7 +675,8 @@ public class RdapDomainSearchActionTest {
   public void testNameserverMatchOneDeletedDomain_foundTheOther() throws Exception {
     persistDomainAsDeleted(domainCatExample, clock.nowUtc());
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.lol"))
-        .isEqualTo(generateExpectedJsonForDomain("cat.lol", null, "C-LOL", "rdap_domain.json"));
+        .isEqualTo(
+            generateExpectedJsonForDomain("cat.lol", null, "C-LOL", "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -748,7 +752,8 @@ public class RdapDomainSearchActionTest {
   public void testAddressMatchOneDeletedDomain_foundTheOther() throws Exception {
     persistDomainAsDeleted(domainCatExample, clock.nowUtc());
     assertThat(generateActualJson(RequestType.NS_IP, "1.2.3.4"))
-        .isEqualTo(generateExpectedJsonForDomain("cat.lol", null, "C-LOL", "rdap_domain.json"));
+        .isEqualTo(
+            generateExpectedJsonForDomain("cat.lol", null, "C-LOL", "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

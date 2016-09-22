@@ -26,8 +26,8 @@ import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.registrar.Registrar;
+import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.request.Action;
-import google.registry.request.HttpException;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.util.Clock;
@@ -66,7 +66,7 @@ public class RdapEntityAction extends RdapActionBase {
 
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException {
+      String pathSearchString, boolean isHeadRequest, String linkBase) {
     DateTime now = clock.nowUtc();
     // The query string is not used; the RDAP syntax is /rdap/entity/handle (the handle is the roid
     // for contacts and the client identifier for registrars). Since RDAP's concept of an entity
@@ -85,7 +85,8 @@ public class RdapEntityAction extends RdapActionBase {
             Optional.<DesignatedContact.Type>absent(),
             rdapLinkBase,
             rdapWhoisServer,
-            now);
+            now,
+            OutputDataType.FULL);
       }
     }
     try {
@@ -95,7 +96,7 @@ public class RdapEntityAction extends RdapActionBase {
           Registrar.loadByIanaIdentifierRange(ianaIdentifier, ianaIdentifier + 1, 1), null);
       if ((registrar != null) && registrar.isActiveAndPubliclyVisible()) {
         return RdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar, true, rdapLinkBase, rdapWhoisServer, now);
+            registrar, true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
       }
     } catch (NumberFormatException e) {
       // Although the search string was not a valid IANA identifier, it might still have been a

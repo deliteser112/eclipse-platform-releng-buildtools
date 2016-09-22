@@ -14,15 +14,13 @@
           "type" : "application/rdap+json"
         }
       ],
-      "events": [
+      "remarks": [
         {
-          "eventAction": "registration",
-          "eventActor": "foo",
-          "eventDate": "2000-01-01T00:00:00.000Z"
-        },
-        {
-          "eventAction": "last update of RDAP database",
-          "eventDate": "2000-01-01T00:00:00.000Z"
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
         }
       ],
       "vcardArray" :
@@ -63,15 +61,13 @@
           "type" : "application/rdap+json"
         }
       ],
-      "events": [
+      "remarks": [
         {
-          "eventAction": "registration",
-          "eventActor": "2-Registrar",
-          "eventDate": "2000-01-01T00:00:00.000Z"
-        },
-        {
-          "eventAction": "last update of RDAP database",
-          "eventDate": "2000-01-01T00:00:00.000Z"
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
         }
       ],
       "publicIds" :
@@ -102,41 +98,6 @@
           ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
           ["email", {}, "text", "contact-us@example.com"]
         ]
-      ],
-      "entities" :
-      [
-        {
-          "objectClassName" : "entity",
-          "status" : ["active"],
-          "roles" : ["administrative"],
-          "vcardArray" :
-          [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "Jane Doe"],
-              ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551215"],
-              ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551216"],
-              ["email", {}, "text", "janedoe@example.com"]
-            ]
-          ],
-        },
-        {
-          "objectClassName" : "entity",
-          "status" : ["active"],
-          "roles" : ["technical"],
-          "vcardArray" :
-          [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "John Doe"],
-              ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551213"],
-              ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
-              ["email", {}, "text", "johndoe@example.com"]
-            ]
-          ],
-        }
       ]
     }
   ],

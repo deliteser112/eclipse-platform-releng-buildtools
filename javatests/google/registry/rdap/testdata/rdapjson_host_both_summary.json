@@ -1,0 +1,30 @@
+{
+  "objectClassName" : "nameserver",
+  "handle" : "C-ROID",
+  "ldhName" : "ns3.cat.xn--q9jyb4c",
+  "unicodeName" : "ns3.cat.みんな",
+  "status" : ["active"],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.google.com/nameserver/ns3.cat.xn--q9jyb4c",
+      "rel" : "self",
+      "href" : "http://myserver.google.com/nameserver/ns3.cat.xn--q9jyb4c",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "ipAddresses" :
+  {
+    "v4" : ["1.2.3.4"],
+    "v6" : ["bad:f00d:cafe::15:beef"]
+  },
+  "remarks": [
+    {
+      "title": "Incomplete Data",
+      "description": [
+        "Summary data only. For complete data, send a specific query for the object."
+      ],
+      "type": "object truncated due to unexplainable reasons"
+    }
+  ]
+}

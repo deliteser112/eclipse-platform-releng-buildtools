@@ -1,0 +1,36 @@
+{
+  "objectClassName" : "entity",
+  "handle" : "2-ROID",
+  "status" : ["active"],
+  "roles" : ["registrant"],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.google.com/entity/2-ROID",
+      "rel" : "self",
+      "href" : "http://myserver.google.com/entity/2-ROID",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "vcardArray" :
+  [
+    "vcard",
+    [
+      ["version", {}, "text", "4.0"],
+      ["fn", {}, "text", "(◕‿◕)"],
+      ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
+      ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
+      ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
+      ["email", {}, "text", "lol@cat.みんな"]
+    ]
+  ],
+  "remarks": [
+    {
+      "title": "Incomplete Data",
+      "description": [
+        "Summary data only. For complete data, send a specific query for the object."
+      ],
+      "type": "object truncated due to unexplainable reasons"
+    }
+  ]
+}

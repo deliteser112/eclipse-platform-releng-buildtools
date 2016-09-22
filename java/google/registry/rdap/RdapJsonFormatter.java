@@ -48,6 +48,7 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -65,6 +66,19 @@ import org.joda.time.DateTime;
  *        RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
  */
 public class RdapJsonFormatter {
+
+  /**
+   * What type of data to generate. Summary data includes only information about the object itself,
+   * while full data includes associated items (e.g. for domains, full data includes the hosts,
+   * contacts and history entries connected with the domain). Summary data is appropriate for search
+   * queries which return many results, to avoid load on the system. According to the ICANN
+   * operational profile, a remark must be attached to the returned object indicating that it
+   * includes only summary data.
+   */
+  public enum OutputDataType {
+    FULL,
+    SUMMARY
+  }
 
   /**
    * Indication of what type of boilerplate notices are required for the RDAP JSON messages. The
@@ -269,24 +283,27 @@ public class RdapJsonFormatter {
    * 1.5.20. Note that this method will only work if there are no object-specific remarks already in
    * the JSON object being built. If there are, the boilerplate must be merged in.
    *
-   * @param builder a builder for a JSON map object
+   * @param jsonBuilder a builder for a JSON map object
    * @param boilerplateType type of boilerplate to be added; the ICANN RDAP Profile document
    *        mandates extra boilerplate for domain objects
    * @param notices a list of notices to be inserted before the boilerplate notices. If the TOS
    *        notice is in this list, the method avoids adding a second copy.
+   * @param remarks a list of remarks to be inserted before the boilerplate notices.
    * @param rdapLinkBase the base for link URLs
    */
   static void addTopLevelEntries(
-      ImmutableMap.Builder<String, Object> builder,
+      ImmutableMap.Builder<String, Object> jsonBuilder,
       BoilerplateType boilerplateType,
-      @Nullable Iterable<ImmutableMap<String, Object>> notices,
+      List<ImmutableMap<String, Object>> notices,
+      List<ImmutableMap<String, Object>> remarks,
       String rdapLinkBase) {
-    builder.put("rdapConformance", CONFORMANCE_LIST);
-    ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder = ImmutableList.builder();
+    jsonBuilder.put("rdapConformance", CONFORMANCE_LIST);
+    ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
+        new ImmutableList.Builder<>();
     ImmutableMap<String, Object> tosNotice =
         RdapHelpAction.getJsonHelpNotice(RdapHelpAction.TERMS_OF_SERVICE_PATH, rdapLinkBase);
     boolean tosNoticeFound = false;
-    if (notices != null) {
+    if (!notices.isEmpty()) {
       noticesBuilder.addAll(notices);
       for (ImmutableMap<String, Object> notice : notices) {
         if (notice.equals(tosNotice)) {
@@ -298,17 +315,24 @@ public class RdapJsonFormatter {
     if (!tosNoticeFound) {
       noticesBuilder.add(tosNotice);
     }
-    builder.put(NOTICES, noticesBuilder.build());
+    jsonBuilder.put(NOTICES, noticesBuilder.build());
+    ImmutableList.Builder<ImmutableMap<String, Object>> remarksBuilder =
+        new ImmutableList.Builder<>();
+    remarksBuilder.addAll(remarks);
     switch (boilerplateType) {
       case DOMAIN:
-        builder.put(REMARKS, RdapIcannStandardInformation.domainBoilerplateRemarks);
+        remarksBuilder.addAll(RdapIcannStandardInformation.domainBoilerplateRemarks);
         break;
       case NAMESERVER:
       case ENTITY:
-        builder.put(REMARKS, RdapIcannStandardInformation.nameserverAndEntityBoilerplateRemarks);
+        remarksBuilder.addAll(RdapIcannStandardInformation.nameserverAndEntityBoilerplateRemarks);
         break;
       default: // things other than domains, nameservers and entities cannot contain remarks
         break;
+    }
+    ImmutableList<ImmutableMap<String, Object>> remarksToAdd = remarksBuilder.build();
+    if (!remarksToAdd.isEmpty()) {
+      jsonBuilder.put(REMARKS, remarksToAdd);
     }
   }
 
@@ -367,22 +391,22 @@ public class RdapJsonFormatter {
    */
   static ImmutableMap<String, Object> makeRdapJsonNotice(
       MakeRdapJsonNoticeParameters parameters, @Nullable String linkBase) {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     if (parameters.title() != null) {
-      builder.put("title", parameters.title());
+      jsonBuilder.put("title", parameters.title());
     }
     ImmutableList.Builder<String> descriptionBuilder = new ImmutableList.Builder<>();
     for (String line : parameters.description()) {
       descriptionBuilder.add(nullToEmpty(line));
     }
-    builder.put("description", descriptionBuilder.build());
+    jsonBuilder.put("description", descriptionBuilder.build());
     if (parameters.typeString() != null) {
-      builder.put("typeString", parameters.typeString());
+      jsonBuilder.put("typeString", parameters.typeString());
     }
     String linkValueString =
         nullToEmpty(linkBase) + nullToEmpty(parameters.linkValueSuffix());
     if (parameters.linkHrefUrlString() == null) {
-      builder.put("links", ImmutableList.of(ImmutableMap.of(
+      jsonBuilder.put("links", ImmutableList.of(ImmutableMap.of(
           "value", linkValueString,
           "rel", "self",
           "href", linkValueString,
@@ -390,112 +414,146 @@ public class RdapJsonFormatter {
     } else {
       URI htmlBaseURI = URI.create(nullToEmpty(linkBase));
       URI htmlUri = htmlBaseURI.resolve(parameters.linkHrefUrlString());
-      builder.put("links", ImmutableList.of(ImmutableMap.of(
+      jsonBuilder.put("links", ImmutableList.of(ImmutableMap.of(
           "value", linkValueString,
           "rel", "alternate",
           "href", htmlUri.toString(),
           "type", "text/html")));
     }
-    return builder.build();
+    return jsonBuilder.build();
   }
 
   /**
    * Creates a JSON object for a {@link DomainResource}.
    *
    * @param domainResource the domain resource object from which the JSON object should be created
+   * @param isTopLevel if true, the top-level boilerplate will be added
    * @param linkBase the URL base to be used when creating links
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
+   * @param now the as-date
+   * @param outputDataType whether to generate full or summary data
    */
   static ImmutableMap<String, Object> makeRdapJsonForDomain(
       DomainResource domainResource,
       boolean isTopLevel,
       @Nullable String linkBase,
       @Nullable String whoisServer,
-      DateTime now) {
-    // Kick off the database loads of the nameservers that we will need.
-    Map<Key<HostResource>, HostResource> loadedHosts =
-        ofy().load().keys(domainResource.getNameservers());
-    // And the registrant and other contacts.
-    Map<Key<ContactResource>, ContactResource> loadedContacts =
-        ofy().load().keys(domainResource.getReferencedContacts());
-
-    // Now, assemble the results, using the loaded objects as needed.
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("objectClassName", "domain");
-    builder.put("handle", domainResource.getRepoId());
-    builder.put("ldhName", domainResource.getFullyQualifiedDomainName());
+      DateTime now,
+      OutputDataType outputDataType) {
+    // Start with the domain-level information.
+    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
+    jsonBuilder.put("objectClassName", "domain");
+    jsonBuilder.put("handle", domainResource.getRepoId());
+    jsonBuilder.put("ldhName", domainResource.getFullyQualifiedDomainName());
     // Only include the unicodeName field if there are unicode characters.
     if (hasUnicodeComponents(domainResource.getFullyQualifiedDomainName())) {
-      builder.put("unicodeName", Idn.toUnicode(domainResource.getFullyQualifiedDomainName()));
+      jsonBuilder.put("unicodeName", Idn.toUnicode(domainResource.getFullyQualifiedDomainName()));
     }
-    builder.put("status", makeStatusValueList(domainResource.getStatusValues()));
-    builder.put("links", ImmutableList.of(
+    jsonBuilder.put("status", makeStatusValueList(domainResource.getStatusValues()));
+    jsonBuilder.put("links", ImmutableList.of(
         makeLink("domain", domainResource.getFullyQualifiedDomainName(), linkBase)));
-    ImmutableList<Object> events = makeEvents(domainResource, now);
-    if (!events.isEmpty()) {
-      builder.put("events", events);
-    }
-    // Nameservers
-    ImmutableList.Builder<Object> nsBuilder = new ImmutableList.Builder<>();
-    for (HostResource hostResource
-        : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
-      nsBuilder.add(makeRdapJsonForHost(hostResource, false, linkBase, null, now));
-    }
-    ImmutableList<Object> ns = nsBuilder.build();
-    if (!ns.isEmpty()) {
-      builder.put("nameservers", ns);
-    }
-    // Contacts
-    ImmutableList.Builder<Object> entitiesBuilder = new ImmutableList.Builder<>();
-    for (DesignatedContact designatedContact : FluentIterable.from(domainResource.getContacts())
-        .append(DesignatedContact.create(Type.REGISTRANT, domainResource.getRegistrant()))
-        .toSortedList(DESIGNATED_CONTACT_ORDERING)) {
-      ContactResource loadedContact = loadedContacts.get(designatedContact.getContactKey());
-      entitiesBuilder.add(makeRdapJsonForContact(
-          loadedContact, false, Optional.of(designatedContact.getType()), linkBase, null, now));
-    }
-    ImmutableList<Object> entities = entitiesBuilder.build();
-    if (!entities.isEmpty()) {
-      builder.put("entities", entities);
+    // If we are outputting all data (not just summary data), also add information about hosts,
+    // contacts and events (history entries). If we are outputting summary data, instead add a
+    // remark indicating that fact.
+    List<ImmutableMap<String, Object>> remarks;
+    if (outputDataType == OutputDataType.SUMMARY) {
+      remarks = ImmutableList.of(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
+    } else {
+      remarks = ImmutableList.of();
+      ImmutableList<Object> events = makeEvents(domainResource, now);
+      if (!events.isEmpty()) {
+        jsonBuilder.put("events", events);
+      }
+      // Kick off the database loads of the nameservers that we will need.
+      Map<Key<HostResource>, HostResource> loadedHosts =
+          ofy().load().keys(domainResource.getNameservers());
+      // And the registrant and other contacts.
+      Map<Key<ContactResource>, ContactResource> loadedContacts =
+          ofy().load().keys(domainResource.getReferencedContacts());
+      // Nameservers
+      ImmutableList.Builder<Object> nsBuilder = new ImmutableList.Builder<>();
+      for (HostResource hostResource
+          : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
+        nsBuilder.add(makeRdapJsonForHost(
+            hostResource, false, linkBase, null, now, outputDataType));
+      }
+      ImmutableList<Object> ns = nsBuilder.build();
+      if (!ns.isEmpty()) {
+        jsonBuilder.put("nameservers", ns);
+      }
+      // Contacts
+      ImmutableList.Builder<Object> entitiesBuilder = new ImmutableList.Builder<>();
+      for (DesignatedContact designatedContact : FluentIterable.from(domainResource.getContacts())
+          .append(DesignatedContact.create(Type.REGISTRANT, domainResource.getRegistrant()))
+          .toSortedList(DESIGNATED_CONTACT_ORDERING)) {
+        ContactResource loadedContact = loadedContacts.get(designatedContact.getContactKey());
+        entitiesBuilder.add(makeRdapJsonForContact(
+            loadedContact,
+            false,
+            Optional.of(designatedContact.getType()),
+            linkBase,
+            null,
+            now,
+            outputDataType));
+      }
+      ImmutableList<Object> entities = entitiesBuilder.build();
+      if (!entities.isEmpty()) {
+        jsonBuilder.put("entities", entities);
+      }
     }
     if (whoisServer != null) {
-      builder.put("port43", whoisServer);
+      jsonBuilder.put("port43", whoisServer);
     }
     if (isTopLevel) {
-      addTopLevelEntries(builder, BoilerplateType.DOMAIN, null, linkBase);
+      addTopLevelEntries(
+          jsonBuilder, BoilerplateType.DOMAIN, remarks, ImmutableList.of(), linkBase);
+    } else if (!remarks.isEmpty()) {
+      jsonBuilder.put(REMARKS, remarks);
     }
-    return builder.build();
+    return jsonBuilder.build();
   }
 
   /**
    * Creates a JSON object for a {@link HostResource}.
    *
    * @param hostResource the host resource object from which the JSON object should be created
+   * @param isTopLevel if true, the top-level boilerplate will be added
    * @param linkBase the URL base to be used when creating links
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
+   * @param now the as-date
+   * @param outputDataType whether to generate full or summary data
    */
   static ImmutableMap<String, Object> makeRdapJsonForHost(
       HostResource hostResource,
       boolean isTopLevel,
       @Nullable String linkBase,
       @Nullable String whoisServer,
-      DateTime now) {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("objectClassName", "nameserver");
-    builder.put("handle", hostResource.getRepoId());
-    builder.put("ldhName", hostResource.getFullyQualifiedHostName());
+      DateTime now,
+      OutputDataType outputDataType) {
+    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
+    jsonBuilder.put("objectClassName", "nameserver");
+    jsonBuilder.put("handle", hostResource.getRepoId());
+    jsonBuilder.put("ldhName", hostResource.getFullyQualifiedHostName());
     // Only include the unicodeName field if there are unicode characters.
     if (hasUnicodeComponents(hostResource.getFullyQualifiedHostName())) {
-      builder.put("unicodeName", Idn.toUnicode(hostResource.getFullyQualifiedHostName()));
+      jsonBuilder.put("unicodeName", Idn.toUnicode(hostResource.getFullyQualifiedHostName()));
     }
-    builder.put("status", makeStatusValueList(hostResource.getStatusValues()));
-    builder.put("links", ImmutableList.of(
+    jsonBuilder.put("status", makeStatusValueList(hostResource.getStatusValues()));
+    jsonBuilder.put("links", ImmutableList.of(
         makeLink("nameserver", hostResource.getFullyQualifiedHostName(), linkBase)));
-    ImmutableList<Object> events = makeEvents(hostResource, now);
-    if (!events.isEmpty()) {
-      builder.put("events", events);
+    List<ImmutableMap<String, Object>> remarks;
+    // If we are outputting all data (not just summary data), also add events taken from the history
+    // entries. If we are outputting summary data, instead add a remark indicating that fact.
+    if (outputDataType == OutputDataType.SUMMARY) {
+      remarks = ImmutableList.of(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
+    } else {
+      remarks = ImmutableList.of();
+      ImmutableList<Object> events = makeEvents(hostResource, now);
+      if (!events.isEmpty()) {
+        jsonBuilder.put("events", events);
+      }
     }
     ImmutableSet<InetAddress> inetAddresses = hostResource.getInetAddresses();
     if (!inetAddresses.isEmpty()) {
@@ -520,26 +578,32 @@ public class RdapJsonFormatter {
       }
       ImmutableMap<String, ImmutableList<String>> ipAddresses = ipAddressesBuilder.build();
       if (!ipAddresses.isEmpty()) {
-        builder.put("ipAddresses", ipAddressesBuilder.build());
+        jsonBuilder.put("ipAddresses", ipAddressesBuilder.build());
       }
     }
     if (whoisServer != null) {
-      builder.put("port43", whoisServer);
+      jsonBuilder.put("port43", whoisServer);
     }
     if (isTopLevel) {
-      addTopLevelEntries(builder, BoilerplateType.NAMESERVER, null, linkBase);
+      addTopLevelEntries(
+          jsonBuilder, BoilerplateType.NAMESERVER, remarks, ImmutableList.of(), linkBase);
+    } else if (!remarks.isEmpty()) {
+      jsonBuilder.put(REMARKS, remarks);
     }
-    return builder.build();
+    return jsonBuilder.build();
   }
 
   /**
    * Creates a JSON object for a {@link ContactResource} and associated contact type.
    *
    * @param contactResource the contact resource object from which the JSON object should be created
+   * @param isTopLevel if true, the top-level boilerplate will be added
    * @param contactType the contact type to map to an RDAP role; if absent, no role is listed
    * @param linkBase the URL base to be used when creating links
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
+   * @param now the as-date
+   * @param outputDataType whether to generate full or summary data
    */
   static ImmutableMap<String, Object> makeRdapJsonForContact(
       ContactResource contactResource,
@@ -547,15 +611,17 @@ public class RdapJsonFormatter {
       Optional<DesignatedContact.Type> contactType,
       @Nullable String linkBase,
       @Nullable String whoisServer,
-      DateTime now) {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("objectClassName", "entity");
-    builder.put("handle", contactResource.getRepoId());
-    builder.put("status", makeStatusValueList(contactResource.getStatusValues()));
+      DateTime now,
+      OutputDataType outputDataType) {
+    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
+    jsonBuilder.put("objectClassName", "entity");
+    jsonBuilder.put("handle", contactResource.getRepoId());
+    jsonBuilder.put("status", makeStatusValueList(contactResource.getStatusValues()));
     if (contactType.isPresent()) {
-      builder.put("roles", ImmutableList.of(convertContactTypeToRdapRole(contactType.get())));
+      jsonBuilder.put("roles",
+          ImmutableList.of(convertContactTypeToRdapRole(contactType.get())));
     }
-    builder.put("links",
+    jsonBuilder.put("links",
         ImmutableList.of(makeLink("entity", contactResource.getRepoId(), linkBase)));
     // Create the vCard.
     ImmutableList.Builder<Object> vcardBuilder = new ImmutableList.Builder<>();
@@ -588,42 +654,57 @@ public class RdapJsonFormatter {
     if (emailAddress != null) {
       vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
     }
-    builder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
-    ImmutableList<Object> events = makeEvents(contactResource, now);
-    if (!events.isEmpty()) {
-      builder.put("events", events);
+    jsonBuilder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
+    // If we are outputting all data (not just summary data), also add events taken from the history
+    // entries. If we are outputting summary data, instead add a remark indicating that fact.
+    List<ImmutableMap<String, Object>> remarks;
+    if (outputDataType == OutputDataType.SUMMARY) {
+      remarks = ImmutableList.of(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
+    } else {
+      remarks = ImmutableList.of();
+      ImmutableList<Object> events = makeEvents(contactResource, now);
+      if (!events.isEmpty()) {
+        jsonBuilder.put("events", events);
+      }
     }
     if (whoisServer != null) {
-      builder.put("port43", whoisServer);
+      jsonBuilder.put("port43", whoisServer);
     }
     if (isTopLevel) {
-      addTopLevelEntries(builder, BoilerplateType.ENTITY, null, linkBase);
+      addTopLevelEntries(
+          jsonBuilder, BoilerplateType.ENTITY, remarks, ImmutableList.of(), linkBase);
+    } else if (!remarks.isEmpty()) {
+      jsonBuilder.put(REMARKS, remarks);
     }
-    return builder.build();
+    return jsonBuilder.build();
   }
 
   /**
    * Creates a JSON object for a {@link Registrar}.
    *
    * @param registrar the registrar object from which the JSON object should be created
+   * @param isTopLevel if true, the top-level boilerplate will be added
    * @param linkBase the URL base to be used when creating links
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
+   * @param now the as-date
+   * @param outputDataType whether to generate full or summary data
    */
   static ImmutableMap<String, Object> makeRdapJsonForRegistrar(
       Registrar registrar,
       boolean isTopLevel,
       @Nullable String linkBase,
       @Nullable String whoisServer,
-      DateTime now) {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("objectClassName", "entity");
-    builder.put("handle", registrar.getIanaIdentifier().toString());
-    builder.put("status", STATUS_LIST_ACTIVE);
-    builder.put("roles", ImmutableList.of(RdapEntityRole.REGISTRAR.rfc7483String));
-    builder.put("links",
+      DateTime now,
+      OutputDataType outputDataType) {
+    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
+    jsonBuilder.put("objectClassName", "entity");
+    jsonBuilder.put("handle", registrar.getIanaIdentifier().toString());
+    jsonBuilder.put("status", STATUS_LIST_ACTIVE);
+    jsonBuilder.put("roles", ImmutableList.of(RdapEntityRole.REGISTRAR.rfc7483String));
+    jsonBuilder.put("links",
         ImmutableList.of(makeLink("entity", registrar.getIanaIdentifier().toString(), linkBase)));
-    builder.put("publicIds",
+    jsonBuilder.put("publicIds",
         ImmutableList.of(
             ImmutableMap.of(
                 "type", "IANA Registrar ID",
@@ -657,30 +738,41 @@ public class RdapJsonFormatter {
     if (emailAddress != null) {
       vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
     }
-    builder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
-    ImmutableList<Object> events = makeEvents(registrar, now);
-    if (!events.isEmpty()) {
-      builder.put("events", events);
-    }
-    // include the registrar contacts as subentities
-    ImmutableList.Builder<Map<String, Object>> registrarContactsBuilder =
-        new ImmutableList.Builder<>();
-    for (RegistrarContact registrarContact : registrar.getContacts()) {
-      if (isVisible(registrarContact)) {
-        registrarContactsBuilder.add(makeRdapJsonForRegistrarContact(registrarContact, null));
+    jsonBuilder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
+    // If we are outputting all data (not just summary data), also add registrar contacts. If we are
+    // outputting summary data, instead add a remark indicating that fact.
+    List<ImmutableMap<String, Object>> remarks;
+    if (outputDataType == OutputDataType.SUMMARY) {
+      remarks = ImmutableList.of(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
+    } else {
+      remarks = ImmutableList.of();
+      ImmutableList<Object> events = makeEvents(registrar, now);
+      if (!events.isEmpty()) {
+        jsonBuilder.put("events", events);
+      }
+      // include the registrar contacts as subentities
+      ImmutableList.Builder<Map<String, Object>> registrarContactsBuilder =
+          new ImmutableList.Builder<>();
+      for (RegistrarContact registrarContact : registrar.getContacts()) {
+        if (isVisible(registrarContact)) {
+          registrarContactsBuilder.add(makeRdapJsonForRegistrarContact(registrarContact, null));
+        }
+      }
+      ImmutableList<Map<String, Object>> registrarContacts = registrarContactsBuilder.build();
+      if (!registrarContacts.isEmpty()) {
+        jsonBuilder.put("entities", registrarContacts);
       }
     }
-    ImmutableList<Map<String, Object>> registrarContacts = registrarContactsBuilder.build();
-    if (!registrarContacts.isEmpty()) {
-      builder.put("entities", registrarContacts);
-    }
     if (whoisServer != null) {
-      builder.put("port43", whoisServer);
+      jsonBuilder.put("port43", whoisServer);
     }
     if (isTopLevel) {
-      addTopLevelEntries(builder, BoilerplateType.ENTITY, null, linkBase);
+      addTopLevelEntries(
+          jsonBuilder, BoilerplateType.ENTITY, remarks, ImmutableList.of(), linkBase);
+    } else if (!remarks.isEmpty()) {
+      jsonBuilder.put(REMARKS, remarks);
     }
-    return builder.build();
+    return jsonBuilder.build();
   }
 
   /**
@@ -692,14 +784,14 @@ public class RdapJsonFormatter {
    */
   static ImmutableMap<String, Object> makeRdapJsonForRegistrarContact(
       RegistrarContact registrarContact, @Nullable String whoisServer) {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("objectClassName", "entity");
+    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
+    jsonBuilder.put("objectClassName", "entity");
     String gaeUserId = registrarContact.getGaeUserId();
     if (gaeUserId != null) {
-      builder.put("handle", registrarContact.getGaeUserId());
+      jsonBuilder.put("handle", registrarContact.getGaeUserId());
     }
-    builder.put("status", STATUS_LIST_ACTIVE);
-    builder.put("roles", makeRdapRoleList(registrarContact));
+    jsonBuilder.put("status", STATUS_LIST_ACTIVE);
+    jsonBuilder.put("roles", makeRdapRoleList(registrarContact));
     // Create the vCard.
     ImmutableList.Builder<Object> vcardBuilder = new ImmutableList.Builder<>();
     vcardBuilder.add(VCARD_ENTRY_VERSION);
@@ -719,11 +811,11 @@ public class RdapJsonFormatter {
     if (emailAddress != null) {
       vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
     }
-    builder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
+    jsonBuilder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
     if (whoisServer != null) {
-      builder.put("port43", whoisServer);
+      jsonBuilder.put("port43", whoisServer);
     }
-    return builder.build();
+    return jsonBuilder.build();
   }
 
   /** Converts a domain registry contact type into a role as defined by RFC 7483. */
@@ -818,13 +910,13 @@ public class RdapJsonFormatter {
    */
   private static ImmutableMap<String, Object> makeEvent(
       RdapEventAction eventAction, @Nullable String eventActor, DateTime eventDate) {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("eventAction", eventAction.getDisplayName());
+    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
+    jsonBuilder.put("eventAction", eventAction.getDisplayName());
     if (eventActor != null) {
-      builder.put("eventActor", eventActor);
+      jsonBuilder.put("eventActor", eventActor);
     }
-    builder.put("eventDate", eventDate.toString());
-    return builder.build();
+    jsonBuilder.put("eventDate", eventDate.toString());
+    return jsonBuilder.build();
   }
 
   /**
@@ -837,9 +929,9 @@ public class RdapJsonFormatter {
     if (address == null) {
       return null;
     }
-    ImmutableList.Builder<Object> builder = new ImmutableList.Builder<>();
-    builder.add(""); // PO box
-    builder.add(""); // extended address
+    ImmutableList.Builder<Object> jsonBuilder = new ImmutableList.Builder<>();
+    jsonBuilder.add(""); // PO box
+    jsonBuilder.add(""); // extended address
 
     // The vCard spec allows several different ways to handle multiline street addresses. Per
     // Gustavo Lozano of ICANN, the one we should use is an embedded array of street address lines
@@ -859,21 +951,21 @@ public class RdapJsonFormatter {
     //   ]
     ImmutableList<String> street = address.getStreet();
     if (street.isEmpty()) {
-      builder.add("");
+      jsonBuilder.add("");
     } else if (street.size() == 1) {
-      builder.add(street.get(0));
+      jsonBuilder.add(street.get(0));
     } else {
-      builder.add(street);
+      jsonBuilder.add(street);
     }
-    builder.add(nullToEmpty(address.getCity()));
-    builder.add(nullToEmpty(address.getState()));
-    builder.add(nullToEmpty(address.getZip()));
-    builder.add(new Locale("en", address.getCountryCode()).getDisplayCountry(new Locale("en")));
+    jsonBuilder.add(nullToEmpty(address.getCity()));
+    jsonBuilder.add(nullToEmpty(address.getState()));
+    jsonBuilder.add(nullToEmpty(address.getZip()));
+    jsonBuilder.add(new Locale("en", address.getCountryCode()).getDisplayCountry(new Locale("en")));
     return ImmutableList.<Object>of(
         "adr",
         ImmutableMap.of(),
         "text",
-        builder.build());
+        jsonBuilder.build());
   }
 
   /** Creates a vCard phone number entry. */

@@ -14,15 +14,13 @@
           "type" : "application/rdap+json"
         }
       ],
-      "events": [
+      "remarks": [
         {
-          "eventAction": "registration",
-          "eventActor": "foo",
-          "eventDate": "2000-01-01T00:00:00.000Z"
-        },
-        {
-          "eventAction": "last update of RDAP database",
-          "eventDate": "2000-01-01T00:00:00.000Z"
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
         }
       ],
       "vcardArray" :
@@ -62,15 +60,13 @@
           "type" : "application/rdap+json"
         }
       ],
-      "events": [
+      "remarks": [
         {
-          "eventAction": "registration",
-          "eventActor": "foo",
-          "eventDate": "2000-01-01T00:00:00.000Z"
-        },
-        {
-          "eventAction": "last update of RDAP database",
-          "eventDate": "2000-01-01T00:00:00.000Z"
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
         }
       ],
       "vcardArray" :

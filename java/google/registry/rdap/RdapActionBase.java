@@ -90,7 +90,7 @@ public abstract class RdapActionBase implements Runnable {
    * @return A map (probably containing nested maps and lists) with the final JSON response data.
    */
   abstract ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) throws HttpException;
+      String pathSearchString, boolean isHeadRequest, String linkBase);
 
   @Override
   public void run() {

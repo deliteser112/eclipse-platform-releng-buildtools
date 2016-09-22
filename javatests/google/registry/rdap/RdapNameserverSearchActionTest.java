@@ -382,7 +382,12 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithIp("bad:f00d:cafe::15:beef"))
         .isEqualTo(
             generateExpectedJsonForNameserver(
-                "ns2.cat.lol", null, "4-ROID", "v6", "bad:f00d:cafe::15:beef", "rdap_host.json"));
+                "ns2.cat.lol",
+                null,
+                "4-ROID",
+                "v6",
+                "bad:f00d:cafe::15:beef",
+                "rdap_host.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 }

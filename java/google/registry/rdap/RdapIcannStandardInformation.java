@@ -71,4 +71,15 @@ public class RdapIcannStandardInformation {
   /** Boilerplate remarks required by nameserver and entity responses. */
   static final ImmutableList<ImmutableMap<String, Object>> nameserverAndEntityBoilerplateRemarks =
       ImmutableList.of(CONFORMANCE_REMARK);
+
+  /** Required by ICANN RDAP Profile section 1.1.18. */
+  static final ImmutableMap<String, Object> SUMMARY_DATA_REMARK =
+      ImmutableMap.<String, Object> of(
+          "title",
+          "Incomplete Data",
+          "description",
+          ImmutableList.of(
+              "Summary data only. For complete data, send a specific query for the object."),
+          "type",
+          "object truncated due to unexplainable reasons");
 }
