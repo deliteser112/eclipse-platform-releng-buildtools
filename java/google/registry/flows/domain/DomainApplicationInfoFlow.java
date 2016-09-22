@@ -15,17 +15,29 @@
 package google.registry.flows.domain;
 
 import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.flows.ResourceFlowUtils.loadResourceForQuery;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
-import static google.registry.flows.domain.DomainFlowUtils.verifyLaunchApplicationIdMatchesDomain;
+import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
+import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
+import google.registry.flows.FlowModule.ApplicationId;
+import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
+import google.registry.flows.LoggedInFlow;
 import google.registry.model.domain.DomainApplication;
-import google.registry.model.domain.DomainApplication.Builder;
+import google.registry.model.domain.DomainCommand.Info;
 import google.registry.model.domain.launch.LaunchInfoExtension;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
+import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppinput.ResourceCommand;
+import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.mark.Mark;
 import google.registry.model.smd.EncodedSignedMark;
@@ -33,75 +45,86 @@ import google.registry.model.smd.SignedMark;
 import javax.inject.Inject;
 
 /**
- * An EPP flow that reads a domain application.
+ * An EPP flow that returns information about a domain application.
+ *
+ * <p>Only the registrar that owns the application can see its info. The flow can optionally include
+ * delegated hosts in its response.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
  * @error {@link DomainFlowUtils.ApplicationDomainNameMismatchException}
  * @error {@link DomainApplicationInfoFlow.ApplicationLaunchPhaseMismatchException}
- * @error {@link DomainApplicationInfoFlow.MissingApplicationIdException}
+ * @error {@link MissingApplicationIdException}
  */
-public class DomainApplicationInfoFlow extends BaseDomainInfoFlow<DomainApplication, Builder> {
+public final class DomainApplicationInfoFlow extends LoggedInFlow {
 
-  private boolean includeMarks;
-
+  @Inject ResourceCommand resourceCommand;
+  @Inject Optional<AuthInfo> authInfo;
+  @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
+  @Inject @ApplicationId String applicationId;
   @Inject DomainApplicationInfoFlow() {}
 
   @Override
-  protected final void initSingleResourceFlow() throws EppException {
+  protected final void initLoggedInFlow() throws EppException {
     registerExtensions(LaunchInfoExtension.class);
-    // We need to do this in init rather than verify or we'll get the generic "object not found".
-    LaunchInfoExtension extension = eppInput.getSingleExtension(LaunchInfoExtension.class);
-    if (extension.getApplicationId() == null) {
+  }
+
+  @Override
+  public final EppOutput run() throws EppException {
+    if (applicationId.isEmpty()) {
       throw new MissingApplicationIdException();
     }
-    includeMarks = Boolean.TRUE.equals(extension.getIncludeMark());  // Default to false.
-  }
-
-  @Override
-  protected final void verifyQueryIsAllowed() throws EppException {
-    verifyLaunchApplicationIdMatchesDomain(command, existingResource);
-    if (!existingResource.getPhase().equals(
-        eppInput.getSingleExtension(LaunchInfoExtension.class).getPhase())) {
+    DomainApplication application =
+        loadResourceForQuery(DomainApplication.class, applicationId, now);
+    verifyApplicationDomainMatchesTargetId(application, targetId);
+    verifyOptionalAuthInfoForResource(authInfo, application);
+    LaunchInfoExtension launchInfo = eppInput.getSingleExtension(LaunchInfoExtension.class);
+    if (!application.getPhase().equals(launchInfo.getPhase())) {
       throw new ApplicationLaunchPhaseMismatchException();
     }
+    // We don't support authInfo for applications, so if it's another registrar always fail.
+    verifyResourceOwnership(clientId, application);
+    return createOutput(
+        SUCCESS,
+        getResourceInfo(application),
+        getDomainResponseExtensions(application, launchInfo));
   }
 
-  @Override
-  protected final DomainApplication getResourceInfo() throws EppException {
-    // We don't support authInfo for applications, so if it's another registrar always fail.
-    verifyResourceOwnership(getClientId(), existingResource);
-    if (!command.getHostsRequest().requestDelegated()) {
+  DomainApplication getResourceInfo(DomainApplication application) {
+    if (!((Info) resourceCommand).getHostsRequest().requestDelegated()) {
       // Delegated hosts are present by default, so clear them out if they aren't wanted.
       // This requires overriding the implicit status values so that we don't get INACTIVE added due
       // to the missing nameservers.
-      return existingResource.asBuilder()
+      return application.asBuilder()
           .setNameservers(null)
           .buildWithoutImplicitStatusValues();
     }
-    return existingResource;
+    return application;
   }
 
-  @Override
-  protected final ImmutableList<? extends ResponseExtension> getDomainResponseExtensions()
-      throws EppException {
+  ImmutableList<ResponseExtension> getDomainResponseExtensions(
+      DomainApplication application, LaunchInfoExtension launchInfo) {
     ImmutableList.Builder<Mark> marksBuilder = new ImmutableList.Builder<>();
-    if (includeMarks) {
-      for (EncodedSignedMark encodedMark : existingResource.getEncodedSignedMarks()) {
+    if (Boolean.TRUE.equals(launchInfo.getIncludeMark())) {  // Default to false.
+      for (EncodedSignedMark encodedMark : application.getEncodedSignedMarks()) {
         try {
           marksBuilder.add(unmarshal(SignedMark.class, encodedMark.getBytes()).getMark());
         } catch (EppException e) {
           // This is a serious error; don't let the benign EppException propagate.
-          throw new IllegalStateException("Could not decode a stored encoded signed mark");
+          throw new IllegalStateException("Could not decode a stored encoded signed mark", e);
         }
       }
     }
-    return ImmutableList.of(new LaunchInfoResponseExtension.Builder()
-        .setPhase(existingResource.getPhase())
-        .setApplicationId(existingResource.getForeignKey())
-        .setApplicationStatus(existingResource.getApplicationStatus())
+    ImmutableList.Builder<ResponseExtension> extensions = new ImmutableList.Builder<>();
+    extensions.add(new LaunchInfoResponseExtension.Builder()
+        .setPhase(application.getPhase())
+        .setApplicationId(application.getForeignKey())
+        .setApplicationStatus(application.getApplicationStatus())
         .setMarks(marksBuilder.build())
         .build());
+    addSecDnsExtensionIfPresent(extensions, application.getDsData());
+    return extensions.build();
   }
 
   /** Application id is required. */

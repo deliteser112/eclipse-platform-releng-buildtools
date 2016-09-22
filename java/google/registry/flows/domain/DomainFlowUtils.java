@@ -56,6 +56,7 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
+import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.CreateOrUpdate;
 import google.registry.model.domain.DomainCommand.InvalidReferencesException;
@@ -71,9 +72,11 @@ import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.domain.launch.LaunchExtension;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.domain.secdns.SecDnsInfoExtension;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.host.HostResource;
 import google.registry.model.mark.Mark;
 import google.registry.model.mark.ProtectedMark;
@@ -381,6 +384,14 @@ public class DomainFlowUtils {
   static void verifyLaunchApplicationIdMatchesDomain(
       SingleResourceCommand command, DomainBase existingResource) throws EppException {
     if (!Objects.equals(command.getTargetId(), existingResource.getFullyQualifiedDomainName())) {
+      throw new ApplicationDomainNameMismatchException();
+    }
+  }
+
+  /** Verifies that an application's domain name matches the target id (from a command). */
+  static void verifyApplicationDomainMatchesTargetId(
+      DomainApplication application, String targetId) throws EppException {
+    if (!application.getFullyQualifiedDomainName().equals(targetId)) {
       throw new ApplicationDomainNameMismatchException();
     }
   }
@@ -736,6 +747,21 @@ public class DomainFlowUtils {
         .setTransferStatus(transferData.getTransferStatus())
         .setExtendedRegistrationExpirationTime(extendedRegistrationExpirationTime)
         .build();
+  }
+
+  /**
+   * Adds a secDns extension to a list if the given set of dsData is non-empty.
+   *
+   * <p>According to RFC 5910 section 2, we should only return this if the client specified the
+   * "urn:ietf:params:xml:ns:secDNS-1.1" when logging in. However, this is a "SHOULD" not a "MUST"
+   * and we are going to ignore it; clients who don't care about secDNS can just ignore it.
+   */
+  static void addSecDnsExtensionIfPresent(
+      ImmutableList.Builder<ResponseExtension> extensions,
+      ImmutableSet<DelegationSignerData> dsData) {
+    if (!dsData.isEmpty()) {
+      extensions.add(SecDnsInfoExtension.create(dsData));
+    }
   }
 
   /** Encoded signed marks must use base64 encoding. */

@@ -14,13 +14,23 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.flows.ResourceFlowUtils.loadResourceForQuery;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
+import google.registry.flows.LoggedInFlow;
+import google.registry.model.domain.DomainCommand.Info;
+import google.registry.model.domain.DomainCommand.Info.HostsRequest;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.fee06.FeeInfoCommandExtensionV06;
@@ -28,50 +38,70 @@ import google.registry.model.domain.fee06.FeeInfoResponseExtensionV06;
 import google.registry.model.domain.flags.FlagsInfoResponseExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.rgp.RgpInfoExtension;
+import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppinput.ResourceCommand;
+import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import java.util.List;
 import javax.inject.Inject;
 
 /**
- * An EPP flow that reads a domain.
+ * An EPP flow that returns information about a domain.
+ *
+ * <p>The registrar that owns the domain, and any registrar presenting a valid authInfo for the
+ * domain, will get a rich result with all of the domain's fields. All other requests will be
+ * answered with a minimal result containing only basic information about the domain.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link google.registry.flows.ResourceQueryFlow.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.FeeChecksDontSupportPhasesException}
  * @error {@link DomainFlowUtils.RestoresAreAlwaysForOneYearException}
  */
-public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> {
+public final class DomainInfoFlow extends LoggedInFlow {
 
+  @Inject Optional<AuthInfo> authInfo;
+  @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
+  @Inject ResourceCommand resourceCommand;
   @Inject DomainInfoFlow() {}
 
   @Override
-  protected void initSingleResourceFlow() throws EppException {
+  protected void initLoggedInFlow() throws EppException {
     registerExtensions(FeeInfoCommandExtensionV06.class);
   }
 
   @Override
-  protected final DomainResource getResourceInfo() {
+  public final EppOutput run() throws EppException {
+    DomainResource domain = loadResourceForQuery(DomainResource.class, targetId, now);
+    verifyOptionalAuthInfoForResource(authInfo, domain);
+    return createOutput(
+        SUCCESS,
+        getResourceInfo(domain),
+        getDomainResponseExtensions(domain));
+  }
+
+  private DomainResource getResourceInfo(DomainResource domain) {
     // If authInfo is non-null, then the caller is authorized to see the full information since we
-    // will have already verified the authInfo is valid in ResourceQueryFlow.verifyIsAllowed().
-    if (!getClientId().equals(existingResource.getCurrentSponsorClientId())
-        && command.getAuthInfo() == null) {
+    // will have already verified the authInfo is valid.
+    if (!(clientId.equals(domain.getCurrentSponsorClientId()) || authInfo.isPresent())) {
       // Registrars can only see a few fields on unauthorized domains.
       // This is a policy decision that is left up to us by the rfcs.
       return new DomainResource.Builder()
-          .setFullyQualifiedDomainName(existingResource.getFullyQualifiedDomainName())
-          .setRepoId(existingResource.getRepoId())
-          .setCurrentSponsorClientId(existingResource.getCurrentSponsorClientId())
-          .setRegistrant(existingResource.getRegistrant())
+          .setFullyQualifiedDomainName(domain.getFullyQualifiedDomainName())
+          .setRepoId(domain.getRepoId())
+          .setCurrentSponsorClientId(domain.getCurrentSponsorClientId())
+          .setRegistrant(domain.getRegistrant())
           // If we didn't do this, we'd get implicit status values.
           .buildWithoutImplicitStatusValues();
     }
-    Builder info = existingResource.asBuilder();
-    if (!command.getHostsRequest().requestSubordinate()) {
+    HostsRequest hostsRequest = ((Info) resourceCommand).getHostsRequest();
+    Builder info = domain.asBuilder();
+    if (!hostsRequest.requestSubordinate()) {
       info.setSubordinateHosts(null);
     }
-    if (!command.getHostsRequest().requestDelegated()) {
+    if (!hostsRequest.requestDelegated()) {
       // Delegated hosts are present by default, so clear them out if they aren't wanted.
       // This requires overriding the implicit status values so that we don't get INACTIVE added due
       // to the missing nameservers.
@@ -80,14 +110,11 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
     return info.build();
   }
 
-  @Override
-  protected final ImmutableList<ResponseExtension> getDomainResponseExtensions()
+  private ImmutableList<ResponseExtension> getDomainResponseExtensions(DomainResource domain)
       throws EppException {
     ImmutableList.Builder<ResponseExtension> extensions = new ImmutableList.Builder<>();
-    // According to RFC 5910 section 2, we should only return this if the client specified the
-    // "urn:ietf:params:xml:ns:rgp-1.0" when logging in. However, this is a "SHOULD" not a "MUST"
-    // and we are going to ignore it; clients who don't care about rgp can just ignore it.
-    ImmutableSet<GracePeriodStatus> gracePeriodStatuses = existingResource.getGracePeriodStatuses();
+    addSecDnsExtensionIfPresent(extensions, domain.getDsData());
+    ImmutableSet<GracePeriodStatus> gracePeriodStatuses = domain.getGracePeriodStatuses();
     if (!gracePeriodStatuses.isEmpty()) {
       extensions.add(RgpInfoExtension.create(gracePeriodStatuses));
     }
@@ -98,8 +125,8 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
       handleFeeRequest(
           feeInfo,
           builder,
-          InternetDomainName.from(getTargetId()),
-          getClientId(),
+          InternetDomainName.from(targetId),
+          clientId,
           null,
           feeInfo.getEffectiveDate().isPresent() ? feeInfo.getEffectiveDate().get() : now,
           eppInput);
@@ -107,15 +134,14 @@ public class DomainInfoFlow extends BaseDomainInfoFlow<DomainResource, Builder> 
     }
     // If the TLD uses the flags extension, add it to the info response.
     Optional<RegistryExtraFlowLogic> extraLogicManager =
-        RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);
+        RegistryExtraFlowLogicProxy.newInstanceForDomain(domain);
     if (extraLogicManager.isPresent()) {
       List<String> flags = extraLogicManager.get().getExtensionFlags(
-          existingResource, this.getClientId(), now); // As-of date is always now for info commands.
+          domain, clientId, now); // As-of date is always now for info commands.
       if (!flags.isEmpty()) {
         extensions.add(FlagsInfoResponseExtension.create(flags));
       }
     }
-
-    return extensions.build();
+    return forceEmptyToNull(extensions.build());
   }
 }
