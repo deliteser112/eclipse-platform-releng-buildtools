@@ -129,7 +129,7 @@ public class DomainRestoreRequestFlowTest extends
     assertThat(getPollMessages("TheRegistrar", clock.nowUtc().plusMonths(1)))
         .hasSize(1);
     runFlowAssertResponse(readFile("domain_update_response.xml"));
-    DomainResource domain = reloadResourceByUniqueId();
+    DomainResource domain = reloadResourceByForeignKey();
     HistoryEntry historyEntryDomainRestore =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_RESTORE);
     assertThat(ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime())

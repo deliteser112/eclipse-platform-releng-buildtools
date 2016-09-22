@@ -66,7 +66,7 @@ public class ContactDeleteFlowTest
     clock.advanceOneMilli();
     assertTransactionalFlow(true);
     runFlowAssertResponse(readFile("contact_delete_response.xml"));
-    ContactResource deletedContact = reloadResourceByUniqueId();
+    ContactResource deletedContact = reloadResourceByForeignKey();
     assertAboutContacts().that(deletedContact).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(deletedContact, "TheRegistrar", false);
     assertAboutContacts().that(deletedContact)
@@ -125,7 +125,7 @@ public class ContactDeleteFlowTest
     clock.advanceOneMilli();
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("contact_delete_response.xml"));
-    ContactResource deletedContact = reloadResourceByUniqueId();
+    ContactResource deletedContact = reloadResourceByForeignKey();
     assertAboutContacts().that(deletedContact).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(deletedContact, "NewRegistrar", true);
     assertAboutContacts().that(deletedContact)

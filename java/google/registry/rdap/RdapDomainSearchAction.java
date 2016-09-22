@@ -14,7 +14,7 @@
 
 package google.registry.rdap;
 
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.request.Action.Method.GET;
@@ -136,7 +136,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
     // Handle queries without a wildcard -- just load by foreign key.
     if (!partialStringQuery.getHasWildcard()) {
       DomainResource domainResource =
-          loadByUniqueId(DomainResource.class, partialStringQuery.getInitialString(), now);
+          loadByForeignKey(DomainResource.class, partialStringQuery.getInitialString(), now);
       if (domainResource == null) {
         return ImmutableList.of();
       }
@@ -222,7 +222,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
     // differently. We use the suffix to look up the domain, then loop through the subordinate hosts
     // looking for matches.
     } else {
-      DomainResource domainResource = loadByUniqueId(
+      DomainResource domainResource = loadByForeignKey(
           DomainResource.class, partialStringQuery.getSuffix(), now);
       if (domainResource == null) {
         throw new NotFoundException("No domain found for specified nameserver suffix");

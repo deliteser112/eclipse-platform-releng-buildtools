@@ -80,7 +80,7 @@ public class DomainTransferRejectFlowTest
     ImmutableSet<GracePeriod> originalGracePeriods = domain.getGracePeriods();
     runFlowAssertResponse(readFile(expectedXmlFilename));
     // Transfer should have been rejected. Verify correct fields were set.
-    domain = reloadResourceByUniqueId();
+    domain = reloadResourceByForeignKey();
     assertTransferFailed(domain, TransferStatus.CLIENT_REJECTED);
     assertTransferFailed(
         reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc()),

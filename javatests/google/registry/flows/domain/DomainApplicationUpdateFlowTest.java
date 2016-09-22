@@ -17,7 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.collect.Sets.union;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.generateNewDomainRoid;
@@ -107,7 +107,7 @@ public class DomainApplicationUpdateFlowTest
             DesignatedContact.create(Type.TECH, Key.create(sh8013Contact)),
             DesignatedContact.create(Type.ADMIN, Key.create(unusedContact))))
         .setNameservers(ImmutableSet.of(Key.create(
-            loadByUniqueId(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
+            loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
         .build());
   }
 
@@ -124,7 +124,7 @@ public class DomainApplicationUpdateFlowTest
     clock.advanceOneMilli();
     runFlowAssertResponse(readFile("domain_update_response.xml"));
     // Check that the application was updated. These values came from the xml.
-    DomainApplication application = reloadResourceByUniqueId();
+    DomainApplication application = reloadDomainApplication();
     assertAboutApplications().that(application)
         .hasStatusValue(StatusValue.CLIENT_HOLD).and()
         .hasOnlyOneHistoryEntryWhich()
@@ -168,7 +168,7 @@ public class DomainApplicationUpdateFlowTest
   public void testSuccess_registrantMovedToTechContact() throws Exception {
     setEppInput("domain_update_sunrise_registrant_to_tech.xml");
     persistReferencedEntities();
-    ContactResource sh8013 = loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc());
+    ContactResource sh8013 = loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc());
     persistResource(
         newApplicationBuilder().setRegistrant(Key.create(sh8013)).build());
     clock.advanceOneMilli();
@@ -179,7 +179,7 @@ public class DomainApplicationUpdateFlowTest
   public void testSuccess_multipleReferencesToSameContactRemoved() throws Exception {
     setEppInput("domain_update_sunrise_remove_multiple_contacts.xml");
     persistReferencedEntities();
-    ContactResource sh8013 = loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc());
+    ContactResource sh8013 = loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc());
     Key<ContactResource> sh8013Key = Key.create(sh8013);
     persistResource(newApplicationBuilder()
         .setRegistrant(sh8013Key)
@@ -199,7 +199,7 @@ public class DomainApplicationUpdateFlowTest
         ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED)).build());
     clock.advanceOneMilli();
     runFlow();
-    assertAboutApplications().that(reloadResourceByUniqueId())
+    assertAboutApplications().that(reloadDomainApplication())
         .doesNotHaveStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED);
   }
 
@@ -213,7 +213,7 @@ public class DomainApplicationUpdateFlowTest
     assertTransactionalFlow(true);
     clock.advanceOneMilli();
     runFlowAssertResponse(readFile("domain_update_response.xml"));
-    assertAboutApplications().that(reloadResourceByUniqueId())
+    assertAboutApplications().that(reloadDomainApplication())
         .hasExactlyDsData(expectedDsData).and()
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.DOMAIN_APPLICATION_UPDATE);
@@ -372,11 +372,11 @@ public class DomainApplicationUpdateFlowTest
     ImmutableSet.Builder<Key<HostResource>> nameservers = new ImmutableSet.Builder<>();
     for (int i = 1; i < 15; i++) {
       if (i != 2) { // Skip 2 since that's the one that the tests will add.
-        nameservers.add(Key.create(loadByUniqueId(
+        nameservers.add(Key.create(loadByForeignKey(
             HostResource.class, String.format("ns%d.example.tld", i), clock.nowUtc())));
       }
     }
-    persistResource(reloadResourceByUniqueId().asBuilder()
+    persistResource(reloadDomainApplication().asBuilder()
         .setNameservers(nameservers.build())
         .build());
   }
@@ -491,9 +491,9 @@ public class DomainApplicationUpdateFlowTest
     persistNewApplication();
     // Add a tech contact to the persisted entity, which should cause the flow to fail when it tries
     // to add "mak21" as a second tech contact.
-    persistResource(reloadResourceByUniqueId().asBuilder().setContacts(ImmutableSet.of(
+    persistResource(reloadDomainApplication().asBuilder().setContacts(ImmutableSet.of(
         DesignatedContact.create(Type.TECH, Key.create(
-            loadByUniqueId(ContactResource.class, "foo", clock.nowUtc()))))).build());
+            loadByForeignKey(ContactResource.class, "foo", clock.nowUtc()))))).build());
     runFlow();
   }
 
@@ -577,7 +577,7 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistResource(newApplicationBuilder()
         .setNameservers(ImmutableSet.of(Key.create(
-            loadByUniqueId(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
+            loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
         .build());
     runFlow();
   }
@@ -591,7 +591,7 @@ public class DomainApplicationUpdateFlowTest
         .setContacts(ImmutableSet.of(DesignatedContact.create(
             Type.TECH,
             Key.create(
-                loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc())))))
+                loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))))
         .build());
     runFlow();
   }

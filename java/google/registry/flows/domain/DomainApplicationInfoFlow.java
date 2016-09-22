@@ -15,11 +15,11 @@
 package google.registry.flows.domain;
 
 import static google.registry.flows.EppXmlTransformer.unmarshal;
-import static google.registry.flows.ResourceFlowUtils.loadResourceForQuery;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
+import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
@@ -31,6 +31,7 @@ import google.registry.flows.FlowModule.ApplicationId;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
+import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Info;
 import google.registry.model.domain.launch.LaunchInfoExtension;
@@ -75,8 +76,10 @@ public final class DomainApplicationInfoFlow extends LoggedInFlow {
     if (applicationId.isEmpty()) {
       throw new MissingApplicationIdException();
     }
-    DomainApplication application =
-        loadResourceForQuery(DomainApplication.class, applicationId, now);
+    DomainApplication application = loadDomainApplication(applicationId, now);
+    if (application == null) {
+      throw new ResourceToQueryDoesNotExistException(DomainApplication.class, applicationId);
+    }
     verifyApplicationDomainMatchesTargetId(application, targetId);
     verifyOptionalAuthInfoForResource(authInfo, application);
     LaunchInfoExtension launchInfo = eppInput.getSingleExtension(LaunchInfoExtension.class);

@@ -147,7 +147,7 @@ public class DomainTransferRequestFlowTest
     assertTransactionalFlow(true);
     runFlowAssertResponse(readFile(expectedXmlFilename, substitutions));
     // Transfer should have been requested. Verify correct fields were set.
-    domain = reloadResourceByUniqueId();
+    domain = reloadResourceByForeignKey();
     final HistoryEntry historyEntryTransferRequest =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST);
     int registrationYears = domain.getTransferData().getExtendedRegistrationYears();
@@ -503,7 +503,7 @@ public class DomainTransferRequestFlowTest
 
   @Test
   public void testSuccess_autorenewBeforeAutomaticTransfer() throws Exception {
-    DomainResource oldResource = persistResource(reloadResourceByUniqueId().asBuilder()
+    DomainResource oldResource = persistResource(reloadResourceByForeignKey().asBuilder()
         .setRegistrationExpirationTime(clock.nowUtc().plusDays(1).plus(1))
         .build());
     clock.advanceOneMilli();

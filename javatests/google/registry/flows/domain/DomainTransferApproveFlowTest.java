@@ -16,7 +16,7 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEventsForResource;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -141,7 +141,7 @@ public class DomainTransferApproveFlowTest
     assertTransactionalFlow(true);
     runFlowAssertResponse(readFile(expectedXmlFilename));
     // Transfer should have succeeded. Verify correct fields were set.
-    domain = reloadResourceByUniqueId();
+    domain = reloadResourceByForeignKey();
     assertAboutDomains().that(domain).hasOneHistoryEntryEachOfTypes(
         HistoryEntry.Type.DOMAIN_CREATE,
         HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST,
@@ -280,7 +280,7 @@ public class DomainTransferApproveFlowTest
 
   @Test
   public void testSuccess_lastTransferTime_reflectedOnSubordinateHost() throws Exception {
-    domain = reloadResourceByUniqueId();
+    domain = reloadResourceByForeignKey();
     // Set an older last transfer time on the subordinate host.
     subordinateHost = persistResource(
         subordinateHost.asBuilder()
@@ -288,7 +288,7 @@ public class DomainTransferApproveFlowTest
             .build());
 
     doSuccessfulTest("tld", "domain_transfer_approve.xml", "domain_transfer_approve_response.xml");
-    subordinateHost = loadByUniqueId(
+    subordinateHost = loadByForeignKey(
         HostResource.class, subordinateHost.getFullyQualifiedHostName(), clock.nowUtc());
     // Verify that the host's last transfer time is now that of when the superordinate domain was
     // transferred.
@@ -297,7 +297,7 @@ public class DomainTransferApproveFlowTest
 
   @Test
   public void testSuccess_lastTransferTime_overridesExistingOnSubordinateHost() throws Exception {
-    domain = reloadResourceByUniqueId();
+    domain = reloadResourceByForeignKey();
     // Set an older last transfer time on the subordinate host.
     subordinateHost = persistResource(
         subordinateHost.asBuilder()
@@ -306,7 +306,7 @@ public class DomainTransferApproveFlowTest
             .build());
 
     doSuccessfulTest("tld", "domain_transfer_approve.xml", "domain_transfer_approve_response.xml");
-    subordinateHost = loadByUniqueId(
+    subordinateHost = loadByForeignKey(
         HostResource.class, subordinateHost.getFullyQualifiedHostName(), clock.nowUtc());
     // Verify that the host's last transfer time is now that of when the superordinate domain was
     // transferred.
@@ -316,7 +316,7 @@ public class DomainTransferApproveFlowTest
   @Test
   public void testSuccess_lastTransferTime_overridesExistingOnSubordinateHostWithNullTransferTime()
       throws Exception {
-    domain = reloadResourceByUniqueId();
+    domain = reloadResourceByForeignKey();
     // Set an older last transfer time on the subordinate host.
     subordinateHost = persistResource(
         subordinateHost.asBuilder()
@@ -325,7 +325,7 @@ public class DomainTransferApproveFlowTest
             .build());
 
     doSuccessfulTest("tld", "domain_transfer_approve.xml", "domain_transfer_approve_response.xml");
-    subordinateHost = loadByUniqueId(
+    subordinateHost = loadByForeignKey(
         HostResource.class, subordinateHost.getFullyQualifiedHostName(), clock.nowUtc());
     // Verify that the host's last transfer time is now that of when the superordinate domain was
     // transferred.
@@ -350,7 +350,7 @@ public class DomainTransferApproveFlowTest
 
   @Test
   public void testSuccess_autorenewBeforeTransfer() throws Exception {
-    DomainResource domain = reloadResourceByUniqueId();
+    DomainResource domain = reloadResourceByForeignKey();
     DateTime oldExpirationTime = clock.nowUtc().minusDays(1);
     persistResource(domain.asBuilder()
         .setRegistrationExpirationTime(oldExpirationTime)

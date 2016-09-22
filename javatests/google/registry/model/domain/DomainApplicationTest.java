@@ -15,7 +15,7 @@
 package google.registry.model.domain;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
@@ -111,10 +111,8 @@ public class DomainApplicationTest extends EntityTestCase {
 
   @Test
   public void testPersistence() throws Exception {
-    assertThat(
-        loadByUniqueId(
-            DomainApplication.class, domainApplication.getForeignKey(), clock.nowUtc()))
-            .isEqualTo(domainApplication);
+    assertThat(loadDomainApplication(domainApplication.getForeignKey(), clock.nowUtc()))
+        .isEqualTo(domainApplication);
   }
 
   @Test

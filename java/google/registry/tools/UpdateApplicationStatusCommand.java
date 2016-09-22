@@ -16,7 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.domain.launch.ApplicationStatus.ALLOCATED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
@@ -89,8 +89,7 @@ final class UpdateApplicationStatusCommand extends MutatingCommand {
     DateTime now = ofy().getTransactionTime();
 
     // Load the domain application.
-    DomainApplication domainApplication =
-        loadByUniqueId(DomainApplication.class, applicationId, now);
+    DomainApplication domainApplication = loadDomainApplication(applicationId, now);
     checkArgumentNotNull(domainApplication, "Domain application does not exist");
 
     // It's not an error if the application already has the intended status. We want the method

@@ -31,6 +31,7 @@ import google.registry.config.RegistryEnvironment;
 import google.registry.model.EppResource.Builder;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -84,40 +85,29 @@ public final class EppResourceUtils {
    *
    * <p>Loading an {@link EppResource} by itself is not sufficient to know its current state since
    * it may have various expirable conditions and status values that might implicitly change its
-   * state as time progresses even if it has not been updated in the datastore. Rather, the
-   * resource must be combined with a timestamp to view its current state. We use a global last
-   * updated timestamp on the entire entity group (which is essentially free since all writes to
-   * the entity group must be serialized anyways) to guarantee monotonically increasing write
-   * times, so forwarding our projected time to the greater of "now", and this update timestamp
-   * guarantees that we're not projecting into the past.
+   * state as time progresses even if it has not been updated in the datastore. Rather, the resource
+   * must be combined with a timestamp to view its current state. We use a global last updated
+   * timestamp on the entire entity group (which is essentially free since all writes to the entity
+   * group must be serialized anyways) to guarantee monotonically increasing write times, so
+   * forwarding our projected time to the greater of "now", and this update timestamp guarantees
+   * that we're not projecting into the past.
    *
    * @param clazz the resource type to load
    * @param foreignKey id to match
    * @param now the current logical time to project resources at
    */
-  public static <T extends EppResource> T loadByUniqueId(
+  @Nullable
+  public static <T extends EppResource> T loadByForeignKey(
       Class<T> clazz, String foreignKey, DateTime now) {
-    // For regular foreign-keyed resources, get the key by loading the FKI; for domain applications,
-    // we can construct the key directly, since the provided foreignKey is just the repoId.
-    Key<T> resourceKey = ForeignKeyedEppResource.class.isAssignableFrom(clazz)
-        ? loadAndGetKey(clazz, foreignKey, now)
-        : Key.create(null, clazz, foreignKey);
+    checkArgument(
+        ForeignKeyedEppResource.class.isAssignableFrom(clazz),
+        "loadByForeignKey may only be called for foreign keyed EPP resources");
+    Key<T> resourceKey = loadAndGetKey(clazz, foreignKey, now);
     if (resourceKey == null) {
       return null;
     }
     T resource = ofy().load().key(resourceKey).now();
-    if (resource == null
-        // You'd think this couldn't happen, but it can. For polymorphic entities, a Key is of
-        // necessity a reference to the base type (since datastore doesn't have polymorphism and
-        // Objectify is faking it). In the non-foreign-key code path above where we directly create
-        // a Key, there is no way to know whether the Key points to an instance of the desired
-        // subclass without loading it. Due to type erasure, it gets stuffed into "resource" without
-        // causing a ClassCastException even if it's the wrong type until you actually try to use it
-        // as the wrong type, at which point it blows up somewhere else in the code. Concretely,
-        // this means that without this line bad things would happen if you tried to load a
-        // DomainApplication using the id of a DomainResource (but not vice versa).
-        || !clazz.isInstance(resource)
-        || isAtOrAfter(now, resource.getDeletionTime())) {
+    if (resource == null || isAtOrAfter(now, resource.getDeletionTime())) {
       return null;
     }
     // When setting status values based on a time, choose the greater of "now" and the resource's
@@ -127,8 +117,23 @@ public final class EppResourceUtils {
     // fail when it tries to save anything via Ofy, since "now" is needed to be > the last update
     // time for writes.
     return cloneProjectedAtTime(
-        resource,
-        latestOf(now, resource.getUpdateAutoTimestamp().getTimestamp()));
+        resource, latestOf(now, resource.getUpdateAutoTimestamp().getTimestamp()));
+  }
+
+  /**
+   * Returns the domain application with the given application id if it exists, or null if it does
+   * not or is soft-deleted as of the given time.
+   */
+  @Nullable
+  public static DomainApplication loadDomainApplication(String applicationId, DateTime now) {
+    DomainApplication application =
+        ofy().load().key(Key.create(DomainApplication.class, applicationId)).now();
+    if (application == null || isAtOrAfter(now, application.getDeletionTime())) {
+      return null;
+    }
+    // Applications don't have any speculative changes that become effective later, so no need to
+    // clone forward in time.
+    return application;
   }
 
   /**

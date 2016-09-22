@@ -15,7 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
 import static google.registry.util.CollectionUtils.nullToEmpty;
@@ -181,7 +181,7 @@ public final class TldSpecificLogicProxy {
         RegistryExtraFlowLogicProxy.newInstanceForTld(registry.getTldStr());
     if (extraFlowLogic.isPresent()) {
       // TODO: Consider changing the method definition to have the domain passed in to begin with.
-      DomainResource domain = loadByUniqueId(DomainResource.class, domainName, date);
+      DomainResource domain = loadByForeignKey(DomainResource.class, domainName, date);
       if (domain == null) {
         throw new ResourceToMutateDoesNotExistException(DomainResource.class, domainName);
       }
@@ -247,7 +247,7 @@ public final class TldSpecificLogicProxy {
         RegistryExtraFlowLogicProxy.newInstanceForTld(registry.getTldStr());
     if (extraFlowLogic.isPresent()) {
       // TODO: Consider changing the method definition to have the domain passed in to begin with.
-      DomainResource domain = loadByUniqueId(DomainResource.class, domainName, date);
+      DomainResource domain = loadByForeignKey(DomainResource.class, domainName, date);
       if (domain == null) {
         throw new ResourceToMutateDoesNotExistException(DomainResource.class, domainName);
       }

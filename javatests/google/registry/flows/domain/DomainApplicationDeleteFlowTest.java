@@ -15,7 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
@@ -65,7 +65,7 @@ public class DomainApplicationDeleteFlowTest
     clock.advanceOneMilli();
     runFlowAssertResponse(readFile("domain_delete_response.xml"));
     // Check that the domain is fully deleted.
-    assertThat(reloadResourceByUniqueId()).isNull();
+    assertThat(reloadDomainApplication()).isNull();
     assertNoBillingEvents();
   }
 
@@ -86,15 +86,15 @@ public class DomainApplicationDeleteFlowTest
         .setRepoId("1-TLD")
         .setRegistrant(
             Key.create(
-                loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc())))
+                loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))
         .setNameservers(ImmutableSet.of(
             Key.create(
-                loadByUniqueId(HostResource.class, "ns1.example.net", clock.nowUtc()))))
+                loadByForeignKey(HostResource.class, "ns1.example.net", clock.nowUtc()))))
         .build());
     doSuccessfulTest();
     for (EppResource resource : new EppResource[]{
-        loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc()),
-        loadByUniqueId(HostResource.class, "ns1.example.net", clock.nowUtc()) }) {
+        loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc()),
+        loadByForeignKey(HostResource.class, "ns1.example.net", clock.nowUtc()) }) {
       assertAboutEppResources().that(resource).doesNotHaveStatusValue(StatusValue.LINKED);
     }
   }

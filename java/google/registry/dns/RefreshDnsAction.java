@@ -14,7 +14,7 @@
 
 package google.registry.dns;
 
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.EppResource;
@@ -58,7 +58,7 @@ public final class RefreshDnsAction implements Runnable {
         throw new BadRequestException("Unsupported type: " + type);
     }
 
-    EppResource eppResource = loadByUniqueId(clazz, domainOrHostName, clock.nowUtc());
+    EppResource eppResource = loadByForeignKey(clazz, domainOrHostName, clock.nowUtc());
     if (eppResource == null) {
       throw new NotFoundException(
           String.format("%s %s not found", type, domainOrHostName));

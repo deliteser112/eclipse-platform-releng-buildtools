@@ -14,7 +14,7 @@
 
 package google.registry.rdap;
 
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
@@ -55,8 +55,7 @@ public class RdapDomainAction extends RdapActionBase {
     pathSearchString = canonicalizeName(pathSearchString);
     validateDomainName(pathSearchString);
     // The query string is not used; the RDAP syntax is /rdap/domain/mydomain.com.
-    DomainResource domainResource =
-        loadByUniqueId(DomainResource.class, pathSearchString, now);
+    DomainResource domainResource = loadByForeignKey(DomainResource.class, pathSearchString, now);
     if (domainResource == null) {
       throw new NotFoundException(pathSearchString + " not found");
     }

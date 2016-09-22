@@ -15,7 +15,7 @@
 package google.registry.flows.async;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
@@ -70,10 +70,10 @@ public class DeleteContactResourceActionTest
             .addStatusValue(StatusValue.PENDING_DELETE)
             .build());
     runMapreduceWithKeyParam(Key.create(contactUsed).getString());
-    contactUsed = loadByUniqueId(ContactResource.class, "blah1234", now);
+    contactUsed = loadByForeignKey(ContactResource.class, "blah1234", now);
     assertAboutContacts().that(contactUsed).doesNotHaveStatusValue(StatusValue.PENDING_DELETE)
         .and().hasDeletionTime(END_OF_TIME);
-    domain = loadByUniqueId(DomainResource.class, "example.tld", now);
+    domain = loadByForeignKey(DomainResource.class, "example.tld", now);
     assertThat(domain.getReferencedContacts()).contains(Key.create(contactUsed));
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(contactUsed, HistoryEntry.Type.CONTACT_DELETE_FAILURE);
@@ -113,7 +113,7 @@ public class DeleteContactResourceActionTest
         .and().hasNonNullFaxNumber();
     Key<ContactResource> key = Key.create(contactUnused);
     runMapreduceWithKeyParam(key.getString());
-    assertThat(loadByUniqueId(ContactResource.class, "blah1235", now)).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "blah1235", now)).isNull();
     ContactResource contactAfterDeletion = ofy().load().key(key).now();
     assertAboutContacts().that(contactAfterDeletion).hasDeletionTime(now)
         // Note that there will be another history entry of CONTACT_PENDING_DELETE, but this is
@@ -140,10 +140,10 @@ public class DeleteContactResourceActionTest
         clock.nowUtc());
     runMapreduceWithKeyParam(Key.create(contact).getString());
     // Check that the contact is deleted as of now.
-    assertThat(loadByUniqueId(ContactResource.class, "sh8013", now)).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "sh8013", now)).isNull();
     // Check that it's still there (it wasn't deleted yesterday) and that it has history.
     assertAboutContacts()
-        .that(loadByUniqueId(ContactResource.class, "sh8013", now.minusDays(1)))
+        .that(loadByForeignKey(ContactResource.class, "sh8013", now.minusDays(1)))
         .hasOneHistoryEntryEachOfTypes(
             HistoryEntry.Type.CONTACT_TRANSFER_REQUEST,
             HistoryEntry.Type.CONTACT_DELETE);
@@ -181,9 +181,9 @@ public class DeleteContactResourceActionTest
             .setDeletionTime(now.minusDays(3))
             .build());
     runMapreduceWithKeyParam(Key.create(contactUsed).getString());
-    assertThat(loadByUniqueId(ContactResource.class, "blah1234", now)).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "blah1234", now)).isNull();
     ContactResource contactBeforeDeletion =
-        loadByUniqueId(ContactResource.class, "blah1234", now.minusDays(1));
+        loadByForeignKey(ContactResource.class, "blah1234", now.minusDays(1));
     assertAboutContacts().that(contactBeforeDeletion).hasDeletionTime(now)
         .and().hasExactlyStatusValues(StatusValue.OK)
         // Note that there will be another history entry of CONTACT_PENDING_DELETE, but this is
@@ -199,7 +199,7 @@ public class DeleteContactResourceActionTest
     thrown.expect(IllegalStateException.class, "Resource blah1235 is not set as PENDING_DELETE");
     runMapreduceWithKeyParam(Key.create(contactUnused).getString());
     assertThat(
-        loadByUniqueId(ContactResource.class, "blah1235", now)).isEqualTo(contactUnused);
+        loadByForeignKey(ContactResource.class, "blah1235", now)).isEqualTo(contactUnused);
   }
 
   @Test
@@ -210,10 +210,10 @@ public class DeleteContactResourceActionTest
             .build());
     Key<ContactResource> key = Key.create(contactUnused);
     runMapreduceWithParams(key.getString(), "OtherRegistrar", false);
-    contactUnused = loadByUniqueId(ContactResource.class, "blah1235", now);
+    contactUnused = loadByForeignKey(ContactResource.class, "blah1235", now);
     assertAboutContacts().that(contactUnused).doesNotHaveStatusValue(StatusValue.PENDING_DELETE)
         .and().hasDeletionTime(END_OF_TIME);
-    domain = loadByUniqueId(DomainResource.class, "example.tld", now);
+    domain = loadByForeignKey(DomainResource.class, "example.tld", now);
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(contactUnused, HistoryEntry.Type.CONTACT_DELETE_FAILURE);
     assertPollMessageFor(
@@ -247,7 +247,7 @@ public class DeleteContactResourceActionTest
             .build());
     Key<ContactResource> key = Key.create(contactUnused);
     runMapreduceWithParams(key.getString(), "OtherRegistrar", true);
-    assertThat(loadByUniqueId(ContactResource.class, "blah1235", now)).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "blah1235", now)).isNull();
     ContactResource contactAfterDeletion = ofy().load().key(key).now();
     assertAboutContacts().that(contactAfterDeletion).hasDeletionTime(now)
         // Note that there will be another history entry of CONTACT_PENDING_DELETE, but this is

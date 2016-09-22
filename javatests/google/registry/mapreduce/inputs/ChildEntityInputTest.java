@@ -17,7 +17,7 @@ package google.registry.mapreduce.inputs;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createChildEntityInput;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.index.EppResourceIndexBucket.getBucketKey;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
@@ -102,7 +102,7 @@ public class ChildEntityInputTest {
             .build());
     contactHistoryEntry = persistResource(
         new HistoryEntry.Builder()
-            .setParent(loadByUniqueId(ContactResource.class, "contact1234", now))
+            .setParent(loadByForeignKey(ContactResource.class, "contact1234", now))
             .setModificationTime(now)
             .build());
     oneTimeA = persistResource(

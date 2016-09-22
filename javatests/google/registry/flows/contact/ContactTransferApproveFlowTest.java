@@ -68,7 +68,7 @@ public class ContactTransferApproveFlowTest
     runFlowAssertResponse(readFile(expectedXmlFilename));
 
     // Transfer should have succeeded. Verify correct fields were set.
-    contact = reloadResourceByUniqueId();
+    contact = reloadResourceByForeignKey();
     assertAboutContacts().that(contact)
         .hasCurrentSponsorClientId("NewRegistrar").and()
         .hasLastTransferTime(clock.nowUtc()).and()

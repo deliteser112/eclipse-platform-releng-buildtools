@@ -135,10 +135,10 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
       int renewalYears,
       Map<String, String> substitutions) throws Exception {
     assertTransactionalFlow(true);
-    DateTime currentExpiration = reloadResourceByUniqueId().getRegistrationExpirationTime();
+    DateTime currentExpiration = reloadResourceByForeignKey().getRegistrationExpirationTime();
     DateTime newExpiration = currentExpiration.plusYears(renewalYears);
     runFlowAssertResponse(readFile(responseFilename, substitutions));
-    DomainResource domain = reloadResourceByUniqueId();
+    DomainResource domain = reloadResourceByForeignKey();
     HistoryEntry historyEntryDomainRenew =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_RENEW);
     assertThat(ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime())
@@ -351,12 +351,12 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     persistDomain();
     // Modify the autorenew poll message so that it has an undelivered message in the past.
     persistResource(
-        ofy().load().key(reloadResourceByUniqueId().getAutorenewPollMessage()).now().asBuilder()
+        ofy().load().key(reloadResourceByForeignKey().getAutorenewPollMessage()).now().asBuilder()
             .setEventTime(expirationTime.minusYears(1))
             .build());
     runFlowAssertResponse(readFile("domain_renew_response.xml"));
     HistoryEntry historyEntryDomainRenew =
-        getOnlyHistoryEntryOfType(reloadResourceByUniqueId(), HistoryEntry.Type.DOMAIN_RENEW);
+        getOnlyHistoryEntryOfType(reloadResourceByForeignKey(), HistoryEntry.Type.DOMAIN_RENEW);
     assertPollMessages(
         new PollMessage.Autorenew.Builder()
             .setTargetId(getUniqueIdFromCommand())
@@ -365,12 +365,12 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setAutorenewEndTime(clock.nowUtc())
             .setMsg("Domain was auto-renewed.")
             .setParent(getOnlyHistoryEntryOfType(
-                reloadResourceByUniqueId(), HistoryEntry.Type.DOMAIN_CREATE))
+                reloadResourceByForeignKey(), HistoryEntry.Type.DOMAIN_CREATE))
             .build(),
         new PollMessage.Autorenew.Builder()
             .setTargetId(getUniqueIdFromCommand())
             .setClientId("TheRegistrar")
-            .setEventTime(reloadResourceByUniqueId().getRegistrationExpirationTime())
+            .setEventTime(reloadResourceByForeignKey().getRegistrationExpirationTime())
             .setAutorenewEndTime(END_OF_TIME)
             .setMsg("Domain was auto-renewed.")
             .setParent(historyEntryDomainRenew)
@@ -529,7 +529,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_pendingTransfer() throws Exception {
     thrown.expect(DomainHasPendingTransferException.class);
     persistDomain();
-    persistWithPendingTransfer(reloadResourceByUniqueId()
+    persistWithPendingTransfer(reloadResourceByForeignKey()
         .asBuilder()
         .setRegistrationExpirationTime(DateTime.parse("2001-09-08T22:00:00.0Z"))
         .build());
@@ -568,7 +568,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     thrown.expect(IncorrectCurrentExpirationDateException.class);
     persistDomain();
     // Note expiration time is off by one day.
-    persistResource(reloadResourceByUniqueId().asBuilder()
+    persistResource(reloadResourceByForeignKey().asBuilder()
         .setRegistrationExpirationTime(DateTime.parse("2000-04-04T22:00:00.0Z"))
         .build());
     runFlow();

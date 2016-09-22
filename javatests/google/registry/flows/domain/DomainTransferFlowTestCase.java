@@ -16,7 +16,7 @@ package google.registry.flows.domain;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.createBillingEventForTransfer;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -120,14 +120,15 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
         .setCreationClientId("TheRegistrar")
         .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
         .setRegistrationExpirationTime(REGISTRATION_EXPIRATION_TIME)
-        .setRegistrant(Key.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc())))
+        .setRegistrant(
+            Key.create(loadByForeignKey(ContactResource.class, "jd1234", clock.nowUtc())))
         .setContacts(ImmutableSet.of(
             DesignatedContact.create(
                 Type.ADMIN,
-                Key.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc()))),
+                Key.create(loadByForeignKey(ContactResource.class, "jd1234", clock.nowUtc()))),
             DesignatedContact.create(
                 Type.TECH,
-                Key.create(loadByUniqueId(ContactResource.class, "jd1234", clock.nowUtc())))))
+                Key.create(loadByForeignKey(ContactResource.class, "jd1234", clock.nowUtc())))))
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("fooBAR")))
         .addGracePeriod(GracePeriod.create(
             GracePeriodStatus.ADD, clock.nowUtc().plusDays(10), "foo", null))

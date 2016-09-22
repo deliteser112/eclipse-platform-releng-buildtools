@@ -16,7 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.flows.domain.DomainFlowUtils.verifyEncodedSignedMark;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.tmch.TmchData.readEncodedSignedMark;
 import static java.nio.charset.StandardCharsets.US_ASCII;
@@ -81,8 +81,7 @@ final class UpdateSmdCommand implements RemoteApiCommand {
     DateTime now = ofy().getTransactionTime();
 
     // Load the domain application.
-    DomainApplication domainApplication =
-        loadByUniqueId(DomainApplication.class, applicationId, now);
+    DomainApplication domainApplication = loadDomainApplication(applicationId, now);
     checkArgument(domainApplication != null, "Domain application does not exist");
 
     // Make sure this is a sunrise application.

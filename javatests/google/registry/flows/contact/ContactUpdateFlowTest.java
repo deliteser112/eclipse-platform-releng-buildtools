@@ -53,7 +53,7 @@ public class ContactUpdateFlowTest
     assertTransactionalFlow(true);
     runFlowAssertResponse(readFile("contact_update_response.xml"));
     // Check that the contact was updated. This value came from the xml.
-    assertAboutContacts().that(reloadResourceByUniqueId())
+    assertAboutContacts().that(reloadResourceByForeignKey())
         .hasAuthInfoPwd("2fooBAR").and()
         .hasOnlyOneHistoryEntryWhich()
         .hasNoXml();
@@ -79,7 +79,7 @@ public class ContactUpdateFlowTest
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .build());
     doSuccessfulTest();
-    assertAboutContacts().that(reloadResourceByUniqueId())
+    assertAboutContacts().that(reloadResourceByForeignKey())
         .doesNotHaveStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED);
   }
 
@@ -107,7 +107,7 @@ public class ContactUpdateFlowTest
         .hasInternationalizedPostalInfo(null);
 
     runFlowAssertResponse(readFile("contact_update_response.xml"));
-    assertAboutContacts().that(reloadResourceByUniqueId())
+    assertAboutContacts().that(reloadResourceByForeignKey())
         .hasLocalizedPostalInfo(null).and()
         .hasNonNullInternationalizedPostalInfo();
   }
@@ -133,7 +133,7 @@ public class ContactUpdateFlowTest
     clock.advanceOneMilli();
     // The test xml updates the address of the postal info and should leave the name untouched.
     runFlowAssertResponse(readFile("contact_update_response.xml"));
-    assertAboutContacts().that(reloadResourceByUniqueId()).hasLocalizedPostalInfo(
+    assertAboutContacts().that(reloadResourceByForeignKey()).hasLocalizedPostalInfo(
         new PostalInfo.Builder()
             .setType(Type.LOCALIZED)
             .setName("A. Person")
@@ -213,7 +213,7 @@ public class ContactUpdateFlowTest
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
         readFile("contact_update_response.xml"));
-    assertAboutContacts().that(reloadResourceByUniqueId())
+    assertAboutContacts().that(reloadResourceByForeignKey())
         .hasStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED).and()
         .hasStatusValue(StatusValue.SERVER_DELETE_PROHIBITED);
   }

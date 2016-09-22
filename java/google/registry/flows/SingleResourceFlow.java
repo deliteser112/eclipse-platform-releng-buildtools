@@ -14,13 +14,15 @@
 
 package google.registry.flows;
 
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.EppResourceUtils.loadDomainApplication;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.model.EppResource;
+import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationIdTargetExtension;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
@@ -38,6 +40,7 @@ public abstract class SingleResourceFlow<R extends EppResource, C extends Single
   protected R existingResource;
   protected String targetId;
 
+  @SuppressWarnings("unchecked")
   @Override
   protected final void initResourceFlow() throws EppException {
     targetId = getTargetId();
@@ -48,9 +51,14 @@ public abstract class SingleResourceFlow<R extends EppResource, C extends Single
     // Some flows such as DomainApplicationInfoFlow have the id marked as optional in the schema.
     // We require it by policy in the relevant flow, but here we need to make sure not to NPE when
     // initializing the (obviously nonexistent) existing resource.
-    existingResource = (targetId == null || !tryToLoadExisting())
-        ? null
-        : loadByUniqueId(resourceClass, targetId, now);
+    if (targetId != null && tryToLoadExisting()) {
+      // This ugliness goes away once domain application flows are flattened.
+      if (resourceClass == DomainApplication.class) {
+        existingResource = (R) loadDomainApplication(targetId, now);
+      } else {
+        existingResource = loadByForeignKey(resourceClass, targetId, now);
+      }
+    }
     if (existingResource != null) {
       Set<StatusValue> problems = Sets.intersection(
           existingResource.getStatusValues(), getDisallowedStatuses());

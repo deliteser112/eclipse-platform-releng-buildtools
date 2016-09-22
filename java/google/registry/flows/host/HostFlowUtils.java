@@ -15,7 +15,7 @@
 package google.registry.flows.host;
 
 import static google.registry.model.EppResourceUtils.isActive;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.registry.Registries.findTldForName;
 
 import com.google.common.base.Joiner;
@@ -84,7 +84,7 @@ public class HostFlowUtils {
     // This is a subordinate host
     String domainName = Joiner.on('.').join(Iterables.skip(
         hostName.parts(), hostName.parts().size() - (tld.get().parts().size() + 1)));
-    DomainResource superordinateDomain = loadByUniqueId(DomainResource.class, domainName, now);
+    DomainResource superordinateDomain = loadByForeignKey(DomainResource.class, domainName, now);
     if (superordinateDomain == null || !isActive(superordinateDomain, now)) {
       throw new SuperordinateDomainDoesNotExistException(domainName);
     }

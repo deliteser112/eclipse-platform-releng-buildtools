@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -120,7 +120,7 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand impleme
     } catch (ClassCastException | ParseException e) {
       throw new IllegalArgumentException("Invalid --dsdata JSON", e);
     }
-    DomainResource domain = loadByUniqueId(DomainResource.class, domainName, now);
+    DomainResource domain = loadByForeignKey(DomainResource.class, domainName, now);
     checkArgument(domain != null, "Domain '%s' does not exist", domainName);
     Set<String> missingHosts =
         difference(newHostsSet, checkResourcesExist(HostResource.class, newHosts, now));

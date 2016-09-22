@@ -19,7 +19,7 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.async.DeleteContactsAndHostsAction.QUEUE_ASYNC_DELETE;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.eppcommon.StatusValue.PENDING_DELETE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.reporting.HistoryEntry.Type.CONTACT_DELETE;
@@ -154,14 +154,14 @@ public class DeleteContactsAndHostsActionTest
     enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
     runMapreduce();
     ContactResource contactUpdated =
-        loadByUniqueId(ContactResource.class, "blah8221", clock.nowUtc());
+        loadByForeignKey(ContactResource.class, "blah8221", clock.nowUtc());
     assertAboutContacts()
         .that(contactUpdated)
         .doesNotHaveStatusValue(PENDING_DELETE)
         .and()
         .hasDeletionTime(END_OF_TIME);
     DomainResource domainReloaded =
-        loadByUniqueId(DomainResource.class, "example.tld", clock.nowUtc());
+        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc());
     assertThat(domainReloaded.getReferencedContacts()).contains(Key.create(contactUpdated));
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(contactUpdated, HistoryEntry.Type.CONTACT_DELETE_FAILURE);
@@ -176,7 +176,7 @@ public class DeleteContactsAndHostsActionTest
     ContactResource contact = persistContactWithPii("jim919");
     enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
     runMapreduce();
-    assertThat(loadByUniqueId(ContactResource.class, "jim919", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "jim919", clock.nowUtc())).isNull();
     ContactResource contactAfterDeletion = ofy().load().entity(contact).now();
     assertAboutContacts()
         .that(contactAfterDeletion)
@@ -213,10 +213,10 @@ public class DeleteContactsAndHostsActionTest
     enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
     runMapreduce();
     // Check that the contact is deleted as of now.
-    assertThat(loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())).isNull();
     // Check that it's still there (it wasn't deleted yesterday) and that it has history.
     assertAboutContacts()
-        .that(loadByUniqueId(ContactResource.class, "sh8013", clock.nowUtc().minusDays(1)))
+        .that(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc().minusDays(1)))
         .hasOneHistoryEntryEachOfTypes(CONTACT_TRANSFER_REQUEST, CONTACT_DELETE);
     assertNoBillingEvents();
     PollMessage deletePollMessage =
@@ -252,9 +252,9 @@ public class DeleteContactsAndHostsActionTest
             .build());
     enqueuer.enqueueAsyncDelete(contactUsed, "TheRegistrar", false);
     runMapreduce();
-    assertThat(loadByUniqueId(ContactResource.class, "blah1234", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "blah1234", clock.nowUtc())).isNull();
     ContactResource contactBeforeDeletion =
-        loadByUniqueId(ContactResource.class, "blah1234", clock.nowUtc().minusDays(1));
+        loadByForeignKey(ContactResource.class, "blah1234", clock.nowUtc().minusDays(1));
     assertAboutContacts()
         .that(contactBeforeDeletion)
         .isNotActiveAt(clock.nowUtc())
@@ -276,9 +276,9 @@ public class DeleteContactsAndHostsActionTest
     enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
     enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
     runMapreduce();
-    assertThat(loadByUniqueId(ContactResource.class, "blah2222", clock.nowUtc()))
+    assertThat(loadByForeignKey(ContactResource.class, "blah2222", clock.nowUtc()))
         .isEqualTo(contact);
-    assertThat(loadByUniqueId(HostResource.class, "rustles.your.jimmies", clock.nowUtc()))
+    assertThat(loadByForeignKey(HostResource.class, "rustles.your.jimmies", clock.nowUtc()))
         .isEqualTo(host);
   }
 
@@ -288,7 +288,7 @@ public class DeleteContactsAndHostsActionTest
     enqueuer.enqueueAsyncDelete(contact, "OtherRegistrar", false);
     runMapreduce();
     ContactResource contactAfter =
-        loadByUniqueId(ContactResource.class, "jane0991", clock.nowUtc());
+        loadByForeignKey(ContactResource.class, "jane0991", clock.nowUtc());
     assertAboutContacts()
         .that(contactAfter)
         .doesNotHaveStatusValue(PENDING_DELETE)
@@ -306,7 +306,7 @@ public class DeleteContactsAndHostsActionTest
     ContactResource contact = persistContactWithPii("nate007");
     enqueuer.enqueueAsyncDelete(contact, "OtherRegistrar", true);
     runMapreduce();
-    assertThat(loadByUniqueId(ContactResource.class, "nate007", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "nate007", clock.nowUtc())).isNull();
     ContactResource contactAfterDeletion = ofy().load().entity(contact).now();
     assertAboutContacts()
         .that(contactAfterDeletion)
@@ -357,13 +357,14 @@ public class DeleteContactsAndHostsActionTest
     persistUsedDomain("example.tld", persistActiveContact("abc456"), host);
     enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
     runMapreduce();
-    HostResource hostAfter = loadByUniqueId(HostResource.class, "ns1.example.tld", clock.nowUtc());
+    HostResource hostAfter =
+        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc());
     assertAboutHosts()
         .that(hostAfter)
         .doesNotHaveStatusValue(PENDING_DELETE)
         .and()
         .hasDeletionTime(END_OF_TIME);
-    DomainResource domain = loadByUniqueId(DomainResource.class, "example.tld", clock.nowUtc());
+    DomainResource domain = loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc());
     assertThat(domain.getNameservers()).contains(Key.create(hostAfter));
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostAfter, HOST_DELETE_FAILURE);
     assertPollMessageFor(
@@ -377,9 +378,9 @@ public class DeleteContactsAndHostsActionTest
     HostResource host = persistHostPendingDelete("ns2.example.tld");
     enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
     runMapreduce();
-    assertThat(loadByUniqueId(HostResource.class, "ns2.example.tld", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc())).isNull();
     HostResource hostBeforeDeletion =
-        loadByUniqueId(HostResource.class, "ns2.example.tld", clock.nowUtc().minusDays(1));
+        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc().minusDays(1));
     assertAboutHosts()
         .that(hostBeforeDeletion)
         .isNotActiveAt(clock.nowUtc())
@@ -405,9 +406,9 @@ public class DeleteContactsAndHostsActionTest
             .build());
     enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
     runMapreduce();
-    assertThat(loadByUniqueId(HostResource.class, "ns1.example.tld", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc())).isNull();
     HostResource hostBeforeDeletion =
-        loadByUniqueId(HostResource.class, "ns1.example.tld", clock.nowUtc().minusDays(1));
+        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc().minusDays(1));
     assertAboutHosts()
         .that(hostBeforeDeletion)
         .isNotActiveAt(clock.nowUtc())
@@ -439,15 +440,15 @@ public class DeleteContactsAndHostsActionTest
     enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
     runMapreduce();
     // Check that the host is deleted as of now.
-    assertThat(loadByUniqueId(HostResource.class, "ns2.example.tld", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc())).isNull();
     assertNoBillingEvents();
     assertThat(
-            loadByUniqueId(DomainResource.class, "example.tld", clock.nowUtc())
+            loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc())
                 .getSubordinateHosts())
         .isEmpty();
     assertDnsTasksEnqueued("ns2.example.tld");
     HostResource hostBeforeDeletion =
-        loadByUniqueId(HostResource.class, "ns2.example.tld", clock.nowUtc().minusDays(1));
+        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc().minusDays(1));
     assertAboutHosts()
         .that(hostBeforeDeletion)
         .isNotActiveAt(clock.nowUtc())
@@ -465,7 +466,8 @@ public class DeleteContactsAndHostsActionTest
     HostResource host = persistHostPendingDelete("ns2.example.tld");
     enqueuer.enqueueAsyncDelete(host, "OtherRegistrar", false);
     runMapreduce();
-    HostResource hostAfter = loadByUniqueId(HostResource.class, "ns2.example.tld", clock.nowUtc());
+    HostResource hostAfter =
+        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc());
     assertAboutHosts()
         .that(hostAfter)
         .doesNotHaveStatusValue(PENDING_DELETE)
@@ -483,9 +485,9 @@ public class DeleteContactsAndHostsActionTest
     HostResource host = persistHostPendingDelete("ns66.example.tld");
     enqueuer.enqueueAsyncDelete(host, "OtherRegistrar", true);
     runMapreduce();
-    assertThat(loadByUniqueId(HostResource.class, "ns66.example.tld", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns66.example.tld", clock.nowUtc())).isNull();
     HostResource hostBeforeDeletion =
-        loadByUniqueId(HostResource.class, "ns66.example.tld", clock.nowUtc().minusDays(1));
+        loadByForeignKey(HostResource.class, "ns66.example.tld", clock.nowUtc().minusDays(1));
     assertAboutHosts()
         .that(hostBeforeDeletion)
         .isNotActiveAt(clock.nowUtc())

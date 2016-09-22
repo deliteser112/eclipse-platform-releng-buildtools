@@ -15,7 +15,7 @@
 package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.Registries.getTlds;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
@@ -52,7 +52,7 @@ abstract class DomainOrHostLookupCommand<T extends EppResource> implements Whois
     }
     // Google Policy: Do not return records under TLDs for which we're not authoritative.
     if (tld.isPresent() && getTlds().contains(tld.get().toString())) {
-      T domainOrHost = loadByUniqueId(
+      T domainOrHost = loadByForeignKey(
           new TypeInstantiator<T>(getClass()){}.getExactType(),
           domainOrHostName.toString(),
           now);

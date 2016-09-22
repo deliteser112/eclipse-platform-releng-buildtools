@@ -32,7 +32,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNo
 import static google.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRoid;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
@@ -164,7 +164,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
       @Override
       public DomainResource run() {
         // This is cacheable because we are outside of a transaction.
-        return loadByUniqueId(DomainResource.class, targetId, now);
+        return loadByForeignKey(DomainResource.class, targetId, now);
       }});
     // If the domain exists already and isn't in the ADD grace period then there is no way it will
     // be suddenly deleted and therefore the create must fail.

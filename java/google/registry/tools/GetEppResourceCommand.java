@@ -15,13 +15,15 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
+import google.registry.model.domain.DomainApplication;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import org.joda.time.DateTime;
@@ -32,8 +34,7 @@ import org.joda.time.DateTime;
  * @param <R> {@link EppResource} subclass.
  */
 @Parameters(separators = " =")
-abstract class GetEppResourceCommand<R extends EppResource>
-    implements RemoteApiCommand {
+abstract class GetEppResourceCommand<R extends EppResource> implements RemoteApiCommand {
 
   private final DateTime now = DateTime.now(UTC);
 
@@ -52,14 +53,17 @@ abstract class GetEppResourceCommand<R extends EppResource>
   /** Resolve any parameters into ids for loadResource. */
   abstract void processParameters();
 
-  /** 
+  /**
    * Load a resource by ID and output. Append the websafe key to the output for use in e.g.
    * manual mapreduce calls.
    */
   void printResource(String uniqueId) {
-    R resource = loadByUniqueId(clazz, uniqueId, readTimestamp);
+    EppResource resource =
+        (clazz == DomainApplication.class)
+            ? loadDomainApplication(uniqueId, readTimestamp)
+            : loadByForeignKey(clazz, uniqueId, readTimestamp);
     System.out.println(resource != null
-        ? String.format("%s\n\nWebsafe key: %s", 
+        ? String.format("%s\n\nWebsafe key: %s",
             expand ? resource.toHydratedString() : resource,
             Key.create(resource).getString())
         : String.format(

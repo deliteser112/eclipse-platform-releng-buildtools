@@ -67,7 +67,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     clock.advanceOneMilli();
     assertTransactionalFlow(true);
     runFlowAssertResponse(readFile("host_delete_response.xml"));
-    HostResource deletedHost = reloadResourceByUniqueId();
+    HostResource deletedHost = reloadResourceByForeignKey();
     assertAboutHosts().that(deletedHost).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(deletedHost, "TheRegistrar", false);
     assertAboutHosts().that(deletedHost)
@@ -127,7 +127,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     clock.advanceOneMilli();
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("host_delete_response.xml"));
-    HostResource deletedHost = reloadResourceByUniqueId();
+    HostResource deletedHost = reloadResourceByForeignKey();
     assertAboutHosts().that(deletedHost).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(deletedHost, "NewRegistrar", true);
     assertAboutHosts().that(deletedHost)

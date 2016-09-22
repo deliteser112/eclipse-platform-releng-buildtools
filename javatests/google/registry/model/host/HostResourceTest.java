@@ -15,7 +15,7 @@
 package google.registry.model.host;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
@@ -83,14 +83,15 @@ public class HostResourceTest extends EntityTestCase {
                 .setInetAddresses(ImmutableSet.of(InetAddresses.forString("127.0.0.1")))
                 .setStatusValues(ImmutableSet.of(StatusValue.OK))
                 .setSuperordinateDomain(
-                    Key.create(loadByUniqueId(DomainResource.class, "example.com", clock.nowUtc())))
+                    Key.create(
+                        loadByForeignKey(DomainResource.class, "example.com", clock.nowUtc())))
                 .build());
     persistResource(hostResource);
   }
 
   @Test
   public void testPersistence() throws Exception {
-    assertThat(loadByUniqueId(
+    assertThat(loadByForeignKey(
         HostResource.class, hostResource.getForeignKey(), clock.nowUtc()))
         .isEqualTo(hostResource.cloneProjectedAtTime(clock.nowUtc()));
   }
@@ -125,9 +126,9 @@ public class HostResourceTest extends EntityTestCase {
   public void testCurrentSponsorClientId_comesFromSuperordinateDomain() {
     assertThat(hostResource.getCurrentSponsorClientId()).isNull();
     HostResource projectedHost =
-        loadByUniqueId(HostResource.class, hostResource.getForeignKey(), clock.nowUtc());
+        loadByForeignKey(HostResource.class, hostResource.getForeignKey(), clock.nowUtc());
     assertThat(projectedHost.getCurrentSponsorClientId())
-        .isEqualTo(loadByUniqueId(
+        .isEqualTo(loadByForeignKey(
             DomainResource.class,
             "example.com",
             clock.nowUtc())
@@ -196,7 +197,7 @@ public class HostResourceTest extends EntityTestCase {
       @Nullable DateTime domainTransferTime,
       @Nullable DateTime hostTransferTime,
       @Nullable DateTime superordinateChangeTime) {
-    DomainResource domain = loadByUniqueId(
+    DomainResource domain = loadByForeignKey(
         DomainResource.class, "example.com", clock.nowUtc());
     persistResource(
         domain.asBuilder().setTransferData(null).setLastTransferTime(domainTransferTime).build());
@@ -256,7 +257,7 @@ public class HostResourceTest extends EntityTestCase {
 
   @Test
   public void testExpiredTransfer_subordinateHost() {
-    DomainResource domain = loadByUniqueId(
+    DomainResource domain = loadByForeignKey(
         DomainResource.class, "example.com", clock.nowUtc());
     persistResource(domain.asBuilder()
         .setTransferData(domain.getTransferData().asBuilder()

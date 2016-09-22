@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createChildEntityInput;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.common.Cursor.CursorType.RECURRING_BILLING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
@@ -158,7 +158,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
 
             Iterable<OneTime> oneTimesForDomain = ofy().load()
                 .type(OneTime.class)
-                .ancestor(loadByUniqueId(
+                .ancestor(loadByForeignKey(
                     DomainResource.class, recurring.getTargetId(), executeTime));
 
             // Determine the billing times that already have OneTime events persisted.

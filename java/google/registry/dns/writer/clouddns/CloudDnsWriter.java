@@ -15,7 +15,7 @@
 package google.registry.dns.writer.clouddns;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -110,7 +110,7 @@ class CloudDnsWriter implements DnsWriter {
 
     // Load the target domain. Note that it can be null if this domain was just deleted.
     Optional<DomainResource> domainResource =
-        Optional.fromNullable(loadByUniqueId(DomainResource.class, domainName, clock.nowUtc()));
+        Optional.fromNullable(loadByForeignKey(DomainResource.class, domainName, clock.nowUtc()));
 
     // Return early if no DNS records should be published.
     // desiredRecordsBuilder is populated with an empty set to indicate that all existing records
@@ -180,7 +180,7 @@ class CloudDnsWriter implements DnsWriter {
     // desiredRecords is populated with an empty set to indicate that all existing records
     // should be deleted.
     Optional<HostResource> host =
-        Optional.fromNullable(loadByUniqueId(HostResource.class, hostName, clock.nowUtc()));
+        Optional.fromNullable(loadByForeignKey(HostResource.class, hostName, clock.nowUtc()));
 
     // Return early if the host is deleted.
     if (!host.isPresent()) {

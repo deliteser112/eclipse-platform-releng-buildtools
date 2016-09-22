@@ -165,7 +165,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   private void assertSuccessfulCreate(String domainTld, boolean isAnchorTenant) throws Exception {
-    DomainResource domain = reloadResourceByUniqueId();
+    DomainResource domain = reloadResourceByForeignKey();
 
     // Calculate the total cost.
     Money cost = getPricesForDomainName(getUniqueIdFromCommand(), clock.nowUtc()).isPremium()
@@ -255,21 +255,21 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   private void assertNoLordn() throws Exception {
     // TODO(b/26161326): Assert tasks NOT enqueued.
-    assertAboutDomains().that(reloadResourceByUniqueId())
+    assertAboutDomains().that(reloadResourceByForeignKey())
         .hasSmdId(null).and()
         .hasLaunchNotice(null);
   }
 
   private void assertSunriseLordn() throws Exception {
     // TODO(b/26161326): Assert tasks enqueued.
-    assertAboutDomains().that(reloadResourceByUniqueId())
+    assertAboutDomains().that(reloadResourceByForeignKey())
         .hasSmdId("0000001761376042759136-65535").and()
         .hasLaunchNotice(null);
   }
 
   private void assertClaimsLordn() throws Exception {
     // TODO(b/26161326): Assert tasks enqueued.
-    assertAboutDomains().that(reloadResourceByUniqueId())
+    assertAboutDomains().that(reloadResourceByForeignKey())
         .hasSmdId(null).and()
         .hasLaunchNotice(LaunchNotice.create(
             "370d0b7c9223372036854775807",
@@ -479,7 +479,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_metadata.xml");
     persistContactsAndHosts();
     doSuccessfulTest();
-    assertAboutDomains().that(reloadResourceByUniqueId())
+    assertAboutDomains().that(reloadResourceByForeignKey())
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.DOMAIN_CREATE).and()
         .hasMetadataReason("domain-create-test").and()
@@ -545,7 +545,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_dsdata_no_maxsiglife.xml");
     persistContactsAndHosts("tld");  // For some reason this sample uses "tld".
     doSuccessfulTest("tld");
-    assertAboutDomains().that(reloadResourceByUniqueId()).hasExactlyDsData(
+    assertAboutDomains().that(reloadResourceByForeignKey()).hasExactlyDsData(
         DelegationSignerData.create(12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC")));
   }
 
@@ -554,7 +554,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_dsdata_8_records.xml");
     persistContactsAndHosts("tld");  // For some reason this sample uses "tld".
     doSuccessfulTest("tld");
-    assertAboutDomains().that(reloadResourceByUniqueId()).hasNumDsData(8);
+    assertAboutDomains().that(reloadResourceByForeignKey()).hasNumDsData(8);
   }
 
   @Test
@@ -581,7 +581,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     runFlowAssertResponse(readFile("domain_create_response.xml"),
         "epp.response.resData.creData.exDate");  // Ignore expiration date; we verify it below
-    assertAboutDomains().that(reloadResourceByUniqueId())
+    assertAboutDomains().that(reloadResourceByForeignKey())
         .hasRegistrationExpirationTime(clock.nowUtc().plusYears(1));
     assertDnsTasksEnqueued("example.tld");
   }

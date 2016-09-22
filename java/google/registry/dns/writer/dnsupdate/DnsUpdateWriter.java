@@ -17,7 +17,7 @@ package google.registry.dns.writer.dnsupdate;
 import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.union;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -111,7 +111,7 @@ public class DnsUpdateWriter implements DnsWriter {
    *     this domain refresh request
    */
   private void publishDomain(String domainName, String requestingHostName) {
-    DomainResource domain = loadByUniqueId(DomainResource.class, domainName, clock.nowUtc());
+    DomainResource domain = loadByForeignKey(DomainResource.class, domainName, clock.nowUtc());
     try {
       Update update = new Update(toAbsoluteName(findTldFromName(domainName)));
       update.delete(toAbsoluteName(domainName), Type.ANY);
@@ -202,7 +202,7 @@ public class DnsUpdateWriter implements DnsWriter {
     for (String hostName :
         intersection(
             domain.loadNameserverFullyQualifiedHostNames(), domain.getSubordinateHosts())) {
-      HostResource host = loadByUniqueId(HostResource.class, hostName, clock.nowUtc());
+      HostResource host = loadByForeignKey(HostResource.class, hostName, clock.nowUtc());
       update.add(makeAddressSet(host));
       update.add(makeV6AddressSet(host));
     }

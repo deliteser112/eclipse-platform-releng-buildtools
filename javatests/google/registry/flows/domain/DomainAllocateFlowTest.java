@@ -16,7 +16,7 @@ package google.registry.flows.domain;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -132,7 +132,7 @@ public class DomainAllocateFlowTest
         UserPrivileges.SUPERUSER,
         readFile("domain_allocate_response.xml"));
     // Check that the domain was created and persisted with a history entry.
-    DomainResource domain = reloadResourceByUniqueId();
+    DomainResource domain = reloadResourceByForeignKey();
     assertAboutDomains().that(domain)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.DOMAIN_ALLOCATE);
@@ -142,8 +142,7 @@ public class DomainAllocateFlowTest
     boolean sunrushAddGracePeriod = (nameservers == 0);
 
     // The application should be marked as allocated, with a new history entry.
-    DomainApplication application =
-        loadByUniqueId(DomainApplication.class, applicationId, clock.nowUtc());
+    DomainApplication application = loadDomainApplication(applicationId, clock.nowUtc());
     assertAboutApplications().that(application)
         .hasApplicationStatus(ApplicationStatus.ALLOCATED).and()
         .hasHistoryEntryAtIndex(1)
@@ -284,7 +283,7 @@ public class DomainAllocateFlowTest
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     setEppInput("domain_allocate_dsdata.xml");
     doSuccessfulTest(2);
-    assertAboutDomains().that(reloadResourceByUniqueId())
+    assertAboutDomains().that(reloadResourceByForeignKey())
         .hasExactlyDsData(DelegationSignerData.create(
               12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC")));
   }
@@ -295,7 +294,7 @@ public class DomainAllocateFlowTest
     setEppInput("domain_allocate_dsdata_8_records.xml");
     doSuccessfulTest(2);
     assertThat(getOnlyGlobalResource(DomainResource.class)).isNotNull();
-    assertThat(reloadResourceByUniqueId().getDsData()).hasSize(8);
+    assertThat(reloadResourceByForeignKey().getDsData()).hasSize(8);
   }
 
   @Test
@@ -326,7 +325,7 @@ public class DomainAllocateFlowTest
     String expectedCsv = String.format(
         "%s,example-one.tld,370d0b7c9223372036854775807,1,"
         + "2010-09-16T10:00:00.000Z,2010-07-16T09:00:00.000Z,2010-08-16T10:00:00.000Z",
-        reloadResourceByUniqueId().getRepoId());
+        reloadResourceByForeignKey().getRepoId());
     assertTasksEnqueued(
         "lordn-claims", new TaskMatcher().payload(expectedCsv).tag("tld"));
   }
@@ -339,7 +338,7 @@ public class DomainAllocateFlowTest
     String expectedCsv = String.format(
         "%s,example-one.tld,370d0b7c9223372036854775807,1,"
         + "2011-08-17T09:00:00.000Z,2010-07-16T09:00:00.000Z,2010-08-16T10:00:00.000Z",
-        reloadResourceByUniqueId().getRepoId());
+        reloadResourceByForeignKey().getRepoId());
     assertTasksEnqueued("lordn-claims", new TaskMatcher().payload(expectedCsv).tag("tld"));
   }
 

@@ -15,7 +15,7 @@
 package google.registry.flows.async;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyPollMessageForHistoryEntry;
@@ -127,7 +127,7 @@ public abstract class DeleteEppResourceActionTestCase<T extends DeleteEppResourc
     thrown.expect(
         IllegalArgumentException.class, "Cannot delete a DomainResource via this action.");
     runMapreduceWithKeyParam(Key.create(domain).getString());
-    assertThat(loadByUniqueId(DomainResource.class, "fail.tld", now)).isEqualTo(domain);
+    assertThat(loadByForeignKey(DomainResource.class, "fail.tld", now)).isEqualTo(domain);
   }
 
   @Test

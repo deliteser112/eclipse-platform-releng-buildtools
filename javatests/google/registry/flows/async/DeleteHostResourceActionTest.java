@@ -15,7 +15,7 @@
 package google.registry.flows.async;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -59,10 +59,10 @@ public class DeleteHostResourceActionTest
             .addStatusValue(StatusValue.PENDING_DELETE)
             .build());
     runMapreduceWithKeyParam(Key.create(hostUsed).getString());
-    hostUsed = loadByUniqueId(HostResource.class, "ns1.example.tld", now);
+    hostUsed = loadByForeignKey(HostResource.class, "ns1.example.tld", now);
     assertAboutHosts().that(hostUsed).doesNotHaveStatusValue(StatusValue.PENDING_DELETE)
         .and().hasDeletionTime(END_OF_TIME);
-    domain = loadByUniqueId(DomainResource.class, "example.tld", now);
+    domain = loadByForeignKey(DomainResource.class, "example.tld", now);
     assertThat(domain.getNameservers()).contains(Key.create(hostUsed));
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(hostUsed, HistoryEntry.Type.HOST_DELETE_FAILURE);
@@ -79,9 +79,9 @@ public class DeleteHostResourceActionTest
             .addStatusValue(StatusValue.PENDING_DELETE)
             .build());
     runMapreduceWithKeyParam(Key.create(hostUnused).getString());
-    assertThat(loadByUniqueId(HostResource.class, "ns2.example.tld", now)).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", now)).isNull();
     HostResource hostBeforeDeletion =
-        loadByUniqueId(HostResource.class, "ns2.example.tld", now.minusDays(1));
+        loadByForeignKey(HostResource.class, "ns2.example.tld", now.minusDays(1));
     assertAboutHosts().that(hostBeforeDeletion).hasDeletionTime(now)
         .and().hasExactlyStatusValues(StatusValue.OK)
         // Note that there will be another history entry of HOST_PENDING_DELETE, but this is
@@ -103,9 +103,9 @@ public class DeleteHostResourceActionTest
             .setDeletionTime(now.minusDays(3))
             .build());
     runMapreduceWithKeyParam(Key.create(hostUsed).getString());
-    assertThat(loadByUniqueId(HostResource.class, "ns1.example.tld", now)).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns1.example.tld", now)).isNull();
     HostResource hostBeforeDeletion =
-        loadByUniqueId(HostResource.class, "ns1.example.tld", now.minusDays(1));
+        loadByForeignKey(HostResource.class, "ns1.example.tld", now.minusDays(1));
     assertAboutHosts().that(hostBeforeDeletion).hasDeletionTime(now)
         .and().hasExactlyStatusValues(StatusValue.OK)
         // Note that there will be another history entry of HOST_PENDING_DELETE, but this is
@@ -129,15 +129,15 @@ public class DeleteHostResourceActionTest
             .build());
     runMapreduceWithKeyParam(Key.create(hostUnused).getString());
     // Check that the host is deleted as of now.
-    assertThat(loadByUniqueId(HostResource.class, "ns2.example.tld", clock.nowUtc()))
+    assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc()))
         .isNull();
     assertNoBillingEvents();
-    assertThat(loadByUniqueId(DomainResource.class, "example.tld", clock.nowUtc())
+    assertThat(loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc())
         .getSubordinateHosts())
             .isEmpty();
     assertDnsTasksEnqueued("ns2.example.tld");
     HostResource hostBeforeDeletion =
-        loadByUniqueId(HostResource.class, "ns2.example.tld", now.minusDays(1));
+        loadByForeignKey(HostResource.class, "ns2.example.tld", now.minusDays(1));
     assertAboutHosts().that(hostBeforeDeletion).hasDeletionTime(now)
         .and().hasExactlyStatusValues(StatusValue.OK)
         .and().hasOnlyOneHistoryEntryWhich().hasType(HistoryEntry.Type.HOST_DELETE);
@@ -152,7 +152,7 @@ public class DeleteHostResourceActionTest
         IllegalStateException.class, "Resource ns2.example.tld is not set as PENDING_DELETE");
     runMapreduceWithKeyParam(Key.create(hostUnused).getString());
     assertThat(
-        loadByUniqueId(HostResource.class, "ns2.example.tld", now)).isEqualTo(hostUnused);
+        loadByForeignKey(HostResource.class, "ns2.example.tld", now)).isEqualTo(hostUnused);
   }
 
   @Test
@@ -163,10 +163,10 @@ public class DeleteHostResourceActionTest
             .build());
     Key<HostResource> key = Key.create(hostUnused);
     runMapreduceWithParams(key.getString(), "OtherRegistrar", false);
-    hostUnused = loadByUniqueId(HostResource.class, "ns2.example.tld", now);
+    hostUnused = loadByForeignKey(HostResource.class, "ns2.example.tld", now);
     assertAboutHosts().that(hostUnused).doesNotHaveStatusValue(StatusValue.PENDING_DELETE)
         .and().hasDeletionTime(END_OF_TIME);
-    domain = loadByUniqueId(DomainResource.class, "example.tld", now);
+    domain = loadByForeignKey(DomainResource.class, "example.tld", now);
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(hostUnused, HistoryEntry.Type.HOST_DELETE_FAILURE);
     assertPollMessageFor(
@@ -183,9 +183,9 @@ public class DeleteHostResourceActionTest
             .build());
     Key<HostResource> key = Key.create(hostUnused);
     runMapreduceWithParams(key.getString(), "OtherRegistrar", true);
-    assertThat(loadByUniqueId(HostResource.class, "ns2.example.tld", now)).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", now)).isNull();
     HostResource hostBeforeDeletion =
-        loadByUniqueId(HostResource.class, "ns2.example.tld", now.minusDays(1));
+        loadByForeignKey(HostResource.class, "ns2.example.tld", now.minusDays(1));
     assertAboutHosts().that(hostBeforeDeletion).hasDeletionTime(now)
         .and().hasExactlyStatusValues(StatusValue.OK)
         // Note that there will be another history entry of HOST_PENDING_DELETE, but this is

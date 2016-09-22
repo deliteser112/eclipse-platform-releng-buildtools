@@ -62,7 +62,7 @@ public class ContactTransferCancelFlowTest
     runFlowAssertResponse(readFile(expectedXmlFilename));
 
     // Transfer should have been cancelled. Verify correct fields were set.
-    contact = reloadResourceByUniqueId();
+    contact = reloadResourceByForeignKey();
     assertAboutContacts().that(contact)
         .hasCurrentSponsorClientId("TheRegistrar").and()
         .hasLastTransferTimeNotEqualTo(clock.nowUtc()).and()

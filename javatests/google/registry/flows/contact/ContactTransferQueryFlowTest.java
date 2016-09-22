@@ -51,7 +51,7 @@ public class ContactTransferQueryFlowTest
     // Setup done; run the test.
     assertTransactionalFlow(false);
     runFlowAssertResponse(readFile(expectedXmlFilename));
-    assertAboutContacts().that(reloadResourceByUniqueIdYesterday())
+    assertAboutContacts().that(reloadResourceByForeignKey(clock.nowUtc().minusDays(1)))
         .hasOneHistoryEntryEachOfTypes(HistoryEntry.Type.CONTACT_TRANSFER_REQUEST);
     assertNoBillingEvents();
   }

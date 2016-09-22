@@ -15,7 +15,7 @@
 package google.registry.flows.host;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.request.Actions.getPathForAction;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -106,10 +106,10 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     runFlowAssertResponse(readFile("host_update_response.xml"));
     // The example xml does a host rename, so reloading the host (which uses the original host name)
     // should now return null.
-    assertThat(reloadResourceByUniqueId()).isNull();
+    assertThat(reloadResourceByForeignKey()).isNull();
     // However, it should load correctly if we use the new name (taken from the xml).
     HostResource renamedHost =
-        loadByUniqueId(HostResource.class, "ns2.example.tld", clock.nowUtc());
+        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc());
     assertAboutHosts().that(renamedHost)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.HOST_UPDATE);
@@ -127,7 +127,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .build());
     clock.advanceOneMilli();
     runFlow();
-    assertAboutEppResources().that(reloadResourceByUniqueId())
+    assertAboutEppResources().that(reloadResourceByForeignKey())
         .doesNotHaveStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED);
   }
 
@@ -175,7 +175,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     clock.advanceOneMilli();
     runFlowAssertResponse(readFile("host_update_response.xml"));
     // The example xml doesn't do a host rename, so reloading the host should work.
-    assertAboutHosts().that(reloadResourceByUniqueId())
+    assertAboutHosts().that(reloadResourceByForeignKey())
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.HOST_UPDATE);
     assertDnsTasksEnqueued("ns1.example.tld");
@@ -196,13 +196,13 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setSubordinateHosts(ImmutableSet.of(oldHostName()))
             .build());
     assertThat(
-        loadByUniqueId(
+        loadByForeignKey(
             DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
             .containsExactly("ns1.example.tld");
     HostResource renamedHost = doSuccessfulTest();
     assertThat(renamedHost.getSuperordinateDomain()).isEqualTo(Key.create(domain));
     assertThat(
-        loadByUniqueId(
+        loadByForeignKey(
             DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
             .containsExactly("ns2.example.tld");
     assertDnsTasksEnqueued("ns1.example.tld", "ns2.example.tld");
@@ -224,21 +224,21 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setSubordinateHosts(ImmutableSet.of(oldHostName()))
             .build());
     assertThat(
-        loadByUniqueId(
+        loadByForeignKey(
             DomainResource.class, "foo.tld", clock.nowUtc()).getSubordinateHosts())
             .containsExactly("ns2.foo.tld");
     assertThat(
-        loadByUniqueId(
+        loadByForeignKey(
             DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
             .isEmpty();
     HostResource renamedHost = doSuccessfulTest();
     assertThat(renamedHost.getSuperordinateDomain()).isEqualTo(Key.create(example));
     assertThat(
-        loadByUniqueId(
+        loadByForeignKey(
             DomainResource.class, "foo.tld", clock.nowUtc()).getSubordinateHosts())
             .isEmpty();
     assertThat(
-        loadByUniqueId(
+        loadByForeignKey(
             DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
             .containsExactly("ns2.example.tld");
     assertDnsTasksEnqueued("ns2.foo.tld", "ns2.example.tld");
@@ -259,7 +259,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setSubordinateHosts(ImmutableSet.of(oldHostName()))
             .build());
     assertThat(
-        loadByUniqueId(
+        loadByForeignKey(
             DomainResource.class, "example.foo", clock.nowUtc()).getSubordinateHosts())
             .containsExactly("ns1.example.foo");
     HostResource renamedHost = doSuccessfulTest();
@@ -268,7 +268,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     // comes from the field on the host itself, because the superordinate domain is null).
     assertThat(renamedHost.getCurrentSponsorClientId()).isEqualTo("TheRegistrar");
     assertThat(
-        loadByUniqueId(
+        loadByForeignKey(
             DomainResource.class, "example.foo", clock.nowUtc()).getSubordinateHosts())
             .isEmpty();
     assertDnsTasksEnqueued("ns1.example.foo");
@@ -287,16 +287,16 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     DomainResource tldDomain = persistActiveDomain("example.tld");
     persistActiveHost(oldHostName());
 
-    assertThat(loadByUniqueId(
+    assertThat(loadByForeignKey(
         HostResource.class, oldHostName(), clock.nowUtc()).getCurrentSponsorClientId())
             .isEqualTo("TheRegistrar");
     assertThat(
-        loadByUniqueId(
+        loadByForeignKey(
             DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
             .isEmpty();
     HostResource renamedHost = doSuccessfulTest();
     assertThat(renamedHost.getSuperordinateDomain()).isEqualTo(Key.create(tldDomain));
-    assertThat(loadByUniqueId(
+    assertThat(loadByForeignKey(
             DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
             .containsExactly("ns2.example.tld");
     assertDnsTasksEnqueued("ns2.example.tld");
@@ -319,15 +319,15 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     DomainResource domain = persistActiveDomain("example.tld");
     persistActiveHost(oldHostName());
 
-    assertThat(loadByUniqueId(
+    assertThat(loadByForeignKey(
         HostResource.class, oldHostName(), clock.nowUtc()).getCurrentSponsorClientId())
             .isEqualTo("TheRegistrar");
-    assertThat(loadByUniqueId(
+    assertThat(loadByForeignKey(
             DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
             .isEmpty();
     HostResource renamedHost = doSuccessfulTest();
     assertThat(renamedHost.getSuperordinateDomain()).isEqualTo(Key.create(domain));
-    assertThat(loadByUniqueId(
+    assertThat(loadByForeignKey(
             DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
             .containsExactly("ns2.example.tld");
     assertDnsTasksEnqueued("ns2.example.tld");
@@ -351,7 +351,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
         readFile("host_update_response.xml"));
-    assertAboutHosts().that(reloadResourceByUniqueId())
+    assertAboutHosts().that(reloadResourceByForeignKey())
         .hasStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED).and()
         .hasStatusValue(StatusValue.SERVER_UPDATE_PROHIBITED);
   }
@@ -893,7 +893,8 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     eppRequestSource = EppRequestSource.TOOL;
     runFlowAssertResponse(readFile("host_update_response.xml"));
     assertAboutHistoryEntries()
-        .that(getOnlyHistoryEntryOfType(reloadResourceByUniqueId(), HistoryEntry.Type.HOST_UPDATE))
+        .that(getOnlyHistoryEntryOfType(
+            reloadResourceByForeignKey(), HistoryEntry.Type.HOST_UPDATE))
         .hasMetadataReason("host-update-test").and()
         .hasMetadataRequestedByRegistrar(false);
   }

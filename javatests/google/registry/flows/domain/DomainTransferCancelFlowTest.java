@@ -107,7 +107,7 @@ public class DomainTransferCancelFlowTest
     runFlowAssertResponse(readFile(expectedXmlFilename));
 
     // Transfer should have been cancelled. Verify correct fields were set.
-    domain = reloadResourceByUniqueId();
+    domain = reloadResourceByForeignKey();
     assertTransferFailed(domain, TransferStatus.CLIENT_CANCELLED);
     assertAboutDomains().that(domain)
         .hasRegistrationExpirationTime(originalExpirationTime).and()

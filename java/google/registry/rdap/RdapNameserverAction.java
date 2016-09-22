@@ -14,7 +14,7 @@
 
 package google.registry.rdap;
 
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
@@ -55,8 +55,7 @@ public class RdapNameserverAction extends RdapActionBase {
     pathSearchString = canonicalizeName(pathSearchString);
     // The RDAP syntax is /rdap/nameserver/ns1.mydomain.com.
     validateDomainName(pathSearchString);
-    HostResource hostResource =
-        loadByUniqueId(HostResource.class, pathSearchString, now);
+    HostResource hostResource = loadByForeignKey(HostResource.class, pathSearchString, now);
     if (hostResource == null) {
       throw new NotFoundException(pathSearchString + " not found");
     }

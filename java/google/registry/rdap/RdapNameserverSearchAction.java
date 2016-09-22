@@ -14,7 +14,7 @@
 
 package google.registry.rdap;
 
-import static google.registry.model.EppResourceUtils.loadByUniqueId;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
@@ -118,7 +118,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     // Handle queries without a wildcard -- just load by foreign key.
     if (!partialStringQuery.getHasWildcard()) {
       HostResource hostResource =
-          loadByUniqueId(HostResource.class, partialStringQuery.getInitialString(), now);
+          loadByForeignKey(HostResource.class, partialStringQuery.getInitialString(), now);
       if (hostResource == null) {
         throw new NotFoundException("No nameservers found");
       }
@@ -141,7 +141,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     // looking for matches.
     } else {
       DomainResource domainResource =
-          loadByUniqueId(DomainResource.class, partialStringQuery.getSuffix(), now);
+          loadByForeignKey(DomainResource.class, partialStringQuery.getSuffix(), now);
       if (domainResource == null) {
         throw new NotFoundException("No domain found for specified nameserver suffix");
       }
@@ -150,7 +150,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
         // We can't just check that the host name starts with the initial query string, because then
         // the query ns.exam*.example.com would match against nameserver ns.example.com.
         if (partialStringQuery.matches(fqhn)) {
-          HostResource hostResource = loadByUniqueId(HostResource.class, fqhn, now);
+          HostResource hostResource = loadByForeignKey(HostResource.class, fqhn, now);
           if (hostResource != null) {
             hostListBuilder.add(hostResource);
           }
