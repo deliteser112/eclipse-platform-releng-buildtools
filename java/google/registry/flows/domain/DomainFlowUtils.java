@@ -78,6 +78,7 @@ import google.registry.model.host.HostResource;
 import google.registry.model.mark.Mark;
 import google.registry.model.mark.ProtectedMark;
 import google.registry.model.mark.Trademark;
+import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
@@ -88,6 +89,8 @@ import google.registry.model.smd.AbstractSignedMark;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
 import google.registry.model.smd.SignedMarkRevocationList;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.tmch.TmchXmlSignature;
 import google.registry.tmch.TmchXmlSignature.CertificateSignatureException;
 import google.registry.util.Idn;
@@ -283,12 +286,10 @@ public class DomainFlowUtils {
     if (!whitelist.isEmpty() && count == 0) {
       throw new NameserversNotSpecifiedException();
     }
-
     if (count > MAX_NAMESERVERS_PER_DOMAIN) {
       throw new TooManyNameserversException(String.format(
           "Only %d nameservers are allowed per domain", MAX_NAMESERVERS_PER_DOMAIN));
     }
-
   }
 
   static void validateNoDuplicateContacts(Set<DesignatedContact> contacts)
@@ -682,6 +683,59 @@ public class DomainFlowUtils {
     if (!feeTotal.equals(costTotal)) {
       throw new FeesMismatchException(costTotal);
     }
+  }
+
+  /** Create a poll message for the gaining client in a transfer. */
+  static PollMessage createGainingTransferPollMessage(
+      String targetId,
+      TransferData transferData,
+      @Nullable DateTime extendedRegistrationExpirationTime,
+      HistoryEntry historyEntry) {
+    return new PollMessage.OneTime.Builder()
+        .setClientId(transferData.getGainingClientId())
+        .setEventTime(transferData.getPendingTransferExpirationTime())
+        .setMsg(transferData.getTransferStatus().getMessage())
+        .setResponseData(ImmutableList.of(
+            createTransferResponse(targetId, transferData, extendedRegistrationExpirationTime),
+            DomainPendingActionNotificationResponse.create(
+                  targetId,
+                  transferData.getTransferStatus().isApproved(),
+                  transferData.getTransferRequestTrid(),
+                  historyEntry.getModificationTime())))
+        .setParent(historyEntry)
+        .build();
+  }
+
+  /** Create a poll message for the losing client in a transfer. */
+  static PollMessage createLosingTransferPollMessage(
+      String targetId,
+      TransferData transferData,
+      @Nullable DateTime extendedRegistrationExpirationTime,
+      HistoryEntry historyEntry) {
+    return new PollMessage.OneTime.Builder()
+        .setClientId(transferData.getLosingClientId())
+        .setEventTime(transferData.getPendingTransferExpirationTime())
+        .setMsg(transferData.getTransferStatus().getMessage())
+        .setResponseData(ImmutableList.of(
+            createTransferResponse(targetId, transferData, extendedRegistrationExpirationTime)))
+        .setParent(historyEntry)
+        .build();
+  }
+
+  /** Create a {@link DomainTransferResponse} off of the info in a {@link TransferData}. */
+  static DomainTransferResponse createTransferResponse(
+      String targetId,
+      TransferData transferData,
+      @Nullable DateTime extendedRegistrationExpirationTime) {
+    return new DomainTransferResponse.Builder()
+        .setFullyQualifiedDomainNameName(targetId)
+        .setGainingClientId(transferData.getGainingClientId())
+        .setLosingClientId(transferData.getLosingClientId())
+        .setPendingTransferExpirationTime(transferData.getPendingTransferExpirationTime())
+        .setTransferRequestTime(transferData.getTransferRequestTime())
+        .setTransferStatus(transferData.getTransferStatus())
+        .setExtendedRegistrationExpirationTime(extendedRegistrationExpirationTime)
+        .build();
   }
 
   /** Encoded signed marks must use base64 encoding. */

@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByUniqueId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -39,9 +40,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
-import google.registry.flows.ResourceMutatePendingTransferFlow.NotPendingTransferException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
+import google.registry.flows.exceptions.NotPendingTransferException;
+import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Cancellation;
@@ -61,7 +62,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.model.transfer.TransferResponse;
+import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -212,12 +213,12 @@ public class DomainTransferApproveFlowTest
     assertThat(gainingTransferPollMessage.getEventTime()).isEqualTo(clock.nowUtc());
     assertThat(gainingAutorenewPollMessage.getEventTime())
         .isEqualTo(domain.getRegistrationExpirationTime());
-    assertThat(
-        Iterables.getOnlyElement(FluentIterable
-            .from(gainingTransferPollMessage.getResponseData())
-            .filter(TransferResponse.class))
-                .getTransferStatus())
-                .isEqualTo(TransferStatus.CLIENT_APPROVED);
+    DomainTransferResponse transferResponse = getOnlyElement(FluentIterable
+        .from(gainingTransferPollMessage.getResponseData())
+        .filter(DomainTransferResponse.class));
+    assertThat(transferResponse.getTransferStatus()).isEqualTo(TransferStatus.CLIENT_APPROVED);
+    assertThat(transferResponse.getExtendedRegistrationExpirationTime())
+        .isEqualTo(domain.getRegistrationExpirationTime());
     PendingActionNotificationResponse panData = Iterables.getOnlyElement(FluentIterable
         .from(gainingTransferPollMessage.getResponseData())
         .filter(PendingActionNotificationResponse.class));

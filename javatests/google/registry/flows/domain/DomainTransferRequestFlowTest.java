@@ -40,11 +40,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
-import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
-import google.registry.flows.ResourceTransferRequestFlow.AlreadyPendingTransferException;
-import google.registry.flows.ResourceTransferRequestFlow.MissingTransferRequestAuthInfoException;
-import google.registry.flows.ResourceTransferRequestFlow.ObjectAlreadySponsoredException;
-import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
 import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
 import google.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.CurrencyValueScaleException;
@@ -53,6 +48,11 @@ import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameEx
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeException;
+import google.registry.flows.exceptions.AlreadyPendingTransferException;
+import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
+import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
+import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
+import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Cancellation.Builder;
@@ -224,8 +224,7 @@ public class DomainTransferRequestFlowTest
 
     // Two poll messages on the gaining registrar's side at the expected expiration time: a
     // (OneTime) transfer approved message, and an Autorenew poll message.
-    assertThat(getPollMessages("NewRegistrar", expectedExpirationTime))
-        .hasSize(2);
+    assertThat(getPollMessages("NewRegistrar", expectedExpirationTime)).hasSize(2);
     PollMessage transferApprovedPollMessage = getOnlyPollMessage(
         "NewRegistrar", implicitTransferTime, PollMessage.OneTime.class);
     PollMessage autorenewPollMessage = getOnlyPollMessage(

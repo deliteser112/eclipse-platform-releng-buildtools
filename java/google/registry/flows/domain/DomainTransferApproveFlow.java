@@ -14,86 +14,122 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.collect.Iterables.filter;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static google.registry.flows.ResourceFlowUtils.approvePendingTransfer;
+import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
+import static google.registry.flows.ResourceFlowUtils.verifyHasPendingTransfer;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
+import static google.registry.flows.domain.DomainFlowUtils.createGainingTransferPollMessage;
+import static google.registry.flows.domain.DomainFlowUtils.createTransferResponse;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
-import google.registry.flows.ResourceTransferApproveFlow;
+import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
+import google.registry.flows.LoggedInFlow;
+import google.registry.flows.TransactionalFlow;
+import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
-import google.registry.model.domain.DomainCommand.Transfer;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
 /**
  * An EPP flow that approves a pending transfer on a {@link DomainResource}.
  *
+ * <p>The "gaining" registrar requests a transfer from the "losing" (aka current) registrar. The
+ * losing registrar has a "transfer" time period to respond (by default five days) after which the
+ * transfer is automatically approved. Within that window, this flow allows the losing client to
+ * explicitly approve the transfer request, which then becomes effective immediately.
+ *
+ * <p>When the transfer was requested, poll messages and billing events were saved to Datastore with
+ * timestamps such that they only would become active when the transfer period passed. In this flow,
+ * those speculative objects are deleted and replaced with new ones with the correct approval time.
+ *
  * <p>The logic in this flow, which handles client approvals, very closely parallels the logic in
  * {@link DomainResource#cloneProjectedAtTime} which handles implicit server approvals.
  *
- * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
- * @error {@link google.registry.flows.ResourceMutatePendingTransferFlow.NotPendingTransferException}
+ * @error {@link google.registry.flows.exceptions.NotPendingTransferException}
+ * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
+ * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
-public class DomainTransferApproveFlow extends
-    ResourceTransferApproveFlow<DomainResource, Builder, Transfer> {
+public final class DomainTransferApproveFlow extends LoggedInFlow implements TransactionalFlow {
 
+  @Inject Optional<AuthInfo> authInfo;
+  @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
+  @Inject HistoryEntry.Builder historyBuilder;
   @Inject DomainTransferApproveFlow() {}
 
   @Override
-  protected void verifyOwnedResourcePendingTransferMutationAllowed() throws EppException {
-    checkAllowedAccessToTld(getAllowedTlds(), existingResource.getTld());
+  protected final void initLoggedInFlow() throws EppException {
+    registerExtensions(MetadataExtension.class);
   }
 
   @Override
-  protected final void setTransferApproveProperties(Builder builder) {
-    TransferData transferData = existingResource.getTransferData();
+  public final EppOutput run() throws EppException {
+    DomainResource existingDomain = loadResourceToMutate(DomainResource.class, targetId, now);
+    verifyOptionalAuthInfoForResource(authInfo, existingDomain);
+    verifyHasPendingTransfer(existingDomain);
+    verifyResourceOwnership(clientId, existingDomain);
+    String tld = existingDomain.getTld();
+    checkAllowedAccessToTld(getAllowedTlds(), tld);
+    HistoryEntry historyEntry = historyBuilder
+        .setType(HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE)
+        .setModificationTime(now)
+        .setParent(Key.create(existingDomain))
+        .build();
+    TransferData transferData = existingDomain.getTransferData();
     String gainingClientId = transferData.getGainingClientId();
-    String tld = existingResource.getTld();
     int extraYears = transferData.getExtendedRegistrationYears();
     // Bill for the transfer.
-    BillingEvent.OneTime billingEvent =
-        new BillingEvent.OneTime.Builder()
-            .setReason(Reason.TRANSFER)
-            .setTargetId(targetId)
-            .setClientId(gainingClientId)
-            .setPeriodYears(extraYears)
-            .setCost(
-                getDomainRenewCost(targetId, transferData.getTransferRequestTime(), extraYears))
-            .setEventTime(now)
-            .setBillingTime(now.plus(Registry.get(tld).getTransferGracePeriodLength()))
-            .setParent(historyEntry)
-            .build();
-    ofy().save().entity(billingEvent);
+    BillingEvent.OneTime billingEvent = new BillingEvent.OneTime.Builder()
+        .setReason(Reason.TRANSFER)
+        .setTargetId(targetId)
+        .setClientId(gainingClientId)
+        .setPeriodYears(extraYears)
+        .setCost(getDomainRenewCost(targetId, transferData.getTransferRequestTime(), extraYears))
+        .setEventTime(now)
+        .setBillingTime(now.plus(Registry.get(tld).getTransferGracePeriodLength()))
+        .setParent(historyEntry)
+        .build();
     // If we are within an autorenew grace period, cancel the autorenew billing event and reduce
     // the number of years to extend the registration by one.
-    GracePeriod autorenewGrace = Iterables.getOnlyElement(FluentIterable
-        .from(existingResource.getGracePeriods())
-        .filter(new Predicate<GracePeriod>(){
-            @Override
-            public boolean apply(GracePeriod gracePeriod) {
-              return GracePeriodStatus.AUTO_RENEW.equals(gracePeriod.getType());
-            }}), null);
+    GracePeriod autorenewGrace = getOnlyElement(
+        filter(
+            existingDomain.getGracePeriods(),
+            new Predicate<GracePeriod>() {
+              @Override
+              public boolean apply(GracePeriod gracePeriod) {
+                return GracePeriodStatus.AUTO_RENEW.equals(gracePeriod.getType());
+              }}),
+        null);
     if (autorenewGrace != null) {
       extraYears--;
       ofy().save().entity(
@@ -101,9 +137,9 @@ public class DomainTransferApproveFlow extends
     }
     // Close the old autorenew event and poll message at the transfer time (aka now). This may end
     // up deleting the poll message.
-    updateAutorenewRecurrenceEndTime(existingResource, now);
+    updateAutorenewRecurrenceEndTime(existingDomain, now);
     DateTime newExpirationTime = extendRegistrationWithCap(
-        now, existingResource.getRegistrationExpirationTime(), extraYears);
+        now, existingDomain.getRegistrationExpirationTime(), extraYears);
     // Create a new autorenew event starting at the expiration time.
     BillingEvent.Recurring autorenewEvent = new BillingEvent.Recurring.Builder()
         .setReason(Reason.RENEW)
@@ -114,7 +150,6 @@ public class DomainTransferApproveFlow extends
         .setRecurrenceEndTime(END_OF_TIME)
         .setParent(historyEntry)
         .build();
-    ofy().save().entity(autorenewEvent);
     // Create a new autorenew poll message.
     PollMessage.Autorenew gainingClientAutorenewPollMessage = new PollMessage.Autorenew.Builder()
         .setTargetId(targetId)
@@ -124,18 +159,35 @@ public class DomainTransferApproveFlow extends
         .setMsg("Domain was auto-renewed.")
         .setParent(historyEntry)
         .build();
-    ofy().save().entity(gainingClientAutorenewPollMessage);
-    builder
-        .setRegistrationExpirationTime(newExpirationTime)
-        .setAutorenewBillingEvent(Key.create(autorenewEvent))
-        .setAutorenewPollMessage(Key.create(gainingClientAutorenewPollMessage))
-        // Remove all the old grace periods and add a new one for the transfer.
-        .setGracePeriods(ImmutableSet.of(
-            GracePeriod.forBillingEvent(GracePeriodStatus.TRANSFER, billingEvent)));
-  }
-
-  @Override
-  protected final HistoryEntry.Type getHistoryEntryType() {
-    return HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE;
+    DomainResource newDomain =
+        approvePendingTransfer(existingDomain, TransferStatus.CLIENT_APPROVED, now)
+            .asBuilder()
+            .setRegistrationExpirationTime(newExpirationTime)
+            .setAutorenewBillingEvent(Key.create(autorenewEvent))
+            .setAutorenewPollMessage(Key.create(gainingClientAutorenewPollMessage))
+            // Remove all the old grace periods and add a new one for the transfer.
+            .setGracePeriods(ImmutableSet.of(
+                GracePeriod.forBillingEvent(GracePeriodStatus.TRANSFER, billingEvent)))
+            .build();
+    // Create a poll message for the gaining client.
+    PollMessage gainingClientPollMessage = createGainingTransferPollMessage(
+        targetId,
+        newDomain.getTransferData(),
+        newExpirationTime,
+        historyEntry);
+    ofy().save().<ImmutableObject>entities(
+        newDomain,
+        historyEntry,
+        billingEvent,
+        autorenewEvent,
+        gainingClientPollMessage,
+        gainingClientAutorenewPollMessage);
+    // Delete the billing event and poll messages that were written in case the transfer would have
+    // been implicitly server approved.
+    ofy().delete().keys(existingDomain.getTransferData().getServerApproveEntities());
+    return createOutput(
+        SUCCESS,
+        createTransferResponse(
+            targetId, newDomain.getTransferData(), newDomain.getRegistrationExpirationTime()));
   }
 }

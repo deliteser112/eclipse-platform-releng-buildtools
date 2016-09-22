@@ -32,6 +32,8 @@ import com.googlecode.objectify.Work;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.InvalidAuthorizationInformationErrorException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
+import google.registry.flows.exceptions.NotPendingTransferException;
+import google.registry.flows.exceptions.NotTransferInitiatorException;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
@@ -140,14 +142,14 @@ public class ResourceFlowUtils {
    */
   @SuppressWarnings("unchecked")
   public static <R extends EppResource> Builder<R, ? extends Builder<R, ?>>
-      prepareDeletedResourceAsBuilder(R existingResource, DateTime now) {
+      prepareDeletedResourceAsBuilder(R resource, DateTime now) {
     Builder<R, ? extends Builder<R, ?>> builder =
-        (Builder<R, ? extends Builder<R, ?>>) existingResource.asBuilder()
+        (Builder<R, ? extends Builder<R, ?>>) resource.asBuilder()
             .setDeletionTime(now)
             .setStatusValues(null)
             .setTransferData(
-                existingResource.getStatusValues().contains(StatusValue.PENDING_TRANSFER)
-                    ? existingResource.getTransferData().asBuilder()
+                resource.getStatusValues().contains(StatusValue.PENDING_TRANSFER)
+                    ? resource.getTransferData().asBuilder()
                         .setTransferStatus(TransferStatus.SERVER_CANCELLED)
                         .setServerApproveEntities(null)
                         .setServerApproveBillingEvent(null)
@@ -155,7 +157,7 @@ public class ResourceFlowUtils {
                         .setServerApproveAutorenewPollMessage(null)
                         .setPendingTransferExpirationTime(null)
                         .build()
-                    : existingResource.getTransferData())
+                    : resource.getTransferData())
             .wipeOut();
     return builder;
   }
@@ -169,9 +171,9 @@ public class ResourceFlowUtils {
 
   /** If there is a transfer out, delete the server-approve entities and enqueue a poll message. */
   public static <R extends EppResource> void handlePendingTransferOnDelete(
-      R existingResource, R newResource, DateTime now, HistoryEntry historyEntry) {
-    if (existingResource.getStatusValues().contains(StatusValue.PENDING_TRANSFER)) {
-      TransferData oldTransferData = existingResource.getTransferData();
+      R resource, R newResource, DateTime now, HistoryEntry historyEntry) {
+    if (resource.getStatusValues().contains(StatusValue.PENDING_TRANSFER)) {
+      TransferData oldTransferData = resource.getTransferData();
       ofy().delete().keys(oldTransferData.getServerApproveEntities());
       ofy().save().entity(new PollMessage.OneTime.Builder()
           .setClientId(oldTransferData.getGainingClientId())
@@ -180,7 +182,7 @@ public class ResourceFlowUtils {
           .setResponseData(ImmutableList.of(
               createTransferResponse(newResource, newResource.getTransferData(), now),
               createPendingTransferNotificationResponse(
-                  existingResource, oldTransferData.getTransferRequestTrid(), false, now)))
+                  resource, oldTransferData.getTransferRequestTrid(), false, now)))
           .setParent(historyEntry)
           .build());
     }
@@ -275,28 +277,42 @@ public class ResourceFlowUtils {
     return resolvePendingTransfer(resource, transferStatus, now).build();
   }
 
+  public static void verifyHasPendingTransfer(EppResource resource)
+      throws NotPendingTransferException {
+    if (resource.getTransferData().getTransferStatus() != TransferStatus.PENDING) {
+      throw new NotPendingTransferException(resource.getForeignKey());
+    }
+  }
+
   public static <R extends EppResource> R loadResourceForQuery(
       Class<R> clazz, String targetId, DateTime now) throws ResourceToQueryDoesNotExistException {
-    R existingResource = loadByUniqueId(clazz, targetId, now);
-    if (existingResource == null) {
+    R resource = loadByUniqueId(clazz, targetId, now);
+    if (resource == null) {
       throw new ResourceToQueryDoesNotExistException(clazz, targetId);
     }
-    return existingResource;
+    return resource;
   }
 
   public static <R extends EppResource> R loadResourceToMutate(
       Class<R> clazz, String targetId, DateTime now) throws ResourceToMutateDoesNotExistException {
-    R existingResource = loadByUniqueId(clazz, targetId, now);
-    if (existingResource == null) {
+    R resource = loadByUniqueId(clazz, targetId, now);
+    if (resource == null) {
       throw new ResourceToMutateDoesNotExistException(clazz, targetId);
     }
-    return existingResource;
+    return resource;
   }
 
   public static <R extends EppResource> void verifyResourceDoesNotExist(
       Class<R> clazz, String targetId, DateTime now)  throws EppException {
     if (loadByUniqueId(clazz, targetId, now) != null) {
       throw new ResourceAlreadyExistsException(targetId);
+    }
+  }
+
+  public static void verifyIsGainingRegistrar(EppResource resource, String clientId)
+      throws NotTransferInitiatorException {
+    if (!clientId.equals(resource.getTransferData().getGainingClientId())) {
+      throw new NotTransferInitiatorException();
     }
   }
 
@@ -317,11 +333,11 @@ public class ResourceFlowUtils {
 
   /** Check that the given AuthInfo is present and valid for a resource being transferred. */
   public static void verifyRequiredAuthInfoForResourceTransfer(
-      Optional<AuthInfo> authInfo, ContactResource existingContact) throws EppException {
+      Optional<AuthInfo> authInfo, EppResource existingResource) throws EppException {
     if (!authInfo.isPresent()) {
       throw new MissingTransferRequestAuthInfoException();
     }
-    verifyOptionalAuthInfoForResource(authInfo, existingContact);
+    verifyOptionalAuthInfoForResource(authInfo, existingResource);
   }
 
   /** Check that the given AuthInfo is valid for the given resource. */

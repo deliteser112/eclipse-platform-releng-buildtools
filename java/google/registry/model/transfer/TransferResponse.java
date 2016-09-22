@@ -58,6 +58,10 @@ public abstract class TransferResponse extends BaseTransferObject implements Res
     @XmlElement(name = "exDate")
     DateTime extendedRegistrationExpirationTime;
 
+    public DateTime getExtendedRegistrationExpirationTime() {
+      return extendedRegistrationExpirationTime;
+    }
+
     /** Builder for {@link DomainTransferResponse}. */
     public static class Builder
         extends BaseTransferObject.Builder<DomainTransferResponse, Builder> {

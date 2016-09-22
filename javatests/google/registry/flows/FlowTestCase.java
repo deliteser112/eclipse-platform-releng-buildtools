@@ -304,7 +304,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   }
 
   /** Run a flow, marshal the result to EPP, and assert that the output is as expected. */
-  public void runFlowAssertResponse(
+  public EppOutput runFlowAssertResponse(
       CommitMode commitMode, UserPrivileges userPrivileges, String xml, String... ignoredPaths)
       throws Exception {
     // Always ignore the server trid, since it's generated and meaningless to flow correctness.
@@ -332,15 +332,18 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     }
     // Clear the cache so that we don't see stale results in tests.
     ofy().clearSessionCache();
+    return output;
   }
 
-  public void dryRunFlowAssertResponse(String xml, String... ignoredPaths) throws Exception {
+  public EppOutput dryRunFlowAssertResponse(String xml, String... ignoredPaths) throws Exception {
     List<Object> beforeEntities = ofy().load().list();
-    runFlowAssertResponse(CommitMode.DRY_RUN, UserPrivileges.NORMAL, xml, ignoredPaths);
+    EppOutput output =
+        runFlowAssertResponse(CommitMode.DRY_RUN, UserPrivileges.NORMAL, xml, ignoredPaths);
     assertThat(ofy().load()).containsExactlyElementsIn(beforeEntities);
+    return output;
   }
 
-  public void runFlowAssertResponse(String xml, String... ignoredPaths) throws Exception {
-    runFlowAssertResponse(CommitMode.LIVE, UserPrivileges.NORMAL, xml, ignoredPaths);
+  public EppOutput runFlowAssertResponse(String xml, String... ignoredPaths) throws Exception {
+    return runFlowAssertResponse(CommitMode.LIVE, UserPrivileges.NORMAL, xml, ignoredPaths);
   }
 }
