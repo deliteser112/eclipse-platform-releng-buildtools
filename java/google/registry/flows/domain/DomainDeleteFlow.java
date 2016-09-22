@@ -15,6 +15,13 @@
 package google.registry.flows.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
+import static google.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
+import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
+import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
@@ -30,10 +37,13 @@ import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AssociationProhibitsOperationException;
-import google.registry.flows.ResourceSyncDeleteFlow;
+import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
+import google.registry.flows.LoggedInFlow;
+import google.registry.flows.TransactionalFlow;
+import google.registry.flows.exceptions.BadCommandForRegistryPhaseException;
+import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
-import google.registry.model.common.TimeOfYear;
-import google.registry.model.domain.DomainCommand.Delete;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.GracePeriod;
@@ -43,80 +53,74 @@ import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import google.registry.model.domain.fee06.FeeDeleteResponseExtensionV06;
 import google.registry.model.domain.fee11.FeeDeleteResponseExtensionV11;
 import google.registry.model.domain.fee12.FeeDeleteResponseExtensionV12;
+import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
+import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.eppoutput.EppResponse.ResponseExtension;
-import google.registry.model.eppoutput.Result.Code;
+import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.poll.PollMessage.OneTime;
 import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /**
- * An EPP flow that deletes a domain resource.
+ * An EPP flow that deletes a domain.
  *
- * @error {@link google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException}
- * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException}
- * @error {@link google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException}
+ * @error {@link google.registry.flows.exceptions.OnlyToolCanPassMetadataException}
+ * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
  * @error {@link DomainDeleteFlow.DomainToDeleteHasHostsException}
+ * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
-public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Builder, Delete> {
+public class DomainDeleteFlow extends LoggedInFlow implements TransactionalFlow {
 
-  PollMessage.OneTime deletePollMessage;
+  private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(
+      StatusValue.LINKED,
+      StatusValue.CLIENT_DELETE_PROHIBITED,
+      StatusValue.PENDING_DELETE,
+      StatusValue.SERVER_DELETE_PROHIBITED);
 
-  CurrencyUnit creditsCurrencyUnit;
-
-  ImmutableList<Credit> credits;
-
-  protected Optional<RegistryExtraFlowLogic> extraFlowLogic;
-
+  @Inject Optional<AuthInfo> authInfo;
+  @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
+  @Inject HistoryEntry.Builder historyBuilder;
   @Inject DomainDeleteFlow() {}
 
   @Override
-  protected void initResourceCreateOrMutateFlow() throws EppException {
+  @SuppressWarnings("unchecked")
+  protected final void initLoggedInFlow() throws EppException {
+    registerExtensions(MetadataExtension.class);
     registerExtensions(SecDnsUpdateExtension.class);
-    extraFlowLogic = RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);
   }
 
   @Override
-  protected final void verifyMutationOnOwnedResourceAllowed() throws EppException {
-    checkRegistryStateForTld(existingResource.getTld());
-    checkAllowedAccessToTld(getAllowedTlds(), existingResource.getTld());
-    if (!existingResource.getSubordinateHosts().isEmpty()) {
-      throw new DomainToDeleteHasHostsException();
-    }
-  }
-
-  @Override
-  protected final void setDeleteProperties(Builder builder) throws EppException {
-    // Only set to PENDING_DELETE if this domain is not in the Add Grace Period. If domain is in Add
-    // Grace Period, we delete it immediately.
-    // The base class code already handles the immediate delete case, so we only have to handle the
-    // pending delete case here.
-    if (!existingResource.getGracePeriodStatuses().contains(GracePeriodStatus.ADD)) {
-      Registry registry = Registry.get(existingResource.getTld());
-      // By default, this should be 30 days of grace, and 5 days of pending delete. */
+  public final EppOutput run() throws EppException {
+    // Loads the target resource if it exists
+    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
+    Registry registry = Registry.get(existingDomain.getTld());
+    verifyDeleteAllowed(existingDomain, registry);
+    HistoryEntry historyEntry = buildHistoryEntry(existingDomain);
+    Builder builder = (Builder) prepareDeletedResourceAsBuilder(existingDomain, now);
+    // If the domain is in the Add Grace Period, we delete it immediately, which is already
+    // reflected in the builder we just prepared. Otherwise we give it a PENDING_DELETE status.
+    if (!existingDomain.getGracePeriodStatuses().contains(GracePeriodStatus.ADD)) {
+      // By default, this should be 30 days of grace, and 5 days of pending delete.
       DateTime deletionTime = now
           .plus(registry.getRedemptionGracePeriodLength())
           .plus(registry.getPendingDeleteLength());
-      deletePollMessage = new PollMessage.OneTime.Builder()
-          .setClientId(existingResource.getCurrentSponsorClientId())
-          .setEventTime(deletionTime)
-          .setMsg("Domain deleted.")
-          .setResponseData(ImmutableList.of(DomainPendingActionNotificationResponse.create(
-              existingResource.getFullyQualifiedDomainName(), true, trid, deletionTime)))
-          .setParent(historyEntry)
-          .build();
+      PollMessage.OneTime deletePollMessage =
+          createDeletePollMessage(existingDomain, historyEntry, deletionTime);
+      ofy().save().entity(deletePollMessage);
       builder.setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
           .setDeletionTime(deletionTime)
           // Clear out all old grace periods and add REDEMPTION, which does not include a key to a
@@ -124,70 +128,114 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
           .setGracePeriods(ImmutableSet.of(GracePeriod.createWithoutBillingEvent(
               GracePeriodStatus.REDEMPTION,
               now.plus(registry.getRedemptionGracePeriodLength()),
-              getClientId())))
+              clientId)))
           .setDeletePollMessage(Key.create(deletePollMessage));
     }
-
-    // Handle extra flow logic, if any.
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainDeleteLogic(
-          existingResource, getClientId(), now, eppInput, historyEntry);
-    }
-  }
-
-  @Override
-  protected final void enqueueTasks() {
-    DnsQueue.create().addDomainRefreshTask(existingResource.getFullyQualifiedDomainName());
-  }
-
-  @Override
-  protected final void modifySyncDeleteRelatedResources() {
+    handleExtraFlowLogic(existingDomain, historyEntry);
+    DomainResource newDomain = builder.build();
+    updateForeignKeyIndexDeletionTime(newDomain);
+    handlePendingTransferOnDelete(existingDomain, newDomain, now, historyEntry);
+    // Close the autorenew billing event and poll message. This may delete the poll message.
+    updateAutorenewRecurrenceEndTime(existingDomain, now);
+    // If there's a pending transfer, the gaining client's autorenew billing
+    // event and poll message will already have been deleted in
+    // ResourceDeleteFlow since it's listed in serverApproveEntities.
+    DnsQueue.create().addDomainRefreshTask(existingDomain.getFullyQualifiedDomainName());
     // Cancel any grace periods that were still active.
-    ImmutableList.Builder<Credit> creditsBuilder = new ImmutableList.Builder<>();
-    for (GracePeriod gracePeriod : existingResource.getGracePeriods()) {
+    for (GracePeriod gracePeriod : existingDomain.getGracePeriods()) {
       // No cancellation is written if the grace period was not for a billable event.
       if (gracePeriod.hasBillingEvent()) {
         ofy().save().entity(
             BillingEvent.Cancellation.forGracePeriod(gracePeriod, historyEntry, targetId));
-
-        Money cost;
-        if (gracePeriod.getType() == GracePeriodStatus.AUTO_RENEW) {
-          TimeOfYear recurrenceTimeOfYear =
-              ofy().load().key(checkNotNull(gracePeriod.getRecurringBillingEvent())).now()
-                  .getRecurrenceTimeOfYear();
-          DateTime autoRenewTime = recurrenceTimeOfYear.getLastInstanceBeforeOrAt(now);
-          cost = getDomainRenewCost(targetId, autoRenewTime, 1);
-        } else {
-          cost =
-              ofy().load().key(checkNotNull(gracePeriod.getOneTimeBillingEvent())).now().getCost();
-        }
-        creditsBuilder.add(Credit.create(
-            cost.negated().getAmount(), FeeType.CREDIT, gracePeriod.getType().getXmlName()));
-        creditsCurrencyUnit = cost.getCurrencyUnit();
       }
     }
-    credits = creditsBuilder.build();
-
-    // If the delete isn't immediate, save the poll message for when the delete will happen.
-    if (deletePollMessage != null) {
-      ofy().save().entity(deletePollMessage);
-    }
-    // Close the autorenew billing event and poll message. This may delete the poll message.
-    updateAutorenewRecurrenceEndTime(existingResource, now);
-
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().commitAdditionalLogicChanges();
-    }
-
-    // If there's a pending transfer, the gaining client's autorenew billing
-    // event and poll message will already have been deleted in
-    // ResourceDeleteFlow since it's listed in serverApproveEntities.
+    ofy().save().<ImmutableObject>entities(newDomain, historyEntry);
+    return createOutput(
+        newDomain.getDeletionTime().isAfter(now) ? SUCCESS_WITH_ACTION_PENDING : SUCCESS,
+        null,
+        getResponseExtensions(existingDomain));
   }
 
-  @Override
-  protected final Code getDeleteResultCode() {
-    return newResource.getDeletionTime().isAfter(now)
-        ? SUCCESS_WITH_ACTION_PENDING : SUCCESS;
+  private void verifyDeleteAllowed(DomainResource existingDomain, Registry registry)
+      throws EppException {
+    verifyNoDisallowedStatuses(existingDomain, DISALLOWED_STATUSES);
+    verifyOptionalAuthInfoForResource(authInfo, existingDomain);
+    if (!isSuperuser) {
+      verifyResourceOwnership(clientId, existingDomain);
+      if (TldState.PREDELEGATION.equals(registry.getTldState(now))) {
+        throw new BadCommandForRegistryPhaseException();
+      }
+    }
+    checkAllowedAccessToTld(getAllowedTlds(), registry.getTld().toString());
+    if (!existingDomain.getSubordinateHosts().isEmpty()) {
+      throw new DomainToDeleteHasHostsException();
+    }
+  }
+
+  private HistoryEntry buildHistoryEntry(DomainResource existingResource) {
+    return historyBuilder
+        .setType(HistoryEntry.Type.DOMAIN_DELETE)
+        .setModificationTime(now)
+        .setParent(Key.create(existingResource))
+        .build();
+  }
+
+  private OneTime createDeletePollMessage(
+      DomainResource existingResource, HistoryEntry historyEntry, DateTime deletionTime) {
+    return new PollMessage.OneTime.Builder()
+        .setClientId(existingResource.getCurrentSponsorClientId())
+        .setEventTime(deletionTime)
+        .setMsg("Domain deleted.")
+        .setResponseData(ImmutableList.of(
+            DomainPendingActionNotificationResponse.create(
+                existingResource.getFullyQualifiedDomainName(), true, trid, deletionTime)))
+        .setParent(historyEntry)
+        .build();
+  }
+
+  private void handleExtraFlowLogic(DomainResource existingResource, HistoryEntry historyEntry)
+      throws EppException {
+    Optional<RegistryExtraFlowLogic> extraFlowLogic =
+        RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().performAdditionalDomainDeleteLogic(
+          existingResource, clientId, now, eppInput, historyEntry);
+      extraFlowLogic.get().commitAdditionalLogicChanges();
+    }
+  }
+
+  @Nullable
+  private ImmutableList<FeeTransformResponseExtension> getResponseExtensions(
+      DomainResource existingDomain) {
+    FeeTransformResponseExtension.Builder feeResponseBuilder = getDeleteResponseBuilder();
+    if (feeResponseBuilder == null) {
+      return null;
+    }
+    ImmutableList.Builder<Credit> creditsBuilder = new ImmutableList.Builder<>();
+    for (GracePeriod gracePeriod : existingDomain.getGracePeriods()) {
+      if (gracePeriod.hasBillingEvent()) {
+        Money cost = getGracePeriodCost(gracePeriod);
+        creditsBuilder.add(Credit.create(
+            cost.negated().getAmount(), FeeType.CREDIT, gracePeriod.getType().getXmlName()));
+        feeResponseBuilder.setCurrency(checkNotNull(cost.getCurrencyUnit()));
+      }
+    }
+    ImmutableList<Credit> credits = creditsBuilder.build();
+    if (credits.isEmpty()) {
+      return null;
+    }
+    return ImmutableList.of(feeResponseBuilder.setCredits(credits).build());
+  }
+
+  private Money getGracePeriodCost(GracePeriod gracePeriod) {
+    if (gracePeriod.getType() == GracePeriodStatus.AUTO_RENEW) {
+      DateTime autoRenewTime =
+          ofy().load().key(checkNotNull(gracePeriod.getRecurringBillingEvent())).now()
+              .getRecurrenceTimeOfYear()
+                  .getLastInstanceBeforeOrAt(now);
+      return getDomainRenewCost(targetId, autoRenewTime, 1);
+    }
+    return ofy().load().key(checkNotNull(gracePeriod.getOneTimeBillingEvent())).now().getCost();
   }
 
   @Nullable
@@ -203,27 +251,6 @@ public class DomainDeleteFlow extends ResourceSyncDeleteFlow<DomainResource, Bui
       return new FeeDeleteResponseExtensionV06.Builder();
     }
     return null;
-  }
-
-  @Override
-  @Nullable
-  protected final ImmutableList<? extends ResponseExtension> getDeleteResponseExtensions() {
-    if (credits.isEmpty()) {
-      return null;
-    }
-    FeeTransformResponseExtension.Builder feeResponseBuilder = getDeleteResponseBuilder();
-    if (feeResponseBuilder == null) {
-      return null;
-    }
-    return ImmutableList.of(feeResponseBuilder
-        .setCurrency(checkNotNull(creditsCurrencyUnit))
-        .setCredits(credits)
-        .build());
-  }
-
-  @Override
-  protected final HistoryEntry.Type getHistoryEntryType() {
-    return HistoryEntry.Type.DOMAIN_DELETE;
   }
 
   /** Domain to be deleted has subordinate hosts. */

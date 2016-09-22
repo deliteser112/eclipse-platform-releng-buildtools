@@ -28,14 +28,14 @@ import static google.registry.testing.GenericEppResourceSubject.assertAboutEppRe
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
-import google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
 import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException;
 import google.registry.flows.domain.DomainApplicationDeleteFlow.SunriseApplicationCannotBeDeletedInLandrushException;
 import google.registry.flows.domain.DomainFlowUtils.ApplicationDomainNameMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.LaunchPhaseMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
+import google.registry.flows.exceptions.BadCommandForRegistryPhaseException;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
