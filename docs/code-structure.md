@@ -13,6 +13,43 @@ particularly important pieces of the system are implemented.
 
 ## Cursors
 
+Cursors are `DateTime` pointers used to ensure rolling transactional isolation
+of various reporting and other maintenance operations. Utilizing a `Cursor`
+within an operation ensures that instances in time are processed exactly once
+for a given task, and that tasks can catch up from any failure states at any
+time.
+
+Cursors are rolled forward at the end of successful tasks, are not rolled
+forward in the case of failure, and can be manually set backwards using the
+update_cursors command in registry_tool to reprocess a past action.
+
+The following cursor types are defined:
+
+*   **`BRDA`** - BRDA (thin) escrow deposits
+*   **`RDE_REPORT`** - XML RDE report uploads
+*   **`RDE_STAGING`** - RDE (thick) escrow deposit staging
+*   **`RDE_UPLOAD`** - RDE (thick) escrow deposit upload
+*   **`RDE_UPLOAD_SFTP`** - Cursor that tracks the last time we talked to the
+    escrow provider's SFTP server for a given TLD.
+*   **`RECURRING_BILLING`** - Expansion of `Recurring` (renew) billing events
+    into `OneTime` events.
+
+All `Cursor` entities in Datastore contain a `DateTime` that represents the next
+timestamp at which an operation should resume processing and a `CursorType` that
+identifies which operation the cursor is associated with. In many cases, there
+are multiple cursors per operation; for instance, the cursors related to RDE
+reporting, staging, and upload are per-TLD cursors. To accomplish this, each
+`Cursor` also has a scope, a `Key<ImmutableObject>` to which the particular
+cursor applies (this can be e.g. a `Registry` or any other `ImmutableObject` in
+datastore, depending on the operation). If the `Cursor` applies to the entire
+registry environment, it is considered a global cursor and has a scope of
+`EntityGroupRoot.getCrossTldKey()`.
+
+Cursors are singleton entities by type and scope. The id for a `Cursor` is a
+deterministic string that consists of the websafe string of the Key of the scope
+object concatenated with the name of the name of the cursor type, separated by
+an underscore.
+
 ## Mapreduces
 
 ## Actions and servlets

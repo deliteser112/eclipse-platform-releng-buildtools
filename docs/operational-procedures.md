@@ -266,3 +266,27 @@ exampletld_some-other-list
 ```
 
 ## StackDriver monitoring
+
+## Updating cursors
+
+In most cases, cursors will not advance if a task that utilizes a cursor fails
+(so that the task can be retried for that given timestamp). However, there are
+some cases where a cursor is updated at the end of a job that produces bad
+output (for example, RDE export), and in order to re-run a job, the cursor will
+need to be rolled back.
+
+In rare cases it might be useful to roll a cursor forward if there is some bad
+data at a given time that prevents a task from completing successfully, and an
+acceptable solution is to simply skip the bad data.
+
+Cursors can be updated as follows:
+
+```shell
+$ registry_tool -e {ENVIRONMENT} update_cursors exampletld --type RDE_STAGING \
+    --timestamp 2016-09-01T00:00:00Z
+Update Cursor@ahFzfmRvbWFpbi1yZWdpc3RyeXIzCxIPRW50aXR5R3JvdXBSb290Igljcm9zcy10bGQMCxIIUmVnaXN0cnkiB3lvdXR1YmUM_RDE_STAGING
+cursorTime -> [2016-09-23T00:00:00.000Z, 2016-09-01T00:00:00.000Z]
+
+Perform this command? (y/N): Y
+Updated 1 entities.
+```
