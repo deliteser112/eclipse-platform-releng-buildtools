@@ -27,11 +27,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.domain.DomainApplicationInfoFlow.ApplicationLaunchPhaseMismatchException;
 import google.registry.flows.domain.DomainApplicationInfoFlow.MissingApplicationIdException;
 import google.registry.flows.domain.DomainFlowUtils.ApplicationDomainNameMismatchException;
-import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
@@ -261,7 +261,7 @@ public class DomainApplicationInfoFlowTest
   @Test
   public void testFailure_neverExisted() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
@@ -269,7 +269,7 @@ public class DomainApplicationInfoFlowTest
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     persistResource(new DomainApplication.Builder()
         .setRepoId("123-COM")

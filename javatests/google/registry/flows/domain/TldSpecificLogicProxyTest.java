@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Range;
 import com.googlecode.objectify.Key;
-import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
+import google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.TestExtraLogicManager;
@@ -152,7 +152,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
 
   @Test
   public void test_extraLogic_renewPrice_noDomain() throws Exception {
-    thrown.expect(ResourceToMutateDoesNotExistException.class);
+    thrown.expect(ResourceDoesNotExistException.class);
     TldSpecificLogicProxy.getRenewPrice(
         Registry.get("test"), "renew--13.test", "clientId", clock.nowUtc(), 1, null);
   }
@@ -202,7 +202,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
 
   @Test
   public void test_extraLogic_restorePrice_noDomain() throws Exception {
-    thrown.expect(ResourceToMutateDoesNotExistException.class);
+    thrown.expect(ResourceDoesNotExistException.class);
     TldSpecificLogicProxy.getRestorePrice(
         Registry.get("test"), "renew-13.test", "clientId", clock.nowUtc(), null);
   }

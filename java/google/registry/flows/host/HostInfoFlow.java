@@ -14,7 +14,7 @@
 
 package google.registry.flows.host;
 
-import static google.registry.flows.ResourceFlowUtils.loadResourceForQuery;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
@@ -34,7 +34,7 @@ import javax.inject.Inject;
  * <p>The returned information included IP addresses, if any, and details of the host's most recent
  * transfer if it has ever been transferred. Any registrar can see the information for any host.
  *
- * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  */
 public final class HostInfoFlow extends LoggedInFlow {
 
@@ -44,7 +44,7 @@ public final class HostInfoFlow extends LoggedInFlow {
 
   @Override
   public EppOutput run() throws EppException {
-    HostResource host = loadResourceForQuery(HostResource.class, targetId, now);
+    HostResource host = loadAndVerifyExistence(HostResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, host);
     return createOutput(SUCCESS, cloneResourceWithLinkedStatus(host, now));
   }

@@ -17,7 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.union;
-import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyRequiredAuthInfoForResourceTransfer;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
@@ -91,11 +91,11 @@ import org.joda.time.DateTime;
  * replaced with new ones with the correct approval time).
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.exceptions.AlreadyPendingTransferException}
  * @error {@link google.registry.flows.exceptions.MissingTransferRequestAuthInfoException}
  * @error {@link google.registry.flows.exceptions.ObjectAlreadySponsoredException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
- * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}
@@ -129,7 +129,7 @@ public final class DomainTransferRequestFlow extends LoggedInFlow implements Tra
   public final EppOutput run() throws EppException {
     Period period = ((Transfer) resourceCommand).getPeriod();
     int years = period.getValue();
-    DomainResource existingDomain = loadResourceToMutate(DomainResource.class, targetId, now);
+    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyTransferAllowed(existingDomain, period);
     String tld = existingDomain.getTld();
     Registry registry = Registry.get(tld);

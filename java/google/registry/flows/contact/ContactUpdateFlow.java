@@ -14,7 +14,7 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
@@ -50,11 +50,11 @@ import javax.inject.Inject;
 /**
  * An EPP flow that updates a contact.
  *
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.AddRemoveSameValueEppException}
  * @error {@link google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
- * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
  * @error {@link google.registry.flows.exceptions.StatusNotClientSettableException}
  * @error {@link ContactFlowUtils.BadInternationalizedPostalInfoException}
  * @error {@link ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException}
@@ -85,7 +85,7 @@ public final class ContactUpdateFlow extends LoggedInFlow implements Transaction
   @Override
   public final EppOutput run() throws EppException {
     Update command = (Update) resourceCommand;
-    ContactResource existingContact = loadResourceToMutate(ContactResource.class, targetId, now);
+    ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, existingContact);
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingContact);

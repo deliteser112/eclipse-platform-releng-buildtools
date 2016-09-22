@@ -36,7 +36,7 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceUpdateFlow.AddRemoveSameValueEppException}
  * @error {@link google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException}
  * @error {@link google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException}

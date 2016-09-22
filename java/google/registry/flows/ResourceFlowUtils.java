@@ -31,14 +31,13 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.InvalidAuthorizationInformationErrorException;
+import google.registry.flows.EppException.ObjectDoesNotExistException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.NotPendingTransferException;
 import google.registry.flows.exceptions.NotTransferInitiatorException;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
-import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
-import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.EppResource;
 import google.registry.model.EppResource.Builder;
@@ -201,7 +200,7 @@ public class ResourceFlowUtils {
       public EppException run() {
         final ForeignKeyIndex<R> fki = ForeignKeyIndex.load(resourceClass, targetId, now);
         if (fki == null) {
-          return new ResourceToMutateDoesNotExistException(resourceClass, targetId);
+          return new ResourceDoesNotExistException(resourceClass, targetId);
         }
         // Query for the first few linked domains, and if found, actually load them. The query is
         // eventually consistent and so might be very stale, but the direct load will not be stale,
@@ -285,20 +284,16 @@ public class ResourceFlowUtils {
     }
   }
 
-  public static <R extends EppResource> R loadResourceForQuery(
-      Class<R> clazz, String targetId, DateTime now) throws ResourceToQueryDoesNotExistException {
-    R resource = loadByForeignKey(clazz, targetId, now);
-    if (resource == null) {
-      throw new ResourceToQueryDoesNotExistException(clazz, targetId);
-    }
-    return resource;
+  public static <R extends EppResource & ForeignKeyedEppResource> R loadAndVerifyExistence(
+      Class<R> clazz, String targetId, DateTime now)
+          throws ResourceDoesNotExistException {
+    return verifyExistence(clazz, targetId, loadByForeignKey(clazz, targetId, now));
   }
 
-  public static <R extends EppResource> R loadResourceToMutate(
-      Class<R> clazz, String targetId, DateTime now) throws ResourceToMutateDoesNotExistException {
-    R resource = loadByForeignKey(clazz, targetId, now);
+  public static <R extends EppResource> R verifyExistence(
+      Class<R> clazz, String targetId, R resource) throws ResourceDoesNotExistException {
     if (resource == null) {
-      throw new ResourceToMutateDoesNotExistException(clazz, targetId);
+      throw new ResourceDoesNotExistException(clazz, targetId);
     }
     return resource;
   }
@@ -358,6 +353,13 @@ public class ResourceFlowUtils {
       throws TooManyResourceChecksException {
     if (targetIds.size() > maxChecks) {
       throw new TooManyResourceChecksException(maxChecks);
+    }
+  }
+
+  /** Resource with this id does not exist. */
+  public static class ResourceDoesNotExistException extends ObjectDoesNotExistException {
+    public ResourceDoesNotExistException(Class<?> type, String targetId) {
+      super(type, targetId);
     }
   }
 

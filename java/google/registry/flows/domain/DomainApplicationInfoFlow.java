@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.flows.ResourceFlowUtils.verifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
@@ -31,7 +32,6 @@ import google.registry.flows.FlowModule.ApplicationId;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
-import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Info;
 import google.registry.model.domain.launch.LaunchInfoExtension;
@@ -51,8 +51,8 @@ import javax.inject.Inject;
  * <p>Only the registrar that owns the application can see its info. The flow can optionally include
  * delegated hosts in its response.
  *
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
  * @error {@link DomainFlowUtils.ApplicationDomainNameMismatchException}
  * @error {@link DomainApplicationInfoFlow.ApplicationLaunchPhaseMismatchException}
  * @error {@link MissingApplicationIdException}
@@ -76,10 +76,8 @@ public final class DomainApplicationInfoFlow extends LoggedInFlow {
     if (applicationId.isEmpty()) {
       throw new MissingApplicationIdException();
     }
-    DomainApplication application = loadDomainApplication(applicationId, now);
-    if (application == null) {
-      throw new ResourceToQueryDoesNotExistException(DomainApplication.class, applicationId);
-    }
+    DomainApplication application = verifyExistence(
+        DomainApplication.class, applicationId, loadDomainApplication(applicationId, now));
     verifyApplicationDomainMatchesTargetId(application, targetId);
     verifyOptionalAuthInfoForResource(authInfo, application);
     LaunchInfoExtension launchInfo = eppInput.getSingleExtension(LaunchInfoExtension.class);

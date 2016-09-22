@@ -15,7 +15,7 @@
 package google.registry.flows.contact;
 
 import static google.registry.flows.ResourceFlowUtils.approvePendingTransfer;
-import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
@@ -53,8 +53,8 @@ import javax.inject.Inject;
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.exceptions.NotPendingTransferException}
- * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
  */
 public final class ContactTransferApproveFlow extends LoggedInFlow implements TransactionalFlow {
 
@@ -76,7 +76,7 @@ public final class ContactTransferApproveFlow extends LoggedInFlow implements Tr
    */
   @Override
   public final EppOutput run() throws EppException {
-    ContactResource existingContact = loadResourceToMutate(ContactResource.class, targetId, now);
+    ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, existingContact);
     TransferData transferData = existingContact.getTransferData();
     if (transferData.getTransferStatus() != TransferStatus.PENDING) {

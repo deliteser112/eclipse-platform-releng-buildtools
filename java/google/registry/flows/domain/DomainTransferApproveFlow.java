@@ -17,7 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.flows.ResourceFlowUtils.approvePendingTransfer;
-import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyHasPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
@@ -71,9 +71,9 @@ import org.joda.time.DateTime;
  * those speculative objects are deleted and replaced with new ones with the correct approval time.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.NotPendingTransferException}
- * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
 public final class DomainTransferApproveFlow extends LoggedInFlow implements TransactionalFlow {
@@ -95,7 +95,7 @@ public final class DomainTransferApproveFlow extends LoggedInFlow implements Tra
    */
   @Override
   public final EppOutput run() throws EppException {
-    DomainResource existingDomain = loadResourceToMutate(DomainResource.class, targetId, now);
+    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, existingDomain);
     verifyHasPendingTransfer(existingDomain);
     verifyResourceOwnership(clientId, existingDomain);

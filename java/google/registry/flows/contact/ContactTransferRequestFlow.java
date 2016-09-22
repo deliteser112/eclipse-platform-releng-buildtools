@@ -14,7 +14,7 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyRequiredAuthInfoForResourceTransfer;
 import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
@@ -58,7 +58,7 @@ import org.joda.time.Duration;
  * request.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.exceptions.AlreadyPendingTransferException}
  * @error {@link google.registry.flows.exceptions.MissingTransferRequestAuthInfoException}
  * @error {@link google.registry.flows.exceptions.ObjectAlreadySponsoredException}
@@ -84,7 +84,7 @@ public final class ContactTransferRequestFlow extends LoggedInFlow implements Tr
 
   @Override
   protected final EppOutput run() throws EppException {
-    ContactResource existingContact = loadResourceToMutate(ContactResource.class, targetId, now);
+    ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyRequiredAuthInfoForResourceTransfer(authInfo, existingContact);
     // Verify that the resource does not already have a pending transfer.
     if (TransferStatus.PENDING.equals(existingContact.getTransferData().getTransferStatus())) {

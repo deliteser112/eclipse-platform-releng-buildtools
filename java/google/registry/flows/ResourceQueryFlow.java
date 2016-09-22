@@ -33,7 +33,7 @@ public abstract class ResourceQueryFlow<R extends EppResource, C extends SingleR
   @Override
   protected final void verifyIsAllowed() throws EppException {
     if (existingResource == null) {
-      throw new ResourceToQueryDoesNotExistException(
+      throw new ResourceDoesNotExistException(
           new TypeInstantiator<R>(getClass()){}.getExactType(), targetId);
     }
     if (command.getAuthInfo() != null) {
@@ -47,8 +47,8 @@ public abstract class ResourceQueryFlow<R extends EppResource, C extends SingleR
   protected void verifyQueryIsAllowed() throws EppException {}
 
   /** Resource with this id does not exist. */
-  public static class ResourceToQueryDoesNotExistException extends ObjectDoesNotExistException {
-    public ResourceToQueryDoesNotExistException(Class<?> type, String targetId) {
+  public static class ResourceDoesNotExistException extends ObjectDoesNotExistException {
+    public ResourceDoesNotExistException(Class<?> type, String targetId) {
       super(type, targetId);
     }
   }

@@ -14,7 +14,7 @@
 
 package google.registry.flows.domain;
 
-import static google.registry.flows.ResourceFlowUtils.loadResourceForQuery;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.domain.DomainFlowUtils.createTransferResponse;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
@@ -46,9 +46,9 @@ import org.joda.time.DateTime;
  * period expiring.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.exceptions.NoTransferHistoryToQueryException}
  * @error {@link google.registry.flows.exceptions.NotAuthorizedToViewTransferException}
- * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
  */
 public final class DomainTransferQueryFlow extends LoggedInFlow {
 
@@ -59,7 +59,7 @@ public final class DomainTransferQueryFlow extends LoggedInFlow {
 
   @Override
   public final EppOutput run() throws EppException {
-    DomainResource domain = loadResourceForQuery(DomainResource.class, targetId, now);
+    DomainResource domain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, domain);
     // Most of the fields on the transfer response are required, so there's no way to return valid
     // XML if the object has never been transferred (and hence the fields aren't populated).

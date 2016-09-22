@@ -23,9 +23,9 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
 import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
-import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
@@ -225,7 +225,7 @@ public class DomainTransferQueryFlowTest
   @Test
   public void testFailure_deletedDomain() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     domain = persistResource(
             domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
@@ -235,7 +235,7 @@ public class DomainTransferQueryFlowTest
   @Test
   public void testFailure_nonexistentDomain() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     deleteResource(domain);
     doFailingTest("domain_transfer_query.xml");

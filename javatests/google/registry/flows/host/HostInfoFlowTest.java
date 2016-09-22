@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowTestCase;
-import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -145,7 +145,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   @Test
   public void testFailure_neverExisted() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
@@ -153,7 +153,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     persistHostResource(false);
     runFlow();

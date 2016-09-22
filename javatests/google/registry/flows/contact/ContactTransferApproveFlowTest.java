@@ -26,9 +26,9 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.exceptions.NotPendingTransferException;
-import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
@@ -192,7 +192,7 @@ public class ContactTransferApproveFlowTest
   @Test
   public void testFailure_deletedContact() throws Exception {
     thrown.expect(
-        ResourceToMutateDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     contact = persistResource(
         contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
@@ -202,7 +202,7 @@ public class ContactTransferApproveFlowTest
   @Test
   public void testFailure_nonexistentContact() throws Exception {
     thrown.expect(
-        ResourceToMutateDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     deleteResource(contact);
     contact = persistResource(

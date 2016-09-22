@@ -39,10 +39,10 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.exceptions.NotPendingTransferException;
-import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Cancellation;
@@ -456,7 +456,7 @@ public class DomainTransferApproveFlowTest
 
   @Test
   public void testFailure_deletedDomain() throws Exception {
-    thrown.expect(ResourceToMutateDoesNotExistException.class,
+    thrown.expect(ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     domain = persistResource(
         domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
@@ -465,7 +465,7 @@ public class DomainTransferApproveFlowTest
 
   @Test
   public void testFailure_nonexistentDomain() throws Exception {
-    thrown.expect(ResourceToMutateDoesNotExistException.class,
+    thrown.expect(ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     deleteResource(domain);
     doFailingTest("domain_transfer_approve.xml");

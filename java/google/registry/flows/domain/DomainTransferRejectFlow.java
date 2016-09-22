@@ -15,7 +15,7 @@
 package google.registry.flows.domain;
 
 import static google.registry.flows.ResourceFlowUtils.denyPendingTransfer;
-import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyHasPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
@@ -56,9 +56,9 @@ import javax.inject.Inject;
  * those speculative objects are deleted.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.NotPendingTransferException}
- * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
 public final class DomainTransferRejectFlow extends LoggedInFlow implements TransactionalFlow {
@@ -76,7 +76,7 @@ public final class DomainTransferRejectFlow extends LoggedInFlow implements Tran
 
   @Override
   public final EppOutput run() throws EppException {
-    DomainResource existingDomain = loadResourceToMutate(DomainResource.class, targetId, now);
+    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_TRANSFER_REJECT)
         .setModificationTime(now)

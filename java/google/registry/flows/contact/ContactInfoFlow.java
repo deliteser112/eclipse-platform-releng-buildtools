@@ -14,7 +14,7 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.loadResourceForQuery;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
@@ -37,7 +37,7 @@ import javax.inject.Inject;
  * ever been transferred. Any registrar can see any contact's information, but the authInfo is only
  * visible to the registrar that owns the contact or to a registrar that already supplied it.
  *
- * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  */
 public final class ContactInfoFlow extends LoggedInFlow {
 
@@ -48,7 +48,7 @@ public final class ContactInfoFlow extends LoggedInFlow {
 
   @Override
   public final EppOutput run() throws EppException {
-    ContactResource contact = loadResourceForQuery(ContactResource.class, targetId, now);
+    ContactResource contact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, contact);
     if (!clientId.equals(contact.getCurrentSponsorClientId()) && !authInfo.isPresent()) {
       contact = contact.asBuilder().setAuthInfo(null).build();

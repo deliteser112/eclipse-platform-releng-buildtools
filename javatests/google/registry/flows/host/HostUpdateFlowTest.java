@@ -41,11 +41,11 @@ import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.async.DnsRefreshForHostRenameAction;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
-import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
 import google.registry.flows.host.HostFlowUtils.InvalidHostNameException;
@@ -659,7 +659,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   @Test
   public void testFailure_neverExisted() throws Exception {
     thrown.expect(
-        ResourceToMutateDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
@@ -668,7 +668,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_neverExisted_updateWithoutNameChange() throws Exception {
     setEppInput("host_update_name_unchanged.xml");
     thrown.expect(
-        ResourceToMutateDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
@@ -677,7 +677,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedHost(oldHostName(), clock.nowUtc());
     thrown.expect(
-        ResourceToMutateDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }

@@ -42,7 +42,7 @@ public abstract class ResourceMutateFlow<R extends EppResource, C extends Single
   @Override
   protected final void verifyIsAllowed() throws EppException {
     if (existingResource == null) {
-      throw new ResourceToMutateDoesNotExistException(
+      throw new ResourceDoesNotExistException(
           new TypeInstantiator<R>(getClass()){}.getExactType(), targetId);
     }
     if (command.getAuthInfo() != null) {
@@ -56,8 +56,8 @@ public abstract class ResourceMutateFlow<R extends EppResource, C extends Single
   protected void verifyMutationAllowed() throws EppException {}
 
   /** Resource with this id does not exist. */
-  public static class ResourceToMutateDoesNotExistException extends ObjectDoesNotExistException {
-    public ResourceToMutateDoesNotExistException(Class<?> type, String targetId) {
+  public static class ResourceDoesNotExistException extends ObjectDoesNotExistException {
+    public ResourceDoesNotExistException(Class<?> type, String targetId) {
       super(type, targetId);
     }
   }

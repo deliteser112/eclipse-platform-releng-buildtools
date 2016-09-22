@@ -31,7 +31,7 @@ import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
+import google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException;
 import google.registry.flows.domain.DomainApplicationDeleteFlow.SunriseApplicationCannotBeDeletedInLandrushException;
 import google.registry.flows.domain.DomainFlowUtils.ApplicationDomainNameMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.LaunchPhaseMismatchException;
@@ -120,7 +120,7 @@ public class DomainApplicationDeleteFlowTest
   @Test
   public void testFailure_neverExisted() throws Exception {
     thrown.expect(
-        ResourceToMutateDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
@@ -128,7 +128,7 @@ public class DomainApplicationDeleteFlowTest
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     thrown.expect(
-        ResourceToMutateDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     persistResource(newDomainApplication("example.tld").asBuilder()
         .setRepoId("1-TLD")

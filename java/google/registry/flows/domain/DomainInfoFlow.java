@@ -14,7 +14,7 @@
 
 package google.registry.flows.domain;
 
-import static google.registry.flows.ResourceFlowUtils.loadResourceForQuery;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
@@ -53,7 +53,7 @@ import javax.inject.Inject;
  * answered with a minimal result containing only basic information about the domain.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.FeeChecksDontSupportPhasesException}
@@ -74,7 +74,7 @@ public final class DomainInfoFlow extends LoggedInFlow {
 
   @Override
   public final EppOutput run() throws EppException {
-    DomainResource domain = loadResourceForQuery(DomainResource.class, targetId, now);
+    DomainResource domain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, domain);
     return createOutput(
         SUCCESS,

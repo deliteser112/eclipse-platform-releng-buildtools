@@ -14,7 +14,7 @@
 
 package google.registry.flows.contact;
 
-import static google.registry.flows.ResourceFlowUtils.loadResourceForQuery;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
@@ -42,9 +42,9 @@ import javax.inject.Inject;
  * period expiring.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.exceptions.NoTransferHistoryToQueryException}
  * @error {@link google.registry.flows.exceptions.NotAuthorizedToViewTransferException}
- * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
  */
 public final class ContactTransferQueryFlow extends LoggedInFlow {
 
@@ -55,7 +55,7 @@ public final class ContactTransferQueryFlow extends LoggedInFlow {
 
   @Override
   public final EppOutput run() throws EppException {
-    ContactResource contact = loadResourceForQuery(ContactResource.class, targetId, now);
+    ContactResource contact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, contact);
     // Most of the fields on the transfer response are required, so there's no way to return valid
     // XML if the object has never been transferred (and hence the fields aren't populated).

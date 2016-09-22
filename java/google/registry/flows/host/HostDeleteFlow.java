@@ -15,7 +15,7 @@
 package google.registry.flows.host;
 
 import static google.registry.flows.ResourceFlowUtils.failfastForAsyncDelete;
-import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
@@ -50,9 +50,9 @@ import javax.inject.Inject;
  * references to the host before the deletion is allowed to proceed. A poll message will be written
  * with the success or failure message when the process is complete.
  *
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
- * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
  * @error {@link google.registry.flows.exceptions.ResourceToDeleteIsReferencedException}
  */
 public final class HostDeleteFlow extends LoggedInFlow implements TransactionalFlow {
@@ -85,7 +85,7 @@ public final class HostDeleteFlow extends LoggedInFlow implements TransactionalF
   @Override
   public final EppOutput run() throws EppException {
     failfastForAsyncDelete(targetId, now, HostResource.class, GET_NAMESERVERS);
-    HostResource existingHost = loadResourceToMutate(HostResource.class, targetId, now);
+    HostResource existingHost = loadAndVerifyExistence(HostResource.class, targetId, now);
     verifyNoDisallowedStatuses(existingHost, DISALLOWED_STATUSES);
     verifyOptionalAuthInfoForResource(authInfo, existingHost);
     if (!isSuperuser) {

@@ -29,11 +29,11 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
 import google.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeeChecksDontSupportPhasesException;
 import google.registry.flows.domain.DomainFlowUtils.RestoresAreAlwaysForOneYearException;
-import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.billing.BillingEvent.Recurring;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.contact.ContactResource;
@@ -375,7 +375,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   @Test
   public void testFailure_neverExisted() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
@@ -383,7 +383,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     persistResource(newDomainResource("example.tld").asBuilder()
         .setDeletionTime(clock.nowUtc().minusDays(1))

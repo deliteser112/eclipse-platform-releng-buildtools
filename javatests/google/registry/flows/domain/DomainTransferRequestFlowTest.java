@@ -40,6 +40,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
 import google.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.CurrencyValueScaleException;
@@ -52,7 +53,6 @@ import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
-import google.registry.flows.exceptions.ResourceToMutateDoesNotExistException;
 import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Cancellation.Builder;
@@ -725,7 +725,7 @@ public class DomainTransferRequestFlowTest
   @Test
   public void testFailure_deletedDomain() throws Exception {
     thrown.expect(
-        ResourceToMutateDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     domain = persistResource(
         domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
@@ -737,14 +737,14 @@ public class DomainTransferRequestFlowTest
     setEppInput("domain_transfer_request_wildcard.xml", ImmutableMap.of("DOMAIN", "--invalid"));
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
     assertTransactionalFlow(true);
-    thrown.expect(ResourceToMutateDoesNotExistException.class, "(--invalid)");
+    thrown.expect(ResourceDoesNotExistException.class, "(--invalid)");
     runFlow(CommitMode.LIVE, UserPrivileges.NORMAL);
   }
 
   @Test
   public void testFailure_nonexistentDomain() throws Exception {
     thrown.expect(
-        ResourceToMutateDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     deleteResource(domain);
     doFailingTest("domain_transfer_request.xml");

@@ -20,9 +20,9 @@ import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
 import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
-import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
@@ -168,7 +168,7 @@ public class ContactTransferQueryFlowTest
   @Test
   public void testFailure_deletedContact() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     contact = persistResource(
         contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
@@ -178,7 +178,7 @@ public class ContactTransferQueryFlowTest
   @Test
   public void testFailure_nonexistentContact() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     deleteResource(contact);
     doFailingTest("contact_transfer_query.xml");

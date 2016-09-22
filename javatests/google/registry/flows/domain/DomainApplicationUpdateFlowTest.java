@@ -33,7 +33,7 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
+import google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException;
 import google.registry.flows.ResourceUpdateFlow.AddRemoveSameValueEppException;
 import google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException;
@@ -402,7 +402,7 @@ public class DomainApplicationUpdateFlowTest
   @Test
   public void testFailure_neverExisted() throws Exception {
     thrown.expect(
-        ResourceToMutateDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     persistReferencedEntities();
     runFlow();
@@ -411,7 +411,7 @@ public class DomainApplicationUpdateFlowTest
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     thrown.expect(
-        ResourceToMutateDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setDeletionTime(START_OF_TIME).build());

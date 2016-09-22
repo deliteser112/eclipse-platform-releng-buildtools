@@ -15,7 +15,7 @@
 package google.registry.flows.host;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static google.registry.flows.ResourceFlowUtils.loadResourceToMutate;
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
@@ -74,10 +74,10 @@ import javax.inject.Inject;
  * when it is renamed from external to internal at least one must be added. If the host is renamed
  * or IP addresses are added, tasks are enqueued to update DNS accordingly.
  *
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
- * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
  * @error {@link google.registry.flows.exceptions.StatusNotClientSettableException}
  * @error {@link HostFlowUtils.HostNameTooShallowException}
  * @error {@link HostFlowUtils.InvalidHostNameException}
@@ -116,7 +116,7 @@ public final class HostUpdateFlow extends LoggedInFlow implements TransactionalF
   public final EppOutput run() throws EppException {
     Update command = (Update) resourceCommand;
     String suppliedNewHostName = command.getInnerChange().getFullyQualifiedHostName();
-    HostResource existingHost = loadResourceToMutate(HostResource.class, targetId, now);
+    HostResource existingHost = loadAndVerifyExistence(HostResource.class, targetId, now);
     boolean isHostRename = suppliedNewHostName != null;
     String oldHostName = targetId;
     String newHostName = firstNonNull(suppliedNewHostName, oldHostName);

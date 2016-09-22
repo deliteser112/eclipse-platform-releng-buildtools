@@ -25,7 +25,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
-import google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException;
+import google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
@@ -183,7 +183,7 @@ public final class TldSpecificLogicProxy {
       // TODO: Consider changing the method definition to have the domain passed in to begin with.
       DomainResource domain = loadByForeignKey(DomainResource.class, domainName, date);
       if (domain == null) {
-        throw new ResourceToMutateDoesNotExistException(DomainResource.class, domainName);
+        throw new ResourceDoesNotExistException(DomainResource.class, domainName);
       }
       return
           extraFlowLogic.get().getRenewFeeOrCredit(domain, clientId, date, years, eppInput);
@@ -249,7 +249,7 @@ public final class TldSpecificLogicProxy {
       // TODO: Consider changing the method definition to have the domain passed in to begin with.
       DomainResource domain = loadByForeignKey(DomainResource.class, domainName, date);
       if (domain == null) {
-        throw new ResourceToMutateDoesNotExistException(DomainResource.class, domainName);
+        throw new ResourceDoesNotExistException(DomainResource.class, domainName);
       }
       feeOrCredit =
           extraFlowLogic.get().getUpdateFeeOrCredit(domain, clientId, date, eppInput);

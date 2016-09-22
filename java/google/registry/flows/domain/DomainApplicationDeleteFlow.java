@@ -42,7 +42,7 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException}
  * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link google.registry.flows.ResourceMutateFlow.ResourceToMutateDoesNotExistException}
+ * @error {@link google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException}
  * @error {@link DomainApplicationDeleteFlow.SunriseApplicationCannotBeDeletedInLandrushException}
  * @error {@link DomainFlowUtils.ApplicationDomainNameMismatchException}
  * @error {@link DomainFlowUtils.LaunchPhaseMismatchException}

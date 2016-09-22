@@ -24,7 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.ResourceFlowTestCase;
-import google.registry.flows.exceptions.ResourceToQueryDoesNotExistException;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -164,7 +164,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
   @Test
   public void testFailure_neverExisted() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
@@ -172,7 +172,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     thrown.expect(
-        ResourceToQueryDoesNotExistException.class,
+        ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     persistContactResource(false);
     runFlow();
