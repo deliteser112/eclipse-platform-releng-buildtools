@@ -14,7 +14,6 @@
 
 package google.registry.flows.domain;
 
-import static com.google.common.collect.Sets.union;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -167,15 +166,13 @@ public class DomainCreateFlow extends DomainCreateOrAllocateFlow {
     if (!commandOperations.getEapCost().isZero()) {
       BillingEvent.OneTime eapEvent =
           new BillingEvent.OneTime.Builder()
-              .setReason(createEvent.getReason())
+              .setReason(Reason.FEE_EARLY_ACCESS)
               .setTargetId(createEvent.getTargetId())
               .setClientId(createEvent.getClientId())
-              .setPeriodYears(createEvent.getPeriodYears())
               .setCost(commandOperations.getEapCost())
               .setEventTime(createEvent.getEventTime())
               .setBillingTime(createEvent.getBillingTime())
-              .setFlags(union(createEvent.getFlags(),
-                  ImmutableSet.of(BillingEvent.Flag.EAP)).immutableCopy())
+              .setFlags(createEvent.getFlags())
               .setParent(createEvent.getParentKey())
               .build();
       ofy().save().entity(eapEvent);

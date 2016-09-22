@@ -54,16 +54,18 @@ import org.joda.time.DateTime;
 public abstract class BillingEvent extends ImmutableObject
     implements Buildable, TransferServerApproveEntity {
 
-  /** The reason for the bill. */
+  /** The reason for the bill, which maps 1:1 to skus in go/registry-billing-skus. */
   public enum Reason {
-    CREATE,
-    TRANSFER,
-    RENEW,
     // TODO(b/27777398): Drop Reason.AUTO_RENEW after migration to Flag.AUTO_RENEW.
     AUTO_RENEW,
+    CREATE,
+    @Deprecated // TODO(b/31676071): remove this legacy value once old data is cleaned up.
+    ERROR,
+    FEE_EARLY_ACCESS,
+    RENEW,
     RESTORE,
     SERVER_STATUS,
-    ERROR
+    TRANSFER
   }
 
   /** Set of flags that can be applied to billing events. */
@@ -71,7 +73,6 @@ public abstract class BillingEvent extends ImmutableObject
     ALLOCATION,
     ANCHOR_TENANT,
     AUTO_RENEW,
-    EAP,
     LANDRUSH,
     SUNRISE,
     /**
@@ -302,7 +303,10 @@ public abstract class BillingEvent extends ImmutableObject
         checkNotNull(instance.cost);
         checkState(!instance.cost.isNegative(), "Costs should be non-negative.");
         ImmutableSet<Reason> reasonsWithPeriods =
-            Sets.immutableEnumSet(Reason.CREATE, Reason.RENEW, Reason.TRANSFER);
+            Sets.immutableEnumSet(
+                Reason.CREATE,
+                Reason.RENEW,
+                Reason.TRANSFER);
         checkState(
             reasonsWithPeriods.contains(instance.reason) == (instance.periodYears != null),
             "Period years must be set if and only if reason is CREATE, RENEW, or TRANSFER.");

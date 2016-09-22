@@ -217,20 +217,15 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
     // If EAP is applied, a billing event for EAP should be present.
     if (!eapFee.isZero()) {
-      ImmutableSet<BillingEvent.Flag> eapFlags =
-          isAnchorTenant
-              ? ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT, BillingEvent.Flag.EAP)
-              : ImmutableSet.of(BillingEvent.Flag.EAP);
       BillingEvent.OneTime eapBillingEvent =
           new BillingEvent.OneTime.Builder()
-              .setReason(Reason.CREATE)
+              .setReason(Reason.FEE_EARLY_ACCESS)
               .setTargetId(getUniqueIdFromCommand())
               .setClientId("TheRegistrar")
               .setCost(eapFee)
-              .setPeriodYears(2)
               .setEventTime(clock.nowUtc())
               .setBillingTime(billingTime)
-              .setFlags(eapFlags)
+              .setFlags(billingFlags)
               .setParent(historyEntry)
               .build();
       billingEvents = ImmutableSet.<BillingEvent>builder()

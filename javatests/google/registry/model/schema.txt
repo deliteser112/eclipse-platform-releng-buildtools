@@ -24,7 +24,6 @@ enum google.registry.model.billing.BillingEvent$Flag {
   ALLOCATION;
   ANCHOR_TENANT;
   AUTO_RENEW;
-  EAP;
   LANDRUSH;
   SUNRISE;
   SYNTHETIC;
@@ -59,6 +58,7 @@ enum google.registry.model.billing.BillingEvent$Reason {
   AUTO_RENEW;
   CREATE;
   ERROR;
+  FEE_EARLY_ACCESS;
   RENEW;
   RESTORE;
   SERVER_STATUS;
