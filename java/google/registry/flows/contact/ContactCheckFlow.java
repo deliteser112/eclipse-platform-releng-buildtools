@@ -35,9 +35,11 @@ import javax.inject.Inject;
 /**
  * An EPP flow that checks whether a contact can be provisioned.
  *
+ * <p>This flows can check the existence of multiple contacts simultaneously.
+ *
  * @error {@link google.registry.flows.exceptions.TooManyResourceChecksException}
  */
-public class ContactCheckFlow extends LoggedInFlow {
+public final class ContactCheckFlow extends LoggedInFlow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject @Config("maxChecks") int maxChecks;

@@ -44,14 +44,21 @@ import javax.inject.Inject;
 import org.joda.time.Duration;
 
 /**
- * An EPP flow that deletes a contact resource.
+/**
+ * An EPP flow that deletes a contact.
+ *
+ * <p>Contacts that are in use by any domain cannot be deleted. The flow may return immediately if a
+ * quick smoke check determines that deletion is impossible due to an existing reference. However, a
+ * successful delete will always be asynchronous, as all existing domains must be checked for
+ * references to the host before the deletion is allowed to proceed. A poll message will be written
+ * with the success or failure message when the process is complete.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
  * @error {@link google.registry.flows.exceptions.ResourceToDeleteIsReferencedException}
  * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
  */
-public class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow {
+public final class ContactDeleteFlow extends LoggedInFlow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(
       StatusValue.LINKED,

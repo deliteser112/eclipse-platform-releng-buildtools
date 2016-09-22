@@ -59,7 +59,7 @@ import javax.inject.Inject;
 import org.joda.time.DateTime;
 
 /**
- * An EPP flow that approves a pending transfer on a {@link DomainResource}.
+ * An EPP flow that approves a pending transfer on a domain.
  *
  * <p>The "gaining" registrar requests a transfer from the "losing" (aka current) registrar. The
  * losing registrar has a "transfer" time period to respond (by default five days) after which the
@@ -69,9 +69,6 @@ import org.joda.time.DateTime;
  * <p>When the transfer was requested, poll messages and billing events were saved to Datastore with
  * timestamps such that they only would become active when the transfer period passed. In this flow,
  * those speculative objects are deleted and replaced with new ones with the correct approval time.
- *
- * <p>The logic in this flow, which handles client approvals, very closely parallels the logic in
- * {@link DomainResource#cloneProjectedAtTime} which handles implicit server approvals.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
@@ -92,6 +89,10 @@ public final class DomainTransferApproveFlow extends LoggedInFlow implements Tra
     registerExtensions(MetadataExtension.class);
   }
 
+  /**
+   * <p>The logic in this flow, which handles client approvals, very closely parallels the logic in
+   * {@link DomainResource#cloneProjectedAtTime} which handles implicit server approvals.
+   */
   @Override
   public final EppOutput run() throws EppException {
     DomainResource existingDomain = loadResourceToMutate(DomainResource.class, targetId, now);

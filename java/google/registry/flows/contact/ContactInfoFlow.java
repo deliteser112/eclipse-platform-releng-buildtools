@@ -29,11 +29,15 @@ import google.registry.model.eppoutput.EppOutput;
 import javax.inject.Inject;
 
 /**
- * An EPP flow that reads a contact.
+ * An EPP flow that returns information about a contact.
+ *
+ * <p>The response includes the contact's postal info, phone numbers, emails, the authInfo which can
+ * be used to request a transfer and the details of the contact's most recent transfer if it has
+ * ever been transferred. Any registrar can see any contact's information.
  *
  * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
  */
-public class ContactInfoFlow extends LoggedInFlow {
+public final class ContactInfoFlow extends LoggedInFlow {
 
   @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;

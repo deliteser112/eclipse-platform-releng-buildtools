@@ -42,14 +42,19 @@ import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
 
 /**
- * An EPP flow that rejects a pending transfer on a {@link ContactResource}.
+ * An EPP flow that rejects a pending transfer on a contact.
+ *
+ * <p>The "gaining" registrar requests a transfer from the "losing" (aka current) registrar. The
+ * losing registrar has a "transfer" time period to respond (by default five days) after which the
+ * transfer is automatically approved. Within that window, this flow allows the losing client to
+ * reject the transfer request.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.NotPendingTransferException}
  * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
  */
-public class ContactTransferRejectFlow extends LoggedInFlow implements TransactionalFlow {
+public final class ContactTransferRejectFlow extends LoggedInFlow implements TransactionalFlow {
 
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;

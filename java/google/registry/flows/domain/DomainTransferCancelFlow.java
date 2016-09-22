@@ -44,7 +44,7 @@ import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
 
 /**
- * An EPP flow that cancels a pending transfer on a {@link DomainResource}.
+ * An EPP flow that cancels a pending transfer on a domain.
  *
  * <p>The "gaining" registrar requests a transfer from the "losing" (aka current) registrar. The
  * losing registrar has a "transfer" time period to respond (by default five days) after which the

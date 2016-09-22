@@ -62,7 +62,17 @@ import java.util.Objects;
 import javax.inject.Inject;
 
 /**
- * An EPP flow that updates a host resource.
+ * An EPP flow that updates a host.
+ *
+ * <p>Hosts can be "external", or "internal" (also known as "in bailiwick"). Internal hosts are
+ * those that are under a top level domain within this registry, and external hosts are all other
+ * hosts. Internal hosts must have at least one IP address associated with them, whereas external
+ * hosts cannot have any.
+ *
+ * <p>This flow allows changing a host name, and adding or removing IP addresses to hosts. When
+ * a host is renamed from internal to external all IP addresses must be simultaneously removed, and
+ * when it is renamed from external to internal at least one must be added. If the host is renamed
+ * or IP addresses are added, tasks are enqueued to update DNS accordingly.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException}
@@ -78,7 +88,7 @@ import javax.inject.Inject;
  * @error {@link RenameHostToExternalRemoveIpException}
  * @error {@link RenameHostToSubordinateRequiresIpException}
  */
-public class HostUpdateFlow extends LoggedInFlow implements TransactionalFlow {
+public final class HostUpdateFlow extends LoggedInFlow implements TransactionalFlow {
 
   /**
    * Note that CLIENT_UPDATE_PROHIBITED is intentionally not in this list. This is because it
@@ -260,33 +270,33 @@ public class HostUpdateFlow extends LoggedInFlow implements TransactionalFlow {
     }
   }
 
-  /** Cannot add ip addresses to an external host. */
+  /** Cannot add IP addresses to an external host. */
   static class CannotAddIpToExternalHostException extends ParameterValueRangeErrorException {
     public CannotAddIpToExternalHostException() {
-      super("Cannot add ip addresses to external hosts");
+      super("Cannot add IP addresses to external hosts");
     }
   }
 
-  /** Cannot remove all ip addresses from a subordinate host. */
+  /** Cannot remove all IP addresses from a subordinate host. */
   static class CannotRemoveSubordinateHostLastIpException
       extends StatusProhibitsOperationException {
     public CannotRemoveSubordinateHostLastIpException() {
-      super("Cannot remove all ip addresses from a subordinate host");
+      super("Cannot remove all IP addresses from a subordinate host");
     }
   }
 
-  /** Host rename from external to subordinate must also add an ip addresses. */
+  /** Host rename from external to subordinate must also add an IP addresses. */
   static class RenameHostToSubordinateRequiresIpException
       extends RequiredParameterMissingException {
     public RenameHostToSubordinateRequiresIpException() {
-      super("Host rename from external to subordinate must also add an ip address");
+      super("Host rename from external to subordinate must also add an IP address");
     }
   }
 
-  /** Host rename from subordinate to external must also remove all ip addresses. */
+  /** Host rename from subordinate to external must also remove all IP addresses. */
   static class RenameHostToExternalRemoveIpException extends ParameterValueRangeErrorException {
     public RenameHostToExternalRemoveIpException() {
-      super("Host rename from subordinate to external must also remove all ip addresses");
+      super("Host rename from subordinate to external must also remove all IP addresses");
     }
   }
 }

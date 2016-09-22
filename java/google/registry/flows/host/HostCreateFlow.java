@@ -51,7 +51,13 @@ import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
 
 /**
- * An EPP flow that creates a new host resource.
+ * An EPP flow that creates a new host.
+ *
+ * <p>Hosts can be "external", or "internal" (also known as "in bailiwick"). Internal hosts are
+ * those that are under a top level domain within this registry, and external hosts are all other
+ * hosts. Internal hosts must have at least one ip address associated with them, whereas external
+ * hosts cannot have any. This flow allows creating a host name, and if necessary enqueues tasks to
+ * update DNS.
  *
  * @error {@link google.registry.flows.EppXmlTransformer.IpAddressVersionMismatchException}
  * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
@@ -62,7 +68,7 @@ import javax.inject.Inject;
  * @error {@link SubordinateHostMustHaveIpException}
  * @error {@link UnexpectedExternalHostIpException}
  */
-public class HostCreateFlow extends LoggedInFlow implements TransactionalFlow {
+public final class HostCreateFlow extends LoggedInFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;

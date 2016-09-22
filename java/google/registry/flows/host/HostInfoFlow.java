@@ -29,11 +29,14 @@ import google.registry.model.host.HostResource;
 import javax.inject.Inject;
 
 /**
- * An EPP flow that reads a host.
+ * An EPP flow that returns information about a host.
+ *
+ * <p>The returned information included IP addresses, if any, and details of the host's most recent
+ * transfer if it has ever been transferred. Any registrar can see the information for any host.
  *
  * @error {@link google.registry.flows.exceptions.ResourceToQueryDoesNotExistException}
  */
-public class HostInfoFlow extends LoggedInFlow {
+public final class HostInfoFlow extends LoggedInFlow {
 
   @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;

@@ -43,14 +43,20 @@ import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
 
 /**
- * An EPP flow that approves a pending transfer on a {@link ContactResource}.
+/**
+ * An EPP flow that approves a pending transfer on a contact.
+ *
+ * <p>The "gaining" registrar requests a transfer from the "losing" (aka current) registrar. The
+ * losing registrar has a "transfer" time period to respond (by default five days) after which the
+ * transfer is automatically approved. Within that window, this flow allows the losing client to
+ * explicitly approve the transfer request, which then becomes effective immediately.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.NotPendingTransferException}
  * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
  */
-public class ContactTransferApproveFlow extends LoggedInFlow implements TransactionalFlow {
+public final class ContactTransferApproveFlow extends LoggedInFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
@@ -64,6 +70,10 @@ public class ContactTransferApproveFlow extends LoggedInFlow implements Transact
     registerExtensions(MetadataExtension.class);
   }
 
+  /**
+   * <p>The logic in this flow, which handles client approvals, very closely parallels the logic in
+   * {@link ContactResource#cloneProjectedAtTime} which handles implicit server approvals.
+   */
   @Override
   public final EppOutput run() throws EppException {
     ContactResource existingContact = loadResourceToMutate(ContactResource.class, targetId, now);

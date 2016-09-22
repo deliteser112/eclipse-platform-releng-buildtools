@@ -35,9 +35,11 @@ import javax.inject.Inject;
 /**
  * An EPP flow that checks whether a host can be provisioned.
  *
+ * <p>This flows can check the existence of multiple hosts simultaneously.
+ *
  * @error {@link google.registry.flows.exceptions.TooManyResourceChecksException}
  */
-public class HostCheckFlow extends LoggedInFlow {
+public final class HostCheckFlow extends LoggedInFlow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject @Config("maxChecks") int maxChecks;

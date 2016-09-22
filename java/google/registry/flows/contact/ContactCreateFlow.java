@@ -41,13 +41,13 @@ import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
 
 /**
- * An EPP flow that creates a new contact resource.
+ * An EPP flow that creates a new contact.
  *
  * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
  * @error {@link ContactFlowUtils.BadInternationalizedPostalInfoException}
  * @error {@link ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException}
  */
-public class ContactCreateFlow extends LoggedInFlow implements TransactionalFlow {
+public final class ContactCreateFlow extends LoggedInFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;

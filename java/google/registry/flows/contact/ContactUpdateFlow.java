@@ -48,7 +48,7 @@ import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
 
 /**
- * An EPP flow that updates a contact resource.
+ * An EPP flow that updates a contact.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.AddRemoveSameValueEppException}
@@ -59,7 +59,7 @@ import javax.inject.Inject;
  * @error {@link ContactFlowUtils.BadInternationalizedPostalInfoException}
  * @error {@link ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException}
  */
-public class ContactUpdateFlow extends LoggedInFlow implements TransactionalFlow {
+public final class ContactUpdateFlow extends LoggedInFlow implements TransactionalFlow {
 
   /**
    * Note that CLIENT_UPDATE_PROHIBITED is intentionally not in this list. This is because it

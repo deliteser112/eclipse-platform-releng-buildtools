@@ -48,7 +48,14 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /**
- * An EPP flow that requests a transfer on a {@link ContactResource}.
+/**
+ * An EPP flow that requests a transfer on a contact.
+ *
+ * <p>The "gaining" registrar requests a transfer from the "losing" (aka current) registrar. The
+ * losing registrar has a "transfer" time period to respond (by default five days) after which the
+ * transfer is automatically approved. Within that window, the transfer might be approved explicitly
+ * by the losing registrar or rejected, and the gaining registrar can also cancel the transfer
+ * request.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
  * @error {@link google.registry.flows.exceptions.ResourceToMutateDoesNotExistException}
@@ -56,7 +63,7 @@ import org.joda.time.Duration;
  * @error {@link google.registry.flows.exceptions.MissingTransferRequestAuthInfoException}
  * @error {@link google.registry.flows.exceptions.ObjectAlreadySponsoredException}
  */
-public class ContactTransferRequestFlow extends LoggedInFlow implements TransactionalFlow {
+public final class ContactTransferRequestFlow extends LoggedInFlow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(
       StatusValue.CLIENT_TRANSFER_PROHIBITED,
