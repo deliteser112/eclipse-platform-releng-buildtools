@@ -44,7 +44,7 @@ public class RegistrarWhoisResponseTest {
   @Test
   public void getTextOutputTest() {
     Registrar registrar = new Registrar.Builder()
-        .setClientIdentifier("exregistrar")
+        .setClientId("exregistrar")
         .setRegistrarName("Example Registrar, Inc.")
         .setType(Registrar.Type.REAL)
         .setIanaIdentifier(8L)
@@ -120,7 +120,7 @@ public class RegistrarWhoisResponseTest {
   @Test
   public void testSetOfFields() {
     Registrar registrar = new Registrar.Builder()
-        .setClientIdentifier("exregistrar")
+        .setClientId("exregistrar")
         .setType(Registrar.Type.REAL)
         .setIanaIdentifier(8L)
         .setState(Registrar.State.ACTIVE)

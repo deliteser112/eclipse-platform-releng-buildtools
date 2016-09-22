@@ -187,7 +187,7 @@ public final class AppEngineRule extends ExternalResource {
   /** Public factory for first Registrar to allow comparison against stored value in unit tests. */
   public static Registrar makeRegistrar1() {
     return makeRegistrarCommon()
-        .setClientIdentifier("NewRegistrar")
+        .setClientId("NewRegistrar")
         .setRegistrarName("New Registrar")
         .setIanaIdentifier(8L)
         .setPassword("foo-BAR2")
@@ -199,7 +199,7 @@ public final class AppEngineRule extends ExternalResource {
   /** Public factory for second Registrar to allow comparison against stored value in unit tests. */
   public static Registrar makeRegistrar2() {
     return makeRegistrarCommon()
-        .setClientIdentifier("TheRegistrar")
+        .setClientId("TheRegistrar")
         .setRegistrarName("The Registrar")
         .setIanaIdentifier(1L)
         .setPassword("password2")

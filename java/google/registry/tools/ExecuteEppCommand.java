@@ -38,7 +38,7 @@ final class ExecuteEppCommand extends MutatingEppToolCommand {
       names = {"-c", "--client"},
       description = "Client identifier of the registrar to execute the command as",
       required = true)
-  String clientIdentifier;
+  String clientId;
 
   @NonFinalForTesting
   private static InputStream stdin = System.in;
@@ -47,10 +47,10 @@ final class ExecuteEppCommand extends MutatingEppToolCommand {
   protected void initMutatingEppToolCommand() throws IOException {
     if (mainParameters.isEmpty()) {
       addXmlCommand(
-          clientIdentifier, CharStreams.toString(new InputStreamReader(stdin, UTF_8)));
+          clientId, CharStreams.toString(new InputStreamReader(stdin, UTF_8)));
     } else {
       for (String command : mainParameters) {
-        addXmlCommand(clientIdentifier, Files.toString(new File(command), UTF_8));
+        addXmlCommand(clientId, Files.toString(new File(command), UTF_8));
       }
     }
   }

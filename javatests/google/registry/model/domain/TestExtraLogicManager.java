@@ -45,7 +45,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
 
   @Override
   public List<String> getExtensionFlags(
-      DomainResource domainResource, String clientIdentifier, DateTime asOfDate) {
+      DomainResource domainResource, String clientId, DateTime asOfDate) {
     // Take the part before the period, split by dashes, and treat each part after the first as
     // a flag.
     List<String> components =
@@ -55,7 +55,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     return components.subList(1, components.size());
   }
 
-  BaseFee domainNameToFeeOrCredit(String domainName) {    
+  BaseFee domainNameToFeeOrCredit(String domainName) {
     // The second-level domain should be of the form "description-price", where description is the
     // description string of the fee or credit, and price is the price (credit if negative, fee
     // otherwise). To make sure this is a valid domain name, don't use any spaces, and limit prices
@@ -79,7 +79,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   @Override
   public BaseFee getCreateFeeOrCredit(
       String domainName,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       int years,
       EppInput eppInput) throws EppException {
@@ -93,7 +93,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   @Override
   public void performAdditionalDomainCreateLogic(
       DomainResource domain,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       int years,
       EppInput eppInput,
@@ -113,7 +113,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   @Override
   public void performAdditionalDomainDeleteLogic(
       DomainResource domainResource,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException {
@@ -124,7 +124,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   @Override
   public BaseFee getRenewFeeOrCredit(
       DomainResource domain,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       int years,
       EppInput eppInput) throws EppException {
@@ -138,7 +138,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   @Override
   public void performAdditionalDomainRenewLogic(
       DomainResource domainResource,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       int years,
       EppInput eppInput,
@@ -153,7 +153,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   @Override
   public void performAdditionalDomainRestoreLogic(
       DomainResource domainResource,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException {
@@ -167,7 +167,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   @Override
   public void performAdditionalDomainTransferLogic(
       DomainResource domainResource,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       int years,
       EppInput eppInput,
@@ -188,7 +188,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   @Override
   public BaseFee getUpdateFeeOrCredit(
       DomainResource domain,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       EppInput eppInput) throws EppException {
     return domainNameToFeeOrCredit(domain.getFullyQualifiedDomainName());
@@ -201,7 +201,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   @Override
   public void performAdditionalDomainUpdateLogic(
       DomainResource domainResource,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException {

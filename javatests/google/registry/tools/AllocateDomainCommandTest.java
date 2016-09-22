@@ -110,7 +110,7 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
   private EppToolVerifier eppVerifier() {
     return new EppToolVerifier()
         .withConnection(connection)
-        .withClientIdentifier("TheRegistrar")
+        .withClientId("TheRegistrar")
         .asSuperuser();
   }
 

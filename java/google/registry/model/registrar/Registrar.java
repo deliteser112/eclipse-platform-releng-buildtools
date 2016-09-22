@@ -353,7 +353,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
       return salt;
     }};
 
-  public String getClientIdentifier() {
+  public String getClientId() {
     return clientIdentifier;
   }
 
@@ -570,12 +570,12 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
       super(instance);
     }
 
-    public Builder setClientIdentifier(String clientIdentifier) {
+    public Builder setClientId(String clientId) {
       // Client id must be [3,16] chars long. See "clIDType" in the base EPP schema of RFC 5730.
       // (Need to validate this here as there's no matching EPP XSD for validation.)
-      checkArgument(clientIdentifier.length() >= 3 && clientIdentifier.length() <= 16,
+      checkArgument(clientId.length() >= 3 && clientId.length() <= 16,
           "Client identifier must be 3-16 characters long.");
-      getInstance().clientIdentifier = clientIdentifier;
+      getInstance().clientIdentifier = clientId;
       return this;
     }
 

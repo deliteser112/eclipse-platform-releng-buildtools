@@ -139,9 +139,9 @@ final class RegistrarContactCommand extends MutatingCommand implements GtechComm
   protected void init() throws Exception {
     checkArgument(mainParameters.size() == 1,
         "Must specify exactly one client identifier: %s", ImmutableList.copyOf(mainParameters));
-    String clientIdentifier = mainParameters.get(0);
-    Registrar registrar = checkNotNull(
-        Registrar.loadByClientId(clientIdentifier), "Registrar %s not found", clientIdentifier);
+    String clientId = mainParameters.get(0);
+    Registrar registrar =
+        checkNotNull(Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);
     contactTypes =
         newHashSet(
             transform(

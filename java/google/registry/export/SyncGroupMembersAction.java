@@ -194,7 +194,7 @@ public final class SyncGroupMembersAction implements Runnable {
       long totalRemoved = 0;
       for (final RegistrarContact.Type type : RegistrarContact.Type.values()) {
         groupKey = getGroupEmailAddressForContactType(
-            registrar.getClientIdentifier(), type, publicDomainName);
+            registrar.getClientId(), type, publicDomainName);
         Set<String> currentMembers = groupsConnection.getMembersOfGroup(groupKey);
         Set<String> desiredMembers = FluentIterable.from(registrarContacts)
             .filter(new Predicate<RegistrarContact>() {
@@ -218,7 +218,7 @@ public final class SyncGroupMembersAction implements Runnable {
         }
       }
       logger.infofmt("Successfully synced contacts for registrar %s: added %d and removed %d",
-          registrar.getClientIdentifier(),
+          registrar.getClientId(),
           totalAdded,
           totalRemoved);
     } catch (IOException e) {
@@ -227,7 +227,7 @@ public final class SyncGroupMembersAction implements Runnable {
       // job will run within an hour anyway and effectively resume where it left off if this was a
       // transient error.
       String msg = String.format("Couldn't sync contacts for registrar %s to group %s",
-          registrar.getClientIdentifier(), groupKey);
+          registrar.getClientId(), groupKey);
       throw new RuntimeException(msg, e);
     }
   }

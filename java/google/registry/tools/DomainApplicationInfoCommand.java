@@ -32,7 +32,7 @@ final class DomainApplicationInfoCommand extends EppToolCommand implements Gtech
       names = {"-c", "--client"},
       description = "Client identifier of the registrar to execute the command as",
       required = true)
-  String clientIdentifier;
+  String clientId;
 
   @Parameter(
       names = {"--id"},
@@ -60,7 +60,7 @@ final class DomainApplicationInfoCommand extends EppToolCommand implements Gtech
     setSoyTemplate(
         DomainApplicationInfoSoyInfo.getInstance(),
         DomainApplicationInfoSoyInfo.DOMAINAPPLICATIONINFO);
-    addSoyRecord(clientIdentifier, new SoyMapData(
+    addSoyRecord(clientId, new SoyMapData(
         "domainName", domainName,
         "id", id,
         "phase", launchPhase.getPhase(),

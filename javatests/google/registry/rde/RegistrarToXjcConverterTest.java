@@ -62,7 +62,7 @@ public class RegistrarToXjcConverterTest extends ShardableTestCase {
   @Before
   public void init() {
     registrar = new Registrar.Builder()
-        .setClientIdentifier("GoblinMarket")
+        .setClientId("GoblinMarket")
         .setRegistrarName("Maids heard the goblins cry: Come buy, come buy:")
         .setType(Registrar.Type.REAL)
         .setIanaIdentifier(8L)

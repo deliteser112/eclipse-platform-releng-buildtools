@@ -35,7 +35,7 @@ import org.mockito.ArgumentCaptor;
 public class EppToolVerifier {
 
   private final Connection connection;
-  private final String clientIdentifier;
+  private final String clientId;
   private final boolean superuser;
   private final boolean dryRun;
 
@@ -44,27 +44,27 @@ public class EppToolVerifier {
   }
 
   private EppToolVerifier(
-      Connection connection, String clientIdentifier, boolean superuser, boolean dryRun) {
+      Connection connection, String clientId, boolean superuser, boolean dryRun) {
     this.connection = connection;
-    this.clientIdentifier = clientIdentifier;
+    this.clientId = clientId;
     this.superuser = superuser;
     this.dryRun = dryRun;
   }
 
   EppToolVerifier withConnection(Connection connection) {
-    return new EppToolVerifier(connection, clientIdentifier, superuser, dryRun);
+    return new EppToolVerifier(connection, clientId, superuser, dryRun);
   }
 
-  EppToolVerifier withClientIdentifier(String clientIdentifier) {
-    return new EppToolVerifier(connection, clientIdentifier, superuser, dryRun);
+  EppToolVerifier withClientId(String clientId) {
+    return new EppToolVerifier(connection, clientId, superuser, dryRun);
   }
 
   EppToolVerifier asSuperuser() {
-    return new EppToolVerifier(connection, clientIdentifier, true, dryRun);
+    return new EppToolVerifier(connection, clientId, true, dryRun);
   }
 
   EppToolVerifier asDryRun() {
-    return new EppToolVerifier(connection, clientIdentifier, superuser, true);
+    return new EppToolVerifier(connection, clientId, superuser, true);
   }
 
   void verifySent(String... xmlToMatch) throws Exception {
@@ -88,7 +88,7 @@ public class EppToolVerifier {
           readResourceUtf8(getClass(), "testdata/" + xml),
           URLDecoder.decode(map.get("xml"), UTF_8.toString()));
       assertThat(map).containsEntry("dryRun", Boolean.toString(dryRun));
-      assertThat(map).containsEntry("clientIdentifier", clientIdentifier);
+      assertThat(map).containsEntry("clientId", clientId);
       assertThat(map).containsEntry("superuser", Boolean.toString(superuser));
     }
   }

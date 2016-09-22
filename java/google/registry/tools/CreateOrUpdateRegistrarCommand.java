@@ -242,7 +242,7 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
 
   /** Returns the existing registrar (for update) or null (for creates). */
   @Nullable
-  abstract Registrar getOldRegistrar(String clientIdentifier);
+  abstract Registrar getOldRegistrar(String clientId);
 
   protected void initRegistrarCommand() throws Exception {}
 
@@ -250,10 +250,10 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
   protected final void init() throws Exception {
     initRegistrarCommand();
     DateTime now = DateTime.now(UTC);
-    for (String clientIdentifier : mainParameters) {
-      Registrar oldRegistrar = getOldRegistrar(clientIdentifier);
+    for (String clientId : mainParameters) {
+      Registrar oldRegistrar = getOldRegistrar(clientId);
       Registrar.Builder builder = (oldRegistrar == null)
-          ? new Registrar.Builder().setClientIdentifier(clientIdentifier)
+          ? new Registrar.Builder().setClientId(clientId)
           : oldRegistrar.asBuilder();
 
       if (!isNullOrEmpty(password)) {
@@ -341,7 +341,7 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
             checkState(balance.isZero(),
                 "Refusing to change billing method on Registrar '%s' from %s to %s"
                     + " because current balance is non-zero: %s",
-                clientIdentifier, oldRegistrar.getBillingMethod(), billingMethod, balances);
+                clientId, oldRegistrar.getBillingMethod(), billingMethod, balances);
           }
         }
         builder.setBillingMethod(billingMethod);

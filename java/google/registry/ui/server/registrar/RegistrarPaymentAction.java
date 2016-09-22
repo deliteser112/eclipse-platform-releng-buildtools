@@ -181,7 +181,7 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
                 .amount(amount.getAmount())
                 .paymentMethodNonce(paymentMethodNonce)
                 .merchantAccountId(merchantAccountId)
-                .customerId(registrar.getClientIdentifier())
+                .customerId(registrar.getClientId())
                 .options()
                     .submitForSettlement(true)
                     .done());

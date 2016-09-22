@@ -59,7 +59,7 @@ public class ContactTransferFlowTestCase<F extends Flow, R extends EppResource>
     // Registrar ClientZ is used in tests that need another registrar that definitely doesn't own
     // the resources in question.
     persistResource(
-        AppEngineRule.makeRegistrar1().asBuilder().setClientIdentifier("ClientZ").build());
+        AppEngineRule.makeRegistrar1().asBuilder().setClientId("ClientZ").build());
   }
 
   /** Adds a contact that has a pending transfer on it from TheRegistrar to NewRegistrar. */

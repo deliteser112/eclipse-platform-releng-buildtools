@@ -49,7 +49,7 @@ final class RegistrarToXjcConverter {
     //    the registrar object.  This <id> has a superordinate relationship
     //    to a subordinate <clID>, <crRr> or <upRr> of domain, contact and
     //    host objects.
-    bean.setId(model.getClientIdentifier());
+    bean.setId(model.getClientId());
 
     // o  An <name> element that contains the name of the registrar.
     bean.setName(model.getRegistrarName());

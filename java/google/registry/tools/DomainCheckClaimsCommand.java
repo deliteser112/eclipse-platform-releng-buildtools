@@ -31,7 +31,7 @@ final class DomainCheckClaimsCommand extends EppToolCommand implements GtechComm
       names = {"-c", "--client"},
       description = "Client identifier of the registrar to execute the command as",
       required = true)
-  String clientIdentifier;
+  String clientId;
 
   @Parameter(
       description = "Domain(s) to check.",
@@ -44,7 +44,7 @@ final class DomainCheckClaimsCommand extends EppToolCommand implements GtechComm
     for (Collection<String> values : domainNameMap.asMap().values()) {
       setSoyTemplate(
           DomainCheckClaimsSoyInfo.getInstance(), DomainCheckClaimsSoyInfo.DOMAINCHECKCLAIMS);
-      addSoyRecord(clientIdentifier, new SoyMapData("domainNames", values));
+      addSoyRecord(clientId, new SoyMapData("domainNames", values));
     }
   }
 }

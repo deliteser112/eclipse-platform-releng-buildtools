@@ -108,7 +108,7 @@ final class VerifyOteCommand implements ServerSideCommand, GtechCommand {
       .transform(new Function<Registrar, String>() {
           @Override
           public String apply(Registrar registrar) {
-            String name = registrar.getClientIdentifier();
+            String name = registrar.getClientId();
             // Look for names of the form "regname-1", "regname-2", etc. and strip the -# suffix.
             String replacedName = name.replaceFirst("^(.*)-[1234]$", "$1");
             // Check if any replacement happened, and thus whether the name matches the format.

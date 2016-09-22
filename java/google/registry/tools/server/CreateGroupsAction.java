@@ -73,7 +73,7 @@ public class CreateGroupsAction implements Runnable {
           public Optional<Exception> apply(Type type) {
             try {
               String groupKey = getGroupEmailAddressForContactType(
-                  registrar.getClientIdentifier(), type, publicDomainName);
+                  registrar.getClientId(), type, publicDomainName);
               String parentGroup =
                   getGroupEmailAddressForContactType("registrar", type, publicDomainName);
               // Creates the group, then adds it as a member to the global registrar group for

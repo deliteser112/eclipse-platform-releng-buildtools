@@ -24,9 +24,10 @@ import google.registry.tools.Command.GtechCommand;
 @Parameters(separators = " =", commandDescription = "Update registrar account(s)")
 final class UpdateRegistrarCommand extends CreateOrUpdateRegistrarCommand
     implements GtechCommand {
+
   @Override
-  Registrar getOldRegistrar(String clientIdentifier) {
+  Registrar getOldRegistrar(String clientId) {
     return checkNotNull(
-        Registrar.loadByClientId(clientIdentifier), "Registrar %s not found", clientIdentifier);
+        Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);
   }
 }

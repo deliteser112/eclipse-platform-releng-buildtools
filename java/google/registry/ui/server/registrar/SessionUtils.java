@@ -83,7 +83,7 @@ public class SessionUtils {
         return false;
       }
       verify(hasAccessToRegistrar(registrar.get(), user.getUserId()));
-      session.setAttribute(CLIENT_ID_ATTRIBUTE, registrar.get().getClientIdentifier());
+      session.setAttribute(CLIENT_ID_ATTRIBUTE, registrar.get().getClientId());
     } else {
       if (!hasAccessToRegistrar(clientId, user.getUserId())) {
         logger.infofmt("Registrar Console access revoked: %s for %s (%s)",

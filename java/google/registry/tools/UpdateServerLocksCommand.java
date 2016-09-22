@@ -40,7 +40,7 @@ final class UpdateServerLocksCommand extends MutatingEppToolCommand implements G
       names = {"-c", "--client"},
       description = "Client identifier of the registrar to execute the command as",
       required = true)
-  String clientIdentifier;
+  String clientId;
 
   @Parameter(
       names = {"-n", "--domain_name"},
@@ -105,7 +105,7 @@ final class UpdateServerLocksCommand extends MutatingEppToolCommand implements G
         "Add and remove actions are both empty");
     setSoyTemplate(
         UpdateServerLocksSoyInfo.getInstance(), UpdateServerLocksSoyInfo.UPDATESERVERLOCKS);
-    addSoyRecord(clientIdentifier, new SoyMapData(
+    addSoyRecord(clientId, new SoyMapData(
         "domainName", domainName,
         "locksToApply", valuesToApply,
         "locksToRemove", valuesToRemove,

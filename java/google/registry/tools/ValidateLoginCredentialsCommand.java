@@ -41,7 +41,7 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCo
       names = {"-c", "--client"},
       description = "Client identifier of the registrar to test",
       required = true)
-  private String clientIdentifier;
+  private String clientId;
 
   @Parameter(
       names = {"-p", "--password"},
@@ -76,7 +76,7 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCo
       clientCertificateHash = getCertificateHash(
           loadCertificate(new String(Files.readAllBytes(clientCertificatePath), US_ASCII)));
     }
-    Registrar registrar = Registrar.loadByClientId(clientIdentifier);
+    Registrar registrar = Registrar.loadByClientId(clientId);
     new TlsCredentials(clientCertificateHash, Optional.of(clientIpAddress), null)
         .validate(registrar, password);
     checkState(!registrar.getState().equals(Registrar.State.PENDING), "Account pending");

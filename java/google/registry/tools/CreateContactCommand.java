@@ -35,7 +35,7 @@ final class CreateContactCommand extends MutatingEppToolCommand implements Gtech
       names = {"-c", "--client"},
       description = "Client identifier of the registrar to execute the command as",
       required = true)
-  String clientIdentifier;
+  String clientId;
 
   @Parameter(
       names = {"-i", "--id"},
@@ -116,7 +116,7 @@ final class CreateContactCommand extends MutatingEppToolCommand implements Gtech
         "Addresses must contain at most 3 street lines.");
 
     setSoyTemplate(ContactCreateSoyInfo.getInstance(), ContactCreateSoyInfo.CONTACTCREATE);
-    addSoyRecord(clientIdentifier, new SoyMapData(
+    addSoyRecord(clientId, new SoyMapData(
         "id", id,
         "name", name,
         "org", org,

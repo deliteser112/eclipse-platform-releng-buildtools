@@ -284,7 +284,7 @@ public class LoadTestAction implements Runnable {
           .payload(
               Joiner.on('&').withKeyValueSeparator("=").join(
                   ImmutableMap.of(
-                      "clientIdentifier", clientId,
+                      "clientId", clientId,
                       "superuser", false,
                       "dryRun", false,
                       "xml", urlEncode(xmls.get(i)))),

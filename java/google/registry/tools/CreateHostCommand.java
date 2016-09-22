@@ -36,7 +36,7 @@ final class CreateHostCommand extends MutatingEppToolCommand implements GtechCom
       names = {"-c", "--client"},
       description = "Client identifier of the registrar to execute the command as.",
       required = true)
-  String clientIdentifier;
+  String clientId;
 
   @Parameter(
       names = "--host",
@@ -67,7 +67,7 @@ final class CreateHostCommand extends MutatingEppToolCommand implements GtechCom
       }
     }
     addSoyRecord(
-        clientIdentifier,
+        clientId,
         new SoyMapData(
             "hostname", hostName,
             "ipv4addresses", ipv4Addresses.build(),

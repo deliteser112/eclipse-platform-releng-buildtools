@@ -34,8 +34,8 @@ final class GetRegistrarCommand implements RemoteApiCommand, GtechCommand {
 
   @Override
   public void run() {
-    for (String clientIdentifier : mainParameters) {
-      Registrar registrar = Registrar.loadByClientId(clientIdentifier);
+    for (String clientId : mainParameters) {
+      Registrar registrar = Registrar.loadByClientId(clientId);
       checkState(registrar != null, "Registrar does not exist");
 
       System.out.println(registrar);

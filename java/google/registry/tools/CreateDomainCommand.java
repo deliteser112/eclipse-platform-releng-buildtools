@@ -33,7 +33,7 @@ final class CreateDomainCommand extends MutatingEppToolCommand implements GtechC
       names = {"-c", "--client"},
       description = "Client identifier of the registrar to execute the command as",
       required = true)
-  String clientIdentifier;
+  String clientId;
 
   @Parameter(
       names = "--domain",
@@ -88,7 +88,7 @@ final class CreateDomainCommand extends MutatingEppToolCommand implements GtechC
     checkArgument(ns == null || ns.size() <= 13, "There can be at most 13 nameservers.");
 
     setSoyTemplate(DomainCreateSoyInfo.getInstance(), DomainCreateSoyInfo.DOMAINCREATE);
-    addSoyRecord(clientIdentifier, new SoyMapData(
+    addSoyRecord(clientId, new SoyMapData(
         "domain", domain,
         "period", period == null ? null : period.toString(),
         "ns", ns,

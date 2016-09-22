@@ -70,7 +70,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     clock.setTo(DateTime.parse("2005-03-03T22:00:00.000Z"));
     createTlds("tld", "flags");
     persistResource(
-        AppEngineRule.makeRegistrar1().asBuilder().setClientIdentifier("ClientZ").build());
+        AppEngineRule.makeRegistrar1().asBuilder().setClientId("ClientZ").build());
     // For flags extension tests.
     RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }

@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletRequest;
     method = Method.POST)
 public class EppToolAction implements Runnable {
 
-  @Inject @Parameter("clientIdentifier") String clientIdentifier;
+  @Inject @Parameter("clientId") String clientId;
   @Inject @Parameter("superuser") boolean isSuperuser;
   @Inject @Parameter("dryRun") boolean isDryRun;
   @Inject @Parameter("xml") String xml;
@@ -46,7 +46,7 @@ public class EppToolAction implements Runnable {
   public void run() {
     eppRequestHandler.executeEpp(
         new StatelessRequestSessionMetadata(
-            clientIdentifier,
+            clientId,
             ProtocolDefinition.getVisibleServiceExtensionUris()),
         new PasswordOnlyTransportCredentials(),
         EppRequestSource.TOOL,
@@ -75,9 +75,9 @@ public class EppToolAction implements Runnable {
     }
 
     @Provides
-    @Parameter("clientIdentifier")
-    static String provideClientIdentifier(HttpServletRequest req) {
-      return extractRequiredParameter(req, "clientIdentifier");
+    @Parameter("clientId")
+    static String provideClientId(HttpServletRequest req) {
+      return extractRequiredParameter(req, "clientId");
     }
   }
 }

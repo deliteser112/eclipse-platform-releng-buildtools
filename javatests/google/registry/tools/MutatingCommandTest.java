@@ -60,12 +60,12 @@ public class MutatingCommandTest {
   public void init() {
     registrar1 = persistResource(new Registrar.Builder()
         .setType(Registrar.Type.REAL)
-        .setClientIdentifier("Registrar1")
+        .setClientId("Registrar1")
         .setIanaIdentifier(1L)
         .build());
     registrar2 = persistResource(new Registrar.Builder()
         .setType(Registrar.Type.REAL)
-        .setClientIdentifier("Registrar2")
+        .setClientId("Registrar2")
         .setIanaIdentifier(2L)
         .build());
     newRegistrar1 = registrar1.asBuilder().setBillingIdentifier(42L).build();

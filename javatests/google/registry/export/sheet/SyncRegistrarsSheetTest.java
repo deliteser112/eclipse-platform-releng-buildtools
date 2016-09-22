@@ -96,7 +96,7 @@ public class SyncRegistrarsSheetTest {
   public void testWasRegistrarsModifiedInLastInterval() throws Exception {
     Duration interval = standardHours(1);
     persistResource(new Registrar.Builder()
-        .setClientIdentifier("SomeRegistrar")
+        .setClientId("SomeRegistrar")
         .setRegistrarName("Some Registrar Inc.")
         .setType(Registrar.Type.REAL)
         .setIanaIdentifier(8L)
@@ -111,7 +111,7 @@ public class SyncRegistrarsSheetTest {
   @Test
   public void testRun() throws Exception {
     persistResource(new Registrar.Builder()
-        .setClientIdentifier("anotherregistrar")
+        .setClientId("anotherregistrar")
         .setRegistrarName("Another Registrar LLC")
         .setType(Registrar.Type.REAL)
         .setIanaIdentifier(1L)
@@ -141,7 +141,7 @@ public class SyncRegistrarsSheetTest {
         .build());
 
     Registrar registrar = new Registrar.Builder()
-        .setClientIdentifier("aaaregistrar")
+        .setClientId("aaaregistrar")
         .setRegistrarName("AAA Registrar Inc.")
         .setType(Registrar.Type.REAL)
         .setIanaIdentifier(8L)
@@ -304,7 +304,7 @@ public class SyncRegistrarsSheetTest {
   @Test
   public void testRun_missingValues_stillWorks() throws Exception {
     persistResource(new Registrar.Builder()
-        .setClientIdentifier("SomeRegistrar")
+        .setClientId("SomeRegistrar")
         .setType(Registrar.Type.REAL)
         .setIanaIdentifier(8L)
         .build());

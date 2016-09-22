@@ -240,7 +240,7 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand, GtechCommand
     // Registrar Address 2|Registrar City|Registrar Province|Registrar Postal Code|
     // Registrar Country|Registrar Email|Registrar Telephone
     return Joiner.on('|').join(ImmutableList.of(
-        registrar.getClientIdentifier(),
+        registrar.getClientId(),
         contact.isPresent() ? contact.get().getName() : "N/A",
         nullToEmpty(registrar.getRegistrarName()),
         Iterables.getFirst(street, ""),

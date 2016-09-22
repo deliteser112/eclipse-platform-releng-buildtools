@@ -31,7 +31,7 @@ final class DomainCheckCommand extends EppToolCommand implements GtechCommand {
       names = {"-c", "--client"},
       description = "Client identifier of the registrar to execute the command as",
       required = true)
-  String clientIdentifier;
+  String clientId;
 
   @Parameter(
       description = "List of domains to check.",
@@ -43,7 +43,7 @@ final class DomainCheckCommand extends EppToolCommand implements GtechCommand {
     Multimap<String, String> domainNameMap = validateAndGroupDomainNamesByTld(mainParameters);
     for (Collection<String> values : domainNameMap.asMap().values()) {
       setSoyTemplate(DomainCheckSoyInfo.getInstance(), DomainCheckSoyInfo.DOMAINCHECK);
-      addSoyRecord(clientIdentifier, new SoyMapData("domainNames", values));
+      addSoyRecord(clientId, new SoyMapData("domainNames", values));
     }
   }
 }

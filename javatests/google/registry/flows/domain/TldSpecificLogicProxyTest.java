@@ -100,7 +100,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
   public void test_eap() throws Exception {
     TldSpecificLogicProxy.EppCommandOperations createPrice =
         TldSpecificLogicProxy.getCreatePrice(
-            Registry.get("eap"), "example.eap", "clientIdentifier", clock.nowUtc(), 1, null);
+            Registry.get("eap"), "example.eap", "clientId", clock.nowUtc(), 1, null);
     Range<DateTime> eapValidPeriod =
         Range.closedOpen(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1));
     assertThat(createPrice.getTotalCost()).isEqualTo(basicCreateCost.plus(Money.of(USD, 100)));
@@ -129,7 +129,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
   public void test_extraLogic_createPrice() throws Exception {
     TldSpecificLogicProxy.EppCommandOperations price =
         TldSpecificLogicProxy.getCreatePrice(
-            Registry.get("test"), "create-54.test", "clientIdentifier", clock.nowUtc(), 3, null);
+            Registry.get("test"), "create-54.test", "clientId", clock.nowUtc(), 3, null);
     assertThat(price.getCurrency()).isEqualTo(CurrencyUnit.USD);
     assertThat(price.getFees()).hasSize(1);
     assertThat(price.getFees().get(0).getCost()).isEqualTo(new BigDecimal(54));
@@ -142,7 +142,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
     persistActiveDomain("renew--13.test");
     TldSpecificLogicProxy.EppCommandOperations price =
         TldSpecificLogicProxy.getRenewPrice(
-            Registry.get("test"), "renew--13.test", "clientIdentifier", clock.nowUtc(), 1, null);
+            Registry.get("test"), "renew--13.test", "clientId", clock.nowUtc(), 1, null);
     assertThat(price.getCurrency()).isEqualTo(CurrencyUnit.USD);
     assertThat(price.getFees()).isEmpty();
     assertThat(price.getCredits()).hasSize(1);
@@ -154,7 +154,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
   public void test_extraLogic_renewPrice_noDomain() throws Exception {
     thrown.expect(ResourceToMutateDoesNotExistException.class);
     TldSpecificLogicProxy.getRenewPrice(
-        Registry.get("test"), "renew--13.test", "clientIdentifier", clock.nowUtc(), 1, null);
+        Registry.get("test"), "renew--13.test", "clientId", clock.nowUtc(), 1, null);
   }
 
   void persistPendingDeleteDomain(String domainName, DateTime now) throws Exception {
@@ -191,7 +191,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
     persistPendingDeleteDomain("renew-13.test", clock.nowUtc());
     TldSpecificLogicProxy.EppCommandOperations price =
         TldSpecificLogicProxy.getRestorePrice(
-            Registry.get("test"), "renew-13.test", "clientIdentifier", clock.nowUtc(), null);
+            Registry.get("test"), "renew-13.test", "clientId", clock.nowUtc(), null);
     assertThat(price.getCurrency()).isEqualTo(CurrencyUnit.USD);
     assertThat(price.getFees()).hasSize(2);
     assertThat(price.getFees().get(0).getCost()).isEqualTo(new BigDecimal(13));
@@ -204,7 +204,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
   public void test_extraLogic_restorePrice_noDomain() throws Exception {
     thrown.expect(ResourceToMutateDoesNotExistException.class);
     TldSpecificLogicProxy.getRestorePrice(
-        Registry.get("test"), "renew-13.test", "clientIdentifier", clock.nowUtc(), null);
+        Registry.get("test"), "renew-13.test", "clientId", clock.nowUtc(), null);
   }
 
   @Test
@@ -212,7 +212,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
     persistActiveDomain("renew-26.test");
     TldSpecificLogicProxy.EppCommandOperations price =
         TldSpecificLogicProxy.getTransferPrice(
-            Registry.get("test"), "renew-26.test", "clientIdentifier", clock.nowUtc(), 2, null);
+            Registry.get("test"), "renew-26.test", "clientId", clock.nowUtc(), 2, null);
     assertThat(price.getCurrency()).isEqualTo(CurrencyUnit.USD);
     assertThat(price.getFees()).hasSize(1);
     assertThat(price.getFees().get(0).getCost()).isEqualTo(new BigDecimal(26));
@@ -225,7 +225,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
     persistActiveDomain("update-13.test");
     TldSpecificLogicProxy.EppCommandOperations price =
         TldSpecificLogicProxy.getUpdatePrice(
-            Registry.get("test"), "update-13.test", "clientIdentifier", clock.nowUtc(), null);
+            Registry.get("test"), "update-13.test", "clientId", clock.nowUtc(), null);
     assertThat(price.getCurrency()).isEqualTo(CurrencyUnit.USD);
     assertThat(price.getFees()).hasSize(1);
     assertThat(price.getFees().get(0).getCost()).isEqualTo(new BigDecimal(13));

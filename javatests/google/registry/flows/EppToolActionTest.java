@@ -32,7 +32,7 @@ public class EppToolActionTest {
 
   private void doTest(boolean isDryRun, boolean isSuperuser) {
     EppToolAction action = new EppToolAction();
-    action.clientIdentifier = "ClientIdentifier";
+    action.clientId = "ClientIdentifier";
     action.isDryRun = isDryRun;
     action.isSuperuser = isSuperuser;
     action.eppRequestHandler = mock(EppRequestHandler.class);

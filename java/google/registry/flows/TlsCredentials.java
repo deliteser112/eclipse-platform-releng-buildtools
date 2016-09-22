@@ -103,7 +103,7 @@ public class TlsCredentials implements TransportCredentials {
     ImmutableList<CidrAddressBlock> ipWhitelist = registrar.getIpAddressWhitelist();
     if (ipWhitelist.isEmpty()) {
       logger.infofmt("Skipping IP whitelist check because %s doesn't have an IP whitelist",
-          registrar.getClientIdentifier());
+          registrar.getClientId());
       return;
     }
     for (CidrAddressBlock cidrAddressBlock : ipWhitelist) {
@@ -113,7 +113,7 @@ public class TlsCredentials implements TransportCredentials {
       }
     }
     logger.infofmt("%s not in %s's CIDR whitelist: %s",
-        clientInetAddr, registrar.getClientIdentifier(), ipWhitelist);
+        clientInetAddr, registrar.getClientId(), ipWhitelist);
     throw new BadRegistrarIpAddressException();
   }
 
@@ -129,7 +129,7 @@ public class TlsCredentials implements TransportCredentials {
         && isNullOrEmpty(registrar.getFailoverClientCertificateHash())) {
       logger.infofmt(
           "Skipping SSL certificate check because %s doesn't have any certificate hashes on file",
-          registrar.getClientIdentifier());
+          registrar.getClientId());
       return;
     }
     if (isNullOrEmpty(clientCertificateHash)) {
@@ -145,7 +145,7 @@ public class TlsCredentials implements TransportCredentials {
         && !clientCertificateHash.equals(registrar.getFailoverClientCertificateHash())) {
       logger.warningfmt("bad certificate hash (%s) for %s, wanted either %s or %s",
           clientCertificateHash,
-          registrar.getClientIdentifier(),
+          registrar.getClientId(),
           registrar.getClientCertificateHash(),
           registrar.getFailoverClientCertificateHash());
       throw new BadRegistrarCertificateException();

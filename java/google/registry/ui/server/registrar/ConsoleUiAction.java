@@ -91,7 +91,7 @@ public final class ConsoleUiAction implements Runnable {
     Registrar registrar = Registrar.loadByClientId(sessionUtils.getRegistrarClientId(req));
     SoyMapData data = new SoyMapData();
     data.put("xsrfToken", XsrfTokenManager.generateToken(EppConsoleAction.XSRF_SCOPE));
-    data.put("clientId", registrar.getClientIdentifier());
+    data.put("clientId", registrar.getClientId());
     data.put("username", userService.getCurrentUser().getNickname());
     data.put("isAdmin", userService.isUserAdmin());
     data.put("logoutUrl", userService.createLogoutURL(PATH));

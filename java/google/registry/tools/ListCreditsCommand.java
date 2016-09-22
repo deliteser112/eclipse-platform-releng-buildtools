@@ -43,7 +43,7 @@ final class ListCreditsCommand implements RemoteApiCommand, GtechCommand {
     for (Registrar registrar : Registrar.loadAll()) {
       ImmutableList<String> creditStrings = createCreditStrings(registrar);
       if (!creditStrings.isEmpty()) {
-        System.out.println(registrar.getClientIdentifier());
+        System.out.println(registrar.getClientId());
         System.out.print(Joiner.on("").join(creditStrings));
         System.out.println();
       }

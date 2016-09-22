@@ -16,6 +16,7 @@ package google.registry.model.ofy;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.initOfy;
+import static org.junit.Assert.fail;
 
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -23,6 +24,8 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyFilter;
 import com.googlecode.objectify.ObjectifyService;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.Type;
 import google.registry.testing.ExceptionRule;
@@ -73,15 +76,14 @@ public class OfyFilterTest {
    */
   @Test
   public void testFilterRegistersTypes() throws Exception {
-    Registrar registrar = new Registrar.Builder()
-        .setType(Type.TEST)
-        .setClientIdentifier("registrar")
-        .build();
+    UnregisteredEntity entity = new UnregisteredEntity(5L);
     try {
-      Key.create(registrar);
+      Key.create(entity);
+      fail("Should not be able to create key for unregistered entity");
     } catch (IllegalStateException e) {
       assertThat(e).hasMessage(
-          "class google.registry.model.registrar.Registrar has not been registered");
+          "class google.registry.model.ofy.OfyFilterTest$UnregisteredEntity "
+              + "has not been registered");
     }
   }
 
@@ -89,10 +91,18 @@ public class OfyFilterTest {
   @Test
   public void testKeyCreateAfterFilter() throws Exception {
     new OfyFilter().init(null);
-    Registrar registrar = new Registrar.Builder()
-        .setType(Type.TEST)
-        .setClientIdentifier("registrar")
-        .build();
+    Registrar registrar =
+        new Registrar.Builder().setType(Type.TEST).setClientId("clientId").build();
     Key.create(registrar);
+  }
+
+  @Entity
+  private static class UnregisteredEntity {
+
+    @Id long id;
+
+    UnregisteredEntity(long id) {
+      this.id = id;
+    }
   }
 }

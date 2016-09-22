@@ -52,7 +52,7 @@ public class RegistrarTest extends EntityTestCase {
     // Set up a new persisted registrar entity.
     registrar = cloneAndSetAutoTimestamps(
         new Registrar.Builder()
-            .setClientIdentifier("registrar")
+            .setClientId("registrar")
             .setRegistrarName("full registrar name")
             .setType(Type.REAL)
             .setState(State.PENDING)
@@ -119,7 +119,7 @@ public class RegistrarTest extends EntityTestCase {
   public void testPersistence() throws Exception {
     assertThat(registrar).isEqualTo(ofy().load().type(Registrar.class)
         .parent(EntityGroupRoot.getCrossTldKey())
-        .id(registrar.clientIdentifier)
+        .id(registrar.getClientId())
         .now());
   }
 
@@ -147,23 +147,23 @@ public class RegistrarTest extends EntityTestCase {
   }
 
   @Test
-  public void testSuccess_clientIdentifierBounds() throws Exception {
-    registrar = registrar.asBuilder().setClientIdentifier("abc").build();
-    assertThat(registrar.getClientIdentifier()).isEqualTo("abc");
-    registrar = registrar.asBuilder().setClientIdentifier("abcdefghijklmnop").build();
-    assertThat(registrar.getClientIdentifier()).isEqualTo("abcdefghijklmnop");
+  public void testSuccess_clientId_bounds() throws Exception {
+    registrar = registrar.asBuilder().setClientId("abc").build();
+    assertThat(registrar.getClientId()).isEqualTo("abc");
+    registrar = registrar.asBuilder().setClientId("abcdefghijklmnop").build();
+    assertThat(registrar.getClientId()).isEqualTo("abcdefghijklmnop");
   }
 
   @Test
-  public void testFailure_clientIdentifierTooShort() throws Exception {
+  public void testFailure_clientId_tooShort() throws Exception {
     thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setClientIdentifier("ab");
+    new Registrar.Builder().setClientId("ab");
   }
 
   @Test
-  public void testFailure_clientIdentifierTooLong() throws Exception {
+  public void testFailure_clientId_tooLong() throws Exception {
     thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setClientIdentifier("abcdefghijklmnopq");
+    new Registrar.Builder().setClientId("abcdefghijklmnopq");
   }
 
   @Test

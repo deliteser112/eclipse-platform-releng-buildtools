@@ -41,7 +41,7 @@ final class CreateAnchorTenantCommand extends MutatingEppToolCommand implements 
       names = {"-c", "--client"},
       description = "Client identifier of the registrar to execute the command as",
       required = true)
-  String clientIdentifier;
+  String clientId;
 
   @Parameter(
       names = {"-n", "--domain_name"},
@@ -89,7 +89,7 @@ final class CreateAnchorTenantCommand extends MutatingEppToolCommand implements 
 
     setSoyTemplate(CreateAnchorTenantSoyInfo.getInstance(),
         CreateAnchorTenantSoyInfo.CREATEANCHORTENANT);
-    addSoyRecord(clientIdentifier, new SoyMapData(
+    addSoyRecord(clientId, new SoyMapData(
         "domainName", domainName,
         "contactId", contact,
         "reason", reason,

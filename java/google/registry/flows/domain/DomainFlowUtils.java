@@ -402,11 +402,11 @@ public class DomainFlowUtils {
    * this registrar.
    */
   static void verifyPremiumNameIsNotBlocked(
-      String domainName, DateTime priceTime, String clientIdentifier) throws EppException {
+      String domainName, DateTime priceTime, String clientId) throws EppException {
     if (getPricesForDomainName(domainName, priceTime).isPremium()) {
       // NB: The load of the Registar object is transactionless, which means that it should hit
       // memcache most of the time.
-      if (Registrar.loadByClientId(clientIdentifier).getBlockPremiumNames()) {
+      if (Registrar.loadByClientId(clientId).getBlockPremiumNames()) {
         throw new PremiumNameBlockedException();
       }
     }
@@ -577,7 +577,7 @@ public class DomainFlowUtils {
       FeeQueryCommandExtensionItem feeRequest,
       FeeQueryResponseExtensionItem.Builder builder,
       InternetDomainName domain,
-      String clientIdentifier,
+      String clientId,
       @Nullable CurrencyUnit topLevelCurrency,
       DateTime now,
       EppInput eppInput) throws EppException {
@@ -611,13 +611,13 @@ public class DomainFlowUtils {
         } else {
           builder.setAvailIfSupported(true);
           builder.setFees(TldSpecificLogicProxy.getCreatePrice(
-              registry, domainNameString, clientIdentifier, now, years, eppInput).getFees());
+              registry, domainNameString, clientId, now, years, eppInput).getFees());
         }
         break;
       case RENEW:
         builder.setAvailIfSupported(true);
         builder.setFees(TldSpecificLogicProxy.getRenewPrice(
-            registry, domainNameString, clientIdentifier, now, years, eppInput).getFees());
+            registry, domainNameString, clientId, now, years, eppInput).getFees());
         break;
       case RESTORE:
         if (years != 1) {
@@ -625,17 +625,17 @@ public class DomainFlowUtils {
         }
         builder.setAvailIfSupported(true);
         builder.setFees(TldSpecificLogicProxy.getRestorePrice(
-            registry, domainNameString, clientIdentifier, now, eppInput).getFees());
+            registry, domainNameString, clientId, now, eppInput).getFees());
         break;
       case TRANSFER:
         builder.setAvailIfSupported(true);
         builder.setFees(TldSpecificLogicProxy.getTransferPrice(
-            registry, domainNameString, clientIdentifier, now, years, eppInput).getFees());
+            registry, domainNameString, clientId, now, years, eppInput).getFees());
         break;
       case UPDATE:
         builder.setAvailIfSupported(true);
         builder.setFees(TldSpecificLogicProxy.getUpdatePrice(
-            registry, domainNameString, clientIdentifier, now, eppInput).getFees());
+            registry, domainNameString, clientId, now, eppInput).getFees());
         break;
       default:
         throw new UnknownFeeCommandException(feeRequest.getUnparsedCommandName());

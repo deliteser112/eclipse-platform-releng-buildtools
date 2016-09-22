@@ -138,7 +138,7 @@ public final class TldSpecificLogicProxy {
   public static EppCommandOperations getCreatePrice(
       Registry registry,
       String domainName,
-      String clientIdentifier,
+      String clientId,
       DateTime date,
       int years,
       EppInput eppInput) throws EppException {
@@ -150,7 +150,7 @@ public final class TldSpecificLogicProxy {
         RegistryExtraFlowLogicProxy.newInstanceForTld(registry.getTldStr());
     if (extraFlowLogic.isPresent()) {
       createFeeOrCredit = extraFlowLogic.get()
-          .getCreateFeeOrCredit(domainName, clientIdentifier, date, years, eppInput);
+          .getCreateFeeOrCredit(domainName, clientId, date, years, eppInput);
     } else {
       DomainPrices prices = getPricesForDomainName(domainName, date);
       createFeeOrCredit =
@@ -173,7 +173,7 @@ public final class TldSpecificLogicProxy {
   static BaseFee getRenewFeeOrCredit(
       Registry registry,
       String domainName,
-      String clientIdentifier,
+      String clientId,
       DateTime date,
       int years,
       EppInput eppInput) throws EppException {
@@ -186,7 +186,7 @@ public final class TldSpecificLogicProxy {
         throw new ResourceToMutateDoesNotExistException(DomainResource.class, domainName);
       }
       return
-          extraFlowLogic.get().getRenewFeeOrCredit(domain, clientIdentifier, date, years, eppInput);
+          extraFlowLogic.get().getRenewFeeOrCredit(domain, clientId, date, years, eppInput);
     } else {
       DomainPrices prices = getPricesForDomainName(domainName, date);
       return Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), FeeType.RENEW);
@@ -197,25 +197,25 @@ public final class TldSpecificLogicProxy {
   public static EppCommandOperations getRenewPrice(
       Registry registry,
       String domainName,
-      String clientIdentifier,
+      String clientId,
       DateTime date,
       int years,
       EppInput eppInput) throws EppException {
     return new EppCommandOperations(
         registry.getCurrency(),
-        getRenewFeeOrCredit(registry, domainName, clientIdentifier, date, years, eppInput));
+        getRenewFeeOrCredit(registry, domainName, clientId, date, years, eppInput));
   }
 
   /** Returns a new restore price for the pricer. */
   public static EppCommandOperations getRestorePrice(
       Registry registry,
       String domainName,
-      String clientIdentifier,
+      String clientId,
       DateTime date,
       EppInput eppInput) throws EppException {
     return new EppCommandOperations(
         registry.getCurrency(),
-        getRenewFeeOrCredit(registry, domainName, clientIdentifier, date, 1, eppInput),
+        getRenewFeeOrCredit(registry, domainName, clientId, date, 1, eppInput),
         Fee.create(registry.getStandardRestoreCost().getAmount(), FeeType.RESTORE));
   }
 
@@ -223,20 +223,20 @@ public final class TldSpecificLogicProxy {
   public static EppCommandOperations getTransferPrice(
       Registry registry,
       String domainName,
-      String clientIdentifier,
+      String clientId,
       DateTime transferDate,
       int years,
       EppInput eppInput) throws EppException {
     // Currently, all transfer prices = renew prices, so just pass through.
     return getRenewPrice(
-        registry, domainName, clientIdentifier, transferDate, years, eppInput);
+        registry, domainName, clientId, transferDate, years, eppInput);
   }
 
   /** Returns a new update price for the pricer. */
   public static EppCommandOperations getUpdatePrice(
       Registry registry,
       String domainName,
-      String clientIdentifier,
+      String clientId,
       DateTime date,
       EppInput eppInput) throws EppException {
     CurrencyUnit currency = registry.getCurrency();
@@ -252,7 +252,7 @@ public final class TldSpecificLogicProxy {
         throw new ResourceToMutateDoesNotExistException(DomainResource.class, domainName);
       }
       feeOrCredit =
-          extraFlowLogic.get().getUpdateFeeOrCredit(domain, clientIdentifier, date, eppInput);
+          extraFlowLogic.get().getUpdateFeeOrCredit(domain, clientId, date, eppInput);
     } else {
       feeOrCredit = Fee.create(Money.zero(registry.getCurrency()).getAmount(), FeeType.UPDATE);
     }

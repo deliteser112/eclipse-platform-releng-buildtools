@@ -78,30 +78,27 @@ final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand
 
   @Nullable
   @Override
-  Registrar getOldRegistrar(final String clientIdentifier) {
-    checkArgument(clientIdentifier.length() >= 3,
-        String.format("Client identifier (%s) is too short", clientIdentifier));
-    checkArgument(clientIdentifier.length() <= 16,
-        String.format("Client identifier (%s) is too long", clientIdentifier));
+  Registrar getOldRegistrar(final String clientId) {
+    checkArgument(clientId.length() >= 3, "Client identifier (%s) is too short", clientId);
+    checkArgument(clientId.length() <= 16, "Client identifier (%s) is too long", clientId);
     if (Registrar.Type.REAL.equals(registrarType)) {
-      checkArgument(clientIdentifier.equals(normalizeClientId(clientIdentifier)),
-          String.format(
-              "Client identifier (%s) can only contain lowercase letters, numbers, and hyphens",
-              clientIdentifier));
+      checkArgument(
+          clientId.equals(normalizeClientId(clientId)),
+          "Client identifier (%s) can only contain lowercase letters, numbers, and hyphens",
+          clientId);
     }
-    checkState(Registrar.loadByClientId(clientIdentifier) == null,
-        "Registrar %s already exists", clientIdentifier);
+    checkState(Registrar.loadByClientId(clientId) == null, "Registrar %s already exists", clientId);
     List<Registrar> collisions =
         newArrayList(filter(Registrar.loadAll(), new Predicate<Registrar>() {
           @Override
           public boolean apply(Registrar registrar) {
-            return normalizeClientId(registrar.getClientIdentifier()).equals(clientIdentifier);
+            return normalizeClientId(registrar.getClientId()).equals(clientId);
           }}));
     if (!collisions.isEmpty()) {
       throw new IllegalArgumentException(String.format(
           "The registrar client identifier %s normalizes identically to existing registrar %s",
-          clientIdentifier,
-          collisions.get(0).getClientIdentifier()));
+          clientId,
+          collisions.get(0).getClientId()));
     }
     return null;
   }
@@ -118,7 +115,7 @@ final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand
     try {
       // We know it is safe to use the only main parameter here because initRegistrarCommand has
       // already verified that there is only one, and getOldRegistrar has already verified that a
-      // registrar with this clientIdentifier doesn't already exist.
+      // registrar with this clientId doesn't already exist.
       CreateRegistrarGroupsCommand.executeOnServer(connection, getOnlyElement(mainParameters));
     } catch (Exception e) {
       return "\nRegistrar created, but groups creation failed with error:\n" + e;

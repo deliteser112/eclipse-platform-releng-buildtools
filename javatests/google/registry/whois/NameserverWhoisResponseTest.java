@@ -50,7 +50,7 @@ public class NameserverWhoisResponseTest {
   @Before
   public void setUp() {
     persistResource(new Registrar.Builder()
-        .setClientIdentifier("example")
+        .setClientId("example")
         .setRegistrarName("Example Registrar, Inc.")
         .setType(Registrar.Type.REAL)
         .setIanaIdentifier(8L)

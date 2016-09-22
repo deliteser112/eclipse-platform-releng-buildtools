@@ -41,7 +41,7 @@ public class BraintreeRegistrarSyncer {
   /**
    * Syncs {@code registrar} with Braintree customer entry, creating it if one doesn't exist.
    *
-   * <p>The customer ID will be the same as {@link Registrar#getClientIdentifier()}.
+   * <p>The customer ID will be the same as {@link Registrar#getClientId()}.
    *
    * <p>Creating a customer object in Braintree's database is a necessary step in order to associate
    * a payment with a registrar. The transaction will fail if the customer object doesn't exist.
@@ -49,8 +49,8 @@ public class BraintreeRegistrarSyncer {
    * @throws IllegalArgumentException if {@code registrar} is not using BRAINTREE billing
    * @throws VerifyException if the Braintree API returned a failure response
    */
-  public void sync(Registrar registrar) throws VerifyException {
-    String id = registrar.getClientIdentifier();
+  public void sync(Registrar registrar) {
+    String id = registrar.getClientId();
     checkArgument(registrar.getBillingMethod() == Registrar.BillingMethod.BRAINTREE,
         "Registrar (%s) billing method (%s) is not BRAINTREE", id, registrar.getBillingMethod());
     CustomerRequest request = createRequest(registrar);
@@ -67,8 +67,8 @@ public class BraintreeRegistrarSyncer {
   private CustomerRequest createRequest(Registrar registrar) {
     CustomerRequest result =
         new CustomerRequest()
-            .id(registrar.getClientIdentifier())
-            .customerId(registrar.getClientIdentifier())
+            .id(registrar.getClientId())
+            .customerId(registrar.getClientId())
             .company(registrar.getRegistrarName());
     Optional<RegistrarContact> contact = getBillingContact(registrar);
     if (contact.isPresent()) {

@@ -580,7 +580,7 @@ public class DatastoreHelper {
   public static Registrar persistNewRegistrar(String clientId, long ianaIdentifier) {
     return persistSimpleResource(
         new Registrar.Builder()
-          .setClientIdentifier(clientId)
+          .setClientId(clientId)
           .setType(Registrar.Type.REAL)
           .setIanaIdentifier(ianaIdentifier)
           .build());

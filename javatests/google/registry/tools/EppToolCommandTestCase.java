@@ -39,6 +39,6 @@ public abstract class EppToolCommandTestCase<C extends EppToolCommand> extends C
 
   /** Helper to get a new {@link EppToolVerifier} instance. */
   EppToolVerifier eppVerifier() {
-    return new EppToolVerifier().withConnection(connection).withClientIdentifier("NewRegistrar");
+    return new EppToolVerifier().withConnection(connection).withClientId("NewRegistrar");
   }
 }

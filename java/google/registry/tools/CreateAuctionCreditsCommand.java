@@ -190,7 +190,7 @@ final class CreateAuctionCreditsCommand extends MutatingCommand {
       Money totalAmount =
           BigMoney.total(currency, creditMap.get(registrar)).toMoney(RoundingMode.UP);
       System.out.printf("Total auction credit balance for %s: %s\n",
-          registrar.getClientIdentifier(), totalAmount);
+          registrar.getClientId(), totalAmount);
 
       // Create the actual credit and initial credit balance.
       RegistrarCredit credit = new RegistrarCredit.Builder()

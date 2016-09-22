@@ -284,7 +284,7 @@ public class DomainApplicationInfoFlowTest
   public void testFailure_unauthorized() throws Exception {
     thrown.expect(ResourceNotOwnedException.class);
     persistResource(
-        AppEngineRule.makeRegistrar1().asBuilder().setClientIdentifier("ClientZ").build());
+        AppEngineRule.makeRegistrar1().asBuilder().setClientId("ClientZ").build());
     sessionMetadata.setClientId("ClientZ");
     persistTestEntities(HostsState.NO_HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
     runFlow();

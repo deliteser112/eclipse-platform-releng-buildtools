@@ -28,7 +28,7 @@ final class DeleteDomainCommand extends MutatingEppToolCommand implements GtechC
       names = {"-c", "--client"},
       description = "Client identifier of the registrar to execute the command as",
       required = true)
-  String clientIdentifier;
+  String clientId;
 
   @Parameter(
       names = {"-n", "--domain_name"},
@@ -51,7 +51,7 @@ final class DeleteDomainCommand extends MutatingEppToolCommand implements GtechC
   @Override
   protected void initMutatingEppToolCommand() {
     setSoyTemplate(DeleteDomainSoyInfo.getInstance(), DeleteDomainSoyInfo.DELETEDOMAIN);
-    addSoyRecord(clientIdentifier, new SoyMapData(
+    addSoyRecord(clientId, new SoyMapData(
         "domainName", domainName,
         "reason", reason,
         "requestedByRegistrar", requestedByRegistrar));

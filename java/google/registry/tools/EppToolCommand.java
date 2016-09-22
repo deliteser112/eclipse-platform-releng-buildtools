@@ -141,11 +141,11 @@ abstract class EppToolCommand extends ConfirmingCommand implements ServerSideCom
     for (XmlEppParameters command : commands) {
       Map<String, Object> params = new HashMap<>();
       params.put("dryRun", dryRun);
-      params.put("clientIdentifier", command.clientId);
+      params.put("clientId", command.clientId);
       params.put("superuser", superuser);
       params.put("xml", URLEncoder.encode(command.xml, UTF_8.toString()));
-      String requestBody = Joiner.on('&').withKeyValueSeparator("=")
-          .join(filterValues(params, notNull()));
+      String requestBody =
+          Joiner.on('&').withKeyValueSeparator("=").join(filterValues(params, notNull()));
       responses.add(nullToEmpty(connection.send(
           "/_dr/epptool",
           ImmutableMap.<String, String>of(),

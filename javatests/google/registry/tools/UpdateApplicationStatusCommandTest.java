@@ -54,7 +54,7 @@ public class UpdateApplicationStatusCommandTest
     // Since the command's history client ID defaults to CharlestonRoad, resave TheRegistrar as
     // CharlestonRoad so we don't have to pass in --history_client_id everywhere below.
     persistResource(Registrar.loadByClientId("TheRegistrar").asBuilder()
-        .setClientIdentifier("CharlestonRoad")
+        .setClientId("CharlestonRoad")
         .build());
 
     createTld("xn--q9jyb4c");

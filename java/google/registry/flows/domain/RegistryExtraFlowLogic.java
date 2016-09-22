@@ -30,12 +30,12 @@ public interface RegistryExtraFlowLogic {
 
   /** Gets the flags to be used in the EPP flags extension. This is used for EPP info commands. */
   public List<String> getExtensionFlags(
-      DomainResource domainResource, String clientIdentifier, DateTime asOfDate);
+      DomainResource domainResource, String clientId, DateTime asOfDate);
 
   /** Computes the expected creation fee, for use in fee challenges and the like. */  
   public BaseFee getCreateFeeOrCredit(
       String domainName,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       int years,
       EppInput eppInput) throws EppException;
@@ -46,7 +46,7 @@ public interface RegistryExtraFlowLogic {
    */
   public void performAdditionalDomainCreateLogic(
       DomainResource domain,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       int years,
       EppInput eppInput,
@@ -58,7 +58,7 @@ public interface RegistryExtraFlowLogic {
    */
   public void performAdditionalDomainDeleteLogic(
       DomainResource domain,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException;
@@ -66,7 +66,7 @@ public interface RegistryExtraFlowLogic {
   /** Computes the expected renewal fee, for use in fee challenges and the like. */  
   public BaseFee getRenewFeeOrCredit(
       DomainResource domain,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       int years,
       EppInput eppInput) throws EppException;
@@ -77,7 +77,7 @@ public interface RegistryExtraFlowLogic {
    */
   public void performAdditionalDomainRenewLogic(
       DomainResource domain,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       int years,
       EppInput eppInput,
@@ -89,7 +89,7 @@ public interface RegistryExtraFlowLogic {
    */
   public void performAdditionalDomainRestoreLogic(
       DomainResource domain,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException;
@@ -100,7 +100,7 @@ public interface RegistryExtraFlowLogic {
    */
   public void performAdditionalDomainTransferLogic(
       DomainResource domain,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       int years,
       EppInput eppInput,
@@ -109,7 +109,7 @@ public interface RegistryExtraFlowLogic {
   /** Computes the expected update fee, for use in fee challenges and the like. */  
   public BaseFee getUpdateFeeOrCredit(
       DomainResource domain,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       EppInput eppInput) throws EppException;
 
@@ -119,7 +119,7 @@ public interface RegistryExtraFlowLogic {
    */
   public void performAdditionalDomainUpdateLogic(
       DomainResource domain,
-      String clientIdentifier,
+      String clientId,
       DateTime asOfDate,
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException;

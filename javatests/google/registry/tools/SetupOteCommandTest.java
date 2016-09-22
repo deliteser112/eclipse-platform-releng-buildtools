@@ -279,7 +279,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     thrown.expect(IllegalStateException.class);
 
     Registrar registrar = Registrar.loadByClientId("TheRegistrar").asBuilder()
-        .setClientIdentifier("blobio-1")
+        .setClientId("blobio-1")
         .setRegistrarName("blobio-1")
         .build();
     persistResource(registrar);
