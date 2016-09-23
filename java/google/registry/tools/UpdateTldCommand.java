@@ -33,13 +33,12 @@ import google.registry.config.RegistryEnvironment;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservedList;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 /** Command to update a TLD. */
 @Parameters(separators = " =", commandDescription = "Update existing TLD(s)")

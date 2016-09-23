@@ -23,27 +23,22 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.google.common.io.LineReader;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-
 import google.registry.model.domain.LrpToken;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
-
 import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 /**

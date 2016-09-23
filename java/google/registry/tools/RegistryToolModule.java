@@ -21,7 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.ProviderException;
 import java.security.SecureRandom;
 import java.util.Random;
-
 import javax.inject.Named;
 
 /** Dagger module for Registry Tool. */

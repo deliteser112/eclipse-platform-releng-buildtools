@@ -23,19 +23,14 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
-
 import com.googlecode.objectify.Key;
-
 import google.registry.model.domain.LrpToken;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tools.DeterministicStringGenerator.Rule;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
-
 import javax.annotation.Nullable;
-
 import org.junit.Before;
 import org.junit.Test;
 

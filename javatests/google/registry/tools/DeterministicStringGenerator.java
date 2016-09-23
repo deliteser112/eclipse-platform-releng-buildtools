@@ -19,7 +19,6 @@ import static com.google.common.collect.Lists.charactersOf;
 
 import com.google.common.collect.Iterators;
 import java.util.Iterator;
-
 import javax.inject.Named;
 
 /**
