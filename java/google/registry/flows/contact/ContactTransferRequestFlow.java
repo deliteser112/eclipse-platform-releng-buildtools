@@ -48,7 +48,6 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /**
-/**
  * An EPP flow that requests a transfer on a contact.
  *
  * <p>The "gaining" registrar requests a transfer from the "losing" (aka current) registrar. The

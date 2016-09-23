@@ -44,7 +44,6 @@ import javax.inject.Inject;
 import org.joda.time.Duration;
 
 /**
-/**
  * An EPP flow that deletes a contact.
  *
  * <p>Contacts that are in use by any domain cannot be deleted. The flow may return immediately if a

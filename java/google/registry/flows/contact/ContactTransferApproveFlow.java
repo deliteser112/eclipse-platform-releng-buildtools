@@ -43,7 +43,6 @@ import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
 
 /**
-/**
  * An EPP flow that approves a pending transfer on a contact.
  *
  * <p>The "gaining" registrar requests a transfer from the "losing" (aka current) registrar. The
