@@ -473,8 +473,8 @@ public class RdapJsonFormatterTest {
     RdapJsonFormatter.addTopLevelEntries(
         builder,
         RdapJsonFormatter.BoilerplateType.OTHER,
-        ImmutableList.of(),
-        ImmutableList.of(),
+        ImmutableList.<ImmutableMap<String, Object>>of(),
+        ImmutableList.<ImmutableMap<String, Object>>of(),
         LINK_BASE);
     assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel.json"));
   }
@@ -487,7 +487,7 @@ public class RdapJsonFormatterTest {
         builder,
         RdapJsonFormatter.BoilerplateType.OTHER,
         ImmutableList.of(RdapHelpAction.getJsonHelpNotice("/tos", LINK_BASE)),
-        ImmutableList.of(),
+        ImmutableList.<ImmutableMap<String, Object>>of(),
         LINK_BASE);
     assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel.json"));
   }
@@ -499,8 +499,8 @@ public class RdapJsonFormatterTest {
     RdapJsonFormatter.addTopLevelEntries(
         builder,
         RdapJsonFormatter.BoilerplateType.DOMAIN,
-        ImmutableList.of(),
-        ImmutableList.of(),
+        ImmutableList.<ImmutableMap<String, Object>>of(),
+        ImmutableList.<ImmutableMap<String, Object>>of(),
         LINK_BASE);
     assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel_domain.json"));
   }
@@ -513,7 +513,7 @@ public class RdapJsonFormatterTest {
         builder,
         RdapJsonFormatter.BoilerplateType.DOMAIN,
         ImmutableList.of(RdapHelpAction.getJsonHelpNotice("/tos", LINK_BASE)),
-        ImmutableList.of(),
+        ImmutableList.<ImmutableMap<String, Object>>of(),
         LINK_BASE);
     assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel_domain.json"));
   }

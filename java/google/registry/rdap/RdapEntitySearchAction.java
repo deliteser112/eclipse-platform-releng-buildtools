@@ -101,7 +101,11 @@ public class RdapEntitySearchAction extends RdapActionBase {
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("entitySearchResults", results);
     RdapJsonFormatter.addTopLevelEntries(
-        jsonBuilder, BoilerplateType.ENTITY, ImmutableList.of(), ImmutableList.of(), rdapLinkBase);
+        jsonBuilder,
+        BoilerplateType.ENTITY,
+        ImmutableList.<ImmutableMap<String, Object>>of(),
+        ImmutableList.<ImmutableMap<String, Object>>of(),
+        rdapLinkBase);
     return jsonBuilder.build();
   }
 

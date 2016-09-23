@@ -507,7 +507,10 @@ public class RdapJsonFormatter {
     }
     if (isTopLevel) {
       addTopLevelEntries(
-          jsonBuilder, BoilerplateType.DOMAIN, remarks, ImmutableList.of(), linkBase);
+          jsonBuilder,
+          BoilerplateType.DOMAIN,
+          remarks,
+          ImmutableList.<ImmutableMap<String, Object>>of(), linkBase);
     } else if (!remarks.isEmpty()) {
       jsonBuilder.put(REMARKS, remarks);
     }
@@ -586,7 +589,10 @@ public class RdapJsonFormatter {
     }
     if (isTopLevel) {
       addTopLevelEntries(
-          jsonBuilder, BoilerplateType.NAMESERVER, remarks, ImmutableList.of(), linkBase);
+          jsonBuilder,
+          BoilerplateType.NAMESERVER,
+          remarks,
+          ImmutableList.<ImmutableMap<String, Object>>of(), linkBase);
     } else if (!remarks.isEmpty()) {
       jsonBuilder.put(REMARKS, remarks);
     }
@@ -672,7 +678,11 @@ public class RdapJsonFormatter {
     }
     if (isTopLevel) {
       addTopLevelEntries(
-          jsonBuilder, BoilerplateType.ENTITY, remarks, ImmutableList.of(), linkBase);
+          jsonBuilder,
+          BoilerplateType.ENTITY,
+          remarks,
+          ImmutableList.<ImmutableMap<String, Object>>of(),
+          linkBase);
     } else if (!remarks.isEmpty()) {
       jsonBuilder.put(REMARKS, remarks);
     }
@@ -768,7 +778,11 @@ public class RdapJsonFormatter {
     }
     if (isTopLevel) {
       addTopLevelEntries(
-          jsonBuilder, BoilerplateType.ENTITY, remarks, ImmutableList.of(), linkBase);
+          jsonBuilder,
+          BoilerplateType.ENTITY,
+          remarks,
+          ImmutableList.<ImmutableMap<String, Object>>of(),
+          linkBase);
     } else if (!remarks.isEmpty()) {
       jsonBuilder.put(REMARKS, remarks);
     }
