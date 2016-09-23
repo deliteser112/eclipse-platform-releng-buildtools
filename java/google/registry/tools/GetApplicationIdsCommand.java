@@ -17,6 +17,7 @@ package google.registry.tools;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.registry.Registries.assertTldExists;
 import static google.registry.model.registry.Registries.findTldForNameOrThrow;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -26,12 +27,12 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import java.util.List;
+import org.joda.time.DateTime;
 
 /** Command to generate a list of all applications for a given domain name(s). */
 @Parameters(separators = " =",
     commandDescription = "Generate list of application IDs and sponsors for given domain name(s)")
-final class GetApplicationIdsCommand extends GetEppResourceCommand<DomainApplication>
-    implements RemoteApiCommand, GtechCommand {
+final class GetApplicationIdsCommand implements RemoteApiCommand, GtechCommand {
 
   @Parameter(
       description = "Fully qualified domain name(s)",
@@ -39,10 +40,7 @@ final class GetApplicationIdsCommand extends GetEppResourceCommand<DomainApplica
   private List<String> mainParameters;
 
   @Override
-  void processParameters() {
-    // Note that this function explicitly performs its own resource load and print, ignoring
-    // GetEppResourceCommand.printResource(), because we do NOT want to display the entire
-    // application to gTech users -- just the ID# and sponsor.
+  public void run() {
     for (String domainName : mainParameters) {
       InternetDomainName tld = findTldForNameOrThrow(InternetDomainName.from(domainName));
       assertTldExists(tld.toString());
@@ -55,7 +53,7 @@ final class GetApplicationIdsCommand extends GetEppResourceCommand<DomainApplica
       // example2.tld:
       //    No applications exist for 'example2.tld'.
       ImmutableList<DomainApplication> applications = ImmutableList.copyOf(
-          loadActiveApplicationsByDomainName(domainName, readTimestamp));
+          loadActiveApplicationsByDomainName(domainName, DateTime.now(UTC)));
       if (applications.isEmpty()) {
         System.out.printf("    No applications exist for \'%s\'.%n", domainName);
       } else {

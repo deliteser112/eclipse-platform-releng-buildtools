@@ -15,30 +15,21 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static google.registry.model.EppResourceUtils.loadByForeignKey;
-import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
-import google.registry.model.domain.DomainApplication;
 import google.registry.tools.Command.RemoteApiCommand;
-import google.registry.util.TypeUtils.TypeInstantiator;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
-/**
- * Abstract command to show a resource.
- *
- * @param <R> {@link EppResource} subclass.
- */
+/** Abstract command to print one or more resources to stdout. */
 @Parameters(separators = " =")
-abstract class GetEppResourceCommand<R extends EppResource> implements RemoteApiCommand {
+abstract class GetEppResourceCommand implements RemoteApiCommand {
 
   private final DateTime now = DateTime.now(UTC);
-
-  private Class<R> clazz = new TypeInstantiator<R>(getClass()){}.getExactType();
 
   @Parameter(
       names = "--read_timestamp",
@@ -50,31 +41,26 @@ abstract class GetEppResourceCommand<R extends EppResource> implements RemoteApi
       description = "Fully expand the requested resource. NOTE: Output may be lengthy.")
   boolean expand;
 
-  /** Resolve any parameters into ids for loadResource. */
-  abstract void processParameters();
+  /** Runs the command's own logic that calls {@link #printResource}. */
+  abstract void runAndPrint();
 
   /**
-   * Load a resource by ID and output. Append the websafe key to the output for use in e.g.
-   * manual mapreduce calls.
+   * Prints a possibly-null resource to stdout, using resourceType and uniqueId to construct a
+   * nice error message if the resource was null (i.e. doesn't exist).
+   *
+   * <p>The websafe key is appended to the output for use in e.g. manual mapreduce calls.
    */
-  void printResource(String uniqueId) {
-    EppResource resource =
-        (clazz == DomainApplication.class)
-            ? loadDomainApplication(uniqueId, readTimestamp)
-            : loadByForeignKey(clazz, uniqueId, readTimestamp);
+  void printResource(String resourceType, String uniqueId, @Nullable EppResource resource) {
     System.out.println(resource != null
         ? String.format("%s\n\nWebsafe key: %s",
             expand ? resource.toHydratedString() : resource,
             Key.create(resource).getString())
-        : String.format(
-            "%s '%s' does not exist or is deleted\n",
-            clazz.getSimpleName().replace("Resource", ""),
-            uniqueId));
+        : String.format("%s '%s' does not exist or is deleted\n", resourceType, uniqueId));
   }
 
   @Override
   public void run() {
     checkArgument(!readTimestamp.isBefore(now), "--read_timestamp may not be in the past");
-    processParameters();
+    runAndPrint();
   }
 }

@@ -14,6 +14,8 @@
 
 package google.registry.tools;
 
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import google.registry.model.domain.DomainResource;
@@ -21,9 +23,8 @@ import google.registry.tools.Command.GtechCommand;
 import java.util.List;
 
 /** Command to show a domain resource. */
-@Parameters(separators = " =", commandDescription = "Show domain record(s)")
-final class GetDomainCommand extends GetEppResourceCommand<DomainResource>
-    implements GtechCommand {
+@Parameters(separators = " =", commandDescription = "Show domain resource(s)")
+final class GetDomainCommand extends GetEppResourceCommand implements GtechCommand {
 
   @Parameter(
       description = "Fully qualified domain name(s)",
@@ -31,9 +32,10 @@ final class GetDomainCommand extends GetEppResourceCommand<DomainResource>
   private List<String> mainParameters;
 
   @Override
-  public void processParameters() {
+  public void runAndPrint() {
     for (String domainName : mainParameters) {
-      printResource(domainName);
+      printResource(
+          "Domain", domainName, loadByForeignKey(DomainResource.class, domainName, readTimestamp));
     }
   }
 }

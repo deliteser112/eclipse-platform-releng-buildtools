@@ -70,20 +70,20 @@ public class GetApplicationCommandTest extends CommandTestCase<GetApplicationCom
     persistResource(
         newDomainApplication("example.tld").asBuilder().setDeletionTime(now.plusDays(1)).build());
     runCommand("--read_timestamp=" + now.plusMonths(1), "2-TLD");
-    assertInStdout("DomainApplication '2-TLD' does not exist or is deleted");
+    assertInStdout("Application '2-TLD' does not exist or is deleted");
   }
 
   @Test
   public void testSuccess_deletedApplication() throws Exception {
     persistDeletedDomainApplication("example.tld",  now);
     runCommand("2-TLD");
-    assertInStdout("DomainApplication '2-TLD' does not exist or is deleted");
+    assertInStdout("Application '2-TLD' does not exist or is deleted");
   }
 
   @Test
   public void testSuccess_applicationDoesNotExist() throws Exception {
     runCommand("42-TLD");
-    assertInStdout("DomainApplication '42-TLD' does not exist or is deleted");
+    assertInStdout("Application '42-TLD' does not exist or is deleted");
   }
 
   @Test
@@ -99,6 +99,6 @@ public class GetApplicationCommandTest extends CommandTestCase<GetApplicationCom
     runCommand("2-TLD", "4-TLD", "55-TLD");
     assertInStdout("fullyQualifiedDomainName=example.tld");
     assertInStdout("fullyQualifiedDomainName=example2.tld");
-    assertInStdout("DomainApplication '55-TLD' does not exist or is deleted");
+    assertInStdout("Application '55-TLD' does not exist or is deleted");
   }
 }

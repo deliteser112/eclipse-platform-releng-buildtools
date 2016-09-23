@@ -14,6 +14,8 @@
 
 package google.registry.tools;
 
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import google.registry.model.contact.ContactResource;
@@ -21,9 +23,8 @@ import google.registry.tools.Command.GtechCommand;
 import java.util.List;
 
 /** Command to show one or more contacts. */
-@Parameters(separators = " =", commandDescription = "Show contact record(s)")
-final class GetContactCommand extends GetEppResourceCommand<ContactResource>
-    implements GtechCommand {
+@Parameters(separators = " =", commandDescription = "Show contact resource(s)")
+final class GetContactCommand extends GetEppResourceCommand implements GtechCommand {
 
   @Parameter(
       description = "Contact id(s)",
@@ -31,9 +32,10 @@ final class GetContactCommand extends GetEppResourceCommand<ContactResource>
   private List<String> mainParameters;
 
   @Override
-  public void processParameters() {
-    for (String contactNameString : mainParameters) {
-      printResource(contactNameString);
+  public void runAndPrint() {
+    for (String contactId : mainParameters) {
+      printResource(
+          "Contact", contactId, loadByForeignKey(ContactResource.class, contactId, readTimestamp));
     }
   }
 }

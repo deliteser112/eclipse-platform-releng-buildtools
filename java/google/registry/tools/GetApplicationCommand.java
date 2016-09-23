@@ -14,16 +14,16 @@
 
 package google.registry.tools;
 
+import static google.registry.model.EppResourceUtils.loadDomainApplication;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import google.registry.model.domain.DomainApplication;
 import google.registry.tools.Command.GtechCommand;
 import java.util.List;
 
 /** Command to show a domain application. */
-@Parameters(separators = " =", commandDescription = "Show domain application record(s)")
-final class GetApplicationCommand extends GetEppResourceCommand<DomainApplication>
-    implements GtechCommand {
+@Parameters(separators = " =", commandDescription = "Show domain application resource(s)")
+final class GetApplicationCommand extends GetEppResourceCommand implements GtechCommand {
 
   @Parameter(
       description = "Domain application id(s)",
@@ -31,9 +31,10 @@ final class GetApplicationCommand extends GetEppResourceCommand<DomainApplicatio
   private List<String> mainParameters;
 
   @Override
-  public void processParameters() {
+  public void runAndPrint() {
     for (String applicationId : mainParameters) {
-      printResource(applicationId);
+      printResource(
+          "Application", applicationId, loadDomainApplication(applicationId, readTimestamp));
     }
   }
 }

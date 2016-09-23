@@ -65,14 +65,6 @@ public class GetApplicationIdsCommandTest extends CommandTestCase<GetApplication
   }
 
   @Test
-  public void testSuccess_afterDeletion() throws Exception {
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setDeletionTime(now.plusDays(1)).build());
-    runCommand("example.tld", "--read_timestamp=" + now.plusMonths(1));
-    assertInStdout("No applications exist for 'example.tld'.");
-  }
-
-  @Test
   public void testSuccess_deletedApplication() throws Exception {
     persistResource(
         newDomainApplication("example.tld").asBuilder().setDeletionTime(now.minusDays(1)).build());
