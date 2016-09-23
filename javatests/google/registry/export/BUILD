@@ -12,7 +12,6 @@ java_library(
     name = "export",
     srcs = glob(["*.java"]),
     resources = glob([
-        "testdata/*",
         "backup_kinds.txt",
     ]),
     deps = [
