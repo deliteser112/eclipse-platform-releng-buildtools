@@ -18,6 +18,8 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.EppResource;
+import google.registry.model.EppResource.ForeignKeyedEppResource;
+import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.request.Action;
@@ -42,38 +44,35 @@ public final class RefreshDnsAction implements Runnable {
     if (!domainOrHostName.contains(".")) {
       throw new BadRequestException("URL parameter 'name' must be fully qualified");
     }
-
-    boolean domainLookup;
-    Class<? extends EppResource> clazz;
     switch (type) {
       case DOMAIN:
-        domainLookup = true;
-        clazz = DomainResource.class;
+        loadAndVerifyExistence(DomainResource.class, domainOrHostName);
+        dnsQueue.addDomainRefreshTask(domainOrHostName);
         break;
       case HOST:
-        domainLookup = false;
-        clazz = HostResource.class;
+        verifyHostIsSubordinate(loadAndVerifyExistence(HostResource.class, domainOrHostName));
+        dnsQueue.addHostRefreshTask(domainOrHostName);
         break;
       default:
         throw new BadRequestException("Unsupported type: " + type);
     }
+  }
 
-    EppResource eppResource = loadByForeignKey(clazz, domainOrHostName, clock.nowUtc());
-    if (eppResource == null) {
+  private <T extends EppResource & ForeignKeyedEppResource>
+      T loadAndVerifyExistence(Class<T> clazz, String foreignKey) {
+    T resource = loadByForeignKey(clazz, foreignKey, clock.nowUtc());
+    if (resource == null) {
+      String typeName = clazz.getAnnotation(ExternalMessagingName.class).value();
       throw new NotFoundException(
-          String.format("%s %s not found", type, domainOrHostName));
+          String.format("%s %s not found", typeName, domainOrHostName));
     }
+    return resource;
+  }
 
-    if (domainLookup) {
-      dnsQueue.addDomainRefreshTask(domainOrHostName);
-    } else {
-      if (((HostResource) eppResource).getSuperordinateDomain() == null) {
-        throw new BadRequestException(
-            String.format("%s isn't a subordinate hostname", domainOrHostName));
-      } else {
-        // Don't enqueue host refresh tasks for external hosts.
-        dnsQueue.addHostRefreshTask(domainOrHostName);
-      }
+  private static void verifyHostIsSubordinate(HostResource host) {
+    if (host.getSuperordinateDomain() == null) {
+      throw new BadRequestException(
+          String.format("%s isn't a subordinate hostname", host.getFullyQualifiedHostName()));
     }
   }
 }

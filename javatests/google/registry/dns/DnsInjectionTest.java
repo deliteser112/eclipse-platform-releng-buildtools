@@ -85,7 +85,7 @@ public final class DnsInjectionTest {
   }
 
   @Test
-  public void testWhoisHttpServer_injectsAndWorks() throws Exception {
+  public void testRefreshDns_domain_injectsAndWorks() throws Exception {
     persistActiveDomain("example.lol");
     when(req.getParameter("type")).thenReturn("domain");
     when(req.getParameter("name")).thenReturn("example.lol");
@@ -94,10 +94,27 @@ public final class DnsInjectionTest {
   }
 
   @Test
-  public void testWhoisHttpServer_missingDomain_throwsNotFound() throws Exception {
+  public void testRefreshDns_missingDomain_throwsNotFound() throws Exception {
     when(req.getParameter("type")).thenReturn("domain");
     when(req.getParameter("name")).thenReturn("example.lol");
-    thrown.expect(NotFoundException.class, "DOMAIN example.lol not found");
+    thrown.expect(NotFoundException.class, "domain example.lol not found");
+    component.refreshDns().run();
+  }
+
+  @Test
+  public void testRefreshDns_host_injectsAndWorks() throws Exception {
+    persistActiveSubordinateHost("ns1.example.lol", persistActiveDomain("example.lol"));
+    when(req.getParameter("type")).thenReturn("host");
+    when(req.getParameter("name")).thenReturn("ns1.example.lol");
+    component.refreshDns().run();
+    assertDnsTasksEnqueued("ns1.example.lol");
+  }
+
+  @Test
+  public void testRefreshDns_missingHost_throwsNotFound() throws Exception {
+    when(req.getParameter("type")).thenReturn("host");
+    when(req.getParameter("name")).thenReturn("ns1.example.lol");
+    thrown.expect(NotFoundException.class, "host ns1.example.lol not found");
     component.refreshDns().run();
   }
 }
