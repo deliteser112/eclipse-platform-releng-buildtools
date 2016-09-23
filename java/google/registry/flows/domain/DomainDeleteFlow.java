@@ -82,7 +82,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainDeleteFlow.DomainToDeleteHasHostsException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
-public class DomainDeleteFlow extends LoggedInFlow implements TransactionalFlow {
+public final class DomainDeleteFlow extends LoggedInFlow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(
       StatusValue.LINKED,
