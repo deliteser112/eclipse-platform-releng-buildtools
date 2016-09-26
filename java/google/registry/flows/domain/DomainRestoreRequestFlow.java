@@ -14,6 +14,10 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
+import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.newAutorenewBillingEvent;
 import static google.registry.flows.domain.DomainFlowUtils.newAutorenewPollMessage;
@@ -28,25 +32,34 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
-import google.registry.flows.OwnedResourceMutateFlow;
+import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.TargetId;
+import google.registry.flows.LoggedInFlow;
+import google.registry.flows.TransactionalFlow;
+import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.OneTime;
+import google.registry.model.billing.BillingEvent.OneTime.Builder;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainCommand.Update;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
+import google.registry.model.domain.fee.FeeTransformResponseExtension;
+import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.rgp.RgpUpdateExtension;
-import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
@@ -55,117 +68,149 @@ import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /**
- * An EPP flow that requests that a deleted domain be restored.
+ * An EPP flow that requests that a domain in the redemption grace period be restored.
+ *
+ * <p>When a domain is deleted it is removed from DNS immediately and marked as pending delete, but
+ * is not actually soft deleted. There is a period (by default 30 days) during which it can be
+ * restored by the original owner. When that period expires there is a second period (by default 5
+ * days) during which the domain cannot be restored. After that period anyone can re-register this
+ * name.
+ *
+ * <p>This flow is called a restore "request" because technically it is only supposed to signal that
+ * the registrar requests the restore, which the registry can choose to process or not based on a
+ * restore report that is submitted through an out of band process and details the request. However,
+ * in practice this flow does the restore immediately. This is allowable because all of the fields
+ * on a restore report are optional or have default values, and so by policy when the request comes
+ * in we consider it to have been accompanied by a default-initialized report which we auto-approve.
+ *
+ * <p>Restores cost a fixed restore fee plus a one year renewal fee for the domain. The domain is
+ * restored to a single year expiration starting at the restore time, regardless of what the
+ * original expiration time was.
  *
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
- * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}
  * @error {@link DomainFlowUtils.DomainReservedException}
  * @error {@link DomainFlowUtils.FeesMismatchException}
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
+ * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainRestoreRequestFlow.DomainNotEligibleForRestoreException}
  * @error {@link DomainRestoreRequestFlow.RestoreCommandIncludesChangesException}
  */
-public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainResource, Update>  {
+public final class DomainRestoreRequestFlow extends LoggedInFlow implements TransactionalFlow  {
 
-  protected FeeTransformCommandExtension feeUpdate;
-  protected Money restoreCost;
-  protected Money renewCost;
-  protected Optional<RegistryExtraFlowLogic> extraFlowLogic;
-
+  @Inject ResourceCommand resourceCommand;
+  @Inject Optional<AuthInfo> authInfo;
+  @Inject @ClientId String clientId;
+  @Inject @TargetId String targetId;
+  @Inject HistoryEntry.Builder historyBuilder;
   @Inject DomainRestoreRequestFlow() {}
 
   @Override
-  protected final void initResourceCreateOrMutateFlow() throws EppException {
-    registerExtensions(RgpUpdateExtension.class);
+  protected final void initLoggedInFlow() throws EppException {
+    registerExtensions(MetadataExtension.class, RgpUpdateExtension.class);
     registerExtensions(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-    extraFlowLogic = RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);
   }
 
   @Override
-  protected final void verifyMutationOnOwnedResourceAllowed() throws EppException {
-    // No other changes can be specified on a restore request.
-    if (!command.noChangesPresent()) {
-      throw new RestoreCommandIncludesChangesException();
-    }
-
-    // Domain must be in pendingDelete and within the redemptionPeriod to be eligible for restore.
-    if (!existingResource.getStatusValues().contains(StatusValue.PENDING_DELETE)
-        || !existingResource.getGracePeriodStatuses().contains(GracePeriodStatus.REDEMPTION)) {
-      throw new DomainNotEligibleForRestoreException();
-    }
-
-    String tld = existingResource.getTld();
-    checkAllowedAccessToTld(getAllowedTlds(), tld);
-    if (!isSuperuser) {
-      verifyNotReserved(InternetDomainName.from(targetId), false);
-      verifyPremiumNameIsNotBlocked(targetId, now, getClientId());
-    }
-    feeUpdate = eppInput.getFirstExtensionOfClasses(
+  public final EppOutput run() throws EppException {
+    Update command = (Update) resourceCommand;
+    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
+    Money restoreCost = Registry.get(existingDomain.getTld()).getStandardRestoreCost();
+    Money renewCost = getDomainRenewCost(targetId, now, 1);
+    FeeTransformCommandExtension feeUpdate = eppInput.getFirstExtensionOfClasses(
         FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-    restoreCost = Registry.get(tld).getStandardRestoreCost();
-    renewCost = getDomainRenewCost(targetId, now, 1);
-    validateFeeChallenge(targetId, tld, now, feeUpdate, restoreCost, renewCost);
-  }
-
-  @Override
-  protected final DomainResource createOrMutateResource() throws EppException {
+    verifyRestoreAllowed(command, existingDomain, restoreCost, renewCost, feeUpdate);
+    HistoryEntry historyEntry = buildHistory(existingDomain);
+    ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
+    entitiesToSave.addAll(createRestoreAndRenewBillingEvents(historyEntry, restoreCost, renewCost));
     // We don't preserve the original expiration time of the domain when we restore, since doing so
     // would require us to know if they received a grace period refund when they deleted the domain,
     // and to charge them for that again. Instead, we just say that all restores get a fresh year of
     // registration and bill them for that accordingly.
     DateTime newExpirationTime = now.plusYears(1);
-
-    // Bill for the restore.
-    BillingEvent.OneTime restoreEvent = new BillingEvent.OneTime.Builder()
-        .setReason(Reason.RESTORE)
-        .setTargetId(targetId)
-        .setClientId(getClientId())
-        .setCost(restoreCost)
-        .setEventTime(now)
-        .setBillingTime(now)
-        .setParent(historyEntry)
-        .build();
-    // Create a new autorenew billing event and poll message starting at the new expiration time.
-    BillingEvent.Recurring autorenewEvent = newAutorenewBillingEvent(existingResource)
+    BillingEvent.Recurring autorenewEvent = newAutorenewBillingEvent(existingDomain)
         .setEventTime(newExpirationTime)
         .setRecurrenceEndTime(END_OF_TIME)
         .setParent(historyEntry)
         .build();
-    PollMessage.Autorenew autorenewPollMessage = newAutorenewPollMessage(existingResource)
+    PollMessage.Autorenew autorenewPollMessage = newAutorenewPollMessage(existingDomain)
         .setEventTime(newExpirationTime)
         .setAutorenewEndTime(END_OF_TIME)
         .setParent(historyEntry)
         .build();
+    // Handle extra flow logic, if any.
+    Optional<RegistryExtraFlowLogic> extraFlowLogic =
+        RegistryExtraFlowLogicProxy.newInstanceForDomain(existingDomain);
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().performAdditionalDomainRestoreLogic(
+          existingDomain, clientId, now, eppInput, historyEntry);
+      extraFlowLogic.get().commitAdditionalLogicChanges();
+    }
+    DomainResource newDomain =
+        performRestore(existingDomain, newExpirationTime, autorenewEvent, autorenewPollMessage);
+    updateForeignKeyIndexDeletionTime(newDomain);
+    entitiesToSave.add(newDomain, historyEntry, autorenewEvent, autorenewPollMessage);
+    ofy().save().entities(entitiesToSave.build());
+    ofy().delete().key(existingDomain.getDeletePollMessage());
+    DnsQueue.create().addDomainRefreshTask(existingDomain.getFullyQualifiedDomainName());
+    return createOutput(SUCCESS, null, createResponseExtensions(restoreCost, renewCost, feeUpdate));
+  }
 
+  private HistoryEntry buildHistory(DomainResource existingDomain) {
+    return historyBuilder
+        .setType(HistoryEntry.Type.DOMAIN_RESTORE)
+        .setModificationTime(now)
+        .setParent(Key.create(existingDomain))
+        .build();
+  }
+
+  private void verifyRestoreAllowed(
+      Update command,
+      DomainResource existingDomain,
+      Money restoreCost,
+      Money renewCost,
+      FeeTransformCommandExtension feeUpdate) throws EppException {
+    verifyOptionalAuthInfoForResource(authInfo, existingDomain);
+    if (!isSuperuser) {
+      verifyResourceOwnership(clientId, existingDomain);
+      verifyNotReserved(InternetDomainName.from(targetId), false);
+      verifyPremiumNameIsNotBlocked(targetId, now, clientId);
+    }
+    // No other changes can be specified on a restore request.
+    if (!command.noChangesPresent()) {
+      throw new RestoreCommandIncludesChangesException();
+    }
+    // Domain must be within the redemptionPeriod to be eligible for restore.
+    if (!existingDomain.getGracePeriodStatuses().contains(GracePeriodStatus.REDEMPTION)) {
+      throw new DomainNotEligibleForRestoreException();
+    }
+    checkAllowedAccessToTld(getAllowedTlds(), existingDomain.getTld());
+    validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, restoreCost, renewCost);
+  }
+
+  private ImmutableSet<BillingEvent.OneTime> createRestoreAndRenewBillingEvents(
+      HistoryEntry historyEntry, Money restoreCost, Money renewCost) {
+    // Bill for the restore.
+    BillingEvent.OneTime restoreEvent = createRestoreBillingEvent(historyEntry, restoreCost);
+    // Create a new autorenew billing event and poll message starting at the new expiration time.
     // Also bill for the 1 year cost of a domain renew. This is to avoid registrants being able to
     // game the system for premium names by renewing, deleting, and then restoring to get a free
     // year. Note that this billing event has no grace period; it is effective immediately.
-    BillingEvent.OneTime renewEvent = new BillingEvent.OneTime.Builder()
-        .setReason(Reason.RENEW)
-        .setTargetId(targetId)
-        .setClientId(getClientId())
-        .setPeriodYears(1)
-        .setCost(renewCost)
-        .setEventTime(now)
-        .setBillingTime(now)
-        .setParent(historyEntry)
-        .build();
+    BillingEvent.OneTime renewEvent = createRenewBillingEvent(historyEntry, renewCost);
+    return ImmutableSet.of(restoreEvent, renewEvent);
+  }
 
-    ofy().save().<Object>entities(restoreEvent, autorenewEvent, autorenewPollMessage, renewEvent);
-
-    // Handle extra flow logic, if any.
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainRestoreLogic(
-          existingResource, getClientId(), now, eppInput, historyEntry);
-    }
-    
-    return existingResource.asBuilder()
+  private static DomainResource performRestore(
+      DomainResource existingDomain,
+      DateTime newExpirationTime,
+      BillingEvent.Recurring autorenewEvent,
+      PollMessage.Autorenew autorenewPollMessage) {
+    return existingDomain.asBuilder()
         .setRegistrationExpirationTime(newExpirationTime)
         .setDeletionTime(END_OF_TIME)
         .setStatusValues(null)
@@ -176,43 +221,39 @@ public class DomainRestoreRequestFlow extends OwnedResourceMutateFlow<DomainReso
         .build();
   }
 
-  @Override
-  protected void modifyRelatedResources() {
-    // Update the relevant {@link ForeignKey} to cache the new deletion time.
-    ofy().save().entity(ForeignKeyIndex.create(newResource, newResource.getDeletionTime()));
-    ofy().delete().key(existingResource.getDeletePollMessage());
-
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().commitAdditionalLogicChanges();
-    }
+  private OneTime createRenewBillingEvent(HistoryEntry historyEntry, Money renewCost) {
+    return prepareBillingEvent(historyEntry, renewCost)
+        .setPeriodYears(1)
+        .setReason(Reason.RENEW)
+        .build();
   }
 
-  @Override
-  protected void enqueueTasks() {
-    DnsQueue.create().addDomainRefreshTask(existingResource.getFullyQualifiedDomainName());
+  private BillingEvent.OneTime createRestoreBillingEvent(
+      HistoryEntry historyEntry, Money restoreCost) {
+    return prepareBillingEvent(historyEntry, restoreCost)
+        .setReason(Reason.RESTORE)
+        .build();
   }
 
-  @Override
-  protected final HistoryEntry.Type getHistoryEntryType() {
-    return HistoryEntry.Type.DOMAIN_RESTORE;
+  private Builder prepareBillingEvent(HistoryEntry historyEntry, Money cost) {
+    return new BillingEvent.OneTime.Builder()
+        .setTargetId(targetId)
+        .setClientId(clientId)
+        .setEventTime(now)
+        .setBillingTime(now)
+        .setCost(cost)
+        .setParent(historyEntry);
   }
 
-  @Override
-  protected final EppOutput getOutput() {
-    return createOutput(
-        SUCCESS,
-        null,
-        (feeUpdate == null)
-            ? null
-            : ImmutableList.of(
-                feeUpdate
-                    .createResponseBuilder()
-                    .setCurrency(restoreCost.getCurrencyUnit())
-                    .setFees(
-                        ImmutableList.of(
-                            Fee.create(restoreCost.getAmount(), FeeType.RESTORE),
-                            Fee.create(renewCost.getAmount(), FeeType.RENEW)))
-                    .build()));
+  private static ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
+      Money restoreCost, Money renewCost, FeeTransformCommandExtension feeUpdate) {
+    return (feeUpdate == null) ? null : ImmutableList.of(
+        feeUpdate.createResponseBuilder()
+            .setCurrency(restoreCost.getCurrencyUnit())
+            .setFees(ImmutableList.of(
+                Fee.create(restoreCost.getAmount(), FeeType.RESTORE),
+                Fee.create(renewCost.getAmount(), FeeType.RENEW)))
+            .build());
   }
 
   /** Restore command cannot have other changes specified. */
