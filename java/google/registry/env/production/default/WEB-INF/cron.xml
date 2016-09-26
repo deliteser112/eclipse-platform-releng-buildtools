@@ -187,8 +187,7 @@
     </description>
     <schedule>every monday 14:00</schedule>
     <timezone>UTC</timezone>
-    <!-- TODO(b/27309488): maybe move this to the backend module. -->
-    <target>tools</target>
+    <target>backend</target>
   </cron>
 
   <cron>

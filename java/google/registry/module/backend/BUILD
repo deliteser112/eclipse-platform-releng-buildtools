@@ -20,6 +20,7 @@ java_library(
         "//third_party/java/jsr330_inject",
         "//third_party/java/servlet/servlet_api",
         "//java/google/registry/backup",
+        "//java/google/registry/batch",
         "//java/google/registry/bigquery",
         "//java/google/registry/billing",
         "//java/google/registry/config",

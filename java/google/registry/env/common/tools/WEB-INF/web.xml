@@ -66,13 +66,6 @@
     <url-pattern>/_dr/epptool</url-pattern>
   </servlet-mapping>
 
-  <!--  Mapreduce to delete all prober data. -->
-  <servlet-mapping>
-    <!-- TODO(b/27309488): maybe move this to the backend module + BackendServlet. -->
-    <servlet-name>tools-servlet</servlet-name>
-    <url-pattern>/_dr/task/deleteProberData</url-pattern>
-  </servlet-mapping>
-
   <!--  Mapreduce to re-save all EppResources. -->
   <servlet-mapping>
     <servlet-name>tools-servlet</servlet-name>

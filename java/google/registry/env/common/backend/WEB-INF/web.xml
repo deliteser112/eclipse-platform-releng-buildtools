@@ -240,6 +240,12 @@
     <url-pattern>/_dr/task/exportDomainLists</url-pattern>
   </servlet-mapping>
 
+  <!--  Mapreduce to delete all prober data. -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/deleteProberData</url-pattern>
+  </servlet-mapping>
+
   <!-- Deletes the specified contact resource if it is not referenced by any domains. -->
   <!-- TODO(b/26140521): Delete this mapping once non-batched async operations are deleted. -->
   <servlet-mapping>

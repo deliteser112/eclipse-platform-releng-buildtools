@@ -20,6 +20,7 @@ import google.registry.backup.CommitLogCheckpointAction;
 import google.registry.backup.DeleteOldCommitLogsAction;
 import google.registry.backup.ExportCommitLogDiffAction;
 import google.registry.backup.RestoreCommitLogsAction;
+import google.registry.batch.DeleteProberDataAction;
 import google.registry.billing.ExpandRecurringBillingEventsAction;
 import google.registry.cron.CommitLogFanoutAction;
 import google.registry.cron.CronModule;
@@ -95,6 +96,7 @@ interface BackendRequestComponent {
   DeleteContactsAndHostsAction deleteContactsAndHostsAction();
   DeleteHostResourceAction deleteHostResourceAction();
   DeleteOldCommitLogsAction deleteOldCommitLogsAction();
+  DeleteProberDataAction deleteProberDataAction();
   DnsRefreshForHostRenameAction dnsRefreshForHostRenameAction();
   ExpandRecurringBillingEventsAction expandRecurringBillingEventsAction();
   ExportCommitLogDiffAction exportCommitLogDiffAction();
