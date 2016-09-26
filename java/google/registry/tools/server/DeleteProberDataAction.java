@@ -18,6 +18,7 @@ import static com.google.common.base.Verify.verifyNotNull;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.getTldsOfType;
+import static google.registry.request.Action.Method.POST;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.base.Function;
@@ -52,7 +53,7 @@ import javax.inject.Inject;
  *
  * <p>See: https://www.youtube.com/watch?v=xuuv0syoHnM
  */
-@Action(path = "/_dr/task/deleteProberData")
+@Action(path = "/_dr/task/deleteProberData", method = POST)
 public class DeleteProberDataAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

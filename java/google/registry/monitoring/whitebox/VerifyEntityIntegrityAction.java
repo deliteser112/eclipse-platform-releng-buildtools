@@ -19,6 +19,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.googlecode.objectify.Key.getKind;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.request.Action.Method.POST;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DateTimeUtils.earliestOf;
@@ -87,7 +88,7 @@ import org.joda.time.DateTime;
  *       fullyQualifiedDomainName.
  * </ul>
  */
-@Action(path = "/_dr/task/verifyEntityIntegrity")
+@Action(path = "/_dr/task/verifyEntityIntegrity", method = POST)
 public class VerifyEntityIntegrityAction implements Runnable {
 
   private static final FormattingLogger logger = getLoggerForCallerClass();

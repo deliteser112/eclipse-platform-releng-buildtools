@@ -18,6 +18,7 @@ import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGc
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.registry.Registries.getTldsOfType;
+import static google.registry.request.Action.Method.POST;
 import static google.registry.util.PipelineUtils.createJobPath;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
@@ -51,7 +52,7 @@ import org.joda.time.DateTime;
  * Each TLD's active domain names are exported as a newline-delimited flat text file with the name
  * TLD.txt into the domain-lists bucket.  Note that this overwrites the files in place.
  */
-@Action(path = "/_dr/task/exportDomainLists")
+@Action(path = "/_dr/task/exportDomainLists", method = POST)
 public class ExportDomainListsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
