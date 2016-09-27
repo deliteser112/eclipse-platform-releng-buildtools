@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.reflect.Reflection.getPackageName;
+import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.google.common.base.Joiner;
@@ -46,6 +47,11 @@ public class GtechToolTest {
   @Before
   public void init() {
     RegistryToolEnvironment.UNITTEST.setup();
+  }
+
+  @Test
+  public void test_commandMap_namesAreInAlphabeticalOrder() throws Exception {
+    assertThat(GtechTool.COMMAND_MAP.keySet()).isStrictlyOrdered();
   }
 
   @Test

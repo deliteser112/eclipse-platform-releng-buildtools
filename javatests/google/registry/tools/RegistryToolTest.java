@@ -17,9 +17,8 @@ package google.registry.tools;
 import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.reflect.Reflection.getPackageName;
-import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
@@ -28,7 +27,6 @@ import com.google.common.truth.Expect;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Map;
-import java.util.Set;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,19 +46,27 @@ public class RegistryToolTest {
   }
 
   @Test
-  public void testThatAllCommandsAreInCliOptions() throws Exception {
-    Set<Class<? extends Command>> commandMapClasses =
-        ImmutableSet.copyOf(RegistryTool.COMMAND_MAP.values());
-    Set<Class<? extends Command>> commandsWithoutCliInvokers =
-        Sets.difference(getAllCommandClasses(), commandMapClasses);
-    String errorMsg =
-        "These Command classes are missing from RegistryTool.COMMAND_MAP: "
-        + Joiner.on(", ").join(commandsWithoutCliInvokers);
-    assertWithMessage(errorMsg).that(commandsWithoutCliInvokers).isEmpty();
+  public void test_commandMap_namesAreInAlphabeticalOrder() throws Exception {
+    assertThat(RegistryTool.COMMAND_MAP.keySet()).isStrictlyOrdered();
   }
 
   @Test
-  public void testThatCommandNamesAreDerivedFromClassNames() throws Exception {
+  public void test_commandMap_includesAllCommands() throws Exception {
+    ImmutableSet<?> commandMapClasses = ImmutableSet.copyOf(RegistryTool.COMMAND_MAP.values());
+    ImmutableSet<?> classLoaderClasses = getAllCommandClasses();
+    // Not using plain old containsExactlyElementsIn() since it produces a huge unreadable blob.
+    assertThat(
+        Sets.difference(commandMapClasses, classLoaderClasses))
+            .named("command classes in RegistryTool.COMMAND_MAP but not found by class loader")
+                .isEmpty();
+    assertThat(
+        Sets.difference(classLoaderClasses, commandMapClasses))
+            .named("command classes found by class loader but not in RegistryTool.COMMAND_MAP")
+                .isEmpty();
+  }
+
+  @Test
+  public void test_commandMap_namesAreDerivedFromClassNames() throws Exception {
     for (Map.Entry<String, ? extends Class<? extends Command>> commandEntry :
         RegistryTool.COMMAND_MAP.entrySet()) {
       String className = commandEntry.getValue().getSimpleName();
@@ -83,7 +89,7 @@ public class RegistryToolTest {
     ImmutableSet.Builder<Class<? extends Command>> builder = new ImmutableSet.Builder<>();
     for (ClassInfo classInfo : ClassPath
         .from(getClass().getClassLoader())
-        .getTopLevelClasses(getPackageName(getClass()))) {
+        .getTopLevelClassesRecursive(getPackageName(getClass()))) {
       Class<?> clazz = classInfo.load();
       if (Command.class.isAssignableFrom(clazz)
           && !Modifier.isAbstract(clazz.getModifiers())
