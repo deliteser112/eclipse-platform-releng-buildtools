@@ -310,12 +310,13 @@ public class StackdriverWriterTest {
   }
 
   @Test
-  public void getEncodedTimeSeries_simplePoint_encodes() throws Exception {
+  public void getEncodedTimeSeries_cumulativeMetricPoint_ZeroInterval_encodesGreaterEndTime()
+      throws Exception {
     StackdriverWriter writer =
         new StackdriverWriter(client, PROJECT, MONITORED_RESOURCE, MAX_QPS, MAX_POINTS_PER_REQUEST);
     MetricPoint<Long> nativePoint =
         MetricPoint.create(
-            metric, ImmutableList.of("foo"), new Instant(1336), new Instant(1337), 10L);
+            metric, ImmutableList.of("foo"), new Instant(1337), new Instant(1337), 10L);
 
     TimeSeries timeSeries = writer.getEncodedTimeSeries(nativePoint);
 
@@ -325,8 +326,59 @@ public class StackdriverWriterTest {
     assertThat(points).hasSize(1);
     Point point = points.get(0);
     assertThat(point.getValue().getInt64Value()).isEqualTo(10L);
+    assertThat(point.getInterval().getStartTime()).isEqualTo("1970-01-01T00:00:01.337Z");
+    assertThat(point.getInterval().getEndTime()).isEqualTo("1970-01-01T00:00:01.338Z");
+  }
+
+  @Test
+  public void getEncodedTimeSeries_cumulativeMetricPoint_nonZeroInterval_encodesSameInterval()
+      throws Exception {
+    StackdriverWriter writer =
+        new StackdriverWriter(client, PROJECT, MONITORED_RESOURCE, MAX_QPS, MAX_POINTS_PER_REQUEST);
+    MetricPoint<Long> nativePoint =
+        MetricPoint.create(
+            metric, ImmutableList.of("foo"), new Instant(1337), new Instant(1339), 10L);
+
+    TimeSeries timeSeries = writer.getEncodedTimeSeries(nativePoint);
+
+    assertThat(timeSeries.getValueType()).isEqualTo("INT64");
+    assertThat(timeSeries.getMetricKind()).isEqualTo("CUMULATIVE");
+    List<Point> points = timeSeries.getPoints();
+    assertThat(points).hasSize(1);
+    Point point = points.get(0);
+    assertThat(point.getValue().getInt64Value()).isEqualTo(10L);
+    assertThat(point.getInterval().getStartTime()).isEqualTo("1970-01-01T00:00:01.337Z");
+    assertThat(point.getInterval().getEndTime()).isEqualTo("1970-01-01T00:00:01.339Z");
+  }
+
+  @Test
+  public void getEncodedTimeSeries_gaugeMetricPoint_zeroInterval_encodesSameInterval()
+      throws Exception {
+    StackdriverWriter writer =
+        new StackdriverWriter(client, PROJECT, MONITORED_RESOURCE, MAX_QPS, MAX_POINTS_PER_REQUEST);
+    Metric<Long> metric =
+        new StoredMetric<>(
+            "/name",
+            "desc",
+            "vdn",
+            ImmutableSet.of(LabelDescriptor.create("label", "description")),
+            Long.class);
+    when(metricDescriptorCreate.execute())
+        .thenReturn(StackdriverWriter.createMetricDescriptor(metric));
+    MetricPoint<Long> nativePoint =
+        MetricPoint.create(
+            metric, ImmutableList.of("foo"), new Instant(1337), new Instant(1337), 10L);
+
+    TimeSeries timeSeries = writer.getEncodedTimeSeries(nativePoint);
+
+    assertThat(timeSeries.getValueType()).isEqualTo("INT64");
+    assertThat(timeSeries.getMetricKind()).isEqualTo("GAUGE");
+    List<Point> points = timeSeries.getPoints();
+    assertThat(points).hasSize(1);
+    Point point = points.get(0);
+    assertThat(point.getValue().getInt64Value()).isEqualTo(10L);
+    assertThat(point.getInterval().getStartTime()).isEqualTo("1970-01-01T00:00:01.337Z");
     assertThat(point.getInterval().getEndTime()).isEqualTo("1970-01-01T00:00:01.337Z");
-    assertThat(point.getInterval().getStartTime()).isEqualTo("1970-01-01T00:00:01.336Z");
   }
 
   @Test

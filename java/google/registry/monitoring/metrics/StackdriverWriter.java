@@ -51,6 +51,7 @@ import java.util.logging.Logger;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import javax.inject.Named;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -264,10 +265,17 @@ public class StackdriverWriter implements MetricWriter {
     return descriptor;
   }
 
-  private static TimeInterval encodeTimeInterval(Interval nativeInterval) {
-    return new TimeInterval()
-        .setEndTime(DATETIME_FORMATTER.print(nativeInterval.getEnd()))
-        .setStartTime(DATETIME_FORMATTER.print(nativeInterval.getStart()));
+  private static TimeInterval encodeTimeInterval(Interval nativeInterval, Kind metricKind) {
+
+    TimeInterval encodedInterval =
+        new TimeInterval().setStartTime(DATETIME_FORMATTER.print(nativeInterval.getStart()));
+
+    DateTime endTimestamp =
+        nativeInterval.toDurationMillis() == 0 && metricKind != Kind.GAUGE
+            ? nativeInterval.getEnd().plusMillis(1)
+            : nativeInterval.getEnd();
+
+    return encodedInterval.setEndTime(DATETIME_FORMATTER.print(endTimestamp));
   }
 
   private static BucketOptions encodeBucketOptions(DistributionFitter fitter) {
@@ -363,7 +371,9 @@ public class StackdriverWriter implements MetricWriter {
     }
 
     Point encodedPoint =
-        new Point().setInterval(encodeTimeInterval(point.interval())).setValue(encodedValue);
+        new Point()
+            .setInterval(encodeTimeInterval(point.interval(), metric.getMetricSchema().kind()))
+            .setValue(encodedValue);
 
     List<LabelDescriptor> encodedLabels = descriptor.getLabels();
     // The MetricDescriptors returned by the GCM API have null fields rather than empty lists
