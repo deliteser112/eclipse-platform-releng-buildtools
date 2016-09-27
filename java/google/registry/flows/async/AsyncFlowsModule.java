@@ -14,11 +14,7 @@
 
 package google.registry.flows.async;
 import static google.registry.flows.async.DeleteContactsAndHostsAction.QUEUE_ASYNC_DELETE;
-import static google.registry.flows.async.DeleteEppResourceAction.PARAM_IS_SUPERUSER;
-import static google.registry.flows.async.DeleteEppResourceAction.PARAM_REQUESTING_CLIENT_ID;
-import static google.registry.flows.async.DeleteEppResourceAction.PARAM_RESOURCE_KEY;
 import static google.registry.flows.async.DnsRefreshForHostRenameAction.PARAM_HOST_KEY;
-import static google.registry.request.RequestParameters.extractBooleanParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.appengine.api.taskqueue.Queue;
@@ -39,27 +35,7 @@ public final class AsyncFlowsModule {
     return QueueFactory.getQueue(QUEUE_ASYNC_DELETE);
   }
 
-  @Provides
-  @Parameter(PARAM_IS_SUPERUSER)
-  //TODO(b/26140521): Delete this method once non-batched async operations are deleted.
-  static boolean provideIsSuperuser(HttpServletRequest req) {
-    return extractBooleanParameter(req, PARAM_IS_SUPERUSER);
-  }
-
-  @Provides
-  @Parameter(PARAM_REQUESTING_CLIENT_ID)
-  //TODO(b/26140521): Delete this method once non-batched async operations are deleted.
-  static String provideRequestingClientId(HttpServletRequest req) {
-    return extractRequiredParameter(req, PARAM_REQUESTING_CLIENT_ID);
-  }
-
-  @Provides
-  @Parameter(PARAM_RESOURCE_KEY)
-  //TODO(b/26140521): Delete this method once non-batched async operations are deleted.
-  static String provideResourceKey(HttpServletRequest req) {
-    return extractRequiredParameter(req, PARAM_RESOURCE_KEY);
-  }
-
+  //TODO(b/26140521): Delete this method once non-batched DNS host refresh mapreduce is deleted.
   @Provides
   @Parameter(PARAM_HOST_KEY)
   static String provideHostKey(HttpServletRequest req) {

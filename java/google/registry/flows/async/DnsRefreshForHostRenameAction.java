@@ -39,6 +39,7 @@ import org.joda.time.DateTime;
 /**
  * Enqueues DNS refreshes for applicable domains following a host rename.
  */
+//TODO(b/26140521): Delete this once non-batched DNS host refresh mapreduce is deleted.
 @Action(path = "/_dr/task/dnsRefreshForHostRename")
 public class DnsRefreshForHostRenameAction implements Runnable {
 

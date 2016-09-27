@@ -168,11 +168,6 @@ public class TestRegistryConfig implements RegistryConfig {
   }
 
   @Override
-  public Duration getAsyncDeleteFlowMapreduceDelay() {
-    return Duration.standardSeconds(90);
-  }
-
-  @Override
   public Duration getAsyncFlowFailureBackoff() {
     return Duration.standardMinutes(10);
   }
