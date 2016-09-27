@@ -21,7 +21,7 @@ import static google.registry.request.RequestParameters.extractRequiredParameter
 import com.google.common.base.Optional;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.billing.ExpandRecurringBillingEventsAction;
+import google.registry.batch.ExpandRecurringBillingEventsAction;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import javax.servlet.http.HttpServletRequest;

@@ -21,7 +21,7 @@ import google.registry.backup.DeleteOldCommitLogsAction;
 import google.registry.backup.ExportCommitLogDiffAction;
 import google.registry.backup.RestoreCommitLogsAction;
 import google.registry.batch.DeleteProberDataAction;
-import google.registry.billing.ExpandRecurringBillingEventsAction;
+import google.registry.batch.ExpandRecurringBillingEventsAction;
 import google.registry.cron.CommitLogFanoutAction;
 import google.registry.cron.CronModule;
 import google.registry.cron.TldFanoutAction;

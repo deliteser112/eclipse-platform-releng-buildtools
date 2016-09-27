@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.billing;
+package google.registry.batch;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.common.Cursor.CursorType.RECURRING_BILLING;
@@ -96,7 +96,7 @@ public class ExpandRecurringBillingEventsActionTest
         ofy().save().entity(Cursor.createGlobal(RECURRING_BILLING, cursorTime));
       }});
   }
-  
+
   void runMapreduce() throws Exception {
     action.response = new FakeResponse();
     action.run();
@@ -369,7 +369,7 @@ public class ExpandRecurringBillingEventsActionTest
         .setCancellationMatchingBillingEvent(Key.create(recurring))
         .setTargetId(domain.getFullyQualifiedDomainName())
         .build();
-    assertBillingEventsForResource(domain, expected, recurring); 
+    assertBillingEventsForResource(domain, expected, recurring);
     assertCursorAt(clock.nowUtc());
   }
 
@@ -379,7 +379,7 @@ public class ExpandRecurringBillingEventsActionTest
     // Simulate a quick second run of the mapreduce (this should be a no-op).
     saveCursor(clock.nowUtc().minusSeconds(1));
     runMapreduce();
-    assertBillingEventsForResource(domain, recurring); 
+    assertBillingEventsForResource(domain, recurring);
     assertCursorAt(clock.nowUtc());
   }
 
@@ -419,7 +419,7 @@ public class ExpandRecurringBillingEventsActionTest
           .setTargetId(domain.getFullyQualifiedDomainName())
           .build());
     }
-    assertBillingEventsForResource(domain, Iterables.toArray(expectedEvents, BillingEvent.class)); 
+    assertBillingEventsForResource(domain, Iterables.toArray(expectedEvents, BillingEvent.class));
     assertCursorAt(clock.nowUtc());
   }
 
@@ -449,7 +449,7 @@ public class ExpandRecurringBillingEventsActionTest
           .setTargetId(domain.getFullyQualifiedDomainName())
           .build());
     }
-    assertBillingEventsForResource(domain, Iterables.toArray(expectedEvents, BillingEvent.class)); 
+    assertBillingEventsForResource(domain, Iterables.toArray(expectedEvents, BillingEvent.class));
     assertCursorAt(clock.nowUtc());
   }
 
@@ -606,7 +606,7 @@ public class ExpandRecurringBillingEventsActionTest
         .setCancellationMatchingBillingEvent(Key.create(recurring))
         .setTargetId(domain.getFullyQualifiedDomainName())
         .build();
-    assertBillingEventsForResource(domain, expected, recurring); 
+    assertBillingEventsForResource(domain, expected, recurring);
     assertCursorAt(clock.nowUtc());
   }
 
@@ -645,7 +645,7 @@ public class ExpandRecurringBillingEventsActionTest
         .setBillingTime(billingDate.plusYears(1))
         .setEventTime(eventDate.plusYears(1))
         .build();
-    assertBillingEventsForResource(domain, recurring, cheaper, expensive); 
+    assertBillingEventsForResource(domain, recurring, cheaper, expensive);
     assertCursorAt(clock.nowUtc());
   }
 
