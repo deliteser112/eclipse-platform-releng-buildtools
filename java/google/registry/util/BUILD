@@ -33,4 +33,3 @@ java_library(
         "//java/google/registry/config",
     ],
 )
-
