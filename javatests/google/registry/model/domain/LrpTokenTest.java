@@ -86,6 +86,6 @@ public class LrpTokenTest extends EntityTestCase {
 
   @Test
   public void testIndexing() throws Exception {
-    verifyIndexing(redeemedToken, "assignee", "token", "redemptionHistoryEntry");
+    verifyIndexing(redeemedToken, "assignee", "token");
   }
 }

@@ -55,7 +55,6 @@ public class LrpToken extends BackupGroupRoot implements Buildable {
    * The key of the history entry for which the token was used. Given LRP is a domain application
    * phase, this should always be a {@link Type#DOMAIN_APPLICATION_CREATE}.
    */
-  @Index
   Key<HistoryEntry> redemptionHistoryEntry;
   
   public String getToken() {
