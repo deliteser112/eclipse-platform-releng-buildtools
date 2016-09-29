@@ -168,7 +168,9 @@ public abstract class RdapActionBase implements Runnable {
    *
    * @param clazz the type of resource to be queried
    * @param filterField the database field of interest
-   * @param partialStringQuery the details of the search string
+   * @param partialStringQuery the details of the search string; if there is no wildcard, an
+   *        equality query is used; if there is a wildcard, a range query is used instead; there
+   *        should not be a search suffix
    * @param resultSetMaxSize the maximum number of results to return
    * @return the results of the query
    */
@@ -177,12 +179,20 @@ public abstract class RdapActionBase implements Runnable {
       String filterField,
       RdapSearchPattern partialStringQuery,
       int resultSetMaxSize) {
-    checkArgument(partialStringQuery.getHasWildcard(), "search string doesn't have wildcard");
-    return ofy().load()
-        .type(clazz)
-        .filter(filterField + " >=", partialStringQuery.getInitialString())
-        .filter(filterField + " <", partialStringQuery.getNextInitialString())
-        .filter("deletionTime", END_OF_TIME)
-        .limit(resultSetMaxSize);
+    if (!partialStringQuery.getHasWildcard()) {
+      return ofy().load()
+          .type(clazz)
+          .filter(filterField, partialStringQuery.getInitialString())
+          .filter("deletionTime", END_OF_TIME)
+          .limit(resultSetMaxSize);
+    } else {
+      checkArgument(partialStringQuery.getSuffix() == null, "Unexpected search string suffix");
+      return ofy().load()
+          .type(clazz)
+          .filter(filterField + " >=", partialStringQuery.getInitialString())
+          .filter(filterField + " <", partialStringQuery.getNextInitialString())
+          .filter("deletionTime", END_OF_TIME)
+          .limit(resultSetMaxSize);
+    }
   }
 }

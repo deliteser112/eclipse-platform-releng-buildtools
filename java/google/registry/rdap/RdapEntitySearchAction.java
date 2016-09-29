@@ -125,41 +125,29 @@ public class RdapEntitySearchAction extends RdapActionBase {
    */
   private ImmutableList<ImmutableMap<String, Object>>
       searchByName(final RdapSearchPattern partialStringQuery, DateTime now) {
-    // Handle queries without a wildcard -- load by name, which may not be unique.
-    if (!partialStringQuery.getHasWildcard()) {
-      Registrar registrar = Registrar.loadByName(partialStringQuery.getInitialString());
-      return makeSearchResults(
-          ofy().load()
-              .type(ContactResource.class)
-              .filter("searchName", partialStringQuery.getInitialString())
-              .filter("deletionTime", END_OF_TIME)
-              .limit(rdapResultSetMaxSize)
-              .list(),
-          (registrar == null)
-              ? ImmutableList.<Registrar>of() : ImmutableList.of(registrar),
-          now);
-    // Handle queries with a wildcard, but no suffix. For contact resources, the deletion time will
-    // always be END_OF_TIME for non-deleted records; unlike domain resources, we don't need to
-    // worry about deletion times in the future. That allows us to use an equality query for the
-    // deletion time.
-    } else if (partialStringQuery.getSuffix() == null) {
-      return makeSearchResults(
-          ofy().load()
-              .type(ContactResource.class)
-              .filter("searchName >=", partialStringQuery.getInitialString())
-              .filter("searchName <", partialStringQuery.getNextInitialString())
-              .filter("deletionTime", END_OF_TIME)
-              .limit(rdapResultSetMaxSize)
-              .list(),
-          ImmutableList.copyOf(Registrar.loadByNameRange(
-              partialStringQuery.getInitialString(),
-              partialStringQuery.getNextInitialString(),
-              rdapResultSetMaxSize)),
-          now);
     // Don't allow suffixes in entity name search queries.
-    } else {
+    if (!partialStringQuery.getHasWildcard() && (partialStringQuery.getSuffix() != null)) {
       throw new UnprocessableEntityException("Suffixes not allowed in entity name searches");
     }
+    // Get the registrar matches, depending on whether there's a wildcard.
+    ImmutableList<Registrar> registrarMatches;
+    if (!partialStringQuery.getHasWildcard()) {
+      Registrar registrar = Registrar.loadByName(partialStringQuery.getInitialString());
+      registrarMatches = (registrar == null)
+          ? ImmutableList.<Registrar>of()
+          : ImmutableList.of(registrar);
+    } else {
+      registrarMatches = ImmutableList.copyOf(Registrar.loadByNameRange(
+          partialStringQuery.getInitialString(),
+          partialStringQuery.getNextInitialString(),
+          rdapResultSetMaxSize));
+    }
+    // Get the contact matches and return the results.
+    return makeSearchResults(
+      queryUndeleted(
+          ContactResource.class, "searchName", partialStringQuery, rdapResultSetMaxSize).list(),
+      registrarMatches,
+      now);
   }
 
   /** Searches for entities by handle, returning a JSON array of entity info maps. */
