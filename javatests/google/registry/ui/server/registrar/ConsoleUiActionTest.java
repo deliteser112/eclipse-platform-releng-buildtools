@@ -50,6 +50,8 @@ public class ConsoleUiActionTest {
   @Before
   public void setUp() throws Exception {
     action.enabled = true;
+    action.logoFilename = "logo.png";
+    action.productName = "Domain Registry";
     action.response = response;
     action.sessionUtils = sessionUtils;
     action.userService = UserServiceFactory.getUserService();

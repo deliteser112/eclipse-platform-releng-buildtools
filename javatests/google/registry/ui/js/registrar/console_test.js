@@ -51,7 +51,9 @@ function setUp() {
     logoutUrl: 'omg',
     isAdmin: true,
     clientId: test.testClientId,
-    showPaymentLink: false
+    showPaymentLink: false,
+    logoFilename: 'logo.png',
+    productName: 'Domain Registry'
   });
   registry.registrar.ConsoleTestUtil.setup(test);
   var regNavlist = $('reg-navlist');

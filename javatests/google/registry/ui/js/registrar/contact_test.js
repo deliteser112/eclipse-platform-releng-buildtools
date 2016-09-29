@@ -41,7 +41,9 @@ function setUp() {
     logoutUrl: 'omg',
     isAdmin: true,
     clientId: 'daddy',
-    showPaymentLink: false
+    showPaymentLink: false,
+    logoFilename: 'logo.png',
+    productName: 'Domain Registry'
   });
   registry.registrar.ConsoleTestUtil.setup(test);
 }

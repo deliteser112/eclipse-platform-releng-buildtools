@@ -55,7 +55,9 @@ function setUp() {
     isAdmin: true,
     xsrfToken: test.testXsrfToken,
     clientId: test.testClientId,
-    showPaymentLink: false
+    showPaymentLink: false,
+    logoFilename: 'logo.png',
+    productName: 'Domain Registry'
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
   registry.registrar.ConsoleTestUtil.setup(test);

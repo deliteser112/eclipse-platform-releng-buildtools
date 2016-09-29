@@ -47,7 +47,9 @@ function setUp() {
     logoutUrl: 'https://example.com',
     isAdmin: true,
     clientId: 'ignore',
-    showPaymentLink: false
+    showPaymentLink: false,
+    logoFilename: 'logo.png',
+    productName: 'Domain Registry'
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
 

@@ -129,7 +129,7 @@ input#kd-searchfield {
 
 /* Logo */
 a.logo {
-  vertical-align: top;
+  vertical-align: middle;
   font-size: 30px;
   font-weight: 300;
   font-family: "open sans", sans-serif;
@@ -137,12 +137,7 @@ a.logo {
 }
 
 a.logo * {
-  vertical-align: top;
-}
-
-a.logo img {
-  /* Get the baseline of "Google" and "Registry" to line up. */
-  margin-top: 1px;
+  vertical-align: middle;
 }
 
 /* Reg prefix. */

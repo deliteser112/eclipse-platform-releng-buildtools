@@ -81,6 +81,34 @@ public final class ConfigModule {
     return config.getProjectId();
   }
 
+  /** The filename of the logo to be displayed in the header of the registrar console. */
+  @Provides
+  @Config("logoFilename")
+  public static String provideLogoFilename(RegistryEnvironment environment) {
+    switch (environment) {
+      case UNITTEST:
+      case LOCAL:
+        return "logo.png";
+      default:
+        // Change this to the filename of your logo.
+        return "google_registry.png";
+    }
+  }
+
+  /** The product name of this specific registry.  Used throughout the registrar console. */
+  @Provides
+  @Config("productName")
+  public static String provideProductName(RegistryEnvironment environment) {
+    switch (environment) {
+      case UNITTEST:
+      case LOCAL:
+        return "Domain Registry";
+      default:
+        // Change this to the name of your product.
+        return "Google Registry";
+    }
+  }
+
   /** @see RegistryConfig#getZoneFilesBucket() */
   @Provides
   @Config("zoneFilesBucket")

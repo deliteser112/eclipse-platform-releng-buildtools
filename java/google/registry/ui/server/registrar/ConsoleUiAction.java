@@ -58,6 +58,8 @@ public final class ConsoleUiAction implements Runnable {
   @Inject Response response;
   @Inject SessionUtils sessionUtils;
   @Inject UserService userService;
+  @Inject @Config("logoFilename") String logoFilename;
+  @Inject @Config("productName") String productName;
   @Inject @Config("registrarConsoleEnabled") boolean enabled;
   @Inject ConsoleUiAction() {}
 
@@ -66,19 +68,22 @@ public final class ConsoleUiAction implements Runnable {
     response.setContentType(MediaType.HTML_UTF_8);
     response.setHeader(X_FRAME_OPTIONS, "SAMEORIGIN");  // Disallow iframing.
     response.setHeader("X-Ui-Compatible", "IE=edge");  // Ask IE not to be silly.
+    SoyMapData data = new SoyMapData();
+    data.put("logoFilename", logoFilename);
+    data.put("productName", productName);
     if (!enabled) {
       response.setStatus(SC_SERVICE_UNAVAILABLE);
       response.setPayload(
           TOFU_SUPPLIER.get()
               .newRenderer(ConsoleSoyInfo.DISABLED)
               .setCssRenamingMap(CSS_RENAMING_MAP_SUPPLIER.get())
+              .setData(data)
               .render());
       return;
     }
+    data.put("username", userService.getCurrentUser().getNickname());
+    data.put("logoutUrl", userService.createLogoutURL(PATH));
     if (!sessionUtils.checkRegistrarConsoleLogin(req)) {
-      SoyMapData data = new SoyMapData();
-      data.put("username", userService.getCurrentUser().getNickname());
-      data.put("logoutUrl", userService.createLogoutURL(PATH));
       response.setStatus(SC_FORBIDDEN);
       response.setPayload(
           TOFU_SUPPLIER.get()
@@ -89,12 +94,9 @@ public final class ConsoleUiAction implements Runnable {
       return;
     }
     Registrar registrar = Registrar.loadByClientId(sessionUtils.getRegistrarClientId(req));
-    SoyMapData data = new SoyMapData();
     data.put("xsrfToken", XsrfTokenManager.generateToken(EppConsoleAction.XSRF_SCOPE));
     data.put("clientId", registrar.getClientId());
-    data.put("username", userService.getCurrentUser().getNickname());
     data.put("isAdmin", userService.isUserAdmin());
-    data.put("logoutUrl", userService.createLogoutURL(PATH));
     data.put("showPaymentLink", registrar.getBillingMethod() == Registrar.BillingMethod.BRAINTREE);
     response.setPayload(
         TOFU_SUPPLIER.get()

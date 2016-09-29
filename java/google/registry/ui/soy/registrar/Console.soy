@@ -98,13 +98,15 @@
  * Feature disabled
  */
 {template .disabled}
+  {@param logoFilename: string}
+  {@param productName: string}
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Console Disabled' /}
   {/call}
   <div class="{css whoAreYou-disabled}">
     <a class="{css logo}" href="/registrar">
-      <img src="/assets/images/glogo_black.png" alt="Google">Registry
+      <img src="/assets/images/{$logoFilename}" alt="{$productName}">
     </a>
     <h1>Console is disabled</h1>
     <p>
@@ -122,13 +124,15 @@
 {template .whoareyou}
   {@param username: string} /** Arbitrary username to display. */
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
+  {@param logoFilename: string}
+  {@param productName: string}
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Please Login' /}
   {/call}
   <div class="{css whoAreYou}">
     <a class="{css logo}" href="/registrar">
-      <img src="/assets/images/glogo_black.png" alt="Google">Registry
+      <img src="/assets/images/{$logoFilename}" alt="{$productName}">
     </a>
     <h1>You need permission</h1>
     <p>
