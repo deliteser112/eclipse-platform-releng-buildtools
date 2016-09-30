@@ -55,6 +55,7 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.TestExtraLogicManager;
+import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
@@ -616,7 +617,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testSuccess_flags() throws Exception {
     setEppInput("domain_renew_flags.xml");
     persistDomain();
-    thrown.expect(IllegalArgumentException.class, "renewed");
+    thrown.expect(TestExtraLogicManagerSuccessException.class, "renewed");
     runFlow();
   }
 }

@@ -63,6 +63,7 @@ import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.TestExtraLogicManager;
+import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
@@ -769,7 +770,8 @@ public class DomainTransferRequestFlowTest
     setEppInput("domain_transfer_request_flags.xml");
     setupDomain("example", "flags");
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
+    thrown.expect(
+        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
     runFlow();
   }
 }

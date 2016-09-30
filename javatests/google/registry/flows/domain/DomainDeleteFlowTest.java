@@ -57,6 +57,7 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.TestExtraLogicManager;
+import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppcommon.StatusValue;
@@ -707,7 +708,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   public void testSuccess_flags() throws Exception {
     setEppInput("domain_delete_flags.xml");
     setupSuccessfulTest();
-    thrown.expect(IllegalArgumentException.class, "deleted");
+    thrown.expect(TestExtraLogicManagerSuccessException.class, "deleted");
     runFlow();
   }
 }

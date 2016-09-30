@@ -106,6 +106,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.LrpToken;
 import google.registry.model.domain.TestExtraLogicManager;
+import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -1616,7 +1617,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_flags() throws Exception {
     persistContactsAndHosts();
     setEppInput("domain_create_flags.xml", ImmutableMap.of("FEE", "42"));
-    thrown.expect(IllegalArgumentException.class, "flag1,flag2");
+    thrown.expect(TestExtraLogicManagerSuccessException.class, "flag1,flag2");
     runFlow();
   }
 }

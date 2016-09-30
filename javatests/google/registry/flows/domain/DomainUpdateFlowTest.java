@@ -77,6 +77,7 @@ import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.TestExtraLogicManager;
+import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
@@ -1197,7 +1198,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_addremove_flags.xml", ImmutableMap.of("DOMAIN", "update-0"));
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
+    thrown.expect(
+        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
     runFlow();
   }
 
@@ -1219,7 +1221,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         ImmutableMap.of("DOMAIN", "update-0", "FEE", "0.00"));
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
+    thrown.expect(
+        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
     runFlow();
   }
 
@@ -1229,7 +1232,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_addremove_flags.xml", ImmutableMap.of("DOMAIN", "renew-0"));
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
+    thrown.expect(
+        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
     runFlow();
   }
 
@@ -1251,7 +1255,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         ImmutableMap.of("DOMAIN", "renew-0", "FEE", "0.00"));
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
+    thrown.expect(
+        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
     runFlow();
   }
 
@@ -1284,7 +1289,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         ImmutableMap.of("DOMAIN", "update-13", "FEE", "13.00"));
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
+    thrown.expect(
+        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
     runFlow();
   }
 }

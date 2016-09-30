@@ -57,6 +57,7 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.TestExtraLogicManager;
+import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
@@ -556,7 +557,7 @@ public class DomainRestoreRequestFlowTest extends
   public void testSuccess_flags() throws Exception {
     setEppInput("domain_update_restore_request_flags.xml");
     persistPendingDeleteDomain();
-    thrown.expect(IllegalArgumentException.class, "restored");
+    thrown.expect(TestExtraLogicManagerSuccessException.class, "restored");
     runFlow();
   }
 }

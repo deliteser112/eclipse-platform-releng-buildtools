@@ -43,6 +43,19 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
 
   private String messageToThrow = null;
 
+  /**
+   * Dummy exception used to signal success. This is thrown by the commitAdditionalLogicChanges
+   * method to indicate to the test that everything worked properly, because the
+   * TestExtraLogicManager instance used by the flow will have been created deep in the flow and is
+   * not accessible to the test code directly.  We should fix this when we make the extra flow logic
+   * injected.
+   */
+  public static class TestExtraLogicManagerSuccessException extends RuntimeException {
+    TestExtraLogicManagerSuccessException(String message) {
+      super(message);
+    }
+  }
+
   @Override
   public List<String> getExtensionFlags(
       DomainResource domainResource, String clientId, DateTime asOfDate) {
@@ -221,6 +234,6 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   public void commitAdditionalLogicChanges() {
     checkNotNull(messageToThrow);
     // Throw a specific exception as a signal to the test code that we made it through to here.
-    throw new IllegalArgumentException(messageToThrow);
+    throw new TestExtraLogicManagerSuccessException(messageToThrow);
   }
 }
