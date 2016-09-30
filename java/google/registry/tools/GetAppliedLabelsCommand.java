@@ -26,7 +26,6 @@ import com.beust.jcommander.internal.Sets;
 import com.googlecode.objectify.Work;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationStatus;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.Idn;
@@ -40,7 +39,7 @@ import org.joda.time.DateTime;
 
 /** Command to generate a list of all slds in a tld that have open applications. */
 @Parameters(separators = " =", commandDescription = "Generate applied-for domains list")
-final class GetAppliedLabelsCommand implements RemoteApiCommand, GtechCommand {
+final class GetAppliedLabelsCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-t", "--tld"},

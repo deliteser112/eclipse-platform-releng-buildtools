@@ -8,6 +8,6 @@
         <host:addr ip="v6">2001:0db8:85a3:0000:0000:8a2e:0370:7334</host:addr>
       </host:create>
     </create>
-    <clTRID>GTechTool</clTRID>
+    <clTRID>RegistryTool</clTRID>
   </command>
 </epp>

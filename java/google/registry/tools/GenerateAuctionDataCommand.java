@@ -44,7 +44,6 @@ import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarAddress;
 import google.registry.model.registrar.RegistrarContact;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.nio.file.Files;
@@ -64,7 +63,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 /** Command to generate the auction data for a TLD. */
 @Parameters(separators = " =", commandDescription = "Generate auction data")
-final class GenerateAuctionDataCommand implements RemoteApiCommand, GtechCommand {
+final class GenerateAuctionDataCommand implements RemoteApiCommand {
 
   @Parameter(
       description = "TLD(s) to generate auction data for",

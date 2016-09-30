@@ -34,7 +34,6 @@ import google.registry.model.common.GaeUserIdConverter;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.registrar.RegistrarContact.Builder;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.params.OptionalPhoneNumberParameter;
 import google.registry.tools.params.PathParameter;
 import java.io.IOException;
@@ -53,7 +52,7 @@ import javax.annotation.Nullable;
 @Parameters(
     separators = " =",
     commandDescription = "Create/read/update/delete the various contact lists for a Registrar.")
-final class RegistrarContactCommand extends MutatingCommand implements GtechCommand {
+final class RegistrarContactCommand extends MutatingCommand {
 
   private enum Mode { LIST, CREATE, UPDATE, DELETE }
 

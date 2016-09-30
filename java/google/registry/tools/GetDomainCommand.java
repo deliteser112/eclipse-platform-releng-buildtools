@@ -19,12 +19,11 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import google.registry.model.domain.DomainResource;
-import google.registry.tools.Command.GtechCommand;
 import java.util.List;
 
 /** Command to show a domain resource. */
 @Parameters(separators = " =", commandDescription = "Show domain resource(s)")
-final class GetDomainCommand extends GetEppResourceCommand implements GtechCommand {
+final class GetDomainCommand extends GetEppResourceCommand {
 
   @Parameter(
       description = "Fully qualified domain name(s)",

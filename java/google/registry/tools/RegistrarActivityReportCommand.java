@@ -26,7 +26,6 @@ import com.google.api.services.bigquery.model.JobConfigurationExtract;
 import com.google.api.services.bigquery.model.JobConfigurationQuery;
 import com.google.common.collect.ImmutableList;
 import google.registry.bigquery.BigqueryConnection;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.util.SqlTemplate;
 import java.nio.file.Path;
 import org.joda.time.DateTime;
@@ -35,7 +34,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 /** Command for creating a registrar activity report and saving it to cloud storage. */
 @Parameters(separators = " =", commandDescription = "Generates a registrar activity report.")
-final class RegistrarActivityReportCommand implements GtechCommand {
+final class RegistrarActivityReportCommand implements Command {
 
   @ParametersDelegate
   private final BigqueryParameters bigqueryParameters = new BigqueryParameters();

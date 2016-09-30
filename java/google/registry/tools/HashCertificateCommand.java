@@ -21,7 +21,6 @@ import static google.registry.util.X509Utils.loadCertificate;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
-import google.registry.tools.Command.GtechCommand;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.security.cert.CertificateParsingException;
@@ -30,7 +29,7 @@ import java.util.List;
 
 /** Command to hash a client certificate. */
 @Parameters(commandDescription = "Hash a client certificate")
-final class HashCertificateCommand implements GtechCommand {
+final class HashCertificateCommand implements Command {
 
   @Parameter(description = "Certificate filename")
   List<String> mainParameters = new ArrayList<>();

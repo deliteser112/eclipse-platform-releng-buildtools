@@ -30,6 +30,6 @@
         <metadata:requestedByRegistrar>false</metadata:requestedByRegistrar>
       </metadata:metadata>
     </extension>
-    <clTRID>GTechTool</clTRID>
+    <clTRID>RegistryTool</clTRID>
   </command>
 </epp>

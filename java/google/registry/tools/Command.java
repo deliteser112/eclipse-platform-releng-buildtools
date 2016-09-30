@@ -27,9 +27,4 @@ public interface Command {
    * install it as needed.
    */
   public interface RemoteApiCommand extends Command {}
-
-  /**
-   * Marker interface for commands that are gTech safe.
-   */
-  public interface GtechCommand extends Command {}
 }

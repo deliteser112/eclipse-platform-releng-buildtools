@@ -22,14 +22,13 @@ import com.beust.jcommander.Parameters;
 import google.registry.model.billing.RegistrarCredit;
 import google.registry.model.billing.RegistrarCreditBalance;
 import google.registry.model.registrar.Registrar;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.util.SystemClock;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /** Command for creating a new balance for a registrar credit. */
 @Parameters(separators = " =", commandDescription = "Create a new registrar credit balance")
-final class CreateCreditBalanceCommand extends MutatingCommand implements GtechCommand {
+final class CreateCreditBalanceCommand extends MutatingCommand {
 
   @Parameter(
       names = "--registrar",

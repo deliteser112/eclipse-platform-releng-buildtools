@@ -18,14 +18,13 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Multimap;
 import com.google.template.soy.data.SoyMapData;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.soy.DomainCheckFeeSoyInfo;
 import java.util.Collection;
 import java.util.List;
 
 /** A command to execute a domain check fees epp command. */
 @Parameters(separators = " =", commandDescription = "Check domain fees (for a 1-year create)")
-final class DomainCheckFeeCommand extends EppToolCommand implements GtechCommand {
+final class DomainCheckFeeCommand extends EppToolCommand {
 
   @Parameter(
       names = {"-c", "--client"},

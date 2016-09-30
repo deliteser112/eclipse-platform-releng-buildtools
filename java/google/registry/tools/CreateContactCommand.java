@@ -20,7 +20,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.template.soy.data.SoyMapData;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.params.PhoneNumberParameter;
 import google.registry.tools.soy.ContactCreateSoyInfo;
 import java.util.List;
@@ -28,7 +27,7 @@ import javax.inject.Inject;
 
 /** A command to create a new contact via EPP. */
 @Parameters(separators = " =", commandDescription = "Create a new contact via EPP.")
-final class CreateContactCommand extends MutatingEppToolCommand implements GtechCommand {
+final class CreateContactCommand extends MutatingEppToolCommand {
 
   // TODO(b/19016175): Expand to allow full suite of contact flows.
   @Parameter(

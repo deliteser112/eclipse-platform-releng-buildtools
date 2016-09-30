@@ -18,12 +18,11 @@ import static google.registry.model.EppResourceUtils.loadDomainApplication;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import google.registry.tools.Command.GtechCommand;
 import java.util.List;
 
 /** Command to show a domain application. */
 @Parameters(separators = " =", commandDescription = "Show domain application resource(s)")
-final class GetApplicationCommand extends GetEppResourceCommand implements GtechCommand {
+final class GetApplicationCommand extends GetEppResourceCommand {
 
   @Parameter(
       description = "Domain application id(s)",

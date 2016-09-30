@@ -37,7 +37,6 @@ import google.registry.model.smd.SignedMark;
 import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.tmch.TmchXmlSignature;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.Clock;
@@ -53,7 +52,7 @@ import org.joda.time.DateTime;
 
 /** Command to generate a report of all domain applications. */
 @Parameters(separators = " =", commandDescription = "Generate report of all domain applications.")
-final class GenerateApplicationsReportCommand implements RemoteApiCommand, GtechCommand {
+final class GenerateApplicationsReportCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-t", "--tld"},

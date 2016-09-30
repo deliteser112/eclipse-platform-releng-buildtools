@@ -32,7 +32,6 @@ import com.google.common.io.LineReader;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import google.registry.model.domain.LrpToken;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.io.StringReader;
@@ -50,7 +49,7 @@ import javax.inject.Inject;
         + " file of assignees for bulk token creation (using -i). Assignee/token pairs are printed"
         + " to stdout, and should be piped to a file for distribution to assignees or for cleanup"
         + " in the event of a command interruption.")
-public final class CreateLrpTokensCommand implements RemoteApiCommand, GtechCommand {
+public final class CreateLrpTokensCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-a", "--assignee"},

@@ -16,11 +16,10 @@ package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
 import google.registry.model.SchemaVersion;
-import google.registry.tools.Command.GtechCommand;
 
 /** Generates the schema file used for model versioning. */
 @Parameters(commandDescription = "Generate a model schema file")
-final class GetSchemaCommand implements GtechCommand {
+final class GetSchemaCommand implements Command {
   @Override
   public void run() throws Exception {
     System.out.println(SchemaVersion.getSchema());

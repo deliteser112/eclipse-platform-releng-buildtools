@@ -22,7 +22,6 @@ import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.util.DomainNameUtils;
 import google.registry.util.Idn;
 import google.registry.util.NonFinalForTesting;
@@ -36,7 +35,7 @@ import java.util.TreeSet;
 
 /** Command to clean up a set of labels and turn them into punycode. */
 @Parameters(commandDescription = "Canonicalize domain labels")
-final class CanonicalizeLabelsCommand implements Command, GtechCommand {
+final class CanonicalizeLabelsCommand implements Command {
 
   @Parameter(
       description = "Filename of file containing domain labels, one per line",

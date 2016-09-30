@@ -12,6 +12,6 @@
         <launch:phase>claims</launch:phase>
       </launch:check>
     </extension>
-    <clTRID>GTechTool</clTRID>
+    <clTRID>RegistryTool</clTRID>
   </command>
 </epp>

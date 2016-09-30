@@ -15,12 +15,11 @@
 package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.server.ListRegistrarsAction;
 
 /** Command to list all registrars. */
 @Parameters(separators = " =", commandDescription = "List all registrars.")
-final class ListRegistrarsCommand extends ListObjectsCommand implements GtechCommand {
+final class ListRegistrarsCommand extends ListObjectsCommand {
 
   @Override
   String getCommandPath() {

@@ -5,6 +5,6 @@
         <host:name>notours.external</host:name>
       </host:create>
     </create>
-    <clTRID>GTechTool</clTRID>
+    <clTRID>RegistryTool</clTRID>
   </command>
 </epp>

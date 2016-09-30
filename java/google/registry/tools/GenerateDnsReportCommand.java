@@ -30,7 +30,6 @@ import com.google.common.collect.Ordering;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.Clock;
@@ -45,7 +44,7 @@ import org.json.simple.JSONValue;
 
 /** Command to generate a report of all DNS data. */
 @Parameters(separators = " =", commandDescription = "Generate report of all DNS data in a TLD.")
-final class GenerateDnsReportCommand implements RemoteApiCommand, GtechCommand {
+final class GenerateDnsReportCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-t", "--tld"},

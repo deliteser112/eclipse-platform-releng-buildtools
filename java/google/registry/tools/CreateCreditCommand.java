@@ -23,14 +23,13 @@ import google.registry.model.billing.RegistrarCredit;
 import google.registry.model.billing.RegistrarCredit.CreditType;
 import google.registry.model.billing.RegistrarCreditBalance;
 import google.registry.model.registrar.Registrar;
-import google.registry.tools.Command.GtechCommand;
 import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /** Command for creating a registrar credit object with an initial balance. */
 @Parameters(separators = " =", commandDescription = "Create a new registrar credit")
-final class CreateCreditCommand extends MutatingCommand implements GtechCommand {
+final class CreateCreditCommand extends MutatingCommand {
 
   @Parameter(
       names = "--registrar",

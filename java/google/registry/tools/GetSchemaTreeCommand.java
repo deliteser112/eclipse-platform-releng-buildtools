@@ -31,7 +31,6 @@ import com.googlecode.objectify.annotation.Parent;
 import google.registry.model.BackupGroupRoot;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.VirtualEntity;
-import google.registry.tools.Command.GtechCommand;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -42,7 +41,7 @@ import java.util.Set;
 
 /** Visualizes the schema parentage tree. */
 @Parameters(commandDescription = "Generate a model schema file")
-final class GetSchemaTreeCommand implements GtechCommand {
+final class GetSchemaTreeCommand implements Command {
 
   /** Mapping from parent classes in the Datastore sense to child classes. */
   private final Multimap<Class<?>, Class<?>> hierarchy =

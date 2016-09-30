@@ -21,7 +21,6 @@ import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableMap;
 import google.registry.export.PublishDetailReportAction;
 import google.registry.model.registrar.Registrar;
-import google.registry.tools.Command.GtechCommand;
 import java.util.Map;
 
 /**
@@ -29,7 +28,7 @@ import java.util.Map;
  */
 @Parameters(separators = " =", commandDescription = "Publish detail report for a registrar")
 public class PublishDetailReportCommand extends ConfirmingCommand
-    implements ServerSideCommand, GtechCommand {
+    implements ServerSideCommand {
 
   @Parameter(
       names = "--registrar_id",

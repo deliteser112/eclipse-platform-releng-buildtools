@@ -22,7 +22,6 @@ import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.LrpToken;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 
 /** Command to show token information for LRP participants. */
@@ -30,7 +29,7 @@ import google.registry.tools.Command.RemoteApiCommand;
     separators = " =",
     commandDescription = "Show token information for LRP participants by matching on a "
         + "known token or a unique ID (assignee).")
-public final class GetLrpTokenCommand implements RemoteApiCommand, GtechCommand {
+public final class GetLrpTokenCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-t", "--token"},

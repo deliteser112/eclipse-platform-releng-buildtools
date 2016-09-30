@@ -24,7 +24,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.model.registrar.Registrar;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.server.CreateGroupsAction;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ import java.util.List;
  */
 @Parameters(separators = " =", commandDescription = "Create groups for a registrar.")
 public class CreateRegistrarGroupsCommand extends ConfirmingCommand
-    implements ServerSideCommand, GtechCommand {
+    implements ServerSideCommand {
 
   @Parameter(
       description = "Client identifier(s) of the registrar(s) to create groups for",

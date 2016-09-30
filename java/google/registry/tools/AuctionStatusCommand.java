@@ -35,7 +35,6 @@ import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Work;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.nio.file.Files;
@@ -45,7 +44,7 @@ import java.util.List;
 
 /** Command to check the status of domain applications. */
 @Parameters(separators = " =", commandDescription = "Check auction status")
-final class AuctionStatusCommand implements RemoteApiCommand, GtechCommand {
+final class AuctionStatusCommand implements RemoteApiCommand {
 
   @Parameter(
       description = "Domains(s) to check",

@@ -19,6 +19,6 @@
         <metadata:anchorTenant>true</metadata:anchorTenant>
       </metadata:metadata>
     </extension>
-    <clTRID>GTechTool</clTRID>
+    <clTRID>RegistryTool</clTRID>
   </command>
 </epp>

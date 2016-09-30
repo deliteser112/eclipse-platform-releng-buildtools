@@ -21,12 +21,11 @@ import com.beust.jcommander.Parameters;
 import com.google.common.base.Ascii;
 import com.google.template.soy.data.SoyMapData;
 import google.registry.model.domain.launch.LaunchPhase;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.soy.DomainApplicationInfoSoyInfo;
 
 /** A command to execute a domain application info EPP command. */
 @Parameters(separators = " =", commandDescription = "Get domain application EPP info")
-final class DomainApplicationInfoCommand extends EppToolCommand implements GtechCommand {
+final class DomainApplicationInfoCommand extends EppToolCommand {
 
   @Parameter(
       names = {"-c", "--client"},

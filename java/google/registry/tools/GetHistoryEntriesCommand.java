@@ -21,7 +21,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.xml.XmlTransformer;
 import org.joda.time.DateTime;
@@ -29,7 +28,7 @@ import org.joda.time.DateTime;
 /** Command to show history entries. */
 @Parameters(separators = " =",
   commandDescription = "Show history entries that occurred in a given time range")
-final class GetHistoryEntriesCommand implements RemoteApiCommand, GtechCommand {
+final class GetHistoryEntriesCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-a", "--after"},

@@ -15,12 +15,11 @@
 package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.server.ListTldsAction;
 
 /** Command to list all top-level domains. */
 @Parameters(separators = " =", commandDescription = "List all top-level domains.")
-final class ListTldsCommand extends ListObjectsCommand implements GtechCommand {
+final class ListTldsCommand extends ListObjectsCommand {
 
   @Override
   String getCommandPath() {

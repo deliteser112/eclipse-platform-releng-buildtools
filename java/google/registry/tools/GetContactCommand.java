@@ -19,12 +19,11 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import google.registry.model.contact.ContactResource;
-import google.registry.tools.Command.GtechCommand;
 import java.util.List;
 
 /** Command to show one or more contacts. */
 @Parameters(separators = " =", commandDescription = "Show contact resource(s)")
-final class GetContactCommand extends GetEppResourceCommand implements GtechCommand {
+final class GetContactCommand extends GetEppResourceCommand {
 
   @Parameter(
       description = "Contact id(s)",

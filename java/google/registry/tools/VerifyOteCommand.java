@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.server.VerifyOteAction;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,7 +39,7 @@ import java.util.Map.Entry;
 @Parameters(
     separators = " =",
     commandDescription = "Verify passage of OT&E for specified (or all) registrars")
-final class VerifyOteCommand implements ServerSideCommand, GtechCommand {
+final class VerifyOteCommand implements ServerSideCommand {
 
   @Parameter(
       description = "List of registrar names to check; must be the same names as the ones used "

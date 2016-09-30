@@ -20,14 +20,13 @@ import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Ascii;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.util.Idn;
 import java.io.IOException;
 import java.util.List;
 
 /** Command to convert IDN labels to/from punycode. */
 @Parameters(commandDescription = "Convert IDNs to/from punycode")
-final class ConvertIdnCommand implements Command, GtechCommand {
+final class ConvertIdnCommand implements Command {
 
   @Parameter(
       description = "Labels to convert",

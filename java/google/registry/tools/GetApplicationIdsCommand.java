@@ -24,7 +24,6 @@ import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
 import google.registry.model.domain.DomainApplication;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import java.util.List;
 import org.joda.time.DateTime;
@@ -32,7 +31,7 @@ import org.joda.time.DateTime;
 /** Command to generate a list of all applications for a given domain name(s). */
 @Parameters(separators = " =",
     commandDescription = "Generate list of application IDs and sponsors for given domain name(s)")
-final class GetApplicationIdsCommand implements RemoteApiCommand, GtechCommand {
+final class GetApplicationIdsCommand implements RemoteApiCommand {
 
   @Parameter(
       description = "Fully qualified domain name(s)",

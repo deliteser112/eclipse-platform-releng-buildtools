@@ -18,12 +18,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.beust.jcommander.Parameters;
 import google.registry.model.registrar.Registrar;
-import google.registry.tools.Command.GtechCommand;
 
 /** Command to update a Registrar. */
 @Parameters(separators = " =", commandDescription = "Update registrar account(s)")
-final class UpdateRegistrarCommand extends CreateOrUpdateRegistrarCommand
-    implements GtechCommand {
+final class UpdateRegistrarCommand extends CreateOrUpdateRegistrarCommand {
 
   @Override
   Registrar getOldRegistrar(String clientId) {

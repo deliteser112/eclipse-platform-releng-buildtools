@@ -24,6 +24,6 @@
         <fee:fee>40000</fee:fee>
       </fee:create>
     </extension>
-    <clTRID>GTechTool</clTRID>
+    <clTRID>RegistryTool</clTRID>
   </command>
 </epp>

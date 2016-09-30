@@ -6,6 +6,6 @@
         <domain:name>example.tld</domain:name>
       </domain:check>
     </check>
-    <clTRID>GTechTool</clTRID>
+    <clTRID>RegistryTool</clTRID>
   </command>
 </epp>

@@ -26,7 +26,6 @@ import com.beust.jcommander.Parameters;
 import com.google.common.base.Optional;
 import google.registry.flows.TlsCredentials;
 import google.registry.model.registrar.Registrar;
-import google.registry.tools.Command.GtechCommand;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.nio.file.Files;
@@ -35,7 +34,7 @@ import javax.annotation.Nullable;
 
 /** A command to test registrar login credentials. */
 @Parameters(separators = " =", commandDescription = "Test registrar login credentials")
-final class ValidateLoginCredentialsCommand implements RemoteApiCommand, GtechCommand {
+final class ValidateLoginCredentialsCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-c", "--client"},
