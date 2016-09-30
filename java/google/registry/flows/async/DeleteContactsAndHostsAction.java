@@ -40,10 +40,12 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import com.google.appengine.api.taskqueue.LeaseOptions;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskHandle;
+import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -68,8 +70,11 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
+import google.registry.util.Retrier;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.joda.time.DateTime;
@@ -100,6 +105,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
   @Inject MapreduceRunner mrRunner;
   @Inject @Named(QUEUE_ASYNC_DELETE) Queue queue;
   @Inject Response response;
+  @Inject Retrier retrier;
   @Inject DeleteContactsAndHostsAction() {}
 
   @Override
@@ -112,11 +118,19 @@ public class DeleteContactsAndHostsAction implements Runnable {
     }
     Multiset<String> kindCounts = HashMultiset.create(2);
     ImmutableList.Builder<DeletionRequest> builder = new ImmutableList.Builder<>();
+    ImmutableList.Builder<Key<? extends EppResource>> resourceKeys = new ImmutableList.Builder<>();
+    final List<TaskHandle> tasksToDelete = new ArrayList<>();
     for (TaskHandle task : tasks) {
       try {
-        DeletionRequest deletionRequest = DeletionRequest.createFromTask(task, clock.nowUtc());
-        builder.add(deletionRequest);
-        kindCounts.add(deletionRequest.key().getKind());
+        Optional<DeletionRequest> deletionRequest =
+            DeletionRequest.createFromTask(task, clock.nowUtc());
+        if (deletionRequest.isPresent()) {
+          builder.add(deletionRequest.get());
+          resourceKeys.add(deletionRequest.get().key());
+          kindCounts.add(deletionRequest.get().key().getKind());
+        } else {
+          tasksToDelete.add(task);
+        }
       } catch (Exception e) {
         logger.severefmt(
             e, "Could not parse async deletion request, delaying task for a day: %s", task);
@@ -125,11 +139,30 @@ public class DeleteContactsAndHostsAction implements Runnable {
         queue.modifyTaskLease(task, 1L, DAYS);
       }
     }
+    deleteTasksWithRetry(tasksToDelete);
     ImmutableList<DeletionRequest> deletionRequests = builder.build();
-    logger.infofmt(
-        "Processing asynchronous deletion of %d contacts and %d hosts.",
-        kindCounts.count(KIND_CONTACT), kindCounts.count(KIND_HOST));
-    runMapreduce(deletionRequests);
+    if (deletionRequests.isEmpty()) {
+      logger.info("No asynchronous deletions to process because all were already handled.");
+    } else {
+      logger.infofmt(
+          "Processing asynchronous deletion of %d contacts and %d hosts: %s",
+          kindCounts.count(KIND_CONTACT), kindCounts.count(KIND_HOST), resourceKeys.build());
+      runMapreduce(deletionRequests);
+    }
+  }
+
+  /** Deletes a list of tasks from the async delete queue using a retrier. */
+  private void deleteTasksWithRetry(final List<TaskHandle> tasks) {
+    if (tasks.isEmpty()) {
+      return;
+    }
+    retrier.callWithRetry(
+        new Callable<Void>() {
+          @Override
+          public Void call() throws Exception {
+            queue.deleteTask(tasks);
+            return null;
+          }}, TransientFailureException.class);
   }
 
   private void runMapreduce(ImmutableList<DeletionRequest> deletionRequests) {
@@ -210,6 +243,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
       extends Reducer<DeletionRequest, Boolean, Void> {
 
     private static final long serialVersionUID = 6569363449285506326L;
+    private static final DnsQueue dnsQueue = DnsQueue.create();
 
     @Override
     public void reduce(final DeletionRequest deletionRequest, ReducerInput<Boolean> values) {
@@ -237,10 +271,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
       EppResource resource =
           ofy().load().key(deletionRequest.key()).now().cloneProjectedAtTime(now);
       // Double-check transactionally that the resource is still active and in PENDING_DELETE.
-      try {
-        checkResourceStateAllowsDeletion(resource, now);
-      } catch (IllegalStateException e) {
-        logger.severefmt(e, "State of %s does not allow async deletion", deletionRequest.key());
+      if (!doesResourceStateAllowDeletion(resource, now)) {
         return DeletionResult.create(Type.ERRORED, "");
       }
 
@@ -317,7 +348,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
       } else if (existingResource instanceof HostResource) {
         HostResource host = (HostResource) existingResource;
         if (host.getSuperordinateDomain() != null) {
-          DnsQueue.create().addHostRefreshTask(host.getFullyQualifiedHostName());
+          dnsQueue.addHostRefreshTask(host.getFullyQualifiedHostName());
           ofy().save().entity(
               ofy().load().key(host.getSuperordinateDomain()).now().asBuilder()
                   .removeSubordinateHost(host.getFullyQualifiedHostName())
@@ -346,25 +377,30 @@ public class DeleteContactsAndHostsAction implements Runnable {
     abstract boolean isSuperuser();
     abstract TaskHandle task();
 
-    static DeletionRequest createFromTask(TaskHandle task, DateTime now) throws Exception {
+    static Optional<DeletionRequest> createFromTask(TaskHandle task, DateTime now)
+        throws Exception {
       ImmutableMap<String, String> params = ImmutableMap.copyOf(task.extractParams());
-      Key<EppResource> resourceKey = Key.create(
-          checkNotNull(params.get(PARAM_RESOURCE_KEY), "Resource to delete not specified"));
-      EppResource resource = checkNotNull(
-          ofy().load().key(resourceKey).now(), "Resource to delete doesn't exist");
+      Key<EppResource> resourceKey =
+          Key.create(
+              checkNotNull(params.get(PARAM_RESOURCE_KEY), "Resource to delete not specified"));
+      EppResource resource =
+          checkNotNull(ofy().load().key(resourceKey).now(), "Resource to delete doesn't exist");
       checkState(
           resource instanceof ContactResource || resource instanceof HostResource,
           "Cannot delete a %s via this action",
           resource.getClass().getSimpleName());
-      checkResourceStateAllowsDeletion(resource, now);
-      return new AutoValue_DeleteContactsAndHostsAction_DeletionRequest(
-          resourceKey,
-          resource.getUpdateAutoTimestamp().getTimestamp(),
-          checkNotNull(
-              params.get(PARAM_REQUESTING_CLIENT_ID), "Requesting client id not specified"),
-          Boolean.valueOf(
-              checkNotNull(params.get(PARAM_IS_SUPERUSER), "Is superuser not specified")),
-          task);
+      if (!doesResourceStateAllowDeletion(resource, now)) {
+        return Optional.absent();
+      }
+      return Optional.<DeletionRequest>of(
+          new AutoValue_DeleteContactsAndHostsAction_DeletionRequest(
+              resourceKey,
+              resource.getUpdateAutoTimestamp().getTimestamp(),
+              checkNotNull(
+                  params.get(PARAM_REQUESTING_CLIENT_ID), "Requesting client id not specified"),
+              Boolean.valueOf(
+                  checkNotNull(params.get(PARAM_IS_SUPERUSER), "Is superuser not specified")),
+              task));
     }
   }
 
@@ -396,12 +432,16 @@ public class DeleteContactsAndHostsAction implements Runnable {
     }
   }
 
-  static void checkResourceStateAllowsDeletion(EppResource resource, DateTime now) {
+  static boolean doesResourceStateAllowDeletion(EppResource resource, DateTime now) {
     Key<EppResource> key = Key.create(resource);
-    checkState(!isDeleted(resource, now), "Resource %s is already deleted", key);
-    checkState(
-        resource.getStatusValues().contains(PENDING_DELETE),
-        "Resource %s is not set as PENDING_DELETE",
-        key);
+    if (isDeleted(resource, now)) {
+      logger.warningfmt("Cannot asynchronously delete %s because it is already deleted", key);
+      return false;
+    }
+    if (!resource.getStatusValues().contains(PENDING_DELETE)) {
+      logger.warningfmt("Cannot asynchronously delete %s because it is not in PENDING_DELETE", key);
+      return false;
+    }
+    return true;
   }
 }

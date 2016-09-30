@@ -14,7 +14,6 @@
 
 package google.registry.flows.async;
 
-import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
@@ -45,13 +44,17 @@ import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.millis;
+import static org.joda.time.Duration.standardHours;
 import static org.joda.time.Duration.standardSeconds;
 
-import com.google.appengine.api.taskqueue.LeaseOptions;
 import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -80,14 +83,13 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.InjectRule;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.testing.mapreduce.MapreduceTestCase;
 import google.registry.util.Retrier;
 import google.registry.util.Sleeper;
 import google.registry.util.SystemSleeper;
-import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -133,20 +135,13 @@ public class DeleteContactsAndHostsActionTest
     action.clock = clock;
     action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>of(2));
     action.response = new FakeResponse();
+    action.retrier = new Retrier(new FakeSleeper(clock), 1);
     action.queue = getQueue(QUEUE_ASYNC_DELETE);
     inject.setStaticField(Ofy.class, "clock", clock);
 
     createTld("tld");
     clock.advanceOneMilli();
   }
-
-  @After
-  public void after() throws Exception {
-    LeaseOptions options =
-        LeaseOptions.Builder.withCountLimit(maxLeaseCount()).leasePeriod(20, TimeUnit.MINUTES);
-    assertThat(getQueue(QUEUE_ASYNC_DELETE).leaseTasks(options)).isEmpty();
-  }
-
   @Test
   public void testSuccess_contact_referencedByActiveDomain_doesNotGetDeleted() throws Exception {
     ContactResource contact = persistContactPendingDelete("blah8221");
@@ -169,6 +164,7 @@ public class DeleteContactsAndHostsActionTest
         historyEntry,
         "TheRegistrar",
         "Can't delete contact blah8221 because it is referenced by a domain.");
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -199,6 +195,7 @@ public class DeleteContactsAndHostsActionTest
         .hasNullFaxNumber();
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(contactAfterDeletion, CONTACT_DELETE);
     assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted contact jim919.");
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -240,6 +237,7 @@ public class DeleteContactsAndHostsActionTest
     assertThat(panData.getTrid())
         .isEqualTo(Trid.create("transferClient-trid", "transferServer-trid"));
     assertThat(panData.getActionResult()).isFalse();
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -267,19 +265,7 @@ public class DeleteContactsAndHostsActionTest
         .hasType(CONTACT_DELETE);
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(contactBeforeDeletion, CONTACT_DELETE);
     assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted contact blah1234.");
-  }
-
-  @Test
-  public void testFailure_notInPendingDelete() throws Exception {
-    ContactResource contact = persistActiveContact("blah2222");
-    HostResource host = persistActiveHost("rustles.your.jimmies");
-    enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
-    enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
-    runMapreduce();
-    assertThat(loadByForeignKey(ContactResource.class, "blah2222", clock.nowUtc()))
-        .isEqualTo(contact);
-    assertThat(loadByForeignKey(HostResource.class, "rustles.your.jimmies", clock.nowUtc()))
-        .isEqualTo(host);
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -299,6 +285,7 @@ public class DeleteContactsAndHostsActionTest
         historyEntry,
         "OtherRegistrar",
         "Can't delete contact jane0991 because it was transferred prior to deletion.");
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -329,26 +316,64 @@ public class DeleteContactsAndHostsActionTest
         .hasNullFaxNumber();
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(contactAfterDeletion, CONTACT_DELETE);
     assertPollMessageFor(historyEntry, "OtherRegistrar", "Deleted contact nate007.");
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
-  public void testFailure_targetResourcesDontExist() throws Exception {
+  public void testSuccess_targetResourcesDontExist_areDelayedForADay() throws Exception {
     ContactResource contactNotSaved = newContactResource("somecontact");
     HostResource hostNotSaved = newHostResource("a11.blah.foo");
     enqueuer.enqueueAsyncDelete(contactNotSaved, "TheRegistrar", false);
     enqueuer.enqueueAsyncDelete(hostNotSaved, "TheRegistrar", false);
     runMapreduce();
+    String payloadFormat = "resourceKey=%s&requestingClientId=TheRegistrar&isSuperuser=false";
+    assertTasksEnqueued(
+        QUEUE_ASYNC_DELETE,
+        new TaskMatcher()
+            .payload(String.format(payloadFormat, Key.create(contactNotSaved).getString()))
+            .etaDelta(standardHours(23), standardHours(25)),
+        new TaskMatcher()
+            .payload(String.format(payloadFormat, Key.create(hostNotSaved).getString()))
+            .etaDelta(standardHours(23), standardHours(25)));
   }
 
   @Test
-  public void testFailure_alreadyDeleted() throws Exception {
-    ContactResource contactDeleted = persistDeletedContact("blah1236", clock.nowUtc().minusDays(1));
+  public void testSuccess_unparseableTasks_areDelayedForADay() throws Exception {
+    TaskOptions task =
+        TaskOptions.Builder.withMethod(Method.PULL).param("gobbledygook", "kljhadfgsd9f7gsdfh");
+    getQueue(QUEUE_ASYNC_DELETE).add(task);
+    runMapreduce();
+    assertTasksEnqueued(
+        QUEUE_ASYNC_DELETE,
+        new TaskMatcher()
+            .payload("gobbledygook=kljhadfgsd9f7gsdfh")
+            .etaDelta(standardHours(23), standardHours(25)));
+  }
+
+  @Test
+  public void testSuccess_resourcesNotInPendingDelete_areSkipped() throws Exception {
+    ContactResource contact = persistActiveContact("blah2222");
+    HostResource host = persistActiveHost("rustles.your.jimmies");
+    enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
+    runMapreduce();
+    assertThat(loadByForeignKey(ContactResource.class, "blah2222", clock.nowUtc()))
+        .isEqualTo(contact);
+    assertThat(loadByForeignKey(HostResource.class, "rustles.your.jimmies", clock.nowUtc()))
+        .isEqualTo(host);
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
+  }
+
+  @Test
+  public void testSuccess_alreadyDeletedResources_areSkipped() throws Exception {
+    ContactResource contactDeleted = persistDeletedContact("blah1236", clock.nowUtc().minusDays(2));
     HostResource hostDeleted = persistDeletedHost("a.lim.lop", clock.nowUtc().minusDays(3));
     enqueuer.enqueueAsyncDelete(contactDeleted, "TheRegistrar", false);
     enqueuer.enqueueAsyncDelete(hostDeleted, "TheRegistrar", false);
     runMapreduce();
     assertThat(ofy().load().entity(contactDeleted).now()).isEqualTo(contactDeleted);
     assertThat(ofy().load().entity(hostDeleted).now()).isEqualTo(hostDeleted);
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -371,6 +396,7 @@ public class DeleteContactsAndHostsActionTest
         historyEntry,
         "TheRegistrar",
         "Can't delete host ns1.example.tld because it is referenced by a domain.");
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -393,6 +419,7 @@ public class DeleteContactsAndHostsActionTest
         .hasType(HOST_DELETE);
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostBeforeDeletion, HOST_DELETE);
     assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted host ns2.example.tld.");
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -421,6 +448,7 @@ public class DeleteContactsAndHostsActionTest
         .hasType(HOST_DELETE);
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostBeforeDeletion, HOST_DELETE);
     assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted host ns1.example.tld.");
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -459,6 +487,7 @@ public class DeleteContactsAndHostsActionTest
         .hasType(HOST_DELETE);
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostBeforeDeletion, HOST_DELETE);
     assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted host ns2.example.tld.");
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -478,6 +507,7 @@ public class DeleteContactsAndHostsActionTest
         historyEntry,
         "OtherRegistrar",
         "Can't delete host ns2.example.tld because it was transferred prior to deletion.");
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -500,6 +530,7 @@ public class DeleteContactsAndHostsActionTest
         .hasType(HOST_DELETE);
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostBeforeDeletion, HOST_DELETE);
     assertPollMessageFor(historyEntry, "OtherRegistrar", "Deleted host ns66.example.tld.");
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
@@ -527,6 +558,7 @@ public class DeleteContactsAndHostsActionTest
       assertThat(loaded.getDeletionTime()).isEqualTo(END_OF_TIME);
       assertThat(loaded.getStatusValues()).doesNotContain(PENDING_DELETE);
     }
+    assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   private static ContactResource persistContactWithPii(String contactId) {
