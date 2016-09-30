@@ -17,14 +17,15 @@ package google.registry.monitoring.whitebox;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
+import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
-import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -147,10 +148,30 @@ public class VerifyEntityIntegrityActionTest
             .asBuilder()
             .setCreationTimeForTest(now.minusMonths(3))
             .build());
-    persistDeletedContact("ricketycricket", now.minusDays(3));
-    persistDeletedContact("ricketycricket", now.minusDays(2));
-    persistDeletedContact("ricketycricket", now.minusDays(1));
-    persistActiveContact("ricketycricket");
+    DateTime now = DateTime.now(UTC);
+    persistResource(
+        newContactResource("ricketycricket")
+            .asBuilder()
+            .setCreationTimeForTest(now.minusDays(10))
+            .setDeletionTime(now.minusDays(9))
+            .build());
+    persistResource(
+        newContactResource("ricketycricket")
+            .asBuilder()
+            .setCreationTimeForTest(now.minusDays(7))
+            .setDeletionTime(now.minusDays(6))
+            .build());
+    persistResource(
+        newContactResource("ricketycricket")
+            .asBuilder()
+            .setCreationTimeForTest(now.minusDays(4))
+            .setDeletionTime(now.minusDays(3))
+            .build());
+    persistResource(
+        newContactResource("ricketycricket")
+            .asBuilder()
+            .setCreationTimeForTest(now.minusDays(1))
+            .build());
     persistActiveHost("ns9001.example.net");
     runMapreduce();
     verifyZeroInteractions(bigquery);

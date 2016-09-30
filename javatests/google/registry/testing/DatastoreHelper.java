@@ -218,6 +218,7 @@ public class DatastoreHelper {
         .setContactId(contactId)
         .setCurrentSponsorClientId("TheRegistrar")
         .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("2fooBAR")))
+        .setCreationTimeForTest(START_OF_TIME)
         .build();
   }
 
