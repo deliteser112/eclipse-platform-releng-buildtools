@@ -39,6 +39,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Set;
 import javax.inject.Inject;
+import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /**
@@ -150,12 +151,17 @@ public class DomainUpdateFlow extends BaseDomainUpdateFlow<DomainResource, Build
         getClientId(),
         now,
         eppInput);
-    // The fee extension must be present if the update is not free.
-    if ((feeUpdate == null) && !commandOperations.getTotalCost().isZero()) {
+
+    // If the fee extension is present, validate it (even if the cost is zero, to check for price
+    // mismatches). Don't rely on the the validateFeeChallenge check for feeUpdate nullness, because
+    // it throws an error if the name is premium, and we don't want to do that here.
+    Money totalCost = commandOperations.getTotalCost();
+    if (feeUpdate != null) {
+      validateFeeChallenge(targetId, existingResource.getTld(), now, feeUpdate, totalCost);
+    // If it's not present but the cost is not zero, throw an exception.
+    } else if (!totalCost.isZero()) {
       throw new FeesRequiredForNonFreeUpdateException();
     }
-    validateFeeChallenge(
-        targetId, existingResource.getTld(), now, feeUpdate, commandOperations.getTotalCost());
   }
 
   @Override

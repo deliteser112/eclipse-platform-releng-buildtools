@@ -3,7 +3,7 @@
     <update>
       <domain:update
        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name>update-13.flags</domain:name>
+        <domain:name>%DOMAIN%.flags</domain:name>
       </domain:update>
     </update>
     <extension>

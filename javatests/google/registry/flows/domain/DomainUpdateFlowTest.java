@@ -30,6 +30,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
+import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
@@ -107,6 +108,14 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   @Before
   public void initDomainTest() {
     createTlds("tld", "flags");
+    // Super-hack premium list: The domain name has to be of the form feetype-amount for the
+    // test extra logic manager to be happy. So we use domain name "renew-0" to designate a premium
+    // name with a zero-cost update. This has nothing to do with renewals -- we just need to use a
+    // valid fee type.
+    persistResource(
+        Registry.get("flags").asBuilder()
+            .setPremiumList(persistPremiumList("flags", "renew-0,USD 100"))
+            .build());
     // For flags extension tests.
     RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
@@ -1182,18 +1191,21 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     runFlow();
   }
 
+  // This test should work, because the fee extension is not required when the fee is zero.
   @Test
-  public void testAddAndRemoveFlags_noFee() throws Exception {
-    setEppInput("domain_update_addremove_flags.xml");
+  public void testAddAndRemoveFlags_free_noFee() throws Exception {
+    setEppInput("domain_update_addremove_flags.xml", ImmutableMap.of("DOMAIN", "update-0"));
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(FeesRequiredForNonFreeUpdateException.class);
+    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
     runFlow();
   }
 
   @Test
-  public void testAddAndRemoveFlags_wrongFee() throws Exception {
-    setEppInput("domain_update_addremove_flags_fee.xml", ImmutableMap.of("FEE", "11.00"));
+  public void testAddAndRemoveFlags_free_wrongFee() throws Exception {
+    setEppInput(
+        "domain_update_addremove_flags_fee.xml",
+        ImmutableMap.of("DOMAIN", "update-0", "FEE", "1.00"));
     persistReferencedEntities();
     persistDomain();
     thrown.expect(FeesMismatchException.class);
@@ -1201,8 +1213,75 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   @Test
-  public void testAddAndRemoveFlags_correctFee() throws Exception {
-    setEppInput("domain_update_addremove_flags_fee.xml", ImmutableMap.of("FEE", "13.00"));
+  public void testAddAndRemoveFlags_free_correctFee() throws Exception {
+    setEppInput(
+        "domain_update_addremove_flags_fee.xml",
+        ImmutableMap.of("DOMAIN", "update-0", "FEE", "0.00"));
+    persistReferencedEntities();
+    persistDomain();
+    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
+    runFlow();
+  }
+
+  // This should also work, even though the domain is premium (previously, a bug caused it to fail).
+  @Test
+  public void testAddAndRemoveFlags_freePremium_noFee() throws Exception {
+    setEppInput("domain_update_addremove_flags.xml", ImmutableMap.of("DOMAIN", "renew-0"));
+    persistReferencedEntities();
+    persistDomain();
+    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
+    runFlow();
+  }
+
+  @Test
+  public void testAddAndRemoveFlags_freePremium_wrongFee() throws Exception {
+    setEppInput(
+        "domain_update_addremove_flags_fee.xml",
+        ImmutableMap.of("DOMAIN", "renew-0", "FEE", "1.00"));
+    persistReferencedEntities();
+    persistDomain();
+    thrown.expect(FeesMismatchException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testAddAndRemoveFlags_freePremium_correctFee() throws Exception {
+    setEppInput(
+        "domain_update_addremove_flags_fee.xml",
+        ImmutableMap.of("DOMAIN", "renew-0", "FEE", "0.00"));
+    persistReferencedEntities();
+    persistDomain();
+    thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
+    runFlow();
+  }
+
+  // This test should throw an exception, because the fee extension is required when the fee is not
+  // zero.
+  @Test
+  public void testAddAndRemoveFlags_paid_noFee() throws Exception {
+    setEppInput("domain_update_addremove_flags.xml", ImmutableMap.of("DOMAIN", "update-13"));
+    persistReferencedEntities();
+    persistDomain();
+    thrown.expect(FeesRequiredForNonFreeUpdateException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testAddAndRemoveFlags_paid_wrongFee() throws Exception {
+    setEppInput(
+        "domain_update_addremove_flags_fee.xml",
+        ImmutableMap.of("DOMAIN", "update-13", "FEE", "11.00"));
+    persistReferencedEntities();
+    persistDomain();
+    thrown.expect(FeesMismatchException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testAddAndRemoveFlags_paid_correctFee() throws Exception {
+    setEppInput(
+        "domain_update_addremove_flags_fee.xml",
+        ImmutableMap.of("DOMAIN", "update-13", "FEE", "13.00"));
     persistReferencedEntities();
     persistDomain();
     thrown.expect(IllegalArgumentException.class, "add:flag1,flag2;remove:flag3,flag4");
