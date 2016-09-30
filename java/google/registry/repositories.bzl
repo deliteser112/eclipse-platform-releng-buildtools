@@ -14,6 +14,7 @@
 
 """External dependencies for Domain Registry."""
 
+
 def domain_registry_repositories():
 
   native.maven_jar(
