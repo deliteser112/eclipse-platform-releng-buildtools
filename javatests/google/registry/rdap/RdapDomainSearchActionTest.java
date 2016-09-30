@@ -518,16 +518,32 @@ public class RdapDomainSearchActionTest {
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
-  private void createManyDomains(int numActiveDomains, int numTotalDomainsPerActiveDomain) {
+  private void createManyDomainsAndHosts(
+      int numActiveDomains, int numTotalDomainsPerActiveDomain, int numHosts) {
+    ImmutableSet.Builder<Key<HostResource>> hostKeysBuilder = new ImmutableSet.Builder<>();
+    ImmutableSet.Builder<String> subordinateHostsBuilder = new ImmutableSet.Builder<>();
+    String mainDomainName = String.format("domain%d.lol", numTotalDomainsPerActiveDomain);
+    for (int i = 1; i <= numHosts; i++) {
+      String hostName = String.format("ns%d.%s", i, mainDomainName);
+      subordinateHostsBuilder.add(hostName);
+      HostResource host = makeAndPersistHostResource(
+          hostName, String.format("5.5.5.%d", i), clock.nowUtc().minusYears(1));
+      hostKeysBuilder.add(Key.create(host));
+    }
+    ImmutableSet<Key<HostResource>> hostKeys = hostKeysBuilder.build();
     // Create all the domains at once, then persist them in parallel, for increased efficiency.
     ImmutableList.Builder<DomainResource> domainsBuilder = new ImmutableList.Builder<>();
     for (int i = 1; i <= numActiveDomains * numTotalDomainsPerActiveDomain; i++) {
       String domainName = String.format("domain%d.lol", i);
       DomainResource.Builder builder =
           makeDomainResource(
-              domainName, contact1, contact2, contact3, hostNs1CatLol, hostNs2CatLol, registrar)
+              domainName, contact1, contact2, contact3, null, null, registrar)
           .asBuilder()
+          .setNameservers(hostKeys)
           .setCreationTimeForTest(clock.nowUtc().minusYears(3));
+      if (domainName.equals(mainDomainName)) {
+        builder.setSubordinateHosts(subordinateHostsBuilder.build());
+      }
       if (i % numTotalDomainsPerActiveDomain != 0) {
         builder = builder.setDeletionTime(clock.nowUtc().minusDays(1));
       }
@@ -551,7 +567,7 @@ public class RdapDomainSearchActionTest {
   @Test
   public void testDomainMatch_manyDeletedDomains_fullResultSet() throws Exception {
     // There are enough domains to fill a full result set; deleted domains are ignored.
-    createManyDomains(4, 4);
+    createManyDomainsAndHosts(4, 4, 2);
     Object obj = generateActualJson(RequestType.NAME, "domain*.lol");
     assertThat(response.getStatus()).isEqualTo(200);
     checkNumberOfDomainsInResult(obj, 4);
@@ -561,7 +577,7 @@ public class RdapDomainSearchActionTest {
   public void testDomainMatch_manyDeletedDomains_partialResultSetDueToInsufficientDomains()
       throws Exception {
     // There are not enough domains to fill a full result set.
-    createManyDomains(3, 100);
+    createManyDomainsAndHosts(3, 100, 2);
     Object obj = generateActualJson(RequestType.NAME, "domain*.lol");
     assertThat(response.getStatus()).isEqualTo(200);
     checkNumberOfDomainsInResult(obj, 3);
@@ -573,7 +589,7 @@ public class RdapDomainSearchActionTest {
     // This is not exactly desired behavior, but expected: There are enough domains to fill a full
     // result set, but there are so many deleted domains that we run out of patience before we work
     // our way through all of them.
-    createManyDomains(4, 150);
+    createManyDomainsAndHosts(4, 150, 2);
     Object obj = generateActualJson(RequestType.NAME, "domain*.lol");
     assertThat(response.getStatus()).isEqualTo(200);
     checkNumberOfDomainsInResult(obj, 3);
@@ -694,7 +710,8 @@ public class RdapDomainSearchActionTest {
     persistResource(
         hostNs1CatLol.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.lol"))
-        .isEqualTo(generateExpectedJson("No domains found", null, null, "rdap_error_404.json"));
+        .isEqualTo(generateExpectedJson(
+            "No matching nameservers found", null, null, "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
@@ -716,6 +733,37 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(generateExpectedJson(
             "No domain found for specified nameserver suffix", null, null, "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testNameserverMatchManyNameserversForTheSameDomains() throws Exception {
+    // 40 nameservers for each of 3 domains; we should get back all three undeleted domains, because
+    // each one references the nameserver.
+    createManyDomainsAndHosts(3, 1, 40);
+    Object obj = generateActualJson(RequestType.NS_LDH_NAME, "ns1.domain1.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+    checkNumberOfDomainsInResult(obj, 3);
+  }
+
+  @Test
+  public void testNameserverMatchManyNameserversForTheSameDomainsWithWildcard() throws Exception {
+    // Same as above, except with a wildcard (that still only finds one nameserver).
+    createManyDomainsAndHosts(3, 1, 40);
+    Object obj = generateActualJson(RequestType.NS_LDH_NAME, "ns1.domain1.l*");
+    assertThat(response.getStatus()).isEqualTo(200);
+    checkNumberOfDomainsInResult(obj, 3);
+  }
+
+  @Test
+  public void testNameserverMatchManyNameserversForTheSameDomainsWithSuffix() throws Exception {
+    // Same as above, except that we find all 40 nameservers because of the wildcard. But we
+    // should still only return 3 domains, because we merge duplicate domains together in a set.
+    // Since we fetch domains by nameserver in batches of 30 nameservers, we need to make sure to
+    // have more than that number of nameservers for an effective test.
+    createManyDomainsAndHosts(3, 1, 40);
+    Object obj = generateActualJson(RequestType.NS_LDH_NAME, "ns*.domain1.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+    checkNumberOfDomainsInResult(obj, 3);
   }
 
   @Test
