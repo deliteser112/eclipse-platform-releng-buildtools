@@ -168,8 +168,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "fastutil",
-      artifact = "it.unimi.dsi:fastutil:6.4.3",
-      sha1 = "634ae8b497f0326136fd4995618207e48989623b",
+      artifact = "it.unimi.dsi:fastutil:6.5.16",
+      sha1 = "cc0df01620c4bef9e89123e0a5c3c226bdb36ea0",
   )
 
   native.maven_jar(
