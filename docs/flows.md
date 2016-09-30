@@ -8,20 +8,20 @@ An EPP flow that updates a contact.
 
 ### Errors
 
--   2004
-   -   The specified status value cannot be set by clients.
--   2005
-   -   Internationalized postal infos can only contain ASCII characters.
--   2201
-   -   The specified resource belongs to another client.
--   2303
-   -   Resource with this id does not exist.
--   2304
-   -   This resource has clientUpdateProhibited on it, and the update does not clear that status.
-   -   Resource status prohibits this operation.
--   2306
-   -   Cannot add and remove the same value.
-   -   Declining contact disclosure is disallowed by server policy.
+*   2004
+    *   The specified status value cannot be set by clients.
+*   2005
+    *   Internationalized postal infos can only contain ASCII characters.
+*   2201
+    *   The specified resource belongs to another client.
+*   2303
+    *   Resource with this id does not exist.
+*   2304
+    *   This resource has clientUpdateProhibited on it, and the update does not clear that status.
+    *   Resource status prohibits this operation.
+*   2306
+    *   Cannot add and remove the same value.
+    *   Declining contact disclosure is disallowed by server policy.
 
 ## ContactTransferRequestFlow
 
@@ -37,16 +37,16 @@ request.
 
 ### Errors
 
--   2002
-   -   Registrar already sponsors the object of this transfer request.
--   2201
-   -   Authorization info is required to request a transfer.
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2300
-   -   The resource is already pending transfer.
--   2303
-   -   Resource with this id does not exist.
+*   2002
+    *   Registrar already sponsors the object of this transfer request.
+*   2201
+    *   Authorization info is required to request a transfer.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2300
+    *   The resource is already pending transfer.
+*   2303
+    *   Resource with this id does not exist.
 
 ## ContactTransferRejectFlow
 
@@ -61,14 +61,14 @@ reject the transfer request.
 
 ### Errors
 
--   2201
-   -   The specified resource belongs to another client.
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2301
-   -   The resource does not have a pending transfer.
--   2303
-   -   Resource with this id does not exist.
+*   2201
+    *   The specified resource belongs to another client.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2301
+    *   The resource does not have a pending transfer.
+*   2303
+    *   Resource with this id does not exist.
 
 ## ContactTransferQueryFlow
 
@@ -85,14 +85,14 @@ period expiring.
 
 ### Errors
 
--   2002
-   -   Object has no transfer history.
--   2201
-   -   Registrar is not authorized to view transfer status.
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2303
-   -   Resource with this id does not exist.
+*   2002
+    *   Object has no transfer history.
+*   2201
+    *   Registrar is not authorized to view transfer status.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2303
+    *   Resource with this id does not exist.
 
 ## ContactTransferCancelFlow
 
@@ -107,14 +107,14 @@ withdraw the transfer request.
 
 ### Errors
 
--   2201
-   -   Registrar is not the initiator of this transfer.
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2301
-   -   The resource does not have a pending transfer.
--   2303
-   -   Resource with this id does not exist.
+*   2201
+    *   Registrar is not the initiator of this transfer.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2301
+    *   The resource does not have a pending transfer.
+*   2303
+    *   Resource with this id does not exist.
 
 ## ContactTransferApproveFlow
 
@@ -129,14 +129,14 @@ explicitly approve the transfer request, which then becomes effective immediatel
 
 ### Errors
 
--   2201
-   -   The specified resource belongs to another client.
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2301
-   -   The resource does not have a pending transfer.
--   2303
-   -   Resource with this id does not exist.
+*   2201
+    *   The specified resource belongs to another client.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2301
+    *   The resource does not have a pending transfer.
+*   2303
+    *   Resource with this id does not exist.
 
 ## ContactInfoFlow
 
@@ -151,8 +151,8 @@ visible to the registrar that owns the contact or to a registrar that already su
 
 ### Errors
 
--   2303
-   -   Resource with this id does not exist.
+*   2303
+    *   Resource with this id does not exist.
 
 ## ContactDeleteFlow
 
@@ -168,14 +168,14 @@ with the success or failure message when the process is complete.
 
 ### Errors
 
--   2201
-   -   The specified resource belongs to another client.
--   2303
-   -   Resource with this id does not exist.
--   2304
-   -   Resource status prohibits this operation.
--   2305
-   -   Resource to be deleted has active incoming references.
+*   2201
+    *   The specified resource belongs to another client.
+*   2303
+    *   Resource with this id does not exist.
+*   2304
+    *   Resource status prohibits this operation.
+*   2305
+    *   Resource to be deleted has active incoming references.
 
 ## ContactCreateFlow
 
@@ -185,12 +185,12 @@ An EPP flow that creates a new contact.
 
 ### Errors
 
--   2005
-   -   Internationalized postal infos can only contain ASCII characters.
--   2302
-   -   Resource with this id already exists.
--   2306
-   -   Declining contact disclosure is disallowed by server policy.
+*   2005
+    *   Internationalized postal infos can only contain ASCII characters.
+*   2302
+    *   Resource with this id already exists.
+*   2306
+    *   Declining contact disclosure is disallowed by server policy.
 
 ## ContactCheckFlow
 
@@ -202,8 +202,8 @@ This flows can check the existence of multiple contacts simultaneously.
 
 ### Errors
 
--   2306
-   -   Too many resource checks requested in one check command.
+*   2306
+    *   Too many resource checks requested in one check command.
 
 ## DomainUpdateFlow
 
@@ -213,40 +213,40 @@ An EPP flow that updates a domain resource.
 
 ### Errors
 
--   2003
-   -   At least one of 'add' or 'rem' is required on a secDNS update.
-   -   Fees must be explicitly acknowledged when performing an update which is not free.
-   -   Admin contact is required.
-   -   Technical contact is required.
--   2004
-   -   The specified status value cannot be set by clients.
-   -   The fees passed in the transform command do not match the fees that will be charged.
--   2102
-   -   Changing 'maxSigLife' is not supported.
-   -   The 'urgent' attribute is not supported.
--   2103
-   -   Specified extension is not implemented.
--   2201
-   -   Only a tool can pass a metadata extension.
-   -   Registrar is not authorized to access this TLD.
-   -   The specified resource belongs to another client.
--   2303
-   -   Resource with this id does not exist.
-   -   Resource linked to this domain does not exist.
--   2304
-   -   This resource has clientUpdateProhibited on it, and the update does not clear that status.
-   -   Resource status prohibits this operation.
-   -   Linked resource in pending delete prohibits operation.
-   -   Nameservers are not whitelisted for this TLD.
-   -   Nameservers not specified for this TLD with whitelist.
-   -   Registrant is not whitelisted for this TLD.
--   2306
-   -   Cannot add and remove the same value.
-   -   The secDNS:all element must have value 'true' if present.
-   -   More than one contact for a given role is not allowed.
-   -   Missing type attribute for contact.
-   -   Too many DS records set on a domain.
-   -   Too many nameservers set on this domain.
+*   2003
+    *   At least one of 'add' or 'rem' is required on a secDNS update.
+    *   Fees must be explicitly acknowledged when performing an update which is not free.
+    *   Admin contact is required.
+    *   Technical contact is required.
+*   2004
+    *   The specified status value cannot be set by clients.
+    *   The fees passed in the transform command do not match the fees that will be charged.
+*   2102
+    *   Changing 'maxSigLife' is not supported.
+    *   The 'urgent' attribute is not supported.
+*   2103
+    *   Specified extension is not implemented.
+*   2201
+    *   Only a tool can pass a metadata extension.
+    *   Registrar is not authorized to access this TLD.
+    *   The specified resource belongs to another client.
+*   2303
+    *   Resource with this id does not exist.
+    *   Resource linked to this domain does not exist.
+*   2304
+    *   This resource has clientUpdateProhibited on it, and the update does not clear that status.
+    *   Resource status prohibits this operation.
+    *   Linked resource in pending delete prohibits operation.
+    *   Nameservers are not whitelisted for this TLD.
+    *   Nameservers not specified for this TLD with whitelist.
+    *   Registrant is not whitelisted for this TLD.
+*   2306
+    *   Cannot add and remove the same value.
+    *   The secDNS:all element must have value 'true' if present.
+    *   More than one contact for a given role is not allowed.
+    *   Missing type attribute for contact.
+    *   Too many DS records set on a domain.
+    *   Too many nameservers set on this domain.
 
 ## DomainTransferRequestFlow
 
@@ -268,32 +268,32 @@ replaced with new ones with the correct approval time).
 
 ### Errors
 
--   2002
-   -   Registrar already sponsors the object of this transfer request.
--   2003
-   -   Fees must be explicitly acknowledged when performing any operations on a premium name.
--   2004
-   -   The fees passed in the transform command do not match the fees that will be charged.
--   2005
-   -   The requested fee is expressed in a scale that is invalid for the given currency.
--   2102
-   -   The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy.
--   2201
-   -   Authorization info is required to request a transfer.
-   -   Registrar is not authorized to access this TLD.
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2300
-   -   The resource is already pending transfer.
--   2303
-   -   Resource with this id does not exist.
--   2304
-   -   Resource status prohibits this operation.
-   -   The requested domain name is on the premium price list, and this registrar has blocked premium
+*   2002
+    *   Registrar already sponsors the object of this transfer request.
+*   2003
+    *   Fees must be explicitly acknowledged when performing any operations on a premium name.
+*   2004
+    *   The fees passed in the transform command do not match the fees that will be charged.
+*   2005
+    *   The requested fee is expressed in a scale that is invalid for the given currency.
+*   2102
+    *   The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy.
+*   2201
+    *   Authorization info is required to request a transfer.
+    *   Registrar is not authorized to access this TLD.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2300
+    *   The resource is already pending transfer.
+*   2303
+    *   Resource with this id does not exist.
+*   2304
+    *   Resource status prohibits this operation.
+    *   The requested domain name is on the premium price list, and this registrar has blocked premium
 registrations.
--   2306
-   -   Periods for domain registrations must be specified in years.
-   -   The requested fees cannot be provided in the requested currency.
+*   2306
+    *   Periods for domain registrations must be specified in years.
+    *   The requested fees cannot be provided in the requested currency.
 
 ## DomainTransferRejectFlow
 
@@ -312,15 +312,15 @@ those speculative objects are deleted.
 
 ### Errors
 
--   2201
-   -   The specified resource belongs to another client.
-   -   Registrar is not authorized to access this TLD.
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2301
-   -   The resource does not have a pending transfer.
--   2303
-   -   Resource with this id does not exist.
+*   2201
+    *   The specified resource belongs to another client.
+    *   Registrar is not authorized to access this TLD.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2301
+    *   The resource does not have a pending transfer.
+*   2303
+    *   Resource with this id does not exist.
 
 ## DomainTransferQueryFlow
 
@@ -337,14 +337,14 @@ period expiring.
 
 ### Errors
 
--   2002
-   -   Object has no transfer history.
--   2201
-   -   Registrar is not authorized to view transfer status.
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2303
-   -   Resource with this id does not exist.
+*   2002
+    *   Object has no transfer history.
+*   2201
+    *   Registrar is not authorized to view transfer status.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2303
+    *   Resource with this id does not exist.
 
 ## DomainTransferCancelFlow
 
@@ -363,15 +363,15 @@ those speculative objects are deleted.
 
 ### Errors
 
--   2201
-   -   Registrar is not the initiator of this transfer.
-   -   Registrar is not authorized to access this TLD.
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2301
-   -   The resource does not have a pending transfer.
--   2303
-   -   Resource with this id does not exist.
+*   2201
+    *   Registrar is not the initiator of this transfer.
+    *   Registrar is not authorized to access this TLD.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2301
+    *   The resource does not have a pending transfer.
+*   2303
+    *   Resource with this id does not exist.
 
 ## DomainTransferApproveFlow
 
@@ -390,15 +390,15 @@ those speculative objects are deleted and replaced with new ones with the correc
 
 ### Errors
 
--   2201
-   -   The specified resource belongs to another client.
-   -   Registrar is not authorized to access this TLD.
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2301
-   -   The resource does not have a pending transfer.
--   2303
-   -   Resource with this id does not exist.
+*   2201
+    *   The specified resource belongs to another client.
+    *   Registrar is not authorized to access this TLD.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2301
+    *   The resource does not have a pending transfer.
+*   2303
+    *   Resource with this id does not exist.
 
 ## DomainRestoreRequestFlow
 
@@ -425,30 +425,30 @@ original expiration time was.
 
 ### Errors
 
--   2002
-   -   Restore command cannot have other changes specified.
--   2003
-   -   Fees must be explicitly acknowledged when performing any operations on a premium name.
--   2004
-   -   The fees passed in the transform command do not match the fees that will be charged.
--   2005
-   -   The requested fee is expressed in a scale that is invalid for the given currency.
--   2102
-   -   The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy.
--   2103
-   -   Specified extension is not implemented.
--   2201
-   -   The specified resource belongs to another client.
-   -   Registrar is not authorized to access this TLD.
--   2303
-   -   Resource with this id does not exist.
--   2304
-   -   Requested domain is reserved.
-   -   The requested domain name is on the premium price list, and this registrar has blocked premium
+*   2002
+    *   Restore command cannot have other changes specified.
+*   2003
+    *   Fees must be explicitly acknowledged when performing any operations on a premium name.
+*   2004
+    *   The fees passed in the transform command do not match the fees that will be charged.
+*   2005
+    *   The requested fee is expressed in a scale that is invalid for the given currency.
+*   2102
+    *   The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy.
+*   2103
+    *   Specified extension is not implemented.
+*   2201
+    *   The specified resource belongs to another client.
+    *   Registrar is not authorized to access this TLD.
+*   2303
+    *   Resource with this id does not exist.
+*   2304
+    *   Requested domain is reserved.
+    *   The requested domain name is on the premium price list, and this registrar has blocked premium
 registrations.
-   -   Domain is not eligible for restore.
--   2306
-   -   The requested fees cannot be provided in the requested currency.
+    *   Domain is not eligible for restore.
+*   2306
+    *   The requested fees cannot be provided in the requested currency.
 
 ## DomainRenewFlow
 
@@ -468,28 +468,28 @@ expired.
 
 ### Errors
 
--   2003
-   -   Fees must be explicitly acknowledged when performing any operations on a premium name.
--   2004
-   -   The fees passed in the transform command do not match the fees that will be charged.
-   -   New registration period exceeds maximum number of years.
-   -   The current expiration date is incorrect.
--   2005
-   -   The requested fee is expressed in a scale that is invalid for the given currency.
--   2102
-   -   The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy.
--   2201
-   -   The specified resource belongs to another client.
-   -   Registrar is not authorized to access this TLD.
--   2300
-   -   The domain has a pending transfer on it and so can't be explicitly renewed.
--   2303
-   -   Resource with this id does not exist.
--   2304
-   -   Resource status prohibits this operation.
--   2306
-   -   Periods for domain registrations must be specified in years.
-   -   The requested fees cannot be provided in the requested currency.
+*   2003
+    *   Fees must be explicitly acknowledged when performing any operations on a premium name.
+*   2004
+    *   The fees passed in the transform command do not match the fees that will be charged.
+    *   New registration period exceeds maximum number of years.
+    *   The current expiration date is incorrect.
+*   2005
+    *   The requested fee is expressed in a scale that is invalid for the given currency.
+*   2102
+    *   The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy.
+*   2201
+    *   The specified resource belongs to another client.
+    *   Registrar is not authorized to access this TLD.
+*   2300
+    *   The domain has a pending transfer on it and so can't be explicitly renewed.
+*   2303
+    *   Resource with this id does not exist.
+*   2304
+    *   Resource status prohibits this operation.
+*   2306
+    *   Periods for domain registrations must be specified in years.
+    *   The requested fees cannot be provided in the requested currency.
 
 ## DomainInfoFlow
 
@@ -503,15 +503,15 @@ answered with a minimal result containing only basic information about the domai
 
 ### Errors
 
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2303
-   -   Resource with this id does not exist.
--   2306
-   -   Periods for domain registrations must be specified in years.
-   -   The requested fees cannot be provided in the requested currency.
-   -   Fee checks for command phases and subphases are not supported.
-   -   Restores always renew a domain for one year.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2303
+    *   Resource with this id does not exist.
+*   2306
+    *   Periods for domain registrations must be specified in years.
+    *   The requested fees cannot be provided in the requested currency.
+    *   Fee checks for command phases and subphases are not supported.
+    *   Restores always renew a domain for one year.
 
 ## DomainDeleteFlow
 
@@ -521,16 +521,16 @@ An EPP flow that deletes a domain.
 
 ### Errors
 
--   2201
-   -   The specified resource belongs to another client.
-   -   Only a tool can pass a metadata extension.
-   -   Registrar is not authorized to access this TLD.
--   2303
-   -   Resource with this id does not exist.
--   2304
-   -   Resource status prohibits this operation.
--   2305
-   -   Domain to be deleted has subordinate hosts.
+*   2201
+    *   The specified resource belongs to another client.
+    *   Only a tool can pass a metadata extension.
+    *   Registrar is not authorized to access this TLD.
+*   2303
+    *   Resource with this id does not exist.
+*   2304
+    *   Resource status prohibits this operation.
+*   2305
+    *   Domain to be deleted has subordinate hosts.
 
 ## DomainCreateFlow
 
@@ -540,67 +540,67 @@ An EPP flow that creates a new domain resource.
 
 ### Errors
 
--   2002
-   -   Service extension(s) must be declared at login.
-   -   Command is not allowed in the current registry phase.
-   -   Signed marks are not accepted in the current registry phase.
-   -   The current registry phase does not allow for general registrations.
--   2003
-   -   Fees must be explicitly acknowledged when performing any operations on a premium name.
-   -   Admin contact is required.
-   -   Registrant is required.
-   -   Technical contact is required.
--   2004
-   -   The acceptance time specified in the claim notice is more than 48 hours in the past.
-   -   The expiration time specified in the claim notice has elapsed.
-   -   The checksum in the specified TCNID does not validate.
-   -   The fees passed in the transform command do not match the fees that will be charged.
-   -   Domain label is not allowed by IDN table.
-   -   Domain name is under tld which doesn't exist.
--   2005
-   -   The specified TCNID is invalid.
-   -   Domain name must have exactly one part above the tld.
-   -   The requested fee is expressed in a scale that is invalid for the given currency.
--   2102
-   -   The 'maxSigLife' setting is not supported.
-   -   The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy.
--   2103
-   -   Specified extension is not implemented.
--   2201
-   -   Only a tool can pass a metadata extension.
-   -   Registrar is not authorized to access this TLD.
--   2302
-   -   Resource with this id already exists.
--   2303
-   -   Resource linked to this domain does not exist.
--   2304
-   -   The claims period for this TLD has ended.
-   -   Requested domain requires a claims notice.
-   -   Requested domain does not require a claims notice.
-   -   Requested domain is reserved.
-   -   Linked resource in pending delete prohibits operation.
-   -   Nameservers are not whitelisted for this TLD.
-   -   Nameservers not specified for this TLD with whitelist.
-   -   The requested domain name is on the premium price list, and this registrar has blocked premium
+*   2002
+    *   Service extension(s) must be declared at login.
+    *   Command is not allowed in the current registry phase.
+    *   Signed marks are not accepted in the current registry phase.
+    *   The current registry phase does not allow for general registrations.
+*   2003
+    *   Fees must be explicitly acknowledged when performing any operations on a premium name.
+    *   Admin contact is required.
+    *   Registrant is required.
+    *   Technical contact is required.
+*   2004
+    *   The acceptance time specified in the claim notice is more than 48 hours in the past.
+    *   The expiration time specified in the claim notice has elapsed.
+    *   The checksum in the specified TCNID does not validate.
+    *   The fees passed in the transform command do not match the fees that will be charged.
+    *   Domain label is not allowed by IDN table.
+    *   Domain name is under tld which doesn't exist.
+*   2005
+    *   The specified TCNID is invalid.
+    *   Domain name must have exactly one part above the tld.
+    *   The requested fee is expressed in a scale that is invalid for the given currency.
+*   2102
+    *   The 'maxSigLife' setting is not supported.
+    *   The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy.
+*   2103
+    *   Specified extension is not implemented.
+*   2201
+    *   Only a tool can pass a metadata extension.
+    *   Registrar is not authorized to access this TLD.
+*   2302
+    *   Resource with this id already exists.
+*   2303
+    *   Resource linked to this domain does not exist.
+*   2304
+    *   The claims period for this TLD has ended.
+    *   Requested domain requires a claims notice.
+    *   Requested domain does not require a claims notice.
+    *   Requested domain is reserved.
+    *   Linked resource in pending delete prohibits operation.
+    *   Nameservers are not whitelisted for this TLD.
+    *   Nameservers not specified for this TLD with whitelist.
+    *   The requested domain name is on the premium price list, and this registrar has blocked premium
 registrations.
-   -   Registrant is not whitelisted for this TLD.
-   -   There is an open application for this domain.
--   2306
-   -   The specified trademark validator is not supported.
-   -   Only encoded signed marks are supported.
-   -   Domain names can only contain a-z, 0-9, '.' and '-'.
-   -   Periods for domain registrations must be specified in years.
-   -   The requested fees cannot be provided in the requested currency.
-   -   Non-IDN domain names cannot contain hyphens in the third or fourth position.
-   -   Domain labels cannot be longer than 63 characters.
-   -   More than one contact for a given role is not allowed.
-   -   No part of a domain name can be empty.
-   -   Domain name starts with xn-- but is not a valid IDN.
-   -   Domain labels cannot begin with a dash.
-   -   Missing type attribute for contact.
-   -   Too many DS records set on a domain.
-   -   Too many nameservers set on this domain.
-   -   Domain labels cannot end with a dash.
+    *   Registrant is not whitelisted for this TLD.
+    *   There is an open application for this domain.
+*   2306
+    *   The specified trademark validator is not supported.
+    *   Only encoded signed marks are supported.
+    *   Domain names can only contain a-z, 0-9, '.' and '-'.
+    *   Periods for domain registrations must be specified in years.
+    *   The requested fees cannot be provided in the requested currency.
+    *   Non-IDN domain names cannot contain hyphens in the third or fourth position.
+    *   Domain labels cannot be longer than 63 characters.
+    *   More than one contact for a given role is not allowed.
+    *   No part of a domain name can be empty.
+    *   Domain name starts with xn-- but is not a valid IDN.
+    *   Domain labels cannot begin with a dash.
+    *   Missing type attribute for contact.
+    *   Too many DS records set on a domain.
+    *   Too many nameservers set on this domain.
+    *   Domain labels cannot end with a dash.
 
 ## DomainCheckFlow
 
@@ -612,28 +612,28 @@ This flow also supports the EPP fee extension and can return pricing information
 
 ### Errors
 
--   2004
-   -   Domain label is not allowed by IDN table.
-   -   Domain name is under tld which doesn't exist.
--   2005
-   -   Domain name must have exactly one part above the tld.
--   2201
-   -   Registrar is not authorized to access this TLD.
--   2306
-   -   Too many resource checks requested in one check command.
-   -   Domain names can only contain a-z, 0-9, '.' and '-'.
-   -   Periods for domain registrations must be specified in years.
-   -   The requested fees cannot be provided in the requested currency.
-   -   Non-IDN domain names cannot contain hyphens in the third or fourth position.
-   -   Domain labels cannot be longer than 63 characters.
-   -   No part of a domain name can be empty.
-   -   Fee checks for command phases and subphases are not supported.
-   -   Domain name starts with xn-- but is not a valid IDN.
-   -   Domain labels cannot begin with a dash.
-   -   Restores always renew a domain for one year.
-   -   Domain labels cannot end with a dash.
-   -   Unknown fee command name.
-   -   By server policy, fee check names must be listed in the availability check.
+*   2004
+    *   Domain label is not allowed by IDN table.
+    *   Domain name is under tld which doesn't exist.
+*   2005
+    *   Domain name must have exactly one part above the tld.
+*   2201
+    *   Registrar is not authorized to access this TLD.
+*   2306
+    *   Too many resource checks requested in one check command.
+    *   Domain names can only contain a-z, 0-9, '.' and '-'.
+    *   Periods for domain registrations must be specified in years.
+    *   The requested fees cannot be provided in the requested currency.
+    *   Non-IDN domain names cannot contain hyphens in the third or fourth position.
+    *   Domain labels cannot be longer than 63 characters.
+    *   No part of a domain name can be empty.
+    *   Fee checks for command phases and subphases are not supported.
+    *   Domain name starts with xn-- but is not a valid IDN.
+    *   Domain labels cannot begin with a dash.
+    *   Restores always renew a domain for one year.
+    *   Domain labels cannot end with a dash.
+    *   Unknown fee command name.
+    *   By server policy, fee check names must be listed in the availability check.
 
 ## DomainApplicationUpdateFlow
 
@@ -643,36 +643,36 @@ An EPP flow that updates a domain resource.
 
 ### Errors
 
--   2003
-   -   At least one of 'add' or 'rem' is required on a secDNS update.
-   -   Admin contact is required.
-   -   Technical contact is required.
--   2004
-   -   The specified status value cannot be set by clients.
--   2102
-   -   Changing 'maxSigLife' is not supported.
-   -   The 'urgent' attribute is not supported.
--   2103
-   -   Specified extension is not implemented.
--   2201
-   -   Registrar is not authorized to access this TLD.
-   -   The specified resource belongs to another client.
--   2303
-   -   Resource with this id does not exist.
-   -   Resource linked to this domain does not exist.
--   2304
-   -   This resource has clientUpdateProhibited on it, and the update does not clear that status.
-   -   Resource status prohibits this operation.
-   -   Nameservers are not whitelisted for this TLD.
-   -   Registrant is not whitelisted for this TLD.
-   -   Application status prohibits this domain update.
--   2306
-   -   Cannot add and remove the same value.
-   -   The secDNS:all element must have value 'true' if present.
-   -   More than one contact for a given role is not allowed.
-   -   Missing type attribute for contact.
-   -   Too many DS records set on a domain.
-   -   Too many nameservers set on this domain.
+*   2003
+    *   At least one of 'add' or 'rem' is required on a secDNS update.
+    *   Admin contact is required.
+    *   Technical contact is required.
+*   2004
+    *   The specified status value cannot be set by clients.
+*   2102
+    *   Changing 'maxSigLife' is not supported.
+    *   The 'urgent' attribute is not supported.
+*   2103
+    *   Specified extension is not implemented.
+*   2201
+    *   Registrar is not authorized to access this TLD.
+    *   The specified resource belongs to another client.
+*   2303
+    *   Resource with this id does not exist.
+    *   Resource linked to this domain does not exist.
+*   2304
+    *   This resource has clientUpdateProhibited on it, and the update does not clear that status.
+    *   Resource status prohibits this operation.
+    *   Nameservers are not whitelisted for this TLD.
+    *   Registrant is not whitelisted for this TLD.
+    *   Application status prohibits this domain update.
+*   2306
+    *   Cannot add and remove the same value.
+    *   The secDNS:all element must have value 'true' if present.
+    *   More than one contact for a given role is not allowed.
+    *   Missing type attribute for contact.
+    *   Too many DS records set on a domain.
+    *   Too many nameservers set on this domain.
 
 ## DomainApplicationInfoFlow
 
@@ -685,15 +685,15 @@ delegated hosts in its response.
 
 ### Errors
 
--   2003
-   -   Application id is required.
--   2201
-   -   The specified resource belongs to another client.
--   2303
-   -   Resource with this id does not exist.
--   2306
-   -   Application referenced does not match specified domain name.
-   -   Declared launch extension phase does not match phase of the application.
+*   2003
+    *   Application id is required.
+*   2201
+    *   The specified resource belongs to another client.
+*   2303
+    *   Resource with this id does not exist.
+*   2306
+    *   Application referenced does not match specified domain name.
+    *   Declared launch extension phase does not match phase of the application.
 
 ## DomainApplicationDeleteFlow
 
@@ -703,20 +703,20 @@ An EPP flow that deletes a domain application.
 
 ### Errors
 
--   2002
-   -   Command is not allowed in the current registry phase.
--   2103
-   -   Specified extension is not implemented.
--   2201
-   -   The specified resource belongs to another client.
-   -   Registrar is not authorized to access this TLD.
--   2303
-   -   Resource with this id does not exist.
--   2304
-   -   A sunrise application cannot be deleted during landrush.
--   2306
-   -   Application referenced does not match specified domain name.
-   -   Declared launch extension phase does not match the current registry phase.
+*   2002
+    *   Command is not allowed in the current registry phase.
+*   2103
+    *   Specified extension is not implemented.
+*   2201
+    *   The specified resource belongs to another client.
+    *   Registrar is not authorized to access this TLD.
+*   2303
+    *   Resource with this id does not exist.
+*   2304
+    *   A sunrise application cannot be deleted during landrush.
+*   2306
+    *   Application referenced does not match specified domain name.
+    *   Declared launch extension phase does not match the current registry phase.
 
 ## DomainApplicationCreateFlow
 
@@ -726,78 +726,78 @@ An EPP flow that creates a new application for a domain resource.
 
 ### Errors
 
--   2002
-   -   Command is not allowed in the current registry phase.
-   -   A notice cannot be specified when using a signed mark.
-   -   Sunrise applications are disallowed during landrush.
--   2003
-   -   Landrush applications are disallowed during sunrise.
-   -   Fees must be explicitly acknowledged when performing any operations on a premium name.
-   -   The provided mark does not match the desired domain label.
--   2004
-   -   The acceptance time specified in the claim notice is more than 48 hours in the past.
-   -   The expiration time specified in the claim notice has elapsed.
-   -   The checksum in the specified TCNID does not validate.
-   -   The fees passed in the transform command do not match the fees that will be charged.
-   -   Domain label is not allowed by IDN table.
-   -   Domain name is under tld which doesn't exist.
--   2005
-   -   The specified TCNID is invalid.
-   -   Domain name must have exactly one part above the tld.
-   -   The requested fee is expressed in a scale that is invalid for the given currency.
-   -   Signed mark data is improperly encoded.
-   -   Error while parsing encoded signed mark data.
--   2102
-   -   The 'maxSigLife' setting is not supported.
-   -   The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy.
--   2103
-   -   Specified extension is not implemented.
--   2201
-   -   Registrar is not authorized to access this TLD.
--   2202
-   -   Authorization information for accessing resource is invalid.
--   2302
-   -   Resource with this id already exists.
-   -   This name has already been claimed by a sunrise applicant.
--   2303
-   -   Resource linked to this domain does not exist.
--   2304
-   -   The claims period for this TLD has ended.
-   -   Requested domain requires a claims notice.
-   -   Requested domain does not require a claims notice.
-   -   Requested domain is reserved.
-   -   Nameservers are not whitelisted for this TLD.
-   -   Nameservers not specified for this TLD with whitelist.
-   -   The requested domain name is on the premium price list, and this registrar has blocked premium
+*   2002
+    *   Command is not allowed in the current registry phase.
+    *   A notice cannot be specified when using a signed mark.
+    *   Sunrise applications are disallowed during landrush.
+*   2003
+    *   Landrush applications are disallowed during sunrise.
+    *   Fees must be explicitly acknowledged when performing any operations on a premium name.
+    *   The provided mark does not match the desired domain label.
+*   2004
+    *   The acceptance time specified in the claim notice is more than 48 hours in the past.
+    *   The expiration time specified in the claim notice has elapsed.
+    *   The checksum in the specified TCNID does not validate.
+    *   The fees passed in the transform command do not match the fees that will be charged.
+    *   Domain label is not allowed by IDN table.
+    *   Domain name is under tld which doesn't exist.
+*   2005
+    *   The specified TCNID is invalid.
+    *   Domain name must have exactly one part above the tld.
+    *   The requested fee is expressed in a scale that is invalid for the given currency.
+    *   Signed mark data is improperly encoded.
+    *   Error while parsing encoded signed mark data.
+*   2102
+    *   The 'maxSigLife' setting is not supported.
+    *   The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy.
+*   2103
+    *   Specified extension is not implemented.
+*   2201
+    *   Registrar is not authorized to access this TLD.
+*   2202
+    *   Authorization information for accessing resource is invalid.
+*   2302
+    *   Resource with this id already exists.
+    *   This name has already been claimed by a sunrise applicant.
+*   2303
+    *   Resource linked to this domain does not exist.
+*   2304
+    *   The claims period for this TLD has ended.
+    *   Requested domain requires a claims notice.
+    *   Requested domain does not require a claims notice.
+    *   Requested domain is reserved.
+    *   Nameservers are not whitelisted for this TLD.
+    *   Nameservers not specified for this TLD with whitelist.
+    *   The requested domain name is on the premium price list, and this registrar has blocked premium
 registrations.
-   -   Registrant is not whitelisted for this TLD.
--   2306
-   -   The specified trademark validator is not supported.
-   -   Only encoded signed marks are supported.
-   -   Domain names can only contain a-z, 0-9, '.' and '-'.
-   -   Periods for domain registrations must be specified in years.
-   -   Encoded signed marks must use base64 encoding.
-   -   The requested fees cannot be provided in the requested currency.
-   -   Non-IDN domain names cannot contain hyphens in the third or fourth position.
-   -   Domain labels cannot be longer than 63 characters.
-   -   More than one contact for a given role is not allowed.
-   -   No part of a domain name can be empty.
-   -   Domain name starts with xn-- but is not a valid IDN.
-   -   Declared launch extension phase does not match the current registry phase.
-   -   Domain labels cannot begin with a dash.
-   -   Missing type attribute for contact.
-   -   Signed marks must be encoded.
-   -   Certificate used in signed mark signature has expired.
-   -   Certificate parsing error, or possibly a bad provider or algorithm.
-   -   Certificate used in signed mark signature has expired.
-   -   Certificate used in signed mark signature was revoked by ICANN.
-   -   Invalid signature on a signed mark.
-   -   Signed mark data is revoked.
-   -   Invalid signature on a signed mark.
-   -   Too many DS records set on a domain.
-   -   Too many nameservers set on this domain.
-   -   Only one signed mark is allowed per application.
-   -   Domain labels cannot end with a dash.
+    *   Registrant is not whitelisted for this TLD.
+*   2306
+    *   The specified trademark validator is not supported.
+    *   Only encoded signed marks are supported.
+    *   Domain names can only contain a-z, 0-9, '.' and '-'.
+    *   Periods for domain registrations must be specified in years.
+    *   Encoded signed marks must use base64 encoding.
+    *   The requested fees cannot be provided in the requested currency.
+    *   Non-IDN domain names cannot contain hyphens in the third or fourth position.
+    *   Domain labels cannot be longer than 63 characters.
+    *   More than one contact for a given role is not allowed.
+    *   No part of a domain name can be empty.
+    *   Domain name starts with xn-- but is not a valid IDN.
+    *   Declared launch extension phase does not match the current registry phase.
+    *   Domain labels cannot begin with a dash.
+    *   Missing type attribute for contact.
+    *   Signed marks must be encoded.
+    *   Certificate used in signed mark signature has expired.
+    *   Certificate parsing error, or possibly a bad provider or algorithm.
+    *   Certificate used in signed mark signature has expired.
+    *   Certificate used in signed mark signature was revoked by ICANN.
+    *   Invalid signature on a signed mark.
+    *   Signed mark data is revoked.
+    *   Invalid signature on a signed mark.
+    *   Too many DS records set on a domain.
+    *   Too many nameservers set on this domain.
+    *   Only one signed mark is allowed per application.
+    *   Domain labels cannot end with a dash.
 
 ## DomainAllocateFlow
 
@@ -807,15 +807,15 @@ An EPP flow that allocates a new domain resource from a domain application.
 
 ### Errors
 
--   2201
-   -   Registrar is not authorized to access this TLD.
-   -   Only a superuser can allocate domains.
--   2302
-   -   Resource with this id already exists.
--   2303
-   -   Domain application with specific ROID does not exist.
--   2304
-   -   Domain application already has a final status.
+*   2201
+    *   Registrar is not authorized to access this TLD.
+    *   Only a superuser can allocate domains.
+*   2302
+    *   Resource with this id already exists.
+*   2303
+    *   Domain application with specific ROID does not exist.
+*   2304
+    *   Domain application already has a final status.
 
 ## ClaimsCheckFlow
 
@@ -825,14 +825,14 @@ An EPP flow that checks whether strings are trademarked.
 
 ### Errors
 
--   2002
-   -   Command is not allowed in the current registry phase.
--   2004
-   -   Domain name is under tld which doesn't exist.
--   2201
-   -   Registrar is not authorized to access this TLD.
--   2306
-   -   Too many resource checks requested in one check command.
+*   2002
+    *   Command is not allowed in the current registry phase.
+*   2004
+    *   Domain name is under tld which doesn't exist.
+*   2201
+    *   Registrar is not authorized to access this TLD.
+*   2306
+    *   Too many resource checks requested in one check command.
 
 ## HostUpdateFlow
 
@@ -852,27 +852,27 @@ or IP addresses are added, tasks are enqueued to update DNS accordingly.
 
 ### Errors
 
--   2003
-   -   Host rename from external to subordinate must also add an IP addresses.
--   2004
-   -   The specified status value cannot be set by clients.
-   -   Cannot add IP addresses to an external host.
-   -   Host rename from subordinate to external must also remove all IP addresses.
--   2005
-   -   Invalid host name.
--   2201
-   -   The specified resource belongs to another client.
--   2302
-   -   Host with specified name already exists.
--   2303
-   -   Resource with this id does not exist.
-   -   Superordinate domain for this hostname does not exist.
--   2304
-   -   This resource has clientUpdateProhibited on it, and the update does not clear that status.
-   -   Resource status prohibits this operation.
-   -   Cannot remove all IP addresses from a subordinate host.
--   2306
-   -   Host names must be at least two levels below the public suffix.
+*   2003
+    *   Host rename from external to subordinate must also add an IP addresses.
+*   2004
+    *   The specified status value cannot be set by clients.
+    *   Cannot add IP addresses to an external host.
+    *   Host rename from subordinate to external must also remove all IP addresses.
+*   2005
+    *   Invalid host name.
+*   2201
+    *   The specified resource belongs to another client.
+*   2302
+    *   Host with specified name already exists.
+*   2303
+    *   Resource with this id does not exist.
+    *   Superordinate domain for this hostname does not exist.
+*   2304
+    *   This resource has clientUpdateProhibited on it, and the update does not clear that status.
+    *   Resource status prohibits this operation.
+    *   Cannot remove all IP addresses from a subordinate host.
+*   2306
+    *   Host names must be at least two levels below the public suffix.
 
 ## HostInfoFlow
 
@@ -885,8 +885,8 @@ transfer if it has ever been transferred. Any registrar can see the information 
 
 ### Errors
 
--   2303
-   -   Resource with this id does not exist.
+*   2303
+    *   Resource with this id does not exist.
 
 ## HostDeleteFlow
 
@@ -902,14 +902,14 @@ with the success or failure message when the process is complete.
 
 ### Errors
 
--   2201
-   -   The specified resource belongs to another client.
--   2303
-   -   Resource with this id does not exist.
--   2304
-   -   Resource status prohibits this operation.
--   2305
-   -   Resource to be deleted has active incoming references.
+*   2201
+    *   The specified resource belongs to another client.
+*   2303
+    *   Resource with this id does not exist.
+*   2304
+    *   Resource status prohibits this operation.
+*   2305
+    *   Resource to be deleted has active incoming references.
 
 ## HostCreateFlow
 
@@ -925,20 +925,20 @@ update DNS.
 
 ### Errors
 
--   2003
-   -   Subordinate hosts must have an ip address.
--   2004
-   -   IP address version mismatch.
-   -   Host names are limited to 253 characters.
-   -   External hosts must not have ip addresses.
--   2005
-   -   Invalid host name.
--   2302
-   -   Resource with this id already exists.
--   2303
-   -   Superordinate domain for this hostname does not exist.
--   2306
-   -   Host names must be at least two levels below the public suffix.
+*   2003
+    *   Subordinate hosts must have an ip address.
+*   2004
+    *   IP address version mismatch.
+    *   Host names are limited to 253 characters.
+    *   External hosts must not have ip addresses.
+*   2005
+    *   Invalid host name.
+*   2302
+    *   Resource with this id already exists.
+*   2303
+    *   Superordinate domain for this hostname does not exist.
+*   2306
+    *   Host names must be at least two levels below the public suffix.
 
 ## HostCheckFlow
 
@@ -950,8 +950,8 @@ This flows can check the existence of multiple hosts simultaneously.
 
 ### Errors
 
--   2306
-   -   Too many resource checks requested in one check command.
+*   2306
+    *   Too many resource checks requested in one check command.
 
 ## PollRequestFlow
 
@@ -967,8 +967,8 @@ by {@link PollMessageExternalKeyConverter}.
 
 ### Errors
 
--   2005
-   -   Unexpected message id.
+*   2005
+    *   Unexpected message id.
 
 ## PollAckFlow
 
@@ -983,14 +983,14 @@ again until the next year of their recurrence.
 
 ### Errors
 
--   2003
-   -   Message id is required.
--   2005
-   -   Message id is invalid.
--   2201
-   -   Registrar is not authorized to ack this message.
--   2303
-   -   Message with this id does not exist.
+*   2003
+    *   Message id is required.
+*   2005
+    *   Message id is invalid.
+*   2201
+    *   Registrar is not authorized to ack this message.
+*   2303
+    *   Message with this id does not exist.
 
 ## LogoutFlow
 
@@ -1000,8 +1000,8 @@ An EPP flow for logout.
 
 ### Errors
 
--   2002
-   -   Registrar is not logged in.
+*   2002
+    *   Registrar is not logged in.
 
 ## LoginFlow
 
@@ -1011,31 +1011,31 @@ An EPP flow for login.
 
 ### Errors
 
--   2002
-   -   Registrar is already logged in.
--   2100
-   -   Specified protocol version is not implemented.
--   2102
-   -   In-band password changes are not supported.
--   2103
-   -   Specified extension is not implemented.
--   2200
-   -   GAE user id is not allowed to login as requested registrar.
-   -   User is not logged in as a GAE user.
-   -   Registrar certificate does not match stored certificate.
-   -   Registrar IP address is not in stored whitelist.
-   -   Registrar certificate not present.
-   -   SNI header is required.
-   -   Registrar password is incorrect.
-   -   Registrar with this client ID could not be found.
--   2201
-   -   Registrar account is not active.
--   2306
-   -   Specified language is not supported.
--   2307
-   -   Specified object service is not implemented.
--   2501
-   -   Registrar login failed too many times.
+*   2002
+    *   Registrar is already logged in.
+*   2100
+    *   Specified protocol version is not implemented.
+*   2102
+    *   In-band password changes are not supported.
+*   2103
+    *   Specified extension is not implemented.
+*   2200
+    *   GAE user id is not allowed to login as requested registrar.
+    *   User is not logged in as a GAE user.
+    *   Registrar certificate does not match stored certificate.
+    *   Registrar IP address is not in stored whitelist.
+    *   Registrar certificate not present.
+    *   SNI header is required.
+    *   Registrar password is incorrect.
+    *   Registrar with this client ID could not be found.
+*   2201
+    *   Registrar account is not active.
+*   2306
+    *   Specified language is not supported.
+*   2307
+    *   Specified object service is not implemented.
+*   2501
+    *   Registrar login failed too many times.
 
 ## HelloFlow
 
