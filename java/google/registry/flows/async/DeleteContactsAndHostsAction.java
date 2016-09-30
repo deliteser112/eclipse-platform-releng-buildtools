@@ -114,6 +114,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
         LeaseOptions.Builder.withCountLimit(maxLeaseCount()).leasePeriod(LEASE_MINUTES, MINUTES);
     List<TaskHandle> tasks = queue.leaseTasks(options);
     if (tasks.isEmpty()) {
+      response.setPayload("No contact/host deletion tasks in pull queue.");
       return;
     }
     Multiset<String> kindCounts = HashMultiset.create(2);
@@ -143,6 +144,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
     ImmutableList<DeletionRequest> deletionRequests = builder.build();
     if (deletionRequests.isEmpty()) {
       logger.info("No asynchronous deletions to process because all were already handled.");
+      response.setPayload("All requested deletions of contacts/hosts have already occurred.");
     } else {
       logger.infofmt(
           "Processing asynchronous deletion of %d contacts and %d hosts: %s",

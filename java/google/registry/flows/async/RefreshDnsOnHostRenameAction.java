@@ -81,6 +81,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
         LeaseOptions.Builder.withCountLimit(maxLeaseCount()).leasePeriod(LEASE_MINUTES, MINUTES);
     List<TaskHandle> tasks = pullQueue.leaseTasks(options);
     if (tasks.isEmpty()) {
+      response.setPayload("No DNS refresh on host rename tasks to process in pull queue.");
       return;
     }
     ImmutableList.Builder<DnsRefreshRequest> requestsBuilder = new ImmutableList.Builder<>();
@@ -111,10 +112,11 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
     if (refreshRequests.isEmpty()) {
       logger.info(
           "No asynchronous DNS refreshes to process because all renamed hosts are deleted.");
-      return;
+      response.setPayload("All requested DNS refreshes are on hosts that were since deleted.");
+    } else {
+      logger.infofmt("Processing asynchronous DNS refresh for renamed hosts: %s", hostKeys.build());
+      runMapreduce(refreshRequests, tasks);
     }
-    logger.infofmt("Processing asynchronous DNS refresh for renamed hosts: %s", hostKeys.build());
-    runMapreduce(refreshRequests, tasks);
   }
 
   private void runMapreduce(
