@@ -181,7 +181,8 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand impleme
     if (undo) {
       return "";
     }
-    StringBuilder undoBuilder = new StringBuilder("UNDO COMMAND:\n\ngtech_tool -e ")
+    StringBuilder undoBuilder = new StringBuilder("UNDO COMMAND:\n\n)")
+        .append("registry_tool -e ")
         .append(RegistryToolEnvironment.get())
         .append(" uniform_rapid_suspension --undo --domain_name ")
         .append(domainName);

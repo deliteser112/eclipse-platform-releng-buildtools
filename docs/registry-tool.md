@@ -31,16 +31,6 @@ registry_tool without specifying a command name, e.g.:
 Note that the documentation for the commands comes from JCommander, which parses
 metadata contained within the code to yield documentation.
 
-## Tech support commands
-
-There are actually two separate tools, `gtech_tool`, which is a collection of
-lower impact commands intended to be used by tech support personnel, and
-`registry_tool`, which is a superset of `gtech_tool` that contains additional
-commands that are potentially more destructive and can change more aspects of
-the system. A full list of `gtech_tool` commands can be found in
-`GtechTool.java`, and the additional commands that only `registry_tool` has
-access to are in `RegistryTool.java`.
-
 ## Local and server-side commands
 
 There are two broad ways that commands are implemented: some that send requests
