@@ -78,7 +78,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
 
   @Test
   public void testSuccess_deletedDomain() throws Exception {
-    persistDeletedDomain("example.tld", now);
+    persistDeletedDomain("example.tld", now.minusDays(1));
     runCommand("agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw");
     assertInStdout("fullyQualifiedDomainName=example.tld");
     assertInStdout("deletionTime=" + now.minusDays(1));
@@ -124,7 +124,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
 
   @Test
   public void testSuccess_deletedContact() throws Exception {
-    persistDeletedContact("sh8013", now);
+    persistDeletedContact("sh8013", now.minusDays(1));
     runCommand("agR0ZXN0chsLEg9Db250YWN0UmVzb3VyY2UiBjItUk9JRAw");
     assertInStdout("contactId=sh8013");
     assertInStdout("deletionTime=" + now.minusDays(1));
@@ -170,12 +170,12 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
 
   @Test
   public void testSuccess_deletedHost() throws Exception {
-    persistDeletedHost("ns1.example.tld", now);
+    persistDeletedHost("ns1.example.tld", now.minusDays(1));
     runCommand("agR0ZXN0chgLEgxIb3N0UmVzb3VyY2UiBjItUk9JRAw");
     assertInStdout("fullyQualifiedHostName=ns1.example.tld");
     assertInStdout("deletionTime=" + now.minusDays(1));
   }
-  
+
   @Test
   public void testSuccess_mixedTypes() throws Exception {
     persistActiveDomain("example.tld");

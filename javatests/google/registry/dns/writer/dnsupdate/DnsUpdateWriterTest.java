@@ -165,7 +165,7 @@ public class DnsUpdateWriterTest {
 
   @Test
   public void testPublishDomainDelete_removesDnsRecords() throws Exception {
-    persistDeletedDomain("example.tld", clock.nowUtc());
+    persistDeletedDomain("example.tld", clock.nowUtc().minusDays(1));
 
     writer.publishDomain("example.tld");
 
@@ -210,7 +210,7 @@ public class DnsUpdateWriterTest {
 
   @Test
   public void testPublishHostDelete_removesDnsRecords() throws Exception {
-    persistDeletedHost("ns1.example.tld", clock.nowUtc());
+    persistDeletedHost("ns1.example.tld", clock.nowUtc().minusDays(1));
     persistActiveDomain("example.tld");
 
     writer.publishHost("ns1.example.tld");
@@ -225,7 +225,7 @@ public class DnsUpdateWriterTest {
 
   @Test
   public void testPublishHostDelete_removesGlueRecords() throws Exception {
-    persistDeletedHost("ns1.example.tld", clock.nowUtc());
+    persistDeletedHost("ns1.example.tld", clock.nowUtc().minusDays(1));
     persistResource(
         persistActiveDomain("example.tld")
             .asBuilder()

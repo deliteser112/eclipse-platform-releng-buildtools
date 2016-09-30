@@ -234,7 +234,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
           .build();
     }
     assertBillingEvents(billingEvents);
-    
+
     assertGracePeriods(
         domain.getGracePeriods(),
         ImmutableMap.of(
@@ -523,7 +523,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testSuccess_existedButWasDeleted() throws Exception {
     persistContactsAndHosts();
-    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc());
+    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     clock.advanceOneMilli();
     doSuccessfulTest();
   }

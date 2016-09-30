@@ -139,7 +139,7 @@ public class DomainCheckFlowTest
 
   @Test
   public void testSuccess_oneExistsButWasDeleted() throws Exception {
-    persistDeletedDomain("example1.tld", clock.nowUtc());
+    persistDeletedDomain("example1.tld", clock.nowUtc().minusDays(1));
     doCheckTest(
         create(true, "example1.tld", null),
         create(true, "example2.tld", null),
@@ -804,7 +804,7 @@ public class DomainCheckFlowTest
     runEapFeeCheckTest("domain_check_fee_date_v12.xml",
         "domain_check_eap_fee_response_date_v12.xml");
   }
-  
+
   @Ignore
   @Test
   public void testSuccess_feeCheck_multipleRanges() throws Exception {

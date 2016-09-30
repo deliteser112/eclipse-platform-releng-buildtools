@@ -390,7 +390,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc());
+    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     runFlow();
   }
 

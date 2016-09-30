@@ -114,14 +114,14 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
 
   @Test
   public void testSuccess_externalExistedButWasDeleted() throws Exception {
-    persistDeletedHost(getUniqueIdFromCommand(), clock.nowUtc());
+    persistDeletedHost(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     doSuccessfulTest();
     assertNoDnsTasksEnqueued();
   }
 
   @Test
   public void testSuccess_internalExistedButWasDeleted() throws Exception {
-    persistDeletedHost(getUniqueIdFromCommand(), clock.nowUtc());
+    persistDeletedHost(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     doSuccessfulInternalTest("tld");
     assertThat(ofy().load().key(reloadResourceByForeignKey().getSuperordinateDomain())
         .now().getFullyQualifiedDomainName())

@@ -675,7 +675,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
-    persistDeletedHost(oldHostName(), clock.nowUtc());
+    persistDeletedHost(oldHostName(), clock.nowUtc().minusDays(1));
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));

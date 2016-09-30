@@ -487,7 +487,7 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testDomainMatchDeletedDomain_notFound() throws Exception {
-    persistDomainAsDeleted(domainCatLol, clock.nowUtc());
+    persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
     assertThat(generateActualJson(RequestType.NAME, "cat.lol"))
         .isEqualTo(generateExpectedJson("No domains found", null, null, "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
@@ -495,7 +495,7 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testDomainMatchDeletedDomainWithWildcard_notFound() throws Exception {
-    persistDomainAsDeleted(domainCatLol, clock.nowUtc());
+    persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
     assertThat(generateActualJson(RequestType.NAME, "cat.lo*"))
         .isEqualTo(generateExpectedJson("No domains found", null, null, "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
@@ -503,8 +503,8 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testDomainMatchDeletedDomainsWithWildcardAndTld_notFound() throws Exception {
-    persistDomainAsDeleted(domainCatLol, clock.nowUtc());
-    persistDomainAsDeleted(domainCatLol2, clock.nowUtc());
+    persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
+    persistDomainAsDeleted(domainCatLol2, clock.nowUtc().minusDays(1));
     generateActualJson(RequestType.NAME, "cat*.lol");
     assertThat(response.getStatus()).isEqualTo(404);
   }
@@ -673,7 +673,7 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testNameserverMatchOneDeletedDomain_foundTheOther() throws Exception {
-    persistDomainAsDeleted(domainCatExample, clock.nowUtc());
+    persistDomainAsDeleted(domainCatExample, clock.nowUtc().minusDays(1));
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.lol"))
         .isEqualTo(
             generateExpectedJsonForDomain("cat.lol", null, "C-LOL", "rdap_domain.json"));
@@ -682,8 +682,8 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testNameserverMatchTwoDeletedDomains_notFound() throws Exception {
-    persistDomainAsDeleted(domainCatLol, clock.nowUtc());
-    persistDomainAsDeleted(domainCatExample, clock.nowUtc());
+    persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
+    persistDomainAsDeleted(domainCatExample, clock.nowUtc().minusDays(1));
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.lol"))
         .isEqualTo(generateExpectedJson("No domains found", null, null, "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
@@ -750,7 +750,7 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testAddressMatchOneDeletedDomain_foundTheOther() throws Exception {
-    persistDomainAsDeleted(domainCatExample, clock.nowUtc());
+    persistDomainAsDeleted(domainCatExample, clock.nowUtc().minusDays(1));
     assertThat(generateActualJson(RequestType.NS_IP, "1.2.3.4"))
         .isEqualTo(
             generateExpectedJsonForDomain("cat.lol", null, "C-LOL", "rdap_domain.json"));
@@ -759,8 +759,8 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testAddressMatchTwoDeletedDomains_notFound() throws Exception {
-    persistDomainAsDeleted(domainCatLol, clock.nowUtc());
-    persistDomainAsDeleted(domainCatExample, clock.nowUtc());
+    persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
+    persistDomainAsDeleted(domainCatExample, clock.nowUtc().minusDays(1));
     assertThat(generateActualJson(RequestType.NS_IP, "1.2.3.4"))
         .isEqualTo(generateExpectedJson("No domains found", null, null, "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);

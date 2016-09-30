@@ -77,7 +77,7 @@ public class GetDomainCommandTest extends CommandTestCase<GetDomainCommand> {
 
   @Test
   public void testSuccess_deletedDomain() throws Exception {
-    persistDeletedDomain("example.tld", now);
+    persistDeletedDomain("example.tld", now.minusDays(1));
     runCommand("example.tld");
     assertInStdout("Domain 'example.tld' does not exist or is deleted");
   }

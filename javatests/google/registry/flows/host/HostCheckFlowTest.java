@@ -51,7 +51,7 @@ public class HostCheckFlowTest extends ResourceCheckFlowTestCase<HostCheckFlow, 
 
   @Test
   public void testOneExistsButWasDeleted() throws Exception {
-    persistDeletedHost("ns1.example.tld", clock.nowUtc());
+    persistDeletedHost("ns1.example.tld", clock.nowUtc().minusDays(1));
     // These ids come from the check xml.
     doCheckTest(
         create(true, "ns1.example.tld", null),

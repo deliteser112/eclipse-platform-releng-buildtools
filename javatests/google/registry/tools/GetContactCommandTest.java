@@ -67,7 +67,7 @@ public class GetContactCommandTest extends CommandTestCase<GetContactCommand> {
 
   @Test
   public void testSuccess_deletedContact() throws Exception {
-    persistDeletedContact("sh8013", now);
+    persistDeletedContact("sh8013", now.minusDays(1));
     runCommand("sh8013");
     assertInStdout("Contact 'sh8013' does not exist or is deleted");
   }

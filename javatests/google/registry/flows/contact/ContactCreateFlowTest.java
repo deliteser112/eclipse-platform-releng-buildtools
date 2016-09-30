@@ -58,7 +58,7 @@ public class ContactCreateFlowTest
 
   @Test
   public void testSuccess_existedButWasDeleted() throws Exception {
-    persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc());
+    persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     clock.advanceOneMilli();
     doSuccessfulTest();
   }

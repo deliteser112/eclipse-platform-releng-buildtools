@@ -259,7 +259,7 @@ public class DomainAllocateFlowTest
   @Test
   public void testSuccess_existedButWasDeleted() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
-    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc());
+    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     clock.advanceOneMilli();
     doSuccessfulTest(2);
   }

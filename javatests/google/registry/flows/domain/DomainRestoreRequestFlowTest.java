@@ -454,7 +454,7 @@ public class DomainRestoreRequestFlowTest extends
   @Test
   public void testFailure_fullyDeleted() throws Exception {
     thrown.expect(ResourceDoesNotExistException.class);
-    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc());
+    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     runFlow();
   }
 

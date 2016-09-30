@@ -830,7 +830,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
     persistReferencedEntities();
-    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc());
+    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     runFlow();
   }
 

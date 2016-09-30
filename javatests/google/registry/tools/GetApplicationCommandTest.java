@@ -75,7 +75,7 @@ public class GetApplicationCommandTest extends CommandTestCase<GetApplicationCom
 
   @Test
   public void testSuccess_deletedApplication() throws Exception {
-    persistDeletedDomainApplication("example.tld",  now);
+    persistDeletedDomainApplication("example.tld",  now.minusDays(1));
     runCommand("2-TLD");
     assertInStdout("Application '2-TLD' does not exist or is deleted");
   }

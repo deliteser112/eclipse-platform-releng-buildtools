@@ -88,7 +88,7 @@ public class ContactDeleteFlowTest
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc());
+    persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     runFlow();
   }
 

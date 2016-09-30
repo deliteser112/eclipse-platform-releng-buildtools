@@ -77,7 +77,7 @@ public class GetHostCommandTest extends CommandTestCase<GetHostCommand> {
 
   @Test
   public void testSuccess_deletedHost() throws Exception {
-    persistDeletedHost("ns1.example.tld", now);
+    persistDeletedHost("ns1.example.tld", now.minusDays(1));
     runCommand("ns1.example.tld");
     assertInStdout("Host 'ns1.example.tld' does not exist or is deleted");
   }
