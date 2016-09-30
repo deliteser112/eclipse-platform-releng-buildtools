@@ -126,6 +126,13 @@ public class DatastoreHelper {
         domainName, generateNewDomainRoid(getTldFromDomainName(domainName)), contact);
   }
 
+  public static DomainResource newDomainResource(String domainName, HostResource host) {
+    return newDomainResource(domainName)
+        .asBuilder()
+        .setNameservers(ImmutableSet.of(Key.create(host)))
+        .build();
+  }
+
   public static DomainResource newDomainResource(
       String domainName, String repoId, ContactResource contact) {
     Key<ContactResource> contactKey = Key.create(contact);

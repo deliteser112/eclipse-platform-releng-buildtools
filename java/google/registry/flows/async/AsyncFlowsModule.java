@@ -13,8 +13,10 @@
 // limitations under the License.
 
 package google.registry.flows.async;
+
 import static google.registry.flows.async.DeleteContactsAndHostsAction.QUEUE_ASYNC_DELETE;
 import static google.registry.flows.async.DnsRefreshForHostRenameAction.PARAM_HOST_KEY;
+import static google.registry.flows.async.RefreshDnsOnHostRenameAction.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.appengine.api.taskqueue.Queue;
@@ -33,6 +35,12 @@ public final class AsyncFlowsModule {
   @Named(QUEUE_ASYNC_DELETE)
   static Queue provideAsyncDeletePullQueue() {
     return QueueFactory.getQueue(QUEUE_ASYNC_DELETE);
+  }
+
+  @Provides
+  @Named(QUEUE_ASYNC_HOST_RENAME)
+  static Queue provideAsyncHostRenamePullQueue() {
+    return QueueFactory.getQueue(QUEUE_ASYNC_HOST_RENAME);
   }
 
   //TODO(b/26140521): Delete this method once non-batched DNS host refresh mapreduce is deleted.

@@ -19,6 +19,7 @@ import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_IS_
 import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_REQUESTING_CLIENT_ID;
 import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_RESOURCE_KEY;
 import static google.registry.flows.async.DnsRefreshForHostRenameAction.PARAM_HOST_KEY;
+import static google.registry.flows.async.RefreshDnsOnHostRenameAction.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.request.Actions.getPathForAction;
 
 import com.google.appengine.api.taskqueue.Queue;
@@ -45,6 +46,7 @@ public final class AsyncFlowEnqueuer {
 
   @Inject @Config("asyncDeleteFlowMapreduceDelay") Duration asyncDeleteDelay;
   @Inject @Named("async-delete-pull") Queue asyncDeletePullQueue;
+  @Inject @Named(QUEUE_ASYNC_HOST_RENAME) Queue asyncDnsRefreshPullQueue;
   @Inject Retrier retrier;
   @Inject AsyncFlowEnqueuer() {}
 
@@ -55,7 +57,7 @@ public final class AsyncFlowEnqueuer {
     logger.infofmt(
         "Enqueueing async deletion of %s on behalf of registrar %s.",
         resourceKey, requestingClientId);
-    final TaskOptions task =
+    TaskOptions task =
         TaskOptions.Builder
             .withMethod(Method.PULL)
             .countdownMillis(asyncDeleteDelay.getMillis())
@@ -65,8 +67,19 @@ public final class AsyncFlowEnqueuer {
     addTaskToQueueWithRetry(asyncDeletePullQueue, task);
   }
 
-  /** Enqueues a task to asynchronously refresh DNS for a host. */
+  /** Enqueues a task to asynchronously refresh DNS for a renamed host. */
   public void enqueueAsyncDnsRefresh(HostResource host) {
+    Key<HostResource> hostKey = Key.create(host);
+    logger.infofmt("Enqueueing async DNS refresh for renamed host %s.", hostKey);
+    addTaskToQueueWithRetry(
+        asyncDnsRefreshPullQueue,
+        TaskOptions.Builder.withMethod(Method.PULL).param(PARAM_HOST_KEY, hostKey.getString()));
+  }
+
+  /** Enqueues a task to asynchronously refresh DNS for a renamed host. */
+  //TODO(b/26140521): Delete this once non-batched DNS host refresh mapreduce is deleted.
+  @Deprecated
+  public void enqueueLegacyAsyncDnsRefresh(HostResource host) {
     logger.infofmt("Enqueueing async DNS refresh for host %s", Key.create(host));
     // Aggressively back off if the task fails, to minimize flooding the logs.
     RetryOptions retryOptions =

@@ -18,12 +18,15 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import google.registry.util.Sleeper;
+import java.io.Serializable;
 import javax.annotation.concurrent.ThreadSafe;
 import org.joda.time.ReadableDuration;
 
 /** Sleeper implementation for unit tests that advances {@link FakeClock} rather than sleep. */
 @ThreadSafe
-public final class FakeSleeper implements Sleeper {
+public final class FakeSleeper implements Sleeper, Serializable {
+
+  private static final long serialVersionUID = -8975804222581077291L;
 
   private final FakeClock clock;
 

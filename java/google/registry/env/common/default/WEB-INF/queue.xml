@@ -32,6 +32,11 @@
   </queue>
 
   <queue>
+    <name>async-host-rename-pull</name>
+    <mode>pull</mode>
+  </queue>
+
+  <queue>
     <name>delete-commits</name>
     <rate>10/s</rate>
     <bucket-size>100</bucket-size>

@@ -44,6 +44,7 @@ import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.flows.async.AsyncFlowsModule;
 import google.registry.flows.async.DeleteContactsAndHostsAction;
 import google.registry.flows.async.DnsRefreshForHostRenameAction;
+import google.registry.flows.async.RefreshDnsOnHostRenameAction;
 import google.registry.mapreduce.MapreduceModule;
 import google.registry.monitoring.whitebox.MetricsExportAction;
 import google.registry.monitoring.whitebox.VerifyEntityIntegrityAction;
@@ -109,6 +110,7 @@ interface BackendRequestComponent {
   RdeUploadAction rdeUploadAction();
   RdeReporter rdeReporter();
   RefreshDnsAction refreshDnsAction();
+  RefreshDnsOnHostRenameAction refreshDnsOnHostRenameAction();
   RestoreCommitLogsAction restoreCommitLogsAction();
   SyncGroupMembersAction syncGroupMembersAction();
   SyncRegistrarsSheetAction syncRegistrarsSheetAction();
