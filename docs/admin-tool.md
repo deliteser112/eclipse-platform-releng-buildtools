@@ -1,32 +1,32 @@
-# Registry tool
+# Admin tool
 
-The registry tool is a command-line registry administration tool that is invoked
-using the `registry_tool` command. It has the ability to view and change a large
+Nomulus includes a command-line registry administration tool that is invoked
+using the `nomulus` command. It has the ability to view and change a large
 number of things in a running domain registry environment, including creating
 registrars, updating premium and reserved lists, running an EPP command from a
 given XML file, and performing various backend tasks like re-running RDE if the
 most recent export failed. Its code lives inside the tools package
-(`java/google/registry/tools`), and is compiled by building the `registry_tool`
+(`java/google/registry/tools`), and is compiled by building the `nomulus`
 target in the Bazel BUILD file in that package.
 
 To build the tool and display its command-line help, execute this command:
 
-    $ bazel run //java/google/registry/tool:registry_tool -- --help
+    $ bazel run //java/google/registry/tools:nomulus -- --help
 
 For future invocations you should alias the compiled binary in the
 `bazel-genfiles/java/google/registry` directory or add it to your path so that
 you can run it more easily. The rest of this guide assumes that it has been
-aliased to `registry_tool`.
+aliased to `nomulus`.
 
 The registry tool is always called with a specific environment to run in using
 the -e parameter. This looks like:
 
-    $ registry_tool -e production {command name} {command parameters}
+    $ nomulus -e production {command name} {command parameters}
 
 To see a list of all available commands along with usage information, run
-registry_tool without specifying a command name, e.g.:
+nomulus without specifying a command name, e.g.:
 
-    $ registry_tool -e alpha
+    $ nomulus -e alpha
 
 Note that the documentation for the commands comes from JCommander, which parses
 metadata contained within the code to yield documentation.

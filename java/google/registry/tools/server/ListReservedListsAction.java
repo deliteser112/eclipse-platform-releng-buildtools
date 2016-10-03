@@ -24,7 +24,7 @@ import google.registry.model.registry.label.ReservedList;
 import google.registry.request.Action;
 import javax.inject.Inject;
 
-/** A that lists reserved lists, for use by the registry_tool list_reserved_lists command. */
+/** A that lists reserved lists, for use by the {@code nomulus list_reserved_lists} command. */
 @Action(path = ListReservedListsAction.PATH, method = {GET, POST})
 public final class ListReservedListsAction extends ListObjectsAction<ReservedList> {
 

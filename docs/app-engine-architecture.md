@@ -59,7 +59,7 @@ contact/host deletion).
 
 ### Tools service
 
-The tools service is responsible for servicing requests from the `registry_tool`
+The tools service is responsible for servicing requests from the `nomulus`
 command line tool, which provides administrative-level functionality for
 developers and tech support employees of the registry. It is thus the least
 critical of the three services. Requests to the tools service are handled by the

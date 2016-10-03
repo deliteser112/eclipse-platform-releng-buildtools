@@ -24,8 +24,13 @@ import google.registry.model.registry.label.PremiumList;
 import google.registry.request.Action;
 import javax.inject.Inject;
 
-/** An action that lists premium lists, for use by the registry_tool list_premium_lists command. */
-@Action(path = ListPremiumListsAction.PATH, method = {GET, POST})
+/**
+ * An action that lists premium lists, for use by the {@code nomulus list_premium_lists} command.
+ */
+@Action(
+  path = ListPremiumListsAction.PATH,
+  method = {GET, POST}
+)
 public final class ListPremiumListsAction extends ListObjectsAction<PremiumList> {
 
   public static final String PATH = "/_dr/admin/list/premiumLists";

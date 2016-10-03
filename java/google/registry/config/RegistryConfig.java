@@ -111,7 +111,7 @@ public interface RegistryConfig {
   /**
    * Returns the address of the Domain Registry app HTTP server.
    *
-   * <p>This is used by {@code registry_tool} to connect to the App Engine remote API.
+   * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
    */
   public HostAndPort getServer();
 

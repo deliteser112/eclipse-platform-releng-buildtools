@@ -85,7 +85,7 @@ final class RegistryCli {
       } else {
         jcommander.usage(jcommander.getParsedCommand());
       }
-      // Don't rethrow if we said: registry_tool command --help
+      // Don't rethrow if we said: nomulus command --help
       if ("Unknown option: --help".equals(e.getMessage())) {
         return;
       }

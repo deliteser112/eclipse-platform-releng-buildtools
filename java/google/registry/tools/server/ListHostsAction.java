@@ -29,7 +29,7 @@ import java.util.Comparator;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
-/** An action that lists hosts, for use by the registry_tool list_hosts command. */
+/** An action that lists hosts, for use by the {@code nomulus list_hosts} command. */
 @Action(path = ListHostsAction.PATH, method = {GET, POST})
 public final class ListHostsAction extends ListObjectsAction<HostResource> {
 

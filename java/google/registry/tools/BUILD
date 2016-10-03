@@ -86,7 +86,7 @@ java_library(
 )
 
 java_binary(
-    name = "registry_tool",
+    name = "nomulus",
     create_executable = 1,
     main_class = "google.registry.tools.RegistryTool",
     runtime_deps = [

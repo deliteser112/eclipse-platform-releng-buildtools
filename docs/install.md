@@ -81,7 +81,7 @@ Then to fire up an instance of the server, run:
 
     $ bazel run //javatests/google/registry/server {your params}
 
-Once it is running, you can interact with it via normal `registry_tool`
+Once it is running, you can interact with it via normal `nomulus`
 commands, or view the registrar console in a web browser by navigating to
 http://localhost:8080/registrar .
 
@@ -130,8 +130,8 @@ Then, use `appcfg` to [deploy the WAR files]
 Once the code is deployed, the next step is to play around with creating some
 entities in the registry, including a TLD, a registrar, a domain, a contact, and
 a host. Note: Do this on a non-production environment! All commands below use
-`registry_tool` to interact with the running registry system; see the
-documentation on `registry_tool` for additional information on it. We'll assume
+`nomulus` to interact with the running registry system; see the
+documentation on `nomulus` for additional information on it. We'll assume
 that all commands below are running in the `alpha` environment; if you named
 your environment differently, then use that everywhere that `alpha` appears.
 
@@ -141,7 +141,7 @@ Pick the name of a TLD to create. For the purposes of this example we'll use
 "example", which conveniently happens to be an ICANN reserved string, meaning
 it'll never be created for real on the Internet at large.
 
-    $ registry_tool -e alpha create_tld example --roid_suffix EXAMPLE \
+    $ nomulus -e alpha create_tld example --roid_suffix EXAMPLE \
       --initial_tld_state GENERAL_AVAILABILITY --tld_type TEST
     [ ... snip confirmation prompt ... ]
     Perform this command? (y/N): y
@@ -167,7 +167,7 @@ id of a domain resource is a hex string followed by the suffix, e.g.
 Now we need to create a registrar and give it access to operate on the example
 TLD. For the purposes of our example we'll name the registrar "Acme".
 
-    $ registry_tool -e alpha create_registrar acme --name 'ACME Corp' \
+    $ nomulus -e alpha create_registrar acme --name 'ACME Corp' \
       --registrar_type TEST --password hunter2 \
       --icann_referral_email blaine@acme.example --street '123 Fake St' \
       --city 'Fakington' --state MA --zip 12345 --cc US --allowed_tlds example
@@ -194,14 +194,14 @@ Now we want to create a contact, as a contact is required before a domain can be
 created. Contacts can be used on any number of domains across any number of
 TLDs, and contain the information on who owns or provides technical support for
 a TLD. These details will appear in WHOIS queries. Note the `-c` parameter,
-which stands for client identifier: This is used on most `registry_tool`
+which stands for client identifier: This is used on most `nomulus`
 commands, and is used to specify the id of the registrar that the command will
 be executed using. Contact, domain, and host creation all work by constructing
 an EPP message that is sent to the registry, and EPP commands need to run under
 the context of a registrar. The "acme" registrar that was created above is used
 for this purpose.
 
-    $ registry_tool -e alpha create_contact -c acme --id abcd1234 \
+    $ nomulus -e alpha create_contact -c acme --id abcd1234 \
       --name 'John Smith' --street '234 Fake St' --city 'North Fakington' \
       --state MA --zip 23456 --cc US --email jsmith@e.mail
     [ ... snip EPP response ... ]
@@ -220,7 +220,7 @@ additionally be subordinate (a subdomain of a domain name that is on this
 registry). Let's create an out-of-bailiwick nameserver, which is the simplest
 type.
 
-    $ my_registry_tool -e alpha create_host -c acme --host ns1.google.com
+    $ nomulus -e alpha create_host -c acme --host ns1.google.com
     [ ... snip EPP response ... ]
 
 Note that hosts are required to have IP addresses if they are subordinate, and
@@ -233,7 +233,7 @@ of IP addresses in either IPv4 or IPv6 format.
 To tie it all together, let's create a domain name that uses the above contact
 and host.
 
-    $ registry_tool -e alpha create_domain -c acme --domain fake.example \
+    $ nomulus -e alpha create_domain -c acme --domain fake.example \
       --admin abcd1234 --tech abcd1234 --registrant abcd1234 \
       --nameservers ns1.google.com
     [ ... snip EPP response ... ]
@@ -244,7 +244,7 @@ technical, and registrant contact. This is quite common on domain names.
 To verify that everything worked, let's query the WHOIS information for
 fake.example:
 
-    $ registry_tool -e alpha whois_query fake.example
+    $ nomulus -e alpha whois_query fake.example
     [ ... snip WHOIS response ... ]
 
 You should see all of the information in WHOIS that you entered above for the

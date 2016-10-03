@@ -29,7 +29,7 @@ import google.registry.util.Clock;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
-/** An action that lists top-level domains, for use by the registry_tool list_tlds command. */
+/** An action that lists top-level domains, for use by the {@code nomulus list_tlds} command. */
 @Action(path = ListTldsAction.PATH, method = {GET, POST})
 public final class ListTldsAction extends ListObjectsAction<Registry> {
 

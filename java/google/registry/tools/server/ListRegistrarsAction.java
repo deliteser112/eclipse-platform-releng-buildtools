@@ -24,7 +24,7 @@ import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import javax.inject.Inject;
 
-/** An action that lists registrars, for use by the registry_tool list_registrars command. */
+/** An action that lists registrars, for use by the {@code nomulus list_registrars} command. */
 @Action(path = ListRegistrarsAction.PATH, method = {GET, POST})
 public final class ListRegistrarsAction extends ListObjectsAction<Registrar> {
 

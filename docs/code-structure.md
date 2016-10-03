@@ -21,7 +21,7 @@ time.
 
 Cursors are rolled forward at the end of successful tasks, are not rolled
 forward in the case of failure, and can be manually set backwards using the
-update_cursors command in registry_tool to reprocess a past action.
+`nomulus update_cursors` command to reprocess a past action.
 
 The following cursor types are defined:
 

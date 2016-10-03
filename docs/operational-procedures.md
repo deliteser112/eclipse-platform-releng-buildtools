@@ -14,7 +14,7 @@ production registry system.
 The default domain registry codebase comes with a
 `StaticPremiumListPricingEngine` that determines premium prices of domain labels
 (i.e. the part of the domain name without the TLD) by checking for their
-presence on a list of prices in Datastore. `registry_tool` is used to load and
+presence on a list of prices in Datastore. `nomulus` is used to load and
 update these lists from flat text files. The format of this list is simple: It
 is a newline-delimited CSV text file with each line containing the label and its
 price (including currency specifier in ISO-4217 format). As an example:
@@ -45,8 +45,7 @@ Once the file containing the premium prices is ready, run the
 `create_premium_list` command to load it into Datastore as follows:
 
 ```shell
-$ registry_tool -e {ENVIRONMENT} create_premium_list -n exampletld \
-    -i exampletld.txt
+$ nomulus -e {ENVIRONMENT} create_premium_list -n exampletld -i exampletld.txt
 
 You are about to save the premium list exampletld with 2 items:
 Perform this command? (y/N): y
@@ -65,8 +64,7 @@ from a text file, the procedure is exactly the same, except using the
 `update_premium_list` command as follows:
 
 ```shell
-$ registry_tool -e {ENVIRONMENT} update_premium_list -n exampletld \
-    -i exampletld.txt
+$ nomulus -e {ENVIRONMENT} update_premium_list -n exampletld -i exampletld.txt
 
 You are about to save the premium list exampletld with 2 items:
 Perform this command? (y/N): y
@@ -84,7 +82,7 @@ apply a premium list to a TLD, run the `update_tld` command with the following
 parameter:
 
 ```shell
-$ registry_tool -e {ENVIRONMENT} update_tld exampletld --premium_list exampletld
+$ nomulus -e {ENVIRONMENT} update_tld exampletld --premium_list exampletld
 Update Registry@exampletld
 premiumList -> [null, Key<?>(EntityGroupRoot("cross-tld")/PremiumList("exampletld"))]
 
@@ -98,7 +96,7 @@ The `get_tld` command shows which premium list is applied to a TLD (along with
 all other information about a TLD). It is used as follows:
 
 ```shell
-$ registry_tool -e {ENVIRONMENT} get_tld exampletld
+$ nomulus -e {ENVIRONMENT} get_tld exampletld
 [ ... snip ... ]
 premiumList=Key<?>(EntityGroupRoot("cross-tld")/PremiumList("exampletld"))
 [ ... snip ... ]
@@ -110,7 +108,7 @@ The `list_premium_lists` command is used to list all premium lists in Datastore.
 It takes no arguments and displays a simple list of premium lists as follows:
 
 ```shell
-$ registry_tool -e {ENVIRONMENT} list_premium_lists
+$ nomulus -e {ENVIRONMENT} list_premium_lists
 exampletld
 someotherlist
 ```
@@ -181,7 +179,7 @@ purposes of this example, we are creating a common reserved list named
 "common_bad-words".
 
 ```shell
-$ registry_tool -e {ENVIRONMENT} create_reserved_list -n common_bad-words \
+$ nomulus -e {ENVIRONMENT} create_reserved_list -n common_bad-words \
     -i common_bad-words.txt
 [ ... snip long confirmation prompt ... ]
 Perform this command? (y/N): y
@@ -200,7 +198,7 @@ file containing the reserved list entries, then pass it as input to the
 `update_reserved_list` command as follows:
 
 ```shell
-$ registry_tool -e {ENVIRONMENT} update_reserved_list -n common_bad-words \
+$ nomulus -e {ENVIRONMENT} update_reserved_list -n common_bad-words \
     -i common_bad-words.txt
 [ ... snip diff of changes to list entries ... ]
 Perform this command? (y/N): y
@@ -223,7 +221,7 @@ To add a reserved list to a TLD, run the `update_tld` command with the following
 parameter:
 
 ```shell
-$ registry_tool -e {ENVIRONMENT} update_tld exampletld \
+$ nomulus -e {ENVIRONMENT} update_tld exampletld \
     --add_reserved_lists common_bad-words
 Update Registry@exampletld
 reservedLists -> [null, [Key<?>(EntityGroupRoot("cross-tld")/ReservedList("common_bad-words"))]]
@@ -247,7 +245,7 @@ along with lots of other information about that TLD which is not relevant to our
 purposes here. It is used as follows:
 
 ```shell
-$ registry_tool -e {ENVIRONMENT} get_tld exampletld
+$ nomulus -e {ENVIRONMENT} get_tld exampletld
 [ ... snip ... ]
 reservedLists=[Key<?>(EntityGroupRoot("cross-tld")/ReservedList("common_bad-words"))]
 [ ... snip ... ]
@@ -260,7 +258,7 @@ Datastore. It takes no arguments and displays a simple list of reserved lists in
 newline-delimited format as follows:
 
 ```shell
-$ registry_tool -e {ENVIRONMENT} list_reserved_lists
+$ nomulus -e {ENVIRONMENT} list_reserved_lists
 common_bad-words
 exampletld_some-other-list
 ```
@@ -282,7 +280,7 @@ acceptable solution is to simply skip the bad data.
 Cursors can be updated as follows:
 
 ```shell
-$ registry_tool -e {ENVIRONMENT} update_cursors exampletld --type RDE_STAGING \
+$ nomulus -e {ENVIRONMENT} update_cursors exampletld --type RDE_STAGING \
     --timestamp 2016-09-01T00:00:00Z
 Update Cursor@ahFzfmRvbWFpbi1yZWdpc3RyeXIzCxIPRW50aXR5R3JvdXBSb290Igljcm9zcy10bGQMCxIIUmVnaXN0cnkiB3lvdXR1YmUM_RDE_STAGING
 cursorTime -> [2016-09-23T00:00:00.000Z, 2016-09-01T00:00:00.000Z]

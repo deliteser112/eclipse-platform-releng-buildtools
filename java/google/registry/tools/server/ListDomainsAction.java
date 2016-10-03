@@ -28,7 +28,7 @@ import google.registry.util.Clock;
 import java.util.Comparator;
 import javax.inject.Inject;
 
-/** An action that lists domains, for use by the registry_tool list_domains command. */
+/** An action that lists domains, for use by the {@code nomulus list_domains} command. */
 @Action(path = ListDomainsAction.PATH, method = {GET, POST})
 public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
 

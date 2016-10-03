@@ -68,7 +68,7 @@ import org.joda.time.Duration;
  * <p>Once a deposit is successfully generated, an {@link RdeUploadAction} is enqueued which will
  * upload it via SFTP to the third-party escrow provider.
  *
- * <p>To generate escrow deposits manually and locally, use the {@code registry_tool} command
+ * <p>To generate escrow deposits manually and locally, use the {@code nomulus} tool command
  * {@code GenerateEscrowDepositCommand}.
  *
  * <h3>Logging</h3>
@@ -93,7 +93,7 @@ import org.joda.time.Duration;
  * validation and reference checking.
  *
  * <p>This job does not perform reference checking. Administrators can do this locally with the
- * {@code ValidateEscrowDepositCommand} command in {@code registry_tool}.
+ * {@code ValidateEscrowDepositCommand} command in the {@code nomulus} tool.
  *
  * <h3>Cursors</h3>
  *
@@ -109,7 +109,7 @@ import org.joda.time.Duration;
  * <h3>Security</h3>
  *
  * <p>The deposit and report are encrypted using {@link Ghostryde}. Administrators can use the
- * {@code GhostrydeCommand} command in {@code registry_tool} to view them.
+ * {@code GhostrydeCommand} command in the {@code nomulus} tool to view them.
  *
  * <p>Unencrypted XML fragments are stored temporarily between the map and reduce steps. The
  * ghostryde encryption on the full archived deposits makes life a little more difficult for an

@@ -35,7 +35,7 @@ import org.joda.time.DateTime;
 @Parameters(separators = " =", commandDescription = "Soft-delete EPP resources.")
 final class DeleteEppResourceCommand extends MutatingCommand {
 
-  private static final String DEFAULT_DELETION_REASON = "Deleted using registry_tool.";
+  private static final String DEFAULT_DELETION_REASON = "Deleted using nomulus tool.";
 
   @Parameter(
       description = "List of EppResource ROIDs to soft-delete.",

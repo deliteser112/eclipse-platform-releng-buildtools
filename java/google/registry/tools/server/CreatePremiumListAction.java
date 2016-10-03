@@ -27,7 +27,8 @@ import java.util.List;
 import javax.inject.Inject;
 
 /**
- * An action that creates a premium list, for use by the registry_tool create_premium_list command.
+ * An action that creates a premium list, for use by the {@code nomulus create_premium_list}
+ * command.
  */
 @Action(path = CreatePremiumListAction.PATH, method = POST)
 public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
