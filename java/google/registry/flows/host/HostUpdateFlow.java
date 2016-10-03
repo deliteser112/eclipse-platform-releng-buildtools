@@ -190,7 +190,7 @@ public final class HostUpdateFlow extends LoggedInFlow implements TransactionalF
     verifyNoDisallowedStatuses(existingResource, DISALLOWED_STATUSES);
   }
 
-  void verifyHasIpsIffIsExternal(
+  private void verifyHasIpsIffIsExternal(
       Update command, HostResource existingResource, HostResource newResource) throws EppException {
     boolean wasExternal = existingResource.getSuperordinateDomain() == null;
     boolean wasSubordinate = !wasExternal;
@@ -215,7 +215,7 @@ public final class HostUpdateFlow extends LoggedInFlow implements TransactionalF
     }
   }
 
-  public void enqueueTasks(HostResource existingResource, HostResource newResource) {
+  private void enqueueTasks(HostResource existingResource, HostResource newResource) {
     // Only update DNS for subordinate hosts. External hosts have no glue to write, so they
     // are only written as NS records from the referencing domain.
     if (existingResource.getSuperordinateDomain() != null) {
