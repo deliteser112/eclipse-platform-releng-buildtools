@@ -207,8 +207,8 @@ public class WhoisServerTest {
         persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
         persistResource(
             makeRegistrar("example", "Example Registrar", ACTIVE))).asBuilder()
-                .setCreationTimeForTest(DateTime.now().minusDays(2))
-                .setDeletionTime(DateTime.now().minusDays(1)).build());
+                .setCreationTimeForTest(clock.nowUtc().minusDays(2))
+                .setDeletionTime(clock.nowUtc().minusDays(1)).build());
     DomainResource domain2 = persistResource(makeDomainResource("cat.lol",
         persistResource(
             makeContactResource(
@@ -221,7 +221,7 @@ public class WhoisServerTest {
         persistResource(makeHostResource("ns2.google.lol", "4311::f143")),
         persistResource((registrar = makeRegistrar(
             "example", "Example Registrar", ACTIVE)))).asBuilder()
-            .setCreationTimeForTest(DateTime.now()).build());
+            .setCreationTimeForTest(clock.nowUtc()).build());
     persistSimpleResources(makeRegistrarContacts(registrar));
     assertThat(domain1.getRepoId()).isNotEqualTo(domain2.getRepoId());
     newWhoisServer("domain cat.lol\r\n").run();

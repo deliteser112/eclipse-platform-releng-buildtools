@@ -199,7 +199,7 @@ public class OfyCommitLogTest {
   @Test
   public void testTransactNew_deleteNotBackedUpKind_throws() throws Exception {
     final CommitLogManifest backupsArentAllowedOnMe =
-        CommitLogManifest.create(getBucketKey(1), DateTime.now(), ImmutableSet.<Key<?>>of());
+        CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.<Key<?>>of());
     thrown.expect(IllegalArgumentException.class, "Can't save/delete a @NotBackedUp");
     ofy().transactNew(new VoidWork() {
       @Override
@@ -211,7 +211,7 @@ public class OfyCommitLogTest {
   @Test
   public void testTransactNew_saveNotBackedUpKind_throws() throws Exception {
     final CommitLogManifest backupsArentAllowedOnMe =
-        CommitLogManifest.create(getBucketKey(1), DateTime.now(), ImmutableSet.<Key<?>>of());
+        CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.<Key<?>>of());
     ofy().saveWithoutBackup().entity(backupsArentAllowedOnMe).now();
     thrown.expect(IllegalArgumentException.class, "Can't save/delete a @NotBackedUp");
     ofy().transactNew(new VoidWork() {

@@ -274,7 +274,7 @@ public class DomainApplicationInfoFlowTest
     persistResource(new DomainApplication.Builder()
         .setRepoId("123-COM")
         .setFullyQualifiedDomainName("timber.com")
-        .setDeletionTime(DateTime.now().minusDays(1))
+        .setDeletionTime(clock.nowUtc().minusDays(1))
         .setRegistrant(Key.create(persistActiveContact("jd1234")))
         .build());
     runFlow();

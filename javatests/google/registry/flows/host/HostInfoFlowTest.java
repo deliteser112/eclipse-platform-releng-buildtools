@@ -51,7 +51,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
         new HostResource.Builder()
             .setFullyQualifiedHostName(getUniqueIdFromCommand())
             .setRepoId("1FF-FOOBAR")
-            .setDeletionTime(active ? null : DateTime.now().minusDays(1))
+            .setDeletionTime(active ? null : clock.nowUtc().minusDays(1))
             .setCurrentSponsorClientId("my sponsor")
             .setStatusValues(
                 ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
@@ -66,7 +66,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
             .setLastEppUpdateTime(DateTime.parse("1999-12-03T09:00:00.0Z"))
             .setLastTransferTime(DateTime.parse("2000-04-08T09:00:00.0Z"))
             .build());
-    assertThat(isDeleted(host, DateTime.now())).isNotEqualTo(active);
+    assertThat(isDeleted(host, clock.nowUtc())).isNotEqualTo(active);
     return host;
   }
 

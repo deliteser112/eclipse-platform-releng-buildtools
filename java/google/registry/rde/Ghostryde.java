@@ -81,7 +81,7 @@ import org.joda.time.DateTime;
  *   try (OutputStream output = new FileOutputStream(out);
  *       Ghostryde.Encryptor encryptor = ghost.openEncryptor(output, publicKey);
  *       Ghostryde.Compressor kompressor = ghost.openCompressor(encryptor);
- *       OutputStream go = ghost.openOutput(kompressor, in.getName(), DateTime.now());
+ *       OutputStream go = ghost.openOutput(kompressor, in.getName(), DateTime.now(UTC));
  *       InputStream input = new FileInputStream(in)) &lbrace;
  *     ByteStreams.copy(input, go);
  *   &rbrace;}</pre>
@@ -109,7 +109,7 @@ import org.joda.time.DateTime;
  *
  * <pre>   {@code
  *   byte[] data = "hello kitty".getBytes(UTF_8);
- *   byte[] blob = Ghostryde.encode(data, publicKey, "lol.txt", DateTime.now());
+ *   byte[] blob = Ghostryde.encode(data, publicKey, "lol.txt", DateTime.now(UTC));
  *   Ghostryde.Result result = Ghostryde.decode(blob, privateKey);
  *   }</pre>
  *

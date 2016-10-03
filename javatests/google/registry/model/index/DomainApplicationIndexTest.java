@@ -22,6 +22,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -63,14 +64,14 @@ public class DomainApplicationIndexTest extends EntityTestCase {
     DomainApplicationIndex savedIndex = DomainApplicationIndex.load("example.com");
     assertThat(savedIndex).isNotNull();
     assertThat(savedIndex.getKeys()).containsExactly(Key.create(application));
-    assertThat(loadActiveApplicationsByDomainName("example.com", DateTime.now()))
+    assertThat(loadActiveApplicationsByDomainName("example.com", clock.nowUtc()))
         .containsExactly(application);
   }
 
   @Test
   public void testSuccess_noApplications() {
     assertThat(DomainApplicationIndex.load("example.com")).isNull();
-    assertThat(loadActiveApplicationsByDomainName("example.com", DateTime.now())).isEmpty();
+    assertThat(loadActiveApplicationsByDomainName("example.com", clock.nowUtc())).isEmpty();
   }
 
   @Test
@@ -85,7 +86,7 @@ public class DomainApplicationIndexTest extends EntityTestCase {
     assertThat(savedIndex).isNotNull();
     assertThat(savedIndex.getKeys()).containsExactly(
         Key.create(application1), Key.create(application2), Key.create(application3));
-    assertThat(loadActiveApplicationsByDomainName("example.com", DateTime.now()))
+    assertThat(loadActiveApplicationsByDomainName("example.com", clock.nowUtc()))
         .containsExactly(application1, application2, application3);
   }
 
@@ -96,7 +97,7 @@ public class DomainApplicationIndexTest extends EntityTestCase {
     persistResource(createUpdatedInstance(application1));
     persistResource(createUpdatedInstance(application2));
     persistResource(createUpdatedInstance(application1));
-    assertThat(loadActiveApplicationsByDomainName("example.com", DateTime.now()))
+    assertThat(loadActiveApplicationsByDomainName("example.com", clock.nowUtc()))
         .containsExactly(application1, application2);
   }
 
@@ -107,14 +108,14 @@ public class DomainApplicationIndexTest extends EntityTestCase {
         persistSimpleResource(
             newDomainApplication("example.com")
                 .asBuilder()
-                .setDeletionTime(DateTime.now().minusDays(30))
+                .setDeletionTime(DateTime.now(UTC).minusDays(30))
                 .build());
     persistResource(createUpdatedInstance(application1));
     persistResource(createUpdatedInstance(application2));
     DomainApplicationIndex savedIndex =
         DomainApplicationIndex.load(application1.getFullyQualifiedDomainName());
     assertThat(savedIndex.getKeys()).hasSize(2);
-    assertThat(loadActiveApplicationsByDomainName("example.com", DateTime.now()))
+    assertThat(loadActiveApplicationsByDomainName("example.com", DateTime.now(UTC)))
         .containsExactly(application1);
   }
 }

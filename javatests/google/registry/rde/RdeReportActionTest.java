@@ -23,6 +23,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardSeconds;
 import static org.mockito.Matchers.any;
@@ -127,7 +128,7 @@ public class RdeReportActionTest {
     writeGcsFile(
         gcsService,
         reportFile,
-        Ghostryde.encode(REPORT_XML.read(), encryptKey, "darkside.xml", DateTime.now()));
+        Ghostryde.encode(REPORT_XML.read(), encryptKey, "darkside.xml", DateTime.now(UTC)));
   }
 
   @Test

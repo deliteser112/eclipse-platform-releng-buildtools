@@ -50,7 +50,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
         new ContactResource.Builder()
             .setContactId("sh8013")
             .setRepoId("2FF-ROID")
-            .setDeletionTime(active ? null : DateTime.now().minusDays(1))
+            .setDeletionTime(active ? null : clock.nowUtc().minusDays(1))
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_DELETE_PROHIBITED))
             .setInternationalizedPostalInfo(new PostalInfo.Builder()
                 .setType(Type.INTERNATIONALIZED)
@@ -87,7 +87,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
                 .setEmail(new PresenceMarker())
                 .build())
             .build());
-    assertThat(isDeleted(contact, DateTime.now())).isNotEqualTo(active);
+    assertThat(isDeleted(contact, clock.nowUtc())).isNotEqualTo(active);
     return contact;
   }
 
