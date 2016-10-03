@@ -218,9 +218,4 @@ public final class ProductionRegistryConfigExample implements RegistryConfig {
   public String getCheckApiServletRegistrarClientId() {
     return "TheRegistrar";
   }
-
-  @Override
-  public Duration getAsyncFlowFailureBackoff() {
-    return Duration.standardMinutes(10);
-  }
 }

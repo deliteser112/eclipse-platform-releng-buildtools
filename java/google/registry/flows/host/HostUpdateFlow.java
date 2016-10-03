@@ -230,7 +230,7 @@ public final class HostUpdateFlow extends LoggedInFlow implements TransactionalF
       }
       // We must also enqueue updates for all domains that use this host as their nameserver so
       // that their NS records can be updated to point at the new name.
-      asyncFlowEnqueuer.enqueueLegacyAsyncDnsRefresh(existingResource);
+      asyncFlowEnqueuer.enqueueAsyncDnsRefresh(existingResource);
     }
   }
 

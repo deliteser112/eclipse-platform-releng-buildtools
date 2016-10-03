@@ -211,14 +211,5 @@ public interface RegistryConfig {
    */
   public String getCheckApiServletRegistrarClientId();
 
-  /**
-   * Returns the amount of time to back off following an async flow task failure.
-   *
-   * This should be ~orders of magnitude larger than the rate on the queue, in order to prevent
-   * the logs from filling up with unnecessarily failures.
-   */
-  // TODO(b/26140521): Remove this configuration option along with non-batched async operations.
-  public Duration getAsyncFlowFailureBackoff();
-
   // XXX: Please consider using ConfigModule instead of adding new methods to this file.
 }

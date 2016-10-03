@@ -14,22 +14,18 @@
 
 package google.registry.flows.async;
 
-import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_IS_SUPERUSER;
 import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_REQUESTING_CLIENT_ID;
 import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_RESOURCE_KEY;
 import static google.registry.flows.async.DnsRefreshForHostRenameAction.PARAM_HOST_KEY;
 import static google.registry.flows.async.RefreshDnsOnHostRenameAction.QUEUE_ASYNC_HOST_RENAME;
-import static google.registry.request.Actions.getPathForAction;
 
 import com.google.appengine.api.taskqueue.Queue;
-import com.google.appengine.api.taskqueue.RetryOptions;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.googlecode.objectify.Key;
 import google.registry.config.ConfigModule.Config;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.EppResource;
 import google.registry.model.host.HostResource;
 import google.registry.util.FormattingLogger;
@@ -55,7 +51,7 @@ public final class AsyncFlowEnqueuer {
       EppResource resourceToDelete, String requestingClientId, boolean isSuperuser) {
     Key<EppResource> resourceKey = Key.create(resourceToDelete);
     logger.infofmt(
-        "Enqueueing async deletion of %s on behalf of registrar %s.",
+        "Enqueuing async deletion of %s on behalf of registrar %s.",
         resourceKey, requestingClientId);
     TaskOptions task =
         TaskOptions.Builder
@@ -70,27 +66,10 @@ public final class AsyncFlowEnqueuer {
   /** Enqueues a task to asynchronously refresh DNS for a renamed host. */
   public void enqueueAsyncDnsRefresh(HostResource host) {
     Key<HostResource> hostKey = Key.create(host);
-    logger.infofmt("Enqueueing async DNS refresh for renamed host %s.", hostKey);
+    logger.infofmt("Enqueuing async DNS refresh for renamed host %s.", hostKey);
     addTaskToQueueWithRetry(
         asyncDnsRefreshPullQueue,
         TaskOptions.Builder.withMethod(Method.PULL).param(PARAM_HOST_KEY, hostKey.getString()));
-  }
-
-  /** Enqueues a task to asynchronously refresh DNS for a renamed host. */
-  //TODO(b/26140521): Delete this once non-batched DNS host refresh mapreduce is deleted.
-  @Deprecated
-  public void enqueueLegacyAsyncDnsRefresh(HostResource host) {
-    logger.infofmt("Enqueueing async DNS refresh for host %s", Key.create(host));
-    // Aggressively back off if the task fails, to minimize flooding the logs.
-    RetryOptions retryOptions =
-        RetryOptions.Builder.withMinBackoffSeconds(
-            RegistryEnvironment.get().config().getAsyncFlowFailureBackoff().getStandardSeconds());
-    final TaskOptions task =
-        TaskOptions.Builder.withUrl(getPathForAction(DnsRefreshForHostRenameAction.class))
-            .retryOptions(retryOptions)
-            .param(PARAM_HOST_KEY, Key.create(host).getString())
-            .method(Method.GET);
-    addTaskToQueueWithRetry(getQueue("flows-async"), task);
   }
 
   /**

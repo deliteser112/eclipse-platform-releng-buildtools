@@ -126,10 +126,10 @@ import org.joda.time.Duration;
  * Duplicate jobs may exist {@code <=cursor}. So a transaction will not bother changing the cursor
  * if it's already been rolled forward.
  *
- * <p>Enqueueing {@code RdeUploadAction} is also part of the cursor transaction. This is necessary
+ * <p>Enqueuing {@code RdeUploadAction} is also part of the cursor transaction. This is necessary
  * because the first thing the upload task does is check the staging cursor to verify it's been
  * completed, so we can't enqueue before we roll. We also can't enqueue after the roll, because then
- * if enqueueing fails, the upload might never be enqueued.
+ * if enqueuing fails, the upload might never be enqueued.
  *
  * <h3>Determinism</h3>
  *

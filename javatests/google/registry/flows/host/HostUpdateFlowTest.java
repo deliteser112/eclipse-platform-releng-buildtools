@@ -15,8 +15,8 @@
 package google.registry.flows.host;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.flows.async.RefreshDnsOnHostRenameAction.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
-import static google.registry.request.Actions.getPathForAction;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -43,7 +43,6 @@ import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import google.registry.flows.async.DnsRefreshForHostRenameAction;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.flows.exceptions.StatusNotClientSettableException;
@@ -160,9 +159,9 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     HostResource renamedHost = doSuccessfulTest();
     assertThat(renamedHost.getSuperordinateDomain()).isNull();
     // Task enqueued to change the NS record of the referencing domain via mapreduce.
-    assertTasksEnqueued("flows-async", new TaskMatcher()
-        .url(getPathForAction(DnsRefreshForHostRenameAction.class))
-        .param(DnsRefreshForHostRenameAction.PARAM_HOST_KEY, Key.create(renamedHost).getString()));
+    assertTasksEnqueued(
+        QUEUE_ASYNC_HOST_RENAME,
+        new TaskMatcher().payload("hostKey=" + Key.create(renamedHost).getString()));
   }
 
   @Test
