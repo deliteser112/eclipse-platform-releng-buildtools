@@ -66,7 +66,10 @@ function tearDown() {
 }
 
 
-/** Creates a test registrar. */
+/**
+ * Creates test registrar.
+ * @return {Object}
+ */
 function createTestRegistrar() {
   return {
     emailAddress: 'test2.ui@example.com',

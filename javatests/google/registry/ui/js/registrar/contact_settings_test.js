@@ -286,6 +286,7 @@ function testDelete() {
 
 /**
  * @param {string=} opt_email
+ * @return {Object}
  */
 function createTestContact(opt_email) {
   var nameMail = opt_email || 'test@example.com';
@@ -304,6 +305,7 @@ function createTestContact(opt_email) {
 /**
  * Convert parsed formContact to simulated wire form.
  * @param {!Element} contact
+ * @return {Object}
  */
 function simulateJsonForContact(contact) {
   contact.visibleInWhoisAsAdmin = contact.visibleInWhoisAsAdmin == 'true';

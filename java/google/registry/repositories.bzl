@@ -432,12 +432,6 @@ def domain_registry_repositories():
   )
 
   native.maven_jar(
-      name = "protobuf_java",
-      artifact = "com.google.protobuf:protobuf-java:3.0.0-beta-3",
-      sha1 = "ed8c2f9a63cfa770292f8173fd0172bdaa014fe3",
-  )
-
-  native.maven_jar(
       name = "qdox",
       artifact = "com.thoughtworks.qdox:qdox:1.12.1",
       sha1 = "f7122f6ab1f64bdf9f5970b0e89bfb355e036897",
