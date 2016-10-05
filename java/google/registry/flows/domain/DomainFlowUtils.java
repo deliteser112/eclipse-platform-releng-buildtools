@@ -20,6 +20,7 @@ import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.difference;
+import static com.google.common.collect.Sets.union;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
@@ -50,6 +51,8 @@ import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.EppException.UnimplementedOptionException;
+import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
+import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -61,6 +64,7 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.CreateOrUpdate;
 import google.registry.model.domain.DomainCommand.InvalidReferencesException;
+import google.registry.model.domain.DomainCommand.Update;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.Credit;
@@ -72,9 +76,11 @@ import google.registry.model.domain.launch.LaunchExtension;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.domain.secdns.SecDnsInfoExtension;
+import google.registry.model.domain.secdns.SecDnsUpdateExtension;
+import google.registry.model.domain.secdns.SecDnsUpdateExtension.Add;
+import google.registry.model.domain.secdns.SecDnsUpdateExtension.Remove;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.EppInput;
-import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.host.HostResource;
 import google.registry.model.mark.Mark;
@@ -376,17 +382,6 @@ public class DomainFlowUtils {
     }
   }
 
-  /**
-   * Verifies that a launch extension's application id refers to an application with the same
-   * domain name as the one specified in the launch command.
-   */
-  static void verifyLaunchApplicationIdMatchesDomain(
-      SingleResourceCommand command, DomainBase existingResource) throws EppException {
-    if (!Objects.equals(command.getTargetId(), existingResource.getFullyQualifiedDomainName())) {
-      throw new ApplicationDomainNameMismatchException();
-    }
-  }
-
   /** Verifies that an application's domain name matches the target id (from a command). */
   static void verifyApplicationDomainMatchesTargetId(
       DomainApplication application, String targetId) throws EppException {
@@ -488,7 +483,7 @@ public class DomainFlowUtils {
         .build());
   }
 
-  public static SignedMark verifySignedMarks(
+  static SignedMark verifySignedMarks(
       ImmutableList<AbstractSignedMark> signedMarks, String domainLabel, DateTime now)
           throws EppException {
     if (signedMarks.size() > 1) {
@@ -784,6 +779,59 @@ public class DomainFlowUtils {
       ImmutableSet<DelegationSignerData> dsData) {
     if (!dsData.isEmpty()) {
       extensions.add(SecDnsInfoExtension.create(dsData));
+    }
+  }
+
+  /** Update {@link DelegationSignerData} based on an update extension command. */
+  static ImmutableSet<DelegationSignerData> updateDsData(
+      ImmutableSet<DelegationSignerData> oldDsData, SecDnsUpdateExtension secDnsUpdate)
+          throws EppException {
+    // We don't support 'urgent' because we do everything as fast as we can anyways.
+    if (Boolean.TRUE.equals(secDnsUpdate.getUrgent())) {  // We allow both false and null.
+      throw new UrgentAttributeNotSupportedException();
+    }
+    // There must be at least one of add/rem/chg, and chg isn't actually supported.
+    if (secDnsUpdate.getChange() != null) {
+      // The only thing you can change is maxSigLife, and we don't support that at all.
+      throw new MaxSigLifeChangeNotSupportedException();
+    }
+    Add add = secDnsUpdate.getAdd();
+    Remove remove = secDnsUpdate.getRemove();
+    if (add == null && remove == null) {
+      throw new EmptySecDnsUpdateException();
+    }
+    if (remove != null && Boolean.FALSE.equals(remove.getAll())) {
+      throw new SecDnsAllUsageException();  // Explicit all=false is meaningless.
+    }
+    Set<DelegationSignerData> toAdd = (add == null)
+        ? ImmutableSet.<DelegationSignerData>of()
+        : add.getDsData();
+    Set<DelegationSignerData> toRemove = (remove == null)
+        ? ImmutableSet.<DelegationSignerData>of()
+        : (remove.getAll() == null) ? remove.getDsData() : oldDsData;
+    // RFC 5910 specifies that removes are processed before adds.
+    return ImmutableSet.copyOf(union(difference(oldDsData, toRemove), toAdd));
+  }
+
+  /** Check that all of the status values added or removed in an update are client-settable. */
+  static void verifyStatusChangesAreClientSettable(Update command)
+      throws StatusNotClientSettableException {
+    for (StatusValue statusValue : union(
+        command.getInnerAdd().getStatusValues(),
+        command.getInnerRemove().getStatusValues())) {
+      if (!statusValue.isClientSettable()) {
+        throw new StatusNotClientSettableException(statusValue.getXmlName());
+      }
+    }
+  }
+
+  /** If a domain or application has "clientUpdateProhibited" set, updates must clear it or fail. */
+  public static void verifyClientUpdateNotProhibited(Update command, DomainBase existingResource)
+      throws ResourceHasClientUpdateProhibitedException {
+    if (existingResource.getStatusValues().contains(StatusValue.CLIENT_UPDATE_PROHIBITED)
+        && !command.getInnerRemove().getStatusValues()
+            .contains(StatusValue.CLIENT_UPDATE_PROHIBITED)) {
+      throw new ResourceHasClientUpdateProhibitedException();
     }
   }
 
@@ -1156,4 +1204,31 @@ public class DomainFlowUtils {
     }
   }
 
+  /** The secDNS:all element must have value 'true' if present. */
+  static class SecDnsAllUsageException extends ParameterValuePolicyErrorException {
+    public SecDnsAllUsageException() {
+      super("The secDNS:all element must have value 'true' if present");
+    }
+  }
+
+  /** At least one of 'add' or 'rem' is required on a secDNS update. */
+  static class EmptySecDnsUpdateException extends RequiredParameterMissingException {
+    public EmptySecDnsUpdateException() {
+      super("At least one of 'add' or 'rem' is required on a secDNS update");
+    }
+  }
+
+  /** The 'urgent' attribute is not supported. */
+  static class UrgentAttributeNotSupportedException extends UnimplementedOptionException {
+    public UrgentAttributeNotSupportedException() {
+      super("The 'urgent' attribute is not supported");
+    }
+  }
+
+  /** Changing 'maxSigLife' is not supported. */
+  static class MaxSigLifeChangeNotSupportedException extends UnimplementedOptionException {
+    public MaxSigLifeChangeNotSupportedException() {
+      super("Changing 'maxSigLife' is not supported");
+    }
+  }
 }

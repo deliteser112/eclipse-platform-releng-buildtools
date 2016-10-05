@@ -32,27 +32,27 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException;
-import google.registry.flows.ResourceUpdateFlow.AddRemoveSameValueEppException;
-import google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException;
-import google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException;
-import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
-import google.registry.flows.domain.BaseDomainUpdateFlow.EmptySecDnsUpdateException;
-import google.registry.flows.domain.BaseDomainUpdateFlow.MaxSigLifeChangeNotSupportedException;
-import google.registry.flows.domain.BaseDomainUpdateFlow.SecDnsAllUsageException;
-import google.registry.flows.domain.BaseDomainUpdateFlow.UrgentAttributeNotSupportedException;
 import google.registry.flows.domain.DomainApplicationUpdateFlow.ApplicationStatusProhibitsUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
+import google.registry.flows.domain.DomainFlowUtils.EmptySecDnsUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
+import google.registry.flows.domain.DomainFlowUtils.MaxSigLifeChangeNotSupportedException;
 import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
+import google.registry.flows.domain.DomainFlowUtils.SecDnsAllUsageException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyNameserversException;
+import google.registry.flows.domain.DomainFlowUtils.UrgentAttributeNotSupportedException;
+import google.registry.flows.exceptions.AddRemoveSameValueEppException;
+import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
+import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
+import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
@@ -323,10 +323,10 @@ public class DomainApplicationUpdateFlowTest
 
   private void doSecDnsFailingTest(Class<? extends Exception> expectedException, String xmlFilename)
       throws Exception {
-    thrown.expect(expectedException);
     setEppInput(xmlFilename);
     persistReferencedEntities();
     persistNewApplication();
+    thrown.expect(expectedException);
     runFlow();
   }
 
@@ -357,7 +357,6 @@ public class DomainApplicationUpdateFlowTest
 
   @Test
   public void testFailure_secDnsTooManyDsRecords() throws Exception {
-    thrown.expect(TooManyDsRecordsException.class);
     ImmutableSet.Builder<DelegationSignerData> builder = new ImmutableSet.Builder<>();
     for (int i = 0; i < 8; ++i) {
       builder.add(DelegationSignerData.create(i, 2, 3, new byte[]{0, 1, 2}));
@@ -365,6 +364,7 @@ public class DomainApplicationUpdateFlowTest
 
     setEppInput("domain_update_sunrise_dsdata_add.xml");
     persistResource(newApplicationBuilder().setDsData(builder.build()).build());
+    thrown.expect(TooManyDsRecordsException.class);
     runFlow();
   }
 
@@ -383,64 +383,64 @@ public class DomainApplicationUpdateFlowTest
 
   @Test
   public void testFailure_tooManyNameservers() throws Exception {
-    thrown.expect(TooManyNameserversException.class);
-    setEppInput("domain_update_sunrise_add_nameserver.xml");
     persistReferencedEntities();
     persistApplication();
     // Modify application to have 13 nameservers. We will then remove one and add one in the test.
     modifyApplicationToHave13Nameservers();
+    setEppInput("domain_update_sunrise_add_nameserver.xml");
+    thrown.expect(TooManyNameserversException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_wrongExtension() throws Exception {
-    thrown.expect(UnimplementedExtensionException.class);
     setEppInput("domain_update_sunrise_wrong_extension.xml");
+    thrown.expect(UnimplementedExtensionException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_neverExisted() throws Exception {
+    persistReferencedEntities();
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    persistReferencedEntities();
     runFlow();
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
+    persistReferencedEntities();
+    persistResource(newApplicationBuilder().setDeletionTime(START_OF_TIME).build());
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    persistReferencedEntities();
-    persistResource(newApplicationBuilder().setDeletionTime(START_OF_TIME).build());
     runFlow();
   }
 
   @Test
   public void testFailure_clientUpdateProhibited() throws Exception {
-    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
     setEppInput("domain_update_sunrise_authinfo.xml");
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setStatusValues(
         ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED)).build());
+    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_serverUpdateProhibited() throws Exception {
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setStatusValues(
         ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED)).build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
     runFlow();
   }
 
   private void doIllegalApplicationStatusTest(ApplicationStatus status) throws Exception {
-    thrown.expect(ApplicationStatusProhibitsUpdateException.class);
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setApplicationStatus(status).build());
+    thrown.expect(ApplicationStatusProhibitsUpdateException.class);
     runFlow();
   }
 
@@ -461,31 +461,30 @@ public class DomainApplicationUpdateFlowTest
 
   @Test
   public void testFailure_missingHost() throws Exception {
-    thrown.expect(
-        LinkedResourcesDoNotExistException.class,
-        "(ns2.example.tld)");
     persistActiveHost("ns1.example.tld");
     persistActiveContact("sh8013");
     persistActiveContact("mak21");
     persistNewApplication();
+    thrown.expect(
+        LinkedResourcesDoNotExistException.class,
+        "(ns2.example.tld)");
     runFlow();
   }
 
   @Test
   public void testFailure_missingContact() throws Exception {
-    thrown.expect(
-        LinkedResourcesDoNotExistException.class,
-        "(sh8013)");
     persistActiveHost("ns1.example.tld");
     persistActiveHost("ns2.example.tld");
     persistActiveContact("mak21");
     persistNewApplication();
+    thrown.expect(
+        LinkedResourcesDoNotExistException.class,
+        "(sh8013)");
     runFlow();
   }
 
   @Test
   public void testFailure_addingDuplicateContact() throws Exception {
-    thrown.expect(DuplicateContactForRoleException.class);
     persistReferencedEntities();
     persistActiveContact("foo");
     persistNewApplication();
@@ -494,15 +493,16 @@ public class DomainApplicationUpdateFlowTest
     persistResource(reloadDomainApplication().asBuilder().setContacts(ImmutableSet.of(
         DesignatedContact.create(Type.TECH, Key.create(
             loadByForeignKey(ContactResource.class, "foo", clock.nowUtc()))))).build());
+    thrown.expect(DuplicateContactForRoleException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_clientProhibitedStatusValue() throws Exception {
-    thrown.expect(StatusNotClientSettableException.class);
     setEppInput("domain_update_sunrise_prohibited_status.xml");
     persistReferencedEntities();
     persistNewApplication();
+    thrown.expect(StatusNotClientSettableException.class);
     runFlow();
   }
 
@@ -521,35 +521,34 @@ public class DomainApplicationUpdateFlowTest
 
   @Test
   public void testFailure_duplicateContactInCommand() throws Exception {
-    thrown.expect(DuplicateContactForRoleException.class);
     setEppInput("domain_update_sunrise_duplicate_contact.xml");
     persistReferencedEntities();
     persistNewApplication();
+    thrown.expect(DuplicateContactForRoleException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_missingContactType() throws Exception {
-    // We need to test for missing type, but not for invalid - the schema enforces that for us.
-    thrown.expect(MissingContactTypeException.class);
     setEppInput("domain_update_sunrise_missing_contact_type.xml");
     persistReferencedEntities();
     persistNewApplication();
+    // We need to test for missing type, but not for invalid - the schema enforces that for us.
+    thrown.expect(MissingContactTypeException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_unauthorizedClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     sessionMetadata.setClientId("NewRegistrar");
     persistReferencedEntities();
     persistApplication();
+    thrown.expect(ResourceNotOwnedException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
-    thrown.expect(NotAuthorizedForTldException.class);
     persistResource(
         Registrar.loadByClientId("TheRegistrar")
             .asBuilder()
@@ -557,6 +556,7 @@ public class DomainApplicationUpdateFlowTest
             .build());
     persistReferencedEntities();
     persistApplication();
+    thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
   }
 
@@ -572,19 +572,18 @@ public class DomainApplicationUpdateFlowTest
 
   @Test
   public void testFailure_sameNameserverAddedAndRemoved() throws Exception {
-    thrown.expect(AddRemoveSameValueEppException.class);
     setEppInput("domain_update_sunrise_add_remove_same_host.xml");
     persistReferencedEntities();
     persistResource(newApplicationBuilder()
         .setNameservers(ImmutableSet.of(Key.create(
             loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
         .build());
+    thrown.expect(AddRemoveSameValueEppException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_sameContactAddedAndRemoved() throws Exception {
-    thrown.expect(AddRemoveSameValueEppException.class);
     setEppInput("domain_update_sunrise_add_remove_same_contact.xml");
     persistReferencedEntities();
     persistResource(newApplicationBuilder()
@@ -593,12 +592,12 @@ public class DomainApplicationUpdateFlowTest
             Key.create(
                 loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))))
         .build());
+    thrown.expect(AddRemoveSameValueEppException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_removeAdmin() throws Exception {
-    thrown.expect(MissingAdminContactException.class);
     setEppInput("domain_update_sunrise_remove_admin.xml");
     persistReferencedEntities();
     persistResource(newApplicationBuilder()
@@ -606,12 +605,12 @@ public class DomainApplicationUpdateFlowTest
             DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
             DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
         .build());
+    thrown.expect(MissingAdminContactException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_removeTech() throws Exception {
-    thrown.expect(MissingTechnicalContactException.class);
     setEppInput("domain_update_sunrise_remove_tech.xml");
     persistReferencedEntities();
     persistResource(newApplicationBuilder()
@@ -619,6 +618,7 @@ public class DomainApplicationUpdateFlowTest
             DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
             DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
         .build());
+    thrown.expect(MissingTechnicalContactException.class);
     runFlow();
   }
 

@@ -43,23 +43,16 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
-import google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException;
 import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
-import google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException;
-import google.registry.flows.ResourceUpdateFlow.AddRemoveSameValueEppException;
-import google.registry.flows.ResourceUpdateFlow.ResourceHasClientUpdateProhibitedException;
-import google.registry.flows.ResourceUpdateFlow.StatusNotClientSettableException;
-import google.registry.flows.SingleResourceFlow.ResourceStatusProhibitsOperationException;
-import google.registry.flows.domain.BaseDomainUpdateFlow.EmptySecDnsUpdateException;
-import google.registry.flows.domain.BaseDomainUpdateFlow.MaxSigLifeChangeNotSupportedException;
-import google.registry.flows.domain.BaseDomainUpdateFlow.SecDnsAllUsageException;
-import google.registry.flows.domain.BaseDomainUpdateFlow.UrgentAttributeNotSupportedException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
+import google.registry.flows.domain.DomainFlowUtils.EmptySecDnsUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourceInPendingDeleteProhibitsOperationException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
+import google.registry.flows.domain.DomainFlowUtils.MaxSigLifeChangeNotSupportedException;
 import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
@@ -67,8 +60,15 @@ import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedExcepti
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
+import google.registry.flows.domain.DomainFlowUtils.SecDnsAllUsageException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyNameserversException;
+import google.registry.flows.domain.DomainFlowUtils.UrgentAttributeNotSupportedException;
+import google.registry.flows.exceptions.AddRemoveSameValueEppException;
+import google.registry.flows.exceptions.OnlyToolCanPassMetadataException;
+import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
+import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
+import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
@@ -822,6 +822,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   public void testFailure_wrongExtension() throws Exception {
     thrown.expect(UnimplementedExtensionException.class);
     setEppInput("domain_update_wrong_extension.xml");
+    persistReferencedEntities();
+    persistDomain();
     runFlow();
   }
 

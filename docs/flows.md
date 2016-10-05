@@ -209,7 +209,20 @@ This flows can check the existence of multiple contacts simultaneously.
 
 ### Description
 
-An EPP flow that updates a domain resource.
+An EPP flow that updates a domain.
+
+Updates can change contacts, nameservers and delegation signer data of a domain. Updates
+cannot change the domain's name.
+
+Some status values (those of the form "serverSomethingProhibited") can only be applied by the
+superuser. As such, adding or removing these statuses incurs a billing event. There will be only
+one charge per update, even if several such statuses are updated at once.
+
+If a domain was created during the sunrise or landrush phases of a TLD, is still within the
+sunrushAddGracePeriod and has not yet been delegated in DNS, then it will not yet have been
+billed for. Any update that causes the name to be delegated (such * as adding nameservers or
+removing a hold status) will cause the domain to convert to a normal create and be billed for
+accordingly.
 
 ### Errors
 
@@ -227,9 +240,9 @@ An EPP flow that updates a domain resource.
 *   2103
     *   Specified extension is not implemented.
 *   2201
+    *   The specified resource belongs to another client.
     *   Only a tool can pass a metadata extension.
     *   Registrar is not authorized to access this TLD.
-    *   The specified resource belongs to another client.
 *   2303
     *   Resource with this id does not exist.
     *   Resource linked to this domain does not exist.
@@ -242,9 +255,9 @@ An EPP flow that updates a domain resource.
     *   Registrant is not whitelisted for this TLD.
 *   2306
     *   Cannot add and remove the same value.
-    *   The secDNS:all element must have value 'true' if present.
     *   More than one contact for a given role is not allowed.
     *   Missing type attribute for contact.
+    *   The secDNS:all element must have value 'true' if present.
     *   Too many DS records set on a domain.
     *   Too many nameservers set on this domain.
 
@@ -639,7 +652,10 @@ This flow also supports the EPP fee extension and can return pricing information
 
 ### Description
 
-An EPP flow that updates a domain resource.
+An EPP flow that updates a domain application.
+
+Updates can change contacts, nameservers and delegation signer data of an application. Updates
+cannot change the domain name that is being applied for.
 
 ### Errors
 
@@ -655,8 +671,8 @@ An EPP flow that updates a domain resource.
 *   2103
     *   Specified extension is not implemented.
 *   2201
-    *   Registrar is not authorized to access this TLD.
     *   The specified resource belongs to another client.
+    *   Registrar is not authorized to access this TLD.
 *   2303
     *   Resource with this id does not exist.
     *   Resource linked to this domain does not exist.
@@ -668,9 +684,9 @@ An EPP flow that updates a domain resource.
     *   Application status prohibits this domain update.
 *   2306
     *   Cannot add and remove the same value.
-    *   The secDNS:all element must have value 'true' if present.
     *   More than one contact for a given role is not allowed.
     *   Missing type attribute for contact.
+    *   The secDNS:all element must have value 'true' if present.
     *   Too many DS records set on a domain.
     *   Too many nameservers set on this domain.
 
