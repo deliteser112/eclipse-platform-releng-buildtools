@@ -27,6 +27,7 @@
   {@param isAdmin: bool} /** Is this user an App Engine account admin? */
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param showPaymentLink: bool}
+  {@param productName: string} /** Name to display for this software product. */
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Registrar Console' /}
@@ -59,7 +60,9 @@
       <script>goog.require('registry.registrar.main');</script>
   {/switch}
   {if isNonnull(DEBUG)}
-    <script>registry.registrar.main({$xsrfToken}, {$clientId});</script>
+    <script>
+      registry.registrar.main({$xsrfToken}, {$clientId}, {$productName});
+    </script>
   {/if}
 {/template}
 
@@ -110,8 +113,8 @@
     </a>
     <h1>Console is disabled</h1>
     <p>
-      The Registrar Console of the Google Registry is temporarily disabled. Please contact your
-      customer service representative for more information.
+      The {$productName} registrar console is temporarily disabled. Please
+      contact your customer service representative for more information.
     <p>
       <img src="/assets/images/android_sad.png">
   </div>
@@ -136,9 +139,9 @@
     </a>
     <h1>You need permission</h1>
     <p>
-      The account you are logged in as is not associated with Google
-      Registry. Please contact your customer service representative or
-      switch to an account associated with Google Registry.
+      The account you are logged in as is not associated with {$productName}.
+      Please contact your customer service representative or
+      switch to an account associated with {$productName}.
     <p>
       You are signed in as <strong>{$username}</strong>.
     <div>
@@ -152,10 +155,11 @@
 
 /** Welcome text and nav. */
 {template .dashboard}
+  {@param productName: string}
   <div id="domain-registrar-dashboard">
-    <h1>Welcome to the Google Registry Registrar Console<super>BETA</super></h1>
-    <p>This console can help you manage your relationship with Google
-      Registry and allow self-service for key operations.</p>
+    <h1>Welcome to the {$productName} Registrar Console<super>BETA</super></h1>
+    <p>This console can help you manage your relationship with {$productName}
+    and allow self-service for key operations.</p>
     <table>
       <tr>
         <td>
@@ -179,7 +183,7 @@
             <h2>Contact Us</h2>
             View important phone &amp; email<br>
             contact information for<br>
-            Google Registry.
+            {$productName}.
           </div>
       </tr>
     </table>
@@ -213,8 +217,8 @@
           <p>
             <a href="mailto:registry-support@google.com">
               registry-support@google.com</a><br>
-          For general purpose questions once you are integrated with
-            Google Registry.  If the issue is urgent, please put
+            For general purpose questions once you are integrated
+            with our registry system.  If the issue is urgent, please put
             &quot;Urgent&quot; in the email title.
 
           <p class="{css description}">Note: You may receive occasional service
@@ -255,7 +259,8 @@
   <div id="domain-registrar-resources">
     <h1>Resources &amp; billing</h1>
     <p>
-      Google Registry uses <strong>Google Drive</strong> to share important documentation.
+      The registry system uses <strong>Google Drive</strong> to share
+      important documentation.
     <h2><img src="/assets/images/folder.png">TLD information</h2>
     <p>
       Find onboarding FAQs &amp; technical documentation in this folder.

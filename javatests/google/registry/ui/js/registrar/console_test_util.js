@@ -88,7 +88,8 @@ registry.registrar.ConsoleTestUtil.visit = function(
   /** @type {!registry.registrar.Console} */
   test.console = new registry.registrar.Console(
       opt_args.testXsrfToken,
-      opt_args.testClientId);
+      opt_args.testClientId,
+      opt_args.productName);
   // XXX: Should be triggered via event passing.
   test.console.handleHashChange();
   test.mockControl.$verifyAll();

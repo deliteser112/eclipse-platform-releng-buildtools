@@ -70,7 +70,9 @@ function tearDown() {
 
 
 function testButter() {
-  registry.registrar.ConsoleTestUtil.visit(test);
+  registry.registrar.ConsoleTestUtil.visit(test, {
+    productName: 'Foo Registry'
+  });
   registry.util.butter('butter msg');
   var butter = goog.dom.getElementByClass(goog.getCssName('kd-butterbar'));
   assertNotNull(butter.innerHTML.match(/.*butter msg.*/));
@@ -90,7 +92,8 @@ function testEppLogin() {
       test, {
         isEppLoggedIn: true,
         testClientId: test.testClientId,
-        testXsrfToken: test.testXsrfToken
+        testXsrfToken: test.testXsrfToken,
+        productName: 'Foo Registry'
       }, function() {
         test.sessionMock.login(
             goog.testing.mockmatchers.isFunction).$does(function() {
@@ -109,7 +112,9 @@ function testEppLogin() {
 
 /** Authed user with no path op specified should nav to welcome page. */
 function testShowLoginOrDash() {
-  registry.registrar.ConsoleTestUtil.visit(test);
+  registry.registrar.ConsoleTestUtil.visit(test, {
+    productName: 'Foo Registry'
+  });
   assertNotNull(goog.dom.getElement('domain-registrar-dashboard'));
 }
 

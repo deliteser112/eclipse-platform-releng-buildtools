@@ -40,11 +40,12 @@ goog.forwardDeclare('registry.Component');
  * The Registrar Console.
  * @param {string} xsrfToken Populated by server-side soy template.
  * @param {string} clientId The logged in GAE user.
+ * @param {string} productName The software name displayed on the UI.
  * @constructor
  * @extends {registry.Console}
  * @final
  */
-registry.registrar.Console = function(xsrfToken, clientId) {
+registry.registrar.Console = function(xsrfToken, clientId, productName) {
   registry.registrar.Console.base(
       this, 'constructor',
       new registry.registrar.EppSession(this, xsrfToken, clientId));
@@ -65,6 +66,11 @@ registry.registrar.Console = function(xsrfToken, clientId) {
    * @private
    */
   this.xsrfToken_ = xsrfToken;
+
+  /**
+   * @type {string}
+   */
+  this.productName = productName;
 
   /**
    * Last active nav element.

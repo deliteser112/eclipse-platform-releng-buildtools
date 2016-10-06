@@ -54,7 +54,10 @@ registry.registrar.Dashboard.prototype.bindToDom = function(id) {
   registry.registrar.Dashboard.base(this, 'bindToDom', '');
   goog.dom.removeChildren(goog.dom.getRequiredElement('reg-appbar'));
   goog.soy.renderElement(goog.dom.getElement('reg-content'),
-                         registry.soy.registrar.console.dashboard);
+                         registry.soy.registrar.console.dashboard,
+                         {
+                           productName: this.console.productName
+                         });
   goog.events.listen(goog.dom.getElement('rotate'),
                      goog.events.EventType.CLICK,
                      goog.bind(this.rotate_, this));
