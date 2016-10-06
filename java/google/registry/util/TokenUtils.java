@@ -54,7 +54,7 @@ public final class TokenUtils {
     return Iterables.getOnlyElement(createTokens(type, generator, 1));
   }
 
-  /** Generates a {@link Collection} of tokens of a given {@link TokenType}. */
+  /** Generates an {@link ImmutableSet} of tokens of a given {@link TokenType}. */
   public static ImmutableSet<String> createTokens(
       final TokenType type,
       StringGenerator generator,
