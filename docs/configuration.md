@@ -54,13 +54,17 @@ If you are adding new options, prefer adding them to `ConfigModule`.
 **`RegistryConfig`** is an interface, of which you write an implementing class
 containing the configuration values. `RegistryConfigLoader` is the class that
 provides the instance of `RegistryConfig`, and defaults to returning
-`ProductionRegistryConfigExample`. In order to create a configuration specific
-to your registry, we recommend copying the `ProductionRegistryConfigExample`
-class to a new class that will not be shared publicly, setting the
-`com.google.domain.registry.config` system property in `appengine-web.xml` to
-the fully qualified class name of that new class so that `RegistryConfigLoader`
-will load it instead, and then editing said new class to add your specific
-configuration options.
+`ProductionRegistryConfigExample`.
+
+In order to create a configuration specific to your registry, we recommend
+copying the `ProductionRegistryConfigExample` class to a new class that will not
+be shared publicly, setting the `google.registry.config` system property in the
+`appengine-web.xml` files to the fully qualified class name of that new class
+so that `RegistryConfigLoader` will load it instead, and then editing said new
+class to add your specific configuration options. There is one
+`appengine-web.xml` file per service (so three per environment). The same
+configuration class must be used for each service, but different ones can be
+used for different environments.
 
 The `RegistryConfig` class has documentation on all of the methods that should
 be sufficient to explain what each option is, and

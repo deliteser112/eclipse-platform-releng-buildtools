@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RegistryConfigLoader {
 
-  public static final String REGISTRY_CONFIG_PROPERTY = "com.google.domain.registry.config";
+  public static final String REGISTRY_CONFIG_PROPERTY = "google.registry.config";
   public static final String REGISTRY_CONFIG_DEFAULT =
       "google.registry.config.ProductionRegistryConfigExample";
 
