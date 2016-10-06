@@ -291,6 +291,7 @@ class google.registry.model.domain.LrpToken {
   com.googlecode.objectify.Key<google.registry.model.reporting.HistoryEntry> redemptionHistoryEntry;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   java.lang.String assignee;
+  java.util.Map<java.lang.String, java.lang.String> metadata;
   java.util.Set<java.lang.String> validTlds;
 }
 class google.registry.model.domain.Period {
