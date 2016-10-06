@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.tools;
+package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.charactersOf;
 
 import com.google.common.collect.Iterators;
+import google.registry.util.RandomStringGenerator;
+import google.registry.util.StringGenerator;
 import java.util.Iterator;
 import javax.inject.Named;
 
@@ -29,14 +31,14 @@ import javax.inject.Named;
  * <p>Note that consecutive calls to createString will continue where the last call left off in
  * the alphabet.
  */
-class DeterministicStringGenerator extends StringGenerator {
+public class DeterministicStringGenerator extends StringGenerator {
 
   private Iterator<Character> iterator;
   private final Rule rule;
   private int counter = 0;
 
   /** String generation rules. */
-  enum Rule {
+  public enum Rule {
 
     /**
      * Simple string generation, cycling through sequential letters in the alphabet. May produce

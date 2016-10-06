@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.tools;
+package google.registry.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -21,7 +21,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 /** Random string generator. */
-class RandomStringGenerator extends StringGenerator {
+public class RandomStringGenerator extends StringGenerator {
 
   private final Random random;
 

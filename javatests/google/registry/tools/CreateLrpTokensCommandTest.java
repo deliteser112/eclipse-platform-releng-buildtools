@@ -26,7 +26,8 @@ import com.google.common.io.Files;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.LrpToken;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.tools.DeterministicStringGenerator.Rule;
+import google.registry.testing.DeterministicStringGenerator;
+import google.registry.testing.DeterministicStringGenerator.Rule;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
@@ -53,30 +54,32 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   @Test
   public void testSuccess_oneAssignee() throws Exception {
     runCommand("--assignee=domain.tld", "--tlds=tld");
-    assertLrpTokens(createToken("abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null));
-    assertInStdout("domain.tld,abcdefghijklmnop");
+    assertLrpTokens(
+        createToken("LRP_abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null));
+    assertInStdout("domain.tld,LRP_abcdefghijklmnop");
   }
 
   @Test
   public void testSuccess_oneAssignee_tokenCollision() throws Exception {
     LrpToken existingToken = persistResource(new LrpToken.Builder()
-        .setToken("abcdefghijklmnop")
+        .setToken("LRP_abcdefghijklmnop")
         .setAssignee("otherdomain.tld")
         .setValidTlds(ImmutableSet.of("tld"))
         .build());
     runCommand("--assignee=domain.tld", "--tlds=tld");
     assertLrpTokens(
         existingToken,
-        createToken("qrstuvwxyzabcdef", "domain.tld", ImmutableSet.of("tld"), null));
-    assertInStdout("domain.tld,qrstuvwxyzabcdef");
+        createToken("LRP_qrstuvwxyzabcdef", "domain.tld", ImmutableSet.of("tld"), null));
+    assertInStdout("domain.tld,LRP_qrstuvwxyzabcdef");
   }
 
   @Test
   public void testSuccess_oneAssignee_byFile() throws Exception {
     Files.write("domain.tld", assigneeFile, UTF_8);
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
-    assertLrpTokens(createToken("abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null));
-    assertInStdout("domain.tld,abcdefghijklmnop");
+    assertLrpTokens(
+        createToken("LRP_abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null));
+    assertInStdout("domain.tld,LRP_abcdefghijklmnop");
   }
 
   @Test
@@ -93,13 +96,13 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
 
     assertLrpTokens(
-        createToken("abcdefghijklmnop", "domain1.tld", ImmutableSet.of("tld"), null),
-        createToken("qrstuvwxyzabcdef", "domain2.tld", ImmutableSet.of("tld"), null),
-        createToken("ghijklmnopqrstuv", "domain3.tld", ImmutableSet.of("tld"), null));
+        createToken("LRP_abcdefghijklmnop", "domain1.tld", ImmutableSet.of("tld"), null),
+        createToken("LRP_qrstuvwxyzabcdef", "domain2.tld", ImmutableSet.of("tld"), null),
+        createToken("LRP_ghijklmnopqrstuv", "domain3.tld", ImmutableSet.of("tld"), null));
 
-    assertInStdout("domain1.tld,abcdefghijklmnop");
-    assertInStdout("domain2.tld,qrstuvwxyzabcdef");
-    assertInStdout("domain3.tld,ghijklmnopqrstuv");
+    assertInStdout("domain1.tld,LRP_abcdefghijklmnop");
+    assertInStdout("domain2.tld,LRP_qrstuvwxyzabcdef");
+    assertInStdout("domain3.tld,LRP_ghijklmnopqrstuv");
   }
 
   @Test
@@ -107,11 +110,11 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
     Files.write("domain1.tld\n\ndomain2.tld", assigneeFile, UTF_8);
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
     assertLrpTokens(
-        createToken("abcdefghijklmnop", "domain1.tld", ImmutableSet.of("tld"), null),
-        // Second deterministic token (qrstuvwxyzabcdef) still consumed but not assigned
-        createToken("ghijklmnopqrstuv", "domain2.tld", ImmutableSet.of("tld"), null));
-    assertInStdout("domain1.tld,abcdefghijklmnop");
-    assertInStdout("domain2.tld,ghijklmnopqrstuv");
+        createToken("LRP_abcdefghijklmnop", "domain1.tld", ImmutableSet.of("tld"), null),
+        // Second deterministic token (LRP_qrstuvwxyzabcdef) still consumed but not assigned
+        createToken("LRP_ghijklmnopqrstuv", "domain2.tld", ImmutableSet.of("tld"), null));
+    assertInStdout("domain1.tld,LRP_abcdefghijklmnop");
+    assertInStdout("domain2.tld,LRP_ghijklmnopqrstuv");
   }
 
   @Test
@@ -127,7 +130,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
       assigneeFileBuilder.append(String.format("domain%d.tld\n", i));
       expectedTokens[i] =
           createToken(
-              String.format("%04d_abcdefghijklmnop", i),
+              String.format("LRP_%04d_abcdefghijklmnop", i),
               String.format("domain%d.tld", i),
               ImmutableSet.of("tld"),
               null);
@@ -136,7 +139,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
     assertLrpTokens(expectedTokens);
     for (int i = 0; i < numberOfTokens; i++) {
-      assertInStdout(String.format("domain%d.tld,%04d_abcdefghijklmnop", i, i));
+      assertInStdout(String.format("domain%d.tld,LRP_%04d_abcdefghijklmnop", i, i));
     }
   }
   

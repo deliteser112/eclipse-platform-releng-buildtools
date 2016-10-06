@@ -9,7 +9,7 @@
         <domain:contact type="admin">jd1234</domain:contact>
         <domain:contact type="tech">jd1234</domain:contact>
         <domain:authInfo>
-          <domain:pw>abcdefghijklmnop</domain:pw>
+          <domain:pw>ANCHOR_abcdefghijklmnop</domain:pw>
         </domain:authInfo>
       </domain:create>
     </create>

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.tools;
+package google.registry.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import java.util.Collection;
 
 /** String generator. */
-abstract class StringGenerator {
+public abstract class StringGenerator {
 
   /** A class containing different alphabets used to generate strings. */
   public static class Alphabets {
@@ -37,13 +37,13 @@ abstract class StringGenerator {
 
   protected String alphabet;
 
-  StringGenerator(String alphabet) {
+  protected StringGenerator(String alphabet) {
     checkArgument(!isNullOrEmpty(alphabet), "Alphabet cannot be null or empty.");
     this.alphabet = alphabet;
   }
 
   /** Generates a string of a specified length. */
-  abstract String createString(int length);
+  public abstract String createString(int length);
 
   /** Batch-generates an {@link ImmutableList} of strings of a specified length. */
   public Collection<String> createStrings(int length, int count) {

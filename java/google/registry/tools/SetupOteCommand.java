@@ -28,6 +28,7 @@ import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
+import google.registry.util.StringGenerator;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;

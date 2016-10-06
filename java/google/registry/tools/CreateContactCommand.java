@@ -22,6 +22,7 @@ import com.beust.jcommander.Parameters;
 import com.google.template.soy.data.SoyMapData;
 import google.registry.tools.params.PhoneNumberParameter;
 import google.registry.tools.soy.ContactCreateSoyInfo;
+import google.registry.util.StringGenerator;
 import java.util.List;
 import javax.inject.Inject;
 

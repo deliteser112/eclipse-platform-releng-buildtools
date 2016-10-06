@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
+import google.registry.testing.DeterministicStringGenerator;
 import google.registry.util.CidrAddressBlock;
 import java.security.cert.CertificateParsingException;
 import org.joda.time.DateTime;

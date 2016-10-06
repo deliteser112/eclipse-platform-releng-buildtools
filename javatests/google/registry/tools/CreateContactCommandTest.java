@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import com.beust.jcommander.ParameterException;
+import google.registry.testing.DeterministicStringGenerator;
 import org.junit.Before;
 import org.junit.Test;
 

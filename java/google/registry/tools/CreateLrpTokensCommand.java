@@ -19,6 +19,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.util.TokenUtils.TokenType.LRP;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.Parameter;
@@ -34,6 +35,8 @@ import com.googlecode.objectify.Work;
 import google.registry.model.domain.LrpToken;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
+import google.registry.util.StringGenerator;
+import google.registry.util.TokenUtils;
 import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -70,7 +73,6 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
 
   @Inject StringGenerator stringGenerator;
 
-  private static final int TOKEN_LENGTH = 16;
   private static final int BATCH_SIZE = 20;
 
   @Override
@@ -125,7 +127,7 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
    */
   private ImmutableSet<String> generateTokens(int count) {
     final ImmutableSet<String> candidates =
-        ImmutableSet.copyOf(stringGenerator.createStrings(TOKEN_LENGTH, count));
+        ImmutableSet.copyOf(TokenUtils.createTokens(LRP, stringGenerator, count));
     ImmutableSet<Key<LrpToken>> existingTokenKeys = FluentIterable.from(candidates)
         .transform(new Function<String, Key<LrpToken>>() {
           @Override
