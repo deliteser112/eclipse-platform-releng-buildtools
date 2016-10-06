@@ -573,11 +573,11 @@ public class RdapJsonFormatter {
           new ImmutableMap.Builder<>();
       ImmutableList<String> v4Addresses = v4AddressesBuilder.build();
       if (!v4Addresses.isEmpty()) {
-        ipAddressesBuilder.put("v4", v4Addresses);
+        ipAddressesBuilder.put("v4", Ordering.natural().immutableSortedCopy(v4Addresses));
       }
       ImmutableList<String> v6Addresses = v6AddressesBuilder.build();
       if (!v6Addresses.isEmpty()) {
-        ipAddressesBuilder.put("v6", v6Addresses);
+        ipAddressesBuilder.put("v6", Ordering.natural().immutableSortedCopy(v6Addresses));
       }
       ImmutableMap<String, ImmutableList<String>> ipAddresses = ipAddressesBuilder.build();
       if (!ipAddresses.isEmpty()) {

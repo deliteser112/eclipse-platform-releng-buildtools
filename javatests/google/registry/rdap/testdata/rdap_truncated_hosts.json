@@ -1,0 +1,163 @@
+{
+  "nameserverSearchResults" :
+  [
+    {
+      "objectClassName" : "nameserver",
+      "handle" : "14-ROID",
+      "status" : ["active"],
+      "ldhName" : "ns1.cat.lol",
+      "links" :
+      [
+        {
+          "value" : "https://example.tld/rdap/nameserver/ns1.cat.lol",
+          "rel" : "self",
+          "type" : "application/rdap+json",
+          "href" : "https://example.tld/rdap/nameserver/ns1.cat.lol"
+        }
+      ],
+      "ipAddresses" :
+      {
+        "v4" : ["5.5.5.1", "5.5.5.2"]
+      },
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ]
+    },
+    {
+      "objectClassName" : "nameserver",
+      "handle" : "15-ROID",
+      "status" : ["active"],
+      "ldhName" : "ns2.cat.lol",
+      "links" :
+      [
+        {
+          "value" : "https://example.tld/rdap/nameserver/ns2.cat.lol",
+          "rel" : "self",
+          "type" : "application/rdap+json",
+          "href" : "https://example.tld/rdap/nameserver/ns2.cat.lol"
+        }
+      ],
+      "ipAddresses" :
+      {
+        "v4" : ["5.5.5.1", "5.5.5.2"]
+      },
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ]
+    },
+    {
+      "objectClassName" : "nameserver",
+      "handle" : "16-ROID",
+      "status" : ["active"],
+      "ldhName" : "ns3.cat.lol",
+      "links" :
+      [
+        {
+          "value" : "https://example.tld/rdap/nameserver/ns3.cat.lol",
+          "rel" : "self",
+          "type" : "application/rdap+json",
+          "href" : "https://example.tld/rdap/nameserver/ns3.cat.lol"
+        }
+      ],
+      "ipAddresses" :
+      {
+        "v4" : ["5.5.5.1", "5.5.5.2"]
+      },
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ]
+    },
+    {
+      "objectClassName" : "nameserver",
+      "handle" : "17-ROID",
+      "status" : ["active"],
+      "ldhName" : "ns4.cat.lol",
+      "links" :
+      [
+        {
+          "value" : "https://example.tld/rdap/nameserver/ns4.cat.lol",
+          "rel" : "self",
+          "type" : "application/rdap+json",
+          "href" : "https://example.tld/rdap/nameserver/ns4.cat.lol"
+        }
+      ],
+      "ipAddresses" :
+      {
+        "v4" : ["5.5.5.1", "5.5.5.2"]
+      },
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ]
+    }
+  ],
+  "rdapConformance" : ["rdap_level_0"],
+  "notices" :
+  [
+    {
+      "title" : "Search Policy",
+      "type" : "result set truncated due to unexplainable reasons",
+      "description" :
+      [
+        "Search results per query are limited."
+      ]
+    },
+    {
+      "title" : "RDAP Terms of Service",
+      "description" :
+      [
+        "By querying our Domain Database, you are agreeing to comply with these terms so please read them carefully.",
+        "Any information provided is 'as is' without any guarantee of accuracy.",
+        "Please do not misuse the Domain Database. It is intended solely for query-based access.",
+        "Don't use the Domain Database to allow, enable, or otherwise support the transmission of mass unsolicited, commercial advertising or solicitations.",
+        "Don't access our Domain Database through the use of high volume, automated electronic processes that send queries or data to the systems of Charleston Road Registry or any ICANN-accredited registrar.",
+        "You may only use the information contained in the Domain Database for lawful purposes.",
+        "Do not compile, repackage, disseminate, or otherwise use the information contained in the Domain Database in its entirety, or in any substantial portion, without our prior written permission.",
+        "We may retain certain details about queries to our Domain Database for the purposes of detecting and preventing misuse.",
+        "We reserve the right to restrict or deny your access to the database if we suspect that you have failed to comply with these terms.",
+        "We reserve the right to modify this agreement at any time."
+      ],
+      "links" :
+      [
+        {
+          "value" : "https://example.tld/rdap/help/tos",
+          "rel" : "alternate",
+          "href" : "https://www.registry.google/about/rdap/tos.html",
+          "type" : "text/html"
+        }
+      ]
+    }
+  ],
+  "remarks" :
+  [
+    {
+      "description" :
+      [
+        "This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"
+      ]
+    }
+  ]
+}

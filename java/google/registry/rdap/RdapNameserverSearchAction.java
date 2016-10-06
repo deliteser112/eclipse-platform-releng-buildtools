@@ -16,6 +16,7 @@ package google.registry.rdap;
 
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.rdap.RdapIcannStandardInformation.TRUNCATION_NOTICES;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -24,6 +25,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
 import com.google.common.primitives.Booleans;
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.domain.DomainResource;
@@ -85,7 +87,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     if (Booleans.countTrue(nameParam.isPresent(), ipParam.isPresent()) != 1) {
       throw new BadRequestException("You must specify either name=XXXX or ip=YYYY");
     }
-    ImmutableList<ImmutableMap<String, Object>> results;
+    RdapSearchResults results;
     if (nameParam.isPresent()) {
       // syntax: /rdap/nameservers?name=exam*.com
       if (!LDH_PATTERN.matcher(nameParam.get()).matches()) {
@@ -98,23 +100,24 @@ public class RdapNameserverSearchAction extends RdapActionBase {
       // syntax: /rdap/nameservers?ip=1.2.3.4
       results = searchByIp(ipParam.get(), now);
     }
-    if (results.isEmpty()) {
+    if (results.jsonList().isEmpty()) {
       throw new NotFoundException("No nameservers found");
     }
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    jsonBuilder.put("nameserverSearchResults", results);
+    jsonBuilder.put("nameserverSearchResults", results.jsonList());
     RdapJsonFormatter.addTopLevelEntries(
         jsonBuilder,
         BoilerplateType.NAMESERVER,
-        ImmutableList.<ImmutableMap<String, Object>>of(),
+        results.isTruncated()
+            ? TRUNCATION_NOTICES : ImmutableList.<ImmutableMap<String, Object>>of(),
         ImmutableList.<ImmutableMap<String, Object>>of(),
         rdapLinkBase);
     return jsonBuilder.build();
   }
 
   /** Searches for nameservers by name, returning a JSON array of nameserver info maps. */
-  private ImmutableList<ImmutableMap<String, Object>>
-      searchByName(final RdapSearchPattern partialStringQuery, final DateTime now) {
+  private RdapSearchResults searchByName(
+      final RdapSearchPattern partialStringQuery, final DateTime now) {
     // Handle queries without a wildcard -- just load by foreign key.
     if (!partialStringQuery.getHasWildcard()) {
       HostResource hostResource =
@@ -122,18 +125,21 @@ public class RdapNameserverSearchAction extends RdapActionBase {
       if (hostResource == null) {
         throw new NotFoundException("No nameservers found");
       }
-      return ImmutableList.of(
-          RdapJsonFormatter.makeRdapJsonForHost(
-              hostResource, false, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL));
+      return RdapSearchResults.create(
+          ImmutableList.of(
+              RdapJsonFormatter.makeRdapJsonForHost(
+                  hostResource, false, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL)),
+          false);
     // Handle queries with a wildcard, but no suffix. There are no pending deletes for hosts, so we
     // can call queryUndeleted.
     } else if (partialStringQuery.getSuffix() == null) {
       return makeSearchResults(
+          // Add 1 so we can detect truncation.
           queryUndeleted(
                   HostResource.class,
                   "fullyQualifiedHostName",
                   partialStringQuery,
-                  rdapResultSetMaxSize)
+                  rdapResultSetMaxSize + 1)
               .list(),
           now);
     // Handle queries with a wildcard and a suffix. In this case, it is more efficient to do things
@@ -161,29 +167,30 @@ public class RdapNameserverSearchAction extends RdapActionBase {
   }
 
   /** Searches for nameservers by IP address, returning a JSON array of nameserver info maps. */
-  private ImmutableList<ImmutableMap<String, Object>>
-      searchByIp(final InetAddress inetAddress, DateTime now) {
+  private RdapSearchResults searchByIp(final InetAddress inetAddress, DateTime now) {
     return makeSearchResults(
+        // Add 1 so we can detect truncation.
         ofy().load()
             .type(HostResource.class)
             .filter("inetAddresses", inetAddress.getHostAddress())
             .filter("deletionTime", END_OF_TIME)
-            .limit(rdapResultSetMaxSize)
+            .limit(rdapResultSetMaxSize + 1)
             .list(),
         now);
   }
 
   /** Output JSON for a list of hosts. */
-  private ImmutableList<ImmutableMap<String, Object>> makeSearchResults(
-      List<HostResource> hosts, DateTime now) {
+  private RdapSearchResults makeSearchResults(List<HostResource> hosts, DateTime now) {
     OutputDataType outputDataType =
         (hosts.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
-    ImmutableList.Builder<ImmutableMap<String, Object>> jsonBuilder = new ImmutableList.Builder<>();
-    for (HostResource host : hosts) {
-      jsonBuilder.add(
+    ImmutableList.Builder<ImmutableMap<String, Object>> jsonListBuilder =
+        new ImmutableList.Builder<>();
+    for (HostResource host : Iterables.limit(hosts, rdapResultSetMaxSize)) {
+      jsonListBuilder.add(
           RdapJsonFormatter.makeRdapJsonForHost(
               host, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
     }
-    return jsonBuilder.build();
+    ImmutableList<ImmutableMap<String, Object>> jsonList = jsonListBuilder.build();
+    return RdapSearchResults.create(jsonList, jsonList.size() < hosts.size());
   }
 }
