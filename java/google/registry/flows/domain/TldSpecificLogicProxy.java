@@ -25,7 +25,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
-import google.registry.flows.ResourceMutateFlow.ResourceDoesNotExistException;
+import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
