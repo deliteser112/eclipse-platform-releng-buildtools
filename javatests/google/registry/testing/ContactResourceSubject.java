@@ -37,18 +37,18 @@ public final class ContactResourceSubject
   }
 
   public And<ContactResourceSubject> hasLocalizedPostalInfo(PostalInfo postalInfo) {
-    return hasValue(postalInfo, getSubject().getLocalizedPostalInfo(), "has localizedPostalInfo");
+    return hasValue(postalInfo, actual().getLocalizedPostalInfo(), "has localizedPostalInfo");
   }
 
   public And<ContactResourceSubject> hasNullLocalizedPostalInfo() {
-    if (getSubject().getLocalizedPostalInfo() != null) {
+    if (actual().getLocalizedPostalInfo() != null) {
       fail("has null localized postal info");
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullLocalizedPostalInfo() {
-    if (getSubject().getLocalizedPostalInfo() == null) {
+    if (actual().getLocalizedPostalInfo() == null) {
       fail("has non-null localized postal info");
     }
     return andChainer();
@@ -58,12 +58,12 @@ public final class ContactResourceSubject
       PostalInfo postalInfo) {
     return hasValue(
         postalInfo,
-        getSubject().getInternationalizedPostalInfo(),
+        actual().getInternationalizedPostalInfo(),
         "has internationalizedPostalInfo");
   }
 
   public And<ContactResourceSubject> hasNullInternationalizedPostalInfo() {
-    if (getSubject().getInternationalizedPostalInfo() != null) {
+    if (actual().getInternationalizedPostalInfo() != null) {
       fail("has null internationalized postal info");
     }
     return andChainer();
@@ -71,56 +71,56 @@ public final class ContactResourceSubject
 
 
   public And<ContactResourceSubject> hasNonNullInternationalizedPostalInfo() {
-    if (getSubject().getInternationalizedPostalInfo() == null) {
+    if (actual().getInternationalizedPostalInfo() == null) {
       fail("has non-null internationalized postal info");
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNullEmailAddress() {
-    if (getSubject().getEmailAddress() != null) {
+    if (actual().getEmailAddress() != null) {
       fail("has null email address");
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullEmailAddress() {
-    if (getSubject().getEmailAddress() == null) {
+    if (actual().getEmailAddress() == null) {
       fail("has non-null email address");
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNullVoiceNumber() {
-    if (getSubject().getVoiceNumber() != null) {
+    if (actual().getVoiceNumber() != null) {
       fail("has null voice number");
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullVoiceNumber() {
-    if (getSubject().getVoiceNumber() == null) {
+    if (actual().getVoiceNumber() == null) {
       fail("has non-null voice number");
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNullFaxNumber() {
-    if (getSubject().getFaxNumber() != null) {
+    if (actual().getFaxNumber() != null) {
       fail("has null fax number");
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullFaxNumber() {
-    if (getSubject().getFaxNumber() == null) {
+    if (actual().getFaxNumber() == null) {
       fail("has non-null fax number");
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasAuthInfoPwd(String pw) {
-    AuthInfo authInfo = getSubject().getAuthInfo();
+    AuthInfo authInfo = actual().getAuthInfo();
     return hasValue(pw, authInfo == null ? null : authInfo.getPw().getValue(), "has auth info pw");
   }
 

@@ -37,8 +37,8 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
   }
 
   public And<LogsSubject> hasNoLogsAtLevel(Level level) {
-    for (LogRecord log : getSubject().getStoredLogRecords()) {
-      if (log.getLevel() == level) {
+    for (LogRecord log : actual().getStoredLogRecords()) {
+      if (log.getLevel().equals(level)) {
         failWithRawMessage(
             "Not true that there are no logs at level %s. Found <%s>.", level, log.getMessage());
       }
@@ -48,8 +48,8 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
 
   public And<LogsSubject> hasLogAtLevelWithMessage(Level level, String message) {
     boolean found = false;
-    for (LogRecord log : getSubject().getStoredLogRecords()) {
-      if (log.getLevel() == level && log.getMessage().contains(message)) {
+    for (LogRecord log : actual().getStoredLogRecords()) {
+      if (log.getLevel().equals(level) && log.getMessage().contains(message)) {
         found = true;
         break;
       }

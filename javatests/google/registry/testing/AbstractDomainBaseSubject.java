@@ -36,7 +36,7 @@ public abstract class AbstractDomainBaseSubject
   public And<S> hasFullyQualifiedDomainName(String fullyQualifiedDomainName) {
     return hasValue(
         fullyQualifiedDomainName,
-        getSubject().getFullyQualifiedDomainName(),
+        actual().getFullyQualifiedDomainName(),
         "has fullyQualifiedDomainName");
   }
 
@@ -45,19 +45,19 @@ public abstract class AbstractDomainBaseSubject
   }
 
   public And<S> hasExactlyDsData(Set<DelegationSignerData> dsData) {
-    return hasValue(dsData, getSubject().getDsData(), "has dsData");
+    return hasValue(dsData, actual().getDsData(), "has dsData");
   }
 
   public And<S> hasNumDsData(int num) {
-    return hasValue(num, getSubject().getDsData().size(), "has num dsData");
+    return hasValue(num, actual().getDsData().size(), "has num dsData");
   }
 
   public And<S> hasLaunchNotice(LaunchNotice launchNotice) {
-    return hasValue(launchNotice, getSubject().getLaunchNotice(), "has launchNotice");
+    return hasValue(launchNotice, actual().getLaunchNotice(), "has launchNotice");
   }
 
   public And<S> hasAuthInfoPwd(String pw) {
-    AuthInfo authInfo = getSubject().getAuthInfo();
+    AuthInfo authInfo = actual().getAuthInfo();
     return hasValue(pw, authInfo == null ? null : authInfo.getPw().getValue(), "has auth info pw");
   }
 }

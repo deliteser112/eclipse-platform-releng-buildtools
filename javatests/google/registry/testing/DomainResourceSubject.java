@@ -33,31 +33,31 @@ public final class DomainResourceSubject
       extends ReflectiveSubjectFactory<DomainResource, DomainResourceSubject>{}
 
   public And<DomainResourceSubject> hasRegistrationExpirationTime(DateTime expiration) {
-    if (!Objects.equals(getSubject().getRegistrationExpirationTime(), expiration)) {
+    if (!Objects.equals(actual().getRegistrationExpirationTime(), expiration)) {
       failWithBadResults(
           "has registrationExpirationTime",
           expiration,
-          getSubject().getRegistrationExpirationTime());
+          actual().getRegistrationExpirationTime());
     }
     return andChainer();
   }
 
   public And<DomainResourceSubject> hasDeletePollMessage() {
-    if (getSubject().getDeletePollMessage() == null) {
+    if (actual().getDeletePollMessage() == null) {
       fail("has a delete poll message");
     }
     return andChainer();
   }
 
   public And<DomainResourceSubject> hasNoDeletePollMessage() {
-    if (getSubject().getDeletePollMessage() != null) {
+    if (actual().getDeletePollMessage() != null) {
       fail("has no delete poll message");
     }
     return andChainer();
   }
 
   public And<DomainResourceSubject> hasSmdId(String smdId) {
-    return hasValue(smdId, getSubject().getSmdId(), "has smdId");
+    return hasValue(smdId, actual().getSmdId(), "has smdId");
   }
 
   public DomainResourceSubject(FailureStrategy strategy, DomainResource subject) {

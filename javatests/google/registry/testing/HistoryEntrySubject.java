@@ -40,7 +40,7 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
 
   @Override
   public String getDisplaySubject() {
-    return Optional.fromNullable(customDisplaySubject).or(super.getDisplaySubject());
+    return Optional.fromNullable(customDisplaySubject).or(super.actualAsString());
   }
 
   public HistoryEntrySubject withCustomDisplaySubject(String customDisplaySubject) {
@@ -49,15 +49,15 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
   }
 
   public And<HistoryEntrySubject> hasType(HistoryEntry.Type type) {
-    return hasValue(type, getSubject().getType(), "has type");
+    return hasValue(type, actual().getType(), "has type");
   }
 
   public And<HistoryEntrySubject> hasClientId(String clientId) {
-    return hasValue(clientId, getSubject().getClientId(), "has client ID");
+    return hasValue(clientId, actual().getClientId(), "has client ID");
   }
 
   public And<HistoryEntrySubject> hasPeriod() {
-    if (getSubject().getPeriod() == null) {
+    if (actual().getPeriod() == null) {
       fail("has a period");
     }
     return new And<HistoryEntrySubject>(this);
@@ -65,24 +65,24 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
 
   public And<HistoryEntrySubject> hasPeriodYears(int years) {
     return hasPeriod().and()
-        .hasValue(Period.Unit.YEARS, getSubject().getPeriod().getUnit(), "has period in").and()
-        .hasValue(years, getSubject().getPeriod().getValue(), "has period length");
+        .hasValue(Period.Unit.YEARS, actual().getPeriod().getUnit(), "has period in").and()
+        .hasValue(years, actual().getPeriod().getValue(), "has period length");
   }
 
   public And<HistoryEntrySubject> hasNoXml() {
-    if (getSubject().getXmlBytes() != null) {
+    if (actual().getXmlBytes() != null) {
       fail("has no xml");
     }
     return new And<HistoryEntrySubject>(this);
   }
 
   public And<HistoryEntrySubject> hasMetadataReason(String reason) {
-    return hasValue(reason, getSubject().getReason(), "has metadata reason");
+    return hasValue(reason, actual().getReason(), "has metadata reason");
   }
 
   public And<HistoryEntrySubject> hasMetadataRequestedByRegistrar(
         boolean requestedByRegistrar) {
-    if (getSubject().getRequestedByRegistrar() != requestedByRegistrar) {
+    if (actual().getRequestedByRegistrar() != requestedByRegistrar) {
       fail("has metadata requestedByRegistrar with value", requestedByRegistrar);
     }
     return new And<HistoryEntrySubject>(this);

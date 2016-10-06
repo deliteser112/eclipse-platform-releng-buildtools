@@ -33,9 +33,9 @@ public final class DomainApplicationSubject
 
   public And<DomainApplicationSubject> hasApplicationStatus(
       ApplicationStatus applicationStatus) {
-    if (!Objects.equals(getSubject().getApplicationStatus(), applicationStatus)) {
+    if (!Objects.equals(actual().getApplicationStatus(), applicationStatus)) {
       failWithBadResults(
-          "has application status", applicationStatus, getSubject().getApplicationStatus());
+          "has application status", applicationStatus, actual().getApplicationStatus());
     }
     return andChainer();
   }
@@ -44,16 +44,16 @@ public final class DomainApplicationSubject
       ApplicationStatus applicationStatus) {
     return doesNotHaveValue(
         applicationStatus,
-        getSubject().getApplicationStatus(),
+        actual().getApplicationStatus(),
         "application status");
   }
 
   public And<DomainApplicationSubject> hasExactlyEncodedSignedMarks(
       EncodedSignedMark... encodedSignedMarks) {
     if (!Objects.equals(
-        ImmutableSet.copyOf(getSubject().getEncodedSignedMarks()),
+        ImmutableSet.copyOf(actual().getEncodedSignedMarks()),
         ImmutableSet.of(encodedSignedMarks))) {
-      assertThat(getSubject().getEncodedSignedMarks())
+      assertThat(actual().getEncodedSignedMarks())
           .named("the encoded signed marks of " + getDisplaySubject())
           .containsExactly((Object[]) encodedSignedMarks);
     }
@@ -61,9 +61,9 @@ public final class DomainApplicationSubject
   }
 
   public And<DomainApplicationSubject> hasNumEncodedSignedMarks(int num) {
-    if (getSubject().getEncodedSignedMarks().size() != num) {
+    if (actual().getEncodedSignedMarks().size() != num) {
       failWithBadResults(
-          "has this many encoded signed marks: ", num, getSubject().getEncodedSignedMarks().size());
+          "has this many encoded signed marks: ", num, actual().getEncodedSignedMarks().size());
     }
     return andChainer();
   }

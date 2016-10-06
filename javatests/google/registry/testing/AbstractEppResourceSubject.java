@@ -42,7 +42,7 @@ abstract class AbstractEppResourceSubject
   }
 
   private List<HistoryEntry> getHistoryEntries() {
-    return DatastoreHelper.getHistoryEntries(getSubject());
+    return DatastoreHelper.getHistoryEntries(actual());
   }
 
   @SuppressWarnings("unchecked")
@@ -54,12 +54,12 @@ abstract class AbstractEppResourceSubject
   public String getDisplaySubject() {
     return String.format(
         "%s with foreign key '%s'",
-        getSubject().getClass().getSimpleName(),
-        getSubject().getForeignKey());
+        actual().getClass().getSimpleName(),
+        actual().getForeignKey());
   }
 
   public And<S> hasRepoId(long roid) {
-    return hasValue(roid, getSubject().getRepoId(), "has repoId");
+    return hasValue(roid, actual().getRepoId(), "has repoId");
   }
 
   public And<S> hasNoHistoryEntries() {
@@ -77,7 +77,7 @@ abstract class AbstractEppResourceSubject
   }
 
   public And<S> hasNumHistoryEntriesOfType(HistoryEntry.Type type, int num) {
-    List<HistoryEntry> entries = getHistoryEntriesOfType(getSubject(), type);
+    List<HistoryEntry> entries = getHistoryEntriesOfType(actual(), type);
     if (entries.size() != num) {
       failWithBadResults(
           String.format("has this number of history entries of type %s", type.toString()),
@@ -121,14 +121,14 @@ abstract class AbstractEppResourceSubject
   }
 
   public And<S> hasStatusValue(StatusValue statusValue) {
-    if (!getSubject().getStatusValues().contains(statusValue)) {
+    if (!actual().getStatusValues().contains(statusValue)) {
       failWithRawMessage("%s should have had status value %s", getDisplaySubject(), statusValue);
     }
     return andChainer();
   }
 
   public And<S> doesNotHaveStatusValue(StatusValue statusValue) {
-    if (getSubject().getStatusValues().contains(statusValue)) {
+    if (actual().getStatusValues().contains(statusValue)) {
       failWithRawMessage(
           "%s should not have had status value %s", getDisplaySubject(), statusValue);
     }
@@ -136,9 +136,9 @@ abstract class AbstractEppResourceSubject
   }
 
   public And<S> hasExactlyStatusValues(StatusValue... statusValues) {
-    if (!ImmutableSet.copyOf(getSubject().getStatusValues())
+    if (!ImmutableSet.copyOf(actual().getStatusValues())
         .equals(ImmutableSet.copyOf(statusValues))) {
-      assertThat(getSubject().getStatusValues()).named("status values for " + getDisplaySubject())
+      assertThat(actual().getStatusValues()).named("status values for " + getDisplaySubject())
           .containsExactly((Object[]) statusValues);
     }
     return andChainer();
@@ -147,33 +147,33 @@ abstract class AbstractEppResourceSubject
   public And<S> hasDeletionTime(DateTime deletionTime) {
     return hasValue(
         deletionTime,
-        getSubject().getDeletionTime(),
+        actual().getDeletionTime(),
         "has deletionTime");
   }
 
   public And<S> hasLastTransferTime(DateTime lastTransferTime) {
     return hasValue(
         lastTransferTime,
-        getSubject().getLastTransferTime(),
+        actual().getLastTransferTime(),
         "has lastTransferTime");
   }
 
   public And<S> hasLastTransferTimeNotEqualTo(DateTime lastTransferTime) {
     return doesNotHaveValue(
         lastTransferTime,
-        getSubject().getLastTransferTime(),
+        actual().getLastTransferTime(),
         "lastTransferTime");
   }
 
   public And<S> hasLastEppUpdateTime(DateTime lastUpdateTime) {
     return hasValue(
         lastUpdateTime,
-        getSubject().getLastEppUpdateTime(),
+        actual().getLastEppUpdateTime(),
         "has lastEppUpdateTime");
   }
 
   public And<S> hasLastEppUpdateTimeAtLeast(DateTime before) {
-    DateTime lastEppUpdateTime = getSubject().getLastEppUpdateTime();
+    DateTime lastEppUpdateTime = actual().getLastEppUpdateTime();
     if (lastEppUpdateTime == null || before.isAfter(lastEppUpdateTime)) {
       failWithBadResults("has lastEppUpdateTime at least", before, lastEppUpdateTime);
     }
@@ -183,61 +183,61 @@ abstract class AbstractEppResourceSubject
   public And<S> hasLastEppUpdateClientId(String clientId) {
     return hasValue(
         clientId,
-        getSubject().getLastEppUpdateClientId(),
+        actual().getLastEppUpdateClientId(),
         "has lastEppUpdateClientId");
   }
 
   public And<S> hasCurrentSponsorClientId(String clientId) {
     return hasValue(
         clientId,
-        getSubject().getCurrentSponsorClientId(),
+        actual().getCurrentSponsorClientId(),
         "has currentSponsorClientId");
   }
 
   public And<S> hasTransferStatus(TransferStatus transferStatus) {
     return hasValue(
         transferStatus,
-        getSubject().getTransferData().getTransferStatus(),
+        actual().getTransferData().getTransferStatus(),
         "has transferStatus");
   }
 
   public And<S> hasTransferRequestClientTrid(String clTrid) {
     return hasValue(
         clTrid,
-        getSubject().getTransferData().getTransferRequestTrid().getClientTransactionId(),
+        actual().getTransferData().getTransferRequestTrid().getClientTransactionId(),
         "has trid");
   }
 
   public And<S> hasPendingTransferExpirationTime(DateTime pendingTransferExpirationTime) {
     return hasValue(
         pendingTransferExpirationTime,
-        getSubject().getTransferData().getPendingTransferExpirationTime(),
+        actual().getTransferData().getPendingTransferExpirationTime(),
         "has pendingTransferExpirationTime");
   }
 
   public And<S> hasTransferGainingClientId(String gainingClientId) {
     return hasValue(
         gainingClientId,
-        getSubject().getTransferData().getGainingClientId(),
+        actual().getTransferData().getGainingClientId(),
         "has transfer ga");
   }
 
   public And<S> hasTransferLosingClientId(String losingClientId) {
     return hasValue(
         losingClientId,
-        getSubject().getTransferData().getLosingClientId(),
+        actual().getTransferData().getLosingClientId(),
         "has transfer losingClientId");
   }
 
   public And<S> isActiveAt(DateTime time) {
-    if (!isActive(getSubject(), time)) {
+    if (!isActive(actual(), time)) {
       fail("is active at " + time);
     }
     return andChainer();
   }
 
   public And<S> isNotActiveAt(DateTime time) {
-    if (isActive(getSubject(), time)) {
+    if (isActive(actual(), time)) {
       fail("is not active at " + time);
     }
     return andChainer();
