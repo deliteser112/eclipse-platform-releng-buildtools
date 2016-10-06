@@ -50,11 +50,11 @@ users, but the longer it is down, the more obvious it will become that
 user-visible tasks such as DNS and deletion are not being handled in a timely
 manner.
 
-The backend service is also where all MapReduces run, which includes some of the
-aforementioned tasks such as RDE and asynchronous resource deletion, as well as
-any one-off data migration MapReduces. Consequently, the backend service should
-be sized to support not just the normal ongoing DNS load but also the load
-incurred by MapReduces, both scheduled (such as RDE) and on-demand (asynchronous
+The backend service is also where scheduled and automatically invoked MapReduces
+run, which includes some of the aforementioned tasks such as RDE and
+asynchronous resource deletion. Consequently, the backend service should be
+sized to support not just the normal ongoing DNS load but also the load incurred
+by MapReduces, both scheduled (such as RDE) and on-demand (asynchronous
 contact/host deletion).
 
 ### Tools service
@@ -68,6 +68,10 @@ critical of the three services. Requests to the tools service are handled by the
 includes the server-side code to update premium lists, run EPP commands from the
 tool, and manually modify contacts/hosts/domains/and other resources. Problems
 with the tools service are not visible to users.
+
+The tools service also runs ad-hoc MapReduces, like those invoked via `nomulus`
+tool subcommands like `generate_zone_files` and by manually hitting URLs under
+https://tools-dot-project-id.appspot.com, like `/_dr/task/refreshAllDomains`.
 
 ## Task queues
 
