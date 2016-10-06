@@ -66,7 +66,7 @@ import org.joda.time.DateTime;
  * <p>The cursor used throughout this mapreduce (overridden if necessary using the parameter
  * {@code cursorTime}) represents the inclusive lower bound on the range of billing times that will
  * be expanded as a result of the job (the exclusive upper bound being the execution time of the
- * job). 
+ * job).
  */
 @Action(path = "/_dr/task/expandRecurringBillingEvents")
 public class ExpandRecurringBillingEventsAction implements Runnable {
@@ -101,7 +101,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
         .runMapreduce(
             new ExpandRecurringBillingEventsMapper(isDryRun, cursorTime, clock.nowUtc()),
             new ExpandRecurringBillingEventsReducer(isDryRun, persistedCursorTime),
-            // Add an extra shard that maps over a null recurring event (see the mapper for why). 
+            // Add an extra shard that maps over a null recurring event (see the mapper for why).
             ImmutableList.of(
                 new NullInput<Recurring>(),
                 createChildEntityInput(
@@ -142,7 +142,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
           @Override
           public Integer run() {
             ImmutableSet.Builder<OneTime> syntheticOneTimesBuilder =
-                ImmutableSet.<OneTime>builder();
+                new ImmutableSet.Builder<>();
             final Registry tld = Registry.get(getTldFromDomainName(recurring.getTargetId()));
 
             // Determine the complete set of times at which this recurring event should occur
@@ -224,7 +224,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
           .filter(Range.closedOpen(cursorTime, executeTime))
           .toSet();
     }
-    
+
     /**
      * Determines an {@link ImmutableSet} of {@link DateTime}s that have already been persisted
      * for a given recurring billing event.
@@ -252,7 +252,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
   /**
    * "Reducer" to advance the cursor after all map jobs have been completed. The NullInput into the
    * mapper will cause the mapper to emit one timestamp pair (current cursor and execution time),
-   * and the cursor will be advanced (and the timestamps logged) at the end of a successful 
+   * and the cursor will be advanced (and the timestamps logged) at the end of a successful
    * mapreduce.
    */
   public static class ExpandRecurringBillingEventsReducer
@@ -294,7 +294,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
           }
           if (!isDryRun) {
             ofy().save().entity(Cursor.createGlobal(RECURRING_BILLING, executionTime));
-          } 
+          }
         }
       });
     }

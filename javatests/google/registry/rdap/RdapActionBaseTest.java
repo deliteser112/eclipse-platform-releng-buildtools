@@ -78,7 +78,7 @@ public class RdapActionBaseTest {
       if (pathSearchString.equals("RuntimeException")) {
         throw new RuntimeException();
       }
-      ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+      ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
       builder.put("key", "value");
       RdapJsonFormatter.addTopLevelEntries(
           builder,

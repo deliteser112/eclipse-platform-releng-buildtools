@@ -177,7 +177,7 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
    */
   private ImmutableTable<T, String, String>
       extractData(ImmutableSet<String> fields, ImmutableSet<T> objects) {
-    ImmutableTable.Builder<T, String, String> builder = ImmutableTable.builder();
+    ImmutableTable.Builder<T, String, String> builder = new ImmutableTable.Builder<>();
     for (T object : objects) {
       Map<String, Object> fieldMap = new HashMap<>();
       // Base case of the mapping is to use ImmutableObject's toDiffableFieldMap().

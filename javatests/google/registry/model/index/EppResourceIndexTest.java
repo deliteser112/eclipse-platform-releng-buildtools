@@ -64,7 +64,7 @@ public class EppResourceIndexTest extends EntityTestCase  {
    */
   private ImmutableList<EppResourceIndex> getEppResourceIndexObjects() {
     int numBuckets = RegistryEnvironment.get().config().getEppResourceIndexBucketCount();
-    ImmutableList.Builder<EppResourceIndex> indexEntities = ImmutableList.builder();
+    ImmutableList.Builder<EppResourceIndex> indexEntities = new ImmutableList.Builder<>();
     for (int i = 0; i < numBuckets; i++) {
       indexEntities.addAll(ofy().load()
           .type(EppResourceIndex.class)

@@ -79,7 +79,7 @@ public abstract class EppMetric implements BigQueryMetric {
   public ImmutableMap<String, String> getBigQueryRowEncoding() {
     // Create map builder, start with required values
     ImmutableMap.Builder<String, String> map =
-        ImmutableMap.<String, String>builder()
+        new ImmutableMap.Builder<String, String>()
             .put("requestId", getRequestId())
             .put("startTime", toBigqueryTimestamp(getStartTimestamp()))
             .put("endTime", toBigqueryTimestamp(getEndTimestamp()))

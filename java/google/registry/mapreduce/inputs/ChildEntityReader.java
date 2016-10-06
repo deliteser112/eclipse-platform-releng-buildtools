@@ -71,7 +71,7 @@ class ChildEntityReader<R extends EppResource, I extends ImmutableObject> extend
   @SuppressWarnings("unchecked")
   private ImmutableList<Class<? extends I>> expandPolymorphicClasses(
       ImmutableSet<Class<? extends I>> resourceClasses) {
-    ImmutableList.Builder<Class<? extends I>> builder = ImmutableList.builder();
+    ImmutableList.Builder<Class<? extends I>> builder = new ImmutableList.Builder<>();
     for (Class<? extends I> clazz : resourceClasses) {
       if (clazz.isAnnotationPresent(Entity.class)) {
         builder.add(clazz);

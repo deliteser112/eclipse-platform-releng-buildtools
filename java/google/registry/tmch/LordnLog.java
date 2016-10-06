@@ -88,7 +88,7 @@ public final class LordnLog implements Iterable<Entry<String, LordnLog.Result>> 
     }
   }
 
-  private static final Map<Integer, Result> RESULTS = ImmutableMap.<Integer, Result>builder()
+  private static final Map<Integer, Result> RESULTS = new ImmutableMap.Builder<Integer, Result>()
       .put(2000, new Result(2000, "OK"))
       .put(2001, new Result(2001, "OK but not processed"))
       .put(3601, new Result(3601, "TCN Acceptance Date after Registration Date"))

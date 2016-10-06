@@ -74,7 +74,7 @@ abstract class ListObjectsCommand implements RemoteApiCommand, ServerSideCommand
 
   @Override
   public void run() throws Exception {
-    ImmutableMap.Builder<String, Object> params = ImmutableMap.<String, Object>builder();
+    ImmutableMap.Builder<String, Object> params = new ImmutableMap.Builder<>();
     if (fields != null) {
       params.put(FIELDS_PARAM, fields);
     }

@@ -88,7 +88,7 @@ public class DomainAllocateFlow extends DomainCreateOrAllocateFlow {
   protected final void setDomainCreateOrAllocateProperties(Builder builder) {
     boolean sunrushAddGracePeriod = isNullOrEmpty(command.getNameservers());
     Registry registry = Registry.get(getTld());
-    ImmutableSet.Builder<Flag> billingFlagsBuilder = ImmutableSet.builder();
+    ImmutableSet.Builder<Flag> billingFlagsBuilder = new ImmutableSet.Builder<>();
     if (!application.getEncodedSignedMarks().isEmpty()) {
       billingFlagsBuilder.add(Flag.SUNRISE);
     } else {

@@ -308,7 +308,7 @@ public class TaskQueueHelper {
       if (info.getTagAsBytes() != null) {
         this.tag = new String(info.getTagAsBytes(), UTF_8);
       }
-      ImmutableMultimap.Builder<String, String> headerBuilder = ImmutableMultimap.builder();
+      ImmutableMultimap.Builder<String, String> headerBuilder = new ImmutableMultimap.Builder<>();
       for (HeaderWrapper header : info.getHeaders()) {
         // Lowercase header name for comparison since HTTP
         // header names are case-insensitive.

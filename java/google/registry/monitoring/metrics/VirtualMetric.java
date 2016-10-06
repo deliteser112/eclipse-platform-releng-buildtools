@@ -79,7 +79,7 @@ public final class VirtualMetric<V> extends AbstractMetric<V> {
   ImmutableList<MetricPoint<V>> getTimestampedValues(Instant timestamp) {
     ImmutableMap<ImmutableList<String>, V> values = valuesSupplier.get();
 
-    ImmutableList.Builder<MetricPoint<V>> metricPoints = ImmutableList.builder();
+    ImmutableList.Builder<MetricPoint<V>> metricPoints = new ImmutableList.Builder<>();
     for (Entry<ImmutableList<String>, V> entry : values.entrySet()) {
       metricPoints.add(
           MetricPoint.create(this, entry.getKey(), timestamp, timestamp, entry.getValue()));

@@ -45,13 +45,13 @@ public final class GetLrpTokenCommand implements RemoteApiCommand {
       names = {"-h", "--history"},
       description = "Return expanded history entry (including domain application)")
   private boolean includeHistory = false;
-  
+
   @Override
   public void run() throws Exception {
     checkArgument(
         (tokenString == null) == (assignee != null),
         "Exactly one of either token or assignee must be specified.");
-    ImmutableSet.Builder<LrpToken> tokensBuilder = ImmutableSet.builder();
+    ImmutableSet.Builder<LrpToken> tokensBuilder = new ImmutableSet.Builder<>();
     if (tokenString != null) {
       LrpToken token = ofy().load().key(Key.create(LrpToken.class, tokenString)).now();
       if (token != null) {
@@ -69,7 +69,7 @@ public final class GetLrpTokenCommand implements RemoteApiCommand {
           System.out.println(
               ofy().load().key(token.getRedemptionHistoryEntry()).now().toHydratedString());
         }
-      } 
+      }
     } else {
       System.out.println("Token not found.");
     }

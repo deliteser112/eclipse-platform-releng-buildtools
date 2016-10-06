@@ -213,8 +213,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .setParent(historyEntry)
             .build();
 
-    ImmutableSet<BillingEvent> billingEvents = ImmutableSet.of(
-        createBillingEvent, renewBillingEvent);
+    ImmutableSet.Builder<BillingEvent> expectedBillingEvents =
+        new ImmutableSet.Builder<BillingEvent>().add(createBillingEvent).add(renewBillingEvent);
 
     // If EAP is applied, a billing event for EAP should be present.
     if (!eapFee.isZero()) {
@@ -229,12 +229,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
               .setFlags(billingFlags)
               .setParent(historyEntry)
               .build();
-      billingEvents = ImmutableSet.<BillingEvent>builder()
-          .addAll(billingEvents)
-          .add(eapBillingEvent)
-          .build();
+      expectedBillingEvents.add(eapBillingEvent);
     }
-    assertBillingEvents(billingEvents);
+    assertBillingEvents(expectedBillingEvents.build());
 
     assertGracePeriods(
         domain.getGracePeriods(),

@@ -468,7 +468,7 @@ public class RdapJsonFormatterTest {
 
   @Test
   public void testTopLevel() throws Exception {
-    ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("key", "value");
     RdapJsonFormatter.addTopLevelEntries(
         builder,
@@ -481,7 +481,7 @@ public class RdapJsonFormatterTest {
 
   @Test
   public void testTopLevel_withTermsOfService() throws Exception {
-    ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("key", "value");
     RdapJsonFormatter.addTopLevelEntries(
         builder,
@@ -494,7 +494,7 @@ public class RdapJsonFormatterTest {
 
   @Test
   public void testTopLevel_domain() throws Exception {
-    ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("key", "value");
     RdapJsonFormatter.addTopLevelEntries(
         builder,
@@ -507,7 +507,7 @@ public class RdapJsonFormatterTest {
 
   @Test
   public void testTopLevel_domainWithTermsOfService() throws Exception {
-    ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("key", "value");
     RdapJsonFormatter.addTopLevelEntries(
         builder,
