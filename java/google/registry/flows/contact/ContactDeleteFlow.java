@@ -26,7 +26,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
@@ -41,7 +40,6 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
-import org.joda.time.Duration;
 
 /**
  * An EPP flow that deletes a contact.
@@ -76,7 +74,6 @@ public final class ContactDeleteFlow extends LoggedInFlow implements Transaction
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;
-  @Inject @Config("asyncDeleteFlowMapreduceDelay") Duration mapreduceDelay;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactDeleteFlow() {}
 
