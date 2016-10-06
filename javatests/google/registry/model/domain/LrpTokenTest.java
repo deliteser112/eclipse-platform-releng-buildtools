@@ -20,6 +20,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
@@ -51,6 +52,7 @@ public class LrpTokenTest extends EntityTestCase {
             .setAssignee("1:1020304")
             .setToken("a0b1c2d3e4f5g6")
             .setValidTlds(ImmutableSet.of("tld"))
+            .setMetadata(ImmutableMap.of("foo", "bar"))
             .build());
     redeemedToken = persistResource(
         new LrpToken.Builder()
@@ -59,6 +61,7 @@ public class LrpTokenTest extends EntityTestCase {
             .setRedemptionHistoryEntry(
                 Key.create(applicationCreateHistoryEntry))
             .setValidTlds(ImmutableSet.of("tld"))
+            .setMetadata(ImmutableMap.of("bar", "foo"))
             .build());
   }
 

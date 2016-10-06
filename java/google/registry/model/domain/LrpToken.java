@@ -18,13 +18,15 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import google.registry.model.BackupGroupRoot;
 import google.registry.model.Buildable;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.model.reporting.HistoryEntry.Type;
+
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -52,11 +54,18 @@ public class LrpToken extends BackupGroupRoot implements Buildable {
   Set<String> validTlds;
 
   /**
-   * The key of the history entry for which the token was used. Given LRP is a domain application
-   * phase, this should always be a {@link Type#DOMAIN_APPLICATION_CREATE}.
+   * The key of the history entry for which the token was used.
    */
   Key<HistoryEntry> redemptionHistoryEntry;
-  
+
+  /**
+   * A set of key-value properties associated with the LRP token. This map can be used to store
+   * additional metadata about the assignee or space of domain names for which this token can be
+   * valid.
+   */
+  @EmbedMap
+  Map<String, String> metadata;
+
   public String getToken() {
     return token;
   }
@@ -77,6 +86,10 @@ public class LrpToken extends BackupGroupRoot implements Buildable {
     return nullToEmptyImmutableCopy(validTlds);
   }
 
+  public Map<String, String> getMetadata() {
+    return nullToEmptyImmutableCopy(metadata);
+  }
+  
   @Override
   public Builder asBuilder() {
     return new Builder(clone(this));
@@ -107,6 +120,11 @@ public class LrpToken extends BackupGroupRoot implements Buildable {
 
     public Builder setValidTlds(Set<String> validTlds) {
       getInstance().validTlds = validTlds;
+      return this;
+    }
+
+    public Builder setMetadata(Map<String, String> metadata) {
+      getInstance().metadata = metadata;
       return this;
     }
   }
