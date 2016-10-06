@@ -17,6 +17,7 @@ package google.registry.rdap;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.rdap.RdapIcannStandardInformation.TRUNCATION_NOTICES;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -63,8 +64,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/domains";
 
-  public static final int CHUNK_SIZE_SCALING_FACTOR = 5;
-  public static final int MAX_CHUNK_FETCHES = 20;
+  public static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
 
   @Inject Clock clock;
   @Inject @Parameter("name") Optional<String> nameParam;
@@ -98,7 +98,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
       throw new BadRequestException(
           "You must specify either name=XXXX, nsLdhName=YYYY or nsIp=ZZZZ");
     }
-    ImmutableList<ImmutableMap<String, Object>> results;
+    RdapSearchResults results;
     if (nameParam.isPresent()) {
       // syntax: /rdap/domains?name=exam*.com
       String asciiName;
@@ -121,86 +121,65 @@ public class RdapDomainSearchAction extends RdapActionBase {
       // syntax: /rdap/domains?nsIp=1.2.3.4
       results = searchByNameserverIp(nsIpParam.get(), now);
     }
-    if (results.isEmpty()) {
+    if (results.jsonList().isEmpty()) {
       throw new NotFoundException("No domains found");
     }
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("domainSearchResults", results);
+    builder.put("domainSearchResults", results.jsonList());
     RdapJsonFormatter.addTopLevelEntries(
         builder,
         BoilerplateType.DOMAIN,
-        ImmutableList.<ImmutableMap<String, Object>>of(),
+        results.isTruncated()
+            ? TRUNCATION_NOTICES : ImmutableList.<ImmutableMap<String, Object>>of(),
         ImmutableList.<ImmutableMap<String, Object>>of(),
         rdapLinkBase);
     return builder.build();
   }
 
   /** Searches for domains by domain name, returning a JSON array of domain info maps. */
-  private ImmutableList<ImmutableMap<String, Object>>
-      searchByDomainName(final RdapSearchPattern partialStringQuery, final DateTime now) {
+  private RdapSearchResults searchByDomainName(
+      final RdapSearchPattern partialStringQuery, final DateTime now) {
     // Handle queries without a wildcard -- just load by foreign key.
     if (!partialStringQuery.getHasWildcard()) {
       DomainResource domainResource =
           loadByForeignKey(DomainResource.class, partialStringQuery.getInitialString(), now);
-      if (domainResource == null) {
-        return ImmutableList.of();
-      }
-      return makeSearchResults(ImmutableList.of(domainResource), now);
+      return makeSearchResults(
+          (domainResource == null) ? ImmutableList.of() : ImmutableList.of(domainResource),
+          false,
+          now);
     // Handle queries with a wildcard.
     } else {
       // We can't query for undeleted domains as part of the query itself; that would require an
       // inequality query on deletion time, and we are already using inequality queries on
-      // fullyQualifiedDomainName. So we need another way to limit the result set to the desired
-      // number of undeleted domains, which we do as follows. We query a batch of domains up to five
-      // times the size of the result set size limit (a factor picked out of thin air), and weed out
-      // all deleted domains. If we still have space in the result set (because there were an
-      // incredibly large number of deleted domains), we go back and query some more domains to try
-      // and find more results. We try this 20 times (meaning we search for 100 times as many
-      // domains as the result set size limit), then give up and return a result set that is smaller
-      // than the limit. Ugly? You bet!
-      // TODO(b/31546493): Add metrics to figure out how well this algorithm works.
+      // fullyQualifiedDomainName. So we instead pick an arbitrary limit of
+      // RESULT_SET_SIZE_SCALING_FACTOR times the result set size limit, fetch up to that many, and
+      // weed out all deleted domains. If there still isn't a full result set's worth of domains, we
+      // give up and return just the ones we found.
+      // TODO(b/31546493): Add metrics to figure out how well this.
       List<DomainResource> domainList = new ArrayList<>();
-      String previousChunkEndString = null;
-      for (int numChunkFetches = 0;
-          (numChunkFetches < MAX_CHUNK_FETCHES) && (domainList.size() < rdapResultSetMaxSize);
-          numChunkFetches++) {
-        // Construct the query.
-        Query<DomainResource> query = ofy().load()
-            .type(DomainResource.class)
-            .filter("fullyQualifiedDomainName <", partialStringQuery.getNextInitialString());
-        if (previousChunkEndString == null) {
-          query = query.filter(
-              "fullyQualifiedDomainName >=", partialStringQuery.getInitialString());
-        } else {
-          query = query.filter("fullyQualifiedDomainName >", previousChunkEndString);
-        }
-        if (partialStringQuery.getSuffix() != null) {
-          query = query.filter("tld", partialStringQuery.getSuffix());
-        }
-        // Perform the query and weed out deleted domains.
-        previousChunkEndString = null;
-        int numDomainsInChunk = 0;
-        for (DomainResource domain :
-            query.limit(rdapResultSetMaxSize * CHUNK_SIZE_SCALING_FACTOR)) {
-          previousChunkEndString = domain.getFullyQualifiedDomainName();
-          numDomainsInChunk++;
-          if (EppResourceUtils.isActive(domain, now)) {
-            domainList.add(domain);
-            if (domainList.size() >= rdapResultSetMaxSize) {
-              break;
-            }
+      Query<DomainResource> query = ofy().load()
+          .type(DomainResource.class)
+          .filter("fullyQualifiedDomainName <", partialStringQuery.getNextInitialString())
+          .filter("fullyQualifiedDomainName >=", partialStringQuery.getInitialString());
+      if (partialStringQuery.getSuffix() != null) {
+        query = query.filter("tld", partialStringQuery.getSuffix());
+      }
+      // TODO(mountford): Investigate fetching by foreign key instead of the domain itself.
+      for (DomainResource domain :
+          query.limit(RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize)) {
+        if (EppResourceUtils.isActive(domain, now)) {
+          if (domainList.size() >= rdapResultSetMaxSize) {
+            return makeSearchResults(ImmutableList.copyOf(domainList), true, now);
           }
-        }
-        if (numDomainsInChunk < rdapResultSetMaxSize * CHUNK_SIZE_SCALING_FACTOR) {
-          break;
+          domainList.add(domain);
         }
       }
-      return makeSearchResults(domainList, now);
+      return makeSearchResults(ImmutableList.copyOf(domainList), false, now);
     }
   }
 
   /** Searches for domains by nameserver name, returning a JSON array of domain info maps. */
-  private ImmutableList<ImmutableMap<String, Object>> searchByNameserverLdhName(
+  private RdapSearchResults searchByNameserverLdhName(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     Iterable<Key<HostResource>> hostKeys = getNameserverRefsByLdhName(partialStringQuery, now);
     if (Iterables.isEmpty(hostKeys)) {
@@ -210,8 +189,8 @@ public class RdapDomainSearchAction extends RdapActionBase {
   }
 
   /** Assembles a list of {@link HostResource} keys by name. */
-  private Iterable<Key<HostResource>>
-      getNameserverRefsByLdhName(final RdapSearchPattern partialStringQuery, final DateTime now) {
+  private Iterable<Key<HostResource>> getNameserverRefsByLdhName(
+      final RdapSearchPattern partialStringQuery, final DateTime now) {
     // Handle queries without a wildcard; just load the host by foreign key in the usual way.
     if (!partialStringQuery.getHasWildcard()) {
       Key<HostResource> hostKey = loadAndGetKey(
@@ -255,8 +234,8 @@ public class RdapDomainSearchAction extends RdapActionBase {
   }
 
   /** Searches for domains by nameserver address, returning a JSON array of domain info maps. */
-  private ImmutableList<ImmutableMap<String, Object>>
-      searchByNameserverIp(final InetAddress inetAddress, final DateTime now) {
+  private RdapSearchResults searchByNameserverIp(
+      final InetAddress inetAddress, final DateTime now) {
     // In theory, we could filter on the deletion time being in the future. But we can't do that in
     // the query on nameserver name (because we're already using an inequality query), and it seems
     // dangerous and confusing to filter on deletion time differently between the two queries.
@@ -274,36 +253,44 @@ public class RdapDomainSearchAction extends RdapActionBase {
   }
 
   /**
-   * Locates all domains which are linked to a set of host keys. This method is called by
-   * {@link #searchByNameserverLdhName} and {@link #searchByNameserverIp} after they assemble the
-   * relevant host keys.
+   * Locates all domains which are linked to a set of host keys.
+   * 
+   * <p>This method is called by {@link #searchByNameserverLdhName} and
+   * {@link #searchByNameserverIp} after they assemble the relevant host keys.
    */
-  private ImmutableList<ImmutableMap<String, Object>>
-      searchByNameserverRefs(final Iterable<Key<HostResource>> hostKeys, final DateTime now) {
+  private RdapSearchResults searchByNameserverRefs(
+      final Iterable<Key<HostResource>> hostKeys, final DateTime now) {
     // We must break the query up into chunks, because the in operator is limited to 30 subqueries.
     // Since it is possible for the same domain to show up more than once in our result list (if
     // we do a wildcard nameserver search that returns multiple nameservers used by the same
     // domain), we must create a set of resulting {@link DomainResource} objects. But we use a
     // LinkedHashSet to preserve the order in which we found the domains.
-    LinkedHashSet<DomainResource> domainResources = new LinkedHashSet<>();
+    LinkedHashSet<DomainResource> domains = new LinkedHashSet<>();
     for (List<Key<HostResource>> chunk : Iterables.partition(hostKeys, 30)) {
-      domainResources.addAll(
-          ofy().load()
-              .type(DomainResource.class)
-              .filter("nameservers.linked in", chunk)
-              .filter("deletionTime >", now)
-              .limit(rdapResultSetMaxSize - domainResources.size())
-              .list());
-      if (domainResources.size() >= rdapResultSetMaxSize) {
-        break;
+      for (DomainResource domain : ofy().load()
+          .type(DomainResource.class)
+          .filter("nameservers.linked in", chunk)
+          .filter("deletionTime >", now)
+          .limit(rdapResultSetMaxSize + 1)) {
+        if (!domains.contains(domain)) {
+          if (domains.size() >= rdapResultSetMaxSize) {
+            return makeSearchResults(ImmutableList.copyOf(domains), true, now);
+          }
+          domains.add(domain);
+        }
       }
     }
-    return makeSearchResults(ImmutableList.copyOf(domainResources), now);
+    return makeSearchResults(ImmutableList.copyOf(domains), false, now);
   }
 
-  /** Output JSON for a list of domains. */
-  private ImmutableList<ImmutableMap<String, Object>> makeSearchResults(
-      List<DomainResource> domains, DateTime now) {
+  /**
+   * Output JSON for a list of domains.
+   * 
+   * <p>The isTruncated parameter should be true if the search found more results than are in the
+   * list, meaning that the truncation notice should be added.
+   */
+  private RdapSearchResults makeSearchResults(
+      ImmutableList<DomainResource> domains, boolean isTruncated, DateTime now) {
     OutputDataType outputDataType =
         (domains.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
     ImmutableList.Builder<ImmutableMap<String, Object>> jsonBuilder = new ImmutableList.Builder<>();
@@ -312,6 +299,6 @@ public class RdapDomainSearchAction extends RdapActionBase {
           RdapJsonFormatter.makeRdapJsonForDomain(
               domain, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
     }
-    return jsonBuilder.build();
+    return RdapSearchResults.create(jsonBuilder.build(), isTruncated);
   }
 }

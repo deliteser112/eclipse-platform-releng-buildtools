@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * This file contains boilerplate required by the ICANN RDAP Profile.
  *
- * @see "https://whois.icann.org/sites/default/files/files/gtld-rdap-operational-profile-draft-03dec15-en.pdf"
+ * @see "https://www.icann.org/resources/pages/rdap-operational-profile-2016-07-26-en"
  */
 
 public class RdapIcannStandardInformation {
@@ -72,7 +72,7 @@ public class RdapIcannStandardInformation {
   static final ImmutableList<ImmutableMap<String, Object>> nameserverAndEntityBoilerplateRemarks =
       ImmutableList.of(CONFORMANCE_REMARK);
 
-  /** Required by ICANN RDAP Profile section 1.1.18. */
+  /** Required by ICANN RDAP Profile section 1.4.8 / 1.4.9, as interpreted. */
   static final ImmutableMap<String, Object> SUMMARY_DATA_REMARK =
       ImmutableMap.<String, Object> of(
           "title",
@@ -82,4 +82,20 @@ public class RdapIcannStandardInformation {
               "Summary data only. For complete data, send a specific query for the object."),
           "type",
           "object truncated due to unexplainable reasons");
+
+
+  /** Required by ICANN RDAP Profile section 1.4.8 / 1.4.9, as interpreted. */
+  static final ImmutableMap<String, Object> TRUNCATED_RESULT_SET_NOTICE =
+      ImmutableMap.<String, Object> of(
+          "title",
+          "Search Policy",
+          "description",
+          ImmutableList.of("Search results per query are limited."),
+          "type",
+          "result set truncated due to unexplainable reasons");
+  
+  /** Truncation notice as a singleton list, for easy use. */
+  static final ImmutableList<ImmutableMap<String, Object>> TRUNCATION_NOTICES =
+      ImmutableList.of(TRUNCATED_RESULT_SET_NOTICE);
 }
+

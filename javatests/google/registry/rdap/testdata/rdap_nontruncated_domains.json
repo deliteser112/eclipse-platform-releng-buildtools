@@ -1,0 +1,187 @@
+{
+  "domainSearchResults": [
+    {
+      "status": [
+        "client delete prohibited",
+        "client renew prohibited",
+        "client transfer prohibited",
+        "server update prohibited"
+      ],
+      "handle": "%DOMAINHANDLE1%",
+      "links": [
+        {
+          "href": "https://example.com/rdap/domain/%DOMAINNAME1%",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/domain/%DOMAINNAME1%"
+        }
+      ],
+      "ldhName": "%DOMAINNAME1%",
+      "objectClassName": "domain",
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ]
+    },
+    {
+      "status": [
+        "client delete prohibited",
+        "client renew prohibited",
+        "client transfer prohibited",
+        "server update prohibited"
+      ],
+      "handle": "%DOMAINHANDLE2%",
+      "links": [
+        {
+          "href": "https://example.com/rdap/domain/%DOMAINNAME2%",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/domain/%DOMAINNAME2%"
+        }
+      ],
+      "ldhName": "%DOMAINNAME2%",
+      "objectClassName": "domain",
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ]
+    },
+    {
+      "status": [
+        "client delete prohibited",
+        "client renew prohibited",
+        "client transfer prohibited",
+        "server update prohibited"
+      ],
+      "handle": "%DOMAINHANDLE3%",
+      "links": [
+        {
+          "href": "https://example.com/rdap/domain/%DOMAINNAME3%",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/domain/%DOMAINNAME3%"
+        }
+      ],
+      "ldhName": "%DOMAINNAME3%",
+      "objectClassName": "domain",
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ]
+    },
+    {
+      "status": [
+        "client delete prohibited",
+        "client renew prohibited",
+        "client transfer prohibited",
+        "server update prohibited"
+      ],
+      "handle": "%DOMAINHANDLE4%",
+      "links": [
+        {
+          "href": "https://example.com/rdap/domain/%DOMAINNAME4%",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/domain/%DOMAINNAME4%"
+        }
+      ],
+      "ldhName": "%DOMAINNAME4%",
+      "objectClassName": "domain",
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ]
+    }
+  ],
+  "rdapConformance": [
+    "rdap_level_0"
+  ],
+  "notices" :
+  [
+    {
+      "title" : "RDAP Terms of Service",
+      "description" :
+      [
+        "By querying our Domain Database, you are agreeing to comply with these terms so please read them carefully.",
+        "Any information provided is 'as is' without any guarantee of accuracy.",
+        "Please do not misuse the Domain Database. It is intended solely for query-based access.",
+        "Don't use the Domain Database to allow, enable, or otherwise support the transmission of mass unsolicited, commercial advertising or solicitations.",
+        "Don't access our Domain Database through the use of high volume, automated electronic processes that send queries or data to the systems of Charleston Road Registry or any ICANN-accredited registrar.",
+        "You may only use the information contained in the Domain Database for lawful purposes.",
+        "Do not compile, repackage, disseminate, or otherwise use the information contained in the Domain Database in its entirety, or in any substantial portion, without our prior written permission.",
+        "We may retain certain details about queries to our Domain Database for the purposes of detecting and preventing misuse.",
+        "We reserve the right to restrict or deny your access to the database if we suspect that you have failed to comply with these terms.",
+        "We reserve the right to modify this agreement at any time."
+      ],
+      "links" :
+      [
+        {
+          "value" : "https://example.com/rdap/help/tos",
+          "rel" : "alternate",
+          "href" : "https://www.registry.google/about/rdap/tos.html",
+          "type" : "text/html"
+        }
+      ]
+    }
+  ],
+  "remarks" :
+  [
+    {
+      "description" :
+      [
+        "This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"
+      ]
+    },
+    {
+      "title" : "EPP Status Codes",
+      "description" :
+      [
+        "For more information on domain status codes, please visit https://icann.org/epp"
+      ],
+      "links" :
+      [
+        {
+          "value" :  "https://icann.org/epp",
+          "rel" : "alternate",
+          "href" : "https://icann.org/epp",
+          "type" : "text/html"
+        }
+      ]
+    },
+    {
+      "description" :
+      [
+        "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf"
+      ],
+      "links" :
+      [
+        {
+          "value" : "https://www.icann.org/wicf",
+          "rel" : "alternate",
+          "href" : "https://www.icann.org/wicf",
+          "type" : "text/html"
+        }
+      ]
+    }
+  ]
+}
