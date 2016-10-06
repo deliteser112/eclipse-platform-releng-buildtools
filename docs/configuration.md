@@ -5,8 +5,21 @@ working registry system up and running. Broadly speaking, configuration works in
 two ways -- globally, for the entire sytem, and per-TLD. Global configuration is
 managed by editing code and deploying a new version, whereas per-TLD
 configuration is data that lives in Datastore in `Registry` entities, and is
-updated by running `nomulus` commands without having to deploy a new
-version.
+updated by running `nomulus` commands without having to deploy a new version.
+
+[TOC]
+
+## Initial configuration
+
+Here's a checklist of things that need to be configured upon initial
+installation of the project:
+
+*   Create Google Cloud Storage buckets (see the [App Engine architecture
+    guide](./app-engine-architecture.md)).
+*   Modify `ConfigModule.java` and set project-specific settings such as product
+    name (see below).
+*   Copy and edit `ProductionRegistryConfigExample.java` with your
+    project-specific settings (see below).
 
 ## Environments
 
@@ -116,10 +129,10 @@ to provide from `Keyring`, and you can see examples of them in action in
 configuration. They contain any kind of configuration that is specific to a TLD,
 such as the create/renew price of a domain name, the pricing engine
 implementation, the DNS writer implementation, whether escrow exports are
-enabled, the default currency, the reserved label lists, and more. The
-`nomulus update_tld` command is used to set all of these options. See
-the [admin tool documentation](./admin-tool.md) for more information, as well as
-the command-line help for the `update_tld` command. Unlike global configuration
+enabled, the default currency, the reserved label lists, and more. The `nomulus
+update_tld` command is used to set all of these options. See the [admin tool
+documentation](./admin-tool.md) for more information, as well as the
+command-line help for the `update_tld` command. Unlike global configuration
 above, per-TLD configuration options are stored as data in the running system,
 and thus do not require code pushes to update.
 

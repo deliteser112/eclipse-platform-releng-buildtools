@@ -5,8 +5,8 @@ Registry project as it is implemented in App Engine.
 
 ## Services
 
-The Domain Registry contains three [services]
-(https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine),
+The Domain Registry contains three
+[services](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine),
 which were previously called modules in earlier versions of App Engine. The
 services are: default (also called front-end), backend, and tools. Each service
 runs independently in a lot of ways, including that they can be upgraded
@@ -27,8 +27,8 @@ wild-cards).
 
 ### Default service
 
-The default service is responsible for all registrar-facing [EPP]
-(https://en.wikipedia.org/wiki/Extensible_Provisioning_Protocol) command
+The default service is responsible for all registrar-facing
+[EPP](https://en.wikipedia.org/wiki/Extensible_Provisioning_Protocol) command
 traffic, all user-facing WHOIS and RDAP traffic, and the admin and registrar web
 consoles, and is thus the most important service. If the service has any
 problems and goes down or stops servicing requests in a timely manner, it will
@@ -202,8 +202,8 @@ real to not, is:
     need only ever be one of these.
 *   `SANDBOX` -- A playground environment for external users to test commands in
     without the possibility of affecting production data. This is the
-    environment new registrars go through [OT&E]
-    (https://www.icann.org/resources/unthemed-pages/registry-agmt-appc-e-2001-04-26-en)
+    environment new registrars go through
+    [OT&E](https://www.icann.org/resources/unthemed-pages/registry-agmt-appc-e-2001-04-26-en)
     in. Sandbox is also useful as a final sanity check to push a new prospective
     build to and allow it to "bake" before pushing it to production.
 *   `QA` -- An internal environment used by business users to play with and sign
@@ -283,13 +283,13 @@ cron.xml is:
 
 ## Cloud Datastore
 
-The Domain Registry platform uses [Cloud Datastore]
-(https://cloud.google.com/appengine/docs/java/datastore/) as its primary
-database. Cloud Datastore is a NoSQL document database that provides automatic
-horizontal scaling, high performance, and high availability. All information
-that is persisted to Cloud Datastore takes the form of Java classes annotated
-with `@Entity` that are located in the `model` package. The [Objectify library]
-(https://cloud.google.com/appengine/docs/java/gettingstarted/using-datastore-objectify)
+The Domain Registry platform uses [Cloud
+Datastore](https://cloud.google.com/appengine/docs/java/datastore/) as its
+primary database. Cloud Datastore is a NoSQL document database that provides
+automatic horizontal scaling, high performance, and high availability. All
+information that is persisted to Cloud Datastore takes the form of Java classes
+annotated with `@Entity` that are located in the `model` package. The [Objectify
+library](https://cloud.google.com/appengine/docs/java/gettingstarted/using-datastore-objectify)
 is used to persist instances of these classes in a format that Datastore
 understands.
 
@@ -384,9 +384,9 @@ registry codebase:
 
 ## Cloud Storage buckets
 
-The Domain Registry platform uses [Cloud Storage]
-(https://cloud.google.com/storage/) for bulk storage of large flat files that
-aren't suitable for Datastore. These files include backups, RDE exports,
+The Domain Registry platform uses [Cloud
+Storage](https://cloud.google.com/storage/) for bulk storage of large flat files
+that aren't suitable for Datastore. These files include backups, RDE exports,
 Datastore snapshots (for ingestion into BigQuery), and reports. Each bucket name
 must be unique across all of Google Cloud Storage, so we use the common
 recommended pattern of prefixing all buckets with the name of the App Engine app
@@ -402,8 +402,8 @@ the App Engine app name:
 *   `PROJECT-gcs-logs` -- This bucket is used at Google to store the GCS access
     logs and storage data. This bucket is not required by the Registry system,
     but can provide useful logging information. For instructions on setup, see
-    the [Cloud Storage documentation]
-    (https://cloud.google.com/storage/docs/access-logs).
+    the [Cloud Storage
+    documentation](https://cloud.google.com/storage/docs/access-logs).
 *   `PROJECT-icann-brda` -- This bucket contains the weekly ICANN BRDA files.
     There is no lifecycle expiration; we keep a history of all the files. This
     bucket must exist for the BRDA process to function.
@@ -421,9 +421,7 @@ the App Engine app name:
     bucket named {project}.appspot.com. This bucket must exist. To keep
     temporary files from building up, a 90-day or 180-day lifecycle should be
     applied to the bucket, depending on how long you want to be able to go back
-    and debug MapReduce problems. At 30 GB per day of generate temporary files,
-    this bucket may be the largest consumer of storage, so only save what you
-    actually use.
+    and debug MapReduce problems.
 
 ## Commit logs
 
