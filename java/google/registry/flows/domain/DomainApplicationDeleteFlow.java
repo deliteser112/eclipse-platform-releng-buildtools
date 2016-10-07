@@ -20,10 +20,10 @@ import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDelet
 import static google.registry.flows.ResourceFlowUtils.verifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
-import static google.registry.flows.domain.DomainFlowUtils.DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
 import static google.registry.flows.domain.DomainFlowUtils.verifyLaunchPhase;
+import static google.registry.flows.domain.DomainFlowUtils.verifyRegistryStateAllowsLaunchFlows;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -37,7 +37,6 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.exceptions.BadCommandForRegistryPhaseException;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.LaunchDeleteExtension;
 import google.registry.model.domain.launch.LaunchPhase;
@@ -55,11 +54,11 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link google.registry.flows.exceptions.BadCommandForRegistryPhaseException}
  * @error {@link DomainApplicationDeleteFlow.SunriseApplicationCannotBeDeletedInLandrushException}
- * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.ApplicationDomainNameMismatchException}
+ * @error {@link DomainFlowUtils.BadCommandForRegistryPhaseException}
  * @error {@link DomainFlowUtils.LaunchPhaseMismatchException}
+ * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
 public final class DomainApplicationDeleteFlow extends LoggedInFlow implements TransactionalFlow {
 
@@ -82,23 +81,17 @@ public final class DomainApplicationDeleteFlow extends LoggedInFlow implements T
         DomainApplication.class, applicationId, loadDomainApplication(applicationId, now));
     verifyApplicationDomainMatchesTargetId(existingApplication, targetId);
     verifyOptionalAuthInfoForResource(authInfo, existingApplication);
-    if (!isSuperuser) {
-      verifyResourceOwnership(clientId, existingApplication);
-    }
     String tld = existingApplication.getTld();
-    Registry registry = Registry.get(tld);
-    if (!isSuperuser
-        && DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS.contains(registry.getTldState(now))) {
-      throw new BadCommandForRegistryPhaseException();
-    }
     checkAllowedAccessToTld(getAllowedTlds(), tld);
-    LaunchDeleteExtension launchDelete = eppInput.getSingleExtension(LaunchDeleteExtension.class);
-    verifyLaunchPhase(tld, launchDelete, now);
-    // Don't allow deleting a sunrise application during landrush.
-    if (existingApplication.getPhase().equals(LaunchPhase.SUNRISE)
-        && registry.getTldState(now).equals(TldState.LANDRUSH)
-        && !isSuperuser) {
-      throw new SunriseApplicationCannotBeDeletedInLandrushException();
+    if (!isSuperuser) {
+      verifyRegistryStateAllowsLaunchFlows(Registry.get(tld), now);
+      verifyLaunchPhase(tld, eppInput.getSingleExtension(LaunchDeleteExtension.class), now);
+      verifyResourceOwnership(clientId, existingApplication);
+      // Don't allow deleting a sunrise application during landrush.
+      if (existingApplication.getPhase().equals(LaunchPhase.SUNRISE)
+          && Registry.get(tld).getTldState(now).equals(TldState.LANDRUSH)) {
+        throw new SunriseApplicationCannotBeDeletedInLandrushException();
+      }
     }
     DomainApplication newApplication =
         prepareDeletedResourceAsBuilder(existingApplication, now).build();

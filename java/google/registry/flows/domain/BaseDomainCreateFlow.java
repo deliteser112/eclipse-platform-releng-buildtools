@@ -29,6 +29,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyLaunchPhase;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
+import static google.registry.flows.domain.DomainFlowUtils.verifyRegistryStateAllowsLaunchFlows;
 import static google.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRoid;
@@ -184,7 +185,6 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
     checkAllowedAccessToTld(getAllowedTlds(), tld);
     Registry registry = Registry.get(tld);
     tldState = registry.getTldState(now);
-    checkRegistryStateForTld(tld);
     // Now that the TLD has been verified, we can go ahead and initialize extraFlowLogic. The
     // initialization and matching commit are done at the topmost possible level in the flow
     // hierarchy, but the actual processing takes place only when needed in the children, e.g.
@@ -247,6 +247,11 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
         nullToEmpty(command.getNameserverFullyQualifiedHostNames());
     validateNameserversCountForTld(tld, fullyQualifiedHostNames.size());
     validateNameserversAllowedOnTld(tld, fullyQualifiedHostNames);
+    // This check is a vile hack that will survive for only a day or so, as I work to flatten the
+    // domain and application create flows. Without it, the ordering of checks fails lots of tests.
+    if (!isSuperuser && this instanceof DomainApplicationCreateFlow) {
+      verifyRegistryStateAllowsLaunchFlows(Registry.get(getTld()), now);
+    }
     validateLaunchCreateExtension();
     // If a signed mark was provided, then it must match the desired domain label.
     // We do this after validating the launch create extension so that flows which don't allow any

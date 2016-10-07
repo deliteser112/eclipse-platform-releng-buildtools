@@ -19,6 +19,7 @@ import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWit
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
+import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
@@ -47,6 +48,7 @@ import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.domain.DomainDeleteFlow.DomainToDeleteHasHostsException;
+import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.exceptions.OnlyToolCanPassMetadataException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
@@ -67,6 +69,7 @@ import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
@@ -589,6 +592,23 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     runFlowAssertResponse(readFile("domain_delete_response_pending.xml"));
     assertDnsTasksEnqueued("example.tld");
     assertOnlyBillingEventIsClosedAutorenew("TheRegistrar");
+  }
+
+  @Test
+  public void testFailure_predelegation() throws Exception {
+    createTld("tld", TldState.PREDELEGATION);
+    setupSuccessfulTest();
+    thrown.expect(BadCommandForRegistryPhaseException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_superuserPredelegation() throws Exception {
+    createTld("tld", TldState.PREDELEGATION);
+    setupSuccessfulTest();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));
   }
 
   @Test

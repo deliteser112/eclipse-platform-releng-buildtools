@@ -44,6 +44,7 @@ import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
+import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
@@ -134,19 +135,19 @@ public class DomainFlowUtils {
           LaunchPhase.CLAIMS, TldState.GENERAL_AVAILABILITY,
           LaunchPhase.OPEN, TldState.GENERAL_AVAILABILITY);
 
-  /** Non-sunrise tld states. */
-  public static final ImmutableSet<TldState> DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS =
-      Sets.immutableEnumSet(
-          TldState.PREDELEGATION,
-          TldState.QUIET_PERIOD,
-          TldState.GENERAL_AVAILABILITY);
-
   /** Reservation types that are allowed in sunrise by policy. */
   public static final ImmutableSet<ReservationType> TYPES_ALLOWED_FOR_CREATE_ONLY_IN_SUNRISE =
       Sets.immutableEnumSet(
           ReservationType.ALLOWED_IN_SUNRISE,
           ReservationType.NAME_COLLISION,
           ReservationType.MISTAKEN_PREMIUM);
+
+  /** Non-sunrise tld states. */
+  private static final ImmutableSet<TldState> DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS =
+      Sets.immutableEnumSet(
+          TldState.PREDELEGATION,
+          TldState.QUIET_PERIOD,
+          TldState.GENERAL_AVAILABILITY);
 
   /** Strict validator for ascii lowercase letters, digits, and "-", allowing "." as a separator */
   private static final CharMatcher ALLOWED_CHARS =
@@ -377,7 +378,6 @@ public class DomainFlowUtils {
     if (!Objects.equals(
         Registry.get(tld).getTldState(now),
         LAUNCH_PHASE_TO_TLD_STATE.get(launchExtension.getPhase()))) {
-      // No launch operations are allowed during the quiet period or predelegation.
       throw new LaunchPhaseMismatchException();
     }
   }
@@ -826,12 +826,26 @@ public class DomainFlowUtils {
   }
 
   /** If a domain or application has "clientUpdateProhibited" set, updates must clear it or fail. */
-  public static void verifyClientUpdateNotProhibited(Update command, DomainBase existingResource)
+  static void verifyClientUpdateNotProhibited(Update command, DomainBase existingResource)
       throws ResourceHasClientUpdateProhibitedException {
     if (existingResource.getStatusValues().contains(StatusValue.CLIENT_UPDATE_PROHIBITED)
         && !command.getInnerRemove().getStatusValues()
             .contains(StatusValue.CLIENT_UPDATE_PROHIBITED)) {
       throw new ResourceHasClientUpdateProhibitedException();
+    }
+  }
+
+  static void verifyRegistryStateAllowsLaunchFlows(Registry registry, DateTime now)
+      throws BadCommandForRegistryPhaseException {
+    if (DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS.contains(registry.getTldState(now))) {
+      throw new BadCommandForRegistryPhaseException();
+    }
+  }
+
+  static void verifyNotInPredelegation(Registry registry, DateTime now)
+      throws BadCommandForRegistryPhaseException {
+    if (registry.getTldState(now) == TldState.PREDELEGATION) {
+      throw new BadCommandForRegistryPhaseException();
     }
   }
 
@@ -1201,6 +1215,13 @@ public class DomainFlowUtils {
   public static class NameserversNotSpecifiedException extends StatusProhibitsOperationException {
     public NameserversNotSpecifiedException() {
       super("At least one nameserver must be specified for this TLD");
+    }
+  }
+
+  /** Command is not allowed in the current registry phase. */
+  public static class BadCommandForRegistryPhaseException extends CommandUseErrorException {
+    public BadCommandForRegistryPhaseException() {
+      super("Command is not allowed in the current registry phase");
     }
   }
 

@@ -24,6 +24,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForR
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
+import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -41,7 +42,6 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.exceptions.BadCommandForRegistryPhaseException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.DomainResource;
@@ -64,7 +64,6 @@ import google.registry.model.poll.PendingActionNotificationResponse.DomainPendin
 import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessage.OneTime;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -80,6 +79,7 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.OnlyToolCanPassMetadataException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
  * @error {@link DomainDeleteFlow.DomainToDeleteHasHostsException}
+ * @error {@link DomainFlowUtils.BadCommandForRegistryPhaseException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
 public final class DomainDeleteFlow extends LoggedInFlow implements TransactionalFlow {
@@ -162,9 +162,7 @@ public final class DomainDeleteFlow extends LoggedInFlow implements Transactiona
     verifyOptionalAuthInfoForResource(authInfo, existingDomain);
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingDomain);
-      if (TldState.PREDELEGATION.equals(registry.getTldState(now))) {
-        throw new BadCommandForRegistryPhaseException();
-      }
+      verifyNotInPredelegation(registry, now);
     }
     checkAllowedAccessToTld(getAllowedTlds(), registry.getTld().toString());
     if (!existingDomain.getSubordinateHosts().isEmpty()) {

@@ -18,18 +18,18 @@ import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
+import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.domain.launch.LaunchPhase.CLAIMS;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
+import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.LoggedInFlow;
-import google.registry.flows.exceptions.BadCommandForRegistryPhaseException;
 import google.registry.model.domain.DomainCommand.Check;
 import google.registry.model.domain.launch.LaunchCheckExtension;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension;
@@ -49,14 +49,13 @@ import javax.inject.Inject;
  * An EPP flow that checks whether strings are trademarked.
  *
  * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
- * @error {@link google.registry.flows.exceptions.BadCommandForRegistryPhaseException}
  * @error {@link google.registry.flows.exceptions.TooManyResourceChecksException}
+ * @error {@link DomainFlowUtils.BadCommandForRegistryPhaseException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
+ * @error {@link ClaimsCheckNotAllowedInSunrise}
+ * @error {@link ClaimsPeriodEndedException}
  */
 public final class ClaimsCheckFlow extends LoggedInFlow {
-
-  public static final ImmutableSet<TldState> DISALLOWED_TLD_STATES =
-      Sets.immutableEnumSet(TldState.PREDELEGATION, TldState.SUNRISE);
 
   @Inject ResourceCommand resourceCommand;
   @Inject @Config("maxChecks") int maxChecks;
@@ -81,9 +80,14 @@ public final class ClaimsCheckFlow extends LoggedInFlow {
       if (seenTlds.add(tld)) {
         checkAllowedAccessToTld(getAllowedTlds(), tld);
         Registry registry = Registry.get(tld);
-        if ((!isSuperuser && DISALLOWED_TLD_STATES.contains(registry.getTldState(now)))
-            || isAtOrAfter(now, registry.getClaimsPeriodEnd())) {
-          throw new BadCommandForRegistryPhaseException();
+        if (!isSuperuser) {
+          verifyNotInPredelegation(registry, now);
+          if (registry.getTldState(now) == TldState.SUNRISE) {
+            throw new ClaimsCheckNotAllowedInSunrise();
+          }
+          if (isAtOrAfter(now, registry.getClaimsPeriodEnd())) {
+            throw new ClaimsPeriodEndedException();
+          }
         }
       }
       String claimKey = ClaimsListShard.get().getClaimKey(domainName.parts().get(0));
@@ -95,5 +99,19 @@ public final class ClaimsCheckFlow extends LoggedInFlow {
         SUCCESS,
         null,
         ImmutableList.of(LaunchCheckResponseExtension.create(CLAIMS, launchChecksBuilder.build())));
+  }
+
+  /** Claims checks are not allowed during sunrise. */
+  static class ClaimsCheckNotAllowedInSunrise extends CommandUseErrorException {
+    public ClaimsCheckNotAllowedInSunrise() {
+      super("Claims checks are not allowed during sunrise");
+    }
+  }
+
+  /** The claims period has ended. */
+  static class ClaimsPeriodEndedException extends CommandUseErrorException {
+    public ClaimsPeriodEndedException() {
+      super("The claims period has ended");
+    }
   }
 }

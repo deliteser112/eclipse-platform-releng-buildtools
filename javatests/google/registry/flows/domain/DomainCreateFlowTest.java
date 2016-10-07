@@ -53,7 +53,6 @@ import google.registry.flows.EppRequestSource;
 import google.registry.flows.LoggedInFlow.UndeclaredServiceExtensionException;
 import google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
 import google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException;
-import google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.BaseDomainCreateFlow.AcceptedTooLongAgoException;
 import google.registry.flows.domain.BaseDomainCreateFlow.ClaimsPeriodEndedException;
@@ -963,7 +962,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_predelegation() throws Exception {
-    thrown.expect(BadCommandForRegistryPhaseException.class);
+    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
     createTld("tld", TldState.PREDELEGATION);
     persistContactsAndHosts();
     runFlow();

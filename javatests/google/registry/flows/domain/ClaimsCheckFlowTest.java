@@ -21,9 +21,11 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.domain.ClaimsCheckFlow.ClaimsCheckNotAllowedInSunrise;
+import google.registry.flows.domain.ClaimsCheckFlow.ClaimsPeriodEndedException;
+import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
-import google.registry.flows.exceptions.BadCommandForRegistryPhaseException;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.registrar.Registrar;
@@ -136,7 +138,7 @@ public class ClaimsCheckFlowTest extends ResourceFlowTestCase<ClaimsCheckFlow, D
     createTld("tld", TldState.SUNRISE);
     persistResource(Registry.get("tld").asBuilder().build());
     setEppInput("domain_check_claims.xml");
-    thrown.expect(BadCommandForRegistryPhaseException.class);
+    thrown.expect(ClaimsCheckNotAllowedInSunrise.class);
     runFlow();
   }
 
@@ -148,7 +150,7 @@ public class ClaimsCheckFlowTest extends ResourceFlowTestCase<ClaimsCheckFlow, D
         .setClaimsPeriodEnd(clock.nowUtc().minusMillis(1))
         .build());
     setEppInput("domain_check_claims_multiple_tlds.xml");
-    thrown.expect(BadCommandForRegistryPhaseException.class);
+    thrown.expect(ClaimsPeriodEndedException.class);
     runFlow();
   }
 }

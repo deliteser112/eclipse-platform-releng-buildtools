@@ -42,7 +42,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
-import google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.domain.BaseDomainCreateFlow.AcceptedTooLongAgoException;
@@ -59,6 +58,7 @@ import google.registry.flows.domain.DomainApplicationCreateFlow.LandrushApplicat
 import google.registry.flows.domain.DomainApplicationCreateFlow.NoticeCannotBeUsedWithSignedMarkException;
 import google.registry.flows.domain.DomainApplicationCreateFlow.SunriseApplicationDisallowedDuringLandrushException;
 import google.registry.flows.domain.DomainApplicationCreateFlow.UncontestedSunriseApplicationBlockedInLandrushException;
+import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
 import google.registry.flows.domain.DomainFlowUtils.BadDomainNameCharacterException;
 import google.registry.flows.domain.DomainFlowUtils.BadDomainNamePartsCountException;
 import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;

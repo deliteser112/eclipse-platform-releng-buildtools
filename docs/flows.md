@@ -534,6 +534,8 @@ An EPP flow that deletes a domain.
 
 ### Errors
 
+*   2002
+    *   Command is not allowed in the current registry phase.
 *   2201
     *   The specified resource belongs to another client.
     *   Only a tool can pass a metadata extension.
@@ -555,7 +557,6 @@ An EPP flow that creates a new domain resource.
 
 *   2002
     *   Service extension(s) must be declared at login.
-    *   Command is not allowed in the current registry phase.
     *   Signed marks are not accepted in the current registry phase.
     *   The current registry phase does not allow for general registrations.
 *   2003
@@ -625,6 +626,8 @@ This flow also supports the EPP fee extension and can return pricing information
 
 ### Errors
 
+*   2002
+    *   Command is not allowed in the current registry phase.
 *   2004
     *   Domain label is not allowed by IDN table.
     *   Domain name is under tld which doesn't exist.
@@ -743,9 +746,9 @@ An EPP flow that creates a new application for a domain resource.
 ### Errors
 
 *   2002
-    *   Command is not allowed in the current registry phase.
     *   A notice cannot be specified when using a signed mark.
     *   Sunrise applications are disallowed during landrush.
+    *   Command is not allowed in the current registry phase.
 *   2003
     *   Landrush applications are disallowed during sunrise.
     *   Fees must be explicitly acknowledged when performing any operations on a premium name.
@@ -843,6 +846,8 @@ An EPP flow that checks whether strings are trademarked.
 
 *   2002
     *   Command is not allowed in the current registry phase.
+    *   Claims checks are not allowed during sunrise.
+    *   The claims period has ended.
 *   2004
     *   Domain name is under tld which doesn't exist.
 *   2201

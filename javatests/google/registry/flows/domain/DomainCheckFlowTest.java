@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import google.registry.flows.ResourceCheckFlowTestCase;
 import google.registry.flows.domain.DomainCheckFlow.OnlyCheckedNamesCanBeFeeCheckedException;
+import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
 import google.registry.flows.domain.DomainFlowUtils.BadDomainNameCharacterException;
 import google.registry.flows.domain.DomainFlowUtils.BadDomainNamePartsCountException;
 import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
@@ -345,6 +346,13 @@ public class DomainCheckFlowTest
   public void testFailure_invalidIdnCodePoints() throws Exception {
     // ❤☀☆☂☻♞☯.tld
     doFailingBadLabelTest("xn--k3hel9n7bxlu1e.tld", InvalidIdnDomainLabelException.class);
+  }
+
+  @Test
+  public void testFailure_predelegation() throws Exception {
+    createTld("tld", TldState.PREDELEGATION);
+    thrown.expect(BadCommandForRegistryPhaseException.class);
+    runFlow();
   }
 
   @Test

@@ -14,15 +14,10 @@
 
 package google.registry.flows;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.model.EppResource;
 import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.registry.Registry;
-import google.registry.model.registry.Registry.TldState;
 import google.registry.util.TypeUtils.TypeInstantiator;
 
 /**
@@ -62,25 +57,6 @@ public abstract class ResourceFlow<R extends EppResource, C extends ResourceComm
   }
 
   /**
-   * Check that the current action operating within the scope of a single TLD (i.e. an operation on
-   * a domain) is allowed in the registry phase for the specified TLD that the resource is in.
-   */
-  protected void checkRegistryStateForTld(String tld) throws BadCommandForRegistryPhaseException {
-    if (!isSuperuser && getDisallowedTldStates().contains(Registry.get(tld).getTldState(now))) {
-      throw new BadCommandForRegistryPhaseException();
-    }
-  }
-
-  /**
-   * Get the TLD states during which this command is disallowed. By default all commands can be run
-   * in any state (except predelegation); Flow subclasses must override this method to disallow any
-   * further states.
-   */
-  protected ImmutableSet<TldState> getDisallowedTldStates() {
-    return Sets.immutableEnumSet(TldState.PREDELEGATION);
-  }
-
-  /**
    * Verifies that the command is allowed on the target resource.
    *
    * @throws EppException If the command is not allowed on this resource.
@@ -93,11 +69,4 @@ public abstract class ResourceFlow<R extends EppResource, C extends ResourceComm
    * @throws EppException If something fails while manipulating the resource.
    */
   protected abstract EppOutput runResourceFlow() throws EppException;
-
-  /** Command is not allowed in the current registry phase. */
-  public static class BadCommandForRegistryPhaseException extends CommandUseErrorException {
-    public BadCommandForRegistryPhaseException() {
-      super("Command is not allowed in the current registry phase");
-    }
-  }
 }

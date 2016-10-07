@@ -20,6 +20,7 @@ import static google.registry.flows.domain.DomainFlowUtils.getReservationType;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
+import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.domain.fee.Fee.FEE_CHECK_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
@@ -41,7 +42,6 @@ import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.LoggedInFlow;
-import google.registry.flows.exceptions.BadCommandForRegistryPhaseException;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Check;
 import google.registry.model.domain.DomainResource;
@@ -68,11 +68,11 @@ import javax.inject.Inject;
  *
  * <p>This flow also supports the EPP fee extension and can return pricing information.
  *
- * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link google.registry.flows.exceptions.TooManyResourceChecksException}
  * @error {@link DomainFlowUtils.BadDomainNameCharacterException}
  * @error {@link DomainFlowUtils.BadDomainNamePartsCountException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
+ * @error {@link DomainFlowUtils.BadCommandForRegistryPhaseException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.DashesInThirdAndFourthException}
  * @error {@link DomainFlowUtils.DomainLabelTooLongException}
@@ -81,11 +81,12 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.InvalidIdnDomainLabelException}
  * @error {@link DomainFlowUtils.InvalidPunycodeException}
  * @error {@link DomainFlowUtils.LeadingDashException}
+ * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.RestoresAreAlwaysForOneYearException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
  * @error {@link DomainFlowUtils.TrailingDashException}
  * @error {@link DomainFlowUtils.UnknownFeeCommandException}
- * @error {@link DomainCheckFlow.OnlyCheckedNamesCanBeFeeCheckedException}
+ * @error {@link OnlyCheckedNamesCanBeFeeCheckedException}
  */
 public final class DomainCheckFlow extends LoggedInFlow {
 
@@ -122,8 +123,8 @@ public final class DomainCheckFlow extends LoggedInFlow {
       String tld = domainName.parent().toString();
       if (seenTlds.add(tld)) {
         checkAllowedAccessToTld(getAllowedTlds(), tld);
-        if (!isSuperuser && TldState.PREDELEGATION.equals(Registry.get(tld).getTldState(now))) {
-          throw new BadCommandForRegistryPhaseException();
+        if (!isSuperuser) {
+          verifyNotInPredelegation(Registry.get(tld), now);
         }
       }
     }

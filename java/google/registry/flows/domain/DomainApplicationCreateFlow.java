@@ -14,7 +14,7 @@
 
 package google.registry.flows.domain;
 
-import static google.registry.flows.domain.DomainFlowUtils.DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
@@ -44,7 +44,6 @@ import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.AbstractSignedMark;
 import google.registry.model.smd.EncodedSignedMark;
-import java.util.List;
 import javax.inject.Inject;
 
 /**
@@ -52,9 +51,7 @@ import javax.inject.Inject;
  *
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException}
- * @error {@link google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException}
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
- * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link BaseDomainCreateFlow.AcceptedTooLongAgoException}
  * @error {@link BaseDomainCreateFlow.ClaimsPeriodEndedException}
  * @error {@link BaseDomainCreateFlow.ExpiredClaimException}
@@ -69,6 +66,7 @@ import javax.inject.Inject;
  * @error {@link DomainApplicationCreateFlow.NoticeCannotBeUsedWithSignedMarkException}
  * @error {@link DomainApplicationCreateFlow.SunriseApplicationDisallowedDuringLandrushException}
  * @error {@link DomainApplicationCreateFlow.UncontestedSunriseApplicationBlockedInLandrushException}
+ * @error {@link DomainFlowUtils.BadCommandForRegistryPhaseException}
  * @error {@link DomainFlowUtils.BadDomainNameCharacterException}
  * @error {@link DomainFlowUtils.BadDomainNamePartsCountException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
@@ -91,6 +89,7 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.NameserversNotAllowedException}
  * @error {@link DomainFlowUtils.NameserversNotSpecifiedException}
  * @error {@link DomainFlowUtils.NoMarksFoundMatchingDomainException}
+ * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
  * @error {@link DomainFlowUtils.SignedMarksMustBeEncodedException}
@@ -141,14 +140,13 @@ public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainAppl
   protected void verifyDomainCreateIsAllowed() throws EppException {
     validateFeeChallenge(
         targetId, getTld(), now, feeCreate, commandOperations.getTotalCost());
-    if (tldState == TldState.LANDRUSH && !isSuperuser) {
+    if (!isSuperuser && tldState == TldState.LANDRUSH) {
       // Prohibit creating a landrush application in LANDRUSH (but not in SUNRUSH) if there is
       // exactly one sunrise application for the same name.
-      List<DomainApplication> applications = FluentIterable
-          .from(loadActiveApplicationsByDomainName(targetId, now))
-          .limit(2)
-          .toList();
-      if (applications.size() == 1 && applications.get(0).getPhase().equals(LaunchPhase.SUNRISE)) {
+      ImmutableSet<DomainApplication> applications =
+          loadActiveApplicationsByDomainName(targetId, now);
+      if (applications.size() == 1
+          && getOnlyElement(applications).getPhase().equals(LaunchPhase.SUNRISE)) {
         throw new UncontestedSunriseApplicationBlockedInLandrushException();
       }
     }
@@ -177,11 +175,6 @@ public class DomainApplicationCreateFlow extends BaseDomainCreateFlow<DomainAppl
             }})
           .toList());
     }
-  }
-
-  @Override
-  protected final ImmutableSet<TldState> getDisallowedTldStates() {
-    return DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS;
   }
 
   @Override

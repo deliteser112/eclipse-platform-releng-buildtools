@@ -33,9 +33,9 @@ import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.domain.DomainApplicationDeleteFlow.SunriseApplicationCannotBeDeletedInLandrushException;
 import google.registry.flows.domain.DomainFlowUtils.ApplicationDomainNameMismatchException;
+import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
 import google.registry.flows.domain.DomainFlowUtils.LaunchPhaseMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
-import google.registry.flows.exceptions.BadCommandForRegistryPhaseException;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
@@ -262,6 +262,36 @@ public class DomainApplicationDeleteFlowTest
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     runFlow();
+  }
+
+  @Test
+  public void testSuccess_superuserQuietPeriod() throws Exception {
+    createTld("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response.xml"));
+  }
+
+  @Test
+  public void testSuccess_superuserPredelegation() throws Exception {
+    createTld("tld", TldState.PREDELEGATION);
+    persistResource(
+        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response.xml"));
+  }
+
+  @Test
+  public void testSuccess_superuserGeneralAvailability() throws Exception {
+    createTld("tld", TldState.GENERAL_AVAILABILITY);
+    persistResource(
+        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response.xml"));
   }
 
   @Test

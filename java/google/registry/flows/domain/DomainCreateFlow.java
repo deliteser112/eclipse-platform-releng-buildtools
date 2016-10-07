@@ -44,7 +44,6 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.LoggedInFlow.UndeclaredServiceExtensionException}
  * @error {@link google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException}
  * @error {@link google.registry.flows.ResourceCreateOrMutateFlow.OnlyToolCanPassMetadataException}
- * @error {@link google.registry.flows.ResourceFlow.BadCommandForRegistryPhaseException}
  * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link BaseDomainCreateFlow.AcceptedTooLongAgoException}
  * @error {@link BaseDomainCreateFlow.ClaimsPeriodEndedException}
