@@ -47,11 +47,11 @@ abstract class AbstractEppResourceSubject
 
   @SuppressWarnings("unchecked")
   protected And<S> andChainer() {
-    return new And<S>((S) this);
+    return new And<>((S) this);
   }
 
   @Override
-  public String getDisplaySubject() {
+  public String actualCustomStringRepresentation() {
     return String.format(
         "%s with foreign key '%s'",
         actual().getClass().getSimpleName(),
@@ -115,7 +115,7 @@ abstract class AbstractEppResourceSubject
       failWithBadResults(
           "has at least number of history entries", index + 1, historyEntries.size());
     }
-    return new Which<HistoryEntrySubject>(assertAboutHistoryEntries()
+    return new Which<>(assertAboutHistoryEntries()
         .that(getHistoryEntries().get(index)).withCustomDisplaySubject(String.format(
             "the history entry for %s at index %s", getDisplaySubject(), index)));
   }

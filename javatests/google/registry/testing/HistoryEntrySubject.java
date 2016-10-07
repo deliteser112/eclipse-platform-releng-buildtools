@@ -39,7 +39,7 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
   }
 
   @Override
-  public String getDisplaySubject() {
+  public String actualCustomStringRepresentation() {
     return Optional.fromNullable(customDisplaySubject).or(super.actualAsString());
   }
 
@@ -60,7 +60,7 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
     if (actual().getPeriod() == null) {
       fail("has a period");
     }
-    return new And<HistoryEntrySubject>(this);
+    return new And<>(this);
   }
 
   public And<HistoryEntrySubject> hasPeriodYears(int years) {
@@ -73,7 +73,7 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
     if (actual().getXmlBytes() != null) {
       fail("has no xml");
     }
-    return new And<HistoryEntrySubject>(this);
+    return new And<>(this);
   }
 
   public And<HistoryEntrySubject> hasMetadataReason(String reason) {
@@ -85,7 +85,7 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
     if (actual().getRequestedByRegistrar() != requestedByRegistrar) {
       fail("has metadata requestedByRegistrar with value", requestedByRegistrar);
     }
-    return new And<HistoryEntrySubject>(this);
+    return new And<>(this);
   }
 
   protected void failWithBadResults(String dualVerb, Object expected, Object actual) {
@@ -96,7 +96,7 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
     if (!Objects.equals(expected, actual)) {
       failWithBadResults(verb, expected, actual);
     }
-    return new And<HistoryEntrySubject>(this);
+    return new And<>(this);
   }
 
   public static DelegatedVerb<HistoryEntrySubject, HistoryEntry> assertAboutHistoryEntries() {
