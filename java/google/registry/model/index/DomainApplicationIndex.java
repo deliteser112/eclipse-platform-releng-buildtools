@@ -82,8 +82,8 @@ public class DomainApplicationIndex extends BackupGroupRoot {
   }
 
   /**
-   * Returns an iterable of all DomainApplications for the given fully qualified domain name that
-   * do not have a deletion time before the supplied DateTime.
+   * Returns the set of all DomainApplications for the given fully qualified domain name that do
+   * not have a deletion time before the supplied DateTime.
    */
   public static ImmutableSet<DomainApplication> loadActiveApplicationsByDomainName(
       String fullyQualifiedDomainName, DateTime now) {
