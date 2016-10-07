@@ -141,6 +141,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
 
   /** Verifies that no errors are thrown when a valid escrow file is validated */
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void testValidateEscrowFile_valid() throws Exception {
     xmlInput = DEPOSIT_XML.openBufferedStream();
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
