@@ -143,10 +143,10 @@ public class RdapDomainSearchAction extends RdapActionBase {
     if (!partialStringQuery.getHasWildcard()) {
       DomainResource domainResource =
           loadByForeignKey(DomainResource.class, partialStringQuery.getInitialString(), now);
-      return makeSearchResults(
-          (domainResource == null) ? ImmutableList.of() : ImmutableList.of(domainResource),
-          false,
-          now);
+      ImmutableList<DomainResource> results = (domainResource == null)
+          ? ImmutableList.<DomainResource>of()
+          : ImmutableList.of(domainResource);
+      return makeSearchResults(results, false, now);
     // Handle queries with a wildcard.
     } else {
       // We can't query for undeleted domains as part of the query itself; that would require an
@@ -254,7 +254,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
 
   /**
    * Locates all domains which are linked to a set of host keys.
-   * 
+   *
    * <p>This method is called by {@link #searchByNameserverLdhName} and
    * {@link #searchByNameserverIp} after they assemble the relevant host keys.
    */
@@ -285,7 +285,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
 
   /**
    * Output JSON for a list of domains.
-   * 
+   *
    * <p>The isTruncated parameter should be true if the search found more results than are in the
    * list, meaning that the truncation notice should be added.
    */
