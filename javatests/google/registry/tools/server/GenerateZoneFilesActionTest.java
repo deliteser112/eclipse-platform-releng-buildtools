@@ -31,13 +31,11 @@ import static org.joda.time.Duration.standardDays;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
 import google.registry.testing.FakeClock;
@@ -97,7 +95,7 @@ public class GenerateZoneFilesActionTest extends MapreduceTestCase<GenerateZoneF
         .build());
 
     GenerateZoneFilesAction action = new GenerateZoneFilesAction();
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
+    action.mrRunner = makeDefaultRunner();
     action.bucket = "zonefiles-bucket";
     action.gcsBufferSize = 123;
     action.datastoreRetention = standardDays(29);

@@ -26,11 +26,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
-import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.host.HostResource;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.testing.ExceptionRule;
@@ -64,7 +62,7 @@ public class DnsRefreshForHostRenameActionTest
   private void runMapreduce(String hostKeyString) throws Exception {
     action = new DnsRefreshForHostRenameAction();
     action.hostKeyString = hostKeyString;
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>absent());
+    action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
     action.run();
     executeTasksUntilEmpty("mapreduce");

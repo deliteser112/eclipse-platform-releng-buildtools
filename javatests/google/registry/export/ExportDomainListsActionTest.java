@@ -28,9 +28,7 @@ import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.ListOptions;
 import com.google.appengine.tools.cloudstorage.ListResult;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
-import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.testing.ExceptionRule;
@@ -60,7 +58,7 @@ public class ExportDomainListsActionTest extends MapreduceTestCase<ExportDomainL
     persistResource(Registry.get("testtld").asBuilder().setTldType(TldType.TEST).build());
 
     action = new ExportDomainListsAction();
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
+    action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
     action.gcsBucket = "outputbucket";
     action.gcsBufferSize = 500;

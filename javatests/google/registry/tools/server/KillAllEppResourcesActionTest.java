@@ -32,12 +32,10 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
 
 import com.google.appengine.api.datastore.Entity;
-import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
-import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
@@ -84,7 +82,7 @@ public class KillAllEppResourcesActionTest extends MapreduceTestCase<KillAllEppR
 
   private void runMapreduce() throws Exception {
     action = new KillAllEppResourcesAction();
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
+    action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
     action.run();
     executeTasksUntilEmpty("mapreduce");

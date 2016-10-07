@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
-import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -71,7 +70,7 @@ public class ExpandRecurringBillingEventsActionTest
   @Before
   public void init() {
     action = new ExpandRecurringBillingEventsAction();
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>absent());
+    action.mrRunner = makeDefaultRunner();
     action.clock = clock;
     action.cursorTimeParam = Optional.absent();
     createTld("tld");

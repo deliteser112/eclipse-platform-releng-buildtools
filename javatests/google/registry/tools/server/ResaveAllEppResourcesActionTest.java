@@ -18,8 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 
-import com.google.common.base.Optional;
-import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.contact.ContactResource;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
@@ -37,7 +35,7 @@ public class ResaveAllEppResourcesActionTest
   @Before
   public void init() {
     action = new ResaveAllEppResourcesAction();
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>absent());
+    action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
   }
 

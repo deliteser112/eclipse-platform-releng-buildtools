@@ -55,13 +55,11 @@ import static org.joda.time.Duration.standardSeconds;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
-import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -133,7 +131,7 @@ public class DeleteContactsAndHostsActionTest
 
     action = new DeleteContactsAndHostsAction();
     action.clock = clock;
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>of(2));
+    action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
     action.retrier = new Retrier(new FakeSleeper(clock), 1);
     action.queue = getQueue(QUEUE_ASYNC_DELETE);

@@ -32,6 +32,9 @@ import com.google.appengine.tools.pipeline.impl.servlets.PipelineServlet;
 import com.google.appengine.tools.pipeline.impl.servlets.TaskHandler;
 import com.google.apphosting.api.ApiProxy;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Optional;
+import google.registry.config.RegistryEnvironment;
+import google.registry.mapreduce.MapreduceRunner;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.ShardableTestCase;
@@ -82,6 +85,11 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
     ApiProxyLocal proxy = (ApiProxyLocal) ApiProxy.getDelegate();
     // Creating files is not allowed in some test execution environments, so don't.
     proxy.setProperty(LocalBlobstoreService.NO_STORAGE_PROPERTY, "true");
+  }
+
+  protected MapreduceRunner makeDefaultRunner() {
+    int numBuckets = RegistryEnvironment.get().config().getEppResourceIndexBucketCount();
+    return new MapreduceRunner(Optional.<Integer>of(numBuckets), Optional.<Integer>of(1));
   }
 
   protected List<QueueStateInfo.TaskStateInfo> getTasks(String queueName) {

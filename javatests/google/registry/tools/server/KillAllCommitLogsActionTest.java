@@ -27,12 +27,10 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
 
 import com.google.appengine.api.datastore.Entity;
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpoint;
@@ -59,7 +57,7 @@ public class KillAllCommitLogsActionTest extends MapreduceTestCase<KillAllCommit
 
   private void runMapreduce() throws Exception {
     action = new KillAllCommitLogsAction();
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
+    action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
     action.run();
     executeTasksUntilEmpty("mapreduce");

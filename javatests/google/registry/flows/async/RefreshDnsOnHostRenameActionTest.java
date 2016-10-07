@@ -33,10 +33,8 @@ import static org.joda.time.Duration.millis;
 import static org.joda.time.Duration.standardHours;
 import static org.joda.time.Duration.standardSeconds;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.host.HostResource;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
@@ -79,7 +77,7 @@ public class RefreshDnsOnHostRenameActionTest
 
     action = new RefreshDnsOnHostRenameAction();
     action.clock = clock;
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>absent());
+    action.mrRunner = makeDefaultRunner();
     action.pullQueue = getQueue(QUEUE_ASYNC_HOST_RENAME);
     action.response = new FakeResponse();
     action.retrier = new Retrier(new FakeSleeper(clock), 1);

@@ -26,6 +26,8 @@ java_library(
         "//third_party/java/mockito",
         "//third_party/java/servlet/servlet_api",
         "//third_party/java/truth",
+        "//java/google/registry/config",
+        "//java/google/registry/mapreduce",
         "//java/google/registry/model",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",

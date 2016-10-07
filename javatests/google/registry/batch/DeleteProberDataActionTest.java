@@ -23,10 +23,8 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -74,7 +72,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
     persistResource(Registry.get("oa-canary.test").asBuilder().setTldType(TldType.TEST).build());
 
     action = new DeleteProberDataAction();
-    action.mrRunner = new MapreduceRunner(Optional.<Integer>of(5), Optional.<Integer>absent());
+    action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
     action.isDryRun = false;
   }
