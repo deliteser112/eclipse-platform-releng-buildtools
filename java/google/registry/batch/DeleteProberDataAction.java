@@ -14,7 +14,6 @@
 
 package google.registry.batch;
 
-import static com.google.common.base.Verify.verifyNotNull;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.getTldsOfType;
@@ -136,33 +135,31 @@ public class DeleteProberDataAction implements Runnable {
         getContext().incrementCounter("skipped, NIC domain");
         return;
       }
-      int dependentsDeleted = ofy().transact(new Work<Integer>() {
+
+      final Key<EppResourceIndex> eppIndex = Key.create(EppResourceIndex.create(domainKey));
+      final Key<ForeignKeyIndex<?>> fki = ForeignKeyDomainIndex.createKey(domain);
+
+      int entitiesDeleted = ofy().transact(new Work<Integer>() {
         @Override
         public Integer run() {
-          EppResourceIndex eppIndex = ofy().load().entity(EppResourceIndex.create(domainKey)).now();
-          verifyNotNull(eppIndex, "Missing EppResourceIndex for domain %s", domain);
-          ForeignKeyIndex<?> fki = ofy().load().key(ForeignKeyDomainIndex.createKey(domain)).now();
-          verifyNotNull(fki, "Missing ForeignKeyDomainIndex for domain %s", domain);
-          // This ancestor query selects all descendant HistoryEntries, BillingEvents, and
-          // PollMessages, as well as the domain itself.
+          // This ancestor query selects all descendant HistoryEntries, BillingEvents, PollMessages,
+          // and TLD-specific entities, as well as the domain itself.
           List<Key<Object>> domainAndDependentKeys = ofy().load().ancestor(domainKey).keys().list();
+          ImmutableSet<Key<?>> allKeys = new ImmutableSet.Builder<Key<?>>()
+              .add(fki)
+              .add(eppIndex)
+              .addAll(domainAndDependentKeys)
+              .build();
           if (isDryRun) {
-            logger.infofmt(
-                "Would delete the following entities: %s",
-                new ImmutableList.Builder<Object>()
-                    .add(fki)
-                    .add(eppIndex)
-                    .addAll(domainAndDependentKeys)
-                    .build());
+            logger.infofmt("Would delete the following entities: %s", allKeys);
           } else {
-            ofy().deleteWithoutBackup().keys(domainAndDependentKeys);
-            ofy().deleteWithoutBackup().entities(eppIndex, fki);
+            ofy().deleteWithoutBackup().keys(allKeys);
           }
-          return domainAndDependentKeys.size() - 1;
+          return allKeys.size();
         }
       });
-      getContext().incrementCounter(String.format("deleted, kind %s", domainKey.getKind()));
-      getContext().incrementCounter("deleted, dependent keys", dependentsDeleted);
+      getContext().incrementCounter("domains deleted");
+      getContext().incrementCounter("total entities deleted", entitiesDeleted);
     }
   }
 }
