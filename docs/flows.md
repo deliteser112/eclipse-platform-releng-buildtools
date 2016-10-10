@@ -752,6 +752,7 @@ application. Updates cannot change the domain name that is being applied for.
     *   Application status prohibits this domain update.
 *   2306
     *   Cannot add and remove the same value.
+    *   Application referenced does not match specified domain name.
     *   More than one contact for a given role is not allowed.
     *   Missing type attribute for contact.
     *   The secDNS:all element must have value 'true' if present.

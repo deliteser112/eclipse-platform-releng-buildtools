@@ -35,6 +35,7 @@ import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.domain.DomainApplicationUpdateFlow.ApplicationStatusProhibitsUpdateException;
+import google.registry.flows.domain.DomainFlowUtils.ApplicationDomainNameMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
 import google.registry.flows.domain.DomainFlowUtils.EmptySecDnsUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
@@ -396,6 +397,14 @@ public class DomainApplicationUpdateFlowTest
   public void testFailure_wrongExtension() throws Exception {
     setEppInput("domain_update_sunrise_wrong_extension.xml");
     thrown.expect(UnimplementedExtensionException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_applicationDomainNameMismatch() throws Exception {
+    persistReferencedEntities();
+    persistResource(newApplicationBuilder().setFullyQualifiedDomainName("something.tld").build());
+    thrown.expect(ApplicationDomainNameMismatchException.class);
     runFlow();
   }
 

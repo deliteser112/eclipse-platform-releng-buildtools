@@ -30,6 +30,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateNameserversCo
 import static google.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
 import static google.registry.flows.domain.DomainFlowUtils.validateRegistrantAllowedOnTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
+import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
 import static google.registry.flows.domain.DomainFlowUtils.verifyClientUpdateNotProhibited;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
 import static google.registry.flows.domain.DomainFlowUtils.verifyStatusChangesAreClientSettable;
@@ -79,6 +80,7 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
  * @error {@link google.registry.flows.exceptions.StatusNotClientSettableException}
+ * @error {@link DomainFlowUtils.ApplicationDomainNameMismatchException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
  * @error {@link DomainFlowUtils.EmptySecDnsUpdateException}
  * @error {@link DomainFlowUtils.LinkedResourcesDoNotExistException}
@@ -133,6 +135,7 @@ public class DomainApplicationUpdateFlow extends LoggedInFlow implements Transac
     Update command = cloneAndLinkReferences((Update) resourceCommand, now);
     DomainApplication existingApplication = verifyExistence(
         DomainApplication.class, applicationId, loadDomainApplication(applicationId, now));
+    verifyApplicationDomainMatchesTargetId(existingApplication, targetId);
     verifyNoDisallowedStatuses(existingApplication, UPDATE_DISALLOWED_STATUSES);
     verifyOptionalAuthInfoForResource(authInfo, existingApplication);
     verifyUpdateAllowed(existingApplication, command);

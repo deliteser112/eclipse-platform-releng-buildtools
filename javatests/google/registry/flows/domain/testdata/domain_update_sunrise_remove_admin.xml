@@ -3,7 +3,7 @@
     <update>
       <domain:update
        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name>example.com</domain:name>
+        <domain:name>example.tld</domain:name>
         <domain:rem>
           <domain:contact type="admin">sh8013</domain:contact>
         </domain:rem>
