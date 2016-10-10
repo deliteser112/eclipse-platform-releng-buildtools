@@ -17,7 +17,7 @@ package google.registry.flows.async;
 import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_IS_SUPERUSER;
 import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_REQUESTING_CLIENT_ID;
 import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_RESOURCE_KEY;
-import static google.registry.flows.async.DnsRefreshForHostRenameAction.PARAM_HOST_KEY;
+import static google.registry.flows.async.RefreshDnsOnHostRenameAction.PARAM_HOST_KEY;
 import static google.registry.flows.async.RefreshDnsOnHostRenameAction.QUEUE_ASYNC_HOST_RENAME;
 
 import com.google.appengine.api.taskqueue.Queue;

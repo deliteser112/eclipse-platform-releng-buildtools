@@ -111,6 +111,11 @@ specification for the cron task.
 Here are the task queues in use by the system. All are push queues unless
 explicitly marked as otherwise.
 
+*   `async-delete-pull` and `async-host-rename-pull` -- Pull queues for tasks to
+    asynchronously delete contacts/hosts and to asynchronously refresh DNS
+    for renamed hosts, respectively. Tasks are enqueued during EPP
+    flows and then handled in batches by the regularly running cron tasks
+    `DeleteContactsAndHostsAction` and `RefreshDnsOnHostRenameAction`.
 *   `bigquery-streaming-metrics` -- Queue for metrics that are asynchronously
     streamed to BigQuery in the `Metrics` class. Tasks are enqueued during EPP
     flows in `EppController`. This means that there is a lag of a few seconds to
@@ -151,10 +156,6 @@ explicitly marked as otherwise.
 *   `export-snapshot-update-view` -- Queue for tasks to update the BigQuery
     views to point to the most recently uploaded snapshot. Tasks are enqueued by
     `LoadSnapshotAction` and executed by `UpdateSnapshotViewAction`.
-*   `flows-async` -- Queue for asynchronous tasks that are enqueued during EPP
-    command flows. Currently all of these tasks correspond to invocations of any
-    of the following three MapReduces: `DnsRefreshForHostRenameAction`,
-    `DeleteHostResourceAction`, or `DeleteContactResourceAction`.
 *   `group-members-sync` -- Cron queue for tasks to sync registrar contacts (not
     domain contacts!) to Google Groups. Tasks are executed by
     `SyncGroupMembersAction`.

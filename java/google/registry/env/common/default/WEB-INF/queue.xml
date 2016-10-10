@@ -12,14 +12,6 @@
     <mode>pull</mode>
   </queue>
 
-  <!-- Queue for launching asynchronous actions (e.g. mapreduces) from async flows. -->
-  <!-- TODO(b/26140521): Remove queue once new batch async handling mapreduces are deployed. -->
-  <queue>
-    <name>flows-async</name>
-    <rate>1/m</rate>
-    <target>backend</target>
-  </queue>
-
   <queue>
     <name>dns-publish</name>
     <rate>100/s</rate>

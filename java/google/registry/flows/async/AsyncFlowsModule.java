@@ -15,17 +15,13 @@
 package google.registry.flows.async;
 
 import static google.registry.flows.async.DeleteContactsAndHostsAction.QUEUE_ASYNC_DELETE;
-import static google.registry.flows.async.DnsRefreshForHostRenameAction.PARAM_HOST_KEY;
 import static google.registry.flows.async.RefreshDnsOnHostRenameAction.QUEUE_ASYNC_HOST_RENAME;
-import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.request.Parameter;
 import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 
 /** Dagger module for the async flows package. */
 @Module
@@ -41,12 +37,5 @@ public final class AsyncFlowsModule {
   @Named(QUEUE_ASYNC_HOST_RENAME)
   static Queue provideAsyncHostRenamePullQueue() {
     return QueueFactory.getQueue(QUEUE_ASYNC_HOST_RENAME);
-  }
-
-  //TODO(b/26140521): Delete this method once non-batched DNS host refresh mapreduce is deleted.
-  @Provides
-  @Parameter(PARAM_HOST_KEY)
-  static String provideHostKey(HttpServletRequest req) {
-    return extractRequiredParameter(req, PARAM_HOST_KEY);
   }
 }
