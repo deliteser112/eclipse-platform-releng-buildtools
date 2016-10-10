@@ -79,11 +79,11 @@ https://tools-dot-project-id.appspot.com, like `/_dr/task/refreshAllDomains`.
 Engine provide an asynchronous way to enqueue tasks and then execute them on
 some kind of schedule. There are two types of queues, push queues and pull
 queues. Tasks in push queues are always executing up to some throttlable limit.
-Tasks in pull queues remain there indefinitely until the queue is polled by code
-that is running for some other reason. Essentially, push queues run their own
-tasks while pull queues just enqueue data that is used by something else. Many
-other parts of App Engine are implemented using task queues. For example, [App
-Engine cron](https://cloud.google.com/appengine/docs/java/config/cron) adds
+Tasks in pull queues remain there until the queue is polled by code that is
+running for some other reason. Essentially, push queues run their own tasks
+while pull queues just enqueue data that is used by something else.
+Many other parts of App Engine are implemented using task queues. For example,
+[App Engine cron](https://cloud.google.com/appengine/docs/java/config/cron) adds
 tasks to push queues at regularly scheduled intervals, and the [MapReduce
 framework](https://cloud.google.com/appengine/docs/java/dataprocessing/) adds
 tasks for each phase of the MapReduce algorithm.
@@ -159,10 +159,10 @@ explicitly marked as otherwise.
     `SyncGroupMembersAction`.
 *   `load[0-9]` -- Queues used to load-test the system by `LoadTestAction`.
     These queues don't need to exist except when actively running load tests
-    (which is not recommended on production environments). There are ten of
-    these queues to provide simple sharding, because Nomulus is capable of
-    handling significantly more Queries Per Second than the highest throttle
-    limit available on task queues (which is 500 qps).
+    (running load tests on production environments is not recommended). There
+    are ten of these queues to provide simple sharding, because Nomulus is
+    capable of handling significantly more Queries Per Second than the highest
+    throttle limit available on task queues (which is 500 qps).
 *   `lordn-claims` and `lordn-sunrise` -- Pull queues for handling LORDN
     exports. Tasks are enqueued synchronously during EPP commands depending on
     whether the domain name in question has a claims notice ID.
