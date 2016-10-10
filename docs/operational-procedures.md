@@ -3,8 +3,6 @@
 This document covers procedures that are typically used when running a
 production registry system.
 
-[TOC]
-
 ## OT&E onboarding
 
 ## Managing static premium price lists

@@ -3,8 +3,6 @@
 This document contains information on the overall architecture of Nomulus as
 pertains to App Engine.
 
-[TOC]
-
 ## Services
 
 Nomulus contains three

@@ -3,8 +3,6 @@
 This document contains information on the overall structure of the code, and how
 particularly important pieces of the system are implemented.
 
-[TOC]
-
 ## Dagger dependency injection
 
 ## Bazel build system

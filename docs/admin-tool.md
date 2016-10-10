@@ -9,8 +9,6 @@ recent export failed. Its code lives inside the tools package
 (`java/google/registry/tools`), and is compiled by building the `nomulus` target
 in the Bazel BUILD file in that package.
 
-[TOC]
-
 ## Build the tool
 
 To build the `nomulus` tool, execute the following `bazel build` command inside

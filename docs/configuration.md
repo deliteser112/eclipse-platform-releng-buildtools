@@ -7,8 +7,6 @@ managed by editing code and deploying a new version, whereas per-TLD
 configuration is data that lives in Datastore in `Registry` entities, and is
 updated by running `nomulus` commands without having to deploy a new version.
 
-[TOC]
-
 ## Initial configuration
 
 Here's a checklist of things that need to be configured upon initial

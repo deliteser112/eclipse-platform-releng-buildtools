@@ -12,8 +12,6 @@ running registry system. We'll assume that all commands below are running in the
 `alpha` environment; if you named your environment differently, then use that
 everywhere that `alpha` appears.
 
-[TOC]
-
 ### Create a TLD
 
 Pick the name of a TLD to create. For the purposes of this example we'll use
