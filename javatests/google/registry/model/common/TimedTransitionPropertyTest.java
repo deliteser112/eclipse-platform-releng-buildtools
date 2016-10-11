@@ -159,16 +159,15 @@ public class TimedTransitionPropertyTest {
 
   @Test
   public void testFailure_noValuesAfterSimulatedEmptyLoad() throws Exception {
-    thrown.expect(IllegalStateException.class);
     timedString = forMapify("0", StringTimedTransition.class);
     // Simulate a load from datastore by clearing, but don't insert any transitions.
     timedString.clear();
+    thrown.expect(IllegalStateException.class);
     timedString.checkValidity();
   }
 
   @Test
   public void testFailure_noValueAtStartOfTimeAfterSimulatedLoad() throws Exception {
-    thrown.expect(IllegalStateException.class);
     // Just for testing, don't extract transitions from a TimedTransitionProperty in real code.
     StringTimedTransition transition1 = timedString.get(DATE_1);
     timedString = forMapify("0", StringTimedTransition.class);
@@ -176,6 +175,7 @@ public class TimedTransitionPropertyTest {
     // omit a transition corresponding to START_OF_TIME.
     timedString.clear();
     timedString.put(DATE_1, transition1);
+    thrown.expect(IllegalStateException.class);
     timedString.checkValidity();
   }
 }

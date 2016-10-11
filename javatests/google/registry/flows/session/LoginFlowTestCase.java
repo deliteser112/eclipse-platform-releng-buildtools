@@ -66,8 +66,8 @@ public abstract class LoginFlowTestCase extends FlowTestCase<LoginFlow> {
   // Also called in subclasses.
   void doFailingTest(String xmlFilename, Class<? extends Exception> exception)
       throws Exception {
-    thrown.expect(exception);
     setEppInput(xmlFilename);
+    thrown.expect(exception);
     runFlow();
   }
 

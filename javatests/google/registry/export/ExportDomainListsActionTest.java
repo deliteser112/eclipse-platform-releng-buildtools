@@ -16,6 +16,7 @@ package google.registry.export;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
@@ -31,13 +32,11 @@ import com.google.appengine.tools.cloudstorage.ListResult;
 import com.google.common.base.Splitter;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
 import java.io.FileNotFoundException;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -47,9 +46,6 @@ import org.junit.runners.JUnit4;
 public class ExportDomainListsActionTest extends MapreduceTestCase<ExportDomainListsAction> {
 
   private GcsService gcsService;
-
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
 
   @Before
   public void init() {
@@ -94,12 +90,15 @@ public class ExportDomainListsActionTest extends MapreduceTestCase<ExportDomainL
     assertThat(Splitter.on('\n').splitToList(tlds)).containsExactly("onetwo.tld", "rudnitzky.tld");
     // Make sure that the test TLD file wasn't written out.
     GcsFilename nonexistentFile = new GcsFilename("outputbucket", "testtld.txt");
-    thrown.expect(FileNotFoundException.class);
-    readGcsFile(gcsService, nonexistentFile);
-    ListResult ls = gcsService.list("outputbucket", ListOptions.DEFAULT);
-    assertThat(ls.next().getName()).isEqualTo("tld.txt");
-    // Make sure that no other files were written out.
-    assertThat(ls.hasNext()).isFalse();
+    try {
+      readGcsFile(gcsService, nonexistentFile);
+      assertWithMessage("Expected FileNotFoundException to be thrown").fail();
+    } catch (FileNotFoundException e) {
+      ListResult ls = gcsService.list("outputbucket", ListOptions.DEFAULT);
+      assertThat(ls.next().getName()).isEqualTo("tld.txt");
+      // Make sure that no other files were written out.
+      assertThat(ls.hasNext()).isFalse();
+    }
   }
 
   @Test

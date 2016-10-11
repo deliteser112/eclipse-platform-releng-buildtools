@@ -50,8 +50,8 @@ public class GetTldCommandTest extends CommandTestCase<GetTldCommand> {
 
   @Test
   public void testFailure_oneTldDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
     createTld("xn--q9jyb4c");
+    thrown.expect(IllegalArgumentException.class);
     runCommand("xn--q9jyb4c", "example");
   }
 }

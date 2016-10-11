@@ -118,8 +118,8 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
 
   @Test
   public void testRequiresLogin() throws Exception {
-    thrown.expect(CommandUseErrorException.class);
     sessionMetadata.setClientId(null);
+    thrown.expect(CommandUseErrorException.class);
     runFlow();
   }
 

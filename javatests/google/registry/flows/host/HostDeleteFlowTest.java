@@ -47,11 +47,11 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
 
   private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
       throws Exception {
-    thrown.expect(exception);
     persistResource(
         newHostResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(statusValue))
             .build());
+    thrown.expect(exception);
     runFlow();
   }
 
@@ -87,10 +87,10 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
+    persistDeletedHost(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    persistDeletedHost(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     runFlow();
   }
 
@@ -114,9 +114,9 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
 
   @Test
   public void testFailure_unauthorizedClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveHost(getUniqueIdFromCommand());
+    thrown.expect(ResourceNotOwnedException.class);
     runFlow();
   }
 

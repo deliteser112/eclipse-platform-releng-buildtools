@@ -444,10 +444,10 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testSuccess_metadataNotFromTool() throws Exception {
-    thrown.expect(OnlyToolCanPassMetadataException.class);
     setEppInput("domain_update_metadata.xml");
     persistReferencedEntities();
     persistDomain();
+    thrown.expect(OnlyToolCanPassMetadataException.class);
     runFlow();
   }
 
@@ -759,10 +759,10 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   private void doSecDnsFailingTest(Class<? extends Exception> expectedException, String xmlFilename)
       throws Exception {
-    thrown.expect(expectedException);
     setEppInput(xmlFilename);
     persistReferencedEntities();
     persistActiveDomain(getUniqueIdFromCommand());
+    thrown.expect(expectedException);
     runFlow();
   }
 
@@ -793,7 +793,6 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testFailure_secDnsTooManyDsRecords() throws Exception {
-    thrown.expect(TooManyDsRecordsException.class);
     ImmutableSet.Builder<DelegationSignerData> builder = new ImmutableSet.Builder<>();
     for (int i = 0; i < 8; ++i) {
       builder.add(DelegationSignerData.create(i, 2, 3, new byte[]{0, 1, 2}));
@@ -804,99 +803,99 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
             .setDsData(builder.build())
             .build());
+    thrown.expect(TooManyDsRecordsException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_tooManyNameservers() throws Exception {
-    thrown.expect(TooManyNameserversException.class);
     setEppInput("domain_update_add_nameserver.xml");
     persistReferencedEntities();
     persistDomain();
     // Modify domain so it has 13 nameservers. We will then try to add one in the test.
     modifyDomainToHave13Nameservers();
+    thrown.expect(TooManyNameserversException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_wrongExtension() throws Exception {
-    thrown.expect(UnimplementedExtensionException.class);
     setEppInput("domain_update_wrong_extension.xml");
     persistReferencedEntities();
     persistDomain();
+    thrown.expect(UnimplementedExtensionException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_neverExisted() throws Exception {
+    persistReferencedEntities();
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    persistReferencedEntities();
     runFlow();
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
+    persistReferencedEntities();
+    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    persistReferencedEntities();
-    persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     runFlow();
   }
 
   @Test
   public void testFailure_clientUpdateProhibited() throws Exception {
     createTld("com");
-    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
     setEppInput("domain_update_authinfo.xml");
     persistReferencedEntities();
     persistResource(
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .build());
+    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_serverUpdateProhibited() throws Exception {
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
     persistReferencedEntities();
     persistResource(
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
             .build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_missingHost() throws Exception {
-    thrown.expect(
-        LinkedResourcesDoNotExistException.class,
-        "(ns2.example.foo)");
     persistActiveHost("ns1.example.foo");
     persistActiveContact("sh8013");
     persistActiveContact("mak21");
     persistActiveDomain(getUniqueIdFromCommand());
+    thrown.expect(
+        LinkedResourcesDoNotExistException.class,
+        "(ns2.example.foo)");
     runFlow();
   }
 
   @Test
   public void testFailure_missingContact() throws Exception {
-    thrown.expect(
-        LinkedResourcesDoNotExistException.class,
-        "(sh8013)");
     persistActiveHost("ns1.example.foo");
     persistActiveHost("ns2.example.foo");
     persistActiveContact("mak21");
     persistActiveDomain(getUniqueIdFromCommand());
+    thrown.expect(
+        LinkedResourcesDoNotExistException.class,
+        "(sh8013)");
     runFlow();
   }
 
   @Test
   public void testFailure_addingDuplicateContact() throws Exception {
-    thrown.expect(DuplicateContactForRoleException.class);
     persistReferencedEntities();
     persistActiveContact("foo");
     persistDomain();
@@ -908,15 +907,16 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 DesignatedContact.create(Type.TECH, Key.create(
                     loadByForeignKey(ContactResource.class, "foo", clock.nowUtc())))))
             .build());
+    thrown.expect(DuplicateContactForRoleException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_clientProhibitedStatusValue() throws Exception {
-    thrown.expect(StatusNotClientSettableException.class);
     setEppInput("domain_update_prohibited_status.xml");
     persistReferencedEntities();
     persistDomain();
+    thrown.expect(StatusNotClientSettableException.class);
     runFlow();
   }
 
@@ -933,47 +933,46 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testFailure_pendingDelete() throws Exception {
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
     persistReferencedEntities();
     persistResource(
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
             .setDeletionTime(clock.nowUtc().plusDays(1))
             .addStatusValue(StatusValue.PENDING_DELETE)
             .build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_duplicateContactInCommand() throws Exception {
-    thrown.expect(DuplicateContactForRoleException.class);
     setEppInput("domain_update_duplicate_contact.xml");
     persistReferencedEntities();
     persistDomain();
+    thrown.expect(DuplicateContactForRoleException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_missingContactType() throws Exception {
     // We need to test for missing type, but not for invalid - the schema enforces that for us.
-    thrown.expect(MissingContactTypeException.class);
     setEppInput("domain_update_missing_contact_type.xml");
     persistReferencedEntities();
     persistDomain();
+    thrown.expect(MissingContactTypeException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_unauthorizedClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     sessionMetadata.setClientId("NewRegistrar");
     persistReferencedEntities();
     persistDomain();
+    thrown.expect(ResourceNotOwnedException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
-    thrown.expect(NotAuthorizedForTldException.class);
     persistResource(
         Registrar.loadByClientId("TheRegistrar")
             .asBuilder()
@@ -981,6 +980,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .build());
     persistReferencedEntities();
     persistDomain();
+    thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
   }
 
@@ -996,7 +996,6 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testFailure_sameNameserverAddedAndRemoved() throws Exception {
-    thrown.expect(AddRemoveSameValueEppException.class);
     setEppInput("domain_update_add_remove_same_host.xml");
     persistReferencedEntities();
     persistResource(
@@ -1004,12 +1003,12 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setNameservers(ImmutableSet.of(Key.create(
                 loadByForeignKey(HostResource.class, "ns1.example.foo", clock.nowUtc()))))
             .build());
+    thrown.expect(AddRemoveSameValueEppException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_sameContactAddedAndRemoved() throws Exception {
-    thrown.expect(AddRemoveSameValueEppException.class);
     setEppInput("domain_update_add_remove_same_contact.xml");
     persistReferencedEntities();
     persistResource(
@@ -1019,12 +1018,12 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 Key.create(
                     loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))))
             .build());
+    thrown.expect(AddRemoveSameValueEppException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_removeAdmin() throws Exception {
-    thrown.expect(MissingAdminContactException.class);
     setEppInput("domain_update_remove_admin.xml");
     persistReferencedEntities();
     persistResource(
@@ -1033,12 +1032,12 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
                 DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
             .build());
+    thrown.expect(MissingAdminContactException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_removeTech() throws Exception {
-    thrown.expect(MissingTechnicalContactException.class);
     setEppInput("domain_update_remove_tech.xml");
     persistReferencedEntities();
     persistResource(
@@ -1047,14 +1046,12 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
                 DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
             .build());
+    thrown.expect(MissingTechnicalContactException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_addPendingDeleteContact() throws Exception {
-    thrown.expect(
-        LinkedResourceInPendingDeleteProhibitsOperationException.class,
-        "mak21");
     persistReferencedEntities();
     persistDomain();
     persistActiveHost("ns1.example.foo");
@@ -1064,14 +1061,14 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         .addStatusValue(StatusValue.PENDING_DELETE)
         .build());
     clock.advanceOneMilli();
+    thrown.expect(
+        LinkedResourceInPendingDeleteProhibitsOperationException.class,
+        "mak21");
     runFlow();
   }
 
   @Test
   public void testFailure_addPendingDeleteHost() throws Exception {
-    thrown.expect(
-        LinkedResourceInPendingDeleteProhibitsOperationException.class,
-        "ns2.example.foo");
     persistReferencedEntities();
     persistDomain();
     persistActiveHost("ns1.example.foo");
@@ -1082,6 +1079,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
           .addStatusValue(StatusValue.PENDING_DELETE)
           .build());
     clock.advanceOneMilli();
+    thrown.expect(
+        LinkedResourceInPendingDeleteProhibitsOperationException.class,
+        "ns2.example.foo");
     runFlow();
   }
 

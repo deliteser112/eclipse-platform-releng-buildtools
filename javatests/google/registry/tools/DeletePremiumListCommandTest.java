@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
@@ -55,9 +56,13 @@ public class DeletePremiumListCommandTest extends CommandTestCase<DeletePremiumL
     PremiumList premiumList = persistPremiumList("xn--q9jyb4c", "blah,USD 100");
     createTld("xn--q9jyb4c");
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setPremiumList(premiumList).build());
-    thrown.expect(IllegalArgumentException.class,
-        "Cannot delete premium list because it is used on these tld(s): xn--q9jyb4c");
-    runCommandForced("--name=" + premiumList.getName());
-    assertThat(PremiumList.get(premiumList.getName())).isPresent();
+    try {
+      runCommandForced("--name=" + premiumList.getName());
+      assertWithMessage("Expected IllegalArgumentException to be thrown").fail();
+    } catch (IllegalArgumentException e) {
+      assertThat(PremiumList.get(premiumList.getName())).isPresent();
+      assertThat(e)
+          .hasMessage("Cannot delete premium list because it is used on these tld(s): xn--q9jyb4c");
+    }
   }
 }

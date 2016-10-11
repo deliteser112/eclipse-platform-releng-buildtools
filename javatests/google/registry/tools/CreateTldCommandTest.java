@@ -267,8 +267,8 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_bothTldStateFlags() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
     DateTime now = DateTime.now(UTC);
+    thrown.expect(IllegalArgumentException.class);
     runCommandForced(
         String.format("--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE", now, now.plus(1)),
         "--initial_tld_state=GENERAL_AVAILABILITY",
@@ -306,8 +306,8 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_alreadyExists() throws Exception {
-    thrown.expect(IllegalStateException.class);
     createTld("xn--q9jyb4c");
+    thrown.expect(IllegalStateException.class);
     runCommandForced("--roid_suffix=NOTDUPE", "xn--q9jyb4c");
   }
 

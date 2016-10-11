@@ -1145,12 +1145,12 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_alreadyExists() throws Exception {
-    thrown.expect(IllegalStateException.class, "Registrar existing already exists");
     persistResource(new Registrar.Builder()
         .setClientId("existing")
         .setIanaIdentifier(1L)
         .setType(Registrar.Type.REAL)
         .build());
+    thrown.expect(IllegalStateException.class, "Registrar existing already exists");
     runCommand(
         "--name=blobio",
         "--password=some_password",

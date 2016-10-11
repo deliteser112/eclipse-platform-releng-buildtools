@@ -14,6 +14,9 @@
 
 package google.registry.export;
 
+import static com.google.common.base.Throwables.getRootCause;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.export.ExportReservedTermsAction.EXPORT_MIME_TYPE;
 import static google.registry.export.ExportReservedTermsAction.RESERVED_TERMS_FILENAME;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -30,13 +33,10 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.Registry.RegistryNotFoundException;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.request.Response;
 import google.registry.storage.drive.DriveConnection;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
-import google.registry.testing.InjectRule;
 import java.io.IOException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,12 +53,6 @@ public class ExportReservedTermsActionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
-
-  @Rule
-  public final InjectRule inject = new InjectRule();
 
   @Mock
   private DriveConnection driveConnection;
@@ -117,29 +111,40 @@ public class ExportReservedTermsActionTest {
 
   @Test
   public void test_uploadFileToDrive_failsWhenDriveFolderIdIsNull() throws Exception {
-    thrown.expectRootCause(NullPointerException.class, "No drive folder associated with this TLD");
     persistResource(Registry.get("tld").asBuilder().setDriveFolderId(null).build());
-    runAction("tld");
-    verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
+    try {
+      runAction("tld");
+      assertWithMessage("Expected RuntimeException to be thrown").fail();
+    } catch (RuntimeException e) {
+      verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
+      assertThat(getRootCause(e)).hasMessage("No drive folder associated with this TLD");
+    }
   }
 
   @Test
   public void test_uploadFileToDrive_failsWhenDriveCannotBeReached() throws Exception {
-    thrown.expectRootCause(IOException.class, "errorMessage");
     when(driveConnection.createOrUpdateFile(
         anyString(),
         any(MediaType.class),
         anyString(),
         any(byte[].class))).thenThrow(new IOException("errorMessage"));
-    runAction("tld");
-    verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
+    try {
+      runAction("tld");
+      assertWithMessage("Expected RuntimeException to be thrown").fail();
+    } catch (RuntimeException e) {
+      verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
+      assertThat(getRootCause(e)).hasMessage("errorMessage");
+    }
   }
 
   @Test
   public void test_uploadFileToDrive_failsWhenTldDoesntExist() throws Exception {
-    thrown.expectRootCause(
-        RegistryNotFoundException.class, "No registry object found for fakeTld");
-    runAction("fakeTld");
-    verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
+    try {
+      runAction("fakeTld");
+      assertWithMessage("Expected RuntimeException to be thrown").fail();
+    } catch (RuntimeException e) {
+      verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
+      assertThat(getRootCause(e)).hasMessage("No registry object found for fakeTld");
+    }
   }
 }

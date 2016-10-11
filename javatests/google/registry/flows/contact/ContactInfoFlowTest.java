@@ -171,10 +171,10 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
+    persistContactResource(false);
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    persistContactResource(false);
     runFlow();
   }
 }

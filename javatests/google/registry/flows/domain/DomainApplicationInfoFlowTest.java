@@ -268,54 +268,54 @@ public class DomainApplicationInfoFlowTest
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
     persistResource(new DomainApplication.Builder()
         .setRepoId("123-COM")
         .setFullyQualifiedDomainName("timber.com")
         .setDeletionTime(clock.nowUtc().minusDays(1))
         .setRegistrant(Key.create(persistActiveContact("jd1234")))
         .build());
+    thrown.expect(
+        ResourceDoesNotExistException.class,
+        String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
   @Test
   public void testFailure_unauthorized() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     persistResource(
         AppEngineRule.makeRegistrar1().asBuilder().setClientId("ClientZ").build());
     sessionMetadata.setClientId("ClientZ");
     persistTestEntities(HostsState.NO_HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
+    thrown.expect(ResourceNotOwnedException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_applicationIdForDifferentDomain() throws Exception {
-    thrown.expect(ApplicationDomainNameMismatchException.class);
     persistResource(new DomainApplication.Builder()
         .setRepoId("123-TLD")
         .setFullyQualifiedDomainName("invalid.tld")
         .setRegistrant(Key.create(persistActiveContact("jd1234")))
         .setPhase(LaunchPhase.SUNRUSH)
         .build());
+    thrown.expect(ApplicationDomainNameMismatchException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_noApplicationId() throws Exception {
-    thrown.expect(MissingApplicationIdException.class);
     setEppInput("domain_info_sunrise_no_application_id.xml");
     persistTestEntities(HostsState.NO_HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
+    thrown.expect(MissingApplicationIdException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_mismatchedLaunchPhase() throws Exception {
-    thrown.expect(ApplicationLaunchPhaseMismatchException.class);
     persistTestEntities(HostsState.NO_HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
     application = persistResource(
         application.asBuilder().setPhase(LaunchPhase.SUNRISE).build());
+    thrown.expect(ApplicationLaunchPhaseMismatchException.class);
     runFlow();
   }
 }

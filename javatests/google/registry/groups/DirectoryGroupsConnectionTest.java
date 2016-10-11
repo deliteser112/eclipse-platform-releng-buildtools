@@ -136,19 +136,19 @@ public class DirectoryGroupsConnectionTest {
 
   @Test
   public void test_addMemberToGroup_handlesExceptionThrownByDirectoryService() throws Exception {
-    thrown.expect(GoogleJsonResponseException.class);
     when(membersInsert.execute()).thenThrow(
         makeResponseException(SC_INTERNAL_SERVER_ERROR, "Could not contact Directory server."));
+    thrown.expect(GoogleJsonResponseException.class);
     runAddMemberTest();
   }
 
   @Test
   public void test_addMemberToGroup_handlesMemberKeyNotFoundException() throws Exception {
-    thrown.expect(RuntimeException.class,
-        "Adding member jim@example.com to group spam@example.com "
-        + "failed because the member wasn't found.");
     when(membersInsert.execute()).thenThrow(
         makeResponseException(SC_NOT_FOUND, "Resource Not Found: memberKey"));
+    thrown.expect(RuntimeException.class,
+        "Adding member jim@example.com to group spam@example.com "
+            + "failed because the member wasn't found.");
     connection.addMemberToGroup("spam@example.com", "jim@example.com", Role.MEMBER);
   }
 
@@ -196,9 +196,9 @@ public class DirectoryGroupsConnectionTest {
 
   @Test
   public void test_createGroup_handlesExceptionThrownByDirectoryService() throws Exception {
-    thrown.expect(GoogleJsonResponseException.class);
     when(groupsInsert.execute()).thenThrow(
         makeResponseException(SC_INTERNAL_SERVER_ERROR, "Could not contact Directory server."));
+    thrown.expect(GoogleJsonResponseException.class);
     runCreateGroupTest();
   }
 

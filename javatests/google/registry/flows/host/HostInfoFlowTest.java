@@ -152,10 +152,10 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
+    persistHostResource(false);
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    persistHostResource(false);
     runFlow();
   }
 }

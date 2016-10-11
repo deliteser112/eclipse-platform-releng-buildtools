@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
@@ -86,9 +87,9 @@ public class CreateReservedListCommandTest extends
 
   @Test
   public void testFailure_reservedListWithThatNameAlreadyExists() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "A reserved list already exists by this name");
     ReservedList rl = persistReservedList("xn--q9jyb4c_foo", "jones,FULLY_BLOCKED");
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setReservedLists(rl).build());
+    thrown.expect(IllegalArgumentException.class, "A reserved list already exists by this name");
     runCommandForced("--name=xn--q9jyb4c_foo", "--input=" + reservedTermsPath);
   }
 
@@ -169,9 +170,13 @@ public class CreateReservedListCommandTest extends
   }
 
   private void runNameTestExpectedFailure(String name, String expectedErrorMsg) throws Exception {
-    thrown.expect(IllegalArgumentException.class, expectedErrorMsg);
-    runCommandForced("--name=" + name, "--input=" + reservedTermsPath);
-    assertThat(ReservedList.get(name)).isAbsent();
+    try {
+      runCommandForced("--name=" + name, "--input=" + reservedTermsPath);
+      assertWithMessage("Expected IllegalArgumentException to be thrown").fail();
+    } catch (IllegalArgumentException e) {
+      assertThat(ReservedList.get(name)).isAbsent();
+      assertThat(e).hasMessage(expectedErrorMsg);
+    }
   }
 
   private void runNameTestWithOverride(String name) throws Exception {

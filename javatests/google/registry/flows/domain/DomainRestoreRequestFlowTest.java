@@ -233,73 +233,73 @@ public class DomainRestoreRequestFlowTest extends
 
   @Test
   public void testFailure_refundableFee_v06() throws Exception {
-    thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_update_restore_request_fee_refundable.xml", FEE_06_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(UnsupportedFeeAttributeException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_refundableFee_v11() throws Exception {
-    thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_update_restore_request_fee_refundable.xml", FEE_11_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(UnsupportedFeeAttributeException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_refundableFee_v12() throws Exception {
-    thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_update_restore_request_fee_refundable.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(UnsupportedFeeAttributeException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_gracePeriodFee_v06() throws Exception {
-    thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_update_restore_request_fee_grace_period.xml", FEE_06_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(UnsupportedFeeAttributeException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_gracePeriodFee_v11() throws Exception {
-    thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_update_restore_request_fee_grace_period.xml", FEE_11_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(UnsupportedFeeAttributeException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_gracePeriodFee_v12() throws Exception {
-    thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_update_restore_request_fee_grace_period.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(UnsupportedFeeAttributeException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_appliedFee_v06() throws Exception {
-    thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_update_restore_request_fee_applied.xml", FEE_06_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(UnsupportedFeeAttributeException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_appliedFee_v11() throws Exception {
-    thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_update_restore_request_fee_applied.xml", FEE_11_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(UnsupportedFeeAttributeException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_appliedFee_v12() throws Exception {
-    thrown.expect(UnsupportedFeeAttributeException.class);
     setEppInput("domain_update_restore_request_fee_applied.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(UnsupportedFeeAttributeException.class);
     runFlow();
   }
 
@@ -351,36 +351,35 @@ public class DomainRestoreRequestFlowTest extends
 
   @Test
   public void testFailure_wrongFeeAmount_v06() throws Exception {
-    thrown.expect(FeesMismatchException.class);
     setEppInput("domain_update_restore_request_fee.xml", FEE_06_MAP);
     persistPendingDeleteDomain();
     persistResource(
         Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, 100)).build());
+    thrown.expect(FeesMismatchException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_wrongFeeAmount_v11() throws Exception {
-    thrown.expect(FeesMismatchException.class);
     setEppInput("domain_update_restore_request_fee.xml", FEE_11_MAP);
     persistPendingDeleteDomain();
     persistResource(
         Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, 100)).build());
+    thrown.expect(FeesMismatchException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_wrongFeeAmount_v12() throws Exception {
-    thrown.expect(FeesMismatchException.class);
     setEppInput("domain_update_restore_request_fee.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
     persistResource(
         Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, 100)).build());
+    thrown.expect(FeesMismatchException.class);
     runFlow();
   }
 
   private void runWrongCurrencyTest(Map<String, String> substitutions) throws Exception {
-    thrown.expect(CurrencyUnitMismatchException.class);
     setEppInput("domain_update_restore_request_fee.xml", substitutions);
     persistPendingDeleteDomain();
     persistResource(
@@ -393,6 +392,7 @@ public class DomainRestoreRequestFlowTest extends
             .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
             .setServerStatusChangeBillingCost(Money.of(EUR, 19))
             .build());
+    thrown.expect(CurrencyUnitMismatchException.class);
     runFlow();
   }
 
@@ -413,127 +413,126 @@ public class DomainRestoreRequestFlowTest extends
 
   @Test
   public void testFailure_feeGivenInWrongScale_v06() throws Exception {
-    thrown.expect(CurrencyValueScaleException.class);
     setEppInput("domain_update_restore_request_fee_bad_scale.xml", FEE_06_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(CurrencyValueScaleException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_feeGivenInWrongScale_v11() throws Exception {
-    thrown.expect(CurrencyValueScaleException.class);
     setEppInput("domain_update_restore_request_fee_bad_scale.xml", FEE_11_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(CurrencyValueScaleException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_feeGivenInWrongScale_v12() throws Exception {
-    thrown.expect(CurrencyValueScaleException.class);
     setEppInput("domain_update_restore_request_fee_bad_scale.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
+    thrown.expect(CurrencyValueScaleException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_notInRedemptionPeriod() throws Exception {
-    thrown.expect(DomainNotEligibleForRestoreException.class);
     persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .setDeletionTime(clock.nowUtc().plusDays(4))
         .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
         .build());
+    thrown.expect(DomainNotEligibleForRestoreException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_notDeleted() throws Exception {
-    thrown.expect(DomainNotEligibleForRestoreException.class);
     persistActiveDomain(getUniqueIdFromCommand());
+    thrown.expect(DomainNotEligibleForRestoreException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_fullyDeleted() throws Exception {
-    thrown.expect(ResourceDoesNotExistException.class);
     persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
+    thrown.expect(ResourceDoesNotExistException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_withChange() throws Exception {
-    thrown.expect(RestoreCommandIncludesChangesException.class);
     persistPendingDeleteDomain();
     setEppInput("domain_update_restore_request_with_change.xml");
+    thrown.expect(RestoreCommandIncludesChangesException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_withAdd() throws Exception {
-    thrown.expect(RestoreCommandIncludesChangesException.class);
     persistPendingDeleteDomain();
     setEppInput("domain_update_restore_request_with_add.xml");
+    thrown.expect(RestoreCommandIncludesChangesException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_withRemove() throws Exception {
-    thrown.expect(RestoreCommandIncludesChangesException.class);
     persistPendingDeleteDomain();
     setEppInput("domain_update_restore_request_with_remove.xml");
+    thrown.expect(RestoreCommandIncludesChangesException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_withSecDnsExtension() throws Exception {
-    thrown.expect(UnimplementedExtensionException.class);
     persistPendingDeleteDomain();
     setEppInput("domain_update_restore_request_with_secdns.xml");
+    thrown.expect(UnimplementedExtensionException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_unauthorizedClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     sessionMetadata.setClientId("NewRegistrar");
     persistPendingDeleteDomain();
+    thrown.expect(ResourceNotOwnedException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
-    thrown.expect(NotAuthorizedForTldException.class);
     persistResource(
         Registrar.loadByClientId("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
     persistPendingDeleteDomain();
+    thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
   }
 
   @Test
   public void testSuccess_superuserUnauthorizedClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     sessionMetadata.setClientId("NewRegistrar");
     persistPendingDeleteDomain();
+    thrown.expect(ResourceNotOwnedException.class);
     runFlowAssertResponse(readFile("domain_update_response.xml"));
   }
 
   @Test
   public void testFailure_premiumBlocked() throws Exception {
-    thrown.expect(PremiumNameBlockedException.class);
     createTld("example");
     setEppInput("domain_update_restore_request_premium.xml");
     persistPendingDeleteDomain();
     // Modify the Registrar to block premium names.
     persistResource(
         Registrar.loadByClientId("TheRegistrar").asBuilder().setBlockPremiumNames(true).build());
+    thrown.expect(PremiumNameBlockedException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_reservedBlocked() throws Exception {
-    thrown.expect(DomainReservedException.class);
     createTld("tld");
     persistResource(
         Registry.get("tld")
@@ -541,15 +540,16 @@ public class DomainRestoreRequestFlowTest extends
             .setReservedLists(persistReservedList("tld-reserved", "example,FULLY_BLOCKED"))
             .build());
     persistPendingDeleteDomain();
+    thrown.expect(DomainReservedException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_feeNotProvidedOnPremiumName() throws Exception {
-    thrown.expect(FeesRequiredForPremiumNameException.class);
     createTld("example");
     setEppInput("domain_update_restore_request_premium.xml");
     persistPendingDeleteDomain();
+    thrown.expect(FeesRequiredForPremiumNameException.class);
     runFlow();
   }
 

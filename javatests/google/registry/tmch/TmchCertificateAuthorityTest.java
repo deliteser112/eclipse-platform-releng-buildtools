@@ -65,27 +65,27 @@ public class TmchCertificateAuthorityTest {
 
   @Test
   public void testFailure_prodRootExpired() throws Exception {
-    thrown.expectRootCause(
-        CertificateExpiredException.class, "NotAfter: Sun Jul 23 23:59:59 UTC 2023");
     configRule.useTmchProdCert();
     clock.setTo(DateTime.parse("2024-01-01T00:00:00Z"));
+    thrown.expectRootCause(
+        CertificateExpiredException.class, "NotAfter: Sun Jul 23 23:59:59 UTC 2023");
     TmchCertificateAuthority.getRoot();
   }
 
   @Test
   public void testFailure_prodRootNotYetValid() throws Exception {
-    thrown.expectRootCause(CertificateNotYetValidException.class,
-        "NotBefore: Wed Jul 24 00:00:00 UTC 2013");
     configRule.useTmchProdCert();
     clock.setTo(DateTime.parse("2000-01-01T00:00:00Z"));
+    thrown.expectRootCause(CertificateNotYetValidException.class,
+        "NotBefore: Wed Jul 24 00:00:00 UTC 2013");
     TmchCertificateAuthority.getRoot();
   }
 
   @Test
   public void testFailure_crlDoesntMatchCerts() throws Exception {
-    thrown.expectRootCause(SignatureException.class, "Signature does not match");
     // Use the prod cl, which won't match our test certificate.
     TmchCrl.set(readResourceUtf8(TmchCertificateAuthority.class, "icann-tmch.crl"));
+    thrown.expectRootCause(SignatureException.class, "Signature does not match");
     TmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE));
   }
 
@@ -96,8 +96,8 @@ public class TmchCertificateAuthorityTest {
 
   @Test
   public void testFailure_verifySignatureDoesntMatch() throws Exception {
-    thrown.expectRootCause(SignatureException.class, "Signature does not match");
     configRule.useTmchProdCert();
+    thrown.expectRootCause(SignatureException.class, "Signature does not match");
     TmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE));
   }
 

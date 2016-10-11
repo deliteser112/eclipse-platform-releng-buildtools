@@ -493,12 +493,12 @@ public class DomainTransferRequestFlowTest
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
-    thrown.expect(NotAuthorizedForTldException.class);
     persistResource(
         Registrar.loadByClientId("NewRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
+    thrown.expect(NotAuthorizedForTldException.class);
     doSuccessfulTest("domain_transfer_request.xml", "domain_transfer_request_response.xml");
   }
 
@@ -548,7 +548,6 @@ public class DomainTransferRequestFlowTest
   }
 
   private void runWrongCurrencyTest(Map<String, String> substitutions) throws Exception {
-    thrown.expect(CurrencyUnitMismatchException.class);
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -559,6 +558,7 @@ public class DomainTransferRequestFlowTest
             .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
             .setServerStatusChangeBillingCost(Money.of(EUR, 19))
             .build());
+    thrown.expect(CurrencyUnitMismatchException.class);
     doFailingTest("domain_transfer_request_fee.xml", substitutions);
   }
 
@@ -597,12 +597,12 @@ public class DomainTransferRequestFlowTest
 
 
   private void runWrongFeeAmountTest(Map<String, String> substitutions) throws Exception {
-    thrown.expect(FeesMismatchException.class);
     persistResource(
         Registry.get("tld")
             .asBuilder()
             .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, 20)))
             .build());
+    thrown.expect(FeesMismatchException.class);
     doFailingTest("domain_transfer_request_fee.xml", substitutions);
   }
 
@@ -623,18 +623,18 @@ public class DomainTransferRequestFlowTest
 
   @Test
   public void testFailure_premiumBlocked() throws Exception {
-    thrown.expect(PremiumNameBlockedException.class);
     setupDomain("rich", "example");
     // Modify the Registrar to block premium names.
     persistResource(
         Registrar.loadByClientId("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
+    thrown.expect(PremiumNameBlockedException.class);
     doFailingTest("domain_transfer_request_premium.xml");
   }
 
   @Test
   public void testFailure_feeNotProvidedOnPremiumName() throws Exception {
-    thrown.expect(FeesRequiredForPremiumNameException.class);
     setupDomain("rich", "example");
+    thrown.expect(FeesRequiredForPremiumNameException.class);
     doFailingTest("domain_transfer_request_premium.xml");
   }
 
@@ -646,21 +646,21 @@ public class DomainTransferRequestFlowTest
 
   @Test
   public void testFailure_badContactPassword() throws Exception {
-    thrown.expect(BadAuthInfoForResourceException.class);
     // Change the contact's password so it does not match the password in the file.
     contact = persistResource(
         contact.asBuilder()
             .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
             .build());
+    thrown.expect(BadAuthInfoForResourceException.class);
     doFailingTest("domain_transfer_request.xml");
   }
 
   @Test
   public void testFailure_badContactRepoId() throws Exception {
-    thrown.expect(BadAuthInfoForResourceException.class);
     // Set the contact to a different ROID, but don't persist it; this is just so the substitution
     // code above will write the wrong ROID into the file.
     contact = contact.asBuilder().setRepoId("DEADBEEF_TLD-ROID").build();
+    thrown.expect(BadAuthInfoForResourceException.class);
     doFailingTest("domain_transfer_request.xml");
   }
 
@@ -696,40 +696,40 @@ public class DomainTransferRequestFlowTest
 
   @Test
   public void testFailure_pending() throws Exception {
-    thrown.expect(AlreadyPendingTransferException.class);
     domain = persistResource(domain.asBuilder()
         .setTransferData(domain.getTransferData().asBuilder()
             .setTransferStatus(TransferStatus.PENDING)
             .setPendingTransferExpirationTime(clock.nowUtc().plusDays(1))
             .build())
         .build());
+    thrown.expect(AlreadyPendingTransferException.class);
     doFailingTest("domain_transfer_request.xml");
   }
 
   @Test
   public void testFailure_badDomainPassword() throws Exception {
-    thrown.expect(BadAuthInfoForResourceException.class);
     // Change the domain's password so it does not match the password in the file.
     domain = persistResource(domain.asBuilder()
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
         .build());
+    thrown.expect(BadAuthInfoForResourceException.class);
     doFailingTest("domain_transfer_request_domain_authinfo.xml");
   }
 
   @Test
   public void testFailure_sponsoringClient() throws Exception {
-    thrown.expect(ObjectAlreadySponsoredException.class);
     setClientIdForFlow("TheRegistrar");
+    thrown.expect(ObjectAlreadySponsoredException.class);
     doFailingTest("domain_transfer_request.xml");
   }
 
   @Test
   public void testFailure_deletedDomain() throws Exception {
+    domain = persistResource(
+        domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    domain = persistResource(
-        domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     doFailingTest("domain_transfer_request.xml");
   }
 
@@ -744,10 +744,10 @@ public class DomainTransferRequestFlowTest
 
   @Test
   public void testFailure_nonexistentDomain() throws Exception {
+    deleteResource(domain);
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    deleteResource(domain);
     doFailingTest("domain_transfer_request.xml");
   }
 
@@ -759,9 +759,9 @@ public class DomainTransferRequestFlowTest
 
   @Test
   public void testFailure_pendingDelete() throws Exception {
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
     domain = persistResource(
         domain.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
     doFailingTest("domain_transfer_request.xml");
   }
 

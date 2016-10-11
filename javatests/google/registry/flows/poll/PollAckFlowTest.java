@@ -150,48 +150,47 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
 
   @Test
   public void testFailure_noSuchMessage() throws Exception {
+    assertTransactionalFlow(true);
     thrown.expect(
         MessageDoesNotExistException.class,
         String.format("(1-3-EXAMPLE-4-%d)", MESSAGE_ID));
-    assertTransactionalFlow(true);
     runFlow();
   }
 
   @Test
   public void testFailure_invalidId_wrongNumberOfComponents() throws Exception {
-    thrown.expect(InvalidMessageIdException.class);
     setEppInput("poll_ack_invalid_id.xml");
     assertTransactionalFlow(true);
+    thrown.expect(InvalidMessageIdException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_invalidId_stringInsteadOfNumeric() throws Exception {
-    thrown.expect(InvalidMessageIdException.class);
     setEppInput("poll_ack_invalid_string_id.xml");
     assertTransactionalFlow(true);
+    thrown.expect(InvalidMessageIdException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_invalidEppResourceClassId() throws Exception {
-    thrown.expect(InvalidMessageIdException.class);
     setEppInput("poll_ack_invalid_eppresource_id.xml");
     assertTransactionalFlow(true);
+    thrown.expect(InvalidMessageIdException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_missingId() throws Exception {
-    thrown.expect(MissingMessageIdException.class);
     setEppInput("poll_ack_missing_id.xml");
     assertTransactionalFlow(true);
+    thrown.expect(MissingMessageIdException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_differentRegistrar() throws Exception {
-    thrown.expect(NotAuthorizedToAckMessageException.class);
     persistResource(
         new PollMessage.OneTime.Builder()
             .setId(MESSAGE_ID)
@@ -201,14 +200,12 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
             .setParent(createHistoryEntryForEppResource(domain))
             .build());
     assertTransactionalFlow(true);
+    thrown.expect(NotAuthorizedToAckMessageException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_messageInFuture() throws Exception {
-    thrown.expect(
-        MessageDoesNotExistException.class,
-        String.format("(1-3-EXAMPLE-4-%d)", MESSAGE_ID));
     persistResource(
         new PollMessage.OneTime.Builder()
             .setId(MESSAGE_ID)
@@ -218,6 +215,9 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
             .setParent(createHistoryEntryForEppResource(domain))
             .build());
     assertTransactionalFlow(true);
+    thrown.expect(
+        MessageDoesNotExistException.class,
+        String.format("(1-3-EXAMPLE-4-%d)", MESSAGE_ID));
     runFlow();
   }
 }

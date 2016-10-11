@@ -65,8 +65,8 @@ public class TmchXmlSignatureTest {
 
   public void wrongCertificateAuthority() throws Exception {
     configRule.useTmchProdCert();
-    thrown.expectRootCause(SignatureException.class, "Signature does not match");
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
+    thrown.expectRootCause(SignatureException.class, "Signature does not match");
     TmchXmlSignature.verify(smdData);
   }
 

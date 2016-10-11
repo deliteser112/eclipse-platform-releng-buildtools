@@ -93,8 +93,8 @@ public class RegistrarCreditTest extends EntityTestCase {
 
   @Test
   public void testFailure_CurrencyDoesNotMatchTldCurrency() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "currency");
     assertThat(Registry.get("tld").getCurrency()).isEqualTo(USD);
+    thrown.expect(IllegalArgumentException.class, "currency");
     promoCredit.asBuilder().setTld("tld").setCurrency(JPY).build();
   }
 }

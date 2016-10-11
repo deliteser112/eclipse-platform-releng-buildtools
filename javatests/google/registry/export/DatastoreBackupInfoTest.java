@@ -105,29 +105,29 @@ public class DatastoreBackupInfoTest {
 
   @Test
   public void testFailure_missingName() throws Exception {
-    thrown.expect(NullPointerException.class);
     backupEntity.removeProperty("name");
+    thrown.expect(NullPointerException.class);
     new DatastoreBackupInfo(persistEntity(backupEntity));
   }
 
   @Test
   public void testFailure_missingKinds() throws Exception {
-    thrown.expect(NullPointerException.class);
     backupEntity.removeProperty("kinds");
+    thrown.expect(NullPointerException.class);
     new DatastoreBackupInfo(persistEntity(backupEntity));
   }
 
   @Test
   public void testFailure_missingStartTime() throws Exception {
-    thrown.expect(NullPointerException.class);
     backupEntity.removeProperty("start_time");
+    thrown.expect(NullPointerException.class);
     new DatastoreBackupInfo(persistEntity(backupEntity));
   }
 
   @Test
   public void testFailure_badGcsFilenameFormat() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
     backupEntity.setProperty("gs_handle", new Text("foo"));
+    thrown.expect(IllegalArgumentException.class);
     new DatastoreBackupInfo(persistEntity(backupEntity));
   }
 }

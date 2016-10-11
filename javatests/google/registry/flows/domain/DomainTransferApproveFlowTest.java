@@ -379,106 +379,106 @@ public class DomainTransferApproveFlowTest
 
   @Test
   public void testFailure_badContactPassword() throws Exception {
-    thrown.expect(BadAuthInfoForResourceException.class);
     // Change the contact's password so it does not match the password in the file.
     contact = persistResource(
         contact.asBuilder()
             .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
             .build());
+    thrown.expect(BadAuthInfoForResourceException.class);
     doFailingTest("domain_transfer_approve_contact_authinfo.xml");
   }
 
   @Test
   public void testFailure_badDomainPassword() throws Exception {
-    thrown.expect(BadAuthInfoForResourceException.class);
     // Change the domain's password so it does not match the password in the file.
     domain = persistResource(domain.asBuilder()
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
         .build());
+    thrown.expect(BadAuthInfoForResourceException.class);
     doFailingTest("domain_transfer_approve_domain_authinfo.xml");
   }
 
   @Test
   public void testFailure_neverBeenTransferred() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(null);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("domain_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_clientApproved() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(TransferStatus.CLIENT_APPROVED);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("domain_transfer_approve.xml");
   }
 
  @Test
   public void testFailure_clientRejected() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(TransferStatus.CLIENT_REJECTED);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("domain_transfer_approve.xml");
   }
 
  @Test
   public void testFailure_clientCancelled() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("domain_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_serverApproved() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(TransferStatus.SERVER_APPROVED);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("domain_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_serverCancelled() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(TransferStatus.SERVER_CANCELLED);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("domain_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_gainingClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     setClientIdForFlow("NewRegistrar");
+    thrown.expect(ResourceNotOwnedException.class);
     doFailingTest("domain_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_unrelatedClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     setClientIdForFlow("ClientZ");
+    thrown.expect(ResourceNotOwnedException.class);
     doFailingTest("domain_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_deletedDomain() throws Exception {
-    thrown.expect(ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
     domain = persistResource(
         domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+    thrown.expect(ResourceDoesNotExistException.class,
+        String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("domain_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_nonexistentDomain() throws Exception {
+    deleteResource(domain);
     thrown.expect(ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    deleteResource(domain);
     doFailingTest("domain_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
-    thrown.expect(NotAuthorizedForTldException.class);
     persistResource(
         Registrar.loadByClientId("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
+    thrown.expect(NotAuthorizedForTldException.class);
     doSuccessfulTest("tld", "domain_transfer_approve.xml", "domain_transfer_approve_response.xml");
   }
 

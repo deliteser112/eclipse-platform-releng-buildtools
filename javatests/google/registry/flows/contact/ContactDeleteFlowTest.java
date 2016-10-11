@@ -46,11 +46,11 @@ public class ContactDeleteFlowTest
 
   private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
       throws Exception {
-    thrown.expect(exception);
     persistResource(
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(statusValue))
             .build());
+    thrown.expect(exception);
     runFlow();
   }
 
@@ -85,10 +85,10 @@ public class ContactDeleteFlowTest
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
+    persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     runFlow();
   }
 
@@ -112,9 +112,9 @@ public class ContactDeleteFlowTest
 
   @Test
   public void testFailure_unauthorizedClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveContact(getUniqueIdFromCommand());
+    thrown.expect(ResourceNotOwnedException.class);
     runFlow();
   }
 

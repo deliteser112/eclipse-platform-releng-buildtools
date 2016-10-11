@@ -62,7 +62,6 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
 
   @Test
   public void testFailure_noPasscodeOnChangeToReal() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "--passcode is required for REAL registrars.");
     persistResource(
         loadByClientId("NewRegistrar")
             .asBuilder()
@@ -70,6 +69,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
             .setIanaIdentifier(null)
             .setPhonePasscode(null)
             .build());
+    thrown.expect(IllegalArgumentException.class, "--passcode is required for REAL registrars.");
     runCommand("--registrar_type=REAL", "--iana_id=1000", "--force", "NewRegistrar");
   }
 

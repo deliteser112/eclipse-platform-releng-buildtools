@@ -139,8 +139,8 @@ public class UpdateClaimsNoticeCommandTest extends CommandTestCase<UpdateClaimsN
 
   @Test
   public void testFailure_claimsNoticeForWrongLabel() throws Exception {
-    thrown.expectRootCause(InvalidChecksumException.class);
     domainApplication = persistResource(newDomainApplication("bad-label.xn--q9jyb4c"));
+    thrown.expectRootCause(InvalidChecksumException.class);
     runCommand(
         "--id=4-Q9JYB4C",
         "--tcn_id=370d0b7c9223372036854775807",
@@ -150,12 +150,11 @@ public class UpdateClaimsNoticeCommandTest extends CommandTestCase<UpdateClaimsN
 
   @Test
   public void testFailure_sunriseApplication() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-
     // Add an encoded signed mark to the application to make it a sunrise application.
     domainApplication = persistResource(domainApplication.asBuilder()
         .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "AAAAA")))
         .build());
+    thrown.expect(IllegalArgumentException.class);
 
     runCommand(
         "--id=1-Q9JYB4C",

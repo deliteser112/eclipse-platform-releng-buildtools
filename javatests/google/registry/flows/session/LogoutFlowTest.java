@@ -47,8 +47,8 @@ public class LogoutFlowTest extends FlowTestCase<LogoutFlow> {
 
   @Test
   public void testFailure() throws Exception {
-    thrown.expect(NotLoggedInException.class);
     sessionMetadata.setClientId(null);  // Turn off the implicit login
+    thrown.expect(NotLoggedInException.class);
     runFlow();
   }
 }

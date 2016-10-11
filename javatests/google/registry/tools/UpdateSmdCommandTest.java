@@ -91,60 +91,60 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
 
   @Test
   public void testFailure_invalidSmd() throws Exception {
-    thrown.expectRootCause(ParameterValuePolicyErrorException.class);
     String smdFile = writeToTmpFile(INVALID_SMD);
+    thrown.expectRootCause(ParameterValuePolicyErrorException.class);
     runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
   }
 
   @Test
   public void testFailure_revokedSmd() throws Exception {
-    thrown.expectRootCause(ParameterValuePolicyErrorException.class);
     DateTime now = new DateTime(UTC);
     SignedMarkRevocationList.create(now, ImmutableMap.of(ACTIVE_SMD_ID, now)).save();
     String smdFile = writeToTmpFile(ACTIVE_SMD);
+    thrown.expectRootCause(ParameterValuePolicyErrorException.class);
     runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
   }
 
   @Test
   public void testFailure_revokedTmv() throws Exception {
-    thrown.expectRootCause(ParameterValuePolicyErrorException.class);
     String smdFile = writeToTmpFile(REVOKED_TMV_SMD);
+    thrown.expectRootCause(ParameterValuePolicyErrorException.class);
     runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
   }
 
   @Test
   public void testFailure_unparseableXml() throws Exception {
-    thrown.expectRootCause(ParameterValueSyntaxErrorException.class);
     String smdFile = writeToTmpFile(base64().encode("This is not XML!".getBytes(UTF_8)));
+    thrown.expectRootCause(ParameterValueSyntaxErrorException.class);
     runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
   }
 
   @Test
   public void testFailure_badlyEncodedData() throws Exception {
-    thrown.expectRootCause(ParameterValueSyntaxErrorException.class);
     String smdFile = writeToTmpFile("Bad base64 data ~!@#$#@%%$#^$%^&^**&^)(*)(_".getBytes(UTF_8));
+    thrown.expectRootCause(ParameterValueSyntaxErrorException.class);
     runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
   }
 
   @Test
   public void testFailure_wrongLabel() throws Exception {
-    thrown.expectRootCause(RequiredParameterMissingException.class);
     String smdFile = writeToTmpFile(DIFFERENT_LABEL_SMD);
+    thrown.expectRootCause(RequiredParameterMissingException.class);
     runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
   }
 
   @Test
   public void testFailure_nonExistentApplication() throws Exception {
-    thrown.expectRootCause(IllegalArgumentException.class);
     String smdFile = writeToTmpFile(ACTIVE_SMD);
+    thrown.expectRootCause(IllegalArgumentException.class);
     runCommand("--id=3-Q9JYB4C", "--smd=" + smdFile);
   }
 
   @Test
   public void testFailure_deletedApplication() throws Exception {
-    thrown.expectRootCause(IllegalArgumentException.class);
     persistResource(domainApplication.asBuilder().setDeletionTime(new DateTime(UTC)).build());
     String smdFile = writeToTmpFile(ACTIVE_SMD);
+    thrown.expectRootCause(IllegalArgumentException.class);
     runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
   }
 }

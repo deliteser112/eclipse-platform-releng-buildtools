@@ -113,10 +113,10 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
 
   @Test
   public void testFailure_contact_oneDoesNotExist() throws Exception {
+    persistActiveContact("sh8013");
     thrown.expect(
         NullPointerException.class,
         "Could not load resource for key: Key<?>(ContactResource(\"3-ROID\"))");
-    persistActiveContact("sh8013");
     runCommand(
         "agR0ZXN0chsLEg9Db250YWN0UmVzb3VyY2UiBjItUk9JRAw",
         "agR0ZXN0chsLEg9Db250YWN0UmVzb3VyY2UiBjMtUk9JRAw");
@@ -159,10 +159,10 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
 
   @Test
   public void testFailure_host_oneDoesNotExist() throws Exception {
+    persistActiveHost("ns1.example.tld");
     thrown.expect(
         NullPointerException.class,
         "Could not load resource for key: Key<?>(HostResource(\"3-ROID\"))");
-    persistActiveHost("ns1.example.tld");
     runCommand(
         "agR0ZXN0chgLEgxIb3N0UmVzb3VyY2UiBjItUk9JRAw",
         "agR0ZXN0chgLEgxIb3N0UmVzb3VyY2UiBjMtUk9JRAw");

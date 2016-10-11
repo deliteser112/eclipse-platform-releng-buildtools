@@ -108,10 +108,10 @@ public class EscrowTaskRunnerTest {
   @Test
   public void testRun_lockIsntAvailable_throws503() throws Exception {
     String lockName = task.getClass().getSimpleName() + " lol";
-    thrown.expect(ServiceUnavailableException.class, "Lock in use: " + lockName);
     clock.setTo(DateTime.parse("2006-06-06T00:30:00Z"));
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, DateTime.parse("2006-06-06TZ"), registry));
+    thrown.expect(ServiceUnavailableException.class, "Lock in use: " + lockName);
     Lock.executeWithLocks(
         new Callable<Void>() {
           @Override

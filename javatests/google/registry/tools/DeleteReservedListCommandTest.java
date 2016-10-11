@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -53,9 +54,13 @@ public class DeleteReservedListCommandTest extends CommandTestCase<DeleteReserve
   public void testFailure_whenReservedListIsInUse() throws Exception {
     createTld("xn--q9jyb4c");
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setReservedLists(reservedList).build());
-    thrown.expect(IllegalArgumentException.class,
-        "Cannot delete reserved list because it is used on these tld(s): xn--q9jyb4c");
-    runCommandForced("--name=" + reservedList.getName());
-    assertThat(ReservedList.get(reservedList.getName())).isPresent();
+    try {
+      runCommandForced("--name=" + reservedList.getName());
+      assertWithMessage("Expected IllegalArgumentException to be thrown").fail();
+    } catch (IllegalArgumentException e) {
+      assertThat(ReservedList.get(reservedList.getName())).isPresent();
+      assertThat(e).hasMessage(
+          "Cannot delete reserved list because it is used on these tld(s): xn--q9jyb4c");
+    }
   }
 }

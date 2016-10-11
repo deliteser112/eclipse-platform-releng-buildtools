@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
@@ -30,6 +31,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
@@ -961,7 +963,6 @@ public class DomainApplicationCreateFlowTest
 
   @Test
   public void testFailure_landrushLrpApplication_usedToken() throws Exception {
-    thrown.expect(BadAuthInfoForResourceException.class);
     createTld("tld", TldState.LANDRUSH);
     persistResource(Registry.get("tld").asBuilder()
         .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
@@ -975,6 +976,7 @@ public class DomainApplicationCreateFlowTest
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
+    thrown.expect(BadAuthInfoForResourceException.class);
     runFlow();
   }
 
@@ -1514,14 +1516,12 @@ public class DomainApplicationCreateFlowTest
     clock.advanceOneMilli();
     persistActiveDomain(getUniqueIdFromCommand());
     try {
-      // This fails fast and throws DomainAlreadyExistsException from init() as a special case.
-      thrown.expect(
-          ResourceAlreadyExistsException.class,
-          String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
       runFlow();
+      assertWithMessage("Expected ResourceAlreadyExistsException to be thrown").fail();
     } catch (ResourceAlreadyExistsException e) {
       assertThat(e.isFailfast()).isTrue();
-      throw e;
+      assertAboutEppExceptions().that(e).marshalsToXml().and().hasMessage(
+          String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
     }
   }
 
@@ -1583,15 +1583,13 @@ public class DomainApplicationCreateFlowTest
     persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .addGracePeriod(GracePeriod.create(gracePeriodStatus, END_OF_TIME, "", null))
         .build());
-    // This doesn't fail fast, so it throws the regular ResourceAlreadyExistsException from run().
-    thrown.expect(
-        ResourceAlreadyExistsException.class,
-        String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
     try {
       runFlow();
+      assertWithMessage("Expected ResourceAlreadyExistsException to be thrown").fail();
     } catch (ResourceAlreadyExistsException e) {
       assertThat(e.isFailfast()).isFalse();
-      throw e;
+      assertAboutEppExceptions().that(e).marshalsToXml().and().hasMessage(
+          String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
     }
   }
 

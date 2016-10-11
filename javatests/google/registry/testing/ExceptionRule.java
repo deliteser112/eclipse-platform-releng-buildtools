@@ -17,15 +17,9 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.base.Throwables.getRootCause;
-import static google.registry.flows.EppXmlTransformer.marshal;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 
 import google.registry.flows.EppException;
-import google.registry.model.eppcommon.Trid;
-import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.eppoutput.EppResponse;
-import google.registry.util.Clock;
-import google.registry.util.SystemClock;
-import google.registry.xml.ValidationMode;
 import javax.annotation.Nullable;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -36,8 +30,6 @@ import org.junit.runners.model.Statement;
  * that {@link EppException} derivatives have EPP-compliant error messages.
  */
 public class ExceptionRule implements TestRule {
-
-  private static final Clock CLOCK = new SystemClock();
 
   @Nullable
   Class<? extends Throwable> expectedExceptionClass;
@@ -68,14 +60,7 @@ public class ExceptionRule implements TestRule {
             throw e;  // We didn't expect this so pass it through.
           }
           if (e instanceof EppException) {
-            // Attempt to marshall the exception to EPP. If it doesn't work, this will throw.
-            marshal(
-                EppOutput.create(new EppResponse.Builder()
-                    .setTrid(Trid.create(null))
-                    .setResult(((EppException) e).getResult())
-                    .setExecutionTime(CLOCK.nowUtc())
-                    .build()),
-                ValidationMode.STRICT);
+            assertAboutEppExceptions().that((EppException) e).marshalsToXml();
           }
         }
       }};

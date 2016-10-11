@@ -170,55 +170,55 @@ public class DomainTransferQueryFlowTest
 
   @Test
   public void testFailure_badContactPassword() throws Exception {
-    thrown.expect(BadAuthInfoForResourceException.class);
     // Change the contact's password so it does not match the password in the file.
     contact = persistResource(
         contact.asBuilder()
             .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
             .build());
+    thrown.expect(BadAuthInfoForResourceException.class);
     doFailingTest("domain_transfer_query_contact_authinfo.xml");
   }
 
   @Test
   public void testFailure_badDomainPassword() throws Exception {
-    thrown.expect(BadAuthInfoForResourceException.class);
     // Change the domain's password so it does not match the password in the file.
     domain = persistResource(domain.asBuilder()
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
         .build());
+    thrown.expect(BadAuthInfoForResourceException.class);
     doFailingTest("domain_transfer_query_domain_authinfo.xml");
   }
 
   @Test
   public void testFailure_neverBeenTransferred() throws Exception {
-    thrown.expect(NoTransferHistoryToQueryException.class);
     changeTransferStatus(null);
+    thrown.expect(NoTransferHistoryToQueryException.class);
     doFailingTest("domain_transfer_query.xml");
   }
 
   @Test
   public void testFailure_unrelatedClient() throws Exception {
-    thrown.expect(NotAuthorizedToViewTransferException.class);
     setClientIdForFlow("ClientZ");
+    thrown.expect(NotAuthorizedToViewTransferException.class);
     doFailingTest("domain_transfer_query.xml");
   }
 
   @Test
   public void testFailure_deletedDomain() throws Exception {
+    domain = persistResource(
+            domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    domain = persistResource(
-            domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     doFailingTest("domain_transfer_query.xml");
   }
 
   @Test
   public void testFailure_nonexistentDomain() throws Exception {
+    deleteResource(domain);
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    deleteResource(domain);
     doFailingTest("domain_transfer_query.xml");
   }
 }

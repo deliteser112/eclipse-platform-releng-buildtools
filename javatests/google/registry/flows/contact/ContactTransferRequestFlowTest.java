@@ -111,12 +111,12 @@ public class ContactTransferRequestFlowTest
 
   @Test
   public void testFailure_badPassword() throws Exception {
-    thrown.expect(BadAuthInfoForResourceException.class);
     // Change the contact's password so it does not match the password in the file.
     contact = persistResource(
         contact.asBuilder()
             .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
             .build());
+    thrown.expect(BadAuthInfoForResourceException.class);
     doFailingTest("contact_transfer_request.xml");
   }
 
@@ -152,7 +152,6 @@ public class ContactTransferRequestFlowTest
 
   @Test
   public void testFailure_pending() throws Exception {
-    thrown.expect(AlreadyPendingTransferException.class);
     contact = persistResource(
         contact.asBuilder()
             .setTransferData(contact.getTransferData().asBuilder()
@@ -160,32 +159,33 @@ public class ContactTransferRequestFlowTest
                 .setPendingTransferExpirationTime(clock.nowUtc().plusDays(1))
                 .build())
             .build());
+    thrown.expect(AlreadyPendingTransferException.class);
     doFailingTest("contact_transfer_request.xml");
   }
 
   @Test
   public void testFailure_sponsoringClient() throws Exception {
-    thrown.expect(ObjectAlreadySponsoredException.class);
     setClientIdForFlow("TheRegistrar");
+    thrown.expect(ObjectAlreadySponsoredException.class);
     doFailingTest("contact_transfer_request.xml");
   }
 
   @Test
   public void testFailure_deletedContact() throws Exception {
+    contact = persistResource(
+        contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    contact = persistResource(
-        contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     doFailingTest("contact_transfer_request.xml");
   }
 
   @Test
   public void testFailure_nonexistentContact() throws Exception {
+    deleteResource(contact);
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    deleteResource(contact);
     doFailingTest("contact_transfer_request.xml");
   }
 }

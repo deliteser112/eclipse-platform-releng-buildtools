@@ -487,13 +487,13 @@ public class DomainAllocateFlowTest
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
-    thrown.expect(NotAuthorizedForTldException.class);
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     DatastoreHelper.persistResource(
         Registrar.loadByClientId("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
+    thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
   }
 
@@ -502,8 +502,8 @@ public class DomainAllocateFlowTest
     setupDomainApplication("tld", TldState.GENERAL_AVAILABILITY);
     clock.advanceOneMilli();
     setEppInput("domain_allocate_no_nameservers.xml");
-    thrown.expect(OnlySuperuserCanAllocateException.class);
     assertTransactionalFlow(true);
+    thrown.expect(OnlySuperuserCanAllocateException.class);
     runFlow(CommitMode.LIVE, UserPrivileges.NORMAL);
   }
 }

@@ -158,18 +158,18 @@ public class ContactUpdateFlowTest
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
+    persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     runFlow();
   }
 
   @Test
   public void testFailure_clientProhibitedStatusValue() throws Exception {
-    thrown.expect(StatusNotClientSettableException.class);
     setEppInput("contact_update_prohibited_status.xml");
     persistActiveContact(getUniqueIdFromCommand());
+    thrown.expect(StatusNotClientSettableException.class);
     runFlow();
   }
 
@@ -186,9 +186,9 @@ public class ContactUpdateFlowTest
 
   @Test
   public void testFailure_unauthorizedClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveContact(getUniqueIdFromCommand());
+    thrown.expect(ResourceNotOwnedException.class);
     runFlow();
   }
 
@@ -220,21 +220,21 @@ public class ContactUpdateFlowTest
 
   @Test
   public void testFailure_clientUpdateProhibited() throws Exception {
-    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
     persistResource(
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .build());
+    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_serverUpdateProhibited() throws Exception {
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
     persistResource(
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
             .build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
     runFlow();
   }
 
@@ -246,25 +246,25 @@ public class ContactUpdateFlowTest
 
   @Test
   public void testFailure_nonAsciiInIntAddress() throws Exception {
-    thrown.expect(BadInternationalizedPostalInfoException.class);
     setEppInput("contact_update_hebrew_int.xml");
     persistActiveContact(getUniqueIdFromCommand());
+    thrown.expect(BadInternationalizedPostalInfoException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_declineDisclosure() throws Exception {
-    thrown.expect(DeclineContactDisclosureFieldDisallowedPolicyException.class);
     setEppInput("contact_update_decline_disclosure.xml");
     persistActiveContact(getUniqueIdFromCommand());
+    thrown.expect(DeclineContactDisclosureFieldDisallowedPolicyException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_addRemoveSameValue() throws Exception {
-    thrown.expect(AddRemoveSameValueEppException.class);
     setEppInput("contact_update_add_remove_same.xml");
     persistActiveContact(getUniqueIdFromCommand());
+    thrown.expect(AddRemoveSameValueEppException.class);
     runFlow();
   }
 }

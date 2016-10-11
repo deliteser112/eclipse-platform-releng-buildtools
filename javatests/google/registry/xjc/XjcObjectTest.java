@@ -68,8 +68,8 @@ public class XjcObjectTest {
   @Test
   public void testMarshalValidation() throws Exception {
     XjcRdeDeposit deposit = unmarshalFullDeposit();
-    thrown.expect(Throwable.class, "pattern '\\w{1,13}' for type 'depositIdType'");
     deposit.setId("");
+    thrown.expect(Throwable.class, "pattern '\\w{1,13}' for type 'depositIdType'");
     deposit.marshal(new ByteArrayOutputStream(), UTF_8);
   }
 

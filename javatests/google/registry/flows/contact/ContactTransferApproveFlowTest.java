@@ -124,89 +124,89 @@ public class ContactTransferApproveFlowTest
 
   @Test
   public void testFailure_badContactPassword() throws Exception {
-    thrown.expect(BadAuthInfoForResourceException.class);
     // Change the contact's password so it does not match the password in the file.
     contact = persistResource(
         contact.asBuilder()
             .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
             .build());
+    thrown.expect(BadAuthInfoForResourceException.class);
     doFailingTest("contact_transfer_approve_with_authinfo.xml");
   }
 
   @Test
   public void testFailure_neverBeenTransferred() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(null);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("contact_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_clientApproved() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(TransferStatus.CLIENT_APPROVED);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("contact_transfer_approve.xml");
   }
 
  @Test
   public void testFailure_clientRejected() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(TransferStatus.CLIENT_REJECTED);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("contact_transfer_approve.xml");
   }
 
  @Test
   public void testFailure_clientCancelled() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("contact_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_serverApproved() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(TransferStatus.SERVER_APPROVED);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("contact_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_serverCancelled() throws Exception {
-    thrown.expect(NotPendingTransferException.class);
     changeTransferStatus(TransferStatus.SERVER_CANCELLED);
+    thrown.expect(NotPendingTransferException.class);
     doFailingTest("contact_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_gainingClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     setClientIdForFlow("NewRegistrar");
+    thrown.expect(ResourceNotOwnedException.class);
     doFailingTest("contact_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_unrelatedClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     setClientIdForFlow("ClientZ");
+    thrown.expect(ResourceNotOwnedException.class);
     doFailingTest("contact_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_deletedContact() throws Exception {
+    contact = persistResource(
+        contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
-    contact = persistResource(
-        contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     doFailingTest("contact_transfer_approve.xml");
   }
 
   @Test
   public void testFailure_nonexistentContact() throws Exception {
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
     deleteResource(contact);
     contact = persistResource(
         contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+    thrown.expect(
+        ResourceDoesNotExistException.class,
+        String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("contact_transfer_approve.xml");
   }
 }

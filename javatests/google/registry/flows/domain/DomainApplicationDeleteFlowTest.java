@@ -127,28 +127,27 @@ public class DomainApplicationDeleteFlowTest
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
     persistResource(newDomainApplication("example.tld").asBuilder()
         .setRepoId("1-TLD")
         .setDeletionTime(clock.nowUtc().minusSeconds(1))
         .build());
+    thrown.expect(
+        ResourceDoesNotExistException.class,
+        String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
   @Test
   public void testFailure_unauthorizedClient() throws Exception {
-    thrown.expect(ResourceNotOwnedException.class);
     sessionMetadata.setClientId("NewRegistrar");
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    thrown.expect(ResourceNotOwnedException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
-    thrown.expect(NotAuthorizedForTldException.class);
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     persistResource(
@@ -156,6 +155,7 @@ public class DomainApplicationDeleteFlowTest
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
+    thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
   }
 
@@ -173,12 +173,12 @@ public class DomainApplicationDeleteFlowTest
   public void testFailure_sunriseDuringLandrush() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_delete_application_landrush.xml");
-    thrown.expect(SunriseApplicationCannotBeDeletedInLandrushException.class);
     persistResource(newDomainApplication("example.tld")
         .asBuilder()
         .setRepoId("1-TLD")
         .setPhase(LaunchPhase.SUNRISE)
         .build());
+    thrown.expect(SunriseApplicationCannotBeDeletedInLandrushException.class);
     runFlow();
   }
 
@@ -222,45 +222,45 @@ public class DomainApplicationDeleteFlowTest
 
   @Test
   public void testFailure_mismatchedPhase() throws Exception {
-    thrown.expect(LaunchPhaseMismatchException.class);
     setEppInput("domain_delete_application_landrush.xml");
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    thrown.expect(LaunchPhaseMismatchException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_wrongExtension() throws Exception {
-    thrown.expect(UnimplementedExtensionException.class);
     setEppInput("domain_delete_application_wrong_extension.xml");
     persistActiveDomainApplication("example.tld");
+    thrown.expect(UnimplementedExtensionException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_predelegation() throws Exception {
-    thrown.expect(BadCommandForRegistryPhaseException.class);
     createTld("tld", TldState.PREDELEGATION);
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    thrown.expect(BadCommandForRegistryPhaseException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_quietPeriod() throws Exception {
-    thrown.expect(BadCommandForRegistryPhaseException.class);
     createTld("tld", TldState.QUIET_PERIOD);
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    thrown.expect(BadCommandForRegistryPhaseException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_generalAvailability() throws Exception {
-    thrown.expect(BadCommandForRegistryPhaseException.class);
     createTld("tld", TldState.GENERAL_AVAILABILITY);
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    thrown.expect(BadCommandForRegistryPhaseException.class);
     runFlow();
   }
 
@@ -296,9 +296,9 @@ public class DomainApplicationDeleteFlowTest
 
   @Test
   public void testFailure_applicationIdForDifferentDomain() throws Exception {
-    thrown.expect(ApplicationDomainNameMismatchException.class);
     persistResource(
         newDomainApplication("invalid.tld").asBuilder().setRepoId("1-TLD").build());
+    thrown.expect(ApplicationDomainNameMismatchException.class);
     runFlow();
   }
 }

@@ -220,15 +220,15 @@ public class DriveConnectionTest {
   @Test
   public void testCreateOrUpdateFile_throwsExceptionWhenMultipleFilesWithNameAlreadyExist()
       throws Exception {
-    thrown.expect(IllegalStateException.class,
-        "Could not update file 'title' in Drive folder id 'driveFolderId' "
-            + "because multiple files with that name already exist.");
     ChildList childList = new ChildList()
       .setItems(ImmutableList.of(
           new ChildReference().setId("id1"),
           new ChildReference().setId("id2")))
       .setNextPageToken(null);
     when(childrenList.execute()).thenReturn(childList);
+    thrown.expect(IllegalStateException.class,
+        "Could not update file 'title' in Drive folder id 'driveFolderId' "
+            + "because multiple files with that name already exist.");
     driveConnection.createOrUpdateFile("title", MediaType.WEBM_VIDEO, "driveFolderId", DATA);
   }
 

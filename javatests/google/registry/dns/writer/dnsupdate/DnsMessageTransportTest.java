@@ -120,8 +120,7 @@ public class DnsMessageTransportTest {
     when(mockSocket.getOutputStream()).thenReturn(new ByteArrayOutputStream());
     thrown.expect(EOFException.class);
 
-    Message expectedQuery = new Message();
-    resolver.send(expectedQuery);
+    resolver.send(new Message());
   }
 
   @Test

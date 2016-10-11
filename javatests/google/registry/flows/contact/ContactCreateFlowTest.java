@@ -65,10 +65,10 @@ public class ContactCreateFlowTest
 
   @Test
   public void testFailure_alreadyExists() throws Exception {
+    persistActiveContact(getUniqueIdFromCommand());
     thrown.expect(
         ResourceAlreadyExistsException.class,
         String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
-    persistActiveContact(getUniqueIdFromCommand());
     runFlow();
   }
 
@@ -80,15 +80,15 @@ public class ContactCreateFlowTest
 
   @Test
   public void testFailure_nonAsciiInIntAddress() throws Exception {
-    thrown.expect(BadInternationalizedPostalInfoException.class);
     setEppInput("contact_create_hebrew_int.xml");
+    thrown.expect(BadInternationalizedPostalInfoException.class);
     runFlow();
   }
 
   @Test
   public void testFailure_declineDisclosure() throws Exception {
-    thrown.expect(DeclineContactDisclosureFieldDisallowedPolicyException.class);
     setEppInput("contact_create_decline_disclosure.xml");
+    thrown.expect(DeclineContactDisclosureFieldDisallowedPolicyException.class);
     runFlow();
   }
 }
