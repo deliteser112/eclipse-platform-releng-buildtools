@@ -87,6 +87,7 @@ public abstract class BillingEvent extends ImmutableObject
   long id;
 
   @Parent
+  @DoNotHydrate
   Key<HistoryEntry> parent;
 
   /** The registrar to bill. */

@@ -84,6 +84,7 @@ public abstract class PollMessage extends ImmutableObject
   long id;
 
   @Parent
+  @DoNotHydrate
   Key<HistoryEntry> parent;
 
   /** The registrar that this poll message will be delivered to. */

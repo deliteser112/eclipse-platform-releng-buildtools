@@ -24,14 +24,12 @@ import com.googlecode.objectify.condition.IfNull;
 import google.registry.model.Buildable;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
-import google.registry.model.ImmutableObject.DoNotHydrate;
 import google.registry.model.domain.Period;
 import google.registry.model.eppcommon.Trid;
 import org.joda.time.DateTime;
 
 /** A record of an EPP command that mutated a resource. */
 @Entity
-@DoNotHydrate
 public class HistoryEntry extends ImmutableObject implements Buildable {
 
   /** Represents the type of history entry. */

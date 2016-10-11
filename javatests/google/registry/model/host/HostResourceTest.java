@@ -284,4 +284,10 @@ public class HostResourceTest extends EntityTestCase {
     assertThat(afterTransfer.getCurrentSponsorClientId()).isEqualTo("winner");
     assertThat(afterTransfer.getLastTransferTime()).isEqualTo(clock.nowUtc().plusDays(1));
   }
+
+  @Test
+  public void testToHydratedString_notCircular() {
+    // If there are circular references, this will overflow the stack.
+    hostResource.toHydratedString();
+  }
 }

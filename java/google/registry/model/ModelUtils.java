@@ -209,15 +209,15 @@ public class ModelUtils {
   }
 
   /**
-   * Returns a map from field names (including non-public and inherited fields) to values.
+   * Returns a map from Field objects (including non-public and inherited fields) to values.
    *
    * <p>This turns arrays into {@link List} objects so that ImmutableObject can more easily use the
    * returned map in its implementation of {@link ImmutableObject#toString} and {@link
    * ImmutableObject#equals}, which work by comparing and printing these maps.
    */
-  static Map<String, Object> getFieldValues(Object instance) {
+  static Map<Field, Object> getFieldValues(Object instance) {
     // Don't make this ImmutableMap because field values can be null.
-    Map<String, Object> values = new LinkedHashMap<>();
+    Map<Field, Object> values = new LinkedHashMap<>();
     for (Field field : getAllFields(instance.getClass()).values()) {
       Object value = getFieldValue(instance, field);
       if (value != null && value.getClass().isArray()) {
@@ -234,7 +234,7 @@ public class ModelUtils {
               return Array.getLength(arrayValue);
             }};
       }
-      values.put(field.getName(), value);
+      values.put(field, value);
     }
     return values;
   }

@@ -41,6 +41,7 @@ import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -79,26 +80,38 @@ public class DomainResourceTest extends EntityTestCase {
   @Before
   public void setUp() throws Exception {
     createTld("com");
-    HostResource hostResource = persistResource(
+    Key<DomainResource> domainKey = Key.create(null, DomainResource.class, "4-COM");
+    Key<HostResource> hostKey = Key.create(persistResource(
         new HostResource.Builder()
             .setFullyQualifiedHostName("ns1.example.com")
+            .setSuperordinateDomain(domainKey)
             .setRepoId("1-COM")
-            .build());
-    ContactResource contactResource1 = persistResource(
+            .build()));
+    Key<ContactResource> contact1Key = Key.create(persistResource(
         new ContactResource.Builder()
             .setContactId("contact_id1")
             .setRepoId("2-COM")
-            .build());
-    ContactResource contactResource2 = persistResource(
+            .build()));
+    Key<ContactResource> contact2Key = Key.create(persistResource(
         new ContactResource.Builder()
             .setContactId("contact_id2")
             .setRepoId("3-COM")
-            .build());
+            .build()));
+    Key<HistoryEntry> historyEntryKey =
+        Key.create(persistResource(new HistoryEntry.Builder().setParent(domainKey).build()));
+    Key<BillingEvent.OneTime> oneTimeBillKey =
+        Key.create(historyEntryKey, BillingEvent.OneTime.class, 1);
+    Key<BillingEvent.Recurring> recurringBillKey =
+        Key.create(historyEntryKey, BillingEvent.Recurring.class, 2);
+    Key<PollMessage.Autorenew> autorenewPollKey =
+        Key.create(historyEntryKey, PollMessage.Autorenew.class, 3);
+    Key<PollMessage.OneTime> onetimePollKey =
+        Key.create(historyEntryKey, PollMessage.OneTime.class, 1);
     // Set up a new persisted domain entity.
     domain = cloneAndSetAutoTimestamps(
         new DomainResource.Builder()
             .setFullyQualifiedDomainName("example.com")
-        .setRepoId("4-COM")
+            .setRepoId("4-COM")
             .setCreationClientId("a registrar")
             .setLastEppUpdateTime(clock.nowUtc())
             .setLastEppUpdateClientId("AnotherRegistrar")
@@ -110,11 +123,9 @@ public class DomainResourceTest extends EntityTestCase {
                 StatusValue.SERVER_UPDATE_PROHIBITED,
                 StatusValue.SERVER_RENEW_PROHIBITED,
                 StatusValue.SERVER_HOLD))
-            .setRegistrant(Key.create(contactResource1))
-            .setContacts(ImmutableSet.of(DesignatedContact.create(
-                DesignatedContact.Type.ADMIN,
-                Key.create(contactResource2))))
-            .setNameservers(ImmutableSet.of(Key.create(hostResource)))
+            .setRegistrant(contact1Key)
+            .setContacts(ImmutableSet.of(DesignatedContact.create(Type.ADMIN, contact2Key)))
+            .setNameservers(ImmutableSet.of(hostKey))
             .setSubordinateHosts(ImmutableSet.of("ns1.example.com"))
             .setCurrentSponsorClientId("ThirdRegistrar")
             .setRegistrationExpirationTime(clock.nowUtc().plusYears(1))
@@ -130,22 +141,19 @@ public class DomainResourceTest extends EntityTestCase {
                     .setPendingTransferExpirationTime(clock.nowUtc())
                     .setServerApproveEntities(
                         ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
-                            Key.create(BillingEvent.OneTime.class, 1),
-                            Key.create(BillingEvent.Recurring.class, 2),
-                            Key.create(PollMessage.Autorenew.class, 3)))
-                    .setServerApproveBillingEvent(
-                        Key.create(BillingEvent.OneTime.class, 1))
-                    .setServerApproveAutorenewEvent(
-                        Key.create(BillingEvent.Recurring.class, 2))
-                    .setServerApproveAutorenewPollMessage(
-                        Key.create(PollMessage.Autorenew.class, 3))
+                            oneTimeBillKey,
+                            recurringBillKey,
+                            autorenewPollKey))
+                    .setServerApproveBillingEvent(oneTimeBillKey)
+                    .setServerApproveAutorenewEvent(recurringBillKey)
+                    .setServerApproveAutorenewPollMessage(autorenewPollKey)
                     .setTransferRequestTime(clock.nowUtc().plusDays(1))
                     .setTransferStatus(TransferStatus.SERVER_APPROVED)
                     .setTransferRequestTrid(Trid.create("client trid"))
                     .build())
-            .setDeletePollMessage(Key.create(PollMessage.OneTime.class, 1))
-            .setAutorenewBillingEvent(Key.create(BillingEvent.Recurring.class, 1))
-            .setAutorenewPollMessage(Key.create(PollMessage.Autorenew.class, 2))
+            .setDeletePollMessage(onetimePollKey)
+            .setAutorenewBillingEvent(recurringBillKey)
+            .setAutorenewPollMessage(autorenewPollKey)
             .setSmdId("smdid")
             .setApplicationTime(START_OF_TIME)
             .setApplication(Key.create(DomainApplication.class, 1))
@@ -438,5 +446,10 @@ public class DomainResourceTest extends EntityTestCase {
         ValidationMode.STRICT);
     // Assert that there was only one call to datastore (that may have loaded many keys).
     assertThat(skip(RequestCapturingAsyncDatastoreService.getReads(), numPreviousReads)).hasSize(1);
+  }
+
+  @Test
+  public void testToHydratedString_notCircular() {
+    domain.toHydratedString();  // If there are circular references, this will overflow the stack.
   }
 }

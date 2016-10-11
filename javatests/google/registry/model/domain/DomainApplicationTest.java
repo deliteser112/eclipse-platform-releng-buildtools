@@ -179,4 +179,10 @@ public class DomainApplicationTest extends EntityTestCase {
     assertThat(withNull).isEqualTo(withEmpty);
     assertThat(withEmpty.hasTransferData()).isFalse();
   }
+
+  @Test
+  public void testToHydratedString_notCircular() {
+    // If there are circular references, this will overflow the stack.
+    domainApplication.toHydratedString();
+  }
 }

@@ -110,17 +110,21 @@ public class ModelUtilsTest {
     testInstance.id = "foo";
     testInstance.a = "a";
     testInstance.b = "b";
-    // More complicated version of isEqualTo() so that we check for ordering.
-    assertThat(ModelUtils.getFieldValues(testInstance).entrySet())
-        .containsExactlyElementsIn(ImmutableMap.of("id", "foo", "a", "a", "b", "b").entrySet())
+    assertThat(ModelUtils.getFieldValues(testInstance))
+        .containsExactly(
+            TestClass.class.getDeclaredField("id"), "foo",
+            TestClass.class.getDeclaredField("a"), "a",
+            TestClass.class.getDeclaredField("b"), "b")
         .inOrder();
     // Test again, to make sure we aren't caching values.
     testInstance.id = "bar";
     testInstance.a = "1";
     testInstance.b = "2";
-    // More complicated version of isEqualTo() so that we check for ordering.
-    assertThat(ModelUtils.getFieldValues(testInstance).entrySet())
-        .containsExactlyElementsIn(ImmutableMap.of("id", "bar", "a", "1", "b", "2").entrySet())
+    assertThat(ModelUtils.getFieldValues(testInstance))
+        .containsExactly(
+            TestClass.class.getDeclaredField("id"), "bar",
+            TestClass.class.getDeclaredField("a"), "1",
+            TestClass.class.getDeclaredField("b"), "2")
         .inOrder();
   }
 

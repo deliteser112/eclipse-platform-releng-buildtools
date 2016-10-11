@@ -89,6 +89,7 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
   @Index
   @IgnoreSave(IfNull.class)
   @XmlTransient
+  @DoNotHydrate
   Key<DomainResource> superordinateDomain;
 
   /**

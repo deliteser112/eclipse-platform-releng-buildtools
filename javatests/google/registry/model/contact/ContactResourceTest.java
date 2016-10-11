@@ -227,4 +227,10 @@ public class ContactResourceTest extends EntityTestCase {
     thrown.expect(IllegalStateException.class, "creationTime can only be set once");
     contactResource.asBuilder().setCreationTime(END_OF_TIME);
   }
+
+  @Test
+  public void testToHydratedString_notCircular() {
+    // If there are circular references, this will overflow the stack.
+    contactResource.toHydratedString();
+  }
 }
