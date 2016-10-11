@@ -58,7 +58,7 @@ public class SessionUtils {
    * <ul>
    * <li>If it does not exist, then we will attempt to guess the {@link Registrar} with which the
    * user's GAIA ID is associated. The {@code clientId} of the first matching {@code Registrar} will
-   * then be stored to the the HTTP session.
+   * then be stored to the HTTP session.
    * <li>If it does exist, then we'll fetch the Registrar from the datastore to make sure access
    * wasn't revoked. This should only cost one memcache read.
    * </ul>
