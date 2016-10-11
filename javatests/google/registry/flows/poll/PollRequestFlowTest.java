@@ -34,10 +34,8 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
-import google.registry.testing.ExceptionRule;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 /** Unit tests for {@link PollRequestFlow}. */
@@ -46,9 +44,6 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
   private DomainResource domain;
   private ContactResource contact;
   private HostResource host;
-
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
 
   @Before
   public void setUp() {

@@ -30,16 +30,11 @@ import google.registry.flows.session.LoginFlow.TooManyFailedLoginsException;
 import google.registry.flows.session.LoginFlow.UnsupportedLanguageException;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.State;
-import google.registry.testing.ExceptionRule;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 /** Unit tests for {@link LoginFlow}. */
 public abstract class LoginFlowTestCase extends FlowTestCase<LoginFlow> {
-
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
 
   Registrar registrar;
   Registrar.Builder registrarBuilder;

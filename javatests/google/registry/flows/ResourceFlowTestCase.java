@@ -36,12 +36,10 @@ import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.EppResourceIndexBucket;
 import google.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
 import google.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.junit.Rule;
 import org.junit.Test;
 
 /**
@@ -52,9 +50,6 @@ import org.junit.Test;
  */
 public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource>
     extends FlowTestCase<F> {
-
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
 
   protected R reloadResourceByForeignKey(DateTime now) throws Exception {
     // Force the session to be cleared so that when we read it back, we read from the datastore and

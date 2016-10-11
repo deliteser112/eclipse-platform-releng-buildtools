@@ -29,10 +29,8 @@ import google.registry.flows.poll.PollAckFlow.NotAuthorizedToAckMessageException
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.poll.PollMessage;
-import google.registry.testing.ExceptionRule;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 /** Unit tests for {@link PollAckFlow}. */
@@ -43,9 +41,6 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
 
   private DomainResource domain;
   private ContactResource contact;
-
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
 
   @Before
   public void setUp() {
