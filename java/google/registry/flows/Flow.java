@@ -59,14 +59,6 @@ public abstract class Flow {
   /** Execute the business logic for this flow. */
   protected abstract EppOutput run() throws EppException;
 
-  /**
-   * Subclasses that create a resource should override this to return the repoId of the new
-   * resource.
-   */
-  protected String getCreatedRepoId() {
-    return null;
-  }
-
   protected String getClientId() {
     return sessionMetadata.getClientId();
   }

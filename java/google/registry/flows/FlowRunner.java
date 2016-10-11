@@ -128,7 +128,6 @@ public class FlowRunner {
                     }
                   });
       logger.info("EPP_Mutation_Committed " + new JsonLogStatement(trid)
-          .add("createdRepoId", flowResult.getResponse().getCreatedRepoId())
           .add("executionTime", flowResult.getResponse().getExecutionTime().getMillis()));
       return flowResult;
     } catch (DryRunException e) {
@@ -165,9 +164,6 @@ public class FlowRunner {
    *
    * <p>An example output for an EPP_Mutation_Committed that doesn't create a new resource:
    * {"trid":"abc-123", "executionTime":123456789}
-   *
-   * <p>An example output for an EPP_Mutation_Committed that creates a new resource:
-   * {"trid":"abc-123", "executionRepoId":123, "executionTime":123456789}
    */
   private static class JsonLogStatement {
 

@@ -100,14 +100,6 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
   DateTime executionTime;
 
   /**
-   * The repository id of a new object if this is a create response, or null.
-   *
-   * <p>This is for logging purposes only and is not returned to the user.
-   */
-  @XmlTransient
-  String createdRepoId;
-
-  /**
    * Information about messages queued for retrieval. This may appear in response to any EPP message
    * (if messages are queued), but in practice this will only be set in response to a poll request.
    */
@@ -168,10 +160,6 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
 
   public DateTime getExecutionTime() {
     return executionTime;
-  }
-
-  public String getCreatedRepoId() {
-    return createdRepoId;
   }
 
   public ImmutableList<? extends ResponseData> getResponseData() {
@@ -235,11 +223,6 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
 
     public Builder setExecutionTime(DateTime executionTime) {
       getInstance().executionTime = executionTime;
-      return this;
-    }
-
-    public Builder setCreatedRepoId(String createdRepoId) {
-      getInstance().createdRepoId = createdRepoId;
       return this;
     }
 

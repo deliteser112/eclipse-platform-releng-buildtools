@@ -69,7 +69,6 @@ public class FlowRunnerTest extends ShardableTestCase {
 
     final EppOutput eppOutput = mock(EppOutput.class);
     EppResponse eppResponse = mock(EppResponse.class);
-    when(eppResponse.getCreatedRepoId()).thenReturn("foo");
     when(eppResponse.getExecutionTime()).thenReturn(new DateTime(1337));
     when(eppOutput.getResponse()).thenReturn(eppResponse);
 

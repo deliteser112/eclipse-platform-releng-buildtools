@@ -88,11 +88,6 @@ public abstract class ResourceCreateFlow
     modifyCreateRelatedResources();
   }
 
-  @Override
-  protected final String getCreatedRepoId() {
-    return newResource.getRepoId();
-  }
-
   /** Modify any other resources that need to be informed of this create. */
   protected void modifyCreateRelatedResources() {}
 
