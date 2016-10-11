@@ -118,15 +118,14 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
     // The domain name hasn't been validated yet, so if it's invalid, instead of throwing an error,
     // simply leave the repoId blank (it won't be needed anyway as the flow will fail when
     // validation fails later).
-    try {
-      Optional<InternetDomainName> tldParsed =
-          findTldForName(InternetDomainName.from(command.getFullyQualifiedDomainName()));
-      return tldParsed.isPresent()
-          ? createDomainRoid(ObjectifyService.allocateId(), tldParsed.get().toString())
-          : null;
-    } catch (IllegalArgumentException e) {
+    if (!InternetDomainName.isValid(command.getFullyQualifiedDomainName())) {
       return null;
     }
+    Optional<InternetDomainName> tldParsed =
+        findTldForName(InternetDomainName.from(command.getFullyQualifiedDomainName()));
+    return tldParsed.isPresent()
+        ? createDomainRoid(ObjectifyService.allocateId(), tldParsed.get().toString())
+        : null;
   }
 
   /** Subclasses may override this to do more specific initialization. */
