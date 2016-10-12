@@ -201,7 +201,8 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
     isAnchorTenantViaReservation = matchesAnchorTenantReservation(
         domainLabel, tld, command.getAuthInfo().getPw().getValue());
     boolean isLrpApplication =
-        registry.getLrpTldStates().contains(tldState)
+        registry.getLrpPeriod() != null
+            && registry.getLrpPeriod().contains(now)
             && !command.getAuthInfo().getPw().getValue().isEmpty()
             && !isAnchorTenantViaReservation;
     lrpToken = isLrpApplication

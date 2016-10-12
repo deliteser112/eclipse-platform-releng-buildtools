@@ -693,7 +693,6 @@ class google.registry.model.registry.Registry {
   java.lang.String tldStr;
   java.lang.String tldUnicode;
   java.util.Set<com.googlecode.objectify.Key<google.registry.model.registry.label.ReservedList>> reservedLists;
-  java.util.Set<google.registry.model.registry.Registry$TldState> lrpTldStates;
   java.util.Set<java.lang.String> allowedFullyQualifiedHostNames;
   java.util.Set<java.lang.String> allowedRegistrantContactIds;
   org.joda.money.CurrencyUnit currency;
@@ -701,6 +700,8 @@ class google.registry.model.registry.Registry {
   org.joda.money.Money restoreBillingCost;
   org.joda.money.Money serverStatusChangeBillingCost;
   org.joda.time.DateTime claimsPeriodEnd;
+  org.joda.time.DateTime lrpPeriodEnd;
+  org.joda.time.DateTime lrpPeriodStart;
   org.joda.time.Duration addGracePeriodLength;
   org.joda.time.Duration anchorTenantAddGracePeriodLength;
   org.joda.time.Duration autoRenewGracePeriodLength;

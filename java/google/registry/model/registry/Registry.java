@@ -62,10 +62,12 @@ import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.util.Idn;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.Interval;
 
 /** Persisted per-TLD configuration data. */
 @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
@@ -368,14 +370,25 @@ public class Registry extends ImmutableObject implements Buildable {
   /** The end of the claims period (at or after this time, claims no longer applies). */
   DateTime claimsPeriodEnd = END_OF_TIME;
 
+  /**
+   * The (inclusive) start {@link DateTime} of LRP. This (and lrpPeriodEnd) exist for serialization
+   * purposes, though everything else that interacts with the LRP period should use getLrpPeriod()
+   * and setLrpPeriod(), which uses an {@link Interval}.
+   */
+  DateTime lrpPeriodStart;
+
+  /**
+   * The (exclusive) end {@link DateTime} of LRP. This (and lrpPeriodStart) exist for serialization
+   * purposes, though everything else that interacts with the LRP period should use getLrpPeriod()
+   * and setLrpPeriod(), which uses an {@link Interval}.
+   */
+  DateTime lrpPeriodEnd;
+
   /** A whitelist of clients allowed to be used on domains on this TLD (ignored if empty). */
   Set<String> allowedRegistrantContactIds;
 
   /** A whitelist of hosts allowed to be used on domains on this TLD (ignored if empty). */
   Set<String> allowedFullyQualifiedHostNames;
-
-  /** The set of {@link TldState}s for which LRP applications are accepted (ignored if empty). */
-  Set<TldState> lrpTldStates;
 
   public String getTldStr() {
     return tldStr;
@@ -558,8 +571,11 @@ public class Registry extends ImmutableObject implements Buildable {
     return nullToEmptyImmutableCopy(allowedFullyQualifiedHostNames);
   }
 
-  public ImmutableSet<TldState> getLrpTldStates() {
-    return nullToEmptyImmutableCopy(lrpTldStates);
+  @Nullable
+  public Interval getLrpPeriod() {
+    return (lrpPeriodStart == null && lrpPeriodEnd == null)
+        ? null
+        : new Interval(lrpPeriodStart, lrpPeriodEnd);
   }
 
   @Override
@@ -818,8 +834,9 @@ public class Registry extends ImmutableObject implements Buildable {
       return this;
     }
 
-    public Builder setLrpTldStates(ImmutableSet<TldState> lrpTldStates) {
-      getInstance().lrpTldStates = lrpTldStates;
+    public Builder setLrpPeriod(@Nullable Interval lrpPeriod) {
+      getInstance().lrpPeriodStart = (lrpPeriod == null ? null : lrpPeriod.getStart());
+      getInstance().lrpPeriodEnd = (lrpPeriod == null ? null : lrpPeriod.getEnd());
       return this;
     }
 
@@ -840,10 +857,6 @@ public class Registry extends ImmutableObject implements Buildable {
       // cloned it into a new builder, to block re-building a Registry in an invalid state.
       instance.tldStateTransitions.checkValidity();
       instance.renewBillingCostTransitions.checkValidity();
-      checkArgument(
-          instance.tldStateTransitions.toValueMap().values()
-              .containsAll(instance.getLrpTldStates()),
-          "Cannot specify an LRP TLD state that is not part of the TLD state transitions.");
       instance.eapFeeSchedule.checkValidity();
       // All costs must be in the expected currency.
       // TODO(b/21854155): When we move PremiumList into datastore, verify its currency too.

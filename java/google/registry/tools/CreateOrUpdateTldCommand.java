@@ -32,8 +32,8 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.model.registry.label.PremiumList;
+import google.registry.tools.params.OptionalIntervalParameter;
 import google.registry.tools.params.OptionalStringParameter;
-import google.registry.tools.params.TldStateParameter;
 import google.registry.tools.params.TransitionListParameter.BillingCostTransitions;
 import google.registry.tools.params.TransitionListParameter.TldStateTransitions;
 import java.util.List;
@@ -45,6 +45,7 @@ import javax.inject.Named;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.Interval;
 
 /** Shared base class for commands to create or update a TLD. */
 abstract class CreateOrUpdateTldCommand extends MutatingCommand {
@@ -220,10 +221,12 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
   @Nullable
   @Parameter(
-      names = "--lrp_tld_states",
-      converter = TldStateParameter.class,
-      description = "A comma-separated list of TLD states for which LRP is available")
-  List<TldState> lrpTldStates;
+      names = "--lrp_period",
+      description =
+          "LRP period (in ISO-8601 format, e.g. 2004-06-09T12:30:00Z/2004-07-10T13:30:00Z",
+      converter = OptionalIntervalParameter.class,
+      validateWith = OptionalIntervalParameter.class)
+  private Optional<Interval> lrpPeriod;
 
   /** Returns the existing registry (for update) or null (for creates). */
   @Nullable
@@ -391,8 +394,8 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
         }
       }
 
-      if (lrpTldStates != null) {
-        builder.setLrpTldStates(ImmutableSet.copyOf(lrpTldStates));
+      if (lrpPeriod != null) {
+        builder.setLrpPeriod(lrpPeriod.orNull());
       }
 
       ImmutableSet<String> newReservedListNames = getReservedLists(oldRegistry);

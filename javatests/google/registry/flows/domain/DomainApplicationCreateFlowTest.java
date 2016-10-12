@@ -125,6 +125,7 @@ import java.util.List;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -876,7 +877,7 @@ public class DomainApplicationCreateFlowTest
   public void testSuccess_landrushLrpApplication() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     persistResource(Registry.get("tld").asBuilder()
-        .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
         .build());
     LrpTokenEntity token = persistResource(
         new LrpTokenEntity.Builder()
@@ -895,7 +896,7 @@ public class DomainApplicationCreateFlowTest
   public void testSuccess_landrush_duringLrpWithMissingToken() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     persistResource(Registry.get("tld").asBuilder()
-        .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
         .build());
     setEppInput("domain_create_landrush.xml");
     persistContactsAndHosts();
@@ -909,7 +910,7 @@ public class DomainApplicationCreateFlowTest
     // as non-superuser).
     createTld("tld", TldState.LANDRUSH);
     persistResource(Registry.get("tld").asBuilder()
-        .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
         .build());
     LrpTokenEntity token = persistResource(
         new LrpTokenEntity.Builder()
@@ -928,7 +929,7 @@ public class DomainApplicationCreateFlowTest
   public void testFailure_landrushLrpApplication_badToken() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     persistResource(Registry.get("tld").asBuilder()
-        .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
         .build());
     persistResource(new LrpTokenEntity.Builder()
         .setToken("lrptokentest2")
@@ -946,7 +947,7 @@ public class DomainApplicationCreateFlowTest
   public void testFailure_landrushLrpApplication_tokenForWrongTld() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     persistResource(Registry.get("tld").asBuilder()
-        .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
         .build());
     persistResource(new LrpTokenEntity.Builder()
         .setToken("lrptokentest")
@@ -967,7 +968,7 @@ public class DomainApplicationCreateFlowTest
   public void testFailure_landrushLrpApplication_usedToken() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     persistResource(Registry.get("tld").asBuilder()
-        .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
         .build());
     persistResource(new LrpTokenEntity.Builder()
         .setToken("lrptokentest")
@@ -1003,10 +1004,10 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testSuccess_landrushApplicationWithLrpToken_differentLrpState() throws Exception {
+  public void testSuccess_landrushApplicationWithLrpToken_noLongerLrp() throws Exception {
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder()
-        .setLrpTldStates(ImmutableSet.of(TldState.SUNRISE))
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(2), clock.nowUtc().minusDays(1)))
         .setTldStateTransitions(ImmutableSortedMap.of(
             START_OF_TIME, TldState.SUNRISE,
             clock.nowUtc(), TldState.LANDRUSH))

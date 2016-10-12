@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 import org.joda.time.YearMonth;
 
@@ -46,6 +47,7 @@ public final class ParameterFactory implements IStringConverterFactory {
           .put(Duration.class, DurationParameter.class)
           .put(HostAndPort.class, HostAndPortParameter.class)
           .put(InternetDomainName.class, InternetDomainNameParameter.class)
+          .put(Interval.class, IntervalParameter.class)
           .put(Level.class, LoggingLevelParameter.class)
           .put(LocalDate.class, LocalDateParameter.class)
           .put(Money.class, MoneyParameter.class)

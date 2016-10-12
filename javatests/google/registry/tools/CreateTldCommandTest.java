@@ -35,6 +35,7 @@ import java.io.PrintStream;
 import java.math.BigDecimal;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -214,25 +215,14 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testSuccess_addLrpTldState() throws Exception {
+  public void testSuccess_addLrpPeriod() throws Exception {
     runCommandForced(
-        "--lrp_tld_states=SUNRISE",
-        "--initial_tld_state=SUNRISE",
+        "--lrp_period=2004-06-09T12:30:00Z/2004-07-10T13:30:00Z",
         "--roid_suffix=Q9JYB4C",
         "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getLrpTldStates()).containsExactly(TldState.SUNRISE);
-  }
-
-  @Test
-  public void testSuccess_addMultipleLrpTldStates() throws Exception {
-    DateTime now = DateTime.now(UTC);
-    runCommandForced(
-        "--lrp_tld_states=SUNRISE,LANDRUSH",
-        String.format("--tld_state_transitions=%s=SUNRISE,%s=LANDRUSH", START_OF_TIME, now.plus(1)),
-        "--roid_suffix=Q9JYB4C",
-        "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getLrpTldStates())
-        .containsExactly(TldState.SUNRISE, TldState.LANDRUSH);
+    assertThat(Registry.get("xn--q9jyb4c").getLrpPeriod()).isEqualTo(
+        new Interval(
+            DateTime.parse("2004-06-09T12:30:00Z"), DateTime.parse("2004-07-10T13:30:00Z")));
   }
 
   @Test
@@ -434,27 +424,20 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_lrpTldState_notInTldStateTransitions() throws Exception {
+  public void testFailure_addLrpPeriod_backwardsInterval() throws Exception {
     thrown.expect(
-        IllegalArgumentException.class,
-        "Cannot specify an LRP TLD state that is not part of the TLD state transitions.");
+        ParameterException.class,
+        "--lrp_period=2005-06-09T12:30:00Z/2004-07-10T13:30:00Z not an ISO-8601 interval");
     runCommandForced(
-        "--lrp_tld_states=SUNRISE",
-        "--initial_tld_state=PREDELEGATION",
+        "--lrp_period=2005-06-09T12:30:00Z/2004-07-10T13:30:00Z",
         "--roid_suffix=Q9JYB4C",
         "xn--q9jyb4c");
   }
 
   @Test
-  public void testFailure_lrpTldState_badTldState() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "No enum constant google.registry.model.registry.Registry.TldState.LANDRISE");
-    runCommandForced(
-        "--lrp_tld_states=LANDRISE",
-        "--initial_tld_state=PREDELEGATION",
-        "--roid_suffix=Q9JYB4C",
-        "xn--q9jyb4c");
+  public void testFailure_addLrpPeriod_badInterval() throws Exception {
+    thrown.expect(ParameterException.class, "--lrp_period=foobar not an ISO-8601 interval");
+    runCommandForced("--lrp_period=foobar", "--roid_suffix=Q9JYB4C", "xn--q9jyb4c");
   }
 
   private void runSuccessfulReservedListsTest(String reservedLists) throws Exception {
