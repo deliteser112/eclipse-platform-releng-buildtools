@@ -52,6 +52,26 @@ an underscore.
 
 ## Mapreduces
 
+Nomulus uses the [App Engine MapReduce
+framework](https://github.com/GoogleCloudPlatform/appengine-mapreduce/wiki/1-MapReduce)
+extensively, both for a variety of regularly scheduled background tasks and for
+one-off maintenance tasks. The MapReduce framework comes with a web UI for
+viewing the status of ongoing and completed tasks.
+
+Most MapReduces in Nomulus work by mapping over all entities of a given set of
+Datastore kind(s) (e.g. domains, contacts, etc.). All of the MapReduces in
+Nomulus are run by the `MapreduceRunner` class, which provides a standard set of
+ways to set the number of mapper and reducer shards. It is common to run
+map-only MapReduces when reducers aren't needed; these are supported as well.
+
+The main complication with MapReduces is that the mapper and reducer classes are
+required to be serializable as a consequence of how work is sharded out,
+pasued/resumed, and moved around. All fields on these classes must therefore be
+either `Serializable` or `transient`. This also means that dependency injection
+is of limited use -- the best you can do is to `@Inject` serializable fields on
+the entire MapReduce `Action`, and then set them manually on the mapper/reducer
+classes in their constructor.
+
 ## Actions and servlets
 
 ## Foreign key indexes
@@ -65,9 +85,9 @@ an underscore.
 ## Poll messages
 
 Poll messages are the mechanism by which EPP handles asynchronous communication
-between the registry and registrars. Refer to
-[RFC 5730 Section 2.9.2.3](https://tools.ietf.org/html/rfc5730#section-2.9.2.3)
-for their protocol specification.
+between the registry and registrars. Refer to [RFC 5730 Section
+2.9.2.3](https://tools.ietf.org/html/rfc5730#section-2.9.2.3) for their protocol
+specification.
 
 Poll messages are stored by the system as entities in Datastore. All poll
 messages have an event time at which they become active; any poll request before
@@ -85,8 +105,8 @@ messages.
 `PollMessage` is the abstract base class for the two different types of poll
 messages that extend it:
 
-*   **`Autorenew`** - A poll message corresponding to an automatic renewal of
-    a domain. It recurs annually.
+*   **`Autorenew`** - A poll message corresponding to an automatic renewal of a
+    domain. It recurs annually.
 *   **`OneTime`** - A one-time poll message used for everything else.
 
 Queries for poll messages by the registrar are handled in `PollRequestFlow`, and
