@@ -32,7 +32,7 @@ import com.google.common.io.Files;
 import com.google.common.io.LineReader;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-import google.registry.model.domain.LrpToken;
+import google.registry.model.domain.LrpTokenEntity;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.StringGenerator;
@@ -92,11 +92,11 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
 
     String line = null;
     do {
-      ImmutableSet.Builder<LrpToken> tokensToSave = new ImmutableSet.Builder<>();
+      ImmutableSet.Builder<LrpTokenEntity> tokensToSave = new ImmutableSet.Builder<>();
       for (String token : generateTokens(BATCH_SIZE)) {
         line = reader.readLine();
         if (!isNullOrEmpty(line)) {
-          tokensToSave.add(new LrpToken.Builder()
+          tokensToSave.add(new LrpTokenEntity.Builder()
               .setAssignee(line)
               .setToken(token)
               .setValidTlds(validTlds)
@@ -107,13 +107,14 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
     } while (line != null);
   }
 
-  private void saveTokens(final ImmutableSet<LrpToken> tokens) {
-    Collection<LrpToken> savedTokens = ofy().transact(new Work<Collection<LrpToken>>() {
-      @Override
-      public Collection<LrpToken> run() {
-        return ofy().save().entities(tokens).now().values();
-      }});
-    for (LrpToken token : savedTokens) {
+  private void saveTokens(final ImmutableSet<LrpTokenEntity> tokens) {
+    Collection<LrpTokenEntity> savedTokens =
+        ofy().transact(new Work<Collection<LrpTokenEntity>>() {
+          @Override
+          public Collection<LrpTokenEntity> run() {
+            return ofy().save().entities(tokens).now().values();
+          }});
+    for (LrpTokenEntity token : savedTokens) {
       System.out.printf("%s,%s%n", token.getAssignee(), token.getToken());
     }
   }
@@ -128,18 +129,18 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
   private ImmutableSet<String> generateTokens(int count) {
     final ImmutableSet<String> candidates =
         ImmutableSet.copyOf(TokenUtils.createTokens(LRP, stringGenerator, count));
-    ImmutableSet<Key<LrpToken>> existingTokenKeys = FluentIterable.from(candidates)
-        .transform(new Function<String, Key<LrpToken>>() {
+    ImmutableSet<Key<LrpTokenEntity>> existingTokenKeys = FluentIterable.from(candidates)
+        .transform(new Function<String, Key<LrpTokenEntity>>() {
           @Override
-          public Key<LrpToken> apply(String input) {
-            return Key.create(LrpToken.class, input);
+          public Key<LrpTokenEntity> apply(String input) {
+            return Key.create(LrpTokenEntity.class, input);
           }})
         .toSet();
     ImmutableSet<String> existingTokenStrings = FluentIterable
         .from(ofy().load().keys(existingTokenKeys).values())
-        .transform(new Function<LrpToken, String>() {
+        .transform(new Function<LrpTokenEntity, String>() {
           @Override
-          public String apply(LrpToken input) {
+          public String apply(LrpTokenEntity input) {
             return input.getToken();
           }})
         .toSet();

@@ -57,7 +57,7 @@ import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainBase.Builder;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.LrpToken;
+import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.domain.flags.FlagsCreateCommandExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
@@ -94,7 +94,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
   protected SignedMark signedMark;
   protected boolean isAnchorTenantViaReservation;
   protected TldState tldState;
-  protected Optional<LrpToken> lrpToken;
+  protected Optional<LrpTokenEntity> lrpToken;
 
   protected Optional<RegistryExtraFlowLogic> extraFlowLogic;
 
@@ -206,7 +206,7 @@ public abstract class BaseDomainCreateFlow<R extends DomainBase, B extends Build
             && !isAnchorTenantViaReservation;
     lrpToken = isLrpApplication
         ? TldSpecificLogicProxy.getMatchingLrpToken(command, tld)
-        : Optional.<LrpToken>absent();
+        : Optional.<LrpTokenEntity>absent();
     // Superusers can create reserved domains, force creations on domains that require a claims
     // notice without specifying a claims key, and override blocks on registering premium domains.
     if (!isSuperuser) {

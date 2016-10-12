@@ -20,7 +20,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainApplication;
-import google.registry.model.domain.LrpToken;
+import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.reporting.HistoryEntry;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class GetLrpTokenCommandTest extends CommandTestCase<GetLrpTokenCommand> 
         .setType(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE)
         .build());
     persistResource(
-        new LrpToken.Builder()
+        new LrpTokenEntity.Builder()
             .setAssignee("domain.tld")
             .setToken("domain_token")
             .setRedemptionHistoryEntry(Key.create(applicationCreateHistoryEntry))

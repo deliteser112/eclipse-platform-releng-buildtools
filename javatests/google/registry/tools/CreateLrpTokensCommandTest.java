@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.googlecode.objectify.Key;
-import google.registry.model.domain.LrpToken;
+import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.DeterministicStringGenerator;
 import google.registry.testing.DeterministicStringGenerator.Rule;
@@ -61,7 +61,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testSuccess_oneAssignee_tokenCollision() throws Exception {
-    LrpToken existingToken = persistResource(new LrpToken.Builder()
+    LrpTokenEntity existingToken = persistResource(new LrpTokenEntity.Builder()
         .setToken("LRP_abcdefghijklmnop")
         .setAssignee("otherdomain.tld")
         .setValidTlds(ImmutableSet.of("tld"))
@@ -120,7 +120,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   @Test
   public void testSuccess_largeFile() throws Exception {
     int numberOfTokens = 67;
-    LrpToken[] expectedTokens = new LrpToken[numberOfTokens];
+    LrpTokenEntity[] expectedTokens = new LrpTokenEntity[numberOfTokens];
     // Prepend a counter to avoid collisions, 16-char alphabet will always generate the same string.
     stringGenerator =
         new DeterministicStringGenerator("abcdefghijklmnop", Rule.PREPEND_COUNTER);
@@ -165,18 +165,19 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
     runCommand("--assignee=domain.tld", "--tlds=foo");
   }
 
-  private void assertLrpTokens(LrpToken... expected) throws Exception {
+  private void assertLrpTokens(LrpTokenEntity... expected) throws Exception {
     // Using ImmutableObject comparison here is tricky because updateTimestamp is not set on the
     // expected LrpToken objects and will cause the assert to fail.
-    Iterable<LrpToken> actual = ofy().load().type(LrpToken.class);
-    ImmutableMap.Builder<String, LrpToken> actualTokenMapBuilder = new ImmutableMap.Builder<>();
-    for (LrpToken token : actual) {
+    Iterable<LrpTokenEntity> actual = ofy().load().type(LrpTokenEntity.class);
+    ImmutableMap.Builder<String, LrpTokenEntity> actualTokenMapBuilder =
+        new ImmutableMap.Builder<>();
+    for (LrpTokenEntity token : actual) {
       actualTokenMapBuilder.put(token.getToken(), token);
     }
-    ImmutableMap<String, LrpToken> actualTokenMap = actualTokenMapBuilder.build();
+    ImmutableMap<String, LrpTokenEntity> actualTokenMap = actualTokenMapBuilder.build();
     assertThat(actualTokenMap).hasSize(expected.length);
-    for (LrpToken expectedToken : expected) {
-      LrpToken match = actualTokenMap.get(expectedToken.getToken());
+    for (LrpTokenEntity expectedToken : expected) {
+      LrpTokenEntity match = actualTokenMap.get(expectedToken.getToken());
       assertThat(match).isNotNull();
       assertThat(match.getAssignee()).isEqualTo(expectedToken.getAssignee());
       assertThat(match.getValidTlds()).containsExactlyElementsIn(expectedToken.getValidTlds());
@@ -185,12 +186,12 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
     }
   }
 
-  private LrpToken createToken(
+  private LrpTokenEntity createToken(
       String token,
       String assignee,
       Set<String> validTlds,
       @Nullable Key<HistoryEntry> redemptionHistoryEntry) {
-    LrpToken.Builder tokenBuilder = new LrpToken.Builder()
+    LrpTokenEntity.Builder tokenBuilder = new LrpTokenEntity.Builder()
         .setAssignee(assignee)
         .setValidTlds(validTlds)
         .setToken(token);

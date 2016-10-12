@@ -29,7 +29,7 @@ import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.LrpToken;
+import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Credit;
@@ -266,18 +266,18 @@ public final class TldSpecificLogicProxy {
   }
 
   /**
-   * Checks whether a {@link Create} command has a valid {@link LrpToken} for a particular TLD, and
-   * return that token (wrapped in an {@link Optional}) if one exists.
+   * Checks whether a {@link Create} command has a valid {@link LrpTokenEntity} for a particular
+   * TLD, and return that token (wrapped in an {@link Optional}) if one exists.
    *
    * <p>This method has no knowledge of whether or not an auth code (interpreted here as an LRP
    * token) has already been checked against the reserved list for QLP (anchor tenant), as auth
    * codes are used for both types of registrations.
    */
-  public static Optional<LrpToken> getMatchingLrpToken(Create createCommand, String tld) {
+  public static Optional<LrpTokenEntity> getMatchingLrpToken(Create createCommand, String tld) {
     // Note that until the actual per-TLD logic is built out, what's being done here is a basic
     // domain-name-to-assignee match.
     String lrpToken = createCommand.getAuthInfo().getPw().getValue();
-    LrpToken token = ofy().load().key(Key.create(LrpToken.class, lrpToken)).now();
+    LrpTokenEntity token = ofy().load().key(Key.create(LrpTokenEntity.class, lrpToken)).now();
     if (token != null) {
       if (token.getAssignee().equalsIgnoreCase(createCommand.getFullyQualifiedDomainName())
           && token.getRedemptionHistoryEntry() == null
@@ -285,6 +285,6 @@ public final class TldSpecificLogicProxy {
         return Optional.of(token);
       }
     }
-    return Optional.<LrpToken>absent();
+    return Optional.<LrpTokenEntity>absent();
   }
 }

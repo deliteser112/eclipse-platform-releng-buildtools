@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.model.domain.LrpToken;
+import google.registry.model.domain.LrpTokenEntity;
 import google.registry.tools.Command.RemoteApiCommand;
 
 /** Command to show token information for LRP participants. */
@@ -51,19 +51,20 @@ public final class GetLrpTokenCommand implements RemoteApiCommand {
     checkArgument(
         (tokenString == null) == (assignee != null),
         "Exactly one of either token or assignee must be specified.");
-    ImmutableSet.Builder<LrpToken> tokensBuilder = new ImmutableSet.Builder<>();
+    ImmutableSet.Builder<LrpTokenEntity> tokensBuilder = new ImmutableSet.Builder<>();
     if (tokenString != null) {
-      LrpToken token = ofy().load().key(Key.create(LrpToken.class, tokenString)).now();
+      LrpTokenEntity token =
+          ofy().load().key(Key.create(LrpTokenEntity.class, tokenString)).now();
       if (token != null) {
         tokensBuilder.add(token);
       }
     } else {
-      tokensBuilder.addAll(ofy().load().type(LrpToken.class).filter("assignee", assignee));
+      tokensBuilder.addAll(ofy().load().type(LrpTokenEntity.class).filter("assignee", assignee));
     }
 
-    ImmutableSet<LrpToken> tokens = tokensBuilder.build();
+    ImmutableSet<LrpTokenEntity> tokens = tokensBuilder.build();
     if (!tokens.isEmpty()) {
-      for (LrpToken token : tokens) {
+      for (LrpTokenEntity token : tokens) {
         System.out.println(token);
         if (includeHistory && token.getRedemptionHistoryEntry() != null) {
           System.out.println(

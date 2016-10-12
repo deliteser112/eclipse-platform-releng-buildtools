@@ -28,11 +28,9 @@ import google.registry.model.reporting.HistoryEntry;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * An entity representing a token distributed to eligible LRP registrants.
- */
+/** An entity representing a token distributed to eligible LRP registrants. */
 @Entity
-public class LrpToken extends BackupGroupRoot implements Buildable {
+public class LrpTokenEntity extends BackupGroupRoot implements Buildable {
 
   /**
    * The secret token assigned to a registrant for the purposes of LRP registration.
@@ -94,11 +92,11 @@ public class LrpToken extends BackupGroupRoot implements Buildable {
     return new Builder(clone(this));
   }
 
-  /** A builder for constructing {@link LrpToken} objects, since they are immutable. */
-  public static class Builder extends Buildable.Builder<LrpToken> {
+  /** A builder for constructing {@link LrpTokenEntity} objects, since they are immutable. */
+  public static class Builder extends Buildable.Builder<LrpTokenEntity> {
     public Builder() {}
 
-    private Builder(LrpToken instance) {
+    private Builder(LrpTokenEntity instance) {
       super(instance);
     }
 

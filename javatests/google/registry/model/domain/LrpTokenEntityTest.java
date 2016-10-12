@@ -30,11 +30,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-/** Unit tests for {@link LrpToken}. */
-public class LrpTokenTest extends EntityTestCase {
+/** Unit tests for {@link LrpTokenEntity}. */
+public class LrpTokenEntityTest extends EntityTestCase {
 
-  LrpToken unredeemedToken;
-  LrpToken redeemedToken;
+  LrpTokenEntity unredeemedToken;
+  LrpTokenEntity redeemedToken;
 
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
@@ -48,18 +48,17 @@ public class LrpTokenTest extends EntityTestCase {
         .setType(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE)
         .build());
     unredeemedToken = persistResource(
-        new LrpToken.Builder()
+        new LrpTokenEntity.Builder()
             .setAssignee("1:1020304")
             .setToken("a0b1c2d3e4f5g6")
             .setValidTlds(ImmutableSet.of("tld"))
             .setMetadata(ImmutableMap.of("foo", "bar"))
             .build());
     redeemedToken = persistResource(
-        new LrpToken.Builder()
+        new LrpTokenEntity.Builder()
             .setAssignee("2:org.testdomain")
             .setToken("h0i1j2k3l4m")
-            .setRedemptionHistoryEntry(
-                Key.create(applicationCreateHistoryEntry))
+            .setRedemptionHistoryEntry(Key.create(applicationCreateHistoryEntry))
             .setValidTlds(ImmutableSet.of("tld"))
             .setMetadata(ImmutableMap.of("bar", "foo"))
             .build());
@@ -72,13 +71,14 @@ public class LrpTokenTest extends EntityTestCase {
 
   @Test
   public void testSuccess_loadByToken() throws Exception {
-    assertThat(ofy().load().key(Key.create(LrpToken.class, "a0b1c2d3e4f5g6")).now())
+    assertThat(ofy().load().key(Key.create(LrpTokenEntity.class, "a0b1c2d3e4f5g6")).now())
         .isEqualTo(unredeemedToken);
   }
 
   @Test
   public void testSuccess_loadByAssignee() throws Exception {
-    assertThat(ofy().load().type(LrpToken.class).filter("assignee", "1:1020304").first().now())
+    assertThat(
+            ofy().load().type(LrpTokenEntity.class).filter("assignee", "1:1020304").first().now())
         .isEqualTo(unredeemedToken);
   }
   @Test

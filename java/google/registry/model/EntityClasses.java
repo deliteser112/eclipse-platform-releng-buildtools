@@ -28,7 +28,7 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.LrpToken;
+import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.export.LogsExportCursor;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.DomainApplicationIndex;
@@ -60,7 +60,7 @@ import google.registry.model.tmch.TmchCrl;
 public final class EntityClasses {
 
   /** Set of entity classes. */
-  @SuppressWarnings("unchecked")  // varargs
+  @SuppressWarnings("unchecked") // varargs
   public static final ImmutableSet<Class<? extends ImmutableObject>> ALL_CLASSES =
       ImmutableSet.<Class<? extends ImmutableObject>>of(
           BillingEvent.Cancellation.class,
@@ -92,7 +92,7 @@ public final class EntityClasses {
           HostResource.class,
           Lock.class,
           LogsExportCursor.class,
-          LrpToken.class,
+          LrpTokenEntity.class,
           PollMessage.class,
           PollMessage.Autorenew.class,
           PollMessage.OneTime.class,

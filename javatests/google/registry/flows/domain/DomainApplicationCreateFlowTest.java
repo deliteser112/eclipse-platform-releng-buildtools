@@ -104,7 +104,7 @@ import google.registry.flows.domain.DomainFlowUtils.TrailingDashException;
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeException;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.LrpToken;
+import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchPhase;
@@ -878,11 +878,12 @@ public class DomainApplicationCreateFlowTest
     persistResource(Registry.get("tld").asBuilder()
         .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
         .build());
-    LrpToken token = persistResource(new LrpToken.Builder()
-        .setToken("lrptokentest")
-        .setAssignee("test-validate.tld")
-        .setValidTlds(ImmutableSet.of("tld"))
-        .build());
+    LrpTokenEntity token = persistResource(
+        new LrpTokenEntity.Builder()
+            .setToken("lrptokentest")
+            .setAssignee("test-validate.tld")
+            .setValidTlds(ImmutableSet.of("tld"))
+            .build());
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -910,11 +911,12 @@ public class DomainApplicationCreateFlowTest
     persistResource(Registry.get("tld").asBuilder()
         .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
         .build());
-    LrpToken token = persistResource(new LrpToken.Builder()
-        .setToken("lrptokentest")
-        .setAssignee("test-validate.tld")
-        .setValidTlds(ImmutableSet.of("tld"))
-        .build());
+    LrpTokenEntity token = persistResource(
+        new LrpTokenEntity.Builder()
+            .setToken("lrptokentest")
+            .setAssignee("test-validate.tld")
+            .setValidTlds(ImmutableSet.of("tld"))
+            .build());
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -928,7 +930,7 @@ public class DomainApplicationCreateFlowTest
     persistResource(Registry.get("tld").asBuilder()
         .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
         .build());
-    persistResource(new LrpToken.Builder()
+    persistResource(new LrpTokenEntity.Builder()
         .setToken("lrptokentest2")
         .setAssignee("test-validate.tld")
         .setValidTlds(ImmutableSet.of("tld"))
@@ -946,7 +948,7 @@ public class DomainApplicationCreateFlowTest
     persistResource(Registry.get("tld").asBuilder()
         .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
         .build());
-    persistResource(new LrpToken.Builder()
+    persistResource(new LrpTokenEntity.Builder()
         .setToken("lrptokentest")
         // The below assignee doesn't really make sense here, but as of right now the validation
         // in TldSpecificLogicProxy is just a match on the domain name, so this test ensures that
@@ -967,11 +969,12 @@ public class DomainApplicationCreateFlowTest
     persistResource(Registry.get("tld").asBuilder()
         .setLrpTldStates(ImmutableSet.of(TldState.LANDRUSH))
         .build());
-    persistResource(new LrpToken.Builder()
+    persistResource(new LrpTokenEntity.Builder()
         .setToken("lrptokentest")
         .setAssignee("test-validate.tld")
         .setValidTlds(ImmutableSet.of("tld"))
-        .setRedemptionHistoryEntry(Key.create(HistoryEntry.class, "1")) // as long as it's not null
+        .setRedemptionHistoryEntry(
+            Key.create(HistoryEntry.class, "1")) // as long as it's not null
         .build());
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
@@ -983,11 +986,13 @@ public class DomainApplicationCreateFlowTest
   @Test
   public void testSuccess_landrushApplicationWithLrpToken_notInLrp() throws Exception {
     createTld("tld", TldState.LANDRUSH);
-    LrpToken token = persistResource(new LrpToken.Builder()
-        .setToken("lrptokentest")
-        .setAssignee("test-validate.tld")
-        .setValidTlds(ImmutableSet.of("tld"))
-        .build());
+    LrpTokenEntity token =
+        persistResource(
+            new LrpTokenEntity.Builder()
+                .setToken("lrptokentest")
+                .setAssignee("test-validate.tld")
+                .setValidTlds(ImmutableSet.of("tld"))
+                .build());
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1006,11 +1011,12 @@ public class DomainApplicationCreateFlowTest
             START_OF_TIME, TldState.SUNRISE,
             clock.nowUtc(), TldState.LANDRUSH))
         .build());
-    LrpToken token = persistResource(new LrpToken.Builder()
-        .setToken("lrptokentest")
-        .setAssignee("test-validate.tld")
-        .setValidTlds(ImmutableSet.of("tld"))
-        .build());
+    LrpTokenEntity token = persistResource(
+        new LrpTokenEntity.Builder()
+            .setToken("lrptokentest")
+            .setAssignee("test-validate.tld")
+            .setValidTlds(ImmutableSet.of("tld"))
+            .build());
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();

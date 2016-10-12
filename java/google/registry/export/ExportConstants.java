@@ -34,7 +34,7 @@ import google.registry.model.billing.RegistrarCredit;
 import google.registry.model.billing.RegistrarCreditBalance;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
-import google.registry.model.domain.LrpToken;
+import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.DomainApplicationIndex;
 import google.registry.model.index.EppResourceIndex;
@@ -53,7 +53,7 @@ public final class ExportConstants {
 
   /** Set of entity classes to export into BigQuery for reporting purposes. */
   @VisibleForTesting
-  @SuppressWarnings("unchecked")  // varargs
+  @SuppressWarnings("unchecked") // varargs
   static final ImmutableSet<Class<? extends ImmutableObject>> REPORTING_ENTITY_CLASSES =
       ImmutableSet.of(
           Cancellation.class,
@@ -66,7 +66,7 @@ public final class ExportConstants {
           ForeignKeyHostIndex.class,
           HistoryEntry.class,
           HostResource.class,
-          LrpToken.class,
+          LrpTokenEntity.class,
           Modification.class,
           OneTime.class,
           PremiumList.class,
