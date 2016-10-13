@@ -80,6 +80,47 @@ classes in their constructor.
 
 ## Guava
 
+The Nomulus codebase makes extensive use of the
+[Guava](https://github.com/google/guava) libraries. These libraries provide
+idiomatic, well-tested, and performant add-ons to the JDK. There are several
+libraries in particular that you should familiarize yourself with, as they are
+used extensively throughout the codebase:
+
+*   [Immutable
+    Collections](https://github.com/google/guava/wiki/ImmutableCollectionsExplained):
+    Immutable collections are a useful defensive programming technique. When an
+    Immutable collection type is used as a parameter type, it immediately
+    indicates that the given collection will not be modified in the method.
+    Immutable collections are also more memory-efficient than their mutable
+    counterparts, and are inherently thread-safe.
+
+    Immutable collections are constructed one of three ways:
+
+    *   Using a `Builder`: used when the collection will be built iteratively in
+        a loop.
+    *   With the `of` method: used when constructing the collection with a
+        handful of elements. Most commonly used when creating collections
+        representing constants, like lookup tables or whitelists.
+    *   With the `copyOf` method: used when constructing the method from a
+        reference to another collection. Used to defensively copy a mutable
+        collection (like a return value from an external library) to an
+        immutable collection.
+
+*   [Optional](https://github.com/google/guava/wiki/UsingAndAvoidingNullExplained#optional):
+    The `Optional<T>` class is used as a container for nullable values. It is
+    most often used as return value, as an explicit indicator that the return
+    value may be absent, thereby making a `null` return value an obvious error.
+
+*   [Preconditions](https://github.com/google/guava/wiki/PreconditionsExplained):
+    Preconditions are used defensively, in order to validate parameters and
+    state upon entry to a method.
+
+In addition to Guava, the codebase also extensively uses
+[AutoValue](https://github.com/google/auto) value classes. `AutoValue` value
+type objects are immutable and have sane default implementations of `toString`,
+`hashCode`, and `equals`. They are often used as parameters and return values to
+encapsulate related values together.
+
 ## EPP resource hierarchy
 
 ## Poll messages
