@@ -1,8 +1,8 @@
-# Domain Registry
+# Nomulus
 
 ## Overview
 
-Domain Registry is an open source, scalable, cloud-based service for operating
+Nomulus is an open source, scalable, cloud-based service for operating
 [top-level domains](https://en.wikipedia.org/wiki/Top-level_domain) (TLDs). It
 is the authoritative source for the TLDs that it runs, meaning that it is
 responsible for tracking domain name ownership and handling registrations,
@@ -10,14 +10,12 @@ renewals, availability checks, and WHOIS requests. End-user registrants (i.e.
 people or companies that want to register a domain name) use an intermediate
 domain name registrar acting on their behalf to interact with the registry.
 
-Domain Registry runs on [Google App
-Engine](https://cloud.google.com/appengine/docs/about-the-standard-environment)
-and is written primarily in Java. It is the software that [Google
-Registry](https://www.registry.google/) uses to operate TLDs such as .GOOGLE,
-.HOW, .SOY, and .みんな. It can run any number of TLDs in a single shared registry
-system using full horizontal scaling. Its source code is publicly available in
-this repository under the [Apache 2.0 free and open source
-license](https://www.apache.org/licenses/LICENSE-2.0).
+Nomulus runs on [Google App Engine][gae] and is written primarily in Java. It is
+the software that [Google Registry](https://www.registry.google/) uses to
+operate TLDs such as .GOOGLE, .HOW, .SOY, and .みんな. It can run any number of
+TLDs in a single shared registry system using horizontal scaling. Its source
+code is publicly available in this repository under the [Apache 2.0 free and
+open source license](https://www.apache.org/licenses/LICENSE-2.0).
 
 ## Getting started
 
@@ -25,13 +23,12 @@ The following resources provide information on getting the code and setting up a
 running system:
 
 *   [Install
-    guide](https://github.com/google/domain-registry/blob/master/docs/install.md)
-*   Frequently asked questions
-*   [Other docs](https://github.com/google/domain-registry/tree/master/docs)
-*   Javadocs
-*   [Domain registry user
-    group](https://groups.google.com/forum/#!forum/domain-registry-users), for
-    any other questions
+    guide](https://github.com/google/nomulus/blob/master/docs/install.md)
+*   [Other docs](https://github.com/google/nomulus/tree/master/docs)
+*   [Javadoc](https://nomulus.foo/javadoc/latest/)
+*   [Nomulus discussion
+    group](https://groups.google.com/forum/#!forum/nomulus-discuss), for any
+    other questions
 
 If you are thinking about running a production registry service using our
 platform, please drop by the user group and introduce yourself and your use
@@ -40,7 +37,7 @@ requests.
 
 ## Capabilities
 
-Domain Registry has the following capabilities:
+Nomulus has the following capabilities:
 
 *   **[Extensible Provisioning Protocol
     (EPP)](https://en.wikipedia.org/wiki/Extensible_Provisioning_Protocol)**: An
@@ -50,7 +47,8 @@ Domain Registry has the following capabilities:
 *   **[DNS](https://en.wikipedia.org/wiki/Domain_Name_System) interface**: The
     registry provides a pluggable interface that can be implemented to handle
     different DNS providers. It includes a sample implementation using Google
-    Cloud DNS.
+    Cloud DNS as well as an RFC 2136 compliant implementation that works with
+    BIND.
 *   **[WHOIS](https://en.wikipedia.org/wiki/WHOIS)**: A text-based protocol that
     returns ownership and contact information on registered domain names.
 *   **[Registration Data Access Protocol
@@ -60,16 +58,17 @@ Domain Registry has the following capabilities:
 *   **[Registry Data Escrow (RDE)](https://icannwiki.com/Data_Escrow)**: A daily
     export of all ownership information for a TLD to a third party escrow
     provider to allow take-over by another registry operator in the event of
-    serious failure. This is required by ICANN for all new gTLDs.
+    serious failure. This is required by ICANN for all [new
+    gTLDs](https://newgtlds.icann.org/).
 *   **Premium pricing**: Communicates prices for premium domain names (i.e.
     those that are highly desirable) and supports configurable premium
     registration and renewal prices. An extensible interface allows fully
     programmatic pricing.
 *   **Billing history**: A full history of all billable events is recorded,
     suitable for ingestion into an invoicing system.
-*   **Registration periods**: Qualified Launch Partner, Sunrise, Landrush, and
-    General Availability periods of the standard gTLD lifecycle are all
-    supported.
+*   **Registration periods**: Qualified Launch Partner, Sunrise, Landrush,
+    Claims, and General Availability periods of the standard gTLD lifecycle are
+    all supported.
 *   **Brand protection for trademark holders (via
     [TMCH](https://newgtlds.icann.org/en/about/trademark-clearinghouse/faqs))**:
     Allows rights-holders to protect their brands by blocking registration of
@@ -79,7 +78,7 @@ Domain Registry has the following capabilities:
 *   **Reporting**: Support for required external reporting (such as [ICANN
     monthly registry
     reports](https://www.icann.org/resources/pages/registry-reports),
-    [CZDS](https://czds.icann.org), Billing and Registration Activity) as well
+    [CZDS](https://czds.icann.org/), Billing and Registration Activity) as well
     as internal reporting using [BigQuery](https://cloud.google.com/bigquery/).
 *   **Administrative tool**: Performs the full range of administrative tasks
     needed to manage a running registry system, including creating and
@@ -102,6 +101,23 @@ provided out of the box:
 *   System status and uptime monitoring.
 *   A proxy to forward traffic on EPP and WHOIS ports to App Engine via HTTPS,
     since App Engine Standard only serves HTTP/S traffic. The proxy must support
-    IPv4 and IPv6 access to comply with ICANN's requirements for gTLDs. There
-    are plans to eliminate the need for a proxy by migrating to [App Engine
-    Flexible](https://cloud.google.com/appengine/docs/flexible/) in the future.
+    IPv4 and IPv6 access to comply with ICANN's requirements for gTLDs.
+
+## Outside references
+
+*   [Donuts](http://donuts.domains) Registry has helped review the code and
+    provided valuable feedback
+*   [CoCCa](http://cocca.org.nz) and [FRED](https://fred.nic.cz) are other
+    open-source registry platforms in use by many TLDs
+*   We are not aware of any fully open source domain registrar projects, but
+    open source EPP Toolkits (not yet tested with Nomulus; may require
+    integration work) include:
+    *   [EPP RTK Project](http://epp-rtk.sourceforge.net/)
+    *   [CentralNic](https://www.centralnic.com/registry/labs)
+    *   [ari-toolkit](https://github.com/AusRegistry/ari-toolkit)
+*   Some Open Source DNS Projects that may be useful, but which we have not
+    tested:
+    *   [AtomiaDNS](http://atomiadns.com/)
+    *   [PowerDNS](https://doc.powerdns.com/md/)
+
+[gae]:https://cloud.google.com/appengine/docs/about-the-standard-environment
