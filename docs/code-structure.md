@@ -7,6 +7,53 @@ particularly important pieces of the system are implemented.
 
 ## Bazel build system
 
+[Bazel](https://www.bazel.io/) is used to build and test the Nomulus codebase.
+
+Bazel builds are described using [BUILD
+files](https://www.bazel.io/versions/master/docs/build-ref.html). A directory
+containing a BUILD file defines a package consisting of all files and
+directories underneath it, except those directories which themselves also
+contain BUILD files. A package contains targets. Most targets in the codebase
+are of the type `java_library`, which generates `JAR` files, or `java_test`,
+which runs tests.
+
+The key to Bazel's ability to create reproducible builds is the requirement that
+each build target must declare its direct dependencies. Each of those
+dependencies is a target, which, in turn, must also declare its dependencies.
+This recursive description of a target's dependencies forms an acyclic graph
+that fully describes the targets which must be built in order to build any
+target in the graph.
+
+A wrinkle in this system is managing external dependencies. Bazel was designed
+first and foremost to manage builds where all code lives in a single source
+repository and is compiled from `HEAD`. In order to mesh with other build and
+packaging schemes, such as libraries distributed as compiled `JAR`s, Bazel
+supports [external target
+declarations](https://www.bazel.io/versions/master/docs/external.html#transitive-dependencies).
+The Nomulus codebase uses external targets pulled in from Maven Central, these
+are declared in `java/google/registry/repositories.bzl`. The dependencies of
+these external targets are not managed by Bazel; you must manually add all of
+the dependencies or use the
+[generate_workspace](https://github.com/bazelbuild/bazel/tree/master/src/tools/generate_workspace
+tool to do it.
+
+### How to generate `EAR`/`WAR` archives for deployment
+
+There are special build target types for generating `WAR` and `EAR` files for
+deploying Nomulus to GAE. These targets, `zip_file` and `registry_ear_file` respectively, are used in `java/google/registry/BUILD`. To generate archives suitable for deployment on GAE:
+
+```shell
+$ bazel build java/google/registry:registry_ear
+  ...
+  bazel-genfiles/java/google/registry/registry.ear
+INFO: Elapsed time: 0.216s, Critical Path: 0.00s
+# This will also generate the per-module WAR files:
+$ ls bazel-genfiles/java/google/registry/*.war
+bazel-genfiles/java/google/registry/registry_backend.war
+bazel-genfiles/java/google/registry/registry_default.war
+bazel-genfiles/java/google/registry/registry_tools.war
+```
+
 ## Flows
 
 ## Commit logs and backups
