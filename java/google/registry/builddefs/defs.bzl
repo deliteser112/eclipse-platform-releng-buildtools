@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Common routines for Domain Registry build rules."""
+"""Common routines for Nomulus build rules."""
 
 ZIPPER = "@bazel_tools//tools/zip:zipper"
 

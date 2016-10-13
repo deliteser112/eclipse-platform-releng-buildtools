@@ -43,7 +43,7 @@ function setUp() {
     clientId: 'daddy',
     showPaymentLink: false,
     logoFilename: 'logo.png',
-    productName: 'Domain Registry'
+    productName: 'Nomulus'
   });
   registry.registrar.ConsoleTestUtil.setup(test);
 }

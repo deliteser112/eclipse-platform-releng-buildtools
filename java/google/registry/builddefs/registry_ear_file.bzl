@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Build macro for creating App Engine EAR archives for Domain Registry."""
+"""Build macro for creating App Engine EAR archives for Nomulus."""
 
 load("//java/google/registry/builddefs:defs.bzl", "ZIPPER")
 

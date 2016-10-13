@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.joda.time.Duration;
 
 /**
- * Dagger request processor for Domain Registry.
+ * Dagger request processor for Nomulus.
  *
  * <p>This class creates an HTTP request processor from a Dagger component. It routes requests from
  * your servlet to an {@link Action @Action} annotated handler class.

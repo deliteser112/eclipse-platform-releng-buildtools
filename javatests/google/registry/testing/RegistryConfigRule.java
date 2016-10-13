@@ -22,7 +22,7 @@ import google.registry.config.RegistryEnvironment;
 import google.registry.config.TestRegistryConfig;
 import org.junit.rules.ExternalResource;
 
-/** JUnit Rule for overriding Domain Registry configuration values. */
+/** JUnit Rule for overriding Nomulus configuration values. */
 public final class RegistryConfigRule extends ExternalResource {
 
   private final Optional<RegistryConfig> override;

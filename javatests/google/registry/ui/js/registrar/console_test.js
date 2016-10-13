@@ -53,7 +53,7 @@ function setUp() {
     clientId: test.testClientId,
     showPaymentLink: false,
     logoFilename: 'logo.png',
-    productName: 'Domain Registry'
+    productName: 'Nomulus'
   });
   registry.registrar.ConsoleTestUtil.setup(test);
   var regNavlist = $('reg-navlist');

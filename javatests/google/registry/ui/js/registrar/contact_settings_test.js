@@ -52,7 +52,7 @@ function setUp() {
     clientId: test.testClientId,
     showPaymentLink: false,
     logoFilename: 'logo.png',
-    productName: 'Domain Registry'
+    productName: 'Nomulus'
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
   registry.registrar.ConsoleTestUtil.setup(test);

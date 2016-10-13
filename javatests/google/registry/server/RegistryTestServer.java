@@ -23,7 +23,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/** Lightweight HTTP server for testing the Domain Registry Admin and Registrar consoles. */
+/** Lightweight HTTP server for testing the Nomulus Admin and Registrar consoles. */
 public final class RegistryTestServer {
 
   public static final ImmutableMap<String, Path> RUNFILES =

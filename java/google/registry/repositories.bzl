@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""External dependencies for Domain Registry."""
+"""External dependencies for Nomulus."""
 
 
 def domain_registry_repositories():

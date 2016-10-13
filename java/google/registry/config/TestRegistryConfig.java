@@ -109,7 +109,7 @@ public class TestRegistryConfig implements RegistryConfig {
 
   @Override
   public String getGoogleAppsAdminEmailDisplayName() {
-    return "Testing Domain Registry";
+    return "Testing Nomulus";
   }
 
   @Override

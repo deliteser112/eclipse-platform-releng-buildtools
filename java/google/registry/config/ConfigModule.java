@@ -30,13 +30,13 @@ import org.joda.time.DateTimeConstants;
 import org.joda.time.Duration;
 
 /**
- * Configuration example for the Domain Registry codebase.
+ * Configuration example for the Nomulus codebase.
  *
- * <p>The Domain Registry codebase contains many classes that inject configurable settings. This is
+ * <p>The Nomulus codebase contains many classes that inject configurable settings. This is
  * the centralized class that is used by default to configure them all, in hard-coded type-safe
  * Java code.
  *
- * <p>This class does not represent the total configuration of the Domain Registry service. It's
+ * <p>This class does not represent the total configuration of the Nomulus service. It's
  * <b>only meant for settings that need to be configured <i>once</i></b>. Settings which may
  * be subject to change in the future, should instead be retrieved from Datastore. The
  * {@link google.registry.model.registry.Registry Registry} class is one such example of this.
@@ -102,7 +102,7 @@ public final class ConfigModule {
     switch (environment) {
       case UNITTEST:
       case LOCAL:
-        return "Domain Registry";
+        return "Nomulus";
       default:
         // Change this to the name of your product.
         return "Google Registry";
@@ -616,7 +616,7 @@ public final class ConfigModule {
       case PRODUCTION:
         return "6gm2mm48k9ty4zmx";
       default:
-        // Valentine: Domain Registry Braintree Sandbox
+        // Valentine: Nomulus Braintree Sandbox
         return "vqgn8khkq2cs6y9s";
     }
   }
@@ -635,7 +635,7 @@ public final class ConfigModule {
       case PRODUCTION:
         return "tzcfxggzgbh2jg5x";
       default:
-        // Valentine: Domain Registry Braintree Sandbox
+        // Valentine: Nomulus Braintree Sandbox
         return "tzcyzvm3mn7zkdnx";
     }
   }

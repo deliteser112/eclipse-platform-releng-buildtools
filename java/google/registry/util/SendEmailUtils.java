@@ -40,7 +40,7 @@ public class SendEmailUtils {
   private static SendEmailService emailService = new SendEmailService();
 
   /**
-   * Sends an email from Domain Registry to the specified recipient. Returns true iff sending was
+   * Sends an email from Nomulus to the specified recipient. Returns true iff sending was
    * successful.
    */
   public static boolean sendEmail(String address, String subject, String body) {
@@ -48,7 +48,7 @@ public class SendEmailUtils {
   }
 
   /**
-   * Sends an email from Domain Registry to the specified recipients. Returns true iff sending was
+   * Sends an email from Nomulus to the specified recipients. Returns true iff sending was
    * successful.
    */
   public static boolean sendEmail(Iterable<String> addresses, final String subject, String body) {

@@ -20,7 +20,7 @@ import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
 
 /**
- * Domain Registry keyring interface.
+ * Nomulus keyring interface.
  *
  * <p>Separate methods are defined for each specific situation in which the
  * registry server needs a secret value, like a PGP key or password.

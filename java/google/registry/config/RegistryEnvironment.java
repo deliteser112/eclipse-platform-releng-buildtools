@@ -55,7 +55,7 @@ public enum RegistryEnvironment {
   }
 
   /**
-   * Returns configuration for this Domain Registry environment.
+   * Returns configuration for this Nomulus environment.
    *
    * <p><b>WARNING:</b> Do not store this value to a static field, otherwise you won't be able to
    * override it for testing. You should instead store the environment object to a static field.

@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Path prefix request router for Domain Registry.
+ * Path prefix request router for Nomulus.
  *
  * <p>See the documentation of {@link RequestHandler} for more information.
  *

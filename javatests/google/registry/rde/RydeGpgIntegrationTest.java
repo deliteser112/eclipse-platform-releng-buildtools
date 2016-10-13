@@ -183,7 +183,7 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
     //
     // jart@jart:/tmp$ gpg --verify /tmp/deposit.sig /tmp/deposit.ryde
     // gpg: Signature made Mon 26 Aug 2013 12:04:27 PM EDT using RSA-S key ID 2774D88E
-    // gpg: Good signature from "Domain Registry Dev <domain-registry-eng+dev-key@google.com>"
+    // gpg: Good signature from "Nomulus Dev <domain-registry-eng+dev-key@google.com>"
     logger.info("Running GPG to verify signature...");
     {
       Process pid = gpg.exec(cmd.get(), "--verify", sigFile.toString(), rydeFile.toString());
