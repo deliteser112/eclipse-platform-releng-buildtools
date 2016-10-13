@@ -108,6 +108,7 @@ public final class DomainRestoreRequestFlow extends LoggedInFlow implements Tran
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
+  @Inject DnsQueue dnsQueue;
   @Inject DomainRestoreRequestFlow() {}
 
   @Override
@@ -157,7 +158,7 @@ public final class DomainRestoreRequestFlow extends LoggedInFlow implements Tran
     entitiesToSave.add(newDomain, historyEntry, autorenewEvent, autorenewPollMessage);
     ofy().save().entities(entitiesToSave.build());
     ofy().delete().key(existingDomain.getDeletePollMessage());
-    DnsQueue.create().addDomainRefreshTask(existingDomain.getFullyQualifiedDomainName());
+    dnsQueue.addDomainRefreshTask(existingDomain.getFullyQualifiedDomainName());
     return createOutput(SUCCESS, null, createResponseExtensions(restoreCost, renewCost, feeUpdate));
   }
 

@@ -31,7 +31,7 @@ public abstract class CreateOrUpdatePremiumListAction implements Runnable {
   public static final String INPUT_PARAM = "inputData";
 
   @Inject JsonResponse response;
-  @Inject @Parameter(NAME_PARAM) String name;
+  @Inject @Parameter("premiumListName") String name;
   @Inject @Parameter(INPUT_PARAM) String inputData;
 
   @Override

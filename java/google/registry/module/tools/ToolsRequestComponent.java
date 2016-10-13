@@ -15,6 +15,7 @@
 package google.registry.module.tools;
 
 import dagger.Subcomponent;
+import google.registry.dns.DnsModule;
 import google.registry.export.PublishDetailReportAction;
 import google.registry.flows.EppToolAction;
 import google.registry.flows.EppToolAction.EppToolModule;
@@ -49,6 +50,7 @@ import google.registry.tools.server.javascrap.RefreshAllDomainsAction;
 @RequestScope
 @Subcomponent(
     modules = {
+        DnsModule.class,
         EppToolModule.class,
         LoadTestModule.class,
         MapreduceModule.class,

@@ -94,6 +94,7 @@ public final class DomainDeleteFlow extends LoggedInFlow implements Transactiona
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
+  @Inject DnsQueue dnsQueue;
   @Inject DomainDeleteFlow() {}
 
   @Override
@@ -140,7 +141,7 @@ public final class DomainDeleteFlow extends LoggedInFlow implements Transactiona
     // If there's a pending transfer, the gaining client's autorenew billing
     // event and poll message will already have been deleted in
     // ResourceDeleteFlow since it's listed in serverApproveEntities.
-    DnsQueue.create().addDomainRefreshTask(existingDomain.getFullyQualifiedDomainName());
+    dnsQueue.addDomainRefreshTask(existingDomain.getFullyQualifiedDomainName());
     // Cancel any grace periods that were still active.
     for (GracePeriod gracePeriod : existingDomain.getGracePeriods()) {
       // No cancellation is written if the grace period was not for a billable event.

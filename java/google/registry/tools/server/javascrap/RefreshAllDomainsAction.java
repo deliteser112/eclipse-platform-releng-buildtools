@@ -36,8 +36,6 @@ public class RefreshAllDomainsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  private static DnsQueue dnsQueue = DnsQueue.create();
-
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
   @Inject RefreshAllDomainsAction() {}
@@ -58,6 +56,7 @@ public class RefreshAllDomainsAction implements Runnable {
   /** Mapper to refresh all active domain resources. */
   public static class RefreshAllDomainsActionMapper extends Mapper<DomainResource, Void, Void> {
 
+    private static final DnsQueue dnsQueue = DnsQueue.create();
     private static final long serialVersionUID = 1356876487351666133L;
 
     @Override

@@ -18,6 +18,7 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.Subcomponent;
 import google.registry.config.ConfigModule;
+import google.registry.dns.DnsModule;
 import google.registry.flows.async.AsyncFlowsModule;
 import google.registry.flows.contact.ContactCheckFlow;
 import google.registry.flows.contact.ContactCreateFlow;
@@ -65,6 +66,7 @@ import google.registry.util.SystemSleeper.SystemSleeperModule;
 @Subcomponent(modules = {
     AsyncFlowsModule.class,
     ConfigModule.class,
+    DnsModule.class,
     FlowModule.class,
     FlowComponent.FlowComponentModule.class,
     SystemSleeperModule.class})

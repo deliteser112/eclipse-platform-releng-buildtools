@@ -15,6 +15,7 @@
 package google.registry.module.frontend;
 
 import dagger.Subcomponent;
+import google.registry.dns.DnsModule;
 import google.registry.flows.CheckApiAction;
 import google.registry.flows.CheckApiAction.CheckApiModule;
 import google.registry.flows.EppConsoleAction;
@@ -47,6 +48,7 @@ import google.registry.whois.WhoisServer;
 @Subcomponent(
     modules = {
         CheckApiModule.class,
+        DnsModule.class,
         EppTlsModule.class,
         RdapModule.class,
         RegistrarUserModule.class,

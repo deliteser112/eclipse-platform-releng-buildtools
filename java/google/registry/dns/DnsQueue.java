@@ -145,8 +145,13 @@ public class DnsQueue {
     }
   }
 
-  // TODO(b/19483428): Remove me when flows package is ported to Dagger.
-  /** Creates a new instance. */
+  /**
+   * Creates a new instance.
+   *
+   * <p><b>Note:</b> Prefer <code>@Inject</code>ing DnsQueue instances instead. You should only use
+   * this helper method in situations for which injection does not work, e.g. inside mapper or
+   * reducer classes in mapreduces that need to be Serializable.
+   */
   public static DnsQueue create() {
     DnsQueue result = new DnsQueue();
     result.writeLockTimeout = Duration.standardSeconds(120);

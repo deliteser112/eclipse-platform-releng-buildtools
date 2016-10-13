@@ -105,6 +105,7 @@ public final class HostUpdateFlow extends LoggedInFlow implements TransactionalF
   @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
+  @Inject DnsQueue dnsQueue;
   @Inject HostUpdateFlow() {}
 
   @Override
@@ -219,14 +220,14 @@ public final class HostUpdateFlow extends LoggedInFlow implements TransactionalF
     // Only update DNS for subordinate hosts. External hosts have no glue to write, so they
     // are only written as NS records from the referencing domain.
     if (existingResource.getSuperordinateDomain() != null) {
-      DnsQueue.create().addHostRefreshTask(existingResource.getFullyQualifiedHostName());
+      dnsQueue.addHostRefreshTask(existingResource.getFullyQualifiedHostName());
     }
     // In case of a rename, there are many updates we need to queue up.
     if (((Update) resourceCommand).getInnerChange().getFullyQualifiedHostName() != null) {
       // If the renamed host is also subordinate, then we must enqueue an update to write the new
       // glue.
       if (newResource.getSuperordinateDomain() != null) {
-        DnsQueue.create().addHostRefreshTask(newResource.getFullyQualifiedHostName());
+        dnsQueue.addHostRefreshTask(newResource.getFullyQualifiedHostName());
       }
       // We must also enqueue updates for all domains that use this host as their nameserver so
       // that their NS records can be updated to point at the new name.

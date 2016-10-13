@@ -57,7 +57,7 @@ public class ToolsServerModule {
   }
 
   @Provides
-  @Parameter("name")
+  @Parameter("premiumListName")
   static String provideName(HttpServletRequest req) {
     return extractRequiredParameter(req, CreatePremiumListAction.NAME_PARAM);
   }

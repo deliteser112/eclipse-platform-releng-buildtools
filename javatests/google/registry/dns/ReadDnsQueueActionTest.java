@@ -14,8 +14,10 @@
 
 package google.registry.dns;
 
+import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.collect.Lists.transform;
 import static google.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
+import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
 import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
 import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
 import static google.registry.request.RequestParameters.PARAM_TLD;
@@ -84,7 +86,8 @@ public class ReadDnsQueueActionTest {
     clock.setTo(DateTime.now(DateTimeZone.UTC));
     createTlds("com", "net", "example");
     persistResource(Registry.get("example").asBuilder().setTldType(TldType.TEST).build());
-    dnsQueue = DnsQueue.create();
+    dnsQueue = new DnsQueue();
+    dnsQueue.queue = getQueue(DNS_PULL_QUEUE_NAME);
     dnsQueue.writeLockTimeout = Duration.standardSeconds(10);
   }
 
