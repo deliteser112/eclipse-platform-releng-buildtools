@@ -261,7 +261,43 @@ common_bad-words
 exampletld_some-other-list
 ```
 
-## StackDriver monitoring
+## Stackdriver monitoring
+
+[Stackdriver Monitoring](https://cloud.google.com/monitoring/docs/) is used to
+instrument internal state within the Nomulus internal environment. This is
+broadly called white-box monitoring. Currently, EPP and DNS are instrumented.
+The metrics monitored are as follows:
+
+*   `/custom/epp/requests` -- A count of EPP requests, described by command
+    name, client id, and return status code.
+*   `/custom/epp/processing_time` -- A
+    [Distribution](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/TypedValue#Distribution)
+    representing the processing time for EPP requests, described by command
+    name, client id, and retujrn status code.
+*   `/custom/dns/publish_domain_requests` -- A count of publish domain requests,
+    described by the target TLD and the return status code from the underlying
+    DNS implementation.
+*   `/custom/dns/publish_host_requests` -- A count of publish host requests,
+    described by the target TLD and the return status code from the underlying
+    DNS implementation.
+
+Follow the guide to [set up a Stackdriver
+account](https://cloud.google.com/monitoring/accounts/guide) and associate it
+with the GCP project containing the Nomulus App Engine app. Once the two have
+been linked, monitoring will start automatically. For now, because the
+visualization of custom metrics in Stackdriver is embryronic, you can retrieve
+and visualize the collected metrics with a script, as described in the guide on
+[Reading Time
+Series](https://cloud.google.com/monitoring/custom-metrics/reading-metrics) and
+the [custom metric code
+sample](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/monitoring/api/v3/custom_metric.py).
+
+In addition to the included white-box monitoring, black-box monitoring should be
+set up to exercise the functionality of the registry platform as a user would
+see it. This monitoring should, for example, create a new domain name every few
+minutes via EPP and then verify that the domain exists in DNS and WHOIS. For
+now, no black-box monitoring implementation is provided with the Nomulus
+platform.
 
 ## Updating cursors
 
