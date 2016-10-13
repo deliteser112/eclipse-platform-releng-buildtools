@@ -14,7 +14,6 @@
 
 package google.registry.flows.domain;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationType;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -137,19 +136,7 @@ public class DomainAllocateFlow extends DomainCreateOrAllocateFlow {
                 DomainPendingActionNotificationResponse.create(
                     application.getFullyQualifiedDomainName(),
                     true,
-                    // If the creation TRID is not present on the application (this can happen for
-                    // older applications written before this field was added), then we must read
-                    // the earliest history entry for the application to retrieve it.
-                    application.getCreationTrid() == null
-                        ? checkNotNull(ofy()
-                            .load()
-                            .type(HistoryEntry.class)
-                            .ancestor(application)
-                            .order("modificationTime")
-                            .first()
-                            .now()
-                            .getTrid())
-                        : application.getCreationTrid(),
+                    application.getCreationTrid(),
                     now)))
             .setResponseExtensions(ImmutableList.of(
                 new LaunchInfoResponseExtension.Builder()

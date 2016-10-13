@@ -107,6 +107,7 @@ public class DomainAllocateFlowTest
         "collision-label,NAME_COLLISION")).build());
     String domainName = getUniqueIdFromCommand();
     application = persistResource(newDomainApplication(domainName).asBuilder()
+        .setCreationTrid(TRID)
         .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "abcdef")))
         .build());
     for (int i = 1; i <= 14; ++i) {
@@ -114,14 +115,6 @@ public class DomainAllocateFlowTest
     }
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
-    // Add a history entry under this application that corresponds to its creation.
-    persistResource(
-        new HistoryEntry.Builder()
-            .setParent(application)
-            .setType(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE)
-            .setModificationTime(APPLICATION_TIME)
-            .setTrid(TRID)
-            .build());
     clock.setTo(DateTime.parse("2010-09-16T10:00:00.0Z"));
   }
 
@@ -145,7 +138,7 @@ public class DomainAllocateFlowTest
     DomainApplication application = loadDomainApplication(applicationId, clock.nowUtc());
     assertAboutApplications().that(application)
         .hasApplicationStatus(ApplicationStatus.ALLOCATED).and()
-        .hasHistoryEntryAtIndex(1)
+        .hasHistoryEntryAtIndex(0)
             .which().hasType(HistoryEntry.Type.DOMAIN_APPLICATION_STATUS_UPDATE);
 
     String domainName = getUniqueIdFromCommand();
