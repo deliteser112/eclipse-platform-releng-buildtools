@@ -287,7 +287,7 @@
         Any request path starting with `/_dr/` will be restricted to requests originating
         from the backend or by anyone authenticated to a Google account that's listed in
         the AppEngine control panel settings for this project as a Viewer/Owner/Developer.
-        The `_dr` is short for Nomulus to follow AppEngine naming conventions.
+        The `_dr` is short for domain registry to follow AppEngine naming conventions.
       </description>
       <url-pattern>/_dr/*</url-pattern>
     </web-resource-collection>

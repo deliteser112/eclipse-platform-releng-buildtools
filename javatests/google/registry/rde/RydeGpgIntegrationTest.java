@@ -134,7 +134,6 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
 
     // Iron Mountain examines the ryde file to see what sort of OpenPGP layers it contains.
     //
-    // jart@jart:/tmp$ gpg --list-packets /tmp/deposit.ryde
     // :pubkey enc packet: version 3, algo 1, keyid 239F455A2ACEE5C2
     //         data: [2047 bits]
     // :encrypted data packet:
@@ -179,11 +178,11 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
       assertWithMessage("Unexpected receiver public key").that(stderr).contains("ID 54E1EB0F");
     }
 
-    // Iron Mountain now verifies that rydeFile is authentic and was signed by Google.
+    // Iron Mountain now verifies that rydeFile is authentic and was signed appropriately.
     //
     // jart@jart:/tmp$ gpg --verify /tmp/deposit.sig /tmp/deposit.ryde
     // gpg: Signature made Mon 26 Aug 2013 12:04:27 PM EDT using RSA-S key ID 2774D88E
-    // gpg: Good signature from "Nomulus Dev <domain-registry-eng+dev-key@google.com>"
+    // gpg: Good signature from <rde-unittest@registry.test>
     logger.info("Running GPG to verify signature...");
     {
       Process pid = gpg.exec(cmd.get(), "--verify", sigFile.toString(), rydeFile.toString());

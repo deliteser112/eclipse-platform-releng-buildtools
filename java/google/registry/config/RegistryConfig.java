@@ -21,7 +21,7 @@ import java.net.URL;
 import org.joda.time.Duration;
 
 /**
- * Nomulus configuration for global constants that can't be injected.
+ * Registry configuration for global constants that can't be injected.
  *
  * <p>The goal of this custom configuration system is to have our project environments configured
  * in type-safe Java code that can be refactored, rather than XML files and system properties.
