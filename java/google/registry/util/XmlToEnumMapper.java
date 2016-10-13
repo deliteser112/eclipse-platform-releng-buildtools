@@ -14,6 +14,8 @@
 
 package google.registry.util;
 
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+
 import com.google.common.collect.ImmutableMap;
 import javax.xml.bind.annotation.XmlEnumValue;
 
@@ -38,12 +40,12 @@ public final class XmlToEnumMapper<T extends Enum<?>> {
     ImmutableMap.Builder<String, T> mapBuilder = new ImmutableMap.Builder<>();
     for (T value : enumValues) {
       try {
-        String xmlName =
-            value
-                .getDeclaringClass()
-                .getField(value.name())
-                .getAnnotation(XmlEnumValue.class)
-                .value();
+        XmlEnumValue xmlAnnotation = value
+            .getDeclaringClass()
+            .getField(value.name())
+            .getAnnotation(XmlEnumValue.class);
+        checkArgumentNotNull(xmlAnnotation, "Cannot map enum value to xml name: " + value);
+        String xmlName = xmlAnnotation.value();
         mapBuilder = mapBuilder.put(xmlName, value);
       } catch (NoSuchFieldException e) {
         throw new RuntimeException(e);
