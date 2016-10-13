@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
+import javax.inject.Named;
 import org.joda.time.Duration;
 
 /**
@@ -66,16 +67,11 @@ class CloudDnsWriter implements DnsWriter {
   public static final String NAME = "CloudDnsWriter";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
-
-  // This is the default max QPS for Cloud DNS. It can be increased by contacting the team
-  // via the Quotas page on the Cloud Console.
-  // TODO(shikhman): inject the RateLimiter
-  private static final int CLOUD_DNS_MAX_QPS = 20;
-  private static final RateLimiter rateLimiter = RateLimiter.create(CLOUD_DNS_MAX_QPS);
   private static final ImmutableSet<String> RETRYABLE_EXCEPTION_REASONS =
       ImmutableSet.of("preconditionFailed", "notFound", "alreadyExists");
 
   private final Clock clock;
+  private final RateLimiter rateLimiter;
   // TODO(shikhman): This uses @Config("transientFailureRetries") which may not be tuned for this
   // application.
   private final Retrier retrier;
@@ -92,12 +88,14 @@ class CloudDnsWriter implements DnsWriter {
       @Config("projectId") String projectId,
       @DnsWriterZone String zoneName,
       @Config("dnsDefaultTtl") Duration defaultTtl,
+      @Named("cloudDns") RateLimiter rateLimiter,
       Clock clock,
       Retrier retrier) {
     this.dnsConnection = dnsConnection;
     this.projectId = projectId;
     this.zoneName = zoneName;
     this.defaultTtl = defaultTtl;
+    this.rateLimiter = rateLimiter;
     this.clock = clock;
     this.retrier = retrier;
   }

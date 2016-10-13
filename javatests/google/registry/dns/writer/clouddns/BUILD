@@ -17,6 +17,7 @@ java_library(
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
         "//java/com/google/common/net",
+        "//java/com/google/common/util/concurrent",
         "//third_party/java/joda_time",
         "//third_party/java/jsr305_annotations",
         "//third_party/java/jsr330_inject",

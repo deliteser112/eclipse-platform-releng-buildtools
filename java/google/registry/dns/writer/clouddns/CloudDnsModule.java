@@ -20,6 +20,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.DnsScopes;
 import com.google.common.base.Function;
+import com.google.common.util.concurrent.RateLimiter;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
@@ -57,5 +58,14 @@ public final class CloudDnsModule {
   @Named("dnsWriterNames")
   static String provideWriterName() {
     return CloudDnsWriter.NAME;
+  }
+
+  @Provides
+  @Named("cloudDns")
+  static RateLimiter provideRateLimiter() {
+    // This is the default max QPS for Cloud DNS. It can be increased by contacting the team
+    // via the Quotas page on the Cloud Console.
+    int cloudDnsMaxQps = 20;
+    return RateLimiter.create(cloudDnsMaxQps);
   }
 }
