@@ -12,7 +12,7 @@ phases:
 1.  [Staging](https://github.com/google/nomulus/blob/master/java/google/registry/rde/RdeStagingAction.java):
     Generate XML deposit and XML report files on Google Cloud Storage.
 2.  [Upload](https://github.com/google/nomulus/blob/master/java/google/registry/rde/RdeUploadAction.java):
-    Transmit XML deposit to the escrow provider via SFTP.
+    Transmit XML deposit to the escrow provider via sFTP.
 3.  [Report](https://github.com/google/nomulus/blob/master/java/google/registry/rde/RdeReportAction.java):
     Transmit XML *report* file to ICANN via HTTPS.
 
@@ -20,6 +20,10 @@ Each phase happens with an App Engine task queue entry that retries on failure.
 When each task succeeds, it automatically enqueues a task for the next phase in
 the process. The staging files are stored in Google Cloud Storage indefinitely,
 encrypted with the GhostRyDE container format.
+
+Note that in order for the automated RDE processing to work correctly, you will
+need to implement a working and secure key store from which RDE can pull the
+private key used to transmit the deposits via sFTP.
 
 For each phase in the process, the system maintains a `Cursor` entity in
 Datastore, which contains a timestamp indicating that everything up to the day
@@ -72,7 +76,7 @@ gs://{PROJECT-ID}-rde/zip_2015-05-16.xml.length
 
 ## Normal launch
 
-Under normal circumstances, RDE is launched by CronFanoutServlet, configured in
+Under normal circumstances, RDE is launched by TldFanoutAction, configured in
 cron.xml. If the App Engine's cron executor isn't working, you can spawn it
 manually by visiting the following URL:
 
@@ -233,8 +237,9 @@ $ ls *.ryde *.sig
 
 ### Verifying the deposit signature (optional)
 
+To verify the deposit signature, you will need a file containing the public key.
+
 ```shell
-$ nomulus -e production get_key --name rde-signing-public > rde-signing-public
 $ (umask 0077; mkdir gpgtemp)
 $ GNUPGHOME=gpgtemp gpg --import ./rde-signing-public
 $ GNUPGHOME=gpgtemp gpg --verify ${tld}_${date}_full_S1_R0-report.{sig,ryde}
@@ -247,13 +252,12 @@ $ rm -rf gpgtemp
 ### Uploading the encrypted deposit and signature files
 
 NOTE: If you need to manually upload files directly to the escrow provider, only
-upload the .ryde and .sig files. DO NOT upload any other files.
+upload the .ryde and .sig files. DO NOT upload any other files. You will need a
+file containing the private key.
 
 ```shell
-# First, you'll need to get the SSH private key from KeyStore
-$ (umask 0077; nomulus -e production get_key --name rde-ssh-client-private > escrow_ssh)
 # Next, sftp to the server
-$ sftp -i escrow_ssh ${user}@${host}:Outbox
+$ sftp -i ./rde-ssh-client-private ${user}@${host}:Outbox
 Connected to ${host}.
 sftp> ls
 # Once in the Outbox/ directory, you can change your local directory to where you have the escrow files
@@ -263,15 +267,15 @@ sftp> put ${tld}_2015-05-16_full_S1_R0.sig
 ```
 
 It would be convenient to have the following in your `~/.ssh/config` file and
-store the SSH private key that you stored in `escrow_ssh` as
-`~/.ssh/id_rsa_escrow` so that you can simply run `$ sftp escrow` to connect to
+store the SSH private key that you stored in `rde-ssh-client-private` as
+`~/.ssh/id_rsa_rde` so that you can simply run `$ sftp rde` to connect to
 the sFTP server.
 
 ```
 Host escrow
   Hostname $host
   User $user
-  IdentityFile ~/.ssh/id_rsa_escrow
+  IdentityFile ~/.ssh/id_rsa_rde
 ```
 
 ## Resending the ICANN notification report
