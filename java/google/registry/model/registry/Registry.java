@@ -571,7 +571,6 @@ public class Registry extends ImmutableObject implements Buildable {
     return nullToEmptyImmutableCopy(allowedFullyQualifiedHostNames);
   }
 
-  @Nullable
   public Interval getLrpPeriod() {
     return (lrpPeriodStart == null && lrpPeriodEnd == null)
         ? new Interval(START_OF_TIME, Duration.ZERO)
