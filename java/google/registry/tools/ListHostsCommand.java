@@ -17,8 +17,8 @@ package google.registry.tools;
 import com.beust.jcommander.Parameters;
 import google.registry.tools.server.ListHostsAction;
 
-/** Command to list all HostResource entities associated with a TLD. */
-@Parameters(separators = " =", commandDescription = "List hosts associated with a TLD.")
+/** Command to list all HostResource entities in the system. */
+@Parameters(separators = " =", commandDescription = "List all hosts.")
 final class ListHostsCommand extends ListObjectsCommand {
 
   @Override
