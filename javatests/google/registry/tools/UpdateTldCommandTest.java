@@ -39,6 +39,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.junit.Before;
 import org.junit.Test;
@@ -414,7 +415,8 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
                 DateTime.parse("2004-06-09T12:30:00Z"), DateTime.parse("2004-07-10T13:30:00Z")))
             .build());
     runCommandForced("--lrp_period=null", "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getLrpPeriod()).isNull();
+    assertThat(Registry.get("xn--q9jyb4c").getLrpPeriod())
+        .isEqualTo(new Interval(START_OF_TIME, Duration.ZERO));
   }
 
   @Test

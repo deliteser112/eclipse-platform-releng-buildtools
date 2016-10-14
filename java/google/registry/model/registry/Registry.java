@@ -574,7 +574,7 @@ public class Registry extends ImmutableObject implements Buildable {
   @Nullable
   public Interval getLrpPeriod() {
     return (lrpPeriodStart == null && lrpPeriodEnd == null)
-        ? null
+        ? new Interval(START_OF_TIME, Duration.ZERO)
         : new Interval(lrpPeriodStart, lrpPeriodEnd);
   }
 
