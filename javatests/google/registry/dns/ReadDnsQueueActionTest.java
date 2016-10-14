@@ -88,12 +88,12 @@ public class ReadDnsQueueActionTest {
     persistResource(Registry.get("example").asBuilder().setTldType(TldType.TEST).build());
     dnsQueue = new DnsQueue();
     dnsQueue.queue = getQueue(DNS_PULL_QUEUE_NAME);
-    dnsQueue.writeLockTimeout = Duration.standardSeconds(10);
   }
 
   private void run(boolean keepTasks) throws Exception {
     ReadDnsQueueAction action = new ReadDnsQueueAction();
     action.tldUpdateBatchSize = TEST_TLD_UPDATE_BATCH_SIZE;
+    action.writeLockTimeout = Duration.standardSeconds(10);
     action.dnsQueue = dnsQueue;
     action.dnsPublishPushQueue = QueueFactory.getQueue(DNS_PUBLISH_PUSH_QUEUE_NAME);
     action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));

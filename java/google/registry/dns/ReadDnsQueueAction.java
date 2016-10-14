@@ -50,6 +50,7 @@ import java.util.Random;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
+import org.joda.time.Duration;
 
 /**
  * Action for fanning out DNS refresh tasks by TLD, using data taken from the DNS pull queue.
@@ -72,6 +73,7 @@ public final class ReadDnsQueueAction implements Runnable {
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Inject @Config("dnsTldUpdateBatchSize") int tldUpdateBatchSize;
+  @Inject @Config("dnsWriteLockTimeout") Duration writeLockTimeout;
   @Inject @Named(DNS_PUBLISH_PUSH_QUEUE_NAME) Queue dnsPublishPushQueue;
   @Inject @Parameter(JITTER_SECONDS_PARAM) Optional<Integer> jitterSeconds;
   @Inject @Parameter(KEEP_TASKS_PARAM) boolean keepTasks;
@@ -104,7 +106,7 @@ public final class ReadDnsQueueAction implements Runnable {
   public void run() {
     Set<String> tldsOfInterest = getTlds();
 
-    List<TaskHandle> tasks = dnsQueue.leaseTasks();
+    List<TaskHandle> tasks = dnsQueue.leaseTasks(writeLockTimeout);
     if (tasks.isEmpty()) {
       return;
     }

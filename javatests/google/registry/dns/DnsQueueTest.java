@@ -22,7 +22,6 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
-import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,7 +48,6 @@ public class DnsQueueTest {
     dnsQueue = new DnsQueue();
     dnsQueue.queue = getQueue("dns-pull");
     dnsQueue.writeBatchSize = 10;
-    dnsQueue.writeLockTimeout = Duration.standardSeconds(30);
   }
 
   @Test

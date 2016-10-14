@@ -15,7 +15,6 @@
 package google.registry.dns;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
 import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
 import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
@@ -35,13 +34,11 @@ import com.google.apphosting.api.DeadlineExceededException;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-import google.registry.config.ConfigModule.Config;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.registry.Registries;
 import google.registry.util.FormattingLogger;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.joda.time.Duration;
@@ -51,7 +48,6 @@ public class DnsQueue {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject @Config("dnsWriteLockTimeout") Duration writeLockTimeout;
   @Inject @Named(DNS_PULL_QUEUE_NAME) Queue queue;
   @Inject DnsQueue() {}
 
@@ -93,23 +89,10 @@ public class DnsQueue {
     return addToQueue(TargetType.ZONE, fullyQualifiedZoneName, fullyQualifiedZoneName);
   }
 
-  /**
-   * Returns a batch of pending tasks.
-   */
-  public List<TaskHandle> leaseTasks() {
-    return leaseTasks(null);
-  }
-
-  /**
-   * Returns a batch of pending tasks.
-   *
-   * @param tag the filter used to lease only those tasks that match
-   */
-  public List<TaskHandle> leaseTasks(@Nullable String tag) {
+  /** Returns handles for a batch of tasks, leased for the specified duration. */
+  public List<TaskHandle> leaseTasks(Duration leaseDuration) {
     try {
-      return isNullOrEmpty(tag)
-          ? queue.leaseTasks(writeLockTimeout.getMillis(), MILLISECONDS, writeBatchSize)
-          : queue.leaseTasksByTag(writeLockTimeout.getMillis(), MILLISECONDS, writeBatchSize, tag);
+      return queue.leaseTasks(leaseDuration.getMillis(), MILLISECONDS, writeBatchSize);
     } catch (TransientFailureException | DeadlineExceededException e) {
       logger.severe(e, "Failed leasing tasks too fast");
       return ImmutableList.of();
@@ -154,7 +137,6 @@ public class DnsQueue {
    */
   public static DnsQueue create() {
     DnsQueue result = new DnsQueue();
-    result.writeLockTimeout = Duration.standardSeconds(120);
     result.queue = QueueFactory.getQueue(DNS_PULL_QUEUE_NAME);
     return result;
   }
