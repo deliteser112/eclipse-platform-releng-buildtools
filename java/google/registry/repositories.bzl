@@ -19,32 +19,32 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "appengine_api_sdk",
-      artifact = "com.google.appengine:appengine-api-1.0-sdk:1.9.30",
-      sha1 = "239376bdb4d57e2c2f5b61197ad11cb5eeca6b6c",
+      artifact = "com.google.appengine:appengine-api-1.0-sdk:1.9.42",
+      sha1 = "c972bc847992e5512eb4338a38cc2392e56760f6",
   )
 
   native.maven_jar(
       name = "appengine_api_labs",
-      artifact = "com.google.appengine:appengine-api-labs:1.9.30",
-      sha1 = "843a35d7bf4bdcf56b95174f33b702348d16b5ff",
+      artifact = "com.google.appengine:appengine-api-labs:1.9.42",
+      sha1 = "1ff4107f603b12ef3016c8249884e7495718dd59",
   )
 
   native.maven_jar(
       name = "appengine_api_stubs",
-      artifact = "com.google.appengine:appengine-api-stubs:1.9.30",
-      sha1 = "f04454ac4dcc3ea7c4a2b12eae63c6998829a1f0",
+      artifact = "com.google.appengine:appengine-api-stubs:1.9.42",
+      sha1 = "3066543e37c01ea7ae1f6f7350c35c048c4d31f4",
   )
 
   native.maven_jar(
       name = "appengine_gcs_client",
-      artifact = "com.google.appengine.tools:appengine-gcs-client:0.5",
-      sha1 = "5357744d5fe0c5e800afeb079fd234a46e7618f7",
+      artifact = "com.google.appengine.tools:appengine-gcs-client:0.6",
+      sha1 = "e8fc1b49334c636cdeb135c31895705deea3ccbb",
   )
 
   native.maven_jar(
       name = "appengine_local_endpoints",
-      artifact = "com.google.appengine:appengine-local-endpoints:1.9.30",
-      sha1 = "c89715aa01247b37ada5a95966edfd2ca065d563",
+      artifact = "com.google.appengine:appengine-local-endpoints:1.9.42",
+      sha1 = "9a36fa948866b9f747a98196788d8d46636f4379",
   )
 
   native.maven_jar(
@@ -61,20 +61,20 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "appengine_remote_api",
-      artifact = "com.google.appengine:appengine-remote-api:1.9.30",
-      sha1 = "3c2ed95f2c06a433c14c9a71efb56c3917bfe856",
+      artifact = "com.google.appengine:appengine-remote-api:1.9.42",
+      sha1 = "28ebe680f55122b11031d833d09a1b4ab94130f1",
   )
 
   native.maven_jar(
       name = "appengine_testing",
-      artifact = "com.google.appengine:appengine-testing:1.9.30",
-      sha1 = "dd2e1cb866712ce7666a34131cc7a1464d9e4b4d",
+      artifact = "com.google.appengine:appengine-testing:1.9.42",
+      sha1 = "25707bc375e47ae14564f7051d6842bb11cd3add",
   )
 
   native.maven_jar(
       name = "appengine_tools_sdk",
-      artifact = "com.google.appengine:appengine-tools-sdk:1.9.30",
-      sha1 = "794bd339c2b628ef8580e887398981acb28f3e72",
+      artifact = "com.google.appengine:appengine-tools-sdk:1.9.42",
+      sha1 = "bf3cec2fc9a9ed8f4de36e17fc61c44a8d9df935",
   )
 
   native.maven_jar(
@@ -103,26 +103,26 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "bcpg_jdk15on",
-      artifact = "org.bouncycastle:bcpg-jdk15on:1.52",
-      sha1 = "ff4665a4b5633ff6894209d5dd10b7e612291858",
+      artifact = "org.bouncycastle:bcpg-jdk15on:1.55",
+      sha1 = "54ce841795ecdf10f24e50c48d4fdec59c691699",
   )
 
   native.maven_jar(
       name = "bcprov_jdk15on",
-      artifact = "org.bouncycastle:bcprov-jdk15on:1.52",
-      sha1 = "88a941faf9819d371e3174b5ed56a3f3f7d73269",
+      artifact = "org.bouncycastle:bcprov-jdk15on:1.55",
+      sha1 = "935f2e57a00ec2c489cbd2ad830d4a399708f979",
   )
 
   native.maven_jar(
       name = "bcpkix_jdk15on",
-      artifact = "org.bouncycastle:bcpkix-jdk15on:1.52",
-      sha1 = "b8ffac2bbc6626f86909589c8cc63637cc936504",
+      artifact = "org.bouncycastle:bcpkix-jdk15on:1.55",
+      sha1 = "6392d8cba22b722c6570d660ca0b3921ff1bae4f",
   )
 
   native.maven_jar(
       name = "braintree_java",
-      artifact = "com.braintreepayments.gateway:braintree-java:2.54.0",
-      sha1 = "b9940196feaf692de32b0d37c55ded76fb9b1ba7",
+      artifact = "com.braintreepayments.gateway:braintree-java:2.67.0",
+      sha1 = "a0d23df405176e555b336d56bd16c1aa66ae5370",
   )
 
   native.maven_jar(
@@ -133,20 +133,20 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "dagger",
-      artifact = "com.google.dagger:dagger:2.5",
-      sha1 = "571f4e0451db64a7b41dbeb5f2503986fe5acdb4",
+      artifact = "com.google.dagger:dagger:2.7",
+      sha1 = "f60e4926b5f05a62ff73e73b6eb3a856cdc74ddb",
   )
 
   native.maven_jar(
       name = "dagger_compiler",
-      artifact = "com.google.dagger:dagger-compiler:2.5",
-      sha1 = "96b9c749db4590549166740ba989fe3580eb0a19",
+      artifact = "com.google.dagger:dagger-compiler:2.7",
+      sha1 = "65aa7daec6dd64bf4f3208b268c38c6a4fb2b849",
   )
 
   native.maven_jar(
       name = "dagger_producers",
-      artifact = "com.google.dagger:dagger-producers:2.5",
-      sha1 = "a02d8016dddbe70c7c6c2093fae96bef5cb9fdbb",
+      artifact = "com.google.dagger:dagger-producers:2.7",
+      sha1 = "109b30d9c44c037e3bee87e85564fd604a7d432f",
   )
 
   native.maven_jar(
@@ -163,8 +163,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "error_prone_annotations",
-      artifact = "com.google.errorprone:error_prone_annotations:2.0.11",
-      sha1 = "3624d81fca4e93c67f43bafc222b06e1b1e3b260",
+      artifact = "com.google.errorprone:error_prone_annotations:2.0.13",
+      sha1 = "5bbec1732d649b180d82f98546ce9379ca6e64a7",
   )
 
   native.maven_jar(
@@ -187,32 +187,32 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "google_api_client",
-      artifact = "com.google.api-client:google-api-client:1.21.0",
-      sha1 = "16a6b3c680f3bf7b81bb42790ff5c1b72c5bbedc",
+      artifact = "com.google.api-client:google-api-client:1.22.0",
+      sha1 = "0244350c0c845c583717ade13f5666a452fd0cfa",
   )
 
   native.maven_jar(
       name = "google_api_client_appengine",
-      artifact = "com.google.api-client:google-api-client-appengine:1.21.0",
-      sha1 = "b4246cf952f6c536465bb58727a4037176003602",
+      artifact = "com.google.api-client:google-api-client-appengine:1.22.0",
+      sha1 = "1bf4744e6077d54b8ee481da17f7b19ecfddb227",
   )
 
   native.maven_jar(
       name = "google_api_services_admin_directory",
-      artifact = "com.google.apis:google-api-services-admin-directory:directory_v1-rev50-1.19.1",
-      sha1 = "fce75e874bf4e447128d89d0d3a5a594bc713eba",
+      artifact = "com.google.apis:google-api-services-admin-directory:directory_v1-rev72-1.22.0",
+      sha1 = "63d932404942efddb6d55c23f856d5bfd13180d1",
   )
 
   native.maven_jar(
       name = "google_api_services_bigquery",
-      artifact = "com.google.apis:google-api-services-bigquery:v2-rev154-1.19.0",
-      sha1 = "4f1ee62be6b1b7258560ee7808094292798ef718",
+      artifact = "com.google.apis:google-api-services-bigquery:v2-rev325-1.22.0",
+      sha1 = "41f4d50e1879a102fb6ce669f574b4670b9ead78",
   )
 
   native.maven_jar(
       name = "google_api_services_dns",
-      artifact = "com.google.apis:google-api-services-dns:v2beta1-rev2-1.21.0",
-      sha1 = "8ea36fec19051f41afdf2cb9ca6a08af929530a6",
+      artifact = "com.google.apis:google-api-services-dns:v2beta1-rev6-1.22.0",
+      sha1 = "d707b4b96c725692aae8fd28d4b528c65928aaef",
   )
 
   native.maven_jar(
@@ -223,50 +223,50 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "google_api_services_monitoring",
-      artifact = "com.google.apis:google-api-services-monitoring:v3-rev6-1.21.0",
-      sha1 = "d8490745206ca5b1bfedad650dd64a69737a4b20",
+      artifact = "com.google.apis:google-api-services-monitoring:v3-rev11-1.22.0",
+      sha1 = "b63c77f2bd96480f018c4f4b8877afb291ceca6c",
   )
 
   native.maven_jar(
       name = "google_api_services_storage",
-      artifact = "com.google.apis:google-api-services-storage:v1-rev15-1.19.0",
-      sha1 = "91f40f13ab4c24ac33d505695433ba842690bf40",
+      artifact = "com.google.apis:google-api-services-storage:v1-rev86-1.22.0",
+      sha1 = "5da66d2d5687d38af4bff26c22c32314cfcab006",
   )
 
   native.maven_jar(
       name = "google_api_services_groupssettings",
-      artifact = "com.google.apis:google-api-services-groupssettings:v1-rev54-1.19.1",
-      sha1 = "28a658b76985b151fb80ce0429e04df4e0095b26",
+      artifact = "com.google.apis:google-api-services-groupssettings:v1-rev60-1.22.0",
+      sha1 = "83967af07039f56af009114f52b34d6e865f89ec",
   )
 
   native.maven_jar(
       name = "google_http_client",
-      artifact = "com.google.http-client:google-http-client:1.21.0",
-      sha1 = "42631630fe1276d4d6d6397bb07d53a4e4fec278",
+      artifact = "com.google.http-client:google-http-client:1.22.0",
+      sha1 = "d441fc58329c4a4c067acec04ac361627f66ecc8",
   )
 
   native.maven_jar(
       name = "google_http_client_appengine",
-      artifact = "com.google.http-client:google-http-client-appengine:1.21.0",
-      sha1 = "7244bd3c110b15066f4288baa61e350d6a14120c",
+      artifact = "com.google.http-client:google-http-client-appengine:1.22.0",
+      sha1 = "37091fdc63f6b496199e4512f0f291d6fffdd697",
   )
 
   native.maven_jar(
       name = "google_http_client_jackson2",
-      artifact = "com.google.http-client:google-http-client-jackson2:1.21.0",
-      sha1 = "8ce17bdd15fff0fd8cf359757f29e778fc7191ad",
+      artifact = "com.google.http-client:google-http-client-jackson2:1.22.0",
+      sha1 = "cc014d64ae11117e159d334c99d9c246d9b36f44",
   )
 
   native.maven_jar(
       name = "google_oauth_client",
-      artifact = "com.google.oauth-client:google-oauth-client:1.21.0",
-      sha1 = "61ec42bbfc51aafde5eb8b4923c602c5b5965bc2",
+      artifact = "com.google.oauth-client:google-oauth-client:1.22.0",
+      sha1 = "1d63f369ac78e4838a3197147012026e791008cb",
   )
 
   native.maven_jar(
       name = "google_oauth_client_appengine",
-      artifact = "com.google.oauth-client:google-oauth-client-appengine:1.21.0",
-      sha1 = "c11014f06ade0a418b2028df41b17f3b17d9cb21",
+      artifact = "com.google.oauth-client:google-oauth-client-appengine:1.22.0",
+      sha1 = "18a01de34ace9934f21fc23fc6011832f4c3e34f",
   )
 
   native.maven_jar(
@@ -307,20 +307,20 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "jackson_core",
-      artifact = "com.fasterxml.jackson.core:jackson-core:2.5.1",
-      sha1 = "e2a00ad1d7e540ec395e9296a34da484c8888d4d",
+      artifact = "com.fasterxml.jackson.core:jackson-core:2.8.3",
+      sha1 = "5e1dc37c96308851c3ff609c250dc849c4b12022",
   )
 
   native.maven_jar(
       name = "jackson_databind",
-      artifact = "com.fasterxml.jackson.core:jackson-databind:2.5.1",
-      sha1 = "5e57baebad3898aca8a825adaf2be6fd189442f2",
+      artifact = "com.fasterxml.jackson.core:jackson-databind:2.8.3",
+      sha1 = "cea3788c72271d45676ce32c0665991674b24cc5",
   )
 
   native.maven_jar(
       name = "javapoet",
-      artifact = "com.squareup:javapoet:1.5.1",
-      sha1 = "1d36b86b8fecbe64ea38aea741599720cb07b7d2",
+      artifact = "com.squareup:javapoet:1.7.0",
+      sha1 = "4fdcf1fc27c1a8f55d1109df986c923152f07759",
   )
 
   native.maven_jar(
@@ -355,8 +355,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "jcommander",
-      artifact = "com.beust:jcommander:1.48",
-      sha1 = "bfcb96281ea3b59d626704f74bc6d625ff51cbce",
+      artifact = "com.beust:jcommander:1.58",
+      sha1 = "0f87aedf052aa17fa6d2557e5cc680a70bc6211f",
   )
 
   native.maven_jar(
@@ -373,20 +373,20 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "joda_money",
-      artifact = "org.joda:joda-money:0.10.0",
-      sha1 = "4056712d2e6db043a38b78c4ee2130c74bae7216",
+      artifact = "org.joda:joda-money:0.11",
+      sha1 = "9a3d8b733cb130c05376acd78e6c724e72f39d35",
   )
 
   native.maven_jar(
       name = "joda_time",
-      artifact = "joda-time:joda-time:2.3",
-      sha1 = "56498efd17752898cfcc3868c1b6211a07b12b8f",
+      artifact = "joda-time:joda-time:2.9.4",
+      sha1 = "1c295b462f16702ebe720bbb08f62e1ba80da41b",
   )
 
   native.maven_jar(
       name = "json",
-      artifact = "org.json:json:20160212",
-      sha1 = "a742e3f85161835b95877478c5dd5b405cefaab9",
+      artifact = "org.json:json:20160810",
+      sha1 = "aca5eb39e2a12fddd6c472b240afe9ebea3a6733",
   )
 
   native.maven_jar(
@@ -427,8 +427,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "mockito",
-      artifact = "org.mockito:mockito-all:1.9.5",
-      sha1 = "79a8984096fc6591c1e3690e07d41be506356fa5",
+      artifact = "org.mockito:mockito-all:1.10.19",
+      sha1 = "539df70269cc254a58cccc5d8e43286b4a73bf30",
   )
 
   native.maven_jar(
@@ -445,20 +445,20 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "servlet_api",
-      artifact = "org.apache.tomcat:servlet-api:6.0.20",
-      sha1 = "230937c21f1e2da527bf5ebb13f28bab6b2f3849",
+      artifact = "org.apache.tomcat:servlet-api:6.0.45",
+      sha1 = "ffcc8209754499940a65a6d450afcb2670a7f7a8",
   )
 
   native.maven_jar(
       name = "slf4j_api",
-      artifact = "org.slf4j:slf4j-api:1.7.14",
-      sha1 = "862a5bc736005d68727d1387844d09d62efdb6cb",
+      artifact = "org.slf4j:slf4j-api:1.7.21",
+      sha1 = "139535a69a4239db087de9bab0bee568bf8e0b70",
   )
 
   native.maven_jar(
       name = "sshd_core",
-      artifact = "org.apache.sshd:sshd-core:1.2.0",
-      sha1 = "4bc24a8228ba83dac832680366cf219da71dae8e",
+      artifact = "org.apache.sshd:sshd-core:1.3.0",
+      sha1 = "4ebfcf7de9f66e89e031e556d1478582147a90df",
   )
 
   native.maven_jar(
