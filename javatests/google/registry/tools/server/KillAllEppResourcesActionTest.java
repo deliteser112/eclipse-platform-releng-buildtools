@@ -120,7 +120,8 @@ public class KillAllEppResourcesActionTest extends MapreduceTestCase<KillAllEppR
               .setEventTime(START_OF_TIME)
               .setClientId("")
               .setTargetId("")
-              .setReason(Reason.ERROR)
+              .setReason(Reason.CREATE)
+              .setPeriodYears(1)
               .setCost(Money.of(CurrencyUnit.USD, 1))
               .build(),
           new BillingEvent.Recurring.Builder()
@@ -128,7 +129,7 @@ public class KillAllEppResourcesActionTest extends MapreduceTestCase<KillAllEppR
               .setEventTime(START_OF_TIME)
               .setClientId("")
               .setTargetId("")
-              .setReason(Reason.ERROR)
+              .setReason(Reason.AUTO_RENEW)
               .build())) {
         persistResource(descendant);
       }
