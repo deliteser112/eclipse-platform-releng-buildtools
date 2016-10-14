@@ -26,7 +26,9 @@ import google.registry.model.ImmutableObject;
  *
  * @param <T> the type being referenced
  */
+// TODO(b/28713909): Delete ReferenceUnion entirely.
 @Embed
+@Deprecated
 public class ReferenceUnion<T extends EppResource> extends ImmutableObject {
 
   @Index

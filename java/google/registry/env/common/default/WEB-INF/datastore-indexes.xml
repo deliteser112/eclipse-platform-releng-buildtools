@@ -10,7 +10,7 @@
         <property name="currentSponsorClientId" direction="asc"/>
         <property name="deletionTime" direction="asc"/>
     </datastore-index>
-    <!-- For finding domain resources by tld. -->
+    <!-- For finding domain resources by TLD. -->
     <datastore-index kind="DomainBase" ancestor="false" source="manual">
         <property name="^i" direction="asc"/>
         <property name="tld" direction="asc"/>
@@ -26,28 +26,44 @@
         <property name="currentSponsorClientId" direction="asc"/>
         <property name="deletionTime" direction="asc"/>
     </datastore-index>
-    <!-- For finding account balance of Registrar and viewing billing history. -->
+    <!-- For finding account balance of registrar and viewing billing history. -->
     <datastore-index kind="RegistrarBillingEntry" ancestor="true" source="manual">
         <property name="currency" direction="asc"/>
         <property name="created" direction="desc"/>
     </datastore-index>
     <!-- For determining the active domains linked to a given contact. -->
     <datastore-index kind="DomainBase" ancestor="false" source="manual">
+        <property name="allContacts.contact" direction="asc"/>
+        <property name="deletionTime" direction="asc"/>
+    </datastore-index>
+    <!-- TODO(b/28713909): Remove this index along with ReferenceUnions. -->
+    <datastore-index kind="DomainBase" ancestor="false" source="manual">
         <property name="allContacts.contactId.linked" direction="asc"/>
         <property name="deletionTime" direction="asc"/>
     </datastore-index>
     <!-- For determining the active domains linked to a given host. -->
     <datastore-index kind="DomainBase" ancestor="false" source="manual">
+        <property name="nsHosts" direction="asc"/>
+        <property name="deletionTime" direction="asc"/>
+    </datastore-index>
+    <!-- TODO(b/28713909): Remove this index along with ReferenceUnions. -->
+    <datastore-index kind="DomainBase" ancestor="false" source="manual">
         <property name="nameservers.linked" direction="asc"/>
         <property name="deletionTime" direction="asc"/>
     </datastore-index>
-    <!-- For updating domains and applications after a host rename. -->
+    <!-- For RDAP searches by linked nameserver. -->
+    <datastore-index kind="DomainBase" ancestor="false" source="manual">
+        <property name="^i" direction="asc"/>
+        <property name="nsHosts" direction="asc"/>
+        <property name="deletionTime" direction="asc"/>
+    </datastore-index>
+    <!-- TODO(b/28713909): Remove this index along with ReferenceUnions. -->
     <datastore-index kind="DomainBase" ancestor="false" source="manual">
         <property name="^i" direction="asc"/>
         <property name="nameservers.linked" direction="asc"/>
         <property name="deletionTime" direction="asc"/>
     </datastore-index>
-    <!-- For Whois ip lookup -->
+    <!-- For WHOIS IP address lookup -->
     <datastore-index kind="HostResource" ancestor="false" source="manual">
         <property name="inetAddresses" direction="asc"/>
         <property name="deletionTime" direction="asc"/>

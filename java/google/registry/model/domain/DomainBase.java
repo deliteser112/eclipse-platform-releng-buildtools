@@ -40,6 +40,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.condition.IfNull;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
@@ -78,8 +79,12 @@ public abstract class DomainBase extends EppResource {
 
   /** References to hosts that are the nameservers for the domain. */
   @XmlTransient
-  //TODO(b/28713909): Make this a Set<Key<HostResource>>.
+  //TODO(b/28713909): Delete this once migration away from ReferenceUnions is complete.
   Set<ReferenceUnion<HostResource>> nameservers;
+
+  @Index
+  @XmlTransient
+  Set<Key<HostResource>> nsHosts;
 
   /**
    * The union of the contacts visible via {@link #getContacts} and {@link #getRegistrant}.
@@ -232,6 +237,18 @@ public abstract class DomainBase extends EppResource {
 
   public String getTld() {
     return tld;
+  }
+
+  @OnSave
+  void dualSaveReferenceUnions() {
+    for (DesignatedContact contact : nullToEmptyImmutableCopy(allContacts)) {
+      contact.contact = contact.contactId.getLinked();
+    }
+    ImmutableSet.Builder<Key<HostResource>> hostKeys = new ImmutableSet.Builder<>();
+    for (ReferenceUnion<HostResource> refUnion : nullToEmptyImmutableCopy(nameservers)) {
+      hostKeys.add(refUnion.getLinked());
+    }
+    nsHosts = hostKeys.build();
   }
 
   /** Predicate to determine if a given {@link DesignatedContact} is the registrant. */

@@ -187,6 +187,7 @@ enum google.registry.model.contact.PostalInfo$Type {
   LOCALIZED;
 }
 class google.registry.model.domain.DesignatedContact {
+  com.googlecode.objectify.Key<google.registry.model.contact.ContactResource> contact;
   google.registry.model.domain.DesignatedContact$Type type;
   google.registry.model.domain.ReferenceUnion<google.registry.model.contact.ContactResource> contactId;
 }
@@ -214,6 +215,7 @@ class google.registry.model.domain.DomainApplication {
   java.lang.String lastEppUpdateClientId;
   java.lang.String tld;
   java.util.List<google.registry.model.smd.EncodedSignedMark> encodedSignedMarks;
+  java.util.Set<com.googlecode.objectify.Key<google.registry.model.host.HostResource>> nsHosts;
   java.util.Set<google.registry.model.domain.DesignatedContact> allContacts;
   java.util.Set<google.registry.model.domain.ReferenceUnion<google.registry.model.host.HostResource>> nameservers;
   java.util.Set<google.registry.model.domain.secdns.DelegationSignerData> dsData;
@@ -240,6 +242,7 @@ class google.registry.model.domain.DomainBase {
   java.lang.String idnTableName;
   java.lang.String lastEppUpdateClientId;
   java.lang.String tld;
+  java.util.Set<com.googlecode.objectify.Key<google.registry.model.host.HostResource>> nsHosts;
   java.util.Set<google.registry.model.domain.DesignatedContact> allContacts;
   java.util.Set<google.registry.model.domain.ReferenceUnion<google.registry.model.host.HostResource>> nameservers;
   java.util.Set<google.registry.model.domain.secdns.DelegationSignerData> dsData;
@@ -267,6 +270,7 @@ class google.registry.model.domain.DomainResource {
   java.lang.String lastEppUpdateClientId;
   java.lang.String smdId;
   java.lang.String tld;
+  java.util.Set<com.googlecode.objectify.Key<google.registry.model.host.HostResource>> nsHosts;
   java.util.Set<google.registry.model.domain.DesignatedContact> allContacts;
   java.util.Set<google.registry.model.domain.GracePeriod> gracePeriods;
   java.util.Set<google.registry.model.domain.ReferenceUnion<google.registry.model.host.HostResource>> nameservers;

@@ -120,8 +120,10 @@ public class DomainApplicationTest extends EntityTestCase {
     verifyIndexing(
         domainApplication,
         "allContacts.contactId.linked",
+        "allContacts.contact",
         "fullyQualifiedDomainName",
         "nameservers.linked",
+        "nsHosts",
         "deletionTime",
         "currentSponsorClientId",
         "tld");

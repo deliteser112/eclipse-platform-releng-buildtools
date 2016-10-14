@@ -52,6 +52,7 @@ public class DesignatedContact extends ImmutableObject {
     DesignatedContact instance = new DesignatedContact();
     instance.type = type;
     instance.contactId = ReferenceUnion.create(contact);
+    instance.contact = contact;
     return instance;
   }
 
@@ -60,8 +61,11 @@ public class DesignatedContact extends ImmutableObject {
 
   @Index
   @XmlValue
-  //TODO(b/28713909): Make this a Key<ContactResource>.
+  //TODO(b/28713909): Remove contactId and replace with contact.
   ReferenceUnion<ContactResource> contactId;
+
+  @Index
+  Key<ContactResource> contact;
 
   public Type getType() {
     return type;
