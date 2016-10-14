@@ -14,10 +14,13 @@
 
 package google.registry.export;
 
+import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.export.UpdateSnapshotViewAction.QUEUE;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DATASET_ID_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
+import static google.registry.export.UpdateSnapshotViewAction.createViewUpdateTask;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -28,7 +31,6 @@ import static org.mockito.Mockito.when;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Dataset;
 import com.google.api.services.bigquery.model.Table;
-import com.google.appengine.api.taskqueue.QueueFactory;
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.testing.AppEngineRule;
@@ -95,9 +97,8 @@ public class UpdateSnapshotViewActionTest {
 
   @Test
   public void testSuccess_createViewUpdateTask() throws Exception {
-    QueueFactory.getDefaultQueue().add(
-        UpdateSnapshotViewAction.createViewUpdateTask("some_dataset", "12345_fookind", "fookind"));
-    assertTasksEnqueued("default",
+    getQueue(QUEUE).add(createViewUpdateTask("some_dataset", "12345_fookind", "fookind"));
+    assertTasksEnqueued(QUEUE,
         new TaskMatcher()
             .url(UpdateSnapshotViewAction.PATH)
             .method("POST")

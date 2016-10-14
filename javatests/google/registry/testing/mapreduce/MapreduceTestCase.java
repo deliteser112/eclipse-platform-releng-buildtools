@@ -158,10 +158,6 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
     }
   }
 
-  protected void executeTasksUntilEmpty() throws Exception {
-    executeTasksUntilEmpty("default");
-  }
-
   protected void executeTasksUntilEmpty(String queueName) throws Exception {
     executeTasksUntilEmpty(queueName, null);
   }

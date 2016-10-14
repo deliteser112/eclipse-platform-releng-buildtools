@@ -51,6 +51,7 @@ public class DatastoreBackupServiceTest {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
+      .withTaskQueue()
       .build();
 
   @Mock
@@ -84,8 +85,8 @@ public class DatastoreBackupServiceTest {
   @Test
   public void testSuccess_launchBackup() throws Exception {
     backupService.launchNewBackup(
-        "default", "backup1", "somebucket", ImmutableSet.of("foo", "bar"));
-    assertTasksEnqueued("default",
+        "export-snapshot", "backup1", "somebucket", ImmutableSet.of("foo", "bar"));
+    assertTasksEnqueued("export-snapshot",
         new TaskMatcher()
             .url("/_ah/datastore_admin/backup.create")
             .header("Host", "ah-builtin-python-bundle.default.localhost")
@@ -93,7 +94,7 @@ public class DatastoreBackupServiceTest {
             .param("name", "backup1_")
             .param("filesystem", "gs")
             .param("gs_bucket_name", "somebucket")
-            .param("queue", "default")
+            .param("queue", "export-snapshot")
             .param("kind", "foo")
             .param("kind", "bar"));
   }

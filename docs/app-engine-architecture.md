@@ -138,9 +138,6 @@ explicitly marked as otherwise.
 *   `export-commits` -- Queue for tasks to export commit log checkpoints. Tasks
     are enqueued by `CommitLogCheckpointAction` (which is run every minute by
     cron) and executed by `ExportCommitLogDiffAction`.
-*   `export-reserved-terms` -- Cron queue for tasks to export the list of
-    reserved terms for each TLD. The tasks are executed by
-    `ExportReservedTermsAction`.
 *   `export-snapshot` -- Cron and push queue for tasks to load a Datastore
     snapshot that was stored in Google Cloud Storage and export it to BigQuery.
     Tasks are enqueued by both cron and `CheckSnapshotServlet` and are executed
@@ -179,6 +176,8 @@ explicitly marked as otherwise.
 *   `rde-upload` -- Cron queue for tasks to upload already-generated RDE files
     from Cloud Storage to the escrow provider. Tasks are executed by
     `RdeUploadAction`.
+*   `retryable-cron-tasks` -- Catch-all cron queue for various cron tasks that
+    run infrequently, such as exporting reserved terms.
 *   `sheet` -- Queue for tasks to sync registrar updates to a Google Sheets
     spreadsheet. Tasks are enqueued by `RegistrarServlet` when changes are made
     to registrar fields and are executed by `SyncRegistrarsSheetAction`.
