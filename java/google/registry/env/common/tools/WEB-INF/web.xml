@@ -72,17 +72,6 @@
     <url-pattern>/_dr/task/resaveAllEppResources</url-pattern>
   </servlet-mapping>
 
-  <!--  Mapreduce to count recurring billing events (to test the child entity reader). -->
-  <servlet-mapping>
-    <servlet-name>tools-servlet</servlet-name>
-    <url-pattern>/_dr/task/countRecurringBillingEvents</url-pattern>
-  </servlet-mapping>
-
-  <!--  Mapreduce to backfill new autorenew flag on recurring billing events. -->
-  <servlet-mapping>
-    <servlet-name>tools-servlet</servlet-name>
-    <url-pattern>/_dr/task/backfillAutorenewBillingFlag</url-pattern>
-  </servlet-mapping>
 
   <!-- Mapreduce to delete EppResources, children, and indices. -->
   <servlet-mapping>

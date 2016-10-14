@@ -42,8 +42,6 @@ import google.registry.tools.server.ResaveAllEppResourcesAction;
 import google.registry.tools.server.ToolsServerModule;
 import google.registry.tools.server.UpdatePremiumListAction;
 import google.registry.tools.server.VerifyOteAction;
-import google.registry.tools.server.javascrap.BackfillAutorenewBillingFlagAction;
-import google.registry.tools.server.javascrap.CountRecurringBillingEventsAction;
 import google.registry.tools.server.javascrap.RefreshAllDomainsAction;
 
 /** Dagger component with per-request lifetime for "tools" App Engine module. */
@@ -59,8 +57,6 @@ import google.registry.tools.server.javascrap.RefreshAllDomainsAction;
         WhiteboxModule.class,
     })
 interface ToolsRequestComponent {
-  BackfillAutorenewBillingFlagAction backfillAutorenewBillingFlagAction();
-  CountRecurringBillingEventsAction countRecurringBillingEventsAction();
   CreateGroupsAction createGroupsAction();
   CreatePremiumListAction createPremiumListAction();
   DeleteEntityAction deleteEntityAction();
