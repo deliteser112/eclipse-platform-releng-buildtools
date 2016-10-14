@@ -36,8 +36,7 @@ which ICANN can pull the files. The Nomulus project does not provide this last
 step; you will need to set up an sFTP server yourself, and copy the files from
 Google Cloud Storage to the server.
 
-The cursor can be checked using the `nomulus pending_escrow` command. files
-available for ICANN via SFTP.
+The cursor can be checked using the `nomulus pending_escrow` command.
 
 ## Generating BRDA deposits manually
 

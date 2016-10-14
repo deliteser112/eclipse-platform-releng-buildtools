@@ -272,7 +272,7 @@ store the SSH private key that you stored in `rde-ssh-client-private` as
 the sFTP server.
 
 ```
-Host escrow
+Host rde
   Hostname $host
   User $user
   IdentityFile ~/.ssh/id_rsa_rde
