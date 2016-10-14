@@ -51,7 +51,11 @@ function setUp() {
     clientId: test.testClientId,
     showPaymentLink: false,
     logoFilename: 'logo.png',
-    productName: 'Nomulus'
+    productName: 'Nomulus',
+    integrationEmail: 'integration@example.com',
+    supportEmail: 'support@example.com',
+    announcementsEmail: 'announcement@example.com',
+    supportPhoneNumber: '+1 (888) 555 0123'
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
   registry.registrar.ConsoleTestUtil.setup(test);
@@ -93,7 +97,7 @@ function createTestRegistrar() {
 function testView() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'whois-settings',
-    testXsrfToken: test.testXsrfToken,
+    xsrfToken: test.testXsrfToken,
     testClientId: test.testClientId
   });
   var testRegistrar = createTestRegistrar();

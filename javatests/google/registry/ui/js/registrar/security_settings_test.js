@@ -57,7 +57,11 @@ function setUp() {
     clientId: test.testClientId,
     showPaymentLink: false,
     logoFilename: 'logo.png',
-    productName: 'Nomulus'
+    productName: 'Nomulus',
+    integrationEmail: 'integration@example.com',
+    supportEmail: 'support@example.com',
+    announcementsEmail: 'announcement@example.com',
+    supportPhoneNumber: '+1 (888) 555 0123'
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
   registry.registrar.ConsoleTestUtil.setup(test);
@@ -75,7 +79,7 @@ function tearDown() {
 function testView() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'security-settings',
-    testXsrfToken: test.testXsrfToken,
+    xsrfToken: test.testXsrfToken,
     testClientId: test.testClientId
   });
   registry.testing.assertReqMockRsp(

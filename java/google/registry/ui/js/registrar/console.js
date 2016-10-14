@@ -38,17 +38,19 @@ goog.forwardDeclare('registry.Component');
 
 /**
  * The Registrar Console.
- * @param {string} xsrfToken Populated by server-side soy template.
- * @param {string} clientId The logged in GAE user.
- * @param {string} productName The software name displayed on the UI.
+ * @param {!Object} params Parameters to be passed into templates.  These are
+ *   a combination of configurable parameters (e.g. phone number) and
+ *   user/session/registrar specific parameters.  See
+ *   registrar/Console.soy#.main for expected contents.
  * @constructor
  * @extends {registry.Console}
  * @final
  */
-registry.registrar.Console = function(xsrfToken, clientId, productName) {
+registry.registrar.Console = function(params) {
   registry.registrar.Console.base(
       this, 'constructor',
-      new registry.registrar.EppSession(this, xsrfToken, clientId));
+      new registry.registrar.EppSession(this, params.xsrfToken,
+                                        params.clientId));
 
   /**
    * Component that's currently embedded in the page.
@@ -62,15 +64,9 @@ registry.registrar.Console = function(xsrfToken, clientId, productName) {
   this.history.setEnabled(true);
 
   /**
-   * @type {!string}
-   * @private
+   * @type {!Object}
    */
-  this.xsrfToken_ = xsrfToken;
-
-  /**
-   * @type {string}
-   */
-  this.productName = productName;
+  this.params = params;
 
   /**
    * Last active nav element.
@@ -142,7 +138,7 @@ registry.registrar.Console.prototype.handleHashChange = function() {
     componentCtor = this.pageMap[''];
   }
   var oldComponent = this.component_;
-  this.component_ = new componentCtor(this, this.xsrfToken_);
+  this.component_ = new componentCtor(this, this.params.xsrfToken);
   this.registerDisposable(this.component_);
   this.component_.basePath = type;
   this.component_.bindToDom(id);

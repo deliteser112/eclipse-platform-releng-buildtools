@@ -99,14 +99,46 @@ public final class ConfigModule {
   @Provides
   @Config("productName")
   public static String provideProductName(RegistryEnvironment environment) {
-    switch (environment) {
-      case UNITTEST:
-      case LOCAL:
-        return "Nomulus";
-      default:
-        // Change this to the name of your product.
-        return "Google Registry";
-    }
+    return "Nomulus";
+  }
+
+  /**
+   * The e-mail address for questions about integrating with the registry.  Used in the
+   * "contact-us" section of the registrar console.
+   */
+  @Provides
+  @Config("integrationEmail")
+  public static String provideIntegrationEmail(RegistryEnvironment environment) {
+    return "integration@example.com";
+  }
+
+  /**
+   * The e-mail address for general support.  Used in the "contact-us" section of the registrar
+   * console.
+   */
+  @Provides
+  @Config("supportEmail")
+  public static String provideSupportEmail(RegistryEnvironment environment) {
+    return "support@example.com";
+  }
+
+  /**
+   * The "From" e-mail address for announcements.  Used in the "contact-us" section of the
+   * registrar console.
+   */
+  @Provides
+  @Config("announcementsEmail")
+  public static String provideAnnouncementsEmail(RegistryEnvironment environment) {
+    return "announcements@example.com";
+  }
+
+  /**
+   * The contact phone number.  Used in the "contact-us" section of the registrar console.
+   */
+  @Provides
+  @Config("supportPhoneNumber")
+  public static String provideSupportPhoneNumber(RegistryEnvironment environment) {
+    return "+1 (888) 555 0123";
   }
 
   /** @see RegistryConfig#getZoneFilesBucket() */

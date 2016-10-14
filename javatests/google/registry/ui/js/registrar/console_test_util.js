@@ -59,8 +59,8 @@ registry.registrar.ConsoleTestUtil.visit = function(
     test, opt_args, opt_moar) {
   opt_args = opt_args || {};
   opt_args.path = opt_args.path || '';
-  opt_args.testClientId = opt_args.testClientId || 'dummyRegistrarId';
-  opt_args.testXsrfToken = opt_args.testXsrfToken || 'dummyXsrfToken';
+  opt_args.clientId = opt_args.clientId || 'dummyRegistrarId';
+  opt_args.xsrfToken = opt_args.xsrfToken || 'dummyXsrfToken';
   if (opt_args.isEppLoggedIn === undefined) {
     opt_args.isEppLoggedIn = true;
   }
@@ -69,7 +69,7 @@ registry.registrar.ConsoleTestUtil.visit = function(
   test.historyMock.getToken().$returns(opt_args.path).$anyTimes();
   test.sessionMock.isEppLoggedIn().$returns(opt_args.isEppLoggedIn).$anyTimes();
   test.sessionMock.getClientId().$returns(opt_args.isEppLoggedIn ?
-      opt_args.testClientId : null).$anyTimes();
+      opt_args.clientId : null).$anyTimes();
   if (opt_args.rspXml) {
     test.sessionMock
         .send(goog.testing.mockmatchers.isString,
@@ -86,10 +86,7 @@ registry.registrar.ConsoleTestUtil.visit = function(
   }
   test.mockControl.$replayAll();
   /** @type {!registry.registrar.Console} */
-  test.console = new registry.registrar.Console(
-      opt_args.testXsrfToken,
-      opt_args.testClientId,
-      opt_args.productName);
+  test.console = new registry.registrar.Console(opt_args);
   // XXX: Should be triggered via event passing.
   test.console.handleHashChange();
   test.mockControl.$verifyAll();

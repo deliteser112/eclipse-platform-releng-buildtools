@@ -28,6 +28,11 @@
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param showPaymentLink: bool}
   {@param productName: string} /** Name to display for this software product. */
+  {@param integrationEmail: string}
+  {@param supportEmail: string}
+  {@param announcementsEmail: string}
+  {@param supportPhoneNumber: string}
+
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Registrar Console' /}
@@ -61,7 +66,13 @@
   {/switch}
   {if isNonnull(DEBUG)}
     <script>
-      registry.registrar.main({$xsrfToken}, {$clientId}, {$productName});
+      registry.registrar.main({$xsrfToken},
+                              {$clientId},
+                              {$productName},
+                              {$integrationEmail},
+                              {$supportEmail},
+                              {$announcementsEmail},
+                              {$supportPhoneNumber});
     </script>
   {/if}
 {/template}
@@ -197,6 +208,10 @@
 /** Contact us. */
 {template .contactUs}
   {@param? phonePasscode: string}
+  {@param integrationEmail: string}
+  {@param supportEmail: string}
+  {@param announcementsEmail: string}
+  {@param supportPhoneNumber: string}
   <div id="domain-registrar-contact-us" class="{css item}">
     <h1>Contact us</h1>
     <p>Our support team can assist you with any technical or operational
@@ -209,21 +224,19 @@
         </td>
         <td class="{css setting}">
           <p>
-            <a href="mailto:registry-integration@google.com">
-              registry-integration@google.com</a><br>
+            <a href="mailto:{$integrationEmail}">{$integrationEmail}</a><br>
           For help with OT&amp;E sandbox and certification, or new
             technical requirements for any of our new TLD launches.
 
           <p>
-            <a href="mailto:registry-support@google.com">
-              registry-support@google.com</a><br>
+            <a href="mailto:{$supportEmail}">{$supportEmail}</a><br>
             For general purpose questions once you are integrated
             with our registry system.  If the issue is urgent, please put
             &quot;Urgent&quot; in the email title.
 
           <p class="{css description}">Note: You may receive occasional service
             announcements
-            via <strong>registrar-announcement@google.com</strong>.  You
+            via <strong>{$announcementsEmail}</strong>.  You
             will not be able to reply to those messages.
 
       <tr><td colspan="2"><hr>
@@ -246,7 +259,7 @@
             </span>
 
           <p>Call us at:
-          <p id="registry-phone"><a href="tel:+14049788419">+1 (404) 978 8419</a>
+          <p id="registry-phone"><a href="tel:{$supportPhoneNumber}">{$supportPhoneNumber}</a>
         </td>
     </table>
   </div>

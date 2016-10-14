@@ -60,6 +60,10 @@ public final class ConsoleUiAction implements Runnable {
   @Inject UserService userService;
   @Inject @Config("logoFilename") String logoFilename;
   @Inject @Config("productName") String productName;
+  @Inject @Config("integrationEmail") String integrationEmail;
+  @Inject @Config("supportEmail") String supportEmail;
+  @Inject @Config("announcementsEmail") String announcementsEmail;
+  @Inject @Config("supportPhoneNumber") String supportPhoneNumber;
   @Inject @Config("registrarConsoleEnabled") boolean enabled;
   @Inject ConsoleUiAction() {}
 
@@ -71,6 +75,10 @@ public final class ConsoleUiAction implements Runnable {
     SoyMapData data = new SoyMapData();
     data.put("logoFilename", logoFilename);
     data.put("productName", productName);
+    data.put("integrationEmail", integrationEmail);
+    data.put("supportEmail", supportEmail);
+    data.put("announcementsEmail", announcementsEmail);
+    data.put("supportPhoneNumber", supportPhoneNumber);
     if (!enabled) {
       response.setStatus(SC_SERVICE_UNAVAILABLE);
       response.setPayload(
@@ -98,11 +106,12 @@ public final class ConsoleUiAction implements Runnable {
     data.put("clientId", registrar.getClientId());
     data.put("isAdmin", userService.isUserAdmin());
     data.put("showPaymentLink", registrar.getBillingMethod() == Registrar.BillingMethod.BRAINTREE);
-    response.setPayload(
-        TOFU_SUPPLIER.get()
+
+    String payload = TOFU_SUPPLIER.get()
             .newRenderer(ConsoleSoyInfo.MAIN)
             .setCssRenamingMap(CSS_RENAMING_MAP_SUPPLIER.get())
             .setData(data)
-            .render());
+            .render();
+    response.setPayload(payload);
   }
 }

@@ -29,8 +29,22 @@ goog.require('registry.registrar.Console');
  * @param {string} xsrfToken populated by server-side soy template.
  * @param {string} clientId The registrar clientId.
  * @param {string} productName the product name displayed by the UI.
+ * @param {string} integrationEmail
+ * @param {string} supportEmail
+ * @param {string} announcementsEmail
+ * @param {string} supportPhoneNumber
  * @export
  */
-registry.registrar.main = function(xsrfToken, clientId, productName) {
-  new registry.registrar.Console(xsrfToken, clientId, productName);
+registry.registrar.main = function(xsrfToken, clientId, productName,
+                                   integrationEmail, supportEmail,
+                                   announcementsEmail, supportPhoneNumber) {
+  new registry.registrar.Console({
+    xsrfToken: xsrfToken,
+    clientId: clientId,
+    productName: productName,
+    integrationEmail: integrationEmail,
+    supportEmail: supportEmail,
+    announcementsEmail: announcementsEmail,
+    supportPhoneNumber: supportPhoneNumber
+  });
 };

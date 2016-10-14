@@ -52,6 +52,10 @@ public class ConsoleUiActionTest {
     action.enabled = true;
     action.logoFilename = "logo.png";
     action.productName = "Nomulus";
+    action.integrationEmail = "integration@example.com";
+    action.supportEmail = "support@example.com";
+    action.announcementsEmail = "announcements@example.com";
+    action.supportPhoneNumber = "1 (888) 555 0123";
     action.response = response;
     action.sessionUtils = sessionUtils;
     action.userService = UserServiceFactory.getUserService();

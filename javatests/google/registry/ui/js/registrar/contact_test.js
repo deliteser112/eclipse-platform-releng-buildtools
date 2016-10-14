@@ -43,7 +43,11 @@ function setUp() {
     clientId: 'daddy',
     showPaymentLink: false,
     logoFilename: 'logo.png',
-    productName: 'Nomulus'
+    productName: 'Nomulus',
+    integrationEmail: 'integration@example.com',
+    supportEmail: 'support@example.com',
+    announcementsEmail: 'announcement@example.com',
+    supportPhoneNumber: '+1 (888) 555 0123'
   });
   registry.registrar.ConsoleTestUtil.setup(test);
 }

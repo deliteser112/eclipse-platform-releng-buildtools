@@ -53,7 +53,11 @@ function setUp() {
     clientId: test.testClientId,
     showPaymentLink: false,
     logoFilename: 'logo.png',
-    productName: 'Nomulus'
+    productName: 'Nomulus',
+    integrationEmail: 'integration@example.com',
+    supportEmail: 'support@example.com',
+    announcementsEmail: 'announcement@example.com',
+    supportPhoneNumber: '+1 (888) 555 0123'
   });
   registry.registrar.ConsoleTestUtil.setup(test);
   var regNavlist = $('reg-navlist');
@@ -91,8 +95,8 @@ function testEppLogin() {
   registry.registrar.ConsoleTestUtil.visit(
       test, {
         isEppLoggedIn: true,
-        testClientId: test.testClientId,
-        testXsrfToken: test.testXsrfToken,
+        clientId: test.testClientId,
+        xsrfToken: test.testXsrfToken,
         productName: 'Foo Registry'
       }, function() {
         test.sessionMock.login(
@@ -122,7 +126,7 @@ function testShowLoginOrDash() {
 function testNavToResources() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'resources',
-    testXsrfToken: test.testXsrfToken
+    xsrfToken: test.testXsrfToken
   });
   var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue(xhr.isActive());
@@ -143,7 +147,12 @@ function testNavToResources() {
 function testNavToContactUs() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'contact-us',
-    testXsrfToken: test.testXsrfToken
+    xsrfToken: test.testXsrfToken,
+    productName: 'Domain Registry',
+    integrationEmail: 'integration@example.com',
+    supportEmail: 'support@example.com',
+    announcementsEmail: 'announcement@example.com',
+    supportPhoneNumber: '+1 (888) 555 0123'
   });
   var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue(xhr.isActive());
