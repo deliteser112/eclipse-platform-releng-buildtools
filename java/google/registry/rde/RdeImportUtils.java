@@ -135,8 +135,7 @@ public class RdeImportUtils {
     // TODO (wolfgang): Add validation method for IDN tables
     try (InputStream input =
         gcsUtils.openInputStream(new GcsFilename(escrowBucketName, escrowFilePath))) {
-      try {
-        RdeParser parser = new RdeParser(input);
+      try (RdeParser parser = new RdeParser(input)) {
         // validate that tld exists and is in PREDELEGATION state
         String tld = parser.getHeader().getTld();
         try {

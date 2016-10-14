@@ -49,6 +49,7 @@ final class MetricMetrics {
               LABELS);
 
   /** A gauge representing a snapshot of the number of active timeseries being reported. */
+  @SuppressWarnings("unused")
   private static final Metric<Long> timeseriesCount =
       MetricRegistryImpl.getDefault()
           .newGauge(

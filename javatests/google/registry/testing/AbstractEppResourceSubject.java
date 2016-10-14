@@ -106,7 +106,7 @@ abstract class AbstractEppResourceSubject
   public HistoryEntrySubject hasOnlyOneHistoryEntryWhich() {
     hasOnlyOneHistoryEntry();
     return assertAboutHistoryEntries().that(getHistoryEntries().get(0)).withCustomDisplaySubject(
-        "the only history entry for " + getDisplaySubject());
+        "the only history entry for " + actualAsString());
   }
 
   public Which<HistoryEntrySubject> hasHistoryEntryAtIndex(int index) {
@@ -117,12 +117,12 @@ abstract class AbstractEppResourceSubject
     }
     return new Which<>(assertAboutHistoryEntries()
         .that(getHistoryEntries().get(index)).withCustomDisplaySubject(String.format(
-            "the history entry for %s at index %s", getDisplaySubject(), index)));
+            "the history entry for %s at index %s", actualAsString(), index)));
   }
 
   public And<S> hasStatusValue(StatusValue statusValue) {
     if (!actual().getStatusValues().contains(statusValue)) {
-      failWithRawMessage("%s should have had status value %s", getDisplaySubject(), statusValue);
+      failWithRawMessage("%s should have had status value %s", actualAsString(), statusValue);
     }
     return andChainer();
   }
@@ -130,7 +130,7 @@ abstract class AbstractEppResourceSubject
   public And<S> doesNotHaveStatusValue(StatusValue statusValue) {
     if (actual().getStatusValues().contains(statusValue)) {
       failWithRawMessage(
-          "%s should not have had status value %s", getDisplaySubject(), statusValue);
+          "%s should not have had status value %s", actualAsString(), statusValue);
     }
     return andChainer();
   }
@@ -138,7 +138,7 @@ abstract class AbstractEppResourceSubject
   public And<S> hasExactlyStatusValues(StatusValue... statusValues) {
     if (!ImmutableSet.copyOf(actual().getStatusValues())
         .equals(ImmutableSet.copyOf(statusValues))) {
-      assertThat(actual().getStatusValues()).named("status values for " + getDisplaySubject())
+      assertThat(actual().getStatusValues()).named("status values for " + actualAsString())
           .containsExactly((Object[]) statusValues);
     }
     return andChainer();

@@ -54,7 +54,7 @@ public final class DomainApplicationSubject
         ImmutableSet.copyOf(actual().getEncodedSignedMarks()),
         ImmutableSet.of(encodedSignedMarks))) {
       assertThat(actual().getEncodedSignedMarks())
-          .named("the encoded signed marks of " + getDisplaySubject())
+          .named("the encoded signed marks of " + actualAsString())
           .containsExactly((Object[]) encodedSignedMarks);
     }
     return andChainer();
