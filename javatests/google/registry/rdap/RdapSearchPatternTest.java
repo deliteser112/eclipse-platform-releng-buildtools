@@ -73,6 +73,14 @@ public class RdapSearchPatternTest {
   }
 
   @Test
+  public void testShortString_ok() throws Exception {
+    RdapSearchPattern rdapSearchPattern = RdapSearchPattern.create("e", true);
+    assertThat(rdapSearchPattern.getInitialString()).isEqualTo("e");
+    assertThat(rdapSearchPattern.getHasWildcard()).isFalse();
+    assertThat(rdapSearchPattern.getSuffix()).isNull();
+  }
+
+  @Test
   public void testPrefixTooShort_unprocessable() throws Exception {
     thrown.expect(UnprocessableEntityException.class);
     RdapSearchPattern.create("e*", true);

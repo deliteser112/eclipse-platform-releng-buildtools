@@ -14,6 +14,8 @@
 
 package google.registry.rdap;
 
+import static google.registry.util.DomainNameUtils.ACE_PREFIX;
+
 import google.registry.request.HttpException.UnprocessableEntityException;
 import javax.annotation.Nullable;
 
@@ -82,8 +84,7 @@ public final class RdapSearchPattern {
    * @throws UnprocessableEntityException if {@code pattern} does not meet the requirements of RFC
    *    7482
    */
-  public static RdapSearchPattern create(
-      String pattern, boolean allowSuffix) throws UnprocessableEntityException {
+  public static RdapSearchPattern create(String pattern, boolean allowSuffix) {
     String initialString;
     boolean hasWildcard;
     String suffix;
@@ -112,14 +113,13 @@ public final class RdapSearchPattern {
         suffix = null;
       }
       initialString = pattern.substring(0, wildcardPos);
-    }
-    if (initialString.length() < 2) {
-      throw new UnprocessableEntityException("At least two characters must be specified");
-    }
-    if (initialString.startsWith("xn--")
-        && (initialString.length() < 7)) {
-      throw new UnprocessableEntityException(
-          "At least seven characters must be specified for punycode domain searches");
+      if (initialString.length() < 2) {
+        throw new UnprocessableEntityException("At least two characters must be specified");
+      }
+      if (initialString.startsWith(ACE_PREFIX) && (initialString.length() < 7)) {
+        throw new UnprocessableEntityException(
+            "At least seven characters must be specified for punycode domain searches");
+      }
     }
     return new RdapSearchPattern(initialString, hasWildcard, suffix);
   }

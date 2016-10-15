@@ -202,8 +202,8 @@ public class RdapEntityActionTest {
 
   @Test
   public void testUnknownEntity_returns404() throws Exception {
-    assertThat(generateActualJson("MISSING-ENTITY")).isEqualTo(
-        generateExpectedJson("MISSING-ENTITY not found", "rdap_error_404.json"));
+    assertThat(generateActualJson("_MISSING-ENTITY_")).isEqualTo(
+        generateExpectedJson("_MISSING-ENTITY_ not found", "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 

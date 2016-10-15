@@ -16,6 +16,7 @@ package google.registry.rdap;
 
 import static com.google.common.base.Strings.nullToEmpty;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Function;
@@ -1054,6 +1055,7 @@ public class RdapJsonFormatter {
   }
 
   private static boolean hasUnicodeComponents(String fullyQualifiedName) {
-    return fullyQualifiedName.startsWith("xn--") || fullyQualifiedName.contains(".xn--");
+    return fullyQualifiedName.startsWith(ACE_PREFIX)
+        || fullyQualifiedName.contains("." + ACE_PREFIX);
   }
 }

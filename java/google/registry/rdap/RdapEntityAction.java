@@ -49,7 +49,7 @@ public class RdapEntityAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/entity/";
 
-  private static final Pattern ROID_PATTERN = Pattern.compile("[-.a-zA-Z0-9]+");
+  private static final Pattern ROID_PATTERN = Pattern.compile("[-_.a-zA-Z0-9]+");
 
   @Inject Clock clock;
   @Inject RdapEntityAction() {}
