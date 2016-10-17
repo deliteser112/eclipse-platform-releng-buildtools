@@ -145,16 +145,16 @@ public class DomainApplicationTest extends EntityTestCase {
 
   @Test
   public void testEmptySetsAndArraysBecomeNull() {
-    assertThat(emptyBuilder().setNameservers(null).build().nameservers).isNull();
+    assertThat(emptyBuilder().setNameservers(null).build().nsHosts).isNull();
     assertThat(emptyBuilder()
         .setNameservers(ImmutableSet.<Key<HostResource>>of())
         .build()
-        .nameservers)
+        .nsHosts)
             .isNull();
     assertThat(emptyBuilder()
         .setNameservers(ImmutableSet.of(Key.create(newHostResource("foo.example.tld"))))
         .build()
-        .nameservers)
+        .nsHosts)
             .isNotNull();
     // This behavior should also hold true for ImmutableObjects nested in collections.
     assertThat(emptyBuilder()

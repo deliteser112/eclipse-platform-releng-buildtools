@@ -207,13 +207,13 @@ public class DomainResourceTest extends EntityTestCase {
   @Test
   public void testEmptySetsAndArraysBecomeNull() {
     assertThat(newDomainResource("example.com").asBuilder()
-        .setNameservers(null).build().nameservers).isNull();
+        .setNameservers(null).build().nsHosts).isNull();
     assertThat(newDomainResource("example.com").asBuilder()
-        .setNameservers(ImmutableSet.<Key<HostResource>>of()).build().nameservers)
+        .setNameservers(ImmutableSet.<Key<HostResource>>of()).build().nsHosts)
             .isNull();
     assertThat(newDomainResource("example.com").asBuilder()
         .setNameservers(ImmutableSet.of(Key.create(newHostResource("foo.example.tld"))))
-            .build().nameservers)
+            .build().nsHosts)
                 .isNotNull();
     // This behavior should also hold true for ImmutableObjects nested in collections.
     assertThat(newDomainResource("example.com").asBuilder()
@@ -462,21 +462,22 @@ public class DomainResourceTest extends EntityTestCase {
   public void testDualSavingOfDesignatedContact() {
     ContactResource contact = persistActiveContact("time1006");
     DesignatedContact designatedContact = new DesignatedContact();
-    designatedContact.contactId = ReferenceUnion.create(Key.create(contact));
+    designatedContact.contact = Key.create(contact);
     designatedContact.type = Type.ADMIN;
     DomainResource domainWithContact =
         domain.asBuilder().setContacts(ImmutableSet.of(designatedContact)).build();
-    assertThat(getOnlyElement(domainWithContact.getContacts()).contact).isNull();
+    assertThat(getOnlyElement(domainWithContact.getContacts()).contactId).isNull();
     DomainResource reloadedDomain = persistResource(domainWithContact);
-    assertThat(getOnlyElement(reloadedDomain.getContacts()).contact).isEqualTo(Key.create(contact));
+    assertThat(getOnlyElement(reloadedDomain.getContacts()).contactId)
+        .isEqualTo(ReferenceUnion.create(Key.create(contact)));
   }
 
   @Test
   public void testDualSavingOfNameservers() {
     HostResource host = persistActiveHost("zzz.xxx.yyy");
     DomainResource domain = newDomainResource("python-django-unchained.com", host);
-    assertThat(domain.nsHosts).isNull();
+    assertThat(domain.nameservers).isNull();
     DomainResource djangoReloaded = persistResource(domain);
-    assertThat(djangoReloaded.nsHosts).containsExactly(Key.create(host));
+    assertThat(djangoReloaded.nameservers).containsExactly(ReferenceUnion.create(Key.create(host)));
   }
 }
