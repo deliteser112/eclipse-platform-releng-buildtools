@@ -218,8 +218,7 @@ public class StackdriverWriter implements MetricWriter {
    * Registers a metric's {@link MetricDescriptor} with the Monitoring API.
    *
    * @param metric the metric to be registered.
-   * @see <a href="Stackdriver MetricDescriptor
-   *     API">https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.metricDescriptors</a>
+   * @see <a href="https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.metricDescriptors">Stackdriver MetricDescriptor API</a>
    */
   @VisibleForTesting
   MetricDescriptor registerMetric(final google.registry.monitoring.metrics.Metric<?> metric)
@@ -327,8 +326,8 @@ public class StackdriverWriter implements MetricWriter {
    * <p>This method will register the underlying {@link google.registry.monitoring.metrics.Metric}
    * as a Stackdriver {@link MetricDescriptor}.
    *
-   * @see <a href="Stackdriver TimeSeries
-   *     API">https://cloud.google.com/monitoring/api/ref_v3/rest/v3/TimeSeries</a>
+   * @see <a href="https://cloud.google.com/monitoring/api/ref_v3/rest/v3/TimeSeries">
+   * Stackdriver TimeSeries API</a>
    */
   @VisibleForTesting
   <V> TimeSeries getEncodedTimeSeries(google.registry.monitoring.metrics.MetricPoint<V> point)
