@@ -425,9 +425,3 @@ placeholder for the App Engine app name:
     temporary files from building up, a 90-day or 180-day lifecycle should be
     applied to the bucket, depending on how long you want to be able to go back
     and debug MapReduce problems.
-
-## Commit logs
-
-## Web.xml
-
-## Cursors

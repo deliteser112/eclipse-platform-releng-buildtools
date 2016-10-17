@@ -3,8 +3,6 @@
 This document contains information on the overall structure of the code, and how
 particularly important pieces of the system are implemented.
 
-## Dagger dependency injection
-
 ## Bazel build system
 
 [Bazel](https://www.bazel.io/) is used to build and test the Nomulus codebase.
@@ -37,7 +35,7 @@ the dependencies or use the
 [generate_workspace](https://github.com/bazelbuild/bazel/tree/master/src/tools/generate_workspace
 tool to do it.
 
-### How to generate `EAR`/`WAR` archives for deployment
+### Generating EAR/WAR archives for deployment
 
 There are special build target types for generating `WAR` and `EAR` files for
 deploying Nomulus to GAE. These targets, `zip_file` and `registry_ear_file` respectively, are used in `java/google/registry/BUILD`. To generate archives suitable for deployment on GAE:
@@ -53,10 +51,6 @@ bazel-genfiles/java/google/registry/registry_backend.war
 bazel-genfiles/java/google/registry/registry_default.war
 bazel-genfiles/java/google/registry/registry_tools.war
 ```
-
-## Flows
-
-## Commit logs and backups
 
 ## Cursors
 
@@ -119,12 +113,6 @@ is of limited use -- the best you can do is to `@Inject` serializable fields on
 the entire MapReduce `Action`, and then set them manually on the mapper/reducer
 classes in their constructor.
 
-## Actions and servlets
-
-## Foreign key indexes
-
-## Point-in-time accuracy
-
 ## Guava
 
 The Nomulus codebase makes extensive use of the
@@ -168,8 +156,6 @@ type objects are immutable and have sane default implementations of `toString`,
 `hashCode`, and `equals`. They are often used as parameters and return values to
 encapsulate related values together.
 
-## EPP resource hierarchy
-
 ## Poll messages
 
 Poll messages are the mechanism by which EPP handles asynchronous communication
@@ -199,5 +185,3 @@ messages that extend it:
 
 Queries for poll messages by the registrar are handled in `PollRequestFlow`, and
 poll messages are ACKed (and thus deleted) in `PollAckFlow`.
-
-## Security

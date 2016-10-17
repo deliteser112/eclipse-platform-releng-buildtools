@@ -3,8 +3,6 @@
 This document covers procedures that are typically used when running a
 production registry system.
 
-## OT&E onboarding
-
 ## Stackdriver monitoring
 
 [Stackdriver Monitoring](https://cloud.google.com/monitoring/docs/) is used to
