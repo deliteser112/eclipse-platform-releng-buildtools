@@ -54,7 +54,7 @@ class SheetSynchronizer {
    *
    * @param spreadsheetId The ID of your spreadsheet. This can be obtained by opening the Google
    *     spreadsheet in your browser and copying the ID from the URL.
-   * @param data This should be a <i>sorted</i> list of rows containing the enterity of the
+   * @param data This should be a <i>sorted</i> list of rows containing the entirety of the
    *     spreadsheet. Each row is a map, where the key must be exactly the same as the column header
    *     cell in the spreadsheet, and value is an arbitrary object which will be converted to a
    *     string before storing it in the spreadsheet.
