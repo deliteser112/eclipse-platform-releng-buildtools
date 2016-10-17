@@ -27,15 +27,14 @@ goog.forwardDeclare('registry.registrar.Console');
 /**
  * Session state for console.
  * @param {!registry.registrar.Console} console
- * @param {string} xsrfToken Populated by server-side soy template.
- * @param {string} clientId The logged in GAE user.
  * @constructor
  * @extends {registry.Session}
  * @final
  */
-registry.registrar.EppSession = function(console, xsrfToken, clientId) {
+registry.registrar.EppSession = function(console) {
   registry.registrar.EppSession.base(
-      this, 'constructor', new goog.Uri('/registrar-xhr'), xsrfToken,
+      this, 'constructor', new goog.Uri('/registrar-xhr'),
+      console.params.xsrfToken,
       registry.Session.ContentType.EPP);
 
   /**
@@ -48,12 +47,6 @@ registry.registrar.EppSession = function(console, xsrfToken, clientId) {
    * @private
    */
   this.isEppLoggedIn_ = false;
-
-  /**
-   * @type {string}
-   * @private
-   */
-  this.clientId_ = clientId;
 };
 goog.inherits(registry.registrar.EppSession, registry.Session);
 
@@ -74,7 +67,7 @@ registry.registrar.EppSession.prototype.isEppLoggedIn = function() {
  * @return {string} the clientId.
  */
 registry.registrar.EppSession.prototype.getClientId = function() {
-  return this.clientId_;
+  return this.console.params.clientId;
 };
 
 
@@ -83,7 +76,7 @@ registry.registrar.EppSession.prototype.getClientId = function() {
  * @param {function()} successCb to be called on success.
  */
 registry.registrar.EppSession.prototype.login = function(successCb) {
-  var eppArgs = {clId: this.clientId_, clTrid: 'asdf-1235'};
+  var eppArgs = {clId: this.console.params.clientId, clTrid: 'asdf-1235'};
   this.send(
       registry.soy.registrar.epp.login(eppArgs).getContent(),
       goog.bind(function(xml) {

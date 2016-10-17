@@ -40,9 +40,7 @@ registry.registrar.ConsoleTestUtil.setup = function(test) {
   /** @suppress {missingRequire} */
   test.mockControl
       .createConstructorMock(registry.registrar, 'EppSession')(
-          goog.testing.mockmatchers.isObject,
-          goog.testing.mockmatchers.isString,
-          goog.testing.mockmatchers.isString)
+          goog.testing.mockmatchers.isObject)
       .$returns(test.sessionMock);
 };
 

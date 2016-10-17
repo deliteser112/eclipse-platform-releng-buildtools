@@ -47,10 +47,15 @@ goog.forwardDeclare('registry.Component');
  * @final
  */
 registry.registrar.Console = function(params) {
+  /**
+   * @type {!Object}
+   */
+  // We have to define this before creating an EppSession because EppSession's
+  // constructor expects us to have it as an attribute.
+  this.params = params;
+
   registry.registrar.Console.base(
-      this, 'constructor',
-      new registry.registrar.EppSession(this, params.xsrfToken,
-                                        params.clientId));
+      this, 'constructor', new registry.registrar.EppSession(this));
 
   /**
    * Component that's currently embedded in the page.
@@ -62,11 +67,6 @@ registry.registrar.Console = function(params) {
   // XXX: This was in parent ctor but was triggering event dispatching before
   //      ready here.
   this.history.setEnabled(true);
-
-  /**
-   * @type {!Object}
-   */
-  this.params = params;
 
   /**
    * Last active nav element.
