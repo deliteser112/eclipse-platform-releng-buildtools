@@ -71,7 +71,7 @@ class SheetSynchronizer {
     URL url = new URL(SPREADSHEET_URL_PREFIX + spreadsheetId);
     SpreadsheetEntry spreadsheet = spreadsheetService.getEntry(url, SpreadsheetEntry.class);
     WorksheetEntry worksheet = spreadsheet.getWorksheets().get(0);
-    worksheet.setRowCount(data.size());
+    worksheet.setRowCount(data.size() + 1); // account for header row
     worksheet = worksheet.update();
     ListFeed listFeed = spreadsheetService.getFeed(worksheet.getListFeedUrl(), ListFeed.class);
     List<ListEntry> entries = listFeed.getEntries();

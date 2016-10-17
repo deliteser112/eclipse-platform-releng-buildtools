@@ -78,7 +78,7 @@ public class SheetSynchronizerTest {
   public void testSynchronize_bothEmpty_doNothing() throws Exception {
     when(listFeed.getEntries()).thenReturn(ImmutableList.<ListEntry>of());
     sheetSynchronizer.synchronize("foobar", ImmutableList.<ImmutableMap<String, String>>of());
-    verify(worksheet).setRowCount(0);
+    verify(worksheet).setRowCount(1);
     verify(worksheet).update();
   }
 
@@ -88,7 +88,7 @@ public class SheetSynchronizerTest {
     when(listFeed.getEntries()).thenReturn(ImmutableList.of(entry));
     sheetSynchronizer.synchronize("foobar", ImmutableList.of(
         ImmutableMap.of("key", "value")));
-    verify(worksheet).setRowCount(1);
+    verify(worksheet).setRowCount(2);
     verify(worksheet).update();
     verify(entry, atLeastOnce()).getCustomElements();
     verifyNoMoreInteractions(entry);
@@ -102,7 +102,7 @@ public class SheetSynchronizerTest {
         ImmutableMap.of("key", "new value")));
     verify(entry.getCustomElements()).setValueLocal("key", "new value");
     verify(entry).update();
-    verify(worksheet).setRowCount(1);
+    verify(worksheet).setRowCount(2);
     verify(worksheet).update();
     verify(entry, atLeastOnce()).getCustomElements();
     verifyNoMoreInteractions(entry);
@@ -117,7 +117,7 @@ public class SheetSynchronizerTest {
         ImmutableMap.of("key", "value")));
     verify(entry.getCustomElements()).setValueLocal("key", "value");
     verify(listFeed).insert(entry);
-    verify(worksheet).setRowCount(1);
+    verify(worksheet).setRowCount(2);
     verify(worksheet).update();
     verify(listFeed).createEntry();
     verify(entry, atLeastOnce()).getCustomElements();
@@ -129,7 +129,7 @@ public class SheetSynchronizerTest {
     ListEntry entry = makeListEntry(ImmutableMap.of("key", "value"));
     when(listFeed.getEntries()).thenReturn(ImmutableList.of(entry));
     sheetSynchronizer.synchronize("foobar", ImmutableList.<ImmutableMap<String, String>>of());
-    verify(worksheet).setRowCount(0);
+    verify(worksheet).setRowCount(1);
     verify(worksheet).update();
     verifyNoMoreInteractions(entry);
   }
