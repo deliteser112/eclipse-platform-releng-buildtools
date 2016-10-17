@@ -250,8 +250,10 @@ public class TaskQueueHelper {
   }
 
   /** Ensures that the named queue contains no tasks. */
-  public static void assertNoTasksEnqueued(String queueName) throws Exception {
-    assertThat(getQueueInfo(queueName).getCountTasks()).isEqualTo(0);
+  public static void assertNoTasksEnqueued(String ... queueNames) throws Exception {
+    for (String queueName : queueNames) {
+      assertThat(getQueueInfo(queueName).getCountTasks()).isEqualTo(0);
+    }
   }
 
   /** Returns the value for the param on a task info, or empty if it is missing. */

@@ -38,7 +38,11 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.tmch.LordnTask.QUEUE_CLAIMS;
+import static google.registry.tmch.LordnTask.QUEUE_SUNRISE;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
@@ -116,6 +120,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.DatastoreHelper;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.util.Map;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -246,21 +251,22 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   private void assertNoLordn() throws Exception {
-    // TODO(b/26161326): Assert tasks NOT enqueued.
     assertAboutDomains().that(reloadResourceByForeignKey())
         .hasSmdId(null).and()
         .hasLaunchNotice(null);
+    assertNoTasksEnqueued(QUEUE_CLAIMS, QUEUE_SUNRISE);
   }
 
   private void assertSunriseLordn() throws Exception {
-    // TODO(b/26161326): Assert tasks enqueued.
     assertAboutDomains().that(reloadResourceByForeignKey())
         .hasSmdId("0000001761376042759136-65535").and()
         .hasLaunchNotice(null);
+    TaskMatcher task = new TaskMatcher().payload(
+        "16-TLD,test-validate.tld,0000001761376042759136-65535,1,2014-09-09T09:09:09.001Z");
+    assertTasksEnqueued(QUEUE_SUNRISE, task);
   }
 
   private void assertClaimsLordn() throws Exception {
-    // TODO(b/26161326): Assert tasks enqueued.
     assertAboutDomains().that(reloadResourceByForeignKey())
         .hasSmdId(null).and()
         .hasLaunchNotice(LaunchNotice.create(
@@ -268,6 +274,13 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             "tmch",
             DateTime.parse("2010-08-16T09:00:00.0Z"),
             DateTime.parse("2009-08-16T09:00:00.0Z")));
+    TaskMatcher task =
+        new TaskMatcher()
+            .payload(
+                reloadResourceByForeignKey().getRepoId()
+                    + ",example-one.tld,370d0b7c9223372036854775807,1,"
+                    + "2009-08-16T09:00:00.001Z,2009-08-16T09:00:00.000Z");
+    assertTasksEnqueued(QUEUE_CLAIMS, task);
   }
 
   private void doSuccessfulTest(
