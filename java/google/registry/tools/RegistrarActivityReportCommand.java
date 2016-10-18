@@ -36,8 +36,9 @@ import org.joda.time.format.DateTimeFormatter;
 @Parameters(separators = " =", commandDescription = "Generates a registrar activity report.")
 final class RegistrarActivityReportCommand implements Command {
 
+  // Do not make this final - compile-time constant inlining may interfere with JCommander.
   @ParametersDelegate
-  private final BigqueryParameters bigqueryParameters = new BigqueryParameters();
+  private BigqueryParameters bigqueryParameters = new BigqueryParameters();
 
   @Parameter(
       names = {"-t", "--tld"},

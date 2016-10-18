@@ -42,9 +42,11 @@ final class RegistryCli {
       description = "Sets the default environment to run the command.")
   private RegistryToolEnvironment environment = RegistryToolEnvironment.PRODUCTION;
 
+  // Do not make this final - compile-time constant inlining may interfere with JCommander.
   @ParametersDelegate
   private AppEngineConnection connection = new AppEngineConnection();
 
+  // Do not make this final - compile-time constant inlining may interfere with JCommander.
   @ParametersDelegate
   private LoggingParameters loggingParams = new LoggingParameters();
 

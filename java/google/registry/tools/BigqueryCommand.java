@@ -21,6 +21,7 @@ import google.registry.bigquery.BigqueryConnection;
 abstract class BigqueryCommand implements Command {
 
   /** Parameter delegate for encapsulating flags needed to set up the {@link BigqueryConnection}. */
+  // Do not make this final - compile-time constant inlining may interfere with JCommander.
   @ParametersDelegate
   private BigqueryParameters bigqueryParameters = new BigqueryParameters();
 
