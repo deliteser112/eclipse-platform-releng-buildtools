@@ -166,7 +166,7 @@ upload just that one using the `-M` flag to specify the service to update.
 
 To verify successful deployment, visit
 https://acme-registry-alpha.appspot.com/registrar in your browser (adjusting
-approrpriately for the project ID that you actually used). If the project
+appropriately for the project ID that you actually used). If the project
 deployed successfully, you'll see a "You need permission" page indicating that
 you need to configure the system and grant access to your Google account. It's
 time to go to the next step, configuration.
@@ -175,8 +175,8 @@ Configuration is handled by editing code, rebuilding the project, and deploying
 again. See the [configuration guide](./configuration.md) for more details. Once
 you have completed basic configuration (including most critically the project ID
 in your copy of `ProductionRegistryConfigExample`), you can rebuild and start
-using `registry_tool` to create test entities in your newly deployed system. See
-the [first steps tutorial](./first-steps-tutorial.md) for more information.
+using the `nomulus` tool to create test entities in your newly deployed system.
+See the [first steps tutorial](./first-steps-tutorial.md) for more information.
 
 [app-engine-sdk]: https://cloud.google.com/appengine/docs/java/download
 [java-jdk7]: http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html

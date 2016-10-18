@@ -12,7 +12,29 @@ running registry system. We'll assume that all commands below are running in the
 `alpha` environment; if you named your environment differently, then use that
 everywhere that `alpha` appears.
 
-### Create a TLD
+## Temporary extra steps
+
+Using the `nomulus` admin tool currently requires two additional steps to enable
+full functionality.  These steps should _not_ be done for a production
+deployment - a suitable solution for production is in progress.
+
+1.  Modify the `tools` module `web.xml` file to remove admin-only restrictions.
+    Look for the `<auth-constraint>admin</auth-constraint>` element.  Comment
+    out this element, and redeploy the tools module to your live app.
+
+2.  Set up [application default credentials][app-default-creds] in `gcloud` by
+    running the following command:
+
+```shell
+$ gcloud beta auth application-default login
+Your browser has been opened to visit:
+[ ... snip logging in via browser ... ]
+You are now logged in as [user@email.tld].
+```
+
+[app-default-creds]: https://developers.google.com/identity/protocols/application-default-credentials
+
+## Create a TLD
 
 Pick the name of a TLD to create. For the purposes of this example we'll use
 "example", which conveniently happens to be an ICANN reserved string, meaning
@@ -43,7 +65,7 @@ Updated 1 entities.
     upper-case TLD name down to 8 characters. Refer to the [gTLD Registry
     Advisory: Correction of non-compliant ROIDs][roids] for further information.
 
-### Create a registrar
+## Create a registrar
 
 Now we need to create a registrar and give it access to operate on the example
 TLD. For the purposes of our example we'll name the registrar "Acme".
@@ -78,7 +100,7 @@ Where:
 *   `--allowed_tlds` is a comma-delimited list of top level domains where this
     registrar has access.
 
-### Create a contact
+## Create a contact
 
 Now we want to create a contact, as a contact is required before a domain can be
 created. Contacts can be used on any number of domains across any number of
@@ -108,7 +130,7 @@ Where:
 
 The address and `email` fields are required to create a contact.
 
-### Create a host
+## Create a host
 
 Hosts are used to specify the IP addresses (either v4 or v6) that are associated
 with a given nameserver. Note that hosts may either be in-bailiwick (on a TLD
@@ -132,7 +154,7 @@ Where:
 Note that hosts are required to have IP addresses if they are subordinate, and
 must not have IP addresses if they are not subordinate.
 
-### Create a domain
+## Create a domain
 
 To tie it all together, let's create a domain name that uses the above contact
 and host.
@@ -158,7 +180,7 @@ Note how the same contact id is used for the administrative, technical, and
 registrant contact. It is common for domain names to use the same details for
 all contacts on a domain name.
 
-### Verify test entities using WHOIS
+## Verify test entities using WHOIS
 
 To verify that everything worked, let's query the WHOIS information for
 fake.example:
