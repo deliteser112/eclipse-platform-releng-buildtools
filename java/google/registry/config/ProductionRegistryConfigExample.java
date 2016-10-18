@@ -20,7 +20,6 @@ import static org.joda.time.Duration.standardDays;
 
 import com.google.appengine.api.utils.SystemProperty;
 import com.google.common.base.Ascii;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
@@ -130,8 +129,8 @@ public final class ProductionRegistryConfigExample implements RegistryConfig {
       case LOCAL:
         return HostAndPort.fromParts("localhost", 8080);
       default:
-        String host = Joiner.on(".").join("tools", getProjectId(), "appspot.com");
-        return HostAndPort.fromParts(host, 443);
+        return HostAndPort.fromParts(
+            String.format("tools-dot-%s.appspot.com", getProjectId()), 443);
     }
   }
 

@@ -45,7 +45,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.joda.time.Duration;
 import org.json.simple.JSONValue;
 
 /** An http connection to the appengine server. */
@@ -61,15 +60,6 @@ class AppEngineConnection implements Connection {
       description = "HOST[:PORT] to which remote commands are sent.")
   private HostAndPort server = RegistryEnvironment.get().config().getServer();
 
-  @Parameter(
-      names = "--remote_server_spec",
-      description = "Combined server spec for the backend to connect to for remote logging.")
-  private String remoteServerSpec = "gslb:apphosting-frontend:4";
-
-  @Parameter(
-      names = "--remote_connection_timeout",
-      description = "How long to wait for the remote logger server before giving up.")
-  private Duration remoteConnectionTimeout = Duration.standardSeconds(30);
 
   /**
    * Memoized XSRF security token.
@@ -95,13 +85,22 @@ class AppEngineConnection implements Connection {
     return (matcher.find() ? matcher.group(1) : null);
   }
 
+  /** Returns the HTML from the connection error stream, if any, otherwise the empty string. */
+  private static String getErrorHtmlAsString(HttpURLConnection connection) throws IOException {
+    return connection.getErrorStream() != null
+        ? CharStreams.toString(new InputStreamReader(connection.getErrorStream(), UTF_8))
+        : "";
+  }
+
   @Override
   public String send(
       String endpoint, Map<String, ?> params, MediaType contentType, byte[] payload)
           throws IOException {
     HttpURLConnection connection = getHttpURLConnection(
-        new URL(String.format("http://%s%s?%s", getServer(), endpoint, encodeParams(params))));
+        new URL(String.format("%s%s?%s", getServerUrl(), endpoint, encodeParams(params))));
     connection.setRequestMethod("POST");
+    // Disable following redirects, which we shouldn't normally encounter.
+    connection.setInstanceFollowRedirects(false);
     connection.setUseCaches(false);
     connection.setRequestProperty(CONTENT_TYPE, contentType.toString());
     connection.setRequestProperty(X_CSRF_TOKEN, xsrfToken.get());
@@ -112,8 +111,7 @@ class AppEngineConnection implements Connection {
       output.write(payload);
     }
     if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-      String errorTitle = extractHtmlTitle(
-          CharStreams.toString(new InputStreamReader(connection.getErrorStream(), UTF_8)));
+      String errorTitle = extractHtmlTitle(getErrorHtmlAsString(connection));
       throw new IOException(String.format(
           "Error from %s: %d %s%s",
           connection.getURL(),
@@ -151,17 +149,17 @@ class AppEngineConnection implements Connection {
   }
 
   private HttpURLConnection getHttpURLConnection(URL remoteUrl) throws IOException {
-    // TODO: Figure out authentication.
+    // TODO(b/28219927): Figure out authentication.
     return (HttpURLConnection) remoteUrl.openConnection();
   }
 
   @Override
   public String getServerUrl() {
-    return "https://" + getServer().toString().replaceFirst("\\.", "-dot-");
+    return (isLocalhost() ? "http://" : "https://") + getServer().toString();
   }
 
   HostAndPort getServer() {
-    return server;
+    return server.withDefaultPort(443);  // Default to HTTPS port if unspecified.
   }
 
   boolean isLocalhost() {

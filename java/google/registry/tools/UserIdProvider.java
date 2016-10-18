@@ -19,11 +19,14 @@ package google.registry.tools;
 class UserIdProvider {
 
   static String getTestUserId() {
-    return "test@example.com";
+    return "test@example.com";  // Predefined default user for the development server.
   }
 
   /** Pick up the username from an appropriate source. */
   static String getProdUserId() {
-    return System.getenv("USER") + "@" + System.getenv("HOSTNAME");
+    // TODO(b/28219927): fix tool authentication to use actual user credentials.
+    // For the time being, use the empty string so that for testing, requests without credentials
+    // can still pass the server-side XSRF token check (which will represent no user as "").
+    return "";
   }
 }
