@@ -83,68 +83,58 @@
     <web-resource-collection>
       <web-resource-name>Internal</web-resource-name>
       <description>
-        Any request path starting with `/_dr/` will be restricted to requests originating
-        from the backend or by anyone authenticated to a Google account that's listed in
-        the AppEngine control panel settings for this project as a Viewer/Owner/Developer.
-        The `_dr` is short for domain registry to follow AppEngine naming conventions.
+        Admin-only internal section.  Requests for paths covered by the URL patterns below will be
+        checked for a logged-in user account that's allowed to access the AppEngine admin console
+        (NOTE: this includes Editor/Viewer permissions in addition to Owner and the new IAM
+        App Engine Admin role.  See https://cloud.google.com/appengine/docs/java/access-control
+        specifically the "Access handlers that have a login:admin restriction" line.)
+
+        TODO(b/28219927): lift some of these restrictions so that we can allow OAuth authentication
+        for endpoints that need to be accessed by open-source automated processes.
       </description>
+
+      <!-- Internal AppEngine endpoints.  The '_ah' is short for app hosting.  -->
+      <url-pattern>/_ah/*</url-pattern>
+
+      <!-- Internal registry endpoints.  The '_dr' is short for domain registry. -->
       <url-pattern>/_dr/*</url-pattern>
+
+      <!-- Verbatim JavaScript sources (only visible to admins for debugging). -->
+      <url-pattern>/assets/sources/*</url-pattern>
+
+      <!-- TODO(b/26776367): Move these files to /assets/sources. -->
+      <url-pattern>/assets/js/registrar_bin.js.map</url-pattern>
+      <url-pattern>/assets/js/registrar_dbg.js</url-pattern>
+      <url-pattern>/assets/js/brain_bin.js.map</url-pattern>
+      <url-pattern>/assets/css/registrar_dbg.css</url-pattern>
+
     </web-resource-collection>
     <auth-constraint>
       <role-name>admin</role-name>
     </auth-constraint>
+
+    <!-- Repeated here since catch-all rule below is not inherited. -->
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
   </security-constraint>
+
   <security-constraint>
     <web-resource-collection>
-      <web-resource-name>profile-registrar-xhr</web-resource-name>
+      <web-resource-name>Registrar console</web-resource-name>
       <description>
-        Only allow logged-in users to even try to issue EPP commands. This is an additional
-        layer of safety on top of in-servlet authentication and XSRF protection.
+        Registrar console requires user login.  This is in addition to the
+        code-level "requireLogin" configuration on individual @Actions.
       </description>
-      <url-pattern>/registrar-xhr</url-pattern>
+      <url-pattern>/registrar*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>*</role-name>
     </auth-constraint>
-  </security-constraint>
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>profile-registrar-settings</web-resource-name>
-      <description>
-        Only allow logged-in users to even try to change registrar settings. This is an additional
-        layer of safety on top of in-servlet authentication and XSRF protection.
-      </description>
-      <url-pattern>/registrar-settings</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>*</role-name>
-    </auth-constraint>
-  </security-constraint>
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>profile-registrar-payment</web-resource-name>
-      <description>
-        Only allow logged-in users to even try to change registrar settings. This is an additional
-        layer of safety on top of in-servlet authentication and XSRF protection.
-      </description>
-      <url-pattern>/registrar-payment</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>*</role-name>
-    </auth-constraint>
-  </security-constraint>
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>profile-registrar-payment-token</web-resource-name>
-      <description>
-        Only allow logged-in users to even try to change registrar settings. This is an additional
-        layer of safety on top of in-servlet authentication and XSRF protection.
-      </description>
-      <url-pattern>/registrar-payment-token</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>*</role-name>
-    </auth-constraint>
+    <!-- Repeated here since catch-all rule below is not inherited. -->
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
   </security-constraint>
 
   <!-- Require TLS on all requests. -->
@@ -159,61 +149,6 @@
     <user-data-constraint>
       <transport-guarantee>CONFIDENTIAL</transport-guarantee>
     </user-data-constraint>
-  </security-constraint>
-
-  <!-- Restrict access to source code. -->
-  <!-- This directory contains all the JavaScript sources verbatim. -->
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>internal-sources</web-resource-name>
-      <description>No soup for you!</description>
-      <url-pattern>/assets/sources/*</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>admin</role-name>
-    </auth-constraint>
-  </security-constraint>
-
-  <!-- TODO(b/26776367): Move these files to /assets/sources. -->
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>registrar-bin-js-map</web-resource-name>
-      <description>No soup for you!</description>
-      <url-pattern>/assets/js/registrar_bin.js.map</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>admin</role-name>
-    </auth-constraint>
-  </security-constraint>
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>registrar-dbg-js</web-resource-name>
-      <description>No soup for you!</description>
-      <url-pattern>/assets/js/registrar_dbg.js</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>admin</role-name>
-    </auth-constraint>
-  </security-constraint>
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>brain-bin-js-map</web-resource-name>
-      <description>No soup for you!</description>
-      <url-pattern>/assets/js/brain_bin.js.map</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>admin</role-name>
-    </auth-constraint>
-  </security-constraint>
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>registrar-dbg-css</web-resource-name>
-      <description>No soup for you!</description>
-      <url-pattern>/assets/css/registrar_dbg.css</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>admin</role-name>
-    </auth-constraint>
   </security-constraint>
 
   <!-- See: https://code.google.com/p/objectify-appengine/wiki/Setup -->

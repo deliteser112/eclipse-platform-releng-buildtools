@@ -284,16 +284,34 @@
     <web-resource-collection>
       <web-resource-name>Internal</web-resource-name>
       <description>
-        Any request path starting with `/_dr/` will be restricted to requests originating
-        from the backend or by anyone authenticated to a Google account that's listed in
-        the AppEngine control panel settings for this project as a Viewer/Owner/Developer.
-        The `_dr` is short for domain registry to follow AppEngine naming conventions.
+        Admin-only internal section.  Requests for paths covered by the URL patterns below will be
+        checked for a logged-in user account that's allowed to access the AppEngine admin console
+        (NOTE: this includes Editor/Viewer permissions in addition to Owner and the new IAM
+        App Engine Admin role.  See https://cloud.google.com/appengine/docs/java/access-control
+        specifically the "Access handlers that have a login:admin restriction" line.)
+
+        TODO(b/28219927): lift some of these restrictions so that we can allow OAuth authentication
+        for endpoints that need to be accessed by open-source automated processes.
       </description>
+
+      <!-- Internal AppEngine endpoints.  The '_ah' is short for app hosting.  -->
+      <url-pattern>/_ah/*</url-pattern>
+
+      <!-- Internal registry endpoints.  The '_dr' is short for domain registry. -->
       <url-pattern>/_dr/*</url-pattern>
+
+      <!-- Registrar console (should not be available on non-default module). -->
+      <url-pattern>/registrar*</url-pattern>
+
+      <!-- Verbatim JavaScript sources (only visible to admins for debugging). -->
+      <url-pattern>/assets/sources/*</url-pattern>
+
     </web-resource-collection>
     <auth-constraint>
       <role-name>admin</role-name>
     </auth-constraint>
+
+    <!-- Repeated here since catch-all rule below is not inherited. -->
     <user-data-constraint>
       <transport-guarantee>CONFIDENTIAL</transport-guarantee>
     </user-data-constraint>
@@ -308,39 +326,6 @@
       </description>
       <url-pattern>/*</url-pattern>
     </web-resource-collection>
-    <user-data-constraint>
-      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
-    </user-data-constraint>
-  </security-constraint>
-
-  <!-- Shut down external access to registrar console. -->
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>Internal</web-resource-name>
-      <description>
-        Go home rogue registrar!
-      </description>
-      <url-pattern>/registrar*</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>admin</role-name>
-    </auth-constraint>
-    <user-data-constraint>
-      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
-    </user-data-constraint>
-  </security-constraint>
-
-  <!-- Restrict access to source code. -->
-  <!-- These are only included in the default module war, but restricting here too for safety. -->
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>Internal</web-resource-name>
-      <description>No soup for you!</description>
-      <url-pattern>/assets/sources/*</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>admin</role-name>
-    </auth-constraint>
     <user-data-constraint>
       <transport-guarantee>CONFIDENTIAL</transport-guarantee>
     </user-data-constraint>
