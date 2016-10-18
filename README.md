@@ -86,8 +86,10 @@ Nomulus has the following capabilities:
 
 ## Known issues
 
-Here are some additional things you will likely need or want that are not
-provided out of the box:
+Registry operators interested in deploying Nomulus will likely require some
+additional components that are not provided out of the box.
+
+**Core dependencies**
 
 *   A DNS system. An interface for DNS operations is provided so you can write
     an implementation for your chosen provider, along with a sample
@@ -96,12 +98,22 @@ provided out of the box:
     capabilities and provide your own
     multi-[AS](https://en.wikipedia.org/wiki/Autonomous_system_\(Internet\))
     solution.
-*   An invoicing/payments system in order to charge registrars for domain name
-    registrations and accept payments.
-*   System status and uptime monitoring.
 *   A proxy to forward traffic on EPP and WHOIS ports to App Engine via HTTPS,
     since App Engine Standard only serves HTTP/S traffic. The proxy must support
     IPv4 and IPv6 access to comply with ICANN's requirements for gTLDs.
+
+**Additional functionality**
+
+*   An invoicing/payments system in order to charge registrars for domain name
+    registrations and accept payments.
+*   Fully automated reporting to meet ICANN's requirements for gTLDs.  Nomulus
+    includes substantial reporting functionality but some additional work will
+    be required by the operator in this area.
+*   A secure method for storing cryptographic keys.  A keyring interface is
+    provided for plugging in your own implementation (see [configuration doc](
+    https://github.com/google/nomulus/blob/master/docs/configuration.md) for
+    details).
+*   System status and uptime monitoring.
 
 ## Outside references
 
