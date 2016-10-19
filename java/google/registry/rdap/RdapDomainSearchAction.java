@@ -269,7 +269,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
     for (List<Key<HostResource>> chunk : Iterables.partition(hostKeys, 30)) {
       for (DomainResource domain : ofy().load()
           .type(DomainResource.class)
-          .filter("nsHosts in", chunk)
+          .filter("nameservers.linked in", chunk)
           .filter("deletionTime >", now)
           .limit(rdapResultSetMaxSize + 1)) {
         if (!domains.contains(domain)) {

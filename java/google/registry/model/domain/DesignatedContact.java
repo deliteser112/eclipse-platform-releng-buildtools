@@ -72,6 +72,6 @@ public class DesignatedContact extends ImmutableObject {
   }
 
   public Key<ContactResource> getContactKey() {
-    return contact;
+    return contactId.getLinked();
   }
 }

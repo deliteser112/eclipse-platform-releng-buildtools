@@ -347,10 +347,12 @@ public final class EppResourceUtils {
   public static List<Key<DomainBase>> queryDomainsUsingResource(
       Class<? extends EppResource> clazz, Key<? extends EppResource> key, DateTime now, int limit) {
     checkArgument(ContactResource.class.equals(clazz) || HostResource.class.equals(clazz));
-    return ofy()
-        .load()
-        .type(DomainBase.class)
-        .filter(clazz.equals(ContactResource.class) ? "allContacts.contact" : "nsHosts", key)
+    return ofy().load().type(DomainBase.class)
+        .filter(
+            clazz.equals(ContactResource.class)
+                ? "allContacts.contactId.linked"
+                : "nameservers.linked",
+            key)
         .filter("deletionTime >", now)
         .limit(limit)
         .keys()
