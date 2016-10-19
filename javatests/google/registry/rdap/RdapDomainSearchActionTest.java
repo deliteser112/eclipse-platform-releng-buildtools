@@ -475,6 +475,7 @@ public class RdapDomainSearchActionTest {
   public void testDomainMatchWithWildcardAndEmptySuffix_fails() throws Exception {
     // Unfortunately, we can't be sure which error is going to be returned. The version of
     // IDN.toASCII used in Eclipse drops a trailing dot, if any. But the version linked in by
+    // Blaze throws an error in that situation. So just check that it returns an error.
     generateActualJson(RequestType.NAME, "exam*..");
     assertThat(response.getStatus()).isIn(Range.closed(400, 499));
   }
@@ -551,7 +552,7 @@ public class RdapDomainSearchActionTest {
     }
     persistResources(domainsBuilder.build());
   }
-
+  
   private Object readMultiDomainFile(
       String fileName,
       String domainName1,
@@ -987,7 +988,7 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(generateExpectedJson("No domains found", null, null, "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
   }
-
+  
   @Test
   public void testAddressMatch_nontruncatedResultsSet() throws Exception {
     createManyDomainsAndHosts(4, 1, 2);

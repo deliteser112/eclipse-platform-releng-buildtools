@@ -66,6 +66,7 @@ java_library(
 # sixty seconds, then shard_count should be tuned. You can binary search for a
 # good value that balances time reduction with environmental impact. However,
 # any unit test that contains fewer @Test methods than the shard count will
+# need to be updated to add dummy methods, otherwise blaze will lose its mind.
 # If you grep for testNothing you can find the existing dummy methods.
 GenTestRules(
     name = "GeneratedTestRules",
