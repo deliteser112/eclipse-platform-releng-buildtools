@@ -43,28 +43,18 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
-import google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
 import google.registry.flows.ResourceFlowTestCase;
-import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
-import google.registry.flows.domain.BaseDomainCreateFlow.AcceptedTooLongAgoException;
-import google.registry.flows.domain.BaseDomainCreateFlow.ClaimsPeriodEndedException;
-import google.registry.flows.domain.BaseDomainCreateFlow.ExpiredClaimException;
-import google.registry.flows.domain.BaseDomainCreateFlow.InvalidTcnIdChecksumException;
-import google.registry.flows.domain.BaseDomainCreateFlow.InvalidTrademarkValidatorException;
-import google.registry.flows.domain.BaseDomainCreateFlow.MalformedTcnIdException;
-import google.registry.flows.domain.BaseDomainCreateFlow.MaxSigLifeNotSupportedException;
-import google.registry.flows.domain.BaseDomainCreateFlow.MissingClaimsNoticeException;
-import google.registry.flows.domain.BaseDomainCreateFlow.UnexpectedClaimsNoticeException;
-import google.registry.flows.domain.BaseDomainCreateFlow.UnsupportedMarkTypeException;
 import google.registry.flows.domain.DomainApplicationCreateFlow.LandrushApplicationDisallowedDuringSunriseException;
 import google.registry.flows.domain.DomainApplicationCreateFlow.NoticeCannotBeUsedWithSignedMarkException;
 import google.registry.flows.domain.DomainApplicationCreateFlow.SunriseApplicationDisallowedDuringLandrushException;
 import google.registry.flows.domain.DomainApplicationCreateFlow.UncontestedSunriseApplicationBlockedInLandrushException;
+import google.registry.flows.domain.DomainFlowUtils.AcceptedTooLongAgoException;
 import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
 import google.registry.flows.domain.DomainFlowUtils.BadDomainNameCharacterException;
 import google.registry.flows.domain.DomainFlowUtils.BadDomainNamePartsCountException;
 import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
 import google.registry.flows.domain.DomainFlowUtils.Base64RequiredForEncodedSignedMarksException;
+import google.registry.flows.domain.DomainFlowUtils.ClaimsPeriodEndedException;
 import google.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.CurrencyValueScaleException;
 import google.registry.flows.domain.DomainFlowUtils.DashesInThirdAndFourthException;
@@ -72,13 +62,20 @@ import google.registry.flows.domain.DomainFlowUtils.DomainLabelTooLongException;
 import google.registry.flows.domain.DomainFlowUtils.DomainReservedException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
 import google.registry.flows.domain.DomainFlowUtils.EmptyDomainNamePartException;
+import google.registry.flows.domain.DomainFlowUtils.ExpiredClaimException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameException;
 import google.registry.flows.domain.DomainFlowUtils.InvalidIdnDomainLabelException;
+import google.registry.flows.domain.DomainFlowUtils.InvalidLrpTokenException;
 import google.registry.flows.domain.DomainFlowUtils.InvalidPunycodeException;
+import google.registry.flows.domain.DomainFlowUtils.InvalidTcnIdChecksumException;
+import google.registry.flows.domain.DomainFlowUtils.InvalidTrademarkValidatorException;
 import google.registry.flows.domain.DomainFlowUtils.LaunchPhaseMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.LeadingDashException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
+import google.registry.flows.domain.DomainFlowUtils.MalformedTcnIdException;
+import google.registry.flows.domain.DomainFlowUtils.MaxSigLifeNotSupportedException;
+import google.registry.flows.domain.DomainFlowUtils.MissingClaimsNoticeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedException;
@@ -101,7 +98,10 @@ import google.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyNameserversException;
 import google.registry.flows.domain.DomainFlowUtils.TooManySignedMarksException;
 import google.registry.flows.domain.DomainFlowUtils.TrailingDashException;
+import google.registry.flows.domain.DomainFlowUtils.UnexpectedClaimsNoticeException;
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeException;
+import google.registry.flows.domain.DomainFlowUtils.UnsupportedMarkTypeException;
+import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.LrpTokenEntity;
@@ -939,7 +939,7 @@ public class DomainApplicationCreateFlowTest
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    thrown.expect(BadAuthInfoForResourceException.class);
+    thrown.expect(InvalidLrpTokenException.class);
     runFlow();
   }
 
@@ -960,7 +960,7 @@ public class DomainApplicationCreateFlowTest
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    thrown.expect(BadAuthInfoForResourceException.class);
+    thrown.expect(InvalidLrpTokenException.class);
     runFlow();
   }
 
@@ -980,7 +980,7 @@ public class DomainApplicationCreateFlowTest
     setEppInput("domain_create_landrush_lrp.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    thrown.expect(BadAuthInfoForResourceException.class);
+    thrown.expect(InvalidLrpTokenException.class);
     runFlow();
   }
 

@@ -22,6 +22,8 @@ import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.flows.domain.TldSpecificLogicProxy.getMatchingLrpToken;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.label.ReservedList.getReservation;
@@ -42,9 +44,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Work;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.flows.EppException.InvalidAuthorizationInformationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
@@ -52,6 +56,8 @@ import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.EppException.UnimplementedOptionException;
+import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
+import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.EppResource;
@@ -63,19 +69,27 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainCommand.CreateOrUpdate;
 import google.registry.model.domain.DomainCommand.InvalidReferencesException;
 import google.registry.model.domain.DomainCommand.Update;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.Credit;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeQueryCommandExtensionItem;
 import google.registry.model.domain.fee.FeeQueryResponseExtensionItem;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
+import google.registry.model.domain.fee.FeeTransformResponseExtension;
+import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.launch.LaunchExtension;
+import google.registry.model.domain.launch.LaunchNotice;
+import google.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
 import google.registry.model.domain.launch.LaunchPhase;
+import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.domain.secdns.SecDnsInfoExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension.Add;
@@ -98,6 +112,7 @@ import google.registry.model.smd.AbstractSignedMark;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
 import google.registry.model.smd.SignedMarkRevocationList;
+import google.registry.model.tmch.ClaimsListShard;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.tmch.TmchXmlSignature;
@@ -373,11 +388,12 @@ public class DomainFlowUtils {
   }
 
   /** Verifies that a launch extension's specified phase matches the specified registry's phase. */
-  static void verifyLaunchPhase(
-      String tld, LaunchExtension launchExtension, DateTime now) throws EppException {
+  static void verifyLaunchPhaseMatchesRegistryPhase(
+      Registry registry, LaunchExtension launchExtension, DateTime now) throws EppException {
     if (!Objects.equals(
-        Registry.get(tld).getTldState(now),
+        registry.getTldState(now),
         LAUNCH_PHASE_TO_TLD_STATE.get(launchExtension.getPhase()))) {
+      // No launch operations are allowed during the quiet period or predelegation.
       throw new LaunchPhaseMismatchException();
     }
   }
@@ -835,6 +851,7 @@ public class DomainFlowUtils {
     }
   }
 
+  /** Check that the registry phase is not incompatible with launch extension flows. */
   static void verifyRegistryStateAllowsLaunchFlows(Registry registry, DateTime now)
       throws BadCommandForRegistryPhaseException {
     if (DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS.contains(registry.getTldState(now))) {
@@ -842,11 +859,160 @@ public class DomainFlowUtils {
     }
   }
 
+  /** Check that the registry phase is not predelegation, during which some flows are forbidden. */
   static void verifyNotInPredelegation(Registry registry, DateTime now)
       throws BadCommandForRegistryPhaseException {
     if (registry.getTldState(now) == TldState.PREDELEGATION) {
       throw new BadCommandForRegistryPhaseException();
     }
+  }
+
+  /** Validate the contacts and nameservers specified in a domain or application create command. */
+  static void validateCreateCommandContactsAndNameservers(Create command, String tld)
+      throws EppException {
+    verifyNotInPendingDelete(
+        command.getContacts(),
+        command.getRegistrant(),
+        command.getNameservers());
+    validateContactsHaveTypes(command.getContacts());
+    validateRegistrantAllowedOnTld(tld, command.getRegistrantContactId());
+    validateNoDuplicateContacts(command.getContacts());
+    validateRequiredContactsPresent(command.getRegistrant(), command.getContacts());
+    Set<String> fullyQualifiedHostNames =
+        nullToEmpty(command.getNameserverFullyQualifiedHostNames());
+    validateNameserversCountForTld(tld, fullyQualifiedHostNames.size());
+    validateNameserversAllowedOnTld(tld, fullyQualifiedHostNames);
+  }
+
+  /**
+   * Fail a domain or application create very fast if the domain is already registered.
+   *
+   * <p>Try to load the domain non-transactionally, since this can hit memcache. If we succeed, and
+   * the domain is not in the add grace period (the only state that allows instantaneous transition
+   * to being deleted), we can assume that the domain will not be deleted (and therefore won't be
+   * creatable) until its deletion time. For repeated failed creates this means we can avoid the
+   * Datastore lookup, which is very expensive (and first-seen failed creates are no worse than they
+   * otherwise would be). This comes at the cost of the extra lookup for successful creates (or
+   * rather, those that don't fail due to the domain existing) and also for failed creates within
+   * the existing domain's add grace period.
+   */
+  static void failfastForCreate(final String targetId, final DateTime now) throws EppException {
+    // Enter a transactionless context briefly.
+    DomainResource domain = ofy().doTransactionless(new Work<DomainResource>() {
+      @Override
+      public DomainResource run() {
+        // This is cacheable because we are outside of a transaction.
+        return loadByForeignKey(DomainResource.class, targetId, now);
+      }});
+    // If the domain exists already and isn't in the add grace period then there is no way it will
+    // be suddenly deleted and therefore the create must fail.
+    if (domain != null && !domain.getGracePeriodStatuses().contains(GracePeriodStatus.ADD)) {
+      throw new ResourceAlreadyExistsException(targetId, true);
+    }
+  }
+
+  /** Validate the secDNS extension, if present. */
+  static SecDnsCreateExtension validateSecDnsExtension(SecDnsCreateExtension secDnsCreate)
+      throws EppException {
+    if (secDnsCreate == null) {
+      return null;
+    }
+    if (secDnsCreate.getDsData() == null) {
+      throw new DsDataRequiredException();
+    }
+    if (secDnsCreate.getMaxSigLife() != null) {
+      throw new MaxSigLifeNotSupportedException();
+    }
+    validateDsData(secDnsCreate.getDsData());
+    return secDnsCreate;
+  }
+
+  /** Validate the notice from a launch create extension, allowing null as a valid notice. */
+  static void validateLaunchCreateNotice(
+      @Nullable LaunchNotice notice,
+      String domainLabel,
+      boolean isSuperuser,
+      DateTime now) throws EppException {
+    if (notice == null) {
+      return;
+    }
+    if (!notice.getNoticeId().getValidatorId().equals("tmch")) {
+      throw new InvalidTrademarkValidatorException();
+    }
+    // Superuser can force domain creations regardless of the current date.
+    if (!isSuperuser) {
+      if (notice.getExpirationTime().isBefore(now)) {
+        throw new ExpiredClaimException();
+      }
+      // An acceptance within the past 48 hours is mandated by the TMCH Functional Spec.
+      if (notice.getAcceptedTime().isBefore(now.minusHours(48))) {
+        throw new AcceptedTooLongAgoException();
+      }
+    }
+    try {
+      notice.validate(domainLabel);
+    } catch (IllegalArgumentException e) {
+      throw new MalformedTcnIdException();
+    } catch (InvalidChecksumException e) {
+      throw new InvalidTcnIdChecksumException();
+    }
+  }
+
+  /** Check that the claims period hasn't ended. */
+  static void verifyClaimsPeriodNotEnded(Registry registry, DateTime now)
+      throws ClaimsPeriodEndedException {
+    if (isAtOrAfter(now, registry.getClaimsPeriodEnd())) {
+      throw new ClaimsPeriodEndedException(registry.getTldStr());
+    }
+  }
+
+  /**
+   * Check that if there's a claims notice it's on the claims list, and that if there's not one it's
+   * not on the claims list and is a sunrise application.
+   */
+  static void verifyClaimsNoticeIfAndOnlyIfNeeded(
+      InternetDomainName domainName,
+      boolean hasSignedMarks,
+      boolean hasClaimsNotice) throws EppException {
+    boolean isInClaimsList = ClaimsListShard.get().getClaimKey(domainName.parts().get(0)) != null;
+    if (hasClaimsNotice && !isInClaimsList) {
+      throw new UnexpectedClaimsNoticeException(domainName.toString());
+    }
+    if (!hasClaimsNotice && isInClaimsList && !hasSignedMarks) {
+      throw new MissingClaimsNoticeException(domainName.toString());
+    }
+  }
+
+  /** Create a {@link LrpTokenEntity} object that records this LRP registration. */
+  static LrpTokenEntity prepareMarkedLrpTokenEntity(
+      String lrpTokenString, InternetDomainName domainName, HistoryEntry historyEntry)
+          throws InvalidLrpTokenException {
+    Optional<LrpTokenEntity> lrpToken = getMatchingLrpToken(lrpTokenString, domainName);
+    if (!lrpToken.isPresent()) {
+      throw new InvalidLrpTokenException();
+    }
+    return lrpToken.get().asBuilder()
+        .setRedemptionHistoryEntry(Key.create(historyEntry))
+        .build();
+  }
+
+  /** Check that there are no code marks, which is a type of mark we don't support. */
+  static void verifyNoCodeMarks(LaunchCreateExtension launchCreate)
+      throws UnsupportedMarkTypeException {
+    if (launchCreate.hasCodeMarks()) {
+      throw new UnsupportedMarkTypeException();
+    }
+  }
+
+  /** Create a response extension listign the fees on a domain or application create. */
+  static FeeTransformResponseExtension createFeeCreateResponse(
+      FeeTransformCommandExtension feeCreate,
+      EppCommandOperations commandOperations) {
+    return feeCreate.createResponseBuilder()
+        .setCurrency(commandOperations.getCurrency())
+        .setFees(commandOperations.getFees())
+        .setCredits(commandOperations.getCredits())
+        .build();
   }
 
   /** Encoded signed marks must use base64 encoding. */
@@ -1239,6 +1405,13 @@ public class DomainFlowUtils {
     }
   }
 
+  /** At least one dsData is required when using the secDNS extension. */
+  static class DsDataRequiredException extends ParameterValuePolicyErrorException {
+    public DsDataRequiredException() {
+      super("At least one dsData is required when using the secDNS extension");
+    }
+  }
+
   /** The 'urgent' attribute is not supported. */
   static class UrgentAttributeNotSupportedException extends UnimplementedOptionException {
     public UrgentAttributeNotSupportedException() {
@@ -1246,10 +1419,88 @@ public class DomainFlowUtils {
     }
   }
 
+  /** The 'maxSigLife' setting is not supported. */
+  static class MaxSigLifeNotSupportedException extends UnimplementedOptionException {
+    public MaxSigLifeNotSupportedException() {
+      super("The 'maxSigLife' setting is not supported");
+    }
+  }
+
   /** Changing 'maxSigLife' is not supported. */
   static class MaxSigLifeChangeNotSupportedException extends UnimplementedOptionException {
     public MaxSigLifeChangeNotSupportedException() {
       super("Changing 'maxSigLife' is not supported");
+    }
+  }
+
+  /** The specified trademark validator is not supported. */
+  static class InvalidTrademarkValidatorException extends ParameterValuePolicyErrorException {
+    public InvalidTrademarkValidatorException() {
+      super("The only supported validationID is 'tmch' for the ICANN Trademark Clearinghouse.");
+    }
+  }
+
+  /** The expiration time specified in the claim notice has elapsed. */
+  static class ExpiredClaimException extends ParameterValueRangeErrorException {
+    public ExpiredClaimException() {
+      super("The expiration time specified in the claim notice has elapsed");
+    }
+  }
+
+  /** The acceptance time specified in the claim notice is more than 48 hours in the past. */
+  static class AcceptedTooLongAgoException extends ParameterValueRangeErrorException {
+    public AcceptedTooLongAgoException() {
+      super("The acceptance time specified in the claim notice is more than 48 hours in the past");
+    }
+  }
+
+  /** The specified TCNID is invalid. */
+  static class MalformedTcnIdException extends ParameterValueSyntaxErrorException {
+    public MalformedTcnIdException() {
+      super("The specified TCNID is malformed");
+    }
+  }
+
+  /** The checksum in the specified TCNID does not validate. */
+  static class InvalidTcnIdChecksumException extends ParameterValueRangeErrorException {
+    public InvalidTcnIdChecksumException() {
+      super("The checksum in the specified TCNID does not validate");
+    }
+  }
+
+  /** The claims period for this TLD has ended. */
+  static class ClaimsPeriodEndedException extends StatusProhibitsOperationException {
+    public ClaimsPeriodEndedException(String tld) {
+      super(String.format("The claims period for %s has ended", tld));
+    }
+  }
+
+  /** Requested domain requires a claims notice. */
+  static class MissingClaimsNoticeException extends StatusProhibitsOperationException {
+    public MissingClaimsNoticeException(String domainName) {
+      super(String.format("%s requires a claims notice", domainName));
+    }
+  }
+
+  /** Requested domain does not require a claims notice. */
+  static class UnexpectedClaimsNoticeException extends StatusProhibitsOperationException {
+    public UnexpectedClaimsNoticeException(String domainName) {
+      super(String.format("%s does not require a claims notice", domainName));
+    }
+  }
+
+  /** Invalid limited registration period token. */
+  static class InvalidLrpTokenException
+      extends InvalidAuthorizationInformationErrorException {
+    public InvalidLrpTokenException() {
+      super("Invalid limited registration period token");
+    }
+  }
+
+  /** Only encoded signed marks are supported. */
+  static class UnsupportedMarkTypeException extends ParameterValuePolicyErrorException {
+    public UnsupportedMarkTypeException() {
+      super("Only encoded signed marks are supported");
     }
   }
 }

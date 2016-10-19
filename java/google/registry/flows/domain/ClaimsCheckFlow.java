@@ -18,10 +18,10 @@ import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
+import static google.registry.flows.domain.DomainFlowUtils.verifyClaimsPeriodNotEnded;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.domain.launch.LaunchPhase.CLAIMS;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
-import static google.registry.util.DateTimeUtils.isAtOrAfter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -48,12 +48,12 @@ import javax.inject.Inject;
 /**
  * An EPP flow that checks whether strings are trademarked.
  *
- * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link google.registry.flows.exceptions.TooManyResourceChecksException}
  * @error {@link DomainFlowUtils.BadCommandForRegistryPhaseException}
+ * @error {@link DomainFlowUtils.ClaimsPeriodEndedException}
+ * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
  * @error {@link ClaimsCheckNotAllowedInSunrise}
- * @error {@link ClaimsPeriodEndedException}
  */
 public final class ClaimsCheckFlow extends LoggedInFlow {
 
@@ -85,9 +85,7 @@ public final class ClaimsCheckFlow extends LoggedInFlow {
           if (registry.getTldState(now) == TldState.SUNRISE) {
             throw new ClaimsCheckNotAllowedInSunrise();
           }
-          if (isAtOrAfter(now, registry.getClaimsPeriodEnd())) {
-            throw new ClaimsPeriodEndedException();
-          }
+          verifyClaimsPeriodNotEnded(registry, now);
         }
       }
       String claimKey = ClaimsListShard.get().getClaimKey(domainName.parts().get(0));
@@ -105,13 +103,6 @@ public final class ClaimsCheckFlow extends LoggedInFlow {
   static class ClaimsCheckNotAllowedInSunrise extends CommandUseErrorException {
     public ClaimsCheckNotAllowedInSunrise() {
       super("Claims checks are not allowed during sunrise");
-    }
-  }
-
-  /** The claims period has ended. */
-  static class ClaimsPeriodEndedException extends CommandUseErrorException {
-    public ClaimsPeriodEndedException() {
-      super("The claims period has ended");
     }
   }
 }

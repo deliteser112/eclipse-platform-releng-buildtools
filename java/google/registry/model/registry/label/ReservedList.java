@@ -33,6 +33,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
@@ -174,8 +175,10 @@ public final class ReservedList
    * Returns true if the given label and TLD is reserved for an anchor tenant, and the given
    * auth code matches the one set on the reservation.
    */
-  public static boolean matchesAnchorTenantReservation(String label, String tld, String authCode) {
-    ReservedListEntry entry = getReservedListEntry(label, tld);
+  public static boolean matchesAnchorTenantReservation(
+      InternetDomainName domainName, String authCode) {
+    ReservedListEntry entry =
+        getReservedListEntry(domainName.parts().get(0), domainName.parent().toString());
     return entry != null
         && entry.reservationType == RESERVED_FOR_ANCHOR_TENANT
         && Objects.equals(entry.getAuthCode(), authCode);

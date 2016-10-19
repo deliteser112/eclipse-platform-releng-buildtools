@@ -337,7 +337,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         DateTime.parse("2001-01-01T00:01:00Z"));
     assertCommandAndResponse(
         "poll_ack.xml",
-        ImmutableMap.of("ID", "1-B-EXAMPLE-17-23"),
+        ImmutableMap.of("ID", "1-C-EXAMPLE-17-23"),
         "poll_ack_response_empty.xml",
         null,
     DateTime.parse("2001-01-01T00:01:00Z"));
@@ -349,7 +349,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         DateTime.parse("2001-01-06T00:01:00Z"));
     assertCommandAndResponse(
         "poll_ack.xml",
-        ImmutableMap.of("ID", "1-B-EXAMPLE-17-22"),
+        ImmutableMap.of("ID", "1-C-EXAMPLE-17-22"),
         "poll_ack_response_empty.xml",
         null,
         DateTime.parse("2001-01-06T00:01:00Z"));
@@ -365,7 +365,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         DateTime.parse("2001-01-06T00:02:00Z"));
     assertCommandAndResponse(
         "poll_ack.xml",
-        ImmutableMap.of("ID", "1-B-EXAMPLE-17-21"),
+        ImmutableMap.of("ID", "1-C-EXAMPLE-17-21"),
         "poll_ack_response_empty.xml",
         null,
         DateTime.parse("2001-01-06T00:02:00Z"));

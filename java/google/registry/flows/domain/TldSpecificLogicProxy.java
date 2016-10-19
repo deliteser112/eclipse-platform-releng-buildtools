@@ -23,11 +23,11 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.model.ImmutableObject;
-import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.fee.BaseFee;
@@ -266,23 +266,25 @@ public final class TldSpecificLogicProxy {
   }
 
   /**
-   * Checks whether a {@link Create} command has a valid {@link LrpTokenEntity} for a particular
-   * TLD, and return that token (wrapped in an {@link Optional}) if one exists.
+   * Checks whether an LRP token String maps to a valid {@link LrpTokenEntity} for the domain name's
+   * TLD, and return that entity (wrapped in an {@link Optional}) if one exists.
    *
    * <p>This method has no knowledge of whether or not an auth code (interpreted here as an LRP
    * token) has already been checked against the reserved list for QLP (anchor tenant), as auth
    * codes are used for both types of registrations.
    */
-  public static Optional<LrpTokenEntity> getMatchingLrpToken(Create createCommand, String tld) {
+  public static Optional<LrpTokenEntity> getMatchingLrpToken(
+      String lrpToken, InternetDomainName domainName) {
     // Note that until the actual per-TLD logic is built out, what's being done here is a basic
     // domain-name-to-assignee match.
-    String lrpToken = createCommand.getAuthInfo().getPw().getValue();
-    LrpTokenEntity token = ofy().load().key(Key.create(LrpTokenEntity.class, lrpToken)).now();
-    if (token != null) {
-      if (token.getAssignee().equalsIgnoreCase(createCommand.getFullyQualifiedDomainName())
-          && token.getRedemptionHistoryEntry() == null
-          && token.getValidTlds().contains(tld)) {
-        return Optional.of(token);
+    if (!lrpToken.isEmpty()) {
+      LrpTokenEntity token = ofy().load().key(Key.create(LrpTokenEntity.class, lrpToken)).now();
+      if (token != null) {
+        if (token.getAssignee().equalsIgnoreCase(domainName.toString())
+            && token.getRedemptionHistoryEntry() == null
+            && token.getValidTlds().contains(domainName.parent().toString())) {
+          return Optional.of(token);
+        }
       }
     }
     return Optional.<LrpTokenEntity>absent();

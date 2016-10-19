@@ -622,16 +622,16 @@ An EPP flow that creates a new domain resource.
     *   The acceptance time specified in the claim notice is more than 48 hours
         in the past.
     *   The expiration time specified in the claim notice has elapsed.
-    *   The checksum in the specified TCNID does not validate.
     *   The fees passed in the transform command do not match the fees that will
         be charged.
     *   Domain label is not allowed by IDN table.
+    *   The checksum in the specified TCNID does not validate.
     *   Domain name is under tld which doesn't exist.
 *   2005
-    *   The specified TCNID is invalid.
     *   Domain name must have exactly one part above the tld.
     *   The requested fee is expressed in a scale that is invalid for the given
         currency.
+    *   The specified TCNID is invalid.
 *   2102
     *   The 'maxSigLife' setting is not supported.
     *   The 'grace-period', 'applied' and 'refundable' fields are disallowed by
@@ -647,19 +647,17 @@ An EPP flow that creates a new domain resource.
     *   Resource linked to this domain does not exist.
 *   2304
     *   The claims period for this TLD has ended.
-    *   Requested domain requires a claims notice.
-    *   Requested domain does not require a claims notice.
     *   Requested domain is reserved.
     *   Linked resource in pending delete prohibits operation.
+    *   Requested domain requires a claims notice.
     *   Nameservers are not whitelisted for this TLD.
     *   Nameservers not specified for this TLD with whitelist.
     *   The requested domain name is on the premium price list, and this
         registrar has blocked premium registrations.
     *   Registrant is not whitelisted for this TLD.
+    *   Requested domain does not require a claims notice.
     *   There is an open application for this domain.
 *   2306
-    *   The specified trademark validator is not supported.
-    *   Only encoded signed marks are supported.
     *   Domain names can only contain a-z, 0-9, '.' and '-'.
     *   Periods for domain registrations must be specified in years.
     *   The requested fees cannot be provided in the requested currency.
@@ -669,11 +667,13 @@ An EPP flow that creates a new domain resource.
     *   More than one contact for a given role is not allowed.
     *   No part of a domain name can be empty.
     *   Domain name starts with xn-- but is not a valid IDN.
+    *   The specified trademark validator is not supported.
     *   Domain labels cannot begin with a dash.
     *   Missing type attribute for contact.
     *   Too many DS records set on a domain.
     *   Too many nameservers set on this domain.
     *   Domain labels cannot end with a dash.
+    *   Only encoded signed marks are supported.
 
 ## DomainCheckFlow
 
@@ -828,16 +828,16 @@ An EPP flow that creates a new application for a domain resource.
     *   The acceptance time specified in the claim notice is more than 48 hours
         in the past.
     *   The expiration time specified in the claim notice has elapsed.
-    *   The checksum in the specified TCNID does not validate.
     *   The fees passed in the transform command do not match the fees that will
         be charged.
     *   Domain label is not allowed by IDN table.
+    *   The checksum in the specified TCNID does not validate.
     *   Domain name is under tld which doesn't exist.
 *   2005
-    *   The specified TCNID is invalid.
     *   Domain name must have exactly one part above the tld.
     *   The requested fee is expressed in a scale that is invalid for the given
         currency.
+    *   The specified TCNID is invalid.
     *   Signed mark data is improperly encoded.
     *   Error while parsing encoded signed mark data.
 *   2102
@@ -849,7 +849,7 @@ An EPP flow that creates a new application for a domain resource.
 *   2201
     *   Registrar is not authorized to access this TLD.
 *   2202
-    *   Authorization information for accessing resource is invalid.
+    *   Invalid limited registration period token.
 *   2302
     *   Resource with this id already exists.
     *   This name has already been claimed by a sunrise applicant.
@@ -857,17 +857,15 @@ An EPP flow that creates a new application for a domain resource.
     *   Resource linked to this domain does not exist.
 *   2304
     *   The claims period for this TLD has ended.
-    *   Requested domain requires a claims notice.
-    *   Requested domain does not require a claims notice.
     *   Requested domain is reserved.
+    *   Requested domain requires a claims notice.
     *   Nameservers are not whitelisted for this TLD.
     *   Nameservers not specified for this TLD with whitelist.
     *   The requested domain name is on the premium price list, and this
         registrar has blocked premium registrations.
     *   Registrant is not whitelisted for this TLD.
+    *   Requested domain does not require a claims notice.
 *   2306
-    *   The specified trademark validator is not supported.
-    *   Only encoded signed marks are supported.
     *   Domain names can only contain a-z, 0-9, '.' and '-'.
     *   Periods for domain registrations must be specified in years.
     *   Encoded signed marks must use base64 encoding.
@@ -878,6 +876,7 @@ An EPP flow that creates a new application for a domain resource.
     *   More than one contact for a given role is not allowed.
     *   No part of a domain name can be empty.
     *   Domain name starts with xn-- but is not a valid IDN.
+    *   The specified trademark validator is not supported.
     *   Declared launch extension phase does not match the current registry
         phase.
     *   Domain labels cannot begin with a dash.
@@ -894,6 +893,7 @@ An EPP flow that creates a new application for a domain resource.
     *   Too many nameservers set on this domain.
     *   Only one signed mark is allowed per application.
     *   Domain labels cannot end with a dash.
+    *   Only encoded signed marks are supported.
 
 ## DomainAllocateFlow
 
@@ -905,7 +905,6 @@ An EPP flow that allocates a new domain resource from a domain application.
 ### Errors
 
 *   2201
-    *   Registrar is not authorized to access this TLD.
     *   Only a superuser can allocate domains.
 *   2302
     *   Resource with this id already exists.
@@ -926,11 +925,12 @@ An EPP flow that checks whether strings are trademarked.
 *   2002
     *   Command is not allowed in the current registry phase.
     *   Claims checks are not allowed during sunrise.
-    *   The claims period has ended.
 *   2004
     *   Domain name is under tld which doesn't exist.
 *   2201
     *   Registrar is not authorized to access this TLD.
+*   2304
+    *   The claims period for this TLD has ended.
 *   2306
     *   Too many resource checks requested in one check command.
 

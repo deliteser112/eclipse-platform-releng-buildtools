@@ -41,12 +41,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.flows.ResourceCreateFlow.ResourceAlreadyExistsException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainAllocateFlow.HasFinalStatusException;
 import google.registry.flows.domain.DomainAllocateFlow.MissingApplicationException;
 import google.registry.flows.domain.DomainAllocateFlow.OnlySuperuserCanAllocateException;
-import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
+import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -64,12 +63,10 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
-import google.registry.testing.DatastoreHelper;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -109,6 +106,7 @@ public class DomainAllocateFlowTest
     application = persistResource(newDomainApplication(domainName).asBuilder()
         .setCreationTrid(TRID)
         .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "abcdef")))
+        .setCreationTrid(TRID)
         .build());
     for (int i = 1; i <= 14; ++i) {
       persistActiveHost(String.format("ns%d.example.net", i));
@@ -476,18 +474,6 @@ public class DomainAllocateFlowTest
     setEppInput("domain_allocate_bad_application_roid.xml");
     thrown.expect(MissingApplicationException.class);
     runFlowAsSuperuser();
-  }
-
-  @Test
-  public void testFailure_notAuthorizedForTld() throws Exception {
-    setupDomainApplication("tld", TldState.QUIET_PERIOD);
-    DatastoreHelper.persistResource(
-        Registrar.loadByClientId("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
-    thrown.expect(NotAuthorizedForTldException.class);
-    runFlow();
   }
 
   @Test

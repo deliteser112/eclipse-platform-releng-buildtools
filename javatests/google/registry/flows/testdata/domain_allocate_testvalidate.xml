@@ -19,7 +19,7 @@
     </create>
     <extension>
       <allocate:create xmlns:allocate="urn:google:params:xml:ns:allocate-1.0">
-        <allocate:applicationRoid>A-EXAMPLE</allocate:applicationRoid>
+        <allocate:applicationRoid>B-EXAMPLE</allocate:applicationRoid>
         <allocate:applicationTime>2014-01-01T00:00:00Z</allocate:applicationTime>
       </allocate:create>
     </extension>

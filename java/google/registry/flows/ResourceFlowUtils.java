@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.EppResourceUtils.queryDomainsUsingResource;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
+import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Function;
@@ -300,7 +301,7 @@ public class ResourceFlowUtils {
 
   public static <R extends EppResource> void verifyResourceDoesNotExist(
       Class<R> clazz, String targetId, DateTime now)  throws EppException {
-    if (loadByForeignKey(clazz, targetId, now) != null) {
+    if (loadAndGetKey(clazz, targetId, now) != null) {
       throw new ResourceAlreadyExistsException(targetId);
     }
   }

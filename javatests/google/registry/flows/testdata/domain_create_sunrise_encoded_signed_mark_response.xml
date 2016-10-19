@@ -14,7 +14,7 @@
       <launch:creData
        xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
         <launch:phase>sunrise</launch:phase>
-        <launch:applicationID>A-EXAMPLE</launch:applicationID>
+        <launch:applicationID>B-EXAMPLE</launch:applicationID>
       </launch:creData>
     </extension>
     <trID>

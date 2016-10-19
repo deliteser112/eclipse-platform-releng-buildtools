@@ -59,10 +59,6 @@ public abstract class Flow {
   /** Execute the business logic for this flow. */
   protected abstract EppOutput run() throws EppException;
 
-  protected String getClientId() {
-    return sessionMetadata.getClientId();
-  }
-
   protected EppOutput createOutput(Result.Code code) {
     return createOutput(code, null);
   }

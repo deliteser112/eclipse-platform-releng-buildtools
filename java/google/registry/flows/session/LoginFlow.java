@@ -28,6 +28,7 @@ import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppException.UnimplementedObjectServiceException;
 import google.registry.flows.EppException.UnimplementedOptionException;
 import google.registry.flows.Flow;
+import google.registry.flows.FlowModule.ClientId;
 import google.registry.model.eppcommon.ProtocolDefinition;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppinput.EppInput.Login;
@@ -67,6 +68,7 @@ public class LoginFlow extends Flow {
   /** Maximum number of failed login attempts allowed per connection. */
   private static final int MAX_FAILED_LOGIN_ATTEMPTS_PER_CONNECTION = 3;
 
+  @Inject @ClientId String clientId;
   @Inject LoginFlow() {}
 
   /** Run the flow and log errors. */
@@ -83,7 +85,7 @@ public class LoginFlow extends Flow {
   /** Run the flow without bothering to log errors. The {@link #run} method will do that for us. */
   public final EppOutput runWithoutLogging() throws EppException {
     Login login = (Login) eppInput.getCommandWrapper().getCommand();
-    if (getClientId() != null) {
+    if (!clientId.isEmpty()) {
       throw new AlreadyLoggedInException();
     }
     Options options = login.getOptions();

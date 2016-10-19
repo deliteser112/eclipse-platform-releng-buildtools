@@ -29,6 +29,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
@@ -108,11 +109,16 @@ public class ReservedListTest {
             .build());
     assertThat(getReservation("lol", "tld")).isEqualTo(RESERVED_FOR_ANCHOR_TENANT);
     assertThat(getReservation("lol2", "tld")).isEqualTo(RESERVED_FOR_ANCHOR_TENANT);
-    assertThat(matchesAnchorTenantReservation("lol", "tld", "foobar1")).isTrue();
-    assertThat(matchesAnchorTenantReservation("lol", "tld", "foobar")).isFalse();
-    assertThat(matchesAnchorTenantReservation("lol2", "tld", "abcdefg")).isTrue();
-    assertThat(matchesAnchorTenantReservation("lol2", "tld", "abcdefg ")).isFalse();
-    assertThat(matchesAnchorTenantReservation("random", "tld", "abcdefg ")).isFalse();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "foobar1"))
+        .isTrue();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "foobar"))
+        .isFalse();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol2.tld"), "abcdefg"))
+        .isTrue();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol2.tld"), "abcdefg "))
+        .isFalse();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("random.tld"), "abcdefg"))
+        .isFalse();
   }
 
   @Test
@@ -126,11 +132,11 @@ public class ReservedListTest {
                 "lol3,MISTAKEN_PREMIUM",
                 "lol4,ALLOWED_IN_SUNRISE")))
         .build());
-    assertThat(matchesAnchorTenantReservation("lol", "tld", "")).isFalse();
-    assertThat(matchesAnchorTenantReservation("lol2", "tld", "")).isFalse();
-    assertThat(matchesAnchorTenantReservation("lol3", "tld", "")).isFalse();
-    assertThat(matchesAnchorTenantReservation("lol4", "tld", "")).isFalse();
-    assertThat(matchesAnchorTenantReservation("lol5", "tld", "")).isFalse();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "")).isFalse();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol2.tld"), "")).isFalse();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol3.tld"), "")).isFalse();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol4.tld"), "")).isFalse();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol5.tld"), "")).isFalse();
   }
 
   @Test

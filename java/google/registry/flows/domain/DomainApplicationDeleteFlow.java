@@ -22,7 +22,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForR
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
-import static google.registry.flows.domain.DomainFlowUtils.verifyLaunchPhase;
+import static google.registry.flows.domain.DomainFlowUtils.verifyLaunchPhaseMatchesRegistryPhase;
 import static google.registry.flows.domain.DomainFlowUtils.verifyRegistryStateAllowsLaunchFlows;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
@@ -84,12 +84,14 @@ public final class DomainApplicationDeleteFlow extends LoggedInFlow implements T
     String tld = existingApplication.getTld();
     checkAllowedAccessToTld(getAllowedTlds(), tld);
     if (!isSuperuser) {
-      verifyRegistryStateAllowsLaunchFlows(Registry.get(tld), now);
-      verifyLaunchPhase(tld, eppInput.getSingleExtension(LaunchDeleteExtension.class), now);
+      Registry registry = Registry.get(tld);
+      verifyRegistryStateAllowsLaunchFlows(registry, now);
+      verifyLaunchPhaseMatchesRegistryPhase(
+          registry, eppInput.getSingleExtension(LaunchDeleteExtension.class), now);
       verifyResourceOwnership(clientId, existingApplication);
       // Don't allow deleting a sunrise application during landrush.
       if (existingApplication.getPhase().equals(LaunchPhase.SUNRISE)
-          && Registry.get(tld).getTldState(now).equals(TldState.LANDRUSH)) {
+          && registry.getTldState(now).equals(TldState.LANDRUSH)) {
         throw new SunriseApplicationCannotBeDeletedInLandrushException();
       }
     }

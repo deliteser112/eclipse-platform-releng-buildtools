@@ -185,7 +185,13 @@ public class FlowModule {
 
   @Provides
   @FlowScope
-  static Optional<AuthInfo> provideAuthInfo(ResourceCommand resourceCommand) {
+  static AuthInfo provideAuthInfo(ResourceCommand resourceCommand) {
+    return ((SingleResourceCommand) resourceCommand).getAuthInfo();
+  }
+
+  @Provides
+  @FlowScope
+  static Optional<AuthInfo> provideOptionalAuthInfo(ResourceCommand resourceCommand) {
     return Optional.fromNullable(((SingleResourceCommand) resourceCommand).getAuthInfo());
   }
 
