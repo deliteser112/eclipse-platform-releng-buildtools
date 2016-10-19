@@ -46,7 +46,7 @@ public class ResaveAllEppResourcesAction implements Runnable {
   public void run() {
     response.sendJavaScriptRedirect(createJobPath(mrRunner
         .setJobName("Re-save all EPP resources")
-        .setModuleName("backend")
+        .setModuleName("tools")
         .runMapOnly(
             new ResaveAllEppResourcesActionMapper(),
             ImmutableList.of(createEntityInput(EppResource.class)))));
