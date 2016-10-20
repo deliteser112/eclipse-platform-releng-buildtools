@@ -614,10 +614,19 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   }
 
   @Test
+  public void testFailure_flags_feeMismatch() throws Exception {
+    setEppInput("domain_renew_flags.xml", ImmutableMap.of("FEE", "11"));
+    persistDomain();
+    thrown.expect(FeesMismatchException.class);
+    runFlow();
+  }
+
+  @Test
   public void testSuccess_flags() throws Exception {
-    setEppInput("domain_renew_flags.xml");
+    setEppInput("domain_renew_flags.xml", ImmutableMap.of("FEE", "42"));
     persistDomain();
     thrown.expect(TestExtraLogicManagerSuccessException.class, "renewed");
     runFlow();
   }
+
 }

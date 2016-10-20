@@ -58,6 +58,15 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     }
   }
 
+  /**
+   * Gets the flags to be used in the EPP flags extension for info commands.
+   *
+   * <p>The test extra logic manager uses domain names differently for info commands than for other
+   * flows. In other flows, the test logic needs returns (via the success exception) the flags found
+   * in the incoming message. But for info commands, there aren't any incoming flags, only outgoing
+   * ones. So we need to specify the flags using a dummy domain name; those flags can then be
+   * inserted into the outgoing info response.
+   */
   @Override
   public Set<String> getExtensionFlags(
       DomainResource domainResource, String clientId, DateTime asOfDate) {

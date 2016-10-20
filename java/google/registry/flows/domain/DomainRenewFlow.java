@@ -29,7 +29,6 @@ import static google.registry.model.domain.DomainResource.extendRegistrationWith
 import static google.registry.model.domain.fee.Fee.FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.base.Optional;
@@ -43,6 +42,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -122,10 +122,12 @@ public final class DomainRenewFlow extends LoggedInFlow implements Transactional
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyRenewAllowed(authInfo, existingDomain, command);
     int years = command.getPeriod().getValue();
-    Money renewCost = getDomainRenewCost(targetId, now, years);
     FeeTransformCommandExtension feeRenew =
         eppInput.getFirstExtensionOfClasses(FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-    validateFeeChallenge(targetId, existingDomain.getTld(), now, feeRenew, renewCost);
+    EppCommandOperations commandOperations = TldSpecificLogicProxy.getRenewPrice(
+        Registry.get(existingDomain.getTld()), targetId, clientId, now, years, eppInput);
+    validateFeeChallenge(
+        targetId, existingDomain.getTld(), now, feeRenew, commandOperations.getTotalCost());
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_RENEW)
         .setPeriod(command.getPeriod())
@@ -140,7 +142,7 @@ public final class DomainRenewFlow extends LoggedInFlow implements Transactional
     String tld = existingDomain.getTld();
     // Bill for this explicit renew itself.
     BillingEvent.OneTime explicitRenewEvent =
-        createRenewBillingEvent(tld, renewCost, years, historyEntry);
+        createRenewBillingEvent(tld, commandOperations.getTotalCost(), years, historyEntry);
     // Create a new autorenew billing event and poll message starting at the new expiration time.
     BillingEvent.Recurring newAutorenewEvent = newAutorenewBillingEvent(existingDomain)
         .setEventTime(newExpirationTime)
@@ -171,7 +173,7 @@ public final class DomainRenewFlow extends LoggedInFlow implements Transactional
     return createOutput(
         SUCCESS,
         DomainRenewData.create(targetId, newExpirationTime),
-        createResponseExtensions(renewCost, feeRenew));
+        createResponseExtensions(commandOperations.getTotalCost(), feeRenew));
   }
 
   private void verifyRenewAllowed(
