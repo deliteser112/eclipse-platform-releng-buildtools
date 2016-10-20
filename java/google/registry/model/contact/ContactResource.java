@@ -40,7 +40,11 @@ import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.joda.time.DateTime;
 
-/** A persistable Contact resource including mutable and non-mutable fields. */
+/**
+ * A persistable contact resource including mutable and non-mutable fields.
+ *
+ * @see <a href="https://tools.ietf.org/html/rfc5733">RFC 5733</a>
+ */
 @XmlRootElement(name = "infData")
 @XmlType(propOrder = {
     "contactId",

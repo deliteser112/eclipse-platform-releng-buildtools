@@ -50,6 +50,8 @@ import org.joda.time.DateTime;
  *
  * <p>A host's {@link TransferData} is stored on the superordinate domain.  Non-subordinate hosts
  * don't carry a full set of TransferData; all they have is lastTransferTime.
+ *
+ * @see <a href="https://tools.ietf.org/html/rfc5732">RFC 5732</a>
  */
 @XmlRootElement(name = "infData")
 @XmlType(propOrder = {

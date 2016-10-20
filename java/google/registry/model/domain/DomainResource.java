@@ -50,7 +50,11 @@ import javax.xml.bind.annotation.XmlType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
-/** A persistable domain resource including mutable and non-mutable fields. */
+/**
+ * A persistable domain resource including mutable and non-mutable fields.
+ *
+ * @see <a href="https://tools.ietf.org/html/rfc5731">RFC 5731</a>
+ */
 @XmlRootElement(name = "infData")
 @XmlType(propOrder = {
     "fullyQualifiedDomainName",

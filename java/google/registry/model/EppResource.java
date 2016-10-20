@@ -37,7 +37,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import org.joda.time.DateTime;
 
-/** An Epp entity object such as a contact or a host. */
+/** An EPP entity object (i.e. a domain, application, contact, or host). */
 @XmlTransient
 public abstract class EppResource extends BackupGroupRoot implements Buildable, ResponseData {
 
@@ -45,6 +45,7 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
    * Unique identifier in the registry for this resource.
    *
    * <p>This is in the (\w|_){1,80}-\w{1,8} format specified by RFC 5730 for roidType.
+   * @see <a href="https://tools.ietf.org/html/rfc5730">RFC 5730</a>
    */
   @Id
   @XmlElement(name = "roid")
