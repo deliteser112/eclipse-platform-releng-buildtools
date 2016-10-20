@@ -156,6 +156,68 @@ type objects are immutable and have sane default implementations of `toString`,
 `hashCode`, and `equals`. They are often used as parameters and return values to
 encapsulate related values together.
 
+## EPP resources
+
+`EppResource` is the base class for objects allocated within a registry via EPP.
+The classes that extend `EppResource` (along with the RFCs that define them) are
+as follows:
+
+*   `DomainBase` ([RFC 5731](https://tools.ietf.org/html/rfc5731)), further
+    broken down into:
+    *   `DomainApplication`, an application for a domain submitted during (e.g.)
+        sunrise or landrush
+    *   `DomainResource`, a domain name allocated following a successful
+        application, or registered during a general availability phase
+*   `HostResource` ([RFC 5732](https://tools.ietf.org/html/rfc5732))
+*   `ContactResource` ([RFC 5733](https://tools.ietf.org/html/rfc5733))
+
+All `EppResource` entities use a Repository Object Identifier (ROID) as its
+unique id, in the format specified by [RFC
+5730](https://tools.ietf.org/html/rfc5730#section-2.8) and defined in
+`EppResourceUtils.createRoid()`.
+
+Each entity also tracks a number of timestamps related to its lifecycle (in
+particular, creation time, past or future deletion time, and last update time).
+The way in which an EPP resource's active/deleted status is determined is by
+comparing clock time against a resource's creation and deletion time, rather
+than relying on an automated job (or similar) to flip an active bit on a
+resource when it is deleted.
+
+There are a number of other useful utility methods for interacting with EPP
+resources in the `EppResourceUtils` class, many of which deal with inspecting
+the status of a resource at a given point in time.
+
+## History entries
+
+A `HistoryEntry` is a record of a mutation of an EPP resource. There are various
+events that are recorded as history entries, including:
+
+*   Creates
+*   Deletes
+*   Delete failures
+*   Pending deletes
+*   Updates
+*   Domain allocation
+*   Domain renews
+*   Domain restores
+*   Application status updates
+*   Domain and contact transfer status changes
+    *   Approval
+    *   Cancellation
+    *   Rejection
+    *   Requests
+
+The full list is captured in the `HistoryEntry.Type` enum.
+
+Each `HistoryEntry` has a parent `Key<EppResource>`, the EPP resource that was
+mutated by the event. A `HistoryEntry` will also contain the complete EPP XML
+command that initiated the mutation, stored as a byte array to be agnostic of
+encoding.
+
+A `HistoryEntry` also captures other event metadata, such as the `DateTime` of
+the change, whether the change was created by a superuser, and the ID of the
+registrar that sent the command.
+
 ## Poll messages
 
 Poll messages are the mechanism by which EPP handles asynchronous communication
@@ -185,3 +247,34 @@ messages that extend it:
 
 Queries for poll messages by the registrar are handled in `PollRequestFlow`, and
 poll messages are ACKed (and thus deleted) in `PollAckFlow`.
+
+## Billing events
+
+Billing events capture all events in a domain's lifecycle for which a registrar
+will be charged. A `BillingEvent` will be created for the following reasons (the
+full list of which is represented by `BillingEvent.Reason`):
+
+*   Domain creates
+*   Domain renewals
+*   Domain restores
+*   Server status changes
+*   Domain transfers
+
+A `BillingEvent` can also contain one or more `BillingEvent.Flag` flags that
+provide additional metadata about the billing event (e.g. the application phase
+during which the domain was applied for).
+
+All `BillingEvent` entities contain a parent `Key<HistoryEntry>` to identify the
+mutation that spawned the `BillingEvent`.
+
+There are 4 types of billing events, all of which extend the abstract
+`BillingEvent` base class:
+
+*   **`OneTime`**, a one-time billing event.
+*   **`Recurring`**, a recurring billing event (used for events such as domain
+    renewals).
+*   **`Cancellation`**, which represents the cancellation of either a `OneTime`
+    or `Recurring` billing event. This is implemented as a distinct event to
+    preserve the immutability of billing events.
+*   **`Modification`**, a change to an existing `OneTime` billing event (for
+    instance, to represent a discount or refund).
