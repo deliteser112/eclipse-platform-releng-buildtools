@@ -18,7 +18,7 @@ import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
+import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
@@ -173,7 +173,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     DomainResource domain = reloadResourceByForeignKey();
 
     // Calculate the total cost.
-    Money cost = getPricesForDomainName(getUniqueIdFromCommand(), clock.nowUtc()).isPremium()
+    Money cost = isDomainPremium(getUniqueIdFromCommand(), clock.nowUtc())
         ? Money.of(USD, 200)
         : Money.of(USD, 26);
     Money eapFee = Money.of(Registry.get(domainTld).getCurrency(),

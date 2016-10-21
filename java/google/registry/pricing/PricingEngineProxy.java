@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
+import com.google.common.base.Optional;
 import google.registry.model.pricing.PremiumPricingEngine;
 import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
 import google.registry.model.registry.Registry;
@@ -44,6 +45,16 @@ public final class PricingEngineProxy {
   public static Money getDomainRenewCost(String domainName, DateTime priceTime, int years) {
     checkArgument(years > 0, "Number of years must be positive");
     return getPricesForDomainName(domainName, priceTime).getRenewCost().multipliedBy(years);
+  }
+
+  /** Returns true if the specified domain name is premium. */
+  public static boolean isDomainPremium(String domainName, DateTime priceTime) {
+    return getPricesForDomainName(domainName, priceTime).isPremium();
+  }
+
+  /** Returns the fee class of the specified domain name. */
+  public static Optional<String> getDomainFeeClass(String domainName, DateTime priceTime) {
+    return getPricesForDomainName(domainName, priceTime).getFeeClass();
   }
 
   /**

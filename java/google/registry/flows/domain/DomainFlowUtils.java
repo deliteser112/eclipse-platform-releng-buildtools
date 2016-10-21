@@ -27,7 +27,7 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.label.ReservedList.getReservation;
-import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
+import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -413,7 +413,7 @@ public class DomainFlowUtils {
    */
   static void verifyPremiumNameIsNotBlocked(
       String domainName, DateTime priceTime, String clientId) throws EppException {
-    if (getPricesForDomainName(domainName, priceTime).isPremium()) {
+    if (isDomainPremium(domainName, priceTime)) {
       // NB: The load of the Registar object is transactionless, which means that it should hit
       // memcache most of the time.
       if (Registrar.loadByClientId(clientId).getBlockPremiumNames()) {
@@ -686,7 +686,7 @@ public class DomainFlowUtils {
       throws EppException {
     Registry registry = Registry.get(tld);
     if (registry.getPremiumPriceAckRequired()
-        && getPricesForDomainName(domainName, priceTime).isPremium()
+        && isDomainPremium(domainName, priceTime)
         && feeCommand == null) {
       throw new FeesRequiredForPremiumNameException();
     }

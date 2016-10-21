@@ -17,7 +17,7 @@ package google.registry.pricing;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
-import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
+import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -91,9 +91,9 @@ public class PricingEngineProxyTest {
   @Test
   public void testIsPremiumDomain() throws Exception {
     createTld("example");
-    assertThat(getPricesForDomainName("poor.example", clock.nowUtc()).isPremium()).isFalse();
-    assertThat(getPricesForDomainName("rich.example", clock.nowUtc()).isPremium()).isTrue();
-    assertThat(getPricesForDomainName("richer.example", clock.nowUtc()).isPremium()).isTrue();
+    assertThat(isDomainPremium("poor.example", clock.nowUtc())).isFalse();
+    assertThat(isDomainPremium("rich.example", clock.nowUtc())).isTrue();
+    assertThat(isDomainPremium("richer.example", clock.nowUtc())).isTrue();
   }
 
   @Test

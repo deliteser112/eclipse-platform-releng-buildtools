@@ -84,7 +84,7 @@ public class TldSpecificLogicProxyTest extends ShardableTestCase {
                     b, Money.of(USD, 50)))
             .build());
     basicCreateCost =
-        PricingEngineProxy.getPricesForDomainName("example.tld", clock.nowUtc()).getCreateCost();
+        PricingEngineProxy.getDomainCreateCost("example.tld", clock.nowUtc(), 1);
   }
 
   @Test

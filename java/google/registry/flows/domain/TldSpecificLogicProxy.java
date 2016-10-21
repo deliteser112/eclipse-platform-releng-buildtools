@@ -17,7 +17,9 @@ package google.registry.flows.domain;
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
+import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
+import static google.registry.pricing.PricingEngineProxy.getDomainFeeClass;
+import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
@@ -35,7 +37,6 @@ import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Credit;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.eppinput.EppInput;
-import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
 import google.registry.model.registry.Registry;
 import java.util.List;
 import org.joda.money.CurrencyUnit;
@@ -152,9 +153,8 @@ public final class TldSpecificLogicProxy {
       createFeeOrCredit = extraFlowLogic.get()
           .getCreateFeeOrCredit(domainName, clientId, date, years, eppInput);
     } else {
-      DomainPrices prices = getPricesForDomainName(domainName, date);
       createFeeOrCredit =
-          Fee.create(prices.getCreateCost().multipliedBy(years).getAmount(), FeeType.CREATE);
+          Fee.create(getDomainCreateCost(domainName, date, years).getAmount(), FeeType.CREATE);
     }
 
     // Create fees for the cost and the EAP fee, if any.
@@ -188,8 +188,7 @@ public final class TldSpecificLogicProxy {
       return
           extraFlowLogic.get().getRenewFeeOrCredit(domain, clientId, date, years, eppInput);
     } else {
-      DomainPrices prices = getPricesForDomainName(domainName, date);
-      return Fee.create(prices.getRenewCost().multipliedBy(years).getAmount(), FeeType.RENEW);
+      return Fee.create(getDomainRenewCost(domainName, date, years).getAmount(), FeeType.RENEW);
     }
   }
 
@@ -262,7 +261,7 @@ public final class TldSpecificLogicProxy {
 
   /** Returns the fee class for a given domain and date. */
   public static Optional<String> getFeeClass(String domainName, DateTime date) {
-    return getPricesForDomainName(domainName, date).getFeeClass();
+    return getDomainFeeClass(domainName, date);
   }
 
   /**

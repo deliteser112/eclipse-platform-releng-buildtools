@@ -27,7 +27,7 @@ import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
-import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
+import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Predicate;
@@ -158,7 +158,7 @@ public final class DomainCheckFlow extends LoggedInFlow {
     }
     ReservationType reservationType = getReservationType(domainName);
     if (reservationType == UNRESERVED
-        && getPricesForDomainName(domainName.toString(), now).isPremium()
+        && isDomainPremium(domainName.toString(), now)
         && registry.getPremiumPriceAckRequired()
         && Collections.disjoint(
             nullToEmpty(sessionMetadata.getServiceExtensionUris()),
