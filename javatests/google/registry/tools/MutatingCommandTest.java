@@ -299,13 +299,13 @@ public class MutatingCommandTest {
 
   @Test
   public void testFailure_nullEntityChange() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
     MutatingCommand command = new MutatingCommand() {
       @Override
       protected void init() {
         stageEntityChange(null, null);
       }
     };
+    thrown.expect(IllegalArgumentException.class);
     command.init();
   }
 

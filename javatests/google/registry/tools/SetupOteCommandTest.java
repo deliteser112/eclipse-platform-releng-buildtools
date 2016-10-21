@@ -257,7 +257,6 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_invalidPremiumList() throws Exception {
     thrown.expect(IllegalArgumentException.class);
-
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
@@ -269,7 +268,6 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   public void testFailure_tldExists() throws Exception {
     createTld("blobio-sunrise");
     thrown.expect(IllegalStateException.class);
-
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
@@ -284,7 +282,6 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         .build();
     persistResource(registrar);
     thrown.expect(IllegalStateException.class);
-
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
