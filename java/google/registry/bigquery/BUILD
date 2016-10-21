@@ -1,5 +1,5 @@
 package(
-    default_visibility = ["//java/google/registry:registry_project"],
+    default_visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])  # Apache 2.0
@@ -8,7 +8,6 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "bigquery",
     srcs = glob(["*.java"]),
-    visibility = ["//visibility:public"],
     deps = [
         "//apiserving/discoverydata/bigquery:bigqueryv2",
         "//java/com/google/api/client/extensions/appengine/http",

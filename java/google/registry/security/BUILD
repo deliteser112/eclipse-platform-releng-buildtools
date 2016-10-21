@@ -1,5 +1,5 @@
 package(
-    default_visibility = ["//java/google/registry:registry_project"],
+    default_visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])  # Apache 2.0
@@ -11,7 +11,6 @@ java_library(
         ["*.java"],
         exclude = glob(["*Servlet.java"]),
     ),
-    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/base",
         "//java/com/google/common/collect",

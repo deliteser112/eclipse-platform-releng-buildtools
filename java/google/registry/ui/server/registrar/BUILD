@@ -1,5 +1,5 @@
 package(
-    default_visibility = ["//java/google/registry:registry_project"],
+    default_visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])  # Apache 2.0
@@ -12,7 +12,6 @@ java_library(
         "//java/google/registry/ui/css:registrar_bin.css.js",
         "//java/google/registry/ui/css:registrar_dbg.css.js",
     ],
-    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",

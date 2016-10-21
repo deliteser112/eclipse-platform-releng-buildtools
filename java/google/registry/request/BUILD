@@ -1,5 +1,5 @@
 package(
-    default_visibility = ["//java/google/registry:registry_project"],
+    default_visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])  # Apache 2.0
@@ -11,7 +11,6 @@ java_library(
         ["*.java"],
         exclude = ["Modules.java"],
     ),
-    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",
@@ -35,7 +34,6 @@ java_library(
 java_library(
     name = "modules",
     srcs = ["Modules.java"],
-    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/api/client/extensions/appengine/http",
         "//java/com/google/api/client/googleapis/auth/oauth2",

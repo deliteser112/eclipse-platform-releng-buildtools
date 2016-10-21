@@ -2,7 +2,7 @@
 #   Routines to publish authoritative DNS.
 
 package(
-    default_visibility = ["//java/google/registry:registry_project"],
+    default_visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])  # Apache 2.0

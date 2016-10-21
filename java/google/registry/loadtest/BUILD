@@ -1,19 +1,14 @@
 package(
-    default_visibility = ["//java/google/registry:registry_project"],
+    default_visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])  # Apache 2.0
 
 
-filegroup(
-    name = "templates",
-    srcs = glob(["templates/*.xml"]),
-)
-
 java_library(
     name = "loadtest",
     srcs = glob(["*.java"]),
-    resources = [":templates"],
+    resources = glob(["templates/*.xml"]),
     deps = [
         "//java/com/google/common/base",
         "//java/com/google/common/collect",

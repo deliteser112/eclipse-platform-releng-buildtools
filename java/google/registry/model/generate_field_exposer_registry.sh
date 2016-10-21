@@ -22,10 +22,11 @@ import com.google.common.collect.ImmutableList;\n\n\
 /** A registry of all {@link AbstractFieldExposer} impls. */\n\
 class FieldExposerRegistry {\n\
   static ImmutableList<AbstractFieldExposer> getFieldExposers() {\n\
-    return ImmutableList.of(\n"
+    return new ImmutableList.Builder<AbstractFieldExposer>()\n"
 for FILE in $@; do
   echo $FILE | sed \
-      -e 's/\(.*\).java/        new google.registry.model.\1()/' \
-      -e 's/\//./g'
+      -e 's!^.*/java/\(.*\)\.java$!        .add(new \1())!' \
+      -e 's!/!.!g'
 done
+printf "        .build();\n"
 printf "  }\n}\n"

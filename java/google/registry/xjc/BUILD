@@ -7,6 +7,18 @@ licenses(["notice"])  # Apache 2.0
 load("//java/google/registry/xjc:generated_files.bzl", "pkginfo_generated_files", "xjc_generated_files")
 
 
+java_library(
+    name = "xjc",
+    srcs = glob(["*.java"]) + xjc_generated_files + pkginfo_generated_files,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//java/com/google/common/collect",
+        "//third_party/java/joda_time",
+        "//third_party/java/jsr305_annotations",
+        "//java/google/registry/xml",
+    ],
+)
+
 sh_binary(
     name = "list_generated_files",
     srcs = ["list_generated_files.sh"],
@@ -15,7 +27,6 @@ sh_binary(
         "//third_party/java/jaxb:jaxb-xjc",
         "//java/google/registry/xml:xml_schema_files",
     ],
-    visibility = ["//visibility:private"],
 )
 
 genrule(
@@ -42,13 +53,11 @@ genrule(
         "rm -rf $$TMP",
     ]),
     tools = ["//third_party/java/jaxb:jaxb-xjc"],
-    visibility = ["//visibility:private"],
 )
 
 sh_binary(
     name = "make_pkginfo",
     srcs = ["make_pkginfo.sh"],
-    visibility = ["//visibility:private"],
 )
 
 genrule(
@@ -59,17 +68,5 @@ genrule(
     tools = [
         ":jaxb_srcs",
         ":make_pkginfo",
-    ],
-    visibility = ["//visibility:private"],
-)
-
-java_library(
-    name = "xjc",
-    srcs = glob(["*.java"]) + xjc_generated_files + pkginfo_generated_files,
-    deps = [
-        "//java/com/google/common/collect",
-        "//third_party/java/joda_time",
-        "//third_party/java/jsr305_annotations",
-        "//java/google/registry/xml",
     ],
 )

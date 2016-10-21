@@ -16,6 +16,15 @@ package_group(
     ],
 )
 
+# Visibility group for rules that are //visibility:public on GitHub but project
+# scoped in Google's internal repository.
+package_group(
+    name = "public",
+    packages = [
+        "//visibility:public",
+    ],
+)
+
 
 
 

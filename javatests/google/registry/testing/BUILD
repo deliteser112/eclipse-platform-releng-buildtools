@@ -1,6 +1,6 @@
 package(
     default_testonly = 1,
-    default_visibility = ["//java/google/registry:registry_project"],
+    default_visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])  # Apache 2.0
@@ -20,7 +20,6 @@ java_library(
         "//java/google/registry:env/common/default/WEB-INF/datastore-indexes.xml",
         "//java/google/registry:env/common/default/WEB-INF/queue.xml",
     ] + glob(["*.csv"]),
-    visibility = ["//visibility:public"],
     deps = [
         "//java/com/google/common/annotations",
         "//java/com/google/common/base",
