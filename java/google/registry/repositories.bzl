@@ -42,12 +42,6 @@ def domain_registry_repositories():
   )
 
   native.maven_jar(
-      name = "appengine_local_endpoints",
-      artifact = "com.google.appengine:appengine-local-endpoints:1.9.42",
-      sha1 = "9a36fa948866b9f747a98196788d8d46636f4379",
-  )
-
-  native.maven_jar(
       name = "appengine_mapreduce",
       artifact = "com.google.appengine.tools:appengine-mapreduce:0.8.5",
       sha1 = "46e0456540a9fe9006c4accb51c4c8d9a45a77ce",
@@ -103,26 +97,26 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "bcpg_jdk15on",
-      artifact = "org.bouncycastle:bcpg-jdk15on:1.55",
-      sha1 = "54ce841795ecdf10f24e50c48d4fdec59c691699",
+      artifact = "org.bouncycastle:bcpg-jdk15on:1.52",
+      sha1 = "ff4665a4b5633ff6894209d5dd10b7e612291858",
   )
 
   native.maven_jar(
       name = "bcprov_jdk15on",
-      artifact = "org.bouncycastle:bcprov-jdk15on:1.55",
-      sha1 = "935f2e57a00ec2c489cbd2ad830d4a399708f979",
+      artifact = "org.bouncycastle:bcprov-jdk15on:1.52",
+      sha1 = "88a941faf9819d371e3174b5ed56a3f3f7d73269",
   )
 
   native.maven_jar(
       name = "bcpkix_jdk15on",
-      artifact = "org.bouncycastle:bcpkix-jdk15on:1.55",
-      sha1 = "6392d8cba22b722c6570d660ca0b3921ff1bae4f",
+      artifact = "org.bouncycastle:bcpkix-jdk15on:1.52",
+      sha1 = "b8ffac2bbc6626f86909589c8cc63637cc936504",
   )
 
   native.maven_jar(
       name = "braintree_java",
-      artifact = "com.braintreepayments.gateway:braintree-java:2.67.0",
-      sha1 = "a0d23df405176e555b336d56bd16c1aa66ae5370",
+      artifact = "com.braintreepayments.gateway:braintree-java:2.54.0",
+      sha1 = "b9940196feaf692de32b0d37c55ded76fb9b1ba7",
   )
 
   native.maven_jar(
@@ -307,14 +301,14 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "jackson_core",
-      artifact = "com.fasterxml.jackson.core:jackson-core:2.8.3",
-      sha1 = "5e1dc37c96308851c3ff609c250dc849c4b12022",
+      artifact = "com.fasterxml.jackson.core:jackson-core:2.7.0",
+      sha1 = "05f2bfd0866bcacbcc7c25ce25f80b5aeed0f72f",
   )
 
   native.maven_jar(
       name = "jackson_databind",
-      artifact = "com.fasterxml.jackson.core:jackson-databind:2.8.3",
-      sha1 = "cea3788c72271d45676ce32c0665991674b24cc5",
+      artifact = "com.fasterxml.jackson.core:jackson-databind:2.7.0",
+      sha1 = "7d3430de9f2b600b074ba3bc007edcfbc4bbf4fb",
   )
 
   native.maven_jar(
@@ -331,8 +325,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "jaxb_api",
-      artifact = "javax.xml.bind:jaxb-api:2.2.12",
-      sha1 = "4c83805595b15acf41d71d49e3add7c0e85baaed",
+      artifact = "javax.xml.bind:jaxb-api:2.2.11",
+      sha1 = "32274d4244967ff43e7a5d967743d94ed3d2aea7",
   )
 
   native.maven_jar(
@@ -355,16 +349,20 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "jcommander",
-      artifact = "com.beust:jcommander:1.58",
-      sha1 = "0f87aedf052aa17fa6d2557e5cc680a70bc6211f",
+      artifact = "com.beust:jcommander:1.48",
+      sha1 = "bfcb96281ea3b59d626704f74bc6d625ff51cbce",
   )
 
+  # Sync with specific version in
+  # https://github.com/google/nomulus/tree/master/third_party/java/jetty/.
   native.maven_jar(
       name = "jetty",
       artifact = "org.mortbay.jetty:jetty:6.1.22",
       sha1 = "e097b3b684cececf84a35cfdd08e56096a3188da",
   )
 
+  # Sync with specific version in
+  # https://github.com/google/nomulus/tree/master/third_party/java/jetty/.
   native.maven_jar(
       name = "jetty_util",
       artifact = "org.mortbay.jetty:jetty-util:6.1.22",
@@ -373,16 +371,17 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "joda_money",
-      artifact = "org.joda:joda-money:0.11",
-      sha1 = "9a3d8b733cb130c05376acd78e6c724e72f39d35",
+      artifact = "org.joda:joda-money:0.10.0",
+      sha1 = "4056712d2e6db043a38b78c4ee2130c74bae7216",
   )
 
   native.maven_jar(
       name = "joda_time",
-      artifact = "joda-time:joda-time:2.9.4",
-      sha1 = "1c295b462f16702ebe720bbb08f62e1ba80da41b",
+      artifact = "joda-time:joda-time:2.3",
+      sha1 = "56498efd17752898cfcc3868c1b6211a07b12b8f",
   )
 
+  # TODO(nickfelt) remove this in favor of json_simple.
   native.maven_jar(
       name = "json",
       artifact = "org.json:json:20160810",
@@ -427,14 +426,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "mockito",
-      artifact = "org.mockito:mockito-all:1.10.19",
-      sha1 = "539df70269cc254a58cccc5d8e43286b4a73bf30",
-  )
-
-  native.maven_jar(
-      name = "qdox",
-      artifact = "com.thoughtworks.qdox:qdox:1.12.1",
-      sha1 = "f7122f6ab1f64bdf9f5970b0e89bfb355e036897",
+      artifact = "org.mockito:mockito-all:1.9.5",
+      sha1 = "79a8984096fc6591c1e3690e07d41be506356fa5",
   )
 
   native.maven_jar(
@@ -451,24 +444,18 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "slf4j_api",
-      artifact = "org.slf4j:slf4j-api:1.7.21",
-      sha1 = "139535a69a4239db087de9bab0bee568bf8e0b70",
+      artifact = "org.slf4j:slf4j-api:1.7.14",
+      sha1 = "862a5bc736005d68727d1387844d09d62efdb6cb",
   )
 
   native.maven_jar(
       name = "sshd_core",
-      artifact = "org.apache.sshd:sshd-core:1.3.0",
-      sha1 = "4ebfcf7de9f66e89e031e556d1478582147a90df",
+      artifact = "org.apache.sshd:sshd-core:1.2.0",
+      sha1 = "4bc24a8228ba83dac832680366cf219da71dae8e",
   )
 
   native.maven_jar(
       name = "truth",
       artifact = "com.google.truth:truth:0.30",
       sha1 = "9d591b5a66eda81f0b88cf1c748ab8853d99b18b",
-  )
-
-  native.maven_jar(
-      name = "stax2_api",
-      artifact = "org.codehaus.woodstox:stax2-api:3.1.4",
-      sha1 = "ac19014b1e6a7c08aad07fe114af792676b685b7",
   )
