@@ -21,6 +21,7 @@ java_library(
         "//third_party/java/servlet/servlet_api",
         "//java/google/registry/config",
         "//java/google/registry/request",
+        "//java/google/registry/security",
         "//java/google/registry/util",
     ],
 )

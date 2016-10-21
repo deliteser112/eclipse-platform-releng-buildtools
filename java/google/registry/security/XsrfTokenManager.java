@@ -95,7 +95,7 @@ public final class XsrfTokenManager {
     }
     String reconstructedToken = encodeToken(creationTime, scope, getLoggedInEmailOrEmpty());
     if (!reconstructedToken.equals(encodedPart)) {
-      logger.warningfmt("Reconstructed XSRF mismatch: %s != %s", encodedPart, reconstructedToken);
+      logger.warningfmt("Reconstructed XSRF mismatch: %s ≠ %s", encodedPart, reconstructedToken);
       return false;
     }
     return true;
