@@ -17,7 +17,7 @@ package google.registry.tools;
 import dagger.Component;
 import google.registry.config.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
-import google.registry.dns.writer.clouddns.CloudDnsModule;
+import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
 import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
@@ -36,7 +36,7 @@ import google.registry.util.SystemClock.SystemClockModule;
   modules = {
     ConfigModule.class,
     DatastoreServiceModule.class,
-    CloudDnsModule.class,
+    CloudDnsWriterModule.class,
     DnsUpdateWriterModule.class,
     DummyKeyringModule.class,
     Jackson2Module.class,

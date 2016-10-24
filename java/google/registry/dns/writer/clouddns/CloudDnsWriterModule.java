@@ -33,7 +33,7 @@ import javax.inject.Named;
 
 /** Dagger module for Google Cloud DNS service connection objects. */
 @Module
-public final class CloudDnsModule {
+public final class CloudDnsWriterModule {
 
   @Provides
   static Dns provideDns(
