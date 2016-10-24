@@ -106,8 +106,10 @@ additional components that are not provided out of the box.
 
 **Additional functionality**
 
-*   An invoicing/payments system in order to charge registrars for domain name
-    registrations and accept payments.
+*   A way to invoice registrars for domain name registrations and accept
+    payments. Nomulus records the information required to generate invoices in
+    [billing
+    events](https://github.com/google/nomulus/blob/master/docs/code-structure.md#billing-events).
 *   Fully automated reporting to meet ICANN's requirements for gTLDs. Nomulus
     includes substantial reporting functionality but some additional work will
     be required by the operator in this area.
