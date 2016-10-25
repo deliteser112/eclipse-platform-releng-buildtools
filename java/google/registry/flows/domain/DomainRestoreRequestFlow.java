@@ -27,7 +27,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNo
 import static google.registry.model.domain.fee.Fee.FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
@@ -43,6 +42,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.OneTime;
@@ -122,13 +122,17 @@ public final class DomainRestoreRequestFlow extends LoggedInFlow implements Tran
     Update command = (Update) resourceCommand;
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     Money restoreCost = Registry.get(existingDomain.getTld()).getStandardRestoreCost();
-    Money renewCost = getDomainRenewCost(targetId, now, 1);
+    EppCommandOperations renewCommandOperations = TldSpecificLogicProxy.getRenewPrice(
+        Registry.get(existingDomain.getTld()), targetId, clientId, now, 1, eppInput);
     FeeTransformCommandExtension feeUpdate = eppInput.getFirstExtensionOfClasses(
         FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-    verifyRestoreAllowed(command, existingDomain, restoreCost, renewCost, feeUpdate);
+    verifyRestoreAllowed(
+        command, existingDomain, restoreCost, renewCommandOperations.getTotalCost(), feeUpdate);
     HistoryEntry historyEntry = buildHistory(existingDomain);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
-    entitiesToSave.addAll(createRestoreAndRenewBillingEvents(historyEntry, restoreCost, renewCost));
+    entitiesToSave.addAll(
+        createRestoreAndRenewBillingEvents(
+            historyEntry, restoreCost, renewCommandOperations.getTotalCost()));
     // We don't preserve the original expiration time of the domain when we restore, since doing so
     // would require us to know if they received a grace period refund when they deleted the domain,
     // and to charge them for that again. Instead, we just say that all restores get a fresh year of
@@ -159,7 +163,10 @@ public final class DomainRestoreRequestFlow extends LoggedInFlow implements Tran
     ofy().save().entities(entitiesToSave.build());
     ofy().delete().key(existingDomain.getDeletePollMessage());
     dnsQueue.addDomainRefreshTask(existingDomain.getFullyQualifiedDomainName());
-    return createOutput(SUCCESS, null, createResponseExtensions(restoreCost, renewCost, feeUpdate));
+    return createOutput(
+        SUCCESS,
+        null,
+        createResponseExtensions(restoreCost, renewCommandOperations.getTotalCost(), feeUpdate));
   }
 
   private HistoryEntry buildHistory(DomainResource existingDomain) {

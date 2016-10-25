@@ -554,8 +554,22 @@ public class DomainRestoreRequestFlowTest extends
   }
 
   @Test
-  public void testSuccess_flags() throws Exception {
-    setEppInput("domain_update_restore_request_flags.xml");
+  public void testFlags_flagsWithWrongFee() throws Exception {
+    setEppInput(
+        "domain_update_restore_request_flags.xml",
+        ImmutableMap.of("DOMAIN", "renew-42.flags", "FEE", "12"));
+    persistPendingDeleteDomain();
+    thrown.expect(FeesMismatchException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_flagsWithCorrectFee() throws Exception {
+    // The total cost should be the renewal cost of 42 (set in the XML file) plus the restore cost
+    // of 17 (set in the test registry).
+    setEppInput(
+        "domain_update_restore_request_flags.xml",
+        ImmutableMap.of("DOMAIN", "renew-42.flags", "FEE", "59"));
     persistPendingDeleteDomain();
     thrown.expect(TestExtraLogicManagerSuccessException.class, "restored");
     runFlow();

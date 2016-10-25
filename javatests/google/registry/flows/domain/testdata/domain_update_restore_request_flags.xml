@@ -3,7 +3,7 @@
     <update>
       <domain:update
        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name>example.flags</domain:name>
+        <domain:name>%DOMAIN%</domain:name>
         <domain:chg/>
       </domain:update>
     </update>
@@ -11,6 +11,10 @@
       <rgp:update xmlns:rgp="urn:ietf:params:xml:ns:rgp-1.0">
         <rgp:restore op="request"/>
       </rgp:update>
+      <fee:update xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+        <fee:currency>USD</fee:currency>
+        <fee:fee>%FEE%</fee:fee>
+      </fee:update>
     </extension>
     <clTRID>ABC-12345</clTRID>
   </command>
