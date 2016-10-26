@@ -17,7 +17,6 @@ package google.registry.testing;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppXmlTransformer.marshal;
-import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
@@ -50,7 +49,6 @@ public class EppExceptionSubject extends Subject<EppExceptionSubject, EppExcepti
           EppOutput.create(new EppResponse.Builder()
               .setTrid(Trid.create(null))
               .setResult(actual().getResult())
-              .setExecutionTime(START_OF_TIME)
               .build()),
           ValidationMode.STRICT);
     } catch (XmlException e) {

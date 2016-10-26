@@ -28,7 +28,6 @@ import google.registry.model.eppoutput.Result;
 import google.registry.model.eppoutput.Result.Code;
 import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
-import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 
@@ -41,7 +40,6 @@ public final class EppController {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject Clock clock;
   @Inject FlowComponent.Builder flowComponentBuilder;
   @Inject EppMetric.Builder metricBuilder;
   @Inject EppMetrics eppMetrics;
@@ -65,7 +63,7 @@ public final class EppController {
       } catch (EppException e) {
         // Send the client an error message, with no clTRID since we couldn't unmarshal it.
         metricBuilder.setStatus(e.getResult().getCode());
-        return getErrorResponse(clock, e.getResult(), Trid.create(null));
+        return getErrorResponse(e.getResult(), Trid.create(null));
       }
       metricBuilder.setCommandName(eppInput.getCommandName());
       if (!eppInput.getTargetIds().isEmpty()) {
@@ -101,21 +99,20 @@ public final class EppController {
     } catch (EppException | EppExceptionInProviderException e) {
       // The command failed. Send the client an error message.
       EppException eppEx = (EppException) (e instanceof EppException ? e : e.getCause());
-      return getErrorResponse(clock, eppEx.getResult(), flowComponent.trid());
+      return getErrorResponse(eppEx.getResult(), flowComponent.trid());
     } catch (Throwable e) {
       // Something bad and unexpected happened. Send the client a generic error, and log it.
       logger.severe(e, "Unexpected failure");
-      return getErrorResponse(clock, Result.create(Code.COMMAND_FAILED), flowComponent.trid());
+      return getErrorResponse(Result.create(Code.COMMAND_FAILED), flowComponent.trid());
     }
   }
 
   /** Create a response indicating an EPP failure. */
   @VisibleForTesting
-  static EppOutput getErrorResponse(Clock clock, Result result, Trid trid) {
+  static EppOutput getErrorResponse(Result result, Trid trid) {
     return EppOutput.create(new EppResponse.Builder()
         .setResult(result)
         .setTrid(trid)
-        .setExecutionTime(clock.nowUtc())
         .build());
   }
 }

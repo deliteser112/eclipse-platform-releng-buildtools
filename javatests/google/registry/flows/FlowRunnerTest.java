@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Rule;
@@ -69,7 +68,6 @@ public class FlowRunnerTest extends ShardableTestCase {
 
     final EppOutput eppOutput = mock(EppOutput.class);
     EppResponse eppResponse = mock(EppResponse.class);
-    when(eppResponse.getExecutionTime()).thenReturn(new DateTime(1337));
     when(eppOutput.getResponse()).thenReturn(eppResponse);
 
     flowRunner.clientId = "TheRegistrar";
@@ -83,8 +81,7 @@ public class FlowRunnerTest extends ShardableTestCase {
               @Override
               protected EppOutput run() {
                 return eppOutput;
-              }
-            });
+              }});
     flowRunner.inputXmlBytes = "<xml/>".getBytes(UTF_8);
     flowRunner.isDryRun = false;
     flowRunner.isSuperuser = false;

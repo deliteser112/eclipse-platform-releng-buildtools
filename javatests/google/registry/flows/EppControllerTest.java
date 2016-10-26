@@ -33,7 +33,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.ShardableTestCase;
 import google.registry.util.Clock;
-import google.registry.util.SystemClock;
 import google.registry.xml.ValidationMode;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -85,7 +84,6 @@ public class EppControllerTest extends ShardableTestCase {
     eppController = new EppController();
     eppController.metricBuilder = EppMetric.builderForRequest("request-id-1", clock);
     eppController.bigQueryMetricsEnqueuer = metricsEnqueuer;
-    eppController.clock = clock;
     eppController.flowComponentBuilder = flowComponentBuilder;
     eppController.eppMetrics = eppMetrics;
   }
@@ -93,8 +91,7 @@ public class EppControllerTest extends ShardableTestCase {
   @Test
   public void testMarshallingUnknownError() throws Exception {
     marshal(
-        EppController.getErrorResponse(
-            new SystemClock(), Result.create(Code.COMMAND_FAILED), Trid.create(null)),
+        EppController.getErrorResponse(Result.create(Code.COMMAND_FAILED), Trid.create(null)),
         ValidationMode.STRICT);
   }
 

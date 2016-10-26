@@ -86,7 +86,6 @@ public abstract class Flow {
         .setMessageQueueInfo(messageQueueInfo)
         .setResData(responseData)
         .setExtensions(responseExtensions)
-        .setExecutionTime(now)
         .build());
   }
 
