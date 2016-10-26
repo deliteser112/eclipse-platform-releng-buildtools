@@ -75,6 +75,7 @@ import google.registry.flows.domain.DomainFlowUtils.ExpiredClaimException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameException;
 import google.registry.flows.domain.DomainFlowUtils.InvalidIdnDomainLabelException;
+import google.registry.flows.domain.DomainFlowUtils.InvalidLrpTokenException;
 import google.registry.flows.domain.DomainFlowUtils.InvalidPunycodeException;
 import google.registry.flows.domain.DomainFlowUtils.InvalidTcnIdChecksumException;
 import google.registry.flows.domain.DomainFlowUtils.InvalidTrademarkValidatorException;
@@ -126,6 +127,7 @@ import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.Interval;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -359,6 +361,57 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     assertNoLordn();
   }
 
+
+  @Test
+  public void testSuccess_lrp() throws Exception {
+    persistResource(Registry.get("tld").asBuilder()
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
+        .build());
+    LrpTokenEntity token = persistResource(
+        new LrpTokenEntity.Builder()
+            .setToken("lrptokentest")
+            .setAssignee("example.tld")
+            .setValidTlds(ImmutableSet.of("tld"))
+            .build());
+    setEppInput("domain_create_lrp.xml");
+    persistContactsAndHosts();
+    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    assertSuccessfulCreate("tld", false);
+    assertNoLordn();
+    assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry()).isNotNull();
+  }
+
+  @Test
+  public void testSuccess_withLrpToken_outsideOfLrp() throws Exception {
+    // If a valid LRP token is passed in even though the TLD is not currently in an LRP phase,
+    // just ignore the token and proceed with normal GA registration (i.e. LRP token should
+    // remain unredeemed).
+    persistResource(Registry.get("tld").asBuilder()
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(2), clock.nowUtc().minusDays(1)))
+        .build());
+    LrpTokenEntity token = persistResource(
+        new LrpTokenEntity.Builder()
+            .setToken("lrptokentest")
+            .setAssignee("example.tld")
+            .setValidTlds(ImmutableSet.of("tld"))
+            .build());
+    setEppInput("domain_create_lrp.xml");
+    persistContactsAndHosts();
+    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    assertSuccessfulCreate("tld", false);
+    assertNoLordn();
+    assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry()).isNull();
+  }
+
+  @Test
+  public void testSuccess_outsideOfLrp() throws Exception {
+    persistResource(Registry.get("tld").asBuilder()
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(2), clock.nowUtc().minusDays(1)))
+        .build());
+    persistContactsAndHosts();
+    doSuccessfulTest();
+  }
+
   @Test
   public void testSuccess_fee_v06() throws Exception {
     setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
@@ -497,6 +550,34 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_metadata.xml");
     persistContactsAndHosts();
     thrown.expect(OnlyToolCanPassMetadataException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_lrp_badToken() throws Exception {
+    persistResource(Registry.get("tld").asBuilder()
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
+        .build());
+    LrpTokenEntity token = persistResource(
+        new LrpTokenEntity.Builder()
+            .setToken("otherlrptoken")
+            .setAssignee("example.tld")
+            .setValidTlds(ImmutableSet.of("tld"))
+            .build());
+    setEppInput("domain_create_lrp.xml");
+    persistContactsAndHosts();
+    thrown.expect(InvalidLrpTokenException.class, "Invalid limited registration period token");
+    runFlow();
+    assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry()).isNull();
+  }
+
+  @Test
+  public void testFailure_lrp_noToken() throws Exception {
+    persistResource(Registry.get("tld").asBuilder()
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
+        .build());
+    persistContactsAndHosts();
+    thrown.expect(InvalidLrpTokenException.class, "Invalid limited registration period token");
     runFlow();
   }
 
@@ -831,9 +912,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testSuccess_anchorTenantViaAuthCode_matchingLrpToken() throws Exception {
     // This is definitely a corner case, as (without superuser) anchor tenants may only register
-    // via auth code during GA, and LRP will almost never be a GA offering. We're running this
-    // as superuser to bypass the state checks, though anchor tenant code checks and LRP token
-    // redemption still happen regardless.
+    // via auth code during GA. We're running this as superuser to bypass the state checks, though
+    // anchor tenant code checks and LRP token redemption still happen regardless.
     createTld("tld", TldState.LANDRUSH);
     persistResource(Registry.get("tld").asBuilder()
         .setReservedLists(persistReservedList(

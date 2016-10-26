@@ -641,6 +641,8 @@ An EPP flow that creates a new domain resource.
 *   2201
     *   Only a tool can pass a metadata extension.
     *   Registrar is not authorized to access this TLD.
+*   2202
+    *   Invalid limited registration period token.
 *   2302
     *   Resource with this id already exists.
 *   2303

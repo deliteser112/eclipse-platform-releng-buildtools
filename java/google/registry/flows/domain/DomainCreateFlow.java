@@ -118,6 +118,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.FeesMismatchException}
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
  * @error {@link DomainFlowUtils.InvalidIdnDomainLabelException}
+ * @error {@link DomainFlowUtils.InvalidLrpTokenException}
  * @error {@link DomainFlowUtils.InvalidPunycodeException}
  * @error {@link DomainFlowUtils.InvalidTcnIdChecksumException}
  * @error {@link DomainFlowUtils.InvalidTrademarkValidatorException}
@@ -267,6 +268,7 @@ public class DomainCreateFlow extends LoggedInFlow implements TransactionalFlow 
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),
         EppResourceIndex.create(Key.create(newDomain)));
     // Anchor tenant registrations override LRP, and landrush applications can skip it.
+    // If a token is passed in outside of an LRP phase, it is simply ignored (i.e. never redeemed).
     if (hasLrpToken(registry, isAnchorTenant)) {
       // TODO(b/32059212): This is a bug: empty tokens should still fail. Preserving to fix in a
       // separate targeted change.
