@@ -22,7 +22,6 @@ import static com.google.common.collect.Lists.transform;
 import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -37,8 +36,6 @@ import google.registry.request.Parameter;
 import google.registry.security.XsrfTokenManager;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -339,17 +336,9 @@ public class LoadTestAction implements Runnable {
           .param("clientId", clientId)
           .param("superuser", Boolean.FALSE.toString())
           .param("dryRun", Boolean.FALSE.toString())
-          .param("xml", urlEncode(xmls.get(i))));
+          .param("xml", xmls.get(i)));
     }
     return tasks.build();
-  }
-
-  private String urlEncode(String xml) {
-    try {
-      return URLEncoder.encode(xml, UTF_8.toString());
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   private void enqueue(List<TaskOptions> tasks) {
