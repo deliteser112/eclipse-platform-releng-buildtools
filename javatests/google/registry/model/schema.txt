@@ -208,6 +208,7 @@ class google.registry.model.domain.DomainApplication {
   google.registry.model.domain.launch.LaunchPhase phase;
   google.registry.model.eppcommon.Trid creationTrid;
   google.registry.model.transfer.TransferData transferData;
+  int years;
   java.lang.String creationClientId;
   java.lang.String currentSponsorClientId;
   java.lang.String fullyQualifiedDomainName;

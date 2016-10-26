@@ -31,6 +31,11 @@ import java.util.Objects;
 public final class DomainApplicationSubject
     extends AbstractDomainBaseSubject<DomainApplication, DomainApplicationSubject> {
 
+  public And<DomainApplicationSubject> hasYears(int years) {
+    assertThat(actual().getYears()).isEqualTo(years);
+    return andChainer();
+  }
+
   public And<DomainApplicationSubject> hasApplicationStatus(
       ApplicationStatus applicationStatus) {
     if (!Objects.equals(actual().getApplicationStatus(), applicationStatus)) {
