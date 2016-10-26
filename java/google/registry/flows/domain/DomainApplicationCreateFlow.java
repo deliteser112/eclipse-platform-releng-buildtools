@@ -239,13 +239,10 @@ public final class DomainApplicationCreateFlow extends LoggedInFlow implements T
         DomainApplicationIndex.createUpdatedInstance(newApplication),
         EppResourceIndex.create(Key.create(newApplication)));
     // Anchor tenant registrations override LRP, and landrush applications can skip it.
+    // If a token is passed in outside of an LRP phase, it is simply ignored (i.e. never redeemed).
     if (registry.getLrpPeriod().contains(now) && !isAnchorTenant) {
-      // TODO(b/32059212): This is a bug: empty tokens should still fail. Preserving to fix in a
-      // separate targeted change.
-      if (!authInfo.getPw().getValue().isEmpty()) {
-        entitiesToSave.add(
-            prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
-      }
+      entitiesToSave.add(
+          prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
     }
     ofy().save().entities(entitiesToSave.build());
     return createOutput(

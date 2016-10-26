@@ -267,15 +267,12 @@ public class DomainCreateFlow extends LoggedInFlow implements TransactionalFlow 
         newDomain,
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),
         EppResourceIndex.create(Key.create(newDomain)));
+    
     // Anchor tenant registrations override LRP, and landrush applications can skip it.
     // If a token is passed in outside of an LRP phase, it is simply ignored (i.e. never redeemed).
-    if (hasLrpToken(registry, isAnchorTenant)) {
-      // TODO(b/32059212): This is a bug: empty tokens should still fail. Preserving to fix in a
-      // separate targeted change.
-      if (!authInfo.getPw().getValue().isEmpty()) {
-        entitiesToSave.add(
-            prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
-      }
+    if (isLrpCreate(registry, isAnchorTenant)) {
+      entitiesToSave.add(
+          prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
     }
     enqueueTasks(hasSignedMarks, hasClaimsNotice, newDomain);
     ofy().save().entities(entitiesToSave.build());
@@ -386,7 +383,7 @@ public class DomainCreateFlow extends LoggedInFlow implements TransactionalFlow 
         .build();
   }
 
-  private boolean hasLrpToken(Registry registry, boolean isAnchorTenant) {
+  private boolean isLrpCreate(Registry registry, boolean isAnchorTenant) {
     return registry.getLrpPeriod().contains(now) && !isAnchorTenant;
   }
 

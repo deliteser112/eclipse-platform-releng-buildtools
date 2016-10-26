@@ -278,12 +278,11 @@ public final class TldSpecificLogicProxy {
     // domain-name-to-assignee match.
     if (!lrpToken.isEmpty()) {
       LrpTokenEntity token = ofy().load().key(Key.create(LrpTokenEntity.class, lrpToken)).now();
-      if (token != null) {
-        if (token.getAssignee().equalsIgnoreCase(domainName.toString())
+      if (token != null
+            && token.getAssignee().equalsIgnoreCase(domainName.toString())
             && token.getRedemptionHistoryEntry() == null
             && token.getValidTlds().contains(domainName.parent().toString())) {
           return Optional.of(token);
-        }
       }
     }
     return Optional.<LrpTokenEntity>absent();

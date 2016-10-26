@@ -894,18 +894,6 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testSuccess_landrush_duringLrpWithMissingToken() throws Exception {
-    createTld("tld", TldState.LANDRUSH);
-    persistResource(Registry.get("tld").asBuilder()
-        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
-        .build());
-    setEppInput("domain_create_landrush.xml");
-    persistContactsAndHosts();
-    clock.advanceOneMilli();
-    doSuccessfulTest("domain_create_landrush_response.xml", false);
-  }
-
-  @Test
   public void testSuccess_landrushLrpApplication_superuser() throws Exception {
     // Using an LRP token as superuser should still mark the token as redeemed (i.e. same effect
     // as non-superuser).
@@ -1026,6 +1014,19 @@ public class DomainApplicationCreateFlowTest
     doSuccessfulTest("domain_create_landrush_response.xml", false);
     // Token should not be marked as used, since this isn't an LRP state
     assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry()).isNull();
+  }
+
+  @Test
+  public void testFailure_landrush_duringLrpWithMissingToken() throws Exception {
+    createTld("tld", TldState.LANDRUSH);
+    persistResource(Registry.get("tld").asBuilder()
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
+        .build());
+    setEppInput("domain_create_landrush.xml");
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    thrown.expect(InvalidLrpTokenException.class);
+    runFlow();
   }
 
   @Test
