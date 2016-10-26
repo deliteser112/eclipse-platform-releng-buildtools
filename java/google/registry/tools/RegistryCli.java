@@ -42,6 +42,11 @@ final class RegistryCli {
       description = "Sets the default environment to run the command.")
   private RegistryToolEnvironment environment = RegistryToolEnvironment.PRODUCTION;
 
+  @Parameter(
+      names = {"-c", "--commands"},
+      description = "Returns all command names.")
+  private boolean showAllCommands;
+
   // Do not make this final - compile-time constant inlining may interfere with JCommander.
   @ParametersDelegate
   private AppEngineConnection connection = new AppEngineConnection();
@@ -92,6 +97,13 @@ final class RegistryCli {
         return;
       }
       throw e;
+    }
+
+    if (showAllCommands) {
+      for (Map.Entry<String, ? extends Class<? extends Command>> entry : commands.entrySet()) {
+        System.out.println(entry.getKey());
+      }
+      return;
     }
 
     checkState(RegistryToolEnvironment.get() == environment,
