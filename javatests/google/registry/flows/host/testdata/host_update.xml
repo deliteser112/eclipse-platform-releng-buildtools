@@ -5,11 +5,11 @@
        xmlns:host="urn:ietf:params:xml:ns:host-1.0">
         <host:name>%OLD-HOSTNAME%</host:name>
         <host:add>
-          %ADD-HOSTADDRS%
+          %ADD-HOSTADDRSORSTATUS%
           <host:status s="clientUpdateProhibited"/>
         </host:add>
         <host:rem>
-          %REM-HOSTADDRS%
+          %REM-HOSTADDRSORSTATUS%
         </host:rem>
         <host:chg>
           <host:name>%NEW-HOSTNAME%</host:name>

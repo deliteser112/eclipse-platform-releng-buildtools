@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Maps.transformValues;
 import static com.google.common.collect.Sets.difference;
-import static com.google.common.collect.Sets.intersection;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.difference;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
@@ -37,7 +36,6 @@ import com.googlecode.objectify.Work;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppinput.ResourceCommand.AbstractSingleResourceCommand;
 import google.registry.model.eppinput.ResourceCommand.ResourceCheck;
 import google.registry.model.eppinput.ResourceCommand.ResourceCreateOrChange;
@@ -98,14 +96,8 @@ public class DomainCommand {
       return registrant;
     }
 
-    @Override
-    public void applyTo(B builder) {
-      if (registrant != null) {
-        builder.setRegistrant(registrant);
-      }
-      if (authInfo != null) {
-        builder.setAuthInfo(authInfo);
-      }
+    public DomainAuthInfo getAuthInfo() {
+      return authInfo;
     }
   }
 
@@ -175,22 +167,8 @@ public class DomainCommand {
     }
 
     @Override
-    public AuthInfo getAuthInfo() {
+    public DomainAuthInfo getAuthInfo() {
       return authInfo;
-    }
-
-    @Override
-    public void applyTo(DomainBase.Builder<?, ?> builder) {
-      super.applyTo(builder);
-      if (fullyQualifiedDomainName != null) {
-        builder.setFullyQualifiedDomainName(fullyQualifiedDomainName);
-      }
-      if (nameservers != null) {
-        builder.setNameservers(getNameservers());
-      }
-      if (contacts != null) {
-        builder.setContacts(getContacts());
-      }
     }
 
     /** Creates a copy of this {@link Create} with hard links to hosts and contacts. */
@@ -420,24 +398,6 @@ public class DomainCommand {
                         .values());
         return clone;
       }
-    }
-
-    @Override
-    public void applyTo(DomainBase.Builder<?, ?> builder) throws AddRemoveSameValueException {
-      super.applyTo(builder);
-      getInnerChange().applyTo(builder);
-      AddRemove add = getInnerAdd();
-      AddRemove remove = getInnerRemove();
-      if (!intersection(add.getNameservers(), remove.getNameservers()).isEmpty()) {
-        throw new AddRemoveSameValueException();
-      }
-      builder.addNameservers(add.getNameservers());
-      builder.removeNameservers(remove.getNameservers());
-      if (!intersection(add.getContacts(), remove.getContacts()).isEmpty()) {
-        throw new AddRemoveSameValueException();
-      }
-      builder.addContacts(add.getContacts());
-      builder.removeContacts(remove.getContacts());
     }
 
     /**

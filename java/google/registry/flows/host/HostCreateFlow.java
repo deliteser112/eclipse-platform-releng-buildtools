@@ -101,11 +101,11 @@ public final class HostCreateFlow extends Flow implements TransactionalFlow {
           ? new SubordinateHostMustHaveIpException()
           : new UnexpectedExternalHostIpException();
     }
-    Builder builder = new Builder();
-    command.applyTo(builder);
-    HostResource newHost = builder
+    HostResource newHost = new Builder()
         .setCreationClientId(clientId)
         .setCurrentSponsorClientId(clientId)
+        .setFullyQualifiedHostName(targetId)
+        .setInetAddresses(command.getInetAddresses())
         .setRepoId(createContactHostRoid(ObjectifyService.allocateId()))
         .setSuperordinateDomain(
             superordinateDomain.isPresent() ? Key.create(superordinateDomain.get()) : null)

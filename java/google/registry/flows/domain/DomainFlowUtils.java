@@ -59,7 +59,6 @@ import google.registry.flows.EppException.UnimplementedOptionException;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
-import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -827,18 +826,6 @@ public class DomainFlowUtils {
         : (remove.getAll() == null) ? remove.getDsData() : oldDsData;
     // RFC 5910 specifies that removes are processed before adds.
     return ImmutableSet.copyOf(union(difference(oldDsData, toRemove), toAdd));
-  }
-
-  /** Check that all of the status values added or removed in an update are client-settable. */
-  static void verifyStatusChangesAreClientSettable(Update command)
-      throws StatusNotClientSettableException {
-    for (StatusValue statusValue : union(
-        command.getInnerAdd().getStatusValues(),
-        command.getInnerRemove().getStatusValues())) {
-      if (!statusValue.isClientSettable()) {
-        throw new StatusNotClientSettableException(statusValue.getXmlName());
-      }
-    }
   }
 
   /** If a domain or application has "clientUpdateProhibited" set, updates must clear it or fail. */

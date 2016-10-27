@@ -210,9 +210,7 @@ public final class DomainApplicationCreateFlow extends Flow implements Transacti
     validateFeeChallenge(targetId, tld, now, feeCreate, commandOperations.getTotalCost());
     SecDnsCreateExtension secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
-    DomainApplication.Builder applicationBuilder = new DomainApplication.Builder();
-    command.applyTo(applicationBuilder);
-    applicationBuilder
+    DomainApplication newApplication = new DomainApplication.Builder()
         .setCreationTrid(trid)
         .setCreationClientId(clientId)
         .setCurrentSponsorClientId(clientId)
@@ -224,6 +222,11 @@ public final class DomainApplicationCreateFlow extends Flow implements Transacti
         .setApplicationStatus(ApplicationStatus.VALIDATED)
         .addStatusValue(StatusValue.PENDING_CREATE)
         .setDsData(secDnsCreate == null ? null : secDnsCreate.getDsData())
+        .setRegistrant(command.getRegistrant())
+        .setAuthInfo(command.getAuthInfo())
+        .setFullyQualifiedDomainName(targetId)
+        .setNameservers(command.getNameservers())
+        .setContacts(command.getContacts())
         .setEncodedSignedMarks(FluentIterable
             .from(launchCreate.getSignedMarks())
             .transform(new Function<AbstractSignedMark, EncodedSignedMark>() {
@@ -231,8 +234,8 @@ public final class DomainApplicationCreateFlow extends Flow implements Transacti
               public EncodedSignedMark apply(AbstractSignedMark abstractSignedMark) {
                 return (EncodedSignedMark) abstractSignedMark;
               }})
-            .toList());
-    DomainApplication newApplication = applicationBuilder.build();
+            .toList())
+        .build();
     HistoryEntry historyEntry = buildHistory(newApplication.getRepoId(), command.getPeriod());
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
     handleExtraFlowLogic(

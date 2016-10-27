@@ -44,8 +44,10 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.AddRemoveSameValueException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
+import google.registry.flows.ResourceFlowUtils.StatusNotClientSettableException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
 import google.registry.flows.domain.DomainFlowUtils.EmptySecDnsUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
@@ -64,11 +66,9 @@ import google.registry.flows.domain.DomainFlowUtils.SecDnsAllUsageException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyNameserversException;
 import google.registry.flows.domain.DomainFlowUtils.UrgentAttributeNotSupportedException;
-import google.registry.flows.exceptions.AddRemoveSameValueEppException;
 import google.registry.flows.exceptions.OnlyToolCanPassMetadataException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
-import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
@@ -1003,7 +1003,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setNameservers(ImmutableSet.of(Key.create(
                 loadByForeignKey(HostResource.class, "ns1.example.foo", clock.nowUtc()))))
             .build());
-    thrown.expect(AddRemoveSameValueEppException.class);
+    thrown.expect(AddRemoveSameValueException.class);
     runFlow();
   }
 
@@ -1018,7 +1018,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 Key.create(
                     loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))))
             .build());
-    thrown.expect(AddRemoveSameValueEppException.class);
+    thrown.expect(AddRemoveSameValueException.class);
     runFlow();
   }
 

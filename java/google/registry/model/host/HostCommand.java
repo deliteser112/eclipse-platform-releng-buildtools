@@ -14,7 +14,6 @@
 
 package google.registry.model.host;
 
-import static com.google.common.collect.Sets.intersection;
 import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
@@ -37,26 +36,8 @@ public class HostCommand {
   @XmlTransient
   abstract static class HostCreateOrChange extends AbstractSingleResourceCommand
       implements ResourceCreateOrChange<HostResource.Builder> {
-    /** IP Addresses for this host. Can be null if this is an external host. */
-    @XmlElement(name = "addr")
-    Set<InetAddress> inetAddresses;
-
-    public ImmutableSet<InetAddress> getInetAddresses() {
-      return nullSafeImmutableCopy(inetAddresses);
-    }
-
     public String getFullyQualifiedHostName() {
       return getTargetId();
-    }
-
-    @Override
-    public void applyTo(HostResource.Builder builder) {
-      if (getFullyQualifiedHostName() != null) {
-        builder.setFullyQualifiedHostName(getFullyQualifiedHostName());
-      }
-      if (getInetAddresses() != null) {
-        builder.setInetAddresses(getInetAddresses());
-      }
     }
   }
 
@@ -67,7 +48,15 @@ public class HostCommand {
   @XmlType(propOrder = {"targetId", "inetAddresses" })
   @XmlRootElement
   public static class Create
-      extends HostCreateOrChange implements ResourceCreateOrChange<HostResource.Builder> {}
+      extends HostCreateOrChange implements ResourceCreateOrChange<HostResource.Builder> {
+    /** IP Addresses for this host. Can be null if this is an external host. */
+    @XmlElement(name = "addr")
+    Set<InetAddress> inetAddresses;
+
+    public ImmutableSet<InetAddress> getInetAddresses() {
+      return nullSafeImmutableCopy(inetAddresses);
+    }
+  }
 
   /** A delete command for a {@link HostResource}. */
   @XmlRootElement
@@ -124,18 +113,6 @@ public class HostCommand {
     }
 
     /** The inner change type on a host update command. */
-    @XmlType(propOrder = {"targetId", "inetAddresses" })
     public static class Change extends HostCreateOrChange {}
-
-    @Override
-    public void applyTo(HostResource.Builder builder) throws AddRemoveSameValueException {
-      super.applyTo(builder);
-      if (!intersection(getInnerAdd().getInetAddresses(), getInnerRemove().getInetAddresses())
-          .isEmpty()) {
-        throw new AddRemoveSameValueException();
-      }
-      builder.addInetAddresses(getInnerAdd().getInetAddresses());
-      builder.removeInetAddresses(getInnerRemove().getInetAddresses());
-    }
   }
 }

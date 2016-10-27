@@ -16,14 +16,10 @@ package google.registry.model.contact;
 
 import static google.registry.flows.EppXmlTransformer.marshalInput;
 import static google.registry.flows.EppXmlTransformer.validateInput;
-import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
-import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.xml.ValidationMode.LENIENT;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.collect.ImmutableList;
-import google.registry.model.contact.PostalInfo.Type;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.EppLoader;
 import org.junit.Rule;
@@ -102,76 +98,5 @@ public class ContactCommandTest {
   @Test
   public void testTransferRequest() throws Exception {
     doXmlRoundtripTest("contact_transfer_request.xml");
-  }
-
-  @Test
-  public void testPostalInfoOverlay() {
-    createTld("foo");
-
-    ContactResource contact = new ContactResource.Builder()
-        .setLocalizedPostalInfo(new PostalInfo.Builder()
-            .setType(Type.LOCALIZED)
-            .setName("loc name")
-            .build())
-        .setInternationalizedPostalInfo(new PostalInfo.Builder()
-            .setType(Type.INTERNATIONALIZED)
-            .setName("int name")
-            .build())
-        .build();
-    ContactCommand.Update.Change change = new ContactCommand.Update.Change();
-
-    // Updating one field of the loc should delete the int and leave the loc otherwise untouched.
-    change.postalInfo = ImmutableList.of(new PostalInfo.Builder()
-        .setType(Type.LOCALIZED)
-        .setOrg("org")
-        .build());
-    ContactResource.Builder builder = contact.asBuilder();
-    change.applyTo(builder);
-    ContactResource changed = builder.build();
-    assertAboutContacts().that(changed)
-        .hasNullInternationalizedPostalInfo().and()
-        .hasLocalizedPostalInfo(new PostalInfo.Builder()
-            .setType(Type.LOCALIZED)
-            .setName("loc name")
-            .setOrg("org")
-            .build());
-
-    // Updating one field of the int should delete the loc and leave the int otherwise untouched.
-    change.postalInfo = ImmutableList.of(new PostalInfo.Builder()
-        .setType(Type.INTERNATIONALIZED)
-        .setOrg("org")
-        .build());
-    builder = contact.asBuilder();
-    change.applyTo(builder);
-    changed = builder.build();
-    assertAboutContacts().that(changed)
-        .hasNullLocalizedPostalInfo().and()
-        .hasInternationalizedPostalInfo(new PostalInfo.Builder()
-            .setType(Type.INTERNATIONALIZED)
-            .setName("int name")
-            .setOrg("org")
-            .build());
-
-    // Updating one field of the int and touching the loc with no changes should preserve both.
-    change.postalInfo = ImmutableList.of(
-        new PostalInfo.Builder()
-            .setType(Type.INTERNATIONALIZED)
-            .setName("new int name")
-            .build(),
-        new PostalInfo.Builder()
-            .setType(Type.LOCALIZED)
-            .build());
-    builder = contact.asBuilder();
-    change.applyTo(builder);
-    changed = builder.build();
-    assertAboutContacts().that(changed)
-        .hasLocalizedPostalInfo(new PostalInfo.Builder()
-            .setType(Type.LOCALIZED)
-            .setName("loc name")
-            .build()).and()
-        .hasInternationalizedPostalInfo(new PostalInfo.Builder()
-            .setType(Type.INTERNATIONALIZED)
-            .setName("new int name")
-            .build());
   }
 }

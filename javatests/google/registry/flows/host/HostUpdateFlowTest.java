@@ -14,6 +14,7 @@
 
 package google.registry.flows.host;
 
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.async.RefreshDnsOnHostRenameAction.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
@@ -41,11 +42,12 @@ import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.AddRemoveSameValueException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
+import google.registry.flows.ResourceFlowUtils.StatusNotClientSettableException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
-import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
 import google.registry.flows.host.HostFlowUtils.InvalidHostNameException;
 import google.registry.flows.host.HostFlowUtils.SuperordinateDomainDoesNotExistException;
@@ -69,14 +71,14 @@ import org.junit.Test;
 public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, HostResource> {
 
   private void setEppHostUpdateInput(
-      String oldHostName, String newHostName, String addHostAddrs, String remHostAddrs) {
+      String oldHostName, String newHostName, String ipOrStatusToAdd, String ipOrStatusToRem) {
     setEppInput(
         "host_update.xml",
         ImmutableMap.of(
             "OLD-HOSTNAME", oldHostName,
             "NEW-HOSTNAME", newHostName,
-            "ADD-HOSTADDRS", (addHostAddrs == null) ? "" : addHostAddrs,
-            "REM-HOSTADDRS", (remHostAddrs == null) ? "" : remHostAddrs));
+            "ADD-HOSTADDRSORSTATUS", nullToEmpty(ipOrStatusToAdd),
+            "REM-HOSTADDRSORSTATUS", nullToEmpty(ipOrStatusToRem)));
   }
 
   public HostUpdateFlowTest() {
@@ -790,6 +792,34 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     persistActiveHost(oldHostName());
     clock.advanceOneMilli();
     thrown.expect(RenameHostToSubordinateRequiresIpException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_addRemoveSameStatusValues() throws Exception {
+    createTld("tld");
+    persistActiveDomain("example.tld");
+    setEppHostUpdateInput(
+        "ns1.example.tld",
+        "ns2.example.tld",
+        "<host:status s=\"clientUpdateProhibited\"/>",
+        "<host:status s=\"clientUpdateProhibited\"/>");
+    persistActiveHost(oldHostName());
+    thrown.expect(AddRemoveSameValueException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_addRemoveSameInetAddresses() throws Exception {
+    createTld("tld");
+    persistActiveDomain("example.tld");
+    setEppHostUpdateInput(
+        "ns1.example.tld",
+        "ns2.example.tld",
+        "<host:addr ip=\"v4\">192.0.2.22</host:addr>",
+        "<host:addr ip=\"v4\">192.0.2.22</host:addr>");
+    persistActiveHost(oldHostName());
+    thrown.expect(AddRemoveSameValueException.class);
     runFlow();
   }
 

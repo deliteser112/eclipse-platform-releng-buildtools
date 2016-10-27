@@ -20,7 +20,6 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import google.registry.model.ImmutableObject;
-import google.registry.model.contact.ContactResource.Builder;
 import google.registry.model.contact.PostalInfo.Type;
 import google.registry.model.eppinput.ResourceCommand.AbstractSingleResourceCommand;
 import google.registry.model.eppinput.ResourceCommand.ResourceCheck;
@@ -75,23 +74,32 @@ public class ContactCommand {
         }});
     }
 
-    @Override
-    public void applyTo(Builder builder) {
-      if (authInfo != null) {
-        builder.setAuthInfo(authInfo);
-      }
-      if (disclose != null) {
-        builder.setDisclose(disclose);
-      }
-      if (email != null) {
-        builder.setEmailAddress(email);
-      }
-      if (fax != null) {
-        builder.setFaxNumber(fax);
-      }
-      if (voice != null) {
-        builder.setVoiceNumber(voice);
-      }
+    public ContactPhoneNumber getVoice() {
+      return voice;
+    }
+
+    public ContactPhoneNumber getFax() {
+      return fax;
+    }
+
+    public String getEmail() {
+      return email;
+    }
+
+    public ContactAuthInfo getAuthInfo() {
+      return authInfo;
+    }
+
+    public Disclose getDisclose() {
+      return disclose;
+    }
+
+    public PostalInfo getInternationalizedPostalInfo() {
+      return getPostalInfosAsMap().get(Type.INTERNATIONALIZED);
+    }
+
+    public PostalInfo getLocalizedPostalInfo() {
+      return getPostalInfosAsMap().get(Type.LOCALIZED);
     }
   }
 
@@ -133,21 +141,6 @@ public class ContactCommand {
     @Override
     public ContactAuthInfo getAuthInfo() {
       return authInfo;
-    }
-
-    @Override
-    public void applyTo(ContactResource.Builder builder) {
-      super.applyTo(builder);
-      if (contactId != null) {
-        builder.setContactId(contactId);
-      }
-      Map<Type, PostalInfo> postalInfosAsMap = getPostalInfosAsMap();
-      if (postalInfosAsMap.containsKey(Type.INTERNATIONALIZED)) {
-        builder.setInternationalizedPostalInfo(postalInfosAsMap.get(Type.INTERNATIONALIZED));
-      }
-      if (postalInfosAsMap.containsKey(Type.LOCALIZED)) {
-        builder.setLocalizedPostalInfo(postalInfosAsMap.get(Type.LOCALIZED));
-      }
     }
   }
 
@@ -204,34 +197,6 @@ public class ContactCommand {
 
     /** The inner change type on a contact update command. */
     @XmlType(propOrder = {"postalInfo", "voice", "fax", "email", "authInfo", "disclose"})
-    public static class Change extends ContactCreateOrChange {
-      /**
-       * The spec requires the following behaviors:
-       * <ul>
-       *   <li>If you update part of a postal info, the fields that you didn't update are unchanged.
-       *   <li>If you update one postal info but not the other, the other is deleted.
-       * </ul>
-       * Therefore, if you want to preserve one postal info and update another you need to send the
-       * update and also something that technically updates the preserved one, even if it only
-       * "updates" it by setting just one field to the same value.
-       */
-      @Override
-      public void applyTo(ContactResource.Builder builder) {
-        super.applyTo(builder);
-        Map<Type, PostalInfo> postalInfosAsMap = getPostalInfosAsMap();
-        if (postalInfosAsMap.containsKey(Type.INTERNATIONALIZED)) {
-          builder.overlayInternationalizedPostalInfo(postalInfosAsMap.get(Type.INTERNATIONALIZED));
-          if (postalInfosAsMap.size() == 1) {
-            builder.setLocalizedPostalInfo(null);
-          }
-        }
-        if (postalInfosAsMap.containsKey(Type.LOCALIZED)) {
-          builder.overlayLocalizedPostalInfo(postalInfosAsMap.get(Type.LOCALIZED));
-          if (postalInfosAsMap.size() == 1) {
-            builder.setInternationalizedPostalInfo(null);
-          }
-        }
-      }
-    }
+    public static class Change extends ContactCreateOrChange {}
   }
 }

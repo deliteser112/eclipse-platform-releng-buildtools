@@ -65,12 +65,18 @@ public final class ContactCreateFlow extends Flow implements TransactionalFlow {
     validateClientIsLoggedIn(clientId);
     Create command = (Create) resourceCommand;
     verifyResourceDoesNotExist(ContactResource.class, targetId, now);
-    Builder builder = new Builder();
-    command.applyTo(builder);
-    ContactResource newContact = builder
+    ContactResource newContact = new Builder()
+        .setContactId(targetId)
+        .setAuthInfo(command.getAuthInfo())
         .setCreationClientId(clientId)
         .setCurrentSponsorClientId(clientId)
         .setRepoId(createContactHostRoid(ObjectifyService.allocateId()))
+        .setFaxNumber(command.getFax())
+        .setVoiceNumber(command.getVoice())
+        .setDisclose(command.getDisclose())
+        .setEmailAddress(command.getEmail())
+        .setInternationalizedPostalInfo(command.getInternationalizedPostalInfo())
+        .setLocalizedPostalInfo(command.getLocalizedPostalInfo())
         .build();
     validateAsciiPostalInfo(newContact.getInternationalizedPostalInfo());
     validateContactAgainstPolicy(newContact);

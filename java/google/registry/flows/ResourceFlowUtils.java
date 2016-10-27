@@ -15,6 +15,7 @@
 package google.registry.flows;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Sets.intersection;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.EppResourceUtils.queryDomainsUsingResource;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
@@ -33,6 +34,8 @@ import com.googlecode.objectify.Work;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.InvalidAuthorizationInformationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
+import google.registry.flows.EppException.ParameterValuePolicyErrorException;
+import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.NotPendingTransferException;
 import google.registry.flows.exceptions.NotTransferInitiatorException;
@@ -359,6 +362,25 @@ public final class ResourceFlowUtils {
     }
   }
 
+  /** Check that the same values aren't being added and removed in an update command. */
+  public static void checkSameValuesNotAddedAndRemoved(
+      ImmutableSet<?> fieldsToAdd, ImmutableSet<?> fieldsToRemove)
+          throws AddRemoveSameValueException {
+    if (!intersection(fieldsToAdd, fieldsToRemove).isEmpty()) {
+      throw new AddRemoveSameValueException();
+    }
+  }
+
+  /** Check that all {@link StatusValue} objects in a set are client-settable. */
+  public static void verifyAllStatusesAreClientSettable(Set<StatusValue> statusValues)
+      throws StatusNotClientSettableException {
+    for (StatusValue statusValue : statusValues) {
+      if (!statusValue.isClientSettable()) {
+        throw new StatusNotClientSettableException(statusValue.getXmlName());
+      }
+    }
+  }
+
   /** Resource with this id does not exist. */
   public static class ResourceDoesNotExistException extends ObjectDoesNotExistException {
     public ResourceDoesNotExistException(Class<?> type, String targetId) {
@@ -378,6 +400,20 @@ public final class ResourceFlowUtils {
       extends InvalidAuthorizationInformationErrorException {
     public BadAuthInfoForResourceException() {
       super("Authorization information for accessing resource is invalid");
+    }
+  }
+
+  /** Cannot add and remove the same value. */
+  public static class AddRemoveSameValueException extends ParameterValuePolicyErrorException {
+    public AddRemoveSameValueException() {
+      super("Cannot add and remove the same value");
+    }
+  }
+
+  /** The specified status value cannot be set by clients. */
+  public static class StatusNotClientSettableException extends ParameterValueRangeErrorException {
+    public StatusNotClientSettableException(String statusValue) {
+      super(String.format("Status value %s cannot be set by clients", statusValue));
     }
   }
 }

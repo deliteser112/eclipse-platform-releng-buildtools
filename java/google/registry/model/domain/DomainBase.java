@@ -47,7 +47,6 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.secdns.DelegationSignerData;
-import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.host.HostResource;
 import java.util.Set;
 import javax.xml.bind.annotation.XmlElement;
@@ -221,7 +220,7 @@ public abstract class DomainBase extends EppResource {
         .toSet();
   }
 
-  public AuthInfo getAuthInfo() {
+  public DomainAuthInfo getAuthInfo() {
     return authInfo;
   }
 

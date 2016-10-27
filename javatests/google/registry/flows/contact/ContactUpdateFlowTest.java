@@ -24,14 +24,14 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.ResourceFlowUtils.AddRemoveSameValueException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
+import google.registry.flows.ResourceFlowUtils.StatusNotClientSettableException;
 import google.registry.flows.contact.ContactFlowUtils.BadInternationalizedPostalInfoException;
 import google.registry.flows.contact.ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException;
-import google.registry.flows.exceptions.AddRemoveSameValueEppException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
-import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
@@ -84,7 +84,7 @@ public class ContactUpdateFlowTest
   }
 
   @Test
-  public void testSuccess_updatingOnePostalInfoDeletesTheOther() throws Exception {
+  public void testSuccess_updatingInternationalizedPostalInfoDeletesLocalized() throws Exception {
     ContactResource contact =
         persistResource(
             newContactResource(getUniqueIdFromCommand()).asBuilder()
@@ -104,12 +104,60 @@ public class ContactUpdateFlowTest
     // the localized one since they are treated as a pair for update purposes.
     assertAboutContacts().that(contact)
         .hasNonNullLocalizedPostalInfo().and()
-        .hasInternationalizedPostalInfo(null);
+        .hasNullInternationalizedPostalInfo();
 
     runFlowAssertResponse(readFile("contact_update_response.xml"));
     assertAboutContacts().that(reloadResourceByForeignKey())
-        .hasLocalizedPostalInfo(null).and()
-        .hasNonNullInternationalizedPostalInfo();
+        .hasNullLocalizedPostalInfo().and()
+        .hasInternationalizedPostalInfo(new PostalInfo.Builder()
+            .setType(Type.INTERNATIONALIZED)
+            .setAddress(new ContactAddress.Builder()
+                .setStreet(ImmutableList.of("124 Example Dr.", "Suite 200"))
+                .setCity("Dulles")
+                .setState("VA")
+                .setZip("20166-6503")
+                .setCountryCode("US")
+                .build())
+            .build());
+  }
+
+  @Test
+  public void testSuccess_updatingLocalizedPostalInfoDeletesInternationalized() throws Exception {
+    setEppInput("contact_update_localized.xml");
+    ContactResource contact =
+        persistResource(
+            newContactResource(getUniqueIdFromCommand()).asBuilder()
+                .setInternationalizedPostalInfo(new PostalInfo.Builder()
+                    .setType(Type.INTERNATIONALIZED)
+                    .setAddress(new ContactAddress.Builder()
+                        .setStreet(ImmutableList.of("111 8th Ave", "4th Floor"))
+                        .setCity("New York")
+                        .setState("NY")
+                        .setZip("10011")
+                        .setCountryCode("US")
+                        .build())
+                    .build())
+                .build());
+    clock.advanceOneMilli();
+    // The test xml updates the localized postal info and should therefore implicitly delete
+    // the internationalized one since they are treated as a pair for update purposes.
+    assertAboutContacts().that(contact)
+        .hasNonNullInternationalizedPostalInfo().and()
+        .hasNullLocalizedPostalInfo();
+
+    runFlowAssertResponse(readFile("contact_update_response.xml"));
+    assertAboutContacts().that(reloadResourceByForeignKey())
+        .hasNullInternationalizedPostalInfo().and()
+        .hasLocalizedPostalInfo(new PostalInfo.Builder()
+            .setType(Type.LOCALIZED)
+            .setAddress(new ContactAddress.Builder()
+                .setStreet(ImmutableList.of("124 Example Dr.", "Suite 200"))
+                .setCity("Dulles")
+                .setState("VA")
+                .setZip("20166-6503")
+                .setCountryCode("US")
+                .build())
+            .build());
   }
 
   @Test
@@ -146,6 +194,73 @@ public class ContactUpdateFlowTest
                 .setCountryCode("US")
                 .build())
             .build());
+  }
+
+
+  @Test
+  public void testSuccess_updateOnePostalInfo_touchOtherPostalInfoPreservesIt() throws Exception {
+    setEppInput("contact_update_partial_postalinfo_preserve_int.xml");
+    persistResource(
+        newContactResource(getUniqueIdFromCommand()).asBuilder()
+        .setLocalizedPostalInfo(new PostalInfo.Builder()
+            .setType(Type.LOCALIZED)
+            .setName("A. Person")
+            .setOrg("Company Inc.")
+            .setAddress(new ContactAddress.Builder()
+                .setStreet(ImmutableList.of("123 4th st", "5th Floor"))
+                .setCity("City")
+                .setState("AB")
+                .setZip("12345")
+                .setCountryCode("US")
+                .build())
+            .build())
+        .setInternationalizedPostalInfo(new PostalInfo.Builder()
+            .setType(Type.INTERNATIONALIZED)
+            .setName("B. Person")
+            .setOrg("Company Co.")
+            .setAddress(new ContactAddress.Builder()
+                .setStreet(ImmutableList.of("100 200th Dr.", "6th Floor"))
+                .setCity("Town")
+                .setState("CD")
+                .setZip("67890")
+                .setCountryCode("US")
+                .build())
+            .build())
+        .build());
+    clock.advanceOneMilli();
+    // The test xml updates the address of the localized postal info. It also sets the name of the
+    // internationalized postal info to the same value it previously had, which causes it to be
+    // preserved. If the xml had not mentioned the internationalized one at all it would have been
+    // deleted.
+    runFlowAssertResponse(readFile("contact_update_response.xml"));
+    assertAboutContacts().that(reloadResourceByForeignKey())
+        .hasLocalizedPostalInfo(
+            new PostalInfo.Builder()
+                .setType(Type.LOCALIZED)
+                .setName("A. Person")
+                .setOrg("Company Inc.")
+                .setAddress(new ContactAddress.Builder()
+                    .setStreet(ImmutableList.of("456 5th st"))
+                    .setCity("Place")
+                    .setState("CD")
+                    .setZip("54321")
+                    .setCountryCode("US")
+                    .build())
+                .build())
+        .and()
+        .hasInternationalizedPostalInfo(
+            new PostalInfo.Builder()
+                .setType(Type.INTERNATIONALIZED)
+                .setName("B. Person")
+                .setOrg("Company Co.")
+                .setAddress(new ContactAddress.Builder()
+                    .setStreet(ImmutableList.of("100 200th Dr.", "6th Floor"))
+                    .setCity("Town")
+                    .setState("CD")
+                    .setZip("67890")
+                    .setCountryCode("US")
+                    .build())
+                .build());
   }
 
   @Test
@@ -264,7 +379,7 @@ public class ContactUpdateFlowTest
   public void testFailure_addRemoveSameValue() throws Exception {
     setEppInput("contact_update_add_remove_same.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    thrown.expect(AddRemoveSameValueEppException.class);
+    thrown.expect(AddRemoveSameValueException.class);
     runFlow();
   }
 }

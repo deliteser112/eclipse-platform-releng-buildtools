@@ -146,9 +146,7 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
         domainName, application, historyEntry, isSunrushAddGracePeriod, registry, years);
     entitiesToSave.addAll(billsAndPolls);
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
-    DomainResource.Builder domainBuilder = new DomainResource.Builder();
-    command.applyTo(domainBuilder);
-    DomainResource newDomain = domainBuilder
+    DomainResource newDomain = new DomainResource.Builder()
         .setCreationClientId(clientId)
         .setCurrentSponsorClientId(clientId)
         .setRepoId(repoId)
@@ -167,6 +165,11 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
         .setStatusValues(ReservationType.NAME_COLLISION == getReservationType(domainName)
             ? ImmutableSet.of(StatusValue.SERVER_HOLD)
             : ImmutableSet.<StatusValue>of())
+        .setRegistrant(command.getRegistrant())
+        .setAuthInfo(command.getAuthInfo())
+        .setFullyQualifiedDomainName(targetId)
+        .setNameservers(command.getNameservers())
+        .setContacts(command.getContacts())
         .build();
     entitiesToSave.add(
         newDomain,

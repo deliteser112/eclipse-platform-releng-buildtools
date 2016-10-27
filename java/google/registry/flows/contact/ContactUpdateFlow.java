@@ -14,8 +14,11 @@
 
 package google.registry.flows.contact;
 
+import static com.google.common.collect.Sets.union;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
+import static google.registry.flows.ResourceFlowUtils.checkSameValuesNotAddedAndRemoved;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
+import static google.registry.flows.ResourceFlowUtils.verifyAllStatusesAreClientSettable;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
@@ -26,7 +29,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
@@ -34,30 +36,30 @@ import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.exceptions.AddRemoveSameValueEppException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
-import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.contact.ContactCommand.Update;
+import google.registry.model.contact.ContactCommand.Update.Change;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.ContactResource.Builder;
+import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand;
-import google.registry.model.eppinput.ResourceCommand.AddRemoveSameValueException;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.reporting.HistoryEntry;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /**
  * An EPP flow that updates a contact.
  *
+ * @error {@link google.registry.flows.ResourceFlowUtils.AddRemoveSameValueException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link google.registry.flows.exceptions.AddRemoveSameValueEppException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.StatusNotClientSettableException}
  * @error {@link google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
- * @error {@link google.registry.flows.exceptions.StatusNotClientSettableException}
  * @error {@link ContactFlowUtils.BadInternationalizedPostalInfoException}
  * @error {@link ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException}
  */
@@ -88,15 +90,11 @@ public final class ContactUpdateFlow extends Flow implements TransactionalFlow {
     Update command = (Update) resourceCommand;
     ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, existingContact);
-    if (!isSuperuser) {
+    ImmutableSet<StatusValue> statusToRemove = command.getInnerRemove().getStatusValues();
+    ImmutableSet<StatusValue> statusesToAdd = command.getInnerAdd().getStatusValues();
+    if (!isSuperuser) {  // The superuser can update any contact and set any status.
       verifyResourceOwnership(clientId, existingContact);
-    }
-    for (StatusValue statusValue : Sets.union(
-        command.getInnerAdd().getStatusValues(),
-        command.getInnerRemove().getStatusValues())) {
-      if (!isSuperuser && !statusValue.isClientSettable()) {  // The superuser can set any status.
-        throw new StatusNotClientSettableException(statusValue.getXmlName());
-      }
+      verifyAllStatusesAreClientSettable(union(statusesToAdd, statusToRemove));
     }
     verifyNoDisallowedStatuses(existingContact, DISALLOWED_STATUSES);
     historyBuilder
@@ -104,15 +102,39 @@ public final class ContactUpdateFlow extends Flow implements TransactionalFlow {
         .setModificationTime(now)
         .setXmlBytes(null)  // We don't want to store contact details in the history entry.
         .setParent(Key.create(existingContact));
+    checkSameValuesNotAddedAndRemoved(statusesToAdd, statusToRemove);
     Builder builder = existingContact.asBuilder();
-    try {
-      command.applyTo(builder);
-    } catch (AddRemoveSameValueException e) {
-      throw new AddRemoveSameValueEppException();
+    Change change = command.getInnerChange();
+    // The spec requires the following behaviors:
+    //   * If you update part of a postal info, the fields that you didn't update are unchanged.
+    //   * If you update one postal info but not the other, the other is deleted.
+    // Therefore, if you want to preserve one postal info and update another you need to send the
+    // update and also something that technically updates the preserved one, even if it only
+    // "updates" it by setting just one field to the same value.
+    PostalInfo internationalized = change.getInternationalizedPostalInfo();
+    PostalInfo localized = change.getLocalizedPostalInfo();
+    if (internationalized != null) {
+      builder.overlayInternationalizedPostalInfo(internationalized);
+      if (localized == null) {
+        builder.setLocalizedPostalInfo(null);
+      }
+    }
+    if (localized != null) {
+      builder.overlayLocalizedPostalInfo(localized);
+      if (internationalized == null) {
+        builder.setInternationalizedPostalInfo(null);
+      }
     }
     ContactResource newContact = builder
         .setLastEppUpdateTime(now)
         .setLastEppUpdateClientId(clientId)
+        .setAuthInfo(preferFirst(change.getAuthInfo(), existingContact.getAuthInfo()))
+        .setDisclose(preferFirst(change.getDisclose(), existingContact.getDisclose()))
+        .setEmailAddress(preferFirst(change.getEmail(), existingContact.getEmailAddress()))
+        .setFaxNumber(preferFirst(change.getFax(), existingContact.getFaxNumber()))
+        .setVoiceNumber(preferFirst(change.getVoice(), existingContact.getVoiceNumber()))
+        .addStatusValues(statusesToAdd)
+        .removeStatusValues(statusToRemove)
         .build();
     // If the resource is marked with clientUpdateProhibited, and this update did not clear that
     // status, then the update must be disallowed (unless a superuser is requesting the change).
@@ -125,5 +147,11 @@ public final class ContactUpdateFlow extends Flow implements TransactionalFlow {
     validateContactAgainstPolicy(newContact);
     ofy().save().<Object>entities(newContact, historyBuilder.build());
     return createOutput(SUCCESS);
+  }
+
+  /** Return the first non-null param, or null if both are null. */
+  @Nullable
+  private static <T> T preferFirst(@Nullable T a, @Nullable T b) {
+    return a != null ? a : b;
   }
 }

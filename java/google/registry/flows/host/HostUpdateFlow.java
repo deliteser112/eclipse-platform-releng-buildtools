@@ -15,8 +15,11 @@
 package google.registry.flows.host;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.collect.Sets.union;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
+import static google.registry.flows.ResourceFlowUtils.checkSameValuesNotAddedAndRemoved;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
+import static google.registry.flows.ResourceFlowUtils.verifyAllStatusesAreClientSettable;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
@@ -30,7 +33,6 @@ import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
@@ -44,20 +46,18 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowEnqueuer;
-import google.registry.flows.exceptions.AddRemoveSameValueEppException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
-import google.registry.flows.exceptions.StatusNotClientSettableException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand;
-import google.registry.model.eppinput.ResourceCommand.AddRemoveSameValueException;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.host.HostCommand.Update;
+import google.registry.model.host.HostCommand.Update.AddRemove;
+import google.registry.model.host.HostCommand.Update.Change;
 import google.registry.model.host.HostResource;
-import google.registry.model.host.HostResource.Builder;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Objects;
@@ -76,11 +76,12 @@ import javax.inject.Inject;
  * when it is renamed from external to internal at least one must be added. If the host is renamed
  * or IP addresses are added, tasks are enqueued to update DNS accordingly.
  *
+ * @error {@link google.registry.flows.ResourceFlowUtils.AddRemoveSameValueException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.StatusNotClientSettableException}
  * @error {@link google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
- * @error {@link google.registry.flows.exceptions.StatusNotClientSettableException}
  * @error {@link HostFlowUtils.HostNameTooShallowException}
  * @error {@link HostFlowUtils.InvalidHostNameException}
  * @error {@link HostFlowUtils.SuperordinateDomainDoesNotExistException}
@@ -117,7 +118,8 @@ public final class HostUpdateFlow extends Flow implements TransactionalFlow {
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     Update command = (Update) resourceCommand;
-    String suppliedNewHostName = command.getInnerChange().getFullyQualifiedHostName();
+    Change change = command.getInnerChange();
+    String suppliedNewHostName = change.getFullyQualifiedHostName();
     HostResource existingHost = loadAndVerifyExistence(HostResource.class, targetId, now);
     boolean isHostRename = suppliedNewHostName != null;
     String oldHostName = targetId;
@@ -128,13 +130,16 @@ public final class HostUpdateFlow extends Flow implements TransactionalFlow {
     if (isHostRename && loadAndGetKey(HostResource.class, newHostName, now) != null) {
       throw new HostAlreadyExistsException(newHostName);
     }
-    Builder builder = existingHost.asBuilder();
-    try {
-      command.applyTo(builder);
-    } catch (AddRemoveSameValueException e) {
-      throw new AddRemoveSameValueEppException();
-    }
-    builder
+    AddRemove add = command.getInnerAdd();
+    AddRemove remove = command.getInnerRemove();
+    checkSameValuesNotAddedAndRemoved(add.getStatusValues(), remove.getStatusValues());
+    checkSameValuesNotAddedAndRemoved(add.getInetAddresses(), remove.getInetAddresses());
+    HostResource newHost = existingHost.asBuilder()
+        .setFullyQualifiedHostName(newHostName)
+        .addStatusValues(add.getStatusValues())
+        .removeStatusValues(remove.getStatusValues())
+        .addInetAddresses(add.getInetAddresses())
+        .removeInetAddresses(remove.getInetAddresses())
         .setLastEppUpdateTime(now)
         .setLastEppUpdateClientId(clientId)
         // The superordinateDomain can be missing if the new name is external.
@@ -142,9 +147,10 @@ public final class HostUpdateFlow extends Flow implements TransactionalFlow {
         // the lookupSuperordinateDomain(...) call above, so that it will never be stale.
         .setSuperordinateDomain(
             superordinateDomain.isPresent() ? Key.create(superordinateDomain.get()) : null)
-        .setLastSuperordinateChange(superordinateDomain == null ? null : now);
-    // Rely on the host's cloneProjectedAtTime() method to handle setting of transfer data.
-    HostResource newHost = builder.build().cloneProjectedAtTime(now);
+        .setLastSuperordinateChange(superordinateDomain == null ? null : now)
+        .build()
+        // Rely on the host's cloneProjectedAtTime() method to handle setting of transfer data.
+        .cloneProjectedAtTime(now);
     verifyHasIpsIffIsExternal(command, existingHost, newHost);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
     entitiesToSave.add(newHost);
@@ -172,21 +178,16 @@ public final class HostUpdateFlow extends Flow implements TransactionalFlow {
     verifyOptionalAuthInfoForResource(authInfo, existingResource);
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingResource);
+      ImmutableSet<StatusValue> statusesToAdd = command.getInnerAdd().getStatusValues();
+      ImmutableSet<StatusValue> statusesToRemove = command.getInnerRemove().getStatusValues();
       // If the resource is marked with clientUpdateProhibited, and this update does not clear that
       // status, then the update must be disallowed (unless a superuser is requesting the change).
       if (!isSuperuser
           && existingResource.getStatusValues().contains(StatusValue.CLIENT_UPDATE_PROHIBITED)
-          && !command.getInnerRemove().getStatusValues()
-              .contains(StatusValue.CLIENT_UPDATE_PROHIBITED)) {
+          && !statusesToRemove.contains(StatusValue.CLIENT_UPDATE_PROHIBITED)) {
         throw new ResourceHasClientUpdateProhibitedException();
       }
-   }
-    for (StatusValue statusValue : Sets.union(
-        command.getInnerAdd().getStatusValues(),
-        command.getInnerRemove().getStatusValues())) {
-      if (!isSuperuser && !statusValue.isClientSettable()) {  // The superuser can set any status.
-        throw new StatusNotClientSettableException(statusValue.getXmlName());
-      }
+      verifyAllStatusesAreClientSettable(union(statusesToAdd, statusesToRemove));
     }
     verifyDomainIsSameRegistrar(superordinateDomain, clientId);
     verifyNoDisallowedStatuses(existingResource, DISALLOWED_STATUSES);

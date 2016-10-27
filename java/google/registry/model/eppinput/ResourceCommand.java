@@ -14,7 +14,6 @@
 
 package google.registry.model.eppinput;
 
-import static com.google.common.collect.Sets.intersection;
 import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
@@ -83,9 +82,7 @@ public interface ResourceCommand {
   }
 
   /** A create command, or the inner change (as opposed to add or remove) part of an update. */
-  public interface ResourceCreateOrChange<B extends Builder<?>> {
-    public abstract void applyTo(B builder);
-  }
+  public interface ResourceCreateOrChange<B extends Builder<?>> {}
 
   /**
    * An update command for an {@link EppResource}.
@@ -133,18 +130,5 @@ public interface ResourceCommand {
       A remove = getNullableInnerRemove();
       return remove == null ? new TypeInstantiator<A>(getClass()){}.instantiate() : remove;
     }
-
-    public void applyTo(B builder) throws AddRemoveSameValueException {
-      getInnerChange().applyTo(builder);
-      if (!intersection(getInnerAdd().getStatusValues(), getInnerRemove().getStatusValues())
-          .isEmpty()) {
-        throw new AddRemoveSameValueException();
-      }
-      builder.addStatusValues(getInnerAdd().getStatusValues());
-      builder.removeStatusValues(getInnerRemove().getStatusValues());
-    }
   }
-
-  /** Exception for adding and removing the same value in {@link ResourceUpdate#applyTo}. */
-  public static class AddRemoveSameValueException extends Exception {}
 }

@@ -14,9 +14,13 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.Sets.symmetricDifference;
+import static com.google.common.collect.Sets.union;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
+import static google.registry.flows.ResourceFlowUtils.checkSameValuesNotAddedAndRemoved;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
+import static google.registry.flows.ResourceFlowUtils.verifyAllStatusesAreClientSettable;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
@@ -33,7 +37,6 @@ import static google.registry.flows.domain.DomainFlowUtils.validateRegistrantAll
 import static google.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
 import static google.registry.flows.domain.DomainFlowUtils.verifyClientUpdateNotProhibited;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
-import static google.registry.flows.domain.DomainFlowUtils.verifyStatusChangesAreClientSettable;
 import static google.registry.model.domain.fee.Fee.FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -52,11 +55,12 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeUpdateException;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
-import google.registry.flows.exceptions.AddRemoveSameValueEppException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainCommand.Update;
+import google.registry.model.domain.DomainCommand.Update.AddRemove;
+import google.registry.model.domain.DomainCommand.Update.Change;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
@@ -67,7 +71,6 @@ import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand;
-import google.registry.model.eppinput.ResourceCommand.AddRemoveSameValueException;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
@@ -92,13 +95,13 @@ import org.joda.time.DateTime;
  * accordingly.
  *
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.AddRemoveSameValueException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
- * @error {@link google.registry.flows.exceptions.AddRemoveSameValueEppException}
+ * @error {@link google.registry.flows.ResourceFlowUtils.StatusNotClientSettableException}
  * @error {@link google.registry.flows.exceptions.OnlyToolCanPassMetadataException}
  * @error {@link google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
- * @error {@link google.registry.flows.exceptions.StatusNotClientSettableException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
  * @error {@link DomainFlowUtils.EmptySecDnsUpdateException}
  * @error {@link DomainFlowUtils.FeesMismatchException}
@@ -181,10 +184,12 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
       throws EppException {
     verifyNoDisallowedStatuses(existingDomain, UPDATE_DISALLOWED_STATUSES);
     verifyOptionalAuthInfoForResource(authInfo, existingDomain);
+    AddRemove add = command.getInnerAdd();
+    AddRemove remove = command.getInnerRemove();
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingDomain);
       verifyClientUpdateNotProhibited(command, existingDomain);
-      verifyStatusChangesAreClientSettable(command);
+      verifyAllStatusesAreClientSettable(union(add.getStatusValues(), remove.getStatusValues()));
     }
     String tld = existingDomain.getTld();
     checkAllowedAccessToTld(clientId, tld);
@@ -204,14 +209,14 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
       throw new FeesRequiredForNonFreeUpdateException();
     }
     verifyNotInPendingDelete(
-        command.getInnerAdd().getContacts(),
+        add.getContacts(),
         command.getInnerChange().getRegistrant(),
-        command.getInnerAdd().getNameservers());
-    validateContactsHaveTypes(command.getInnerAdd().getContacts());
-    validateContactsHaveTypes(command.getInnerRemove().getContacts());
+        add.getNameservers());
+    validateContactsHaveTypes(add.getContacts());
+    validateContactsHaveTypes(remove.getContacts());
     validateRegistrantAllowedOnTld(tld, command.getInnerChange().getRegistrantContactId());
     validateNameserversAllowedOnTld(
-        tld, command.getInnerAdd().getNameserverFullyQualifiedHostNames());
+        tld, add.getNameserverFullyQualifiedHostNames());
   }
 
   private HistoryEntry buildHistoryEntry(DomainResource existingDomain) {
@@ -222,22 +227,31 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
         .build();
   }
 
-  private DomainResource performUpdate(Update command, DomainResource existingDomain)
+  private DomainResource performUpdate(Update command, DomainResource domain)
       throws EppException {
-    DomainResource.Builder builder = existingDomain.asBuilder()
-        .setLastEppUpdateTime(now)
-        .setLastEppUpdateClientId(clientId);
-    try {
-      command.applyTo(builder);
-    } catch (AddRemoveSameValueException e) {
-      throw new AddRemoveSameValueEppException();
-    }
-    // Handle the secDNS extension.
+    AddRemove add = command.getInnerAdd();
+    AddRemove remove = command.getInnerRemove();
+    checkSameValuesNotAddedAndRemoved(add.getNameservers(), remove.getNameservers());
+    checkSameValuesNotAddedAndRemoved(add.getContacts(), remove.getContacts());
+    checkSameValuesNotAddedAndRemoved(add.getStatusValues(), remove.getStatusValues());
+    Change change = command.getInnerChange();
     SecDnsUpdateExtension secDnsUpdate = eppInput.getSingleExtension(SecDnsUpdateExtension.class);
-    if (secDnsUpdate != null) {
-      builder.setDsData(updateDsData(existingDomain.getDsData(), secDnsUpdate));
-    }
-    return builder.build();
+    return domain.asBuilder()
+        // Handle the secDNS extension.
+        .setDsData(secDnsUpdate != null
+            ? updateDsData(domain.getDsData(), secDnsUpdate)
+            : domain.getDsData())
+        .setLastEppUpdateTime(now)
+        .setLastEppUpdateClientId(clientId)
+        .addStatusValues(add.getStatusValues())
+        .removeStatusValues(remove.getStatusValues())
+        .addNameservers(add.getNameservers())
+        .removeNameservers(remove.getNameservers())
+        .addContacts(add.getContacts())
+        .removeContacts(remove.getContacts())
+        .setRegistrant(firstNonNull(change.getRegistrant(), domain.getRegistrant()))
+        .setAuthInfo(firstNonNull(change.getAuthInfo(), domain.getAuthInfo()))
+        .build();
   }
 
   private DomainResource convertSunrushAddToAdd(

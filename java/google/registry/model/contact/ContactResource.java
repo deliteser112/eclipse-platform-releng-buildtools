@@ -30,7 +30,6 @@ import google.registry.model.EppResource;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.contact.PostalInfo.Type;
-import google.registry.model.eppcommon.AuthInfo;
 import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -147,7 +146,7 @@ public class ContactResource extends EppResource implements ForeignKeyedEppResou
     return email;
   }
 
-  public AuthInfo getAuthInfo() {
+  public ContactAuthInfo getAuthInfo() {
     return authInfo;
   }
 

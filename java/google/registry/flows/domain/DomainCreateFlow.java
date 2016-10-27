@@ -245,9 +245,7 @@ public class DomainCreateFlow extends Flow implements TransactionalFlow {
     if (!commandOperations.getEapCost().isZero()) {
       entitiesToSave.add(createEapBillingEvent(commandOperations, createBillingEvent));
     }
-    DomainResource.Builder domainBuilder = new DomainResource.Builder();
-    command.applyTo(domainBuilder);
-    DomainResource newDomain = domainBuilder
+    DomainResource newDomain = new DomainResource.Builder()
         .setCreationClientId(clientId)
         .setCurrentSponsorClientId(clientId)
         .setRepoId(repoId)
@@ -261,6 +259,11 @@ public class DomainCreateFlow extends Flow implements TransactionalFlow {
             ? verifySignedMarks(launchCreate.getSignedMarks(), domainLabel, now).getId()
             : null)
         .setDsData(secDnsCreate == null ? null : secDnsCreate.getDsData())
+        .setRegistrant(command.getRegistrant())
+        .setAuthInfo(command.getAuthInfo())
+        .setFullyQualifiedDomainName(targetId)
+        .setNameservers(command.getNameservers())
+        .setContacts(command.getContacts())
         .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.ADD, createBillingEvent))
         .build();
     handleExtraFlowLogic(registry.getTldStr(), years, historyEntry, newDomain);

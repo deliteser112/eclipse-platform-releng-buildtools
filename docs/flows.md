@@ -978,6 +978,7 @@ are enqueued to update DNS accordingly.
     *   Resource status prohibits this operation.
     *   Cannot remove all IP addresses from a subordinate host.
 *   2306
+    *   Cannot add and remove the same value.
     *   Host names must be at least two levels below the public suffix.
 
 ## HostInfoFlow
