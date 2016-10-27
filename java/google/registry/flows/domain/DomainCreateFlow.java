@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
@@ -52,9 +53,10 @@ import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.ImmutableObject;
@@ -99,7 +101,7 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.OnlyToolCanPassMetadataException}
  * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
- * @error {@link google.registry.flows.LoggedInFlow.UndeclaredServiceExtensionException}
+ * @error {@link google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException}
  * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainCreateFlow.SignedMarksNotAcceptedInCurrentPhaseException}
  * @error {@link DomainFlowUtils.AcceptedTooLongAgoException}
@@ -147,11 +149,12 @@ import org.joda.time.DateTime;
  * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
  */
 
-public class DomainCreateFlow extends LoggedInFlow implements TransactionalFlow {
+public class DomainCreateFlow extends Flow implements TransactionalFlow {
 
   private static final Set<TldState> QLP_SMD_ALLOWED_STATES =
       Sets.immutableEnumSet(TldState.SUNRISE, TldState.SUNRUSH);
 
+  @Inject ExtensionManager extensionManager;
   @Inject AuthInfo authInfo;
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
@@ -160,17 +163,15 @@ public class DomainCreateFlow extends LoggedInFlow implements TransactionalFlow 
   @Inject DomainCreateFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-    registerExtensions(
+  public final EppOutput run() throws EppException {
+    extensionManager.register(
         SecDnsCreateExtension.class,
         FlagsCreateCommandExtension.class,
         MetadataExtension.class,
         LaunchCreateExtension.class);
-  }
-
-  @Override
-  public final EppOutput run() throws EppException {
+    extensionManager.registerAsGroup(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     Period period = command.getPeriod();
     verifyUnitIsYears(period);
@@ -204,7 +205,7 @@ public class DomainCreateFlow extends LoggedInFlow implements TransactionalFlow 
     // notice without specifying a claims key, ignore the registry phase, and override blocks on
     // registering premium domains.
     if (!isSuperuser) {
-      checkAllowedAccessToTld(getAllowedTlds(), registry.getTldStr());
+      checkAllowedAccessToTld(clientId, registry.getTldStr());
       if (launchCreate != null) {
         verifyLaunchPhaseMatchesRegistryPhase(registry, launchCreate, now);
       }

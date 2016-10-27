@@ -14,6 +14,7 @@
 
 package google.registry.flows.contact;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
 import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
@@ -23,9 +24,10 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.model.contact.ContactCommand.Create;
 import google.registry.model.contact.ContactResource;
@@ -47,21 +49,20 @@ import javax.inject.Inject;
  * @error {@link ContactFlowUtils.BadInternationalizedPostalInfoException}
  * @error {@link ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException}
  */
-public final class ContactCreateFlow extends LoggedInFlow implements TransactionalFlow {
+public final class ContactCreateFlow extends Flow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
+  @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject ContactCreateFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(MetadataExtension.class);
-  }
-
-  @Override
   protected final EppOutput run() throws EppException {
+    extensionManager.register(MetadataExtension.class);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     Create command = (Create) resourceCommand;
     verifyResourceDoesNotExist(ContactResource.class, targetId, now);
     Builder builder = new Builder();

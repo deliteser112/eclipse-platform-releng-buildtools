@@ -15,6 +15,7 @@
 package google.registry.flows.host;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
@@ -37,9 +38,10 @@ import google.registry.flows.EppException.ObjectAlreadyExistsException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.exceptions.AddRemoveSameValueEppException;
@@ -88,7 +90,7 @@ import javax.inject.Inject;
  * @error {@link RenameHostToExternalRemoveIpException}
  * @error {@link RenameHostToSubordinateRequiresIpException}
  */
-public final class HostUpdateFlow extends LoggedInFlow implements TransactionalFlow {
+public final class HostUpdateFlow extends Flow implements TransactionalFlow {
 
   /**
    * Note that CLIENT_UPDATE_PROHIBITED is intentionally not in this list. This is because it
@@ -100,6 +102,7 @@ public final class HostUpdateFlow extends LoggedInFlow implements TransactionalF
       StatusValue.SERVER_UPDATE_PROHIBITED);
 
   @Inject ResourceCommand resourceCommand;
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -109,12 +112,10 @@ public final class HostUpdateFlow extends LoggedInFlow implements TransactionalF
   @Inject HostUpdateFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(MetadataExtension.class);
-  }
-
-  @Override
   public final EppOutput run() throws EppException {
+    extensionManager.register(MetadataExtension.class);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     Update command = (Update) resourceCommand;
     String suppliedNewHostName = command.getInnerChange().getFullyQualifiedHostName();
     HostResource existingHost = loadAndVerifyExistence(HostResource.class, targetId, now);

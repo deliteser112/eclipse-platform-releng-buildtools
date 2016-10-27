@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationType;
@@ -40,8 +41,9 @@ import com.google.common.net.InternetDomainName;
 import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Check;
 import google.registry.model.domain.DomainResource;
@@ -88,7 +90,7 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.UnknownFeeCommandException}
  * @error {@link OnlyCheckedNamesCanBeFeeCheckedException}
  */
-public final class DomainCheckFlow extends LoggedInFlow {
+public final class DomainCheckFlow extends Flow {
 
   /**
    * The TLD states during which we want to report a domain with pending applications as
@@ -98,18 +100,17 @@ public final class DomainCheckFlow extends LoggedInFlow {
       Sets.immutableEnumSet(TldState.GENERAL_AVAILABILITY, TldState.QUIET_PERIOD);
 
   @Inject ResourceCommand resourceCommand;
+  @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @Config("maxChecks") int maxChecks;
   @Inject DomainCheckFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(LaunchCheckExtension.class);
-    registerExtensions(FEE_CHECK_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-  }
-
-  @Override
   public EppOutput run() throws EppException {
+    extensionManager.register(LaunchCheckExtension.class);
+    extensionManager.registerAsGroup(FEE_CHECK_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     List<String> targetIds = ((Check) resourceCommand).getTargetIds();
     verifyTargetIdCount(targetIds, maxChecks);
     ImmutableMap.Builder<String, InternetDomainName> domains = new ImmutableMap.Builder<>();
@@ -122,7 +123,7 @@ public final class DomainCheckFlow extends LoggedInFlow {
       domains.put(targetId, domainName);
       String tld = domainName.parent().toString();
       if (seenTlds.add(tld)) {
-        checkAllowedAccessToTld(getAllowedTlds(), tld);
+        checkAllowedAccessToTld(clientId, tld);
         if (!isSuperuser) {
           verifyNotInPredelegation(Registry.get(tld), now);
         }

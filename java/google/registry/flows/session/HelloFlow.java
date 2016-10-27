@@ -14,6 +14,8 @@
 
 package google.registry.flows.session;
 
+import google.registry.flows.EppException;
+import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.Greeting;
@@ -22,10 +24,12 @@ import javax.inject.Inject;
 /** A flow for an Epp "hello". */
 public class HelloFlow extends Flow {
 
+  @Inject ExtensionManager extensionManager;
   @Inject HelloFlow() {}
 
   @Override
-  public EppOutput run() {
+  public EppOutput run() throws EppException {
+    extensionManager.validate();  // There are no legal extensions for this flow.
     return EppOutput.create(Greeting.create(now));
   }
 }

@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 import static google.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
@@ -32,10 +33,11 @@ import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ApplicationId;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.LaunchDeleteExtension;
@@ -60,8 +62,9 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.LaunchPhaseMismatchException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
-public final class DomainApplicationDeleteFlow extends LoggedInFlow implements TransactionalFlow {
+public final class DomainApplicationDeleteFlow extends Flow implements TransactionalFlow {
 
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -70,19 +73,16 @@ public final class DomainApplicationDeleteFlow extends LoggedInFlow implements T
   @Inject DomainApplicationDeleteFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(MetadataExtension.class);
-    registerExtensions(LaunchDeleteExtension.class);
-  }
-
-  @Override
   public final EppOutput run() throws EppException {
+    extensionManager.register(MetadataExtension.class, LaunchDeleteExtension.class);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     DomainApplication existingApplication = verifyExistence(
         DomainApplication.class, applicationId, loadDomainApplication(applicationId, now));
     verifyApplicationDomainMatchesTargetId(existingApplication, targetId);
     verifyOptionalAuthInfoForResource(authInfo, existingApplication);
     String tld = existingApplication.getTld();
-    checkAllowedAccessToTld(getAllowedTlds(), tld);
+    checkAllowedAccessToTld(clientId, tld);
     if (!isSuperuser) {
       Registry registry = Registry.get(tld);
       verifyRegistryStateAllowsLaunchFlows(registry, now);

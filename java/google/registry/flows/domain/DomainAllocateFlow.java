@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
@@ -46,9 +47,10 @@ import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.ImmutableObject;
@@ -95,13 +97,14 @@ import org.joda.time.DateTime;
  * @error {@link DomainAllocateFlow.MissingApplicationException}
  * @error {@link DomainAllocateFlow.OnlySuperuserCanAllocateException}
  */
-public class DomainAllocateFlow extends LoggedInFlow implements TransactionalFlow {
+public class DomainAllocateFlow extends Flow implements TransactionalFlow {
 
   private static final String COLLISION_MESSAGE =
       "Domain on the name collision list was allocated. But by policy, the domain will not be "
       + "delegated. Please visit https://www.icann.org/namecollision  for more information on name "
       + "collision.";
 
+  @Inject ExtensionManager extensionManager;
   @Inject AuthInfo authInfo;
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
@@ -110,17 +113,15 @@ public class DomainAllocateFlow extends LoggedInFlow implements TransactionalFlo
   @Inject DomainAllocateFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-    registerExtensions(
+  public final EppOutput run() throws EppException {
+    extensionManager.register(
         SecDnsCreateExtension.class,
         FlagsCreateCommandExtension.class,
         MetadataExtension.class,
         AllocateCreateExtension.class);
-  }
-
-  @Override
-  public final EppOutput run() throws EppException {
+    extensionManager.registerAsGroup(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     verifyIsSuperuser();
     Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     failfastForCreate(targetId, now);

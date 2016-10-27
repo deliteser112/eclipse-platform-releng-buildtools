@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
@@ -45,10 +46,11 @@ import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ApplicationId;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.AddRemoveSameValueEppException;
 import google.registry.model.ImmutableObject;
@@ -97,7 +99,7 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.UrgentAttributeNotSupportedException}
  * @error {@link DomainApplicationUpdateFlow.ApplicationStatusProhibitsUpdateException}
  */
-public class DomainApplicationUpdateFlow extends LoggedInFlow implements TransactionalFlow {
+public class DomainApplicationUpdateFlow extends Flow implements TransactionalFlow {
 
   /**
    * Note that CLIENT_UPDATE_PROHIBITED is intentionally not in this list. This is because it
@@ -116,6 +118,7 @@ public class DomainApplicationUpdateFlow extends LoggedInFlow implements Transac
           ApplicationStatus.ALLOCATED);
 
   @Inject ResourceCommand resourceCommand;
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -124,14 +127,14 @@ public class DomainApplicationUpdateFlow extends LoggedInFlow implements Transac
   @Inject DomainApplicationUpdateFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-    registerExtensions(
-        MetadataExtension.class, LaunchUpdateExtension.class, SecDnsUpdateExtension.class);
-  }
-
-  @Override
   public final EppOutput run() throws EppException {
+    extensionManager.register(
+        LaunchUpdateExtension.class,
+        MetadataExtension.class,
+        SecDnsUpdateExtension.class);
+    extensionManager.registerAsGroup(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     Update command = cloneAndLinkReferences((Update) resourceCommand, now);
     DomainApplication existingApplication = verifyExistence(
         DomainApplication.class, applicationId, loadDomainApplication(applicationId, now));
@@ -154,7 +157,7 @@ public class DomainApplicationUpdateFlow extends LoggedInFlow implements Transac
       verifyStatusChangesAreClientSettable(command);
     }
     String tld = existingApplication.getTld();
-    checkAllowedAccessToTld(getAllowedTlds(), tld);
+    checkAllowedAccessToTld(clientId, tld);
     if (UPDATE_DISALLOWED_APPLICATION_STATUSES
         .contains(existingApplication.getApplicationStatus())) {
       throw new ApplicationStatusProhibitsUpdateException(

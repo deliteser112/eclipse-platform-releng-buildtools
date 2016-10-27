@@ -25,7 +25,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
-import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.flows.FlowUtils.NotLoggedInException;
 import google.registry.model.EppResource;
 import google.registry.model.EppResourceUtils;
 import google.registry.model.domain.DomainApplication;
@@ -114,7 +114,7 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
   @Test
   public void testRequiresLogin() throws Exception {
     sessionMetadata.setClientId(null);
-    thrown.expect(CommandUseErrorException.class);
+    thrown.expect(NotLoggedInException.class);
     runFlow();
   }
 

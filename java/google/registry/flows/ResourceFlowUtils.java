@@ -65,8 +65,10 @@ import java.util.List;
 import java.util.Set;
 import org.joda.time.DateTime;
 
-/** Static utility functions for resource transfer flows. */
-public class ResourceFlowUtils {
+/** Static utility functions for resource flows. */
+public final class ResourceFlowUtils {
+
+  private ResourceFlowUtils() {}
 
   /** Statuses for which an exDate should be added to transfer responses. */
   private static final ImmutableSet<TransferStatus> ADD_EXDATE_STATUSES = Sets.immutableEnumSet(

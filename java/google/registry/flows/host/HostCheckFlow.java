@@ -14,6 +14,7 @@
 
 package google.registry.flows.host;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
@@ -21,7 +22,9 @@ import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import com.google.common.collect.ImmutableList;
 import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
-import google.registry.flows.LoggedInFlow;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
+import google.registry.flows.FlowModule.ClientId;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CheckData.HostCheck;
 import google.registry.model.eppoutput.CheckData.HostCheckData;
@@ -39,14 +42,18 @@ import javax.inject.Inject;
  *
  * @error {@link google.registry.flows.exceptions.TooManyResourceChecksException}
  */
-public final class HostCheckFlow extends LoggedInFlow {
+public final class HostCheckFlow extends Flow {
 
   @Inject ResourceCommand resourceCommand;
+  @Inject @ClientId String clientId;
+  @Inject ExtensionManager extensionManager;
   @Inject @Config("maxChecks") int maxChecks;
   @Inject HostCheckFlow() {}
 
   @Override
   protected final EppOutput run() throws EppException {
+    extensionManager.validate();  // There are no legal extensions for this flow.
+    validateClientIsLoggedIn(clientId);
     List<String> targetIds = ((Check) resourceCommand).getTargetIds();
     verifyTargetIdCount(targetIds, maxChecks);
     Set<String> existingIds = checkResourcesExist(HostResource.class, targetIds, now);

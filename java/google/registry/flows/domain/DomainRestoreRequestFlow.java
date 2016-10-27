@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
@@ -38,9 +39,10 @@ import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.ImmutableObject;
@@ -101,9 +103,10 @@ import org.joda.time.DateTime;
  * @error {@link DomainRestoreRequestFlow.DomainNotEligibleForRestoreException}
  * @error {@link DomainRestoreRequestFlow.RestoreCommandIncludesChangesException}
  */
-public final class DomainRestoreRequestFlow extends LoggedInFlow implements TransactionalFlow  {
+public final class DomainRestoreRequestFlow extends Flow implements TransactionalFlow  {
 
   @Inject ResourceCommand resourceCommand;
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -112,13 +115,11 @@ public final class DomainRestoreRequestFlow extends LoggedInFlow implements Tran
   @Inject DomainRestoreRequestFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(MetadataExtension.class, RgpUpdateExtension.class);
-    registerExtensions(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-  }
-
-  @Override
   public final EppOutput run() throws EppException {
+    extensionManager.register(MetadataExtension.class, RgpUpdateExtension.class);
+    extensionManager.registerAsGroup(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     Update command = (Update) resourceCommand;
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     Money restoreCost = Registry.get(existingDomain.getTld()).getStandardRestoreCost();
@@ -197,7 +198,7 @@ public final class DomainRestoreRequestFlow extends LoggedInFlow implements Tran
     if (!existingDomain.getGracePeriodStatuses().contains(GracePeriodStatus.REDEMPTION)) {
       throw new DomainNotEligibleForRestoreException();
     }
-    checkAllowedAccessToTld(getAllowedTlds(), existingDomain.getTld());
+    checkAllowedAccessToTld(clientId, existingDomain.getTld());
     validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, restoreCost, renewCost);
   }
 

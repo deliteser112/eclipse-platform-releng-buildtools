@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
@@ -29,7 +30,9 @@ import com.google.common.net.InternetDomainName;
 import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.CommandUseErrorException;
-import google.registry.flows.LoggedInFlow;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
+import google.registry.flows.FlowModule.ClientId;
 import google.registry.model.domain.DomainCommand.Check;
 import google.registry.model.domain.launch.LaunchCheckExtension;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension;
@@ -55,19 +58,19 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
  * @error {@link ClaimsCheckNotAllowedInSunrise}
  */
-public final class ClaimsCheckFlow extends LoggedInFlow {
+public final class ClaimsCheckFlow extends Flow {
 
+  @Inject ExtensionManager extensionManager;
   @Inject ResourceCommand resourceCommand;
+  @Inject @ClientId String clientId;
   @Inject @Config("maxChecks") int maxChecks;
   @Inject ClaimsCheckFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(LaunchCheckExtension.class);
-  }
-
-  @Override
   public EppOutput run() throws EppException {
+    extensionManager.register(LaunchCheckExtension.class);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     List<String> targetIds = ((Check) resourceCommand).getTargetIds();
     verifyTargetIdCount(targetIds, maxChecks);
     Set<String> seenTlds = new HashSet<>();
@@ -78,7 +81,7 @@ public final class ClaimsCheckFlow extends LoggedInFlow {
       String tld = domainName.parent().toString();
       // Only validate access to a TLD the first time it is encountered.
       if (seenTlds.add(tld)) {
-        checkAllowedAccessToTld(getAllowedTlds(), tld);
+        checkAllowedAccessToTld(clientId, tld);
         Registry registry = Registry.get(tld);
         if (!isSuperuser) {
           verifyNotInPredelegation(registry, now);

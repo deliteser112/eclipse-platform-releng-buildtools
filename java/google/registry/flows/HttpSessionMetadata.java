@@ -48,7 +48,7 @@ public class HttpSessionMetadata implements SessionMetadata {
   @Override
   @SuppressWarnings("unchecked")
   public Set<String> getServiceExtensionUris() {
-    return (Set<String>) session.getAttribute(SERVICE_EXTENSIONS);
+    return nullToEmpty((Set<String>) session.getAttribute(SERVICE_EXTENSIONS));
   }
 
   @Override

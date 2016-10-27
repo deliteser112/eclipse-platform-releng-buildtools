@@ -54,7 +54,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
-import google.registry.flows.LoggedInFlow.UndeclaredServiceExtensionException;
+import google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainCreateFlow.DomainHasOpenApplicationsException;
 import google.registry.flows.domain.DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException;

@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyRequiredAuthInfoForResourceTransfer;
@@ -39,9 +40,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
@@ -104,7 +106,7 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  */
-public final class DomainTransferRequestFlow extends LoggedInFlow implements TransactionalFlow {
+public final class DomainTransferRequestFlow extends Flow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(
       StatusValue.CLIENT_TRANSFER_PROHIBITED,
@@ -112,6 +114,7 @@ public final class DomainTransferRequestFlow extends LoggedInFlow implements Tra
       StatusValue.SERVER_TRANSFER_PROHIBITED);
 
   @Inject ResourceCommand resourceCommand;
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String gainingClientId;
   @Inject @TargetId String targetId;
@@ -119,13 +122,11 @@ public final class DomainTransferRequestFlow extends LoggedInFlow implements Tra
   @Inject DomainTransferRequestFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(MetadataExtension.class, FlagsTransferCommandExtension.class);
-    registerExtensions(FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-  }
-
-  @Override
   public final EppOutput run() throws EppException {
+    extensionManager.register(FlagsTransferCommandExtension.class, MetadataExtension.class);
+    extensionManager.registerAsGroup(FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.validate();
+    validateClientIsLoggedIn(gainingClientId);
     Period period = ((Transfer) resourceCommand).getPeriod();
     int years = period.getValue();
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
@@ -194,7 +195,7 @@ public final class DomainTransferRequestFlow extends LoggedInFlow implements Tra
     if (gainingClientId.equals(existingDomain.getCurrentSponsorClientId())) {
       throw new ObjectAlreadySponsoredException();
     }
-    checkAllowedAccessToTld(getAllowedTlds(), existingDomain.getTld());
+    checkAllowedAccessToTld(gainingClientId, existingDomain.getTld());
     verifyUnitIsYears(period);
     if (!isSuperuser) {
       verifyPremiumNameIsNotBlocked(targetId, now, gainingClientId);

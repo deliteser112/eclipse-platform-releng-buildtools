@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
@@ -54,9 +55,10 @@ import google.registry.flows.EppException;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.ObjectAlreadyExistsException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.ImmutableObject;
@@ -151,8 +153,9 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainFlowUtils.UnsupportedMarkTypeException}
  */
-public final class DomainApplicationCreateFlow extends LoggedInFlow implements TransactionalFlow {
+public final class DomainApplicationCreateFlow extends Flow implements TransactionalFlow {
 
+  @Inject ExtensionManager extensionManager;
   @Inject AuthInfo authInfo;
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
@@ -161,17 +164,15 @@ public final class DomainApplicationCreateFlow extends LoggedInFlow implements T
   @Inject DomainApplicationCreateFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-    registerExtensions(
+  public final EppOutput run() throws EppException {
+    extensionManager.register(
         SecDnsCreateExtension.class,
         FlagsCreateCommandExtension.class,
         MetadataExtension.class,
         LaunchCreateExtension.class);
-  }
-
-  @Override
-  public final EppOutput run() throws EppException {
+    extensionManager.registerAsGroup(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     failfastForCreate(targetId, now);
     // Fail if the domain is already registered (e.g. this is a landrush application but the domain
@@ -182,7 +183,7 @@ public final class DomainApplicationCreateFlow extends LoggedInFlow implements T
     InternetDomainName domainName = validateDomainName(targetId);
     String idnTableName = validateDomainNameWithIdnTables(domainName);
     String tld = domainName.parent().toString();
-    checkAllowedAccessToTld(getAllowedTlds(), tld);
+    checkAllowedAccessToTld(clientId, tld);
     Registry registry = Registry.get(tld);
     EppCommandOperations commandOperations = TldSpecificLogicProxy.getCreatePrice(
         registry, targetId, clientId, now, command.getPeriod().getValue(), eppInput);

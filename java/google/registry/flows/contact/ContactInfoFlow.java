@@ -14,6 +14,7 @@
 
 package google.registry.flows.contact;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
@@ -21,9 +22,10 @@ import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppoutput.EppOutput;
@@ -39,8 +41,9 @@ import javax.inject.Inject;
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  */
-public final class ContactInfoFlow extends LoggedInFlow {
+public final class ContactInfoFlow extends Flow {
 
+  @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;
@@ -48,6 +51,8 @@ public final class ContactInfoFlow extends LoggedInFlow {
 
   @Override
   public final EppOutput run() throws EppException {
+    extensionManager.validate();  // There are no legal extensions for this flow.
+    validateClientIsLoggedIn(clientId);
     ContactResource contact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, contact);
     if (!clientId.equals(contact.getCurrentSponsorClientId()) && !authInfo.isPresent()) {

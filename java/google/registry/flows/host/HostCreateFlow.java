@@ -14,6 +14,7 @@
 
 package google.registry.flows.host;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
@@ -31,9 +32,10 @@ import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainResource;
@@ -68,9 +70,10 @@ import javax.inject.Inject;
  * @error {@link SubordinateHostMustHaveIpException}
  * @error {@link UnexpectedExternalHostIpException}
  */
-public final class HostCreateFlow extends LoggedInFlow implements TransactionalFlow {
+public final class HostCreateFlow extends Flow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
+  @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
@@ -78,13 +81,10 @@ public final class HostCreateFlow extends LoggedInFlow implements TransactionalF
   @Inject HostCreateFlow() {}
 
   @Override
-  @SuppressWarnings("unchecked")
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(MetadataExtension.class);
-  }
-
-  @Override
   protected final EppOutput run() throws EppException {
+    extensionManager.register(MetadataExtension.class);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     Create command = (Create) resourceCommand;
     verifyResourceDoesNotExist(HostResource.class, targetId, now);
     // The superordinate domain of the host object if creating an in-bailiwick host, or null if

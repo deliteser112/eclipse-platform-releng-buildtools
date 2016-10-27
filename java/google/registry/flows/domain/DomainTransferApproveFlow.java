@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.approvePendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyHasPendingTransfer;
@@ -36,9 +37,10 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
@@ -76,18 +78,14 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.NotPendingTransferException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
-public final class DomainTransferApproveFlow extends LoggedInFlow implements TransactionalFlow {
+public final class DomainTransferApproveFlow extends Flow implements TransactionalFlow {
 
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject DomainTransferApproveFlow() {}
-
-  @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(MetadataExtension.class);
-  }
 
   /**
    * <p>The logic in this flow, which handles client approvals, very closely parallels the logic in
@@ -95,12 +93,15 @@ public final class DomainTransferApproveFlow extends LoggedInFlow implements Tra
    */
   @Override
   public final EppOutput run() throws EppException {
+    extensionManager.register(MetadataExtension.class);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, existingDomain);
     verifyHasPendingTransfer(existingDomain);
     verifyResourceOwnership(clientId, existingDomain);
     String tld = existingDomain.getTld();
-    checkAllowedAccessToTld(getAllowedTlds(), tld);
+    checkAllowedAccessToTld(clientId, tld);
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE)
         .setModificationTime(now)

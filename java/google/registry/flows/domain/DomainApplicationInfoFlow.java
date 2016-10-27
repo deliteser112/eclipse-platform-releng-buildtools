@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
@@ -28,10 +29,11 @@ import com.google.common.collect.ImmutableList;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ApplicationId;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Info;
 import google.registry.model.domain.launch.LaunchInfoExtension;
@@ -57,9 +59,10 @@ import javax.inject.Inject;
  * @error {@link DomainApplicationInfoFlow.ApplicationLaunchPhaseMismatchException}
  * @error {@link MissingApplicationIdException}
  */
-public final class DomainApplicationInfoFlow extends LoggedInFlow {
+public final class DomainApplicationInfoFlow extends Flow {
 
   @Inject ResourceCommand resourceCommand;
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -67,12 +70,10 @@ public final class DomainApplicationInfoFlow extends LoggedInFlow {
   @Inject DomainApplicationInfoFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(LaunchInfoExtension.class);
-  }
-
-  @Override
   public final EppOutput run() throws EppException {
+    extensionManager.register(LaunchInfoExtension.class);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     if (applicationId.isEmpty()) {
       throw new MissingApplicationIdException();
     }

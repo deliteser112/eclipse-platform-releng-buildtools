@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
@@ -38,9 +39,10 @@ import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AssociationProhibitsOperationException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
@@ -55,7 +57,7 @@ import google.registry.model.domain.fee11.FeeDeleteResponseExtensionV11;
 import google.registry.model.domain.fee12.FeeDeleteResponseExtensionV12;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
-import google.registry.model.domain.secdns.SecDnsUpdateExtension;
+import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppcommon.StatusValue;
@@ -82,7 +84,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.BadCommandForRegistryPhaseException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
-public final class DomainDeleteFlow extends LoggedInFlow implements TransactionalFlow {
+public final class DomainDeleteFlow extends Flow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(
       StatusValue.LINKED,
@@ -90,6 +92,7 @@ public final class DomainDeleteFlow extends LoggedInFlow implements Transactiona
       StatusValue.PENDING_DELETE,
       StatusValue.SERVER_DELETE_PROHIBITED);
 
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -98,14 +101,10 @@ public final class DomainDeleteFlow extends LoggedInFlow implements Transactiona
   @Inject DomainDeleteFlow() {}
 
   @Override
-  @SuppressWarnings("unchecked")
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(MetadataExtension.class);
-    registerExtensions(SecDnsUpdateExtension.class);
-  }
-
-  @Override
   public final EppOutput run() throws EppException {
+    extensionManager.register(MetadataExtension.class, SecDnsCreateExtension.class);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     // Loads the target resource if it exists
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     Registry registry = Registry.get(existingDomain.getTld());
@@ -165,7 +164,7 @@ public final class DomainDeleteFlow extends LoggedInFlow implements Transactiona
       verifyResourceOwnership(clientId, existingDomain);
       verifyNotInPredelegation(registry, now);
     }
-    checkAllowedAccessToTld(getAllowedTlds(), registry.getTld().toString());
+    checkAllowedAccessToTld(clientId, registry.getTld().toString());
     if (!existingDomain.getSubordinateHosts().isEmpty()) {
       throw new DomainToDeleteHasHostsException();
     }

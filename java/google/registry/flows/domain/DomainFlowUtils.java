@@ -247,9 +247,9 @@ public class DomainFlowUtils {
   }
 
   /** Check if the registrar running the flow has access to the TLD in question. */
-  public static void checkAllowedAccessToTld(Set<String> allowedTlds, String tld)
+  public static void checkAllowedAccessToTld(String clientId, String tld)
       throws EppException {
-    if (!allowedTlds.contains(tld)) {
+    if (!Registrar.loadByClientId(clientId).getAllowedTlds().contains(tld)) {
       throw new DomainFlowUtils.NotAuthorizedForTldException(tld);
     }
   }

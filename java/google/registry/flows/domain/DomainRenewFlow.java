@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
@@ -38,9 +39,10 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ObjectPendingTransferException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.billing.BillingEvent;
@@ -95,7 +97,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainRenewFlow.ExceedsMaxRegistrationYearsException}
  * @error {@link DomainRenewFlow.IncorrectCurrentExpirationDateException}
  */
-public final class DomainRenewFlow extends LoggedInFlow implements TransactionalFlow {
+public final class DomainRenewFlow extends Flow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> RENEW_DISALLOWED_STATUSES = ImmutableSet.of(
       StatusValue.CLIENT_RENEW_PROHIBITED,
@@ -103,6 +105,7 @@ public final class DomainRenewFlow extends LoggedInFlow implements Transactional
       StatusValue.SERVER_RENEW_PROHIBITED);
 
   @Inject ResourceCommand resourceCommand;
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -110,13 +113,11 @@ public final class DomainRenewFlow extends LoggedInFlow implements Transactional
   @Inject DomainRenewFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(MetadataExtension.class);
-    registerExtensions(FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-  }
-
-  @Override
   public final EppOutput run() throws EppException {
+    extensionManager.register(MetadataExtension.class);
+    extensionManager.registerAsGroup(FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     Renew command = (Renew) resourceCommand;
     // Loads the target resource if it exists
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
@@ -185,7 +186,7 @@ public final class DomainRenewFlow extends LoggedInFlow implements Transactional
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingDomain);
     }
-    checkAllowedAccessToTld(getAllowedTlds(), existingDomain.getTld());
+    checkAllowedAccessToTld(clientId, existingDomain.getTld());
     // Verify that the resource does not have a pending transfer on it.
     if (existingDomain.getTransferData().getTransferStatus() == TransferStatus.PENDING) {
       throw new DomainHasPendingTransferException(targetId);

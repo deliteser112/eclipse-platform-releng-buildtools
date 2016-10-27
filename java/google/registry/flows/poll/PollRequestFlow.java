@@ -14,6 +14,7 @@
 
 package google.registry.flows.poll;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.poll.PollFlowUtils.getPollMessagesQuery;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACK_MESSAGE;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_NO_MESSAGES;
@@ -22,9 +23,10 @@ import static google.registry.util.CollectionUtils.forceEmptyToNull;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.PollMessageId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.poll.MessageQueueInfo;
 import google.registry.model.poll.PollMessage;
@@ -42,14 +44,17 @@ import javax.inject.Inject;
  *
  * @error {@link PollRequestFlow.UnexpectedMessageIdException}
  */
-public class PollRequestFlow extends LoggedInFlow {
+public class PollRequestFlow extends Flow {
 
+  @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @PollMessageId String messageId;
   @Inject PollRequestFlow() {}
 
   @Override
   public final EppOutput run() throws EppException {
+    extensionManager.validate();  // There are no legal extensions for this flow.
+    validateClientIsLoggedIn(clientId);
     if (!messageId.isEmpty()) {
       throw new UnexpectedMessageIdException();
     }

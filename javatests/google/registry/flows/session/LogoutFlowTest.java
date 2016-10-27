@@ -17,7 +17,7 @@ package google.registry.flows.session;
 import static google.registry.testing.DatastoreHelper.createTld;
 
 import google.registry.flows.FlowTestCase;
-import google.registry.flows.LoggedInFlow.NotLoggedInException;
+import google.registry.flows.FlowUtils.NotLoggedInException;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -21,7 +21,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.flows.exceptions.OnlyToolCanPassMetadataException;
 import google.registry.flows.picker.FlowPicker;
 import google.registry.model.domain.launch.ApplicationIdTargetExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -230,7 +229,6 @@ public class FlowModule {
       @InputXml byte[] inputXmlBytes,
       @Superuser boolean isSuperuser,
       @ClientId String clientId,
-      EppRequestSource eppRequestSource,
       EppInput eppInput) {
     HistoryEntry.Builder historyBuilder = new HistoryEntry.Builder()
         .setTrid(trid)
@@ -239,9 +237,6 @@ public class FlowModule {
         .setClientId(clientId);
     MetadataExtension metadataExtension = eppInput.getSingleExtension(MetadataExtension.class);
     if (metadataExtension != null) {
-      if (!eppRequestSource.equals(EppRequestSource.TOOL)) {
-        throw new EppExceptionInProviderException(new OnlyToolCanPassMetadataException());
-      }
       historyBuilder
           .setReason(metadataExtension.getReason())
           .setRequestedByRegistrar(metadataExtension.getRequestedByRegistrar());

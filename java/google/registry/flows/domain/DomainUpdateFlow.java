@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.collect.Sets.symmetricDifference;
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
@@ -44,9 +45,10 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeUpdateException;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
@@ -116,7 +118,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.TooManyNameserversException}
  * @error {@link DomainFlowUtils.UrgentAttributeNotSupportedException}
  */
-public final class DomainUpdateFlow extends LoggedInFlow implements TransactionalFlow {
+public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
 
   /**
    * Note that CLIENT_UPDATE_PROHIBITED is intentionally not in this list. This is because it
@@ -128,6 +130,7 @@ public final class DomainUpdateFlow extends LoggedInFlow implements Transactiona
       StatusValue.SERVER_UPDATE_PROHIBITED);
 
   @Inject ResourceCommand resourceCommand;
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -136,14 +139,14 @@ public final class DomainUpdateFlow extends LoggedInFlow implements Transactiona
   @Inject DomainUpdateFlow() {}
 
   @Override
-  protected final void initLoggedInFlow() throws EppException {
-    registerExtensions(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
-    registerExtensions(
-        MetadataExtension.class, SecDnsUpdateExtension.class, FlagsUpdateCommandExtension.class);
-  }
-
-  @Override
   public EppOutput run() throws EppException {
+    extensionManager.register(
+        FlagsUpdateCommandExtension.class,
+        MetadataExtension.class,
+        SecDnsUpdateExtension.class);
+    extensionManager.registerAsGroup(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     Update command = cloneAndLinkReferences((Update) resourceCommand, now);
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyUpdateAllowed(command, existingDomain);
@@ -184,7 +187,7 @@ public final class DomainUpdateFlow extends LoggedInFlow implements Transactiona
       verifyStatusChangesAreClientSettable(command);
     }
     String tld = existingDomain.getTld();
-    checkAllowedAccessToTld(getAllowedTlds(), tld);
+    checkAllowedAccessToTld(clientId, tld);
     EppCommandOperations commandOperations = TldSpecificLogicProxy.getUpdatePrice(
         Registry.get(tld), targetId, clientId, now, eppInput);
 

@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
@@ -26,9 +27,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.model.domain.DomainCommand.Info;
 import google.registry.model.domain.DomainCommand.Info.HostsRequest;
 import google.registry.model.domain.DomainResource;
@@ -59,8 +61,9 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.FeeChecksDontSupportPhasesException}
  * @error {@link DomainFlowUtils.RestoresAreAlwaysForOneYearException}
  */
-public final class DomainInfoFlow extends LoggedInFlow {
+public final class DomainInfoFlow extends Flow {
 
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -68,12 +71,10 @@ public final class DomainInfoFlow extends LoggedInFlow {
   @Inject DomainInfoFlow() {}
 
   @Override
-  protected void initLoggedInFlow() throws EppException {
-    registerExtensions(FeeInfoCommandExtensionV06.class);
-  }
-
-  @Override
   public final EppOutput run() throws EppException {
+    extensionManager.register(FeeInfoCommandExtensionV06.class);
+    extensionManager.validate();
+    validateClientIsLoggedIn(clientId);
     DomainResource domain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, domain);
     return createOutput(

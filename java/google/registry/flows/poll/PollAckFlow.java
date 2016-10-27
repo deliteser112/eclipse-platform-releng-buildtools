@@ -15,6 +15,7 @@
 package google.registry.flows.poll;
 
 import static com.google.common.base.Preconditions.checkState;
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.poll.PollFlowUtils.getPollMessagesQuery;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_NO_MESSAGES;
@@ -28,9 +29,10 @@ import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.PollMessageId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.TransactionalFlow;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.poll.MessageQueueInfo;
@@ -53,14 +55,17 @@ import org.joda.time.DateTime;
  * @error {@link PollAckFlow.MissingMessageIdException}
  * @error {@link PollAckFlow.NotAuthorizedToAckMessageException}
  */
-public class PollAckFlow extends LoggedInFlow implements TransactionalFlow {
+public class PollAckFlow extends Flow implements TransactionalFlow {
 
+  @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @PollMessageId String messageId;
   @Inject PollAckFlow() {}
 
   @Override
   public final EppOutput run() throws EppException {
+    extensionManager.validate();  // There are no legal extensions for this flow.
+    validateClientIsLoggedIn(clientId);
     if (messageId.isEmpty()) {
       throw new MissingMessageIdException();
     }

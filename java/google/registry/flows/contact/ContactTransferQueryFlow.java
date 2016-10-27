@@ -14,6 +14,7 @@
 
 package google.registry.flows.contact;
 
+import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
@@ -21,9 +22,10 @@ import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
+import google.registry.flows.ExtensionManager;
+import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.LoggedInFlow;
 import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
 import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
 import google.registry.model.contact.ContactResource;
@@ -46,8 +48,9 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.exceptions.NoTransferHistoryToQueryException}
  * @error {@link google.registry.flows.exceptions.NotAuthorizedToViewTransferException}
  */
-public final class ContactTransferQueryFlow extends LoggedInFlow {
+public final class ContactTransferQueryFlow extends Flow {
 
+  @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -55,6 +58,8 @@ public final class ContactTransferQueryFlow extends LoggedInFlow {
 
   @Override
   public final EppOutput run() throws EppException {
+    extensionManager.validate();  // There are no legal extensions for this flow.
+    validateClientIsLoggedIn(clientId);
     ContactResource contact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, contact);
     // Most of the fields on the transfer response are required, so there's no way to return valid
