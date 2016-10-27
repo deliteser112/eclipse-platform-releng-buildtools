@@ -219,7 +219,7 @@ public final class DomainApplicationCreateFlow extends LoggedInFlow implements T
         .setLaunchNotice(launchCreate == null ? null : launchCreate.getNotice())
         .setIdnTableName(idnTableName)
         .setPhase(launchCreate.getPhase())
-        .setYears(command.getPeriod().getValue())
+        .setPeriod(command.getPeriod())
         .setApplicationStatus(ApplicationStatus.VALIDATED)
         .addStatusValue(StatusValue.PENDING_CREATE)
         .setDsData(secDnsCreate == null ? null : secDnsCreate.getDsData())

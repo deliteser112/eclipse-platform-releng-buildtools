@@ -220,7 +220,7 @@ public class DomainApplicationCreateFlowTest
     assertAboutApplications().that(getLast(applications))
         .hasFullyQualifiedDomainName(getUniqueIdFromCommand()).and()
         .hasNumEncodedSignedMarks(sunriseApplication ? 1 : 0).and()
-        .hasYears(years).and()
+        .hasPeriodYears(years).and()
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE).and()
         .hasPeriodYears(years);

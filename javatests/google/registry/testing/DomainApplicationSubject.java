@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
 import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.Period;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.testing.TruthChainer.And;
@@ -31,8 +32,10 @@ import java.util.Objects;
 public final class DomainApplicationSubject
     extends AbstractDomainBaseSubject<DomainApplication, DomainApplicationSubject> {
 
-  public And<DomainApplicationSubject> hasYears(int years) {
-    assertThat(actual().getYears()).isEqualTo(years);
+  public And<DomainApplicationSubject> hasPeriodYears(int years) {
+    assertThat(actual().getPeriod()).isNotNull();
+    assertThat(actual().getPeriod().getUnit()).isEqualTo(Period.Unit.YEARS);
+    assertThat(actual().getPeriod().getValue()).isEqualTo(years);
     return andChainer();
   }
 

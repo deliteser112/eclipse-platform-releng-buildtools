@@ -69,9 +69,9 @@ public class DomainApplication extends DomainBase {
   @XmlTransient
   LaunchPhase phase;
 
-  /** The requested number of years of registration. */
+  /** The requested registration period. */
   @XmlTransient
-  int years;
+  Period period;
   
   /** The current status of this application. */
   @XmlTransient
@@ -98,8 +98,8 @@ public class DomainApplication extends DomainBase {
     return phase;
   }
 
-  public int getYears() {
-    return years;
+  public Period getPeriod() {
+    return period;
   }
 
   public ApplicationStatus getApplicationStatus() {
@@ -159,8 +159,8 @@ public class DomainApplication extends DomainBase {
       return this;
     }
     
-    public Builder setYears(int years) {
-      getInstance().years = years;
+    public Builder setPeriod(Period period) {
+      getInstance().period = period;
       return this;
     }
 

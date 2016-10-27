@@ -60,7 +60,7 @@ public class DomainApplicationTest extends EntityTestCase {
   @Before
   public void setUp() throws Exception {
     createTld("com");
-    // Set up a new persisted domain entity.
+    // Set up a new persisted domain application entity.
     domainApplication = cloneAndSetAutoTimestamps(
         new DomainApplication.Builder()
             .setFullyQualifiedDomainName("example.com")
@@ -102,6 +102,7 @@ public class DomainApplicationTest extends EntityTestCase {
                     .build())
             .setCreationTrid(Trid.create("client creation trid"))
             .setPhase(LaunchPhase.LANDRUSH)
+            .setPeriod(Period.create(5, Period.Unit.YEARS))
             .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "abcdefg=")))
             .setApplicationStatus(ApplicationStatus.ALLOCATED)
             .setAuctionPrice(Money.of(USD, 11))
