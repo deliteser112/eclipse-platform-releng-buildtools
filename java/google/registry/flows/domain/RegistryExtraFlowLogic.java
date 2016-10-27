@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import google.registry.flows.EppException;
+import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.eppinput.EppInput;
@@ -35,6 +36,20 @@ public interface RegistryExtraFlowLogic {
    */
   public Set<String> getExtensionFlags(
       DomainResource domainResource, String clientId, DateTime asOfDate);
+
+  /**
+   * Performs additional tasks required for an application create command.
+   *
+   * <p>Any changes should not be persisted to Datastore until commitAdditionalLogicChanges is
+   * called.
+   */
+  public void performAdditionalApplicationCreateLogic(
+      DomainApplication application,
+      String clientId,
+      DateTime asOfDate,
+      int years,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
 
   /**
    * Computes the expected creation fee.

@@ -44,6 +44,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -233,6 +234,8 @@ public final class DomainApplicationCreateFlow extends LoggedInFlow implements T
     DomainApplication newApplication = applicationBuilder.build();
     HistoryEntry historyEntry = buildHistory(newApplication.getRepoId(), command.getPeriod());
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
+    handleExtraFlowLogic(
+        registry.getTldStr(), command.getPeriod().getValue(), historyEntry, newApplication);
     entitiesToSave.add(
         newApplication,
         historyEntry,
@@ -331,6 +334,23 @@ public final class DomainApplicationCreateFlow extends LoggedInFlow implements T
       responseExtensionsBuilder.add(createFeeCreateResponse(feeCreate, commandOperations));
     }
     return responseExtensionsBuilder.build();
+  }
+
+  private void handleExtraFlowLogic(
+      String tld, int years, HistoryEntry historyEntry, DomainApplication newApplication)
+          throws EppException {
+    Optional<RegistryExtraFlowLogic> extraFlowLogic =
+        RegistryExtraFlowLogicProxy.newInstanceForTld(tld);
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().performAdditionalApplicationCreateLogic(
+          newApplication,
+          clientId,
+          now,
+          years,
+          eppInput,
+          historyEntry);
+      extraFlowLogic.get().commitAdditionalLogicChanges();
+    }
   }
 
   /** Landrush applications are disallowed during sunrise. */

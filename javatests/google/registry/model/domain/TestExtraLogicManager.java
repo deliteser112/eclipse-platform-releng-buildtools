@@ -99,6 +99,26 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     }
   }
 
+  /**
+   * Performs additional tasks required for an application create command. Any changes should not be
+   * persisted to Datastore until commitAdditionalLogicChanges is called.
+   */
+  @Override
+  public void performAdditionalApplicationCreateLogic(
+      DomainApplication application,
+      String clientId,
+      DateTime asOfDate,
+      int years,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException {
+    FlagsCreateCommandExtension flags =
+        eppInput.getSingleExtension(FlagsCreateCommandExtension.class);
+    if (flags == null) {
+      return;
+    }
+    messageToThrow = Joiner.on(',').join(flags.getFlags());
+  }
+
   /** Computes the expected create cost, for use in fee challenges and the like. */
   @Override
   public BaseFee getCreateFeeOrCredit(
