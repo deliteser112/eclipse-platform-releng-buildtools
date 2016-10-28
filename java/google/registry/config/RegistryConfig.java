@@ -163,7 +163,7 @@ public interface RegistryConfig {
    * Returns the email address(es) that notifications of registrar and/or registrar contact updates
    * should be sent to, or the empty list if updates should not be sent.
    *
-   * @see google.registry.ui.server.registrar.RegistrarServlet
+   * @see google.registry.ui.server.registrar.RegistrarAction
    */
   public ImmutableList<String> getRegistrarChangesNotificationEmailAddresses();
 

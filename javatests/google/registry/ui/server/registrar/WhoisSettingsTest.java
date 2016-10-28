@@ -16,25 +16,24 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static java.util.Arrays.asList;
-import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarAddress;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 /**
- * Unit tests for security_settings.js use of {@link RegistrarServlet}.
+ * Unit tests for security_settings.js use of {@link RegistrarAction}.
  *
  * <p>The default read and session validation tests are handled by the superclass.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class WhoisSettingsTest extends RegistrarServletTestCase {
+public class WhoisSettingsTest extends RegistrarActionTestCase {
 
   @Test
   public void testPost_update_success() throws Exception {
@@ -52,12 +51,11 @@ public class WhoisSettingsTest extends RegistrarServletTestCase {
             .setCountryCode("US")
             .build())
         .build();
-    when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of(
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", modified.toJsonMap())));
-    servlet.service(req, rsp);
-    assertThat(json.get().get("status")).isEqualTo("SUCCESS");
-    assertThat(json.get().get("results")).isEqualTo(asList(modified.toJsonMap()));
+        "args", modified.toJsonMap()));
+    assertThat(response.get("status")).isEqualTo("SUCCESS");
+    assertThat(response.get("results")).isEqualTo(asList(modified.toJsonMap()));
     assertThat(Registrar.loadByClientId(CLIENT_ID)).isEqualTo(modified);
   }
 
@@ -75,13 +73,12 @@ public class WhoisSettingsTest extends RegistrarServletTestCase {
             .setCountryCode("US")
             .build())
         .build();
-    when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of(
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", modified.toJsonMap())));
-    servlet.service(req, rsp);
-    assertThat(json.get().get("status")).isEqualTo("ERROR");
-    assertThat(json.get().get("field")).isEqualTo("localizedAddress.state");
-    assertThat(json.get().get("message")).isEqualTo("Unknown US state code.");
+        "args", modified.toJsonMap()));
+    assertThat(response.get("status")).isEqualTo("ERROR");
+    assertThat(response.get("field")).isEqualTo("localizedAddress.state");
+    assertThat(response.get("message")).isEqualTo("Unknown US state code.");
     assertThat(Registrar.loadByClientId(CLIENT_ID)).isNotEqualTo(modified);
   }
 
@@ -99,13 +96,12 @@ public class WhoisSettingsTest extends RegistrarServletTestCase {
             .setCountryCode("US")
             .build())
         .build();
-    when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of(
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", modified.toJsonMap())));
-    servlet.service(req, rsp);
-    assertThat(json.get().get("status")).isEqualTo("ERROR");
-    assertThat(json.get().get("field")).isEqualTo("localizedAddress.street[1]");
-    assertThat((String) json.get().get("message"))
+        "args", modified.toJsonMap()));
+    assertThat(response.get("status")).isEqualTo("ERROR");
+    assertThat(response.get("field")).isEqualTo("localizedAddress.street[1]");
+    assertThat((String) response.get("message"))
         .contains("Number of characters (600) not in range");
     assertThat(Registrar.loadByClientId(CLIENT_ID)).isNotEqualTo(modified);
   }
@@ -115,13 +111,12 @@ public class WhoisSettingsTest extends RegistrarServletTestCase {
     Registrar modified = Registrar.loadByClientId(CLIENT_ID).asBuilder()
         .setWhoisServer("tears@dry.tragical.lol")
         .build();
-    when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of(
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", modified.toJsonMap())));
-    servlet.service(req, rsp);
-    assertThat(json.get().get("status")).isEqualTo("ERROR");
-    assertThat(json.get().get("field")).isEqualTo("whoisServer");
-    assertThat(json.get().get("message")).isEqualTo("Not a valid hostname.");
+        "args", modified.toJsonMap()));
+    assertThat(response.get("status")).isEqualTo("ERROR");
+    assertThat(response.get("field")).isEqualTo("whoisServer");
+    assertThat(response.get("message")).isEqualTo("Not a valid hostname.");
     assertThat(Registrar.loadByClientId(CLIENT_ID)).isNotEqualTo(modified);
   }
 }

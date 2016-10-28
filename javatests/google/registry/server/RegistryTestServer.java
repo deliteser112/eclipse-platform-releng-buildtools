@@ -79,7 +79,7 @@ public final class RegistryTestServer {
       // Registrar Console
       route("/registrar", google.registry.module.frontend.FrontendServlet.class),
       route("/registrar-settings",
-          google.registry.ui.server.registrar.RegistrarServlet.class),
+          google.registry.module.frontend.FrontendServlet.class),
       route("/registrar-payment",
           google.registry.module.frontend.FrontendServlet.class),
       route("/registrar-payment-setup",

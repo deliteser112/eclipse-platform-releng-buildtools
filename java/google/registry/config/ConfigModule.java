@@ -17,6 +17,7 @@ package google.registry.config;
 import static google.registry.config.ConfigUtils.makeUrl;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import dagger.Module;
 import dagger.Provides;
@@ -323,6 +324,13 @@ public final class ConfigModule {
       default:
         return "admin@domainregistry-sandbox.co";
     }
+  }
+
+  @Provides
+  @Config("registrarChangesNotificationEmailAddresses")
+  public static ImmutableList<String> provideRegistrarChangesNotificationEmailAddresses(
+      RegistryConfig config) {
+    return config.getRegistrarChangesNotificationEmailAddresses();
   }
 
   /**

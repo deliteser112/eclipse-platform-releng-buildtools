@@ -18,23 +18,29 @@ import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.googlecode.objectify.Work;
-import google.registry.config.RegistryConfig;
-import google.registry.config.RegistryEnvironment;
+import google.registry.config.ConfigModule.Config;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
+import google.registry.request.Action;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.JsonActionRunner;
 import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
+import google.registry.ui.forms.FormFieldException;
 import google.registry.ui.server.RegistrarFormFields;
 import google.registry.util.CidrAddressBlock;
 import google.registry.util.CollectionUtils;
@@ -44,15 +50,33 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * Admin servlet that allows creating or updating a registrar. Deletes are not allowed so as to
  * preserve history.
  */
-public class RegistrarServlet extends ResourceServlet {
+@Action(
+    path = RegistrarAction.PATH,
+    requireLogin = true,
+    xsrfProtection = true,
+    xsrfScope = "console",
+    method = Action.Method.POST)
+public class RegistrarAction implements Runnable, JsonActionRunner.JsonAction {
 
-  private static final RegistryConfig CONFIG = RegistryEnvironment.get().config();
+  public static final String PATH = "/registrar-settings";
+
+  private static final String OP_PARAM = "op";
+  private static final String ARGS_PARAM = "args";
+
+  @Inject HttpServletRequest request;
+  @Inject SessionUtils sessionUtils;
+  @Inject JsonActionRunner jsonActionRunner;
+  @Inject Registrar initialRegistrar;
+  @Inject @Config("registrarChangesNotificationEmailAddresses") ImmutableList<String>
+      registrarChangesNotificationEmailAddresses;
+  @Inject RegistrarAction() {}
 
   private static final Predicate<RegistrarContact> HAS_PHONE = new Predicate<RegistrarContact>() {
     @Override
@@ -71,25 +95,20 @@ public class RegistrarServlet extends ResourceServlet {
     }
   }
 
-  @Override
-  public Map<String, Object> read(HttpServletRequest req, Map<String, ?> args) {
-    String clientId = sessionUtils.getRegistrarClientId(req);
-    Registrar registrar = getCheckedRegistrar(clientId);
+  public Map<String, Object> read(Map<String, ?> args, Registrar registrar) {
     return JsonResponseHelper.create(SUCCESS, "Success", registrar.toJsonMap());
   }
 
-  @Override
-  Map<String, Object> update(HttpServletRequest req, final Map<String, ?> args) {
-    final String clientId = sessionUtils.getRegistrarClientId(req);
+  Map<String, Object> update(final Map<String, ?> args, final Registrar registrar) {
+    final String clientId = sessionUtils.getRegistrarClientId(request);
     return ofy().transact(new Work<Map<String, Object>>() {
       @Override
       public Map<String, Object> run() {
-        Registrar existingRegistrar = getCheckedRegistrar(clientId);
-        ImmutableSet<RegistrarContact> oldContacts = existingRegistrar.getContacts();
+        ImmutableSet<RegistrarContact> oldContacts = registrar.getContacts();
         Map<String, Object> existingRegistrarMap =
-            expandRegistrarWithContacts(existingRegistrar, oldContacts);
-        Registrar.Builder builder = existingRegistrar.asBuilder();
-        ImmutableSet<RegistrarContact> updatedContacts = update(existingRegistrar, builder, args);
+            expandRegistrarWithContacts(oldContacts, registrar);
+        Registrar.Builder builder = registrar.asBuilder();
+        ImmutableSet<RegistrarContact> updatedContacts = update(registrar, builder, args);
         if (!updatedContacts.isEmpty()) {
           builder.setContactsRequireSyncing(true);
         }
@@ -102,7 +121,7 @@ public class RegistrarServlet extends ResourceServlet {
         // Update the registrar map with updated contacts to bypass Objectify caching issues that
         // come into play with calling getContacts().
         Map<String, Object> updatedRegistrarMap =
-            expandRegistrarWithContacts(updatedRegistrar, updatedContacts);
+            expandRegistrarWithContacts(updatedContacts, updatedRegistrar);
         sendExternalUpdatesIfNecessary(
             updatedRegistrar.getRegistrarName(),
             existingRegistrarMap,
@@ -114,8 +133,8 @@ public class RegistrarServlet extends ResourceServlet {
       }});
   }
 
-  private Map<String, Object> expandRegistrarWithContacts(
-      Registrar registrar, Iterable<RegistrarContact> contacts) {
+  private Map<String, Object> expandRegistrarWithContacts(Iterable<RegistrarContact> contacts,
+                                                          Registrar registrar) {
     ImmutableSet<Map<String, Object>> expandedContacts = FluentIterable.from(contacts)
         .transform(new Function<RegistrarContact, Map<String, Object>>() {
           @Override
@@ -146,19 +165,13 @@ public class RegistrarServlet extends ResourceServlet {
       return;
     }
     SyncRegistrarsSheetAction.enqueueBackendTask();
-    ImmutableList<String> toEmailAddress = CONFIG.getRegistrarChangesNotificationEmailAddresses();
-    if (!toEmailAddress.isEmpty()) {
+    if (!registrarChangesNotificationEmailAddresses.isEmpty()) {
       SendEmailUtils.sendEmail(
-          toEmailAddress,
+          registrarChangesNotificationEmailAddresses,
           String.format("Registrar %s updated", registrarName),
           "The following changes were made to the registrar:\n"
               + DiffUtils.prettyPrintDiffedMap(diffs, null));
     }
-  }
-
-  private Registrar getCheckedRegistrar(String clientId) {
-    return checkExists(Registrar.loadByClientId(clientId),
-        "No registrar exists with the given client id: " + clientId);
   }
 
   /**
@@ -254,5 +267,43 @@ public class RegistrarServlet extends ResourceServlet {
     }
 
     return contacts.build();
+  }
+
+  @Override
+  public Map<String, Object> handleJsonRequest(Map<String, ?> input) {
+    if (input == null) {
+      throw new BadRequestException("Malformed JSON");
+    }
+
+    if (!sessionUtils.checkRegistrarConsoleLogin(request)) {
+      return JsonResponseHelper.create(ERROR, "Not authorized to access Registrar Console");
+    }
+
+    // Process the operation.  Though originally derived from a CRUD
+    // handlder, registrar-settings really only supports read and update.
+    String op = Optional.fromNullable((String) input.get(OP_PARAM)).or("read");
+    @SuppressWarnings("unchecked")
+    Map<String, ?> args = (Map<String, Object>)
+        Optional.<Object>fromNullable(input.get(ARGS_PARAM)).or(ImmutableMap.of());
+    try {
+      switch (op) {
+        case "update":
+          return update(args, initialRegistrar);
+        case "read":
+          return read(args, initialRegistrar);
+        default:
+          return JsonResponseHelper.create(ERROR, "Unknown or unsupported operation: " + op);
+      }
+    } catch (FormFieldException e) {
+      return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
+    } catch (FormException ee) {
+      return JsonResponseHelper.create(ERROR, ee.getMessage());
+    }
+
+  }
+
+  @Override
+  public void run() {
+    jsonActionRunner.run(this);
   }
 }

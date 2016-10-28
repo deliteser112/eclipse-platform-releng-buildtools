@@ -32,28 +32,10 @@ java_library(
     ],
 )
 
-java_library(
-    name = "servlets",
-    srcs = glob(["*ServletTest.java"]),
-    deps = [
-        "//java/com/google/common/collect",
-        "//java/com/google/common/net",
-        "//third_party/java/junit",
-        "//third_party/java/mockito",
-        "//third_party/java/servlet/servlet_api",
-        "//third_party/java/truth",
-        "//java/google/registry/request",
-        "//java/google/registry/security",
-        "//java/google/registry/security:servlets",
-        "//javatests/google/registry/testing",
-    ],
-)
-
 GenTestRules(
     name = "GeneratedTestRules",
     test_files = glob(["*Test.java"]),
     deps = [
         ":security",
-        ":servlets",
     ],
 )

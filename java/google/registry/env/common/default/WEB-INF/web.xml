@@ -25,17 +25,6 @@
     <url-pattern>/registrar-xhr</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <display-name>Registrar Self-serve Settings</display-name>
-    <servlet-name>registrar-settings</servlet-name>
-    <servlet-class>google.registry.ui.server.registrar.RegistrarServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>registrar-settings</servlet-name>
-    <url-pattern>/registrar-settings</url-pattern>
-  </servlet-mapping>
-
   <!-- Registrar Console. -->
   <servlet-mapping>
     <servlet-name>frontend-servlet</servlet-name>
@@ -52,6 +41,12 @@
   <servlet-mapping>
     <servlet-name>frontend-servlet</servlet-name>
     <url-pattern>/registrar-payment</url-pattern>
+  </servlet-mapping>
+
+  <!-- Registrar Self-serve Settings. -->
+  <servlet-mapping>
+    <servlet-name>frontend-servlet</servlet-name>
+    <url-pattern>/registrar-settings</url-pattern>
   </servlet-mapping>
 
   <!-- HTTP WHOIS. -->

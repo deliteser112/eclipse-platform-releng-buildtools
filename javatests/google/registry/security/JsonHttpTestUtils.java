@@ -43,8 +43,8 @@ public final class JsonHttpTestUtils {
   }
 
   /**
-   * Returns JSON data parsed out of a JsonTransportServlet response stored in the given writer.
-   * If the data will be fetched multiple times, consider {@link #createJsonResponseSupplier}.
+   * Returns JSON data parsed out of the contents of the given writer. If the data will be fetched
+   * multiple times, consider {@link #createJsonResponseSupplier}.
    *
    * <p>Example Mockito usage:<pre>  {@code
    *

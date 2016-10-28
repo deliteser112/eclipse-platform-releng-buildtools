@@ -52,6 +52,12 @@ public final class RequestModuleTest {
   }
 
   @Test
+  public void testProvideJsonPayload_emptyInput_throws500() throws Exception {
+    thrown.expect(BadRequestException.class, "Malformed JSON");
+    provideJsonPayload(MediaType.JSON_UTF_8, "");
+  }
+
+  @Test
   public void testProvideJsonPayload_nonJsonContentType_throws415() throws Exception {
     thrown.expect(UnsupportedMediaTypeException.class);
     provideJsonPayload(MediaType.PLAIN_TEXT_UTF_8, "{}");

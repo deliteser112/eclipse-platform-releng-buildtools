@@ -36,6 +36,7 @@ import google.registry.rdap.RdapNameserverSearchAction;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
 import google.registry.ui.server.registrar.ConsoleUiAction;
+import google.registry.ui.server.registrar.RegistrarAction;
 import google.registry.ui.server.registrar.RegistrarPaymentAction;
 import google.registry.ui.server.registrar.RegistrarPaymentSetupAction;
 import google.registry.ui.server.registrar.RegistrarUserModule;
@@ -65,6 +66,7 @@ interface FrontendRequestComponent {
   RdapAutnumAction rdapAutnumAction();
   RegistrarPaymentAction registrarPaymentAction();
   RegistrarPaymentSetupAction registrarPaymentSetupAction();
+  RegistrarAction registrarAction();
   RdapDomainAction rdapDomainAction();
   RdapDomainSearchAction rdapDomainSearchAction();
   RdapEntityAction rdapEntityAction();

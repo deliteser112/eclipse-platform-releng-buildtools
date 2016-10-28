@@ -15,15 +15,12 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT2;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT2_HASH;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
-import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
-import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.config.RegistryEnvironment;
@@ -34,31 +31,30 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 /**
- * Unit tests for security_settings.js use of {@link RegistrarServlet}.
+ * Unit tests for security_settings.js use of {@link RegistrarAction}.
  *
  * <p>The default read and session validation tests are handled by the
  * superclass.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SecuritySettingsTest extends RegistrarServletTestCase {
+public class SecuritySettingsTest extends RegistrarActionTestCase {
 
   @Test
   public void testPost_updateCert_success() throws Exception {
     Registrar modified = Registrar.loadByClientId(CLIENT_ID).asBuilder()
         .setClientCertificate(SAMPLE_CERT, clock.nowUtc())
         .build();
-    when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of(
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", modified.toJsonMap())));
-    servlet.service(req, rsp);
+        "args", modified.toJsonMap()));
     // Empty whoisServer and referralUrl fields should be set to defaults by server.
     modified = modified.asBuilder()
         .setWhoisServer(RegistryEnvironment.get().config().getRegistrarDefaultWhoisServer())
         .setReferralUrl(
             RegistryEnvironment.get().config().getRegistrarDefaultReferralUrl().toString())
         .build();
-    assertThat(json.get()).containsEntry("status", "SUCCESS");
-    assertThat(json.get()).containsEntry("results", asList(modified.toJsonMap()));
+    assertThat(response).containsEntry("status", "SUCCESS");
+    assertThat(response).containsEntry("results", asList(modified.toJsonMap()));
     assertThat(Registrar.loadByClientId(CLIENT_ID)).isEqualTo(modified);
   }
 
@@ -66,12 +62,11 @@ public class SecuritySettingsTest extends RegistrarServletTestCase {
   public void testPost_updateCert_failure() throws Exception {
     Map<String, Object> reqJson = Registrar.loadByClientId(CLIENT_ID).toJsonMap();
     reqJson.put("clientCertificate", "BLAH");
-    when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of(
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", reqJson)));
-    servlet.service(req, rsp);
-    assertThat(json.get()).containsEntry("status", "ERROR");
-    assertThat(json.get()).containsEntry("message", "Invalid X.509 PEM certificate");
+        "args", reqJson));
+    assertThat(response).containsEntry("status", "ERROR");
+    assertThat(response).containsEntry("message", "Invalid X.509 PEM certificate");
   }
 
   @Test
@@ -79,10 +74,9 @@ public class SecuritySettingsTest extends RegistrarServletTestCase {
     Map<String, Object> jsonMap = Registrar.loadByClientId(CLIENT_ID).toJsonMap();
     jsonMap.put("clientCertificate", SAMPLE_CERT);
     jsonMap.put("failoverClientCertificate", null);
-    when(req.getReader()).thenReturn(
-        createJsonPayload(ImmutableMap.of("op", "update", "args", jsonMap)));
-    servlet.service(req, rsp);
-    assertThat(json.get()).containsEntry("status", "SUCCESS");
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
+        "op", "update", "args", jsonMap));
+    assertThat(response).containsEntry("status", "SUCCESS");
     Registrar registrar = Registrar.loadByClientId(CLIENT_ID);
     assertThat(registrar.getClientCertificate()).isEqualTo(SAMPLE_CERT);
     assertThat(registrar.getClientCertificateHash()).isEqualTo(SAMPLE_CERT_HASH);
@@ -94,10 +88,9 @@ public class SecuritySettingsTest extends RegistrarServletTestCase {
   public void testChangeFailoverCertificate() throws Exception {
     Map<String, Object> jsonMap = Registrar.loadByClientId(CLIENT_ID).toJsonMap();
     jsonMap.put("failoverClientCertificate", SAMPLE_CERT2);
-    when(req.getReader()).thenReturn(
-        createJsonPayload(ImmutableMap.of("op", "update", "args", jsonMap)));
-    servlet.service(req, rsp);
-    assertThat(json.get()).containsEntry("status", "SUCCESS");
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
+        "op", "update", "args", jsonMap));
+    assertThat(response).containsEntry("status", "SUCCESS");
     Registrar registrar = Registrar.loadByClientId(CLIENT_ID);
     assertThat(registrar.getFailoverClientCertificate()).isEqualTo(SAMPLE_CERT2);
     assertThat(registrar.getFailoverClientCertificateHash()).isEqualTo(SAMPLE_CERT2_HASH);
@@ -105,18 +98,17 @@ public class SecuritySettingsTest extends RegistrarServletTestCase {
 
   @Test
   public void testEmptyOrNullCertificate_doesNotClearOutCurrentOne() throws Exception {
-    persistResource(
+    action.initialRegistrar =
         Registrar.loadByClientId(CLIENT_ID).asBuilder()
             .setClientCertificate(SAMPLE_CERT, START_OF_TIME)
             .setFailoverClientCertificate(SAMPLE_CERT2, START_OF_TIME)
-            .build());
-    Map<String, Object> jsonMap = Registrar.loadByClientId(CLIENT_ID).toJsonMap();
+            .build();
+    Map<String, Object> jsonMap = action.initialRegistrar.toJsonMap();
     jsonMap.put("clientCertificate", null);
     jsonMap.put("failoverClientCertificate", "");
-    when(req.getReader()).thenReturn(
-        createJsonPayload(ImmutableMap.of("op", "update", "args", jsonMap)));
-    servlet.service(req, rsp);
-    assertThat(json.get()).containsEntry("status", "SUCCESS");
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
+        "op", "update", "args", jsonMap));
+    assertThat(response).containsEntry("status", "SUCCESS");
     Registrar registrar = Registrar.loadByClientId(CLIENT_ID);
     assertThat(registrar.getClientCertificate()).isEqualTo(SAMPLE_CERT);
     assertThat(registrar.getClientCertificateHash()).isEqualTo(SAMPLE_CERT_HASH);

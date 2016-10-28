@@ -28,16 +28,3 @@ java_library(
         "//java/google/registry/util",
     ],
 )
-
-java_library(
-    name = "servlets",
-    srcs = glob(["*Servlet.java"]),
-    deps = [
-        ":security",
-        "//java/com/google/common/base",
-        "//third_party/java/appengine:appengine-api",
-        "//third_party/java/joda_time",
-        "//third_party/java/servlet/servlet_api",
-        "//java/google/registry/request",
-    ],
-)

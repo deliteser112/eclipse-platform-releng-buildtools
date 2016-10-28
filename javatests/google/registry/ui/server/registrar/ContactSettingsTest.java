@@ -15,10 +15,8 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
-import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -34,33 +32,31 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 /**
- * Unit tests for contact_settings.js use of {@link RegistrarServlet}.
+ * Unit tests for contact_settings.js use of {@link RegistrarAction}.
  *
  * <p>The default read and session validation tests are handled by the
  * superclass.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ContactSettingsTest extends RegistrarServletTestCase {
+public class ContactSettingsTest extends RegistrarActionTestCase {
 
   @Test
   public void testPost_readContacts_success() throws Exception {
-    when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of(
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "read",
-        "args", ImmutableMap.of())));
-    servlet.service(req, rsp);
+        "args", ImmutableMap.of()));
     @SuppressWarnings("unchecked")
-    List<Map<String, ?>> results = (List<Map<String, ?>>) json.get().get("results");
+    List<Map<String, ?>> results = (List<Map<String, ?>>) response.get("results");
     assertThat(results.get(0).get("contacts"))
         .isEqualTo(Registrar.loadByClientId(CLIENT_ID).toJsonMap().get("contacts"));
   }
 
   @Test
   public void testPost_loadSaveRegistrar_success() throws Exception {
-    when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of(
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", Registrar.loadByClientId(CLIENT_ID).toJsonMap())));
-    servlet.service(req, rsp);
-    assertThat(json.get()).containsEntry("status", "SUCCESS");
+        "args", Registrar.loadByClientId(CLIENT_ID).toJsonMap()));
+    assertThat(response).containsEntry("status", "SUCCESS");
   }
 
   @Test
@@ -77,11 +73,10 @@ public class ContactSettingsTest extends RegistrarServletTestCase {
     Registrar registrar = Registrar.loadByClientId(CLIENT_ID);
     Map<String, Object> regMap = registrar.toJsonMap();
     regMap.put("contacts", ImmutableList.of(adminContact1));
-    when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of(
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", regMap)));
-    servlet.service(req, rsp);
-    assertThat(json.get()).containsEntry("status", "SUCCESS");
+        "args", regMap));
+    assertThat(response).containsEntry("status", "SUCCESS");
 
     RegistrarContact newContact = new RegistrarContact.Builder()
         .setParent(registrar)
@@ -102,12 +97,11 @@ public class ContactSettingsTest extends RegistrarServletTestCase {
             .asBuilder()
             .setTypes(ImmutableList.<RegistrarContact.Type>of())
             .build().toJsonMap()));
-    when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of(
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", reqJson)));
-    servlet.service(req, rsp);
-    assertThat(json.get()).containsEntry("status", "ERROR");
-    assertThat(json.get()).containsEntry("message", "Must have at least one "
+        "args", reqJson));
+    assertThat(response).containsEntry("status", "ERROR");
+    assertThat(response).containsEntry("message", "Must have at least one "
         + RegistrarContact.Type.ADMIN.getDisplayName() + " contact");
   }
 
@@ -127,12 +121,11 @@ public class ContactSettingsTest extends RegistrarServletTestCase {
     rc = rc.asBuilder().setPhoneNumber(null).build();
     Map<String, Object> reqJson = registrar.toJsonMap();
     reqJson.put("contacts", ImmutableList.of(rc.toJsonMap()));
-    when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of(
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", reqJson)));
-    servlet.service(req, rsp);
-    assertThat(json.get()).containsEntry("status", "ERROR");
-    assertThat(json.get()).containsEntry("message", "At least one "
+        "args", reqJson));
+    assertThat(response).containsEntry("status", "ERROR");
+    assertThat(response).containsEntry("message", "At least one "
         + RegistrarContact.Type.TECH.getDisplayName() + " contact must have a phone number");
   }
 }
