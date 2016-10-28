@@ -55,9 +55,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-/** Base class for tests using {@link RegistrarAction}. */
+/** Base class for tests using {@link RegistrarSettingsAction}. */
 @RunWith(MockitoJUnitRunner.class)
-public class RegistrarActionTestCase {
+public class RegistrarSettingsActionTestCase {
 
   static final String CLIENT_ID = "TheRegistrar";
 
@@ -90,7 +90,7 @@ public class RegistrarActionTestCase {
 
   Message message;
 
-  final RegistrarAction action = new RegistrarAction();
+  final RegistrarSettingsAction action = new RegistrarSettingsAction();
   final StringWriter writer = new StringWriter();
   final Supplier<Map<String, Object>> json = createJsonResponseSupplier(writer);
   final FakeClock clock = new FakeClock(DateTime.parse("2014-01-01T00:00:00Z"));

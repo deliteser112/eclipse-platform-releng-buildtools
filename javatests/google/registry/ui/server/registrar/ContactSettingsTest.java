@@ -32,13 +32,13 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 /**
- * Unit tests for contact_settings.js use of {@link RegistrarAction}.
+ * Unit tests for contact_settings.js use of {@link RegistrarSettingsAction}.
  *
  * <p>The default read and session validation tests are handled by the
  * superclass.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ContactSettingsTest extends RegistrarActionTestCase {
+public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
 
   @Test
   public void testPost_readContacts_success() throws Exception {

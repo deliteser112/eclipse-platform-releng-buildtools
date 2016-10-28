@@ -36,9 +36,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
-/** Tests for {@link RegistrarAction}. */
+/** Tests for {@link RegistrarSettingsAction}. */
 @RunWith(MockitoJUnitRunner.class)
-public class RegistrarActionTest extends RegistrarActionTestCase {
+public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase {
 
   @Rule
   public final ExceptionRule  thrown = new ExceptionRule();

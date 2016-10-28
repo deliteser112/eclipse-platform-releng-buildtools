@@ -31,13 +31,13 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 /**
- * Unit tests for security_settings.js use of {@link RegistrarAction}.
+ * Unit tests for security_settings.js use of {@link RegistrarSettingsAction}.
  *
  * <p>The default read and session validation tests are handled by the
  * superclass.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SecuritySettingsTest extends RegistrarActionTestCase {
+public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
 
   @Test
   public void testPost_updateCert_success() throws Exception {

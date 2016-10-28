@@ -58,12 +58,12 @@ import javax.servlet.http.HttpServletRequest;
  * preserve history.
  */
 @Action(
-    path = RegistrarAction.PATH,
+    path = RegistrarSettingsAction.PATH,
     requireLogin = true,
     xsrfProtection = true,
     xsrfScope = "console",
     method = Action.Method.POST)
-public class RegistrarAction implements Runnable, JsonActionRunner.JsonAction {
+public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonAction {
 
   public static final String PATH = "/registrar-settings";
 
@@ -76,7 +76,7 @@ public class RegistrarAction implements Runnable, JsonActionRunner.JsonAction {
   @Inject Registrar initialRegistrar;
   @Inject @Config("registrarChangesNotificationEmailAddresses") ImmutableList<String>
       registrarChangesNotificationEmailAddresses;
-  @Inject RegistrarAction() {}
+  @Inject RegistrarSettingsAction() {}
 
   private static final Predicate<RegistrarContact> HAS_PHONE = new Predicate<RegistrarContact>() {
     @Override
@@ -84,19 +84,42 @@ public class RegistrarAction implements Runnable, JsonActionRunner.JsonAction {
       return contact.getPhoneNumber() != null;
     }};
 
-  /** Thrown when a set of contacts doesn't meet certain constraints. */
-  private static class ContactRequirementException extends FormException {
-    ContactRequirementException(String msg) {
-      super(msg);
-    }
-
-    ContactRequirementException(RegistrarContact.Type type) {
-      super("Must have at least one " + type.getDisplayName() + " contact");
-    }
+  @Override
+  public void run() {
+    jsonActionRunner.run(this);
   }
 
-  public Map<String, Object> read(Map<String, ?> args, Registrar registrar) {
-    return JsonResponseHelper.create(SUCCESS, "Success", registrar.toJsonMap());
+  @Override
+  public Map<String, Object> handleJsonRequest(Map<String, ?> input) {
+    if (input == null) {
+      throw new BadRequestException("Malformed JSON");
+    }
+
+    if (!sessionUtils.checkRegistrarConsoleLogin(request)) {
+      return JsonResponseHelper.create(ERROR, "Not authorized to access Registrar Console");
+    }
+
+    // Process the operation.  Though originally derived from a CRUD
+    // handlder, registrar-settings really only supports read and update.
+    String op = Optional.fromNullable((String) input.get(OP_PARAM)).or("read");
+    @SuppressWarnings("unchecked")
+    Map<String, ?> args = (Map<String, Object>)
+        Optional.<Object>fromNullable(input.get(ARGS_PARAM)).or(ImmutableMap.of());
+    try {
+      switch (op) {
+        case "update":
+          return update(args, initialRegistrar);
+        case "read":
+          return read(args, initialRegistrar);
+        default:
+          return JsonResponseHelper.create(ERROR, "Unknown or unsupported operation: " + op);
+      }
+    } catch (FormFieldException e) {
+      return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
+    } catch (FormException ee) {
+      return JsonResponseHelper.create(ERROR, ee.getMessage());
+    }
+
   }
 
   Map<String, Object> update(final Map<String, ?> args, final Registrar registrar) {
@@ -108,7 +131,8 @@ public class RegistrarAction implements Runnable, JsonActionRunner.JsonAction {
         Map<String, Object> existingRegistrarMap =
             expandRegistrarWithContacts(oldContacts, registrar);
         Registrar.Builder builder = registrar.asBuilder();
-        ImmutableSet<RegistrarContact> updatedContacts = update(registrar, builder, args);
+        ImmutableSet<RegistrarContact> updatedContacts =
+            changeRegistrarFields(registrar, builder, args);
         if (!updatedContacts.isEmpty()) {
           builder.setContactsRequireSyncing(true);
         }
@@ -150,28 +174,54 @@ public class RegistrarAction implements Runnable, JsonActionRunner.JsonAction {
   }
 
   /**
-   * Determines if any changes were made to the registrar besides the lastUpdateTime, and if so,
-   * sends an email with a diff of the changes to the configured notification email address and
-   * enqueues a task to re-sync the registrar sheet.
+   * Updates a registrar builder with the supplied args from the http request, and returns a list of
+   * the new registrar contacts.
    */
-  private void sendExternalUpdatesIfNecessary(
-      String registrarName,
-      Map<String, Object> existingRegistrar,
-      Map<String, Object> updatedRegistrar) {
-    Map<?, ?> diffs = DiffUtils.deepDiff(existingRegistrar, updatedRegistrar, true);
-    @SuppressWarnings("unchecked")
-    Set<String> changedKeys = (Set<String>) diffs.keySet();
-    if (CollectionUtils.difference(changedKeys, "lastUpdateTime").isEmpty()) {
-      return;
+  public static ImmutableSet<RegistrarContact> changeRegistrarFields(
+      Registrar existingRegistrarObj, Registrar.Builder builder, Map<String, ?> args) {
+
+    // WHOIS
+    builder.setWhoisServer(
+        RegistrarFormFields.WHOIS_SERVER_FIELD.extractUntyped(args).orNull());
+    builder.setReferralUrl(
+        RegistrarFormFields.REFERRAL_URL_FIELD.extractUntyped(args).orNull());
+    for (String email :
+        RegistrarFormFields.EMAIL_ADDRESS_FIELD.extractUntyped(args).asSet()) {
+      builder.setEmailAddress(email);
     }
-    SyncRegistrarsSheetAction.enqueueBackendTask();
-    if (!registrarChangesNotificationEmailAddresses.isEmpty()) {
-      SendEmailUtils.sendEmail(
-          registrarChangesNotificationEmailAddresses,
-          String.format("Registrar %s updated", registrarName),
-          "The following changes were made to the registrar:\n"
-              + DiffUtils.prettyPrintDiffedMap(diffs, null));
+    builder.setPhoneNumber(
+        RegistrarFormFields.PHONE_NUMBER_FIELD.extractUntyped(args).orNull());
+    builder.setFaxNumber(
+        RegistrarFormFields.FAX_NUMBER_FIELD.extractUntyped(args).orNull());
+    builder.setLocalizedAddress(
+        RegistrarFormFields.L10N_ADDRESS_FIELD.extractUntyped(args).orNull());
+
+    // Security
+    builder.setIpAddressWhitelist(
+        RegistrarFormFields.IP_ADDRESS_WHITELIST_FIELD.extractUntyped(args).or(
+            ImmutableList.<CidrAddressBlock>of()));
+    for (String certificate
+        : RegistrarFormFields.CLIENT_CERTIFICATE_FIELD.extractUntyped(args).asSet()) {
+      builder.setClientCertificate(certificate, ofy().getTransactionTime());
     }
+    for (String certificate
+        : RegistrarFormFields.FAILOVER_CLIENT_CERTIFICATE_FIELD.extractUntyped(args).asSet()) {
+      builder.setFailoverClientCertificate(certificate, ofy().getTransactionTime());
+    }
+
+    builder.setUrl(
+        RegistrarFormFields.URL_FIELD.extractUntyped(args).orNull());
+    builder.setReferralUrl(
+        RegistrarFormFields.REFERRAL_URL_FIELD.extractUntyped(args).orNull());
+
+    // Contact
+    ImmutableSet.Builder<RegistrarContact> contacts = new ImmutableSet.Builder<>();
+    for (RegistrarContact.Builder contactBuilder
+        : concat(RegistrarFormFields.CONTACTS_FIELD.extractUntyped(args).asSet())) {
+      contacts.add(contactBuilder.setParent(existingRegistrarObj).build());
+    }
+
+    return contacts.build();
   }
 
   /**
@@ -219,91 +269,42 @@ public class RegistrarAction implements Runnable, JsonActionRunner.JsonAction {
   }
 
   /**
-   * Updates a registrar builder with the supplied args from the http request, and returns a list of
-   * the new registrar contacts.
+   * Determines if any changes were made to the registrar besides the lastUpdateTime, and if so,
+   * sends an email with a diff of the changes to the configured notification email address and
+   * enqueues a task to re-sync the registrar sheet.
    */
-  public static ImmutableSet<RegistrarContact> update(
-      Registrar existingRegistrarObj, Registrar.Builder builder, Map<String, ?> args) {
-
-    // WHOIS
-    builder.setWhoisServer(
-        RegistrarFormFields.WHOIS_SERVER_FIELD.extractUntyped(args).orNull());
-    builder.setReferralUrl(
-        RegistrarFormFields.REFERRAL_URL_FIELD.extractUntyped(args).orNull());
-    for (String email :
-        RegistrarFormFields.EMAIL_ADDRESS_FIELD.extractUntyped(args).asSet()) {
-      builder.setEmailAddress(email);
-    }
-    builder.setPhoneNumber(
-        RegistrarFormFields.PHONE_NUMBER_FIELD.extractUntyped(args).orNull());
-    builder.setFaxNumber(
-        RegistrarFormFields.FAX_NUMBER_FIELD.extractUntyped(args).orNull());
-    builder.setLocalizedAddress(
-        RegistrarFormFields.L10N_ADDRESS_FIELD.extractUntyped(args).orNull());
-
-    // Security
-    builder.setIpAddressWhitelist(
-        RegistrarFormFields.IP_ADDRESS_WHITELIST_FIELD.extractUntyped(args).or(
-            ImmutableList.<CidrAddressBlock>of()));
-    for (String certificate
-        : RegistrarFormFields.CLIENT_CERTIFICATE_FIELD.extractUntyped(args).asSet()) {
-      builder.setClientCertificate(certificate, ofy().getTransactionTime());
-    }
-    for (String certificate
-        : RegistrarFormFields.FAILOVER_CLIENT_CERTIFICATE_FIELD.extractUntyped(args).asSet()) {
-      builder.setFailoverClientCertificate(certificate, ofy().getTransactionTime());
-    }
-
-    builder.setUrl(
-        RegistrarFormFields.URL_FIELD.extractUntyped(args).orNull());
-    builder.setReferralUrl(
-        RegistrarFormFields.REFERRAL_URL_FIELD.extractUntyped(args).orNull());
-
-    // Contact
-    ImmutableSet.Builder<RegistrarContact> contacts = new ImmutableSet.Builder<>();
-    for (RegistrarContact.Builder contactBuilder
-        : concat(RegistrarFormFields.CONTACTS_FIELD.extractUntyped(args).asSet())) {
-      contacts.add(contactBuilder.setParent(existingRegistrarObj).build());
-    }
-
-    return contacts.build();
-  }
-
-  @Override
-  public Map<String, Object> handleJsonRequest(Map<String, ?> input) {
-    if (input == null) {
-      throw new BadRequestException("Malformed JSON");
-    }
-
-    if (!sessionUtils.checkRegistrarConsoleLogin(request)) {
-      return JsonResponseHelper.create(ERROR, "Not authorized to access Registrar Console");
-    }
-
-    // Process the operation.  Though originally derived from a CRUD
-    // handlder, registrar-settings really only supports read and update.
-    String op = Optional.fromNullable((String) input.get(OP_PARAM)).or("read");
+  private void sendExternalUpdatesIfNecessary(
+      String registrarName,
+      Map<String, Object> existingRegistrar,
+      Map<String, Object> updatedRegistrar) {
+    Map<?, ?> diffs = DiffUtils.deepDiff(existingRegistrar, updatedRegistrar, true);
     @SuppressWarnings("unchecked")
-    Map<String, ?> args = (Map<String, Object>)
-        Optional.<Object>fromNullable(input.get(ARGS_PARAM)).or(ImmutableMap.of());
-    try {
-      switch (op) {
-        case "update":
-          return update(args, initialRegistrar);
-        case "read":
-          return read(args, initialRegistrar);
-        default:
-          return JsonResponseHelper.create(ERROR, "Unknown or unsupported operation: " + op);
-      }
-    } catch (FormFieldException e) {
-      return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
-    } catch (FormException ee) {
-      return JsonResponseHelper.create(ERROR, ee.getMessage());
+    Set<String> changedKeys = (Set<String>) diffs.keySet();
+    if (CollectionUtils.difference(changedKeys, "lastUpdateTime").isEmpty()) {
+      return;
     }
-
+    SyncRegistrarsSheetAction.enqueueBackendTask();
+    if (!registrarChangesNotificationEmailAddresses.isEmpty()) {
+      SendEmailUtils.sendEmail(
+          registrarChangesNotificationEmailAddresses,
+          String.format("Registrar %s updated", registrarName),
+          "The following changes were made to the registrar:\n"
+              + DiffUtils.prettyPrintDiffedMap(diffs, null));
+    }
   }
 
-  @Override
-  public void run() {
-    jsonActionRunner.run(this);
+  public Map<String, Object> read(Map<String, ?> args, Registrar registrar) {
+    return JsonResponseHelper.create(SUCCESS, "Success", registrar.toJsonMap());
+  }
+
+  /** Thrown when a set of contacts doesn't meet certain constraints. */
+  private static class ContactRequirementException extends FormException {
+    ContactRequirementException(String msg) {
+      super(msg);
+    }
+
+    ContactRequirementException(RegistrarContact.Type type) {
+      super("Must have at least one " + type.getDisplayName() + " contact");
+    }
   }
 }
