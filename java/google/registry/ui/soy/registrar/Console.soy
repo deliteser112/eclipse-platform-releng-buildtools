@@ -32,6 +32,7 @@
   {@param supportEmail: string}
   {@param announcementsEmail: string}
   {@param supportPhoneNumber: string}
+  {@param technicalDocsUrl: string}
 
   {call registry.soy.console.header}
     {param app: 'registrar' /}
@@ -72,7 +73,8 @@
                               {$integrationEmail},
                               {$supportEmail},
                               {$announcementsEmail},
-                              {$supportPhoneNumber});
+                              {$supportPhoneNumber},
+                              {$technicalDocsUrl});
     </script>
   {/if}
 {/template}
@@ -269,6 +271,7 @@
 /** Resources and billing links. */
 {template .resources}
   {@param? driveFolderId: string}
+  {@param technicalDocsUrl: string}
   <div id="domain-registrar-resources">
     <h1>Resources &amp; billing</h1>
     <p>
@@ -276,10 +279,10 @@
       important documentation.
     <h2><img src="/assets/images/folder.png">TLD information</h2>
     <p>
-      Find onboarding FAQs &amp; technical documentation in this folder.
+      Find onboarding FAQs &amp; technical documentation here:
       <br><br>
       <a class="{css kd-button} {css kd-button-submit}"
-         href="https://drive.google.com/a/googleregistry.co/folderview?id=0B-X8z5IcswtqNmw5ekx2bU51ckk&usp=sharing"
+         href="{$technicalDocsUrl}"
          target="_blank" rel="noopener">View TLD information on Google Drive</a>
     <h2><img src="/assets/images/folder.png">Billing details</h2>
     <p>
@@ -288,7 +291,7 @@
       {if (isNonnull($driveFolderId))}
         <a id="reg-resources-driveLink"
            class="{css kd-button} {css kd-button-submit}"
-           href="https://drive.google.com/a/googleregistry.co/folderview?id={$driveFolderId}&usp=sharing"
+           href="https://drive.google.com/drive/folders/{$driveFolderId}"
            target="_blank" rel="noopener">View billing details on Google Drive</a>
       {else}
         <em>Your billing folder is pending allocation.</em>

@@ -57,6 +57,7 @@ function setUp() {
     supportEmail: 'support@google.com',
     announcementsEmail: 'announcements@google.com',
     supportPhoneNumber: '123 456 7890',
+    technicalDocsUrl: 'http://example.com/techdocs'
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
   registry.registrar.ConsoleTestUtil.setup(test);

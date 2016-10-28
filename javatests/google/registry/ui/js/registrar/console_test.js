@@ -57,7 +57,8 @@ function setUp() {
     integrationEmail: 'integration@example.com',
     supportEmail: 'support@example.com',
     announcementsEmail: 'announcement@example.com',
-    supportPhoneNumber: '+1 (888) 555 0123'
+    supportPhoneNumber: '+1 (888) 555 0123',
+    technicalDocsUrl: 'http://example.com/techdocs',
   });
   registry.registrar.ConsoleTestUtil.setup(test);
   var regNavlist = $('reg-navlist');
@@ -126,7 +127,8 @@ function testShowLoginOrDash() {
 function testNavToResources() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'resources',
-    xsrfToken: test.testXsrfToken
+    xsrfToken: test.testXsrfToken,
+    technicalDocsUrl: 'http://example.com/techdocs'
   });
   var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue(xhr.isActive());

@@ -16,6 +16,7 @@ goog.provide('registry.ResourceComponent');
 
 goog.require('goog.dom');
 goog.require('goog.json');
+goog.require('goog.object');
 goog.require('registry.EditItem');
 goog.require('registry.forms');
 goog.require('registry.util');
@@ -51,6 +52,15 @@ registry.ResourceComponent = function(
   this.renderSetCb = renderSetCb;
 };
 goog.inherits(registry.ResourceComponent, registry.EditItem);
+
+
+/** @override */
+registry.ResourceComponent.prototype.renderItem = function(rspObj) {
+  // Augment the console parameters with the response object, we'll need both.
+  var params = goog.object.clone(this.console.params);
+  goog.object.extend(params, rspObj);
+  registry.ResourceComponent.base(this, 'renderItem', params);
+};
 
 
 /** @override */

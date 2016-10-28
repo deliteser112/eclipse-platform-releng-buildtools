@@ -141,6 +141,16 @@ public final class ConfigModule {
     return "+1 (888) 555 0123";
   }
 
+  /**
+   * The URL for technical support docs.  Used in the "contact-us" section of the registrar console.
+   */
+  @Provides
+  @Config("technicalDocsUrl")
+  public static String provideTechnicalDocsUrl(RegistryEnvironment environment) {
+    // Change this to your support docs link.
+    return "http://example.com/your_support_docs/";
+  }
+
   /** @see RegistryConfig#getZoneFilesBucket() */
   @Provides
   @Config("zoneFilesBucket")

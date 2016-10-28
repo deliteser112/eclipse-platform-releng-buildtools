@@ -64,6 +64,7 @@ public final class ConsoleUiAction implements Runnable {
   @Inject @Config("supportEmail") String supportEmail;
   @Inject @Config("announcementsEmail") String announcementsEmail;
   @Inject @Config("supportPhoneNumber") String supportPhoneNumber;
+  @Inject @Config("technicalDocsUrl") String technicalDocsUrl;
   @Inject @Config("registrarConsoleEnabled") boolean enabled;
   @Inject ConsoleUiAction() {}
 
@@ -79,6 +80,7 @@ public final class ConsoleUiAction implements Runnable {
     data.put("supportEmail", supportEmail);
     data.put("announcementsEmail", announcementsEmail);
     data.put("supportPhoneNumber", supportPhoneNumber);
+    data.put("technicalDocsUrl", technicalDocsUrl);
     if (!enabled) {
       response.setStatus(SC_SERVICE_UNAVAILABLE);
       response.setPayload(

@@ -56,6 +56,7 @@ public class ConsoleUiActionTest {
     action.supportEmail = "support@example.com";
     action.announcementsEmail = "announcements@example.com";
     action.supportPhoneNumber = "1 (888) 555 0123";
+    action.technicalDocsUrl = "http://example.com/technical-docs";
     action.response = response;
     action.sessionUtils = sessionUtils;
     action.userService = UserServiceFactory.getUserService();

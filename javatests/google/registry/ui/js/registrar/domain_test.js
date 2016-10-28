@@ -53,7 +53,8 @@ function setUp() {
     integrationEmail: 'integration@example.com',
     supportEmail: 'support@example.com',
     announcementsEmail: 'announcement@example.com',
-    supportPhoneNumber: '+1 (888) 555 0123'
+    supportPhoneNumber: '+1 (888) 555 0123',
+    technicalDocsUrl: 'http://example.com/techdocs'
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
 

@@ -16,7 +16,6 @@ goog.provide('registry.registrar.ContactUs');
 
 goog.require('goog.Uri');
 goog.require('goog.dom');
-goog.require('goog.object');
 goog.require('registry.Resource');
 goog.require('registry.ResourceComponent');
 goog.require('registry.soy.registrar.console');
@@ -43,15 +42,6 @@ registry.registrar.ContactUs = function(console, xsrfToken) {
       null);
 };
 goog.inherits(registry.registrar.ContactUs, registry.ResourceComponent);
-
-
-/** @override */
-registry.registrar.ContactUs.prototype.renderItem = function(rspObj) {
-  // Augment the static parameters with the response object, we'll need both.
-  var params = goog.object.clone(this.console.params);
-  goog.object.extend(params, rspObj);
-  registry.registrar.ContactUs.base(this, 'renderItem', params);
-};
 
 
 /** @override */
