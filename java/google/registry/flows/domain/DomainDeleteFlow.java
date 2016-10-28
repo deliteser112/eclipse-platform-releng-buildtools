@@ -198,7 +198,6 @@ public final class DomainDeleteFlow extends Flow implements TransactionalFlow {
     if (extraFlowLogic.isPresent()) {
       extraFlowLogic.get().performAdditionalDomainDeleteLogic(
           existingResource, clientId, now, eppInput, historyEntry);
-      extraFlowLogic.get().commitAdditionalLogicChanges();
     }
   }
 

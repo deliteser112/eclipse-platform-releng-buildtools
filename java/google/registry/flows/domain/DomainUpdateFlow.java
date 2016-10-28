@@ -333,7 +333,6 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
     if (extraFlowLogic.isPresent()) {
       extraFlowLogic.get().performAdditionalDomainUpdateLogic(
           existingDomain, clientId, now, eppInput, historyEntry);
-      extraFlowLogic.get().commitAdditionalLogicChanges();
     }
   }
 }

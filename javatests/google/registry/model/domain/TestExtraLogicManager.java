@@ -15,7 +15,6 @@
 package google.registry.model.domain;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
@@ -43,11 +42,9 @@ import org.joda.time.DateTime;
  */
 public class TestExtraLogicManager implements RegistryExtraFlowLogic {
 
-  private String messageToThrow = null;
-
   /**
-   * Dummy exception used to signal success. This is thrown by the commitAdditionalLogicChanges
-   * method to indicate to the test that everything worked properly, because the
+   * Dummy exception used to signal success. This is thrown by the performAdditionalXXXLogic()
+   * methods to indicate to the test that everything worked properly, because the
    * TestExtraLogicManager instance used by the flow will have been created deep in the flow and is
    * not accessible to the test code directly.  We should fix this when we make the extra flow logic
    * injected.
@@ -116,7 +113,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     if (flags == null) {
       return;
     }
-    messageToThrow = Joiner.on(',').join(flags.getFlags());
+    throw new TestExtraLogicManagerSuccessException(Joiner.on(',').join(flags.getFlags()));
   }
 
   /** Computes the expected create cost, for use in fee challenges and the like. */
@@ -130,10 +127,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     return domainNameToFeeOrCredit(domainName);
   }
 
-  /**
-   * Performs additional tasks required for a create command. Any changes should not be persisted to
-   * Datastore until commitAdditionalLogicChanges is called.
-   */
+  /** Performs additional tasks required for a create command. */
   @Override
   public void performAdditionalDomainCreateLogic(
       DomainResource domain,
@@ -147,13 +141,10 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     if (flags == null) {
       return;
     }
-    messageToThrow = Joiner.on(',').join(flags.getFlags());
+    throw new TestExtraLogicManagerSuccessException(Joiner.on(',').join(flags.getFlags()));
   }
 
-  /**
-   * Performs additional tasks required for a delete command. Any changes should not be persisted to
-   * Datastore until commitAdditionalLogicChanges is called.
-   */
+  /** Performs additional tasks required for a delete command. */
   @Override
   public void performAdditionalDomainDeleteLogic(
       DomainResource domainResource,
@@ -161,7 +152,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
       DateTime asOfDate,
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException {
-    messageToThrow = "deleted";
+    throw new TestExtraLogicManagerSuccessException("deleted");
   }
 
   /** Computes the expected renewal cost, for use in fee challenges and the like. */
@@ -175,10 +166,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     return domainNameToFeeOrCredit(domain.getFullyQualifiedDomainName());
   }
 
-  /**
-   * Performs additional tasks required for a renew command. Any changes should not be persisted
-   * to Datastore until commitAdditionalLogicChanges is called.
-   */
+  /** Performs additional tasks required for a renew command. */
   @Override
   public void performAdditionalDomainRenewLogic(
       DomainResource domainResource,
@@ -187,13 +175,10 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
       int years,
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException {
-    messageToThrow = "renewed";
+    throw new TestExtraLogicManagerSuccessException("renewed");
   }
 
-  /**
-   * Performs additional tasks required for a restore command. Any changes should not be persisted
-   * to Datastore until commitAdditionalLogicChanges is called.
-   */
+  /** Performs additional tasks required for a restore command. */
   @Override
   public void performAdditionalDomainRestoreLogic(
       DomainResource domainResource,
@@ -201,13 +186,10 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
       DateTime asOfDate,
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException {
-    messageToThrow = "restored";
+    throw new TestExtraLogicManagerSuccessException("restored");
   }
 
-  /**
-   * Performs additional tasks required for a transfer command. Any changes should not be persisted
-   * to Datastore until commitAdditionalLogicChanges is called.
-   */
+  /** Performs additional tasks required for a transfer command. */
   @Override
   public void performAdditionalDomainTransferLogic(
       DomainResource domainResource,
@@ -221,11 +203,11 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     if (flags == null) {
       return;
     }
-    messageToThrow =
+    throw new TestExtraLogicManagerSuccessException(
         "add:"
         + Joiner.on(',').join(flags.getAddFlags().getFlags())
         + ";remove:"
-        + Joiner.on(',').join(flags.getRemoveFlags().getFlags());
+        + Joiner.on(',').join(flags.getRemoveFlags().getFlags()));
   }
 
   /** Computes the expected update cost, for use in fee challenges and the like. */
@@ -238,10 +220,7 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     return domainNameToFeeOrCredit(domain.getFullyQualifiedDomainName());
   }
 
-  /**
-   * Performs additional tasks required for an update command. Any changes should not be persisted
-   * to Datastore until commitAdditionalLogicChanges is called.
-   */
+  /** Performs additional tasks required for an update command. */
   @Override
   public void performAdditionalDomainUpdateLogic(
       DomainResource domainResource,
@@ -254,17 +233,10 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     if (flags == null) {
       return;
     }
-    messageToThrow =
+    throw new TestExtraLogicManagerSuccessException(
         "add:"
         + Joiner.on(',').join(flags.getAddFlags().getFlags())
         + ";remove:"
-        + Joiner.on(',').join(flags.getRemoveFlags().getFlags());
-  }
-
-  @Override
-  public void commitAdditionalLogicChanges() {
-    checkNotNull(messageToThrow);
-    // Throw a specific exception as a signal to the test code that we made it through to here.
-    throw new TestExtraLogicManagerSuccessException(messageToThrow);
+        + Joiner.on(',').join(flags.getRemoveFlags().getFlags()));
   }
 }

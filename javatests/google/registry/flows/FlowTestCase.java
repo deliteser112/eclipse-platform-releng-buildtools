@@ -118,7 +118,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   }
 
   /** Returns the EPP data loaded by a previous call to setEppInput. */
-  protected EppInput getEppInput() throws Exception {
+  protected EppInput getEppInput() throws EppException {
     return eppLoader.getEpp();
   }
 

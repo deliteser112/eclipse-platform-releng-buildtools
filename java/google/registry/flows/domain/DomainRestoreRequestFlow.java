@@ -155,7 +155,6 @@ public final class DomainRestoreRequestFlow extends Flow implements Transactiona
     if (extraFlowLogic.isPresent()) {
       extraFlowLogic.get().performAdditionalDomainRestoreLogic(
           existingDomain, clientId, now, eppInput, historyEntry);
-      extraFlowLogic.get().commitAdditionalLogicChanges();
     }
     DomainResource newDomain =
         performRestore(existingDomain, newExpirationTime, autorenewEvent, autorenewPollMessage);

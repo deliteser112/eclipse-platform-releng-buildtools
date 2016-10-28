@@ -372,7 +372,6 @@ public final class DomainTransferRequestFlow extends Flow implements Transaction
     if (extraFlowLogic.isPresent()) {
       extraFlowLogic.get().performAdditionalDomainTransferLogic(
           existingDomain, gainingClientId, now, years, eppInput, historyEntry);
-      extraFlowLogic.get().commitAdditionalLogicChanges();
     }
   }
 

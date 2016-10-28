@@ -19,6 +19,7 @@ import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
+import google.registry.flows.EppException;
 import google.registry.model.eppinput.EppInput;
 import java.util.Map;
 
@@ -35,7 +36,7 @@ public class EppLoader {
     this.eppXml = loadFileWithSubstitutions(context.getClass(), eppXmlFilename, substitutions);
   }
 
-  public EppInput getEpp() throws Exception {
+  public EppInput getEpp() throws EppException {
     return unmarshal(EppInput.class, eppXml.getBytes(UTF_8));
   }
 

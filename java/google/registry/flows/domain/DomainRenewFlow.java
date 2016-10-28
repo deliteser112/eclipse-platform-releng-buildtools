@@ -161,7 +161,6 @@ public final class DomainRenewFlow extends Flow implements TransactionalFlow {
     if (extraFlowLogic.isPresent()) {
       extraFlowLogic.get().performAdditionalDomainRenewLogic(
           existingDomain, clientId, now, years, eppInput, historyEntry);
-      extraFlowLogic.get().commitAdditionalLogicChanges();
     }
     DomainResource newDomain = existingDomain.asBuilder()
         .setRegistrationExpirationTime(newExpirationTime)

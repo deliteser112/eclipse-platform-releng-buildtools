@@ -353,7 +353,6 @@ public final class DomainApplicationCreateFlow extends Flow implements Transacti
           years,
           eppInput,
           historyEntry);
-      extraFlowLogic.get().commitAdditionalLogicChanges();
     }
   }
 

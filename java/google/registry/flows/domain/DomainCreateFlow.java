@@ -404,7 +404,6 @@ public class DomainCreateFlow extends Flow implements TransactionalFlow {
           years,
           eppInput,
           historyEntry);
-      extraFlowLogic.get().commitAdditionalLogicChanges();
     }
   }
 
