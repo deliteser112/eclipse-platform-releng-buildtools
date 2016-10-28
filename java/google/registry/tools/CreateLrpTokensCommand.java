@@ -27,6 +27,8 @@ import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.google.common.io.LineReader;
@@ -34,6 +36,8 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import google.registry.model.domain.LrpTokenEntity;
 import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.KeyValueMapParameter.StringToIntegerMap;
+import google.registry.tools.params.KeyValueMapParameter.StringToStringMap;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.StringGenerator;
 import google.registry.util.TokenUtils;
@@ -71,6 +75,24 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
       validateWith = PathParameter.InputFile.class)
   private Path assigneesFile;
 
+  @Parameter(
+      names = {"-m", "--metadata"},
+      description = "Token metadata key-value pairs (formatted as key=value[,key=value...]). Used"
+          + " only in conjunction with -a/--assignee when creating a single token.",
+      converter = StringToStringMap.class,
+      validateWith = StringToStringMap.class)
+  private ImmutableMap<String, String> metadata;
+
+  @Parameter(
+      names = {"-c", "--metadata_columns"},
+      description = "Token metadata columns (formatted as key=index[,key=index...], columns are"
+          + " zero-indexed). Used only in conjunction with -i/--input to map additional fields in"
+          + " the CSV file to metadata stored on the LRP token. The index corresponds to the column"
+          + " number in the CSV file (where the assignee is assigned column 0).",
+      converter = StringToIntegerMap.class,
+      validateWith = StringToIntegerMap.class)
+  private ImmutableMap<String, Integer> metadataColumns;
+
   @Inject StringGenerator stringGenerator;
 
   private static final int BATCH_SIZE = 20;
@@ -80,13 +102,19 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
     checkArgument(
         (assignee == null) == (assigneesFile != null),
         "Exactly one of either assignee or filename must be specified.");
+    checkArgument(
+        (assigneesFile == null) || (metadata == null),
+        "Metadata cannot be specified along with a filename.");
+    checkArgument(
+        (assignee == null) || (metadataColumns == null),
+        "Metadata columns cannot be specified along with an assignee.");
     final Set<String> validTlds = ImmutableSet.copyOf(Splitter.on(',').split(tlds));
     for (String tld : validTlds) {
       assertTldExists(tld);
     }
 
     LineReader reader = new LineReader(
-        (assignee == null)
+        (assigneesFile != null)
             ? Files.newReader(assigneesFile.toFile(), UTF_8)
             : new StringReader(assignee));
 
@@ -96,11 +124,27 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
       for (String token : generateTokens(BATCH_SIZE)) {
         line = reader.readLine();
         if (!isNullOrEmpty(line)) {
-          tokensToSave.add(new LrpTokenEntity.Builder()
-              .setAssignee(line)
+          ImmutableList<String> values = ImmutableList.copyOf(Splitter.on(',').split(line));
+          LrpTokenEntity.Builder tokenBuilder = new LrpTokenEntity.Builder()
+              .setAssignee(values.get(0))
               .setToken(token)
-              .setValidTlds(validTlds)
-              .build());
+              .setValidTlds(validTlds);
+          if (metadata != null) {
+            tokenBuilder.setMetadata(metadata);
+          } else if (metadataColumns != null) {
+            ImmutableMap.Builder<String, String> metadataBuilder = ImmutableMap.builder();
+            for (ImmutableMap.Entry<String, Integer> entry : metadataColumns.entrySet()) {
+              checkArgument(
+                  values.size() > entry.getValue(),
+                  "Entry for %s does not have a value for %s (index %s)",
+                  values.get(0),
+                  entry.getKey(),
+                  entry.getValue());
+              metadataBuilder.put(entry.getKey(), values.get(entry.getValue()));
+            }
+            tokenBuilder.setMetadata(metadataBuilder.build());
+          }
+          tokensToSave.add(tokenBuilder.build());
         }
       }
       saveTokens(tokensToSave.build());

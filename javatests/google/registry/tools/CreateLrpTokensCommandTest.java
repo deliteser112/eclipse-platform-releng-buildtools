@@ -55,7 +55,20 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   public void testSuccess_oneAssignee() throws Exception {
     runCommand("--assignee=domain.tld", "--tlds=tld");
     assertLrpTokens(
-        createToken("LRP_abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null));
+        createToken("LRP_abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null, null));
+    assertInStdout("domain.tld,LRP_abcdefghijklmnop");
+  }
+
+  @Test
+  public void testSuccess_oneAssignee_withMetadata() throws Exception {
+    runCommand("--assignee=domain.tld", "--tlds=tld", "--metadata=key=foo,key2=bar");
+    assertLrpTokens(
+        createToken(
+            "LRP_abcdefghijklmnop",
+            "domain.tld",
+            ImmutableSet.of("tld"),
+            null,
+            ImmutableMap.of("key", "foo", "key2", "bar")));
     assertInStdout("domain.tld,LRP_abcdefghijklmnop");
   }
 
@@ -69,7 +82,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
     runCommand("--assignee=domain.tld", "--tlds=tld");
     assertLrpTokens(
         existingToken,
-        createToken("LRP_qrstuvwxyzabcdef", "domain.tld", ImmutableSet.of("tld"), null));
+        createToken("LRP_qrstuvwxyzabcdef", "domain.tld", ImmutableSet.of("tld"), null, null));
     assertInStdout("domain.tld,LRP_qrstuvwxyzabcdef");
   }
 
@@ -78,7 +91,21 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
     Files.write("domain.tld", assigneeFile, UTF_8);
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
     assertLrpTokens(
-        createToken("LRP_abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null));
+        createToken("LRP_abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null, null));
+    assertInStdout("domain.tld,LRP_abcdefghijklmnop");
+  }
+
+  @Test
+  public void testSuccess_oneAssignee_byFile_withMetadata() throws Exception {
+    Files.write("domain.tld,foo,bar", assigneeFile, UTF_8);
+    runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");
+    assertLrpTokens(
+        createToken(
+            "LRP_abcdefghijklmnop",
+            "domain.tld",
+            ImmutableSet.of("tld"),
+            null,
+            ImmutableMap.of("key", "foo", "key2", "bar")));
     assertInStdout("domain.tld,LRP_abcdefghijklmnop");
   }
 
@@ -96,9 +123,9 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
 
     assertLrpTokens(
-        createToken("LRP_abcdefghijklmnop", "domain1.tld", ImmutableSet.of("tld"), null),
-        createToken("LRP_qrstuvwxyzabcdef", "domain2.tld", ImmutableSet.of("tld"), null),
-        createToken("LRP_ghijklmnopqrstuv", "domain3.tld", ImmutableSet.of("tld"), null));
+        createToken("LRP_abcdefghijklmnop", "domain1.tld", ImmutableSet.of("tld"), null, null),
+        createToken("LRP_qrstuvwxyzabcdef", "domain2.tld", ImmutableSet.of("tld"), null, null),
+        createToken("LRP_ghijklmnopqrstuv", "domain3.tld", ImmutableSet.of("tld"), null, null));
 
     assertInStdout("domain1.tld,LRP_abcdefghijklmnop");
     assertInStdout("domain2.tld,LRP_qrstuvwxyzabcdef");
@@ -110,15 +137,15 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
     Files.write("domain1.tld\n\ndomain2.tld", assigneeFile, UTF_8);
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
     assertLrpTokens(
-        createToken("LRP_abcdefghijklmnop", "domain1.tld", ImmutableSet.of("tld"), null),
+        createToken("LRP_abcdefghijklmnop", "domain1.tld", ImmutableSet.of("tld"), null, null),
         // Second deterministic token (LRP_qrstuvwxyzabcdef) still consumed but not assigned
-        createToken("LRP_ghijklmnopqrstuv", "domain2.tld", ImmutableSet.of("tld"), null));
+        createToken("LRP_ghijklmnopqrstuv", "domain2.tld", ImmutableSet.of("tld"), null, null));
     assertInStdout("domain1.tld,LRP_abcdefghijklmnop");
     assertInStdout("domain2.tld,LRP_ghijklmnopqrstuv");
   }
 
   @Test
-  public void testSuccess_largeFile() throws Exception {
+  public void testSuccess_largeFile_withMetadata() throws Exception {
     int numberOfTokens = 67;
     LrpTokenEntity[] expectedTokens = new LrpTokenEntity[numberOfTokens];
     // Prepend a counter to avoid collisions, 16-char alphabet will always generate the same string.
@@ -127,16 +154,17 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
     command.stringGenerator = stringGenerator;
     StringBuilder assigneeFileBuilder = new StringBuilder();
     for (int i = 0; i < numberOfTokens; i++) {
-      assigneeFileBuilder.append(String.format("domain%d.tld\n", i));
+      assigneeFileBuilder.append(String.format("domain%d.tld,%d,%d\n", i, i * 2, i * 3));
       expectedTokens[i] =
           createToken(
               String.format("LRP_%04d_abcdefghijklmnop", i),
               String.format("domain%d.tld", i),
               ImmutableSet.of("tld"),
-              null);
+              null,
+              ImmutableMap.of("key", Integer.toString(i * 2), "key2", Integer.toString(i * 3)));
     }
     Files.write(assigneeFileBuilder, assigneeFile, UTF_8);
-    runCommand("--input=" + assigneeFilePath, "--tlds=tld");
+    runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");
     assertLrpTokens(expectedTokens);
     for (int i = 0; i < numberOfTokens; i++) {
       assertInStdout(String.format("domain%d.tld,LRP_%04d_abcdefghijklmnop", i, i));
@@ -160,9 +188,33 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   }
 
   @Test
+  public void testFailure_bothMetadataAndFile() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Metadata cannot be specified along with a filename.");
+    runCommand("--tlds=tld", "--input=" + assigneeFilePath, "--metadata=key=foo");
+  }
+
+  @Test
+  public void testFailure_bothAssigneeAndMetadataColumns() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Metadata columns cannot be specified along with an assignee.");
+    runCommand("--assignee=domain.tld", "--tlds=tld", "--metadata_columns=foo=1");
+  }
+
+  @Test
   public void testFailure_badTld() throws Exception {
     thrown.expect(IllegalArgumentException.class, "TLD foo does not exist");
     runCommand("--assignee=domain.tld", "--tlds=foo");
+  }
+
+  @Test
+  public void testFailure_oneAssignee_byFile_insufficientMetadata() throws Exception {
+    Files.write("domain.tld,foo", assigneeFile, UTF_8);
+    thrown.expect(IllegalArgumentException.class,
+        "Entry for domain.tld does not have a value for key2 (index 2)");
+    runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");
   }
 
   private void assertLrpTokens(LrpTokenEntity... expected) throws Exception {
@@ -190,13 +242,17 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
       String token,
       String assignee,
       Set<String> validTlds,
-      @Nullable Key<HistoryEntry> redemptionHistoryEntry) {
+      @Nullable Key<HistoryEntry> redemptionHistoryEntry,
+      @Nullable ImmutableMap<String, String> metadata) {
     LrpTokenEntity.Builder tokenBuilder = new LrpTokenEntity.Builder()
         .setAssignee(assignee)
         .setValidTlds(validTlds)
         .setToken(token);
     if (redemptionHistoryEntry != null) {
       tokenBuilder.setRedemptionHistoryEntry(redemptionHistoryEntry);
+    }
+    if (metadata != null) {
+      tokenBuilder.setMetadata(metadata);
     }
     return tokenBuilder.build();
   }
