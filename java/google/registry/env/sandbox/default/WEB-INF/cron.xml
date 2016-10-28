@@ -142,5 +142,14 @@
   </cron>
   -->
 
+  <cron>
+    <url><![CDATA[/_ah/sessioncleanup?clear]]></url>
+    <description>
+      Delete up to 100 expired _ah_SESSION entities from Datastore.
+    </description>
+    <schedule>every 15 minutes</schedule>
+    <target>backend</target>
+  </cron>
+
 
 </cronentries>
