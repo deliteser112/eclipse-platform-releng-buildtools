@@ -151,8 +151,6 @@ public class RegistrarBillingEntry extends ImmutableObject implements Jsonifiabl
     @Nullable
     private RegistrarBillingEntry previous;
 
-    public Builder() {}
-
     public Builder setParent(Registrar parent) {
       getInstance().parent = Key.create(parent);
       return this;
