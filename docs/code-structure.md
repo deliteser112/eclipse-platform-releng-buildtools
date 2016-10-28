@@ -82,7 +82,7 @@ are multiple cursors per operation; for instance, the cursors related to RDE
 reporting, staging, and upload are per-TLD cursors. To accomplish this, each
 `Cursor` also has a scope, a `Key<ImmutableObject>` to which the particular
 cursor applies (this can be e.g. a `Registry` or any other `ImmutableObject` in
-datastore, depending on the operation). If the `Cursor` applies to the entire
+Datastore, depending on the operation). If the `Cursor` applies to the entire
 registry environment, it is considered a global cursor and has a scope of
 `EntityGroupRoot.getCrossTldKey()`.
 
@@ -186,6 +186,38 @@ resource when it is deleted.
 There are a number of other useful utility methods for interacting with EPP
 resources in the `EppResourceUtils` class, many of which deal with inspecting
 the status of a resource at a given point in time.
+
+## Foreign key indexes
+
+Foreign key indexes provide a means of loading active instances of `EppResource`
+objects by their unique IDs:
+
+*   `DomainResource`: fully-qualified domain name
+*   `ContactResource`: contact id
+*   `HostResource`: fully-qualified host name
+
+Since all `EppResource` entities are indexed on ROID (which is also unique, but
+not as useful as the resource's name), a `ForeignKeyIndex` provides a way to
+look up the resources using another key which is also unique during the lifetime
+of the resource (though not for all time).
+
+A `ForeignKeyIndex` is updated as a resource is created or deleted. It is
+important to note that throughout the lifecycle of an `EppResource`, the
+underlying Datastore entity is never hard-deleted; its deletion time is set to
+the time at which the EPP command to delete the resource was set, and it remains
+in Datastore. Other resources with that same name can then be created.
+
+## EPP resource index
+
+An `EppResourceIndex` is an index that allows for quick enumeration of all
+`EppResource` entities in Datastore. Datastore does not otherwise provide an
+easy way to efficiently and strongly consistently enumerate all entities of a
+given type. Each `EppResourceIndex` is assigned randomly to an
+`EppResourceIndexBucket` upon creation, the number of which is configured to be
+greater than the number of shards typically used for Mapreduces that enumerate
+these entities. Mapreduces that process all `EppResource` entities (or
+subclasses thereof) distribute each `EppResourceIndexBucket` to available
+shards.
 
 ## History entries
 
