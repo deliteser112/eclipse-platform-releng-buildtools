@@ -266,11 +266,21 @@ public final class FullFieldsTestEntityHelper {
       Period period,
       String reason,
       DateTime modificationTime) {
+    return makeHistoryEntry(resource, type, period, reason, modificationTime, "<xml></xml>");
+  }
+
+  public static HistoryEntry makeHistoryEntry(
+      EppResource resource,
+      HistoryEntry.Type type,
+      Period period,
+      String reason,
+      DateTime modificationTime,
+      String xml) {
     HistoryEntry.Builder builder = new HistoryEntry.Builder()
         .setParent(resource)
         .setType(type)
         .setPeriod(period)
-        .setXmlBytes("<xml></xml>".getBytes(UTF_8))
+        .setXmlBytes(xml.getBytes(UTF_8))
         .setModificationTime(modificationTime)
         .setClientId("foo")
         .setTrid(Trid.create("ABC-123"))

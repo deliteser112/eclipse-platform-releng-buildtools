@@ -16,6 +16,7 @@ package google.registry.model.domain;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
@@ -23,12 +24,17 @@ import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
+import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.VoidWork;
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.launch.ApplicationStatus;
@@ -39,12 +45,14 @@ import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
+import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.ExceptionRule;
 import org.joda.money.Money;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -102,7 +110,7 @@ public class DomainApplicationTest extends EntityTestCase {
                     .build())
             .setCreationTrid(Trid.create("client creation trid"))
             .setPhase(LaunchPhase.LANDRUSH)
-            .setPeriod(Period.create(5, Period.Unit.YEARS))
+            // TODO(b/32447342): set period
             .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "abcdefg=")))
             .setApplicationStatus(ApplicationStatus.ALLOCATED)
             .setAuctionPrice(Money.of(USD, 11))
@@ -118,6 +126,8 @@ public class DomainApplicationTest extends EntityTestCase {
 
   @Test
   public void testIndexing() throws Exception {
+    domainApplication = persistResource(
+        domainApplication.asBuilder().setPeriod(Period.create(5, Period.Unit.YEARS)).build());
     verifyIndexing(
         domainApplication,
         "allContacts.contactId.linked",
@@ -187,5 +197,72 @@ public class DomainApplicationTest extends EntityTestCase {
   public void testToHydratedString_notCircular() {
     // If there are circular references, this will overflow the stack.
     domainApplication.toHydratedString();
+  }
+
+  // TODO(b/32447342): remove this once the period has been populated on all DomainApplications
+  private void triggerTheOnLoadMethod() {
+    ofy().transact(new VoidWork() {
+      @Override
+      public void vrun() {
+        domainApplication = ofy().load().fromEntity(ofy().save().toEntity(domainApplication));
+      }
+    });
+  }
+
+  // TODO(b/32447342): remove this once the period has been populated on all DomainApplications
+  @Test
+  public void testPeriodIsNullByDefault() {
+    triggerTheOnLoadMethod();
+    assertThat(domainApplication.getPeriod()).isNull();
+  }
+
+  // TODO(b/32447342): remove this once the period has been populated on all DomainApplications
+  @Test
+  public void testPeriodIsOneYearBecauseHistoryEntryHasNoPeriod() {
+    persistResource(makeHistoryEntry(
+        domainApplication,
+        HistoryEntry.Type.DOMAIN_APPLICATION_CREATE,
+        Period.create(5, Period.Unit.YEARS),
+        "testing",
+        DateTime.now(UTC),
+        loadFileWithSubstitutions(
+            getClass(), "domain_create_landrush.xml", ImmutableMap.<String, String>of())));
+    triggerTheOnLoadMethod();
+    assertThat(domainApplication.getPeriod()).isNotNull();
+    assertThat(domainApplication.getPeriod()).isEqualTo(Period.create(1, Period.Unit.YEARS));
+  }
+
+  // TODO(b/32447342): remove this once the period has been populated on all DomainApplications
+  @Test
+  public void testPeriodDefaultedFromHistoryEntry() {
+    persistResource(makeHistoryEntry(
+        domainApplication,
+        HistoryEntry.Type.DOMAIN_APPLICATION_CREATE,
+        Period.create(5, Period.Unit.YEARS),
+        "testing",
+        DateTime.now(UTC),
+        loadFileWithSubstitutions(
+            getClass(), "domain_create_landrush_with_period.xml", ImmutableMap.of("PERIOD", "5"))));
+    triggerTheOnLoadMethod();
+    assertThat(domainApplication.getPeriod()).isNotNull();
+    assertThat(domainApplication.getPeriod()).isEqualTo(Period.create(5, Period.Unit.YEARS));
+  }
+
+  // TODO(b/32447342): remove this once the period has been populated on all DomainApplications
+  @Test
+  public void testPeriodAlreadySet() {
+    domainApplication = persistResource(
+        domainApplication.asBuilder().setPeriod(Period.create(1, Period.Unit.YEARS)).build());
+    persistResource(makeHistoryEntry(
+        domainApplication,
+        HistoryEntry.Type.DOMAIN_APPLICATION_CREATE,
+        Period.create(5, Period.Unit.YEARS),
+        "testing",
+        DateTime.now(UTC),
+        loadFileWithSubstitutions(
+            getClass(), "domain_create_landrush_with_period.xml", ImmutableMap.of("PERIOD", "5"))));
+    triggerTheOnLoadMethod();
+    assertThat(domainApplication.getPeriod()).isNotNull();
+    assertThat(domainApplication.getPeriod()).isEqualTo(Period.create(1, Period.Unit.YEARS));
   }
 }

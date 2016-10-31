@@ -14,17 +14,24 @@
 
 package google.registry.model.domain;
 
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.OnLoad;
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
+import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
+import google.registry.xml.XmlTransformer;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -72,7 +79,7 @@ public class DomainApplication extends DomainBase {
   /** The requested registration period. */
   @XmlTransient
   Period period;
-  
+
   /** The current status of this application. */
   @XmlTransient
   ApplicationStatus applicationStatus;
@@ -84,6 +91,70 @@ public class DomainApplication extends DomainBase {
   /** The amount paid at auction for the right to register the domain. Used only for reporting. */
   @XmlTransient
   Money auctionPrice;
+
+  // TODO(b/32447342): remove this once the period has been populated on all DomainApplications
+  @OnLoad
+  void setYears() {
+    if (period == null) {
+      // Extract the registration period from the XML used to create the domain application.
+      try {
+        HistoryEntry history = ofy().load()
+            .type(HistoryEntry.class)
+            .ancestor(this)
+            .order("modificationTime")
+            .first()
+            .now();
+        if (history != null) {
+          byte[] xmlBytes = history.getXmlBytes();
+          EppInput eppInput = unmarshal(EppInput.class, xmlBytes);
+          period = ((DomainCommand.Create)
+              ((ResourceCommandWrapper) eppInput.getCommandWrapper().getCommand())
+                  .getResourceCommand()).getPeriod();
+        }
+      } catch (Exception e) {
+        // If we encounter an exception, give up on this defaulting.
+      }
+    }
+  }
+
+  /**
+   * Unmarshal bytes into Epp classes.
+   *
+   * <p>This method, and the things it depends on, are copied from EppXmlTransformer, because that
+   * class is in the flows directory, and we don't want a build dependency of model on build. It can
+   * be removed when the @OnLoad method is removed.
+   *
+   * @param clazz type to return, specified as a param to enforce typesafe generics
+   * @see "http://errorprone.info/bugpattern/TypeParameterUnusedInFormals"
+   */
+  private static <T> T unmarshal(Class<T> clazz, byte[] bytes) throws Exception {
+    return INPUT_TRANSFORMER.unmarshal(clazz, new ByteArrayInputStream(bytes));
+  }
+
+  // Hardcoded XML schemas, ordered with respect to dependency.
+  private static final ImmutableList<String> SCHEMAS = ImmutableList.of(
+      "eppcom.xsd",
+      "epp.xsd",
+      "contact.xsd",
+      "host.xsd",
+      "domain.xsd",
+      "rgp.xsd",
+      "secdns.xsd",
+      "fee06.xsd",
+      "fee11.xsd",
+      "fee12.xsd",
+      "metadata.xsd",
+      "mark.xsd",
+      "dsig.xsd",
+      "smd.xsd",
+      "launch.xsd",
+      "allocate.xsd",
+      "flags.xsd");
+
+  private static final XmlTransformer INPUT_TRANSFORMER =
+      new XmlTransformer(SCHEMAS, EppInput.class);
+
+  // End of copied stuff used by @OnLoad method
 
   @Override
   public String getFullyQualifiedDomainName() {
@@ -158,7 +229,7 @@ public class DomainApplication extends DomainBase {
       getInstance().phase = phase;
       return this;
     }
-    
+
     public Builder setPeriod(Period period) {
       getInstance().period = period;
       return this;
