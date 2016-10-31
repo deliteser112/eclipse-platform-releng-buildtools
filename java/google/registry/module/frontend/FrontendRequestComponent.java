@@ -66,7 +66,7 @@ interface FrontendRequestComponent {
   RdapAutnumAction rdapAutnumAction();
   RegistrarPaymentAction registrarPaymentAction();
   RegistrarPaymentSetupAction registrarPaymentSetupAction();
-  RegistrarSettingsAction registrarAction();
+  RegistrarSettingsAction registrarSettingsAction();
   RdapDomainAction rdapDomainAction();
   RdapDomainSearchAction rdapDomainSearchAction();
   RdapEntityAction rdapEntityAction();
