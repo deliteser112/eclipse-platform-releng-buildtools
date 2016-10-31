@@ -110,6 +110,34 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   }
 
   @Test
+  public void testSuccess_oneAssignee_byFile_withMetadata_quotedString() throws Exception {
+    Files.write("domain.tld,\"foo,foo\",bar", assigneeFile, UTF_8);
+    runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");
+    assertLrpTokens(
+        createToken(
+            "LRP_abcdefghijklmnop",
+            "domain.tld",
+            ImmutableSet.of("tld"),
+            null,
+            ImmutableMap.of("key", "foo,foo", "key2", "bar")));
+    assertInStdout("domain.tld,LRP_abcdefghijklmnop");
+  }
+
+  @Test
+  public void testSuccess_oneAssignee_byFile_withMetadata_twoQuotedStrings() throws Exception {
+    Files.write("domain.tld,\"foo,foo\",\"bar,bar\"", assigneeFile, UTF_8);
+    runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");
+    assertLrpTokens(
+        createToken(
+            "LRP_abcdefghijklmnop",
+            "domain.tld",
+            ImmutableSet.of("tld"),
+            null,
+            ImmutableMap.of("key", "foo,foo", "key2", "bar,bar")));
+    assertInStdout("domain.tld,LRP_abcdefghijklmnop");
+  }
+
+  @Test
   public void testSuccess_emptyFile() throws Exception {
     Files.write("", assigneeFile, UTF_8);
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
@@ -235,6 +263,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
       assertThat(match.getValidTlds()).containsExactlyElementsIn(expectedToken.getValidTlds());
       assertThat(match.getRedemptionHistoryEntry())
           .isEqualTo(expectedToken.getRedemptionHistoryEntry());
+      assertThat(match.getMetadata()).containsExactlyEntriesIn(expectedToken.getMetadata());
     }
   }
 

@@ -24,6 +24,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
@@ -96,6 +97,11 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
   @Inject StringGenerator stringGenerator;
 
   private static final int BATCH_SIZE = 20;
+  
+  // Ensures that all of the double quotes to the right of a comma are balanced. In a well-formed
+  // CSV line, there can be no leading double quote preceding the comma.
+  private static final String COMMA_EXCEPT_WHEN_QUOTED_REGEX =
+      ",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)";
 
   @Override
   public void run() throws Exception {
@@ -124,7 +130,12 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
       for (String token : generateTokens(BATCH_SIZE)) {
         line = reader.readLine();
         if (!isNullOrEmpty(line)) {
-          ImmutableList<String> values = ImmutableList.copyOf(Splitter.on(',').split(line));
+          ImmutableList<String> values =
+              ImmutableList.copyOf(
+                  Splitter.onPattern(COMMA_EXCEPT_WHEN_QUOTED_REGEX)
+                      // Results should not be surrounded in double quotes.
+                      .trimResults(CharMatcher.is('\"'))
+                      .split(line));
           LrpTokenEntity.Builder tokenBuilder = new LrpTokenEntity.Builder()
               .setAssignee(values.get(0))
               .setToken(token)
