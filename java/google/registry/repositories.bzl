@@ -271,14 +271,14 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "guava",
-      artifact = "com.google.guava:guava:19.0",
-      sha1 = "6ce200f6b23222af3d8abb6b6459e6c44f4bb0e9",
+      artifact = "com.google.guava:guava:20.0",
+      sha1 = "89507701249388e1ed5ddcf8c41f4ce1be7831ef",
   )
 
   native.maven_jar(
       name = "guava_testlib",
-      artifact = "com.google.guava:guava-testlib:19.0",
-      sha1 = "ce5b880b206de3f76d364988a6308c68c726f74a",
+      artifact = "com.google.guava:guava-testlib:20.0",
+      sha1 = "e3666edd0d7b10ddfa5242b998efd831e4b264ff",
   )
 
   native.maven_jar(
