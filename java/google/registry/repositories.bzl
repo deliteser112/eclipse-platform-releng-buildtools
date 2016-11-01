@@ -157,8 +157,8 @@ def domain_registry_repositories():
 
   native.maven_jar(
       name = "error_prone_annotations",
-      artifact = "com.google.errorprone:error_prone_annotations:2.0.14",
-      sha1 = "a22b783059252291bcda197b4ba32ff59ebb22f3",
+      artifact = "com.google.errorprone:error_prone_annotations:2.0.13",
+      sha1 = "5bbec1732d649b180d82f98546ce9379ca6e64a7",
   )
 
   native.maven_jar(
