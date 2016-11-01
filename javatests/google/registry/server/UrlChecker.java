@@ -45,7 +45,8 @@ final class UrlChecker {
         }
       }, timeoutMs, TimeUnit.MILLISECONDS, true);
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      Throwables.throwIfUnchecked(e);
+      throw new RuntimeException(e);
     }
   }
 

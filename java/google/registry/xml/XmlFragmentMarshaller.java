@@ -14,7 +14,7 @@
 
 package google.registry.xml;
 
-import static com.google.common.base.Throwables.propagateIfInstanceOf;
+import static com.google.common.base.Throwables.throwIfInstanceOf;
 import static com.google.common.base.Verify.verify;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -74,7 +74,7 @@ public final class XmlFragmentMarshaller {
     try {
       marshaller.marshal(element, os);
     } catch (JAXBException e) {
-      propagateIfInstanceOf(e, MarshalException.class);
+      throwIfInstanceOf(e, MarshalException.class);
       throw new RuntimeException("Mysterious XML exception", e);
     }
     String fragment = new String(os.toByteArray(), UTF_8);

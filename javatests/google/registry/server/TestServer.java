@@ -91,7 +91,8 @@ public final class TestServer {
     try {
       server.start();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      Throwables.throwIfUnchecked(e);
+      throw new RuntimeException(e);
     }
     UrlChecker.waitUntilAvailable(getUrl("/healthz"), STARTUP_TIMEOUT_MS);
   }
@@ -129,7 +130,8 @@ public final class TestServer {
         }
       }, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS, true);
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      Throwables.throwIfUnchecked(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -166,20 +168,20 @@ public final class TestServer {
 
   private static Connector createConnector(HostAndPort address) {
     SocketConnector connector = new SocketConnector();
-    connector.setHost(address.getHostText());
+    connector.setHost(address.getHost());
     connector.setPort(address.getPortOrDefault(DEFAULT_PORT));
     return connector;
   }
 
   /** Converts a bind address into an address that other machines can use to connect here. */
   private static HostAndPort createUrlAddress(HostAndPort address) {
-    if (address.getHostText().equals("::") || address.getHostText().equals("0.0.0.0")) {
+    if (address.getHost().equals("::") || address.getHost().equals("0.0.0.0")) {
       return address.getPortOrDefault(DEFAULT_PORT) == DEFAULT_PORT
           ? HostAndPort.fromHost(getCanonicalHostName())
           : HostAndPort.fromParts(getCanonicalHostName(), address.getPort());
     } else {
       return address.getPortOrDefault(DEFAULT_PORT) == DEFAULT_PORT
-          ? HostAndPort.fromHost(address.getHostText())
+          ? HostAndPort.fromHost(address.getHost())
           : address;
     }
   }
