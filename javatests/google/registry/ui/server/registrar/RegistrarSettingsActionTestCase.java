@@ -32,7 +32,6 @@ import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonResponse;
 import google.registry.request.ResponseImpl;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.util.SendEmailService;
@@ -69,9 +68,6 @@ public class RegistrarSettingsActionTestCase {
 
   @Rule
   public final InjectRule inject = new InjectRule();
-
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
 
   @Mock
   HttpServletRequest req;
@@ -123,7 +119,9 @@ public class RegistrarSettingsActionTestCase {
   protected Map<String, Object> readJsonFromFile(String filename) {
     String contents = readResourceUtf8(getClass(), filename);
     try {
-      return (Map<String, Object>) JSONValue.parseWithException(contents);
+      @SuppressWarnings("unchecked")
+      Map<String, Object> json = (Map<String, Object>) JSONValue.parseWithException(contents);
+      return json;
     } catch (ParseException ex) {
       throw new RuntimeException(ex);
     }

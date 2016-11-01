@@ -27,11 +27,9 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableMap;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.util.Map;
 import javax.mail.internet.InternetAddress;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -39,9 +37,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 /** Tests for {@link RegistrarSettingsAction}. */
 @RunWith(MockitoJUnitRunner.class)
 public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase {
-
-  @Rule
-  public final ExceptionRule  thrown = new ExceptionRule();
 
   @Test
   public void testSuccess_updateRegistrarInfo_andSendsNotificationEmail() throws Exception {

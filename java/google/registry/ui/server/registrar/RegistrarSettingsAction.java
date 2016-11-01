@@ -110,7 +110,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
         case "update":
           return update(args, initialRegistrar);
         case "read":
-          return read(args, initialRegistrar);
+          return JsonResponseHelper.create(SUCCESS, "Success", initialRegistrar.toJsonMap());
         default:
           return JsonResponseHelper.create(ERROR, "Unknown or unsupported operation: " + op);
       }
@@ -291,10 +291,6 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
           "The following changes were made to the registrar:\n"
               + DiffUtils.prettyPrintDiffedMap(diffs, null));
     }
-  }
-
-  public Map<String, Object> read(Map<String, ?> args, Registrar registrar) {
-    return JsonResponseHelper.create(SUCCESS, "Success", registrar.toJsonMap());
   }
 
   /** Thrown when a set of contacts doesn't meet certain constraints. */
