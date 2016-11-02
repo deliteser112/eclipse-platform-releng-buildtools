@@ -28,14 +28,11 @@ import google.registry.flows.FlowModule.InputXml;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.Transactional;
 import google.registry.model.eppcommon.Trid;
-import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.monitoring.whitebox.EppMetric;
-import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 import javax.inject.Provider;
-import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 
 /** Run a flow, either transactionally or not, with logging and retrying as needed. */
@@ -56,9 +53,7 @@ public class FlowRunner {
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Inject @ClientId String clientId;
-  @Inject Clock clock;
   @Inject TransportCredentials credentials;
-  @Inject EppInput eppInput;
   @Inject EppRequestSource eppRequestSource;
   @Inject Provider<Flow> flowProvider;
   @Inject @InputXml byte[] inputXmlBytes;
@@ -99,7 +94,7 @@ public class FlowRunner {
             "xmlBytes", xmlBase64)));
     if (!isTransactional) {
       metric.incrementAttempts();
-      return createAndInitFlow(clock.nowUtc()).run();
+      return EppOutput.create(flowProvider.get().run());
     }
     try {
       return ofy().transact(new Work<EppOutput>() {
@@ -107,7 +102,7 @@ public class FlowRunner {
         public EppOutput run() {
           metric.incrementAttempts();
           try {
-            EppOutput output = createAndInitFlow(ofy().getTransactionTime()).run();
+            EppOutput output = EppOutput.create(flowProvider.get().run());
             if (isDryRun) {
               throw new DryRunException(output);
             }
@@ -127,15 +122,6 @@ public class FlowRunner {
     }
   }
 
-  private Flow createAndInitFlow(DateTime now) throws EppException {
-      return flowProvider.get().init(
-          eppInput,
-          trid,
-          sessionMetadata,
-          credentials,
-          isSuperuser,
-          now);
-  }
   /** Exception for canceling a transaction while capturing what the output would have been. */
   private static class DryRunException extends RuntimeException {
     final EppOutput output;

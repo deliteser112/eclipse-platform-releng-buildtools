@@ -20,7 +20,6 @@ import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.flows.host.HostFlowUtils.verifyDomainIsSameRegistrar;
 import static google.registry.model.EppResourceUtils.createContactHostRoid;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.CollectionUtils.union;
@@ -33,7 +32,6 @@ import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
@@ -42,7 +40,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CreateData.HostCreateData;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostCommand.Create;
 import google.registry.model.host.HostResource;
 import google.registry.model.host.HostResource.Builder;
@@ -51,6 +49,7 @@ import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that creates a new host.
@@ -70,7 +69,7 @@ import javax.inject.Inject;
  * @error {@link SubordinateHostMustHaveIpException}
  * @error {@link UnexpectedExternalHostIpException}
  */
-public final class HostCreateFlow extends Flow implements TransactionalFlow {
+public final class HostCreateFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject ExtensionManager extensionManager;
@@ -78,14 +77,16 @@ public final class HostCreateFlow extends Flow implements TransactionalFlow {
   @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject DnsQueue dnsQueue;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject HostCreateFlow() {}
 
   @Override
-  protected final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     Create command = (Create) resourceCommand;
+    DateTime now = ofy().getTransactionTime();
     verifyResourceDoesNotExist(HostResource.class, targetId, now);
     // The superordinate domain of the host object if creating an in-bailiwick host, or null if
     // creating an external host. This is looked up before we actually create the Host object so
@@ -130,7 +131,7 @@ public final class HostCreateFlow extends Flow implements TransactionalFlow {
       dnsQueue.addHostRefreshTask(targetId);
     }
     ofy().save().entities(entitiesToSave);
-    return createOutput(SUCCESS, HostCreateData.create(targetId, now));
+    return responseBuilder.setResData(HostCreateData.create(targetId, now)).build();
   }
 
   /** Subordinate hosts must have an ip address. */

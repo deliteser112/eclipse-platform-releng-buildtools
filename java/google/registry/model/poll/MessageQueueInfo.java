@@ -14,10 +14,11 @@
 
 package google.registry.model.poll;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
-import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import org.joda.time.DateTime;
@@ -40,32 +41,34 @@ public class MessageQueueInfo extends ImmutableObject {
   @XmlAttribute(name = "id")
   String messageId;
 
-  public DateTime getQueueDate() {
-    return queueDate;
-  }
+  /** A builder for constructing a {@link MessageQueueInfo}, since it's immutable. */
+  public static class Builder extends Buildable.Builder<MessageQueueInfo> {
+    public Builder setQueueDate(DateTime queueDate) {
+      getInstance().queueDate = queueDate;
+      return this;
+    }
 
-  public String getMsg() {
-    return msg;
-  }
+    public Builder setMsg(String msg) {
+      getInstance().msg = msg;
+      return this;
+    }
 
-  public Integer getQueueLength() {
-    return queueLength;
-  }
+    public Builder setQueueLength(int queueLength) {
+      checkArgument(queueLength >= 0);
+      getInstance().queueLength = queueLength;
+      return this;
+    }
 
-  public String getMessageId() {
-    return messageId;
-  }
+    public Builder setMessageId(String messageId) {
+      getInstance().messageId = messageId;
+      return this;
+    }
 
-  public static MessageQueueInfo create(
-      @Nullable DateTime queueDate,
-      @Nullable String msg,
-      Integer queueLength,
-      String messageId) {
-    MessageQueueInfo instance = new MessageQueueInfo();
-    instance.queueDate = queueDate;
-    instance.msg = msg;
-    instance.queueLength = checkNotNull(queueLength);
-    instance.messageId = checkNotNull(messageId);
-    return instance;
+    @Override
+    public MessageQueueInfo build() {
+      checkNotNull(getInstance().messageId);
+      checkNotNull(getInstance().queueLength);
+      return super.build();
+    }
   }
 }

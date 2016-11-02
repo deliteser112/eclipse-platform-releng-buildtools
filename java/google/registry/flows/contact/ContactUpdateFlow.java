@@ -24,7 +24,6 @@ import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForR
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
 import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
@@ -32,8 +31,8 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
@@ -46,10 +45,11 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.reporting.HistoryEntry;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that updates a contact.
@@ -63,7 +63,7 @@ import javax.inject.Inject;
  * @error {@link ContactFlowUtils.BadInternationalizedPostalInfoException}
  * @error {@link ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException}
  */
-public final class ContactUpdateFlow extends Flow implements TransactionalFlow {
+public final class ContactUpdateFlow implements TransactionalFlow {
 
   /**
    * Note that CLIENT_UPDATE_PROHIBITED is intentionally not in this list. This is because it
@@ -79,15 +79,18 @@ public final class ContactUpdateFlow extends Flow implements TransactionalFlow {
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject ContactUpdateFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     Update command = (Update) resourceCommand;
+    DateTime now = ofy().getTransactionTime();
     ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, existingContact);
     ImmutableSet<StatusValue> statusToRemove = command.getInnerRemove().getStatusValues();
@@ -146,7 +149,7 @@ public final class ContactUpdateFlow extends Flow implements TransactionalFlow {
     validateAsciiPostalInfo(newContact.getInternationalizedPostalInfo());
     validateContactAgainstPolicy(newContact);
     ofy().save().<Object>entities(newContact, historyBuilder.build());
-    return createOutput(SUCCESS);
+    return responseBuilder.build();
   }
 
   /** Return the first non-null param, or null if both are null. */

@@ -24,12 +24,9 @@ import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWit
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.domain.fee.Fee.FEE_CHECK_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
-import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
-import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -44,6 +41,7 @@ import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Check;
 import google.registry.model.domain.DomainResource;
@@ -51,19 +49,21 @@ import google.registry.model.domain.fee.FeeCheckCommandExtension;
 import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
 import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
 import google.registry.model.domain.launch.LaunchCheckExtension;
+import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CheckData.DomainCheck;
 import google.registry.model.eppoutput.CheckData.DomainCheckData;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservationType;
-import java.util.Collections;
+import google.registry.util.Clock;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that checks whether a domain can be provisioned.
@@ -90,7 +90,7 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.UnknownFeeCommandException}
  * @error {@link OnlyCheckedNamesCanBeFeeCheckedException}
  */
-public final class DomainCheckFlow extends Flow {
+public final class DomainCheckFlow implements Flow {
 
   /**
    * The TLD states during which we want to report a domain with pending applications as
@@ -101,18 +101,23 @@ public final class DomainCheckFlow extends Flow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject ExtensionManager extensionManager;
+  @Inject EppInput eppInput;
   @Inject @ClientId String clientId;
   @Inject @Config("maxChecks") int maxChecks;
+  @Inject @Superuser boolean isSuperuser;
+  @Inject Clock clock;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject DomainCheckFlow() {}
 
   @Override
-  public EppOutput run() throws EppException {
+  public EppResponse run() throws EppException {
     extensionManager.register(LaunchCheckExtension.class);
     extensionManager.registerAsGroup(FEE_CHECK_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     List<String> targetIds = ((Check) resourceCommand).getTargetIds();
     verifyTargetIdCount(targetIds, maxChecks);
+    DateTime now = clock.nowUtc();
     ImmutableMap.Builder<String, InternetDomainName> domains = new ImmutableMap.Builder<>();
     // Only check that the registrar has access to a TLD the first time it is encountered
     Set<String> seenTlds = new HashSet<>();
@@ -133,17 +138,17 @@ public final class DomainCheckFlow extends Flow {
     Set<String> existingIds = checkResourcesExist(DomainResource.class, targetIds, now);
     ImmutableList.Builder<DomainCheck> checks = new ImmutableList.Builder<>();
     for (String targetId : targetIds) {
-      String message = getMessageForCheck(domainNames.get(targetId), existingIds);
+      String message = getMessageForCheck(domainNames.get(targetId), existingIds, now);
       checks.add(DomainCheck.create(message == null, targetId, message));
     }
-    return createOutput(
-        SUCCESS,
-        DomainCheckData.create(checks.build()),
-        getResponseExtensions(domainNames));
+    return responseBuilder
+        .setResData(DomainCheckData.create(checks.build()))
+        .setExtensions(getResponseExtensions(domainNames, now))
+        .build();
   }
 
   private String getMessageForCheck(
-      InternetDomainName domainName, Set<String> existingIds) {
+      InternetDomainName domainName, Set<String> existingIds, DateTime now) {
     if (existingIds.contains(domainName.toString())) {
       return "In use";
     }
@@ -161,9 +166,7 @@ public final class DomainCheckFlow extends Flow {
     if (reservationType == UNRESERVED
         && isDomainPremium(domainName.toString(), now)
         && registry.getPremiumPriceAckRequired()
-        && Collections.disjoint(
-            nullToEmpty(sessionMetadata.getServiceExtensionUris()),
-            FEE_EXTENSION_URIS)) {
+        && eppInput.getSingleExtension(FeeCheckCommandExtension.class) == null) {
       return "Premium names require EPP ext.";
     }
     return reservationType.getMessageForCheck();
@@ -172,7 +175,7 @@ public final class DomainCheckFlow extends Flow {
 
   /** Handle the fee check extension. */
   private ImmutableList<? extends ResponseExtension> getResponseExtensions(
-      ImmutableMap<String, InternetDomainName> domainNames) throws EppException {
+      ImmutableMap<String, InternetDomainName> domainNames, DateTime now) throws EppException {
     FeeCheckCommandExtension<?, ?> feeCheck =
         eppInput.getFirstExtensionOfClasses(FEE_CHECK_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     if (feeCheck == null) {

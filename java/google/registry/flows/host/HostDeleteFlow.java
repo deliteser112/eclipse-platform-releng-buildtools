@@ -29,8 +29,8 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowEnqueuer;
@@ -38,10 +38,11 @@ import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that deletes a host.
@@ -57,7 +58,7 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
  * @error {@link google.registry.flows.exceptions.ResourceToDeleteIsReferencedException}
  */
-public final class HostDeleteFlow extends Flow implements TransactionalFlow {
+public final class HostDeleteFlow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(
       StatusValue.LINKED,
@@ -76,15 +77,18 @@ public final class HostDeleteFlow extends Flow implements TransactionalFlow {
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject HostDeleteFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    DateTime now = ofy().getTransactionTime();
     failfastForAsyncDelete(targetId, now, HostResource.class, GET_NAMESERVERS);
     HostResource existingHost = loadAndVerifyExistence(HostResource.class, targetId, now);
     verifyNoDisallowedStatuses(existingHost, DISALLOWED_STATUSES);
@@ -100,6 +104,6 @@ public final class HostDeleteFlow extends Flow implements TransactionalFlow {
         .setModificationTime(now)
         .setParent(Key.create(existingHost));
     ofy().save().<Object>entities(newHost, historyBuilder.build());
-    return createOutput(SUCCESS_WITH_ACTION_PENDING);
+    return responseBuilder.setResultFromCode(SUCCESS_WITH_ACTION_PENDING).build();
   }
 }

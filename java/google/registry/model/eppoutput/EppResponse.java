@@ -197,6 +197,10 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
       return this;
     }
 
+    public Builder setResultFromCode(Result.Code resultCode) {
+      return setResult(Result.create(resultCode));
+    }
+
     public Builder setResult(Result result) {
       getInstance().result = result;
       return this;
@@ -207,9 +211,17 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
       return this;
     }
 
-    public Builder setResData(@Nullable ImmutableList<? extends ResponseData> resData) {
+    public Builder setResData(ResponseData onlyResData) {
+      return setMultipleResData(ImmutableList.of(onlyResData));
+    }
+
+    public Builder setMultipleResData(@Nullable ImmutableList<? extends ResponseData> resData) {
       getInstance().resData = resData;
       return this;
+    }
+
+    public Builder setOnlyExtension(ResponseExtension onlyExtension) {
+      return setExtensions(ImmutableList.of(onlyExtension));
     }
 
     public Builder setExtensions(@Nullable ImmutableList<? extends ResponseExtension> extensions) {

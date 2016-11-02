@@ -29,8 +29,8 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowEnqueuer;
@@ -39,9 +39,10 @@ import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that deletes a contact.
@@ -57,7 +58,7 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
  * @error {@link google.registry.flows.exceptions.ResourceToDeleteIsReferencedException}
  */
-public final class ContactDeleteFlow extends Flow implements TransactionalFlow {
+public final class ContactDeleteFlow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(
       StatusValue.LINKED,
@@ -75,16 +76,19 @@ public final class ContactDeleteFlow extends Flow implements TransactionalFlow {
   @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject Optional<AuthInfo> authInfo;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject ContactDeleteFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    DateTime now = ofy().getTransactionTime();
     failfastForAsyncDelete(targetId, now, ContactResource.class, GET_REFERENCED_CONTACTS);
     ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyNoDisallowedStatuses(existingContact, DISALLOWED_STATUSES);
@@ -100,6 +104,6 @@ public final class ContactDeleteFlow extends Flow implements TransactionalFlow {
         .setModificationTime(now)
         .setParent(Key.create(existingContact));
     ofy().save().<Object>entities(newContact, historyBuilder.build());
-    return createOutput(SUCCESS_WITH_ACTION_PENDING);
+    return responseBuilder.setResultFromCode(SUCCESS_WITH_ACTION_PENDING).build();
   }
 }

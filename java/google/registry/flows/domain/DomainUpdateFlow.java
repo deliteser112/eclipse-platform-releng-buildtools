@@ -38,7 +38,6 @@ import static google.registry.flows.domain.DomainFlowUtils.validateRequiredConta
 import static google.registry.flows.domain.DomainFlowUtils.verifyClientUpdateNotProhibited;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
 import static google.registry.model.domain.fee.Fee.FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.earliestOf;
 
@@ -49,8 +48,8 @@ import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeUpdateException;
@@ -70,8 +69,9 @@ import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
@@ -121,7 +121,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.TooManyNameserversException}
  * @error {@link DomainFlowUtils.UrgentAttributeNotSupportedException}
  */
-public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
+public final class DomainUpdateFlow implements TransactionalFlow {
 
   /**
    * Note that CLIENT_UPDATE_PROHIBITED is intentionally not in this list. This is because it
@@ -134,15 +134,18 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject ExtensionManager extensionManager;
+  @Inject EppInput eppInput;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject DnsQueue dnsQueue;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject DomainUpdateFlow() {}
 
   @Override
-  public EppOutput run() throws EppException {
+  public EppResponse run() throws EppException {
     extensionManager.register(
         FlagsUpdateCommandExtension.class,
         MetadataExtension.class,
@@ -150,37 +153,38 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
     extensionManager.registerAsGroup(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    DateTime now = ofy().getTransactionTime();
     Update command = cloneAndLinkReferences((Update) resourceCommand, now);
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
-    verifyUpdateAllowed(command, existingDomain);
-    HistoryEntry historyEntry = buildHistoryEntry(existingDomain);
-    DomainResource newDomain = performUpdate(command, existingDomain);
+    verifyUpdateAllowed(command, existingDomain, now);
+    HistoryEntry historyEntry = buildHistoryEntry(existingDomain, now);
+    DomainResource newDomain = performUpdate(command, existingDomain, now);
     // If the new domain is in the sunrush add grace period and is now publishable to DNS because we
     // have added nameserver or removed holds, we have to convert it to a standard add grace period.
     if (newDomain.shouldPublishToDns()) {
       for (GracePeriod gracePeriod : newDomain.getGracePeriods()) {
         if (gracePeriod.isSunrushAddGracePeriod()) {
-          newDomain = convertSunrushAddToAdd(newDomain, gracePeriod, historyEntry);
+          newDomain = convertSunrushAddToAdd(newDomain, gracePeriod, historyEntry, now);
           break;  // There can only be one sunrush add grace period.
         }
       }
     }
     validateNewState(newDomain);
     dnsQueue.addDomainRefreshTask(targetId);
-    handleExtraFlowLogic(existingDomain, historyEntry);
+    handleExtraFlowLogic(existingDomain, historyEntry, now);
     ImmutableList.Builder<ImmutableObject> entitiesToSave = new ImmutableList.Builder<>();
     entitiesToSave.add(newDomain, historyEntry);
     Optional<BillingEvent.OneTime> statusUpdateBillingEvent =
-        createBillingEventForStatusUpdates(existingDomain, newDomain, historyEntry);
+        createBillingEventForStatusUpdates(existingDomain, newDomain, historyEntry, now);
     if (statusUpdateBillingEvent.isPresent()) {
       entitiesToSave.add(statusUpdateBillingEvent.get());
     }
     ofy().save().entities(entitiesToSave.build());
-    return createOutput(SUCCESS);
+    return responseBuilder.build();
   }
 
   /** Fail if the object doesn't exist or was deleted. */
-  private void verifyUpdateAllowed(Update command, DomainResource existingDomain)
+  private void verifyUpdateAllowed(Update command, DomainResource existingDomain, DateTime now)
       throws EppException {
     verifyNoDisallowedStatuses(existingDomain, UPDATE_DISALLOWED_STATUSES);
     verifyOptionalAuthInfoForResource(authInfo, existingDomain);
@@ -219,7 +223,7 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
         tld, add.getNameserverFullyQualifiedHostNames());
   }
 
-  private HistoryEntry buildHistoryEntry(DomainResource existingDomain) {
+  private HistoryEntry buildHistoryEntry(DomainResource existingDomain, DateTime now) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_UPDATE)
         .setModificationTime(now)
@@ -227,7 +231,7 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
         .build();
   }
 
-  private DomainResource performUpdate(Update command, DomainResource domain)
+  private DomainResource performUpdate(Update command, DomainResource domain, DateTime now)
       throws EppException {
     AddRemove add = command.getInnerAdd();
     AddRemove remove = command.getInnerRemove();
@@ -255,12 +259,12 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
   }
 
   private DomainResource convertSunrushAddToAdd(
-      DomainResource newDomain, GracePeriod gracePeriod, HistoryEntry historyEntry) {
+      DomainResource newDomain, GracePeriod gracePeriod, HistoryEntry historyEntry, DateTime now) {
     // Cancel the billing event for the sunrush add and replace it with a new billing event.
     BillingEvent.Cancellation billingEventCancellation =
         BillingEvent.Cancellation.forGracePeriod(gracePeriod, historyEntry, targetId);
     BillingEvent.OneTime billingEvent =
-        createBillingEventForSunrushConversion(newDomain, historyEntry, gracePeriod);
+        createBillingEventForSunrushConversion(newDomain, historyEntry, gracePeriod, now);
     ofy().save().entities(billingEvent, billingEventCancellation);
     // Modify the grace periods on the domain.
     return newDomain.asBuilder()
@@ -270,7 +274,10 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
   }
 
   private BillingEvent.OneTime createBillingEventForSunrushConversion(
-      DomainResource existingDomain, HistoryEntry historyEntry, GracePeriod sunrushAddGracePeriod) {
+      DomainResource existingDomain,
+      HistoryEntry historyEntry,
+      GracePeriod sunrushAddGracePeriod,
+      DateTime now) {
     // Compute the expiration time of the add grace period. We will not allow it to be after the
     // sunrush add grace period expiration time (i.e. you can't get extra add grace period by
     // setting a nameserver).
@@ -304,7 +311,10 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
 
   /** Some status updates cost money. Bill only once no matter how many of them are changed. */
   private Optional<BillingEvent.OneTime> createBillingEventForStatusUpdates(
-      DomainResource existingDomain, DomainResource newDomain, HistoryEntry historyEntry) {
+      DomainResource existingDomain,
+      DomainResource newDomain,
+      HistoryEntry historyEntry,
+      DateTime now) {
     MetadataExtension metadataExtension = eppInput.getSingleExtension(MetadataExtension.class);
     if (metadataExtension != null && metadataExtension.getRequestedByRegistrar()) {
       for (StatusValue statusValue
@@ -326,8 +336,8 @@ public final class DomainUpdateFlow extends Flow implements TransactionalFlow {
     return Optional.absent();
   }
 
-  private void handleExtraFlowLogic(DomainResource existingDomain, HistoryEntry historyEntry)
-      throws EppException {
+  private void handleExtraFlowLogic(
+      DomainResource existingDomain, HistoryEntry historyEntry, DateTime now) throws EppException {
     Optional<RegistryExtraFlowLogic> extraFlowLogic =
         RegistryExtraFlowLogicProxy.newInstanceForDomain(existingDomain);
     if (extraFlowLogic.isPresent()) {

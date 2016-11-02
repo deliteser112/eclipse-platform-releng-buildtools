@@ -21,7 +21,8 @@ import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.flows.SessionMetadata;
+import google.registry.model.eppoutput.EppResponse;
 import javax.inject.Inject;
 
 /**
@@ -29,17 +30,19 @@ import javax.inject.Inject;
  *
  * @error {@link google.registry.flows.FlowUtils.NotLoggedInException}
  */
-public class LogoutFlow extends Flow {
+public class LogoutFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
+  @Inject SessionMetadata sessionMetadata;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject LogoutFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.validate();  // There are no legal extensions for this flow.
     validateClientIsLoggedIn(clientId);
     sessionMetadata.invalidate();
-    return createOutput(SUCCESS_AND_CLOSE);
+    return responseBuilder.setResultFromCode(SUCCESS_AND_CLOSE).build();
   }
 }

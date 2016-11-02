@@ -18,7 +18,6 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
@@ -28,8 +27,10 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
+import google.registry.util.Clock;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that returns information about a contact.
@@ -41,16 +42,19 @@ import javax.inject.Inject;
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  */
-public final class ContactInfoFlow extends Flow {
+public final class ContactInfoFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;
+  @Inject Clock clock;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject ContactInfoFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
+    DateTime now = clock.nowUtc();
     extensionManager.validate();  // There are no legal extensions for this flow.
     validateClientIsLoggedIn(clientId);
     ContactResource contact = loadAndVerifyExistence(ContactResource.class, targetId, now);
@@ -58,6 +62,6 @@ public final class ContactInfoFlow extends Flow {
     if (!clientId.equals(contact.getCurrentSponsorClientId()) && !authInfo.isPresent()) {
       contact = contact.asBuilder().setAuthInfo(null).build();
     }
-    return createOutput(SUCCESS, cloneResourceWithLinkedStatus(contact, now));
+    return responseBuilder.setResData(cloneResourceWithLinkedStatus(contact, now)).build();
   }
 }

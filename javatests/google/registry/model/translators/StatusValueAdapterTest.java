@@ -17,7 +17,6 @@ package google.registry.model.translators;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.flows.EppXmlTransformer;
 import google.registry.model.eppcommon.StatusValue;
@@ -51,9 +50,9 @@ public class StatusValueAdapterTest {
     String marshalled = new String(
         EppXmlTransformer.marshal(
             EppOutput.create(new EppResponse.Builder()
-                .setResData(ImmutableList.of(new HostResource.Builder()
+                .setResData(new HostResource.Builder()
                     .addStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED)
-                    .build()))
+                    .build())
                 .build()),
             ValidationMode.LENIENT),
         UTF_8);

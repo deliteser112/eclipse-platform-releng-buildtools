@@ -19,7 +19,6 @@ import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.domain.DomainFlowUtils.createTransferResponse;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
@@ -31,9 +30,10 @@ import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
 import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.AuthInfo;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
+import google.registry.util.Clock;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -52,18 +52,21 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.NoTransferHistoryToQueryException}
  * @error {@link google.registry.flows.exceptions.NotAuthorizedToViewTransferException}
  */
-public final class DomainTransferQueryFlow extends Flow {
+public final class DomainTransferQueryFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject Clock clock;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject DomainTransferQueryFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.validate();  // There are no legal extensions for this flow.
     validateClientIsLoggedIn(clientId);
+    DateTime now = clock.nowUtc();
     DomainResource domain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, domain);
     // Most of the fields on the transfer response are required, so there's no way to return valid
@@ -88,6 +91,8 @@ public final class DomainTransferQueryFlow extends Flow {
           domain.getRegistrationExpirationTime(),
           transferData.getExtendedRegistrationYears());
     }
-    return createOutput(SUCCESS, createTransferResponse(targetId, transferData, newExpirationTime));
+    return responseBuilder
+        .setResData(createTransferResponse(targetId, transferData, newExpirationTime))
+        .build();
   }
 }

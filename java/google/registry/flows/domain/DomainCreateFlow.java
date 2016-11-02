@@ -54,8 +54,8 @@ import google.registry.flows.EppException;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
@@ -78,10 +78,10 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CreateData.DomainCreateData;
-import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.eppoutput.Result;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.ObjectifyService;
@@ -149,21 +149,24 @@ import org.joda.time.DateTime;
  * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
  */
 
-public class DomainCreateFlow extends Flow implements TransactionalFlow {
+public class DomainCreateFlow implements TransactionalFlow {
 
   private static final Set<TldState> QLP_SMD_ALLOWED_STATES =
       Sets.immutableEnumSet(TldState.SUNRISE, TldState.SUNRUSH);
 
   @Inject ExtensionManager extensionManager;
+  @Inject EppInput eppInput;
   @Inject AuthInfo authInfo;
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject DomainCreateFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(
         SecDnsCreateExtension.class,
         FlagsCreateCommandExtension.class,
@@ -172,6 +175,7 @@ public class DomainCreateFlow extends Flow implements TransactionalFlow {
     extensionManager.registerAsGroup(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    DateTime now = ofy().getTransactionTime();
     Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     Period period = command.getPeriod();
     verifyUnitIsYears(period);
@@ -219,17 +223,17 @@ public class DomainCreateFlow extends Flow implements TransactionalFlow {
         verifyClaimsNoticeIfAndOnlyIfNeeded(domainName, hasSignedMarks, hasClaimsNotice);
       }
       verifyPremiumNameIsNotBlocked(targetId, now, clientId);
-      verifyNoOpenApplications();
+      verifyNoOpenApplications(now);
       verifyIsGaOrIsSpecialCase(tldState, isAnchorTenant);
     }
     SecDnsCreateExtension secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     String repoId = createDomainRoid(ObjectifyService.allocateId(), registry.getTldStr());
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
-    HistoryEntry historyEntry = buildHistory(repoId, period);
+    HistoryEntry historyEntry = buildHistory(repoId, period, now);
     // Bill for the create.
-    BillingEvent.OneTime createBillingEvent =
-        createOneTimeBillingEvent(registry, isAnchorTenant, years, commandOperations, historyEntry);
+    BillingEvent.OneTime createBillingEvent = createOneTimeBillingEvent(
+        registry, isAnchorTenant, years, commandOperations, historyEntry, now);
     // Create a new autorenew billing event and poll message starting at the expiration time.
     BillingEvent.Recurring autorenewBillingEvent =
         createAutorenewBillingEvent(historyEntry, registrationExpirationTime);
@@ -266,24 +270,24 @@ public class DomainCreateFlow extends Flow implements TransactionalFlow {
         .setContacts(command.getContacts())
         .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.ADD, createBillingEvent))
         .build();
-    handleExtraFlowLogic(registry.getTldStr(), years, historyEntry, newDomain);
+    handleExtraFlowLogic(registry.getTldStr(), years, historyEntry, newDomain, now);
     entitiesToSave.add(
         newDomain,
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),
         EppResourceIndex.create(Key.create(newDomain)));
-    
+
     // Anchor tenant registrations override LRP, and landrush applications can skip it.
     // If a token is passed in outside of an LRP phase, it is simply ignored (i.e. never redeemed).
-    if (isLrpCreate(registry, isAnchorTenant)) {
+    if (isLrpCreate(registry, isAnchorTenant, now)) {
       entitiesToSave.add(
           prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
     }
     enqueueTasks(hasSignedMarks, hasClaimsNotice, newDomain);
     ofy().save().entities(entitiesToSave.build());
-    return createOutput(
-        Result.Code.SUCCESS,
-        DomainCreateData.create(targetId, now, registrationExpirationTime),
-        createResponseExtensions(feeCreate, commandOperations));
+    return responseBuilder
+        .setResData(DomainCreateData.create(targetId, now, registrationExpirationTime))
+        .setExtensions(createResponseExtensions(feeCreate, commandOperations))
+        .build();
   }
 
   private boolean isAnchorTenant(InternetDomainName domainName) {
@@ -301,7 +305,7 @@ public class DomainCreateFlow extends Flow implements TransactionalFlow {
   }
 
   /** Prohibit creating a domain if there is an open application for the same name. */
-  private void verifyNoOpenApplications() throws DomainHasOpenApplicationsException {
+  private void verifyNoOpenApplications(DateTime now) throws DomainHasOpenApplicationsException {
     for (DomainApplication application : loadActiveApplicationsByDomainName(targetId, now)) {
       if (!application.getApplicationStatus().isFinalStatus()) {
         throw new DomainHasOpenApplicationsException();
@@ -317,7 +321,7 @@ public class DomainCreateFlow extends Flow implements TransactionalFlow {
     }
   }
 
-  private HistoryEntry buildHistory(String repoId, Period period) {
+  private HistoryEntry buildHistory(String repoId, Period period, DateTime now) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_CREATE)
         .setPeriod(period)
@@ -331,7 +335,8 @@ public class DomainCreateFlow extends Flow implements TransactionalFlow {
       boolean isAnchorTenant,
       int years,
       EppCommandOperations commandOperations,
-      HistoryEntry historyEntry) {
+      HistoryEntry historyEntry,
+      DateTime now) {
     return new BillingEvent.OneTime.Builder()
         .setReason(Reason.CREATE)
         .setTargetId(targetId)
@@ -387,12 +392,12 @@ public class DomainCreateFlow extends Flow implements TransactionalFlow {
         .build();
   }
 
-  private boolean isLrpCreate(Registry registry, boolean isAnchorTenant) {
+  private boolean isLrpCreate(Registry registry, boolean isAnchorTenant, DateTime now) {
     return registry.getLrpPeriod().contains(now) && !isAnchorTenant;
   }
 
   private void handleExtraFlowLogic(
-      String tld, int years, HistoryEntry historyEntry, DomainResource newDomain)
+      String tld, int years, HistoryEntry historyEntry, DomainResource newDomain, DateTime now)
           throws EppException {
     Optional<RegistryExtraFlowLogic> extraFlowLogic =
         RegistryExtraFlowLogicProxy.newInstanceForTld(tld);

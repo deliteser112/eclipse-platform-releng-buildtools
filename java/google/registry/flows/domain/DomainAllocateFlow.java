@@ -48,8 +48,8 @@ import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
@@ -73,10 +73,10 @@ import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CreateData.DomainCreateData;
-import google.registry.model.eppoutput.EppOutput;
-import google.registry.model.eppoutput.Result;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.ObjectifyService;
@@ -97,7 +97,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainAllocateFlow.MissingApplicationException}
  * @error {@link DomainAllocateFlow.OnlySuperuserCanAllocateException}
  */
-public class DomainAllocateFlow extends Flow implements TransactionalFlow {
+public class DomainAllocateFlow implements TransactionalFlow {
 
   private static final String COLLISION_MESSAGE =
       "Domain on the name collision list was allocated. But by policy, the domain will not be "
@@ -109,11 +109,14 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
+  @Inject EppInput eppInput;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject DomainAllocateFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(
         SecDnsCreateExtension.class,
         FlagsCreateCommandExtension.class,
@@ -123,6 +126,7 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     verifyIsSuperuser();
+    DateTime now = ofy().getTransactionTime();
     Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     failfastForCreate(targetId, now);
     verifyResourceDoesNotExist(DomainResource.class, targetId, now);
@@ -137,13 +141,14 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
     boolean isSunrushAddGracePeriod = isNullOrEmpty(command.getNameservers());
     AllocateCreateExtension allocateCreate =
         eppInput.getSingleExtension(AllocateCreateExtension.class);
-    DomainApplication application = loadAndValidateApplication(allocateCreate.getApplicationRoid());
+    DomainApplication application =
+        loadAndValidateApplication(allocateCreate.getApplicationRoid(), now);
     String repoId = createDomainRoid(ObjectifyService.allocateId(), registry.getTldStr());
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
-    HistoryEntry historyEntry = buildHistory(repoId, period);
+    HistoryEntry historyEntry = buildHistory(repoId, period, now);
     entitiesToSave.add(historyEntry);
     ImmutableSet<? extends ImmutableObject> billsAndPolls = createBillingEventsAndPollMessages(
-        domainName, application, historyEntry, isSunrushAddGracePeriod, registry, years);
+        domainName, application, historyEntry, isSunrushAddGracePeriod, registry, now, years);
     entitiesToSave.addAll(billsAndPolls);
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
     DomainResource newDomain = new DomainResource.Builder()
@@ -173,21 +178,21 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
         .build();
     entitiesToSave.add(
         newDomain,
-        buildApplicationHistory(application),
+        buildApplicationHistory(application, now),
         updateApplication(application),
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),
         EppResourceIndex.create(Key.create(newDomain)));
     // Anchor tenant registrations override LRP.
     String authInfoToken = authInfo.getPw().getValue();
-    if (hasLrpToken(domainName, registry, authInfoToken)) {
+    if (hasLrpToken(domainName, registry, authInfoToken, now)) {
       entitiesToSave.add(prepareMarkedLrpTokenEntity(authInfoToken, domainName, historyEntry));
     }
     ofy().save().entities(entitiesToSave.build());
     enqueueTasks(allocateCreate, newDomain);
-    return createOutput(
-        Result.Code.SUCCESS,
-        DomainCreateData.create(targetId, now, registrationExpirationTime),
-        createResponseExtensions(registry, years));
+    return responseBuilder
+        .setResData(DomainCreateData.create(targetId, now, registrationExpirationTime))
+        .setExtensions(createResponseExtensions(now, registry, years))
+        .build();
   }
 
   private <T extends ImmutableObject> T getOnly(
@@ -201,7 +206,8 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
     }
   }
 
-  private DomainApplication loadAndValidateApplication(String applicationRoid) throws EppException {
+  private DomainApplication loadAndValidateApplication(
+      String applicationRoid, DateTime now) throws EppException {
     DomainApplication application = loadDomainApplication(applicationRoid, now);
     if (application == null) {
       throw new MissingApplicationException(applicationRoid);
@@ -212,7 +218,7 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
     return application;
   }
 
-  private HistoryEntry buildHistory(String repoId, Period period) {
+  private HistoryEntry buildHistory(String repoId, Period period, DateTime now) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_ALLOCATE)
         .setPeriod(period)
@@ -227,12 +233,13 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
       HistoryEntry historyEntry,
       boolean isSunrushAddGracePeriod,
       Registry registry,
+      DateTime now,
       int years) {
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
     BillingEvent.OneTime oneTimeBillingEvent = createOneTimeBillingEvent(
-        application, historyEntry, isSunrushAddGracePeriod, registry, years);
+        application, historyEntry, isSunrushAddGracePeriod, registry, now, years);
     PollMessage.OneTime oneTimePollMessage =
-        createOneTimePollMessage(application, historyEntry, getReservationType(domainName));
+        createOneTimePollMessage(application, historyEntry, getReservationType(domainName), now);
     // Create a new autorenew billing event and poll message starting at the expiration time.
     BillingEvent.Recurring autorenewBillingEvent =
         createAutorenewBillingEvent(historyEntry, registrationExpirationTime);
@@ -250,6 +257,7 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
       HistoryEntry historyEntry,
       boolean isSunrushAddGracePeriod,
       Registry registry,
+      DateTime now,
       int years) {
     return new BillingEvent.OneTime.Builder()
         .setReason(Reason.CREATE)
@@ -296,7 +304,7 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
         .build();
   }
 
-  private GracePeriod createGracePeriod(boolean isSunrushAddGracePeriod,
+  private static GracePeriod createGracePeriod(boolean isSunrushAddGracePeriod,
       BillingEvent.OneTime oneTimeBillingEvent) {
     return GracePeriod.forBillingEvent(
         isSunrushAddGracePeriod ? GracePeriodStatus.SUNRUSH_ADD : GracePeriodStatus.ADD,
@@ -304,7 +312,7 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
   }
 
   /** Create a history entry (with no xml or trid) to record that we updated the application. */
-  private HistoryEntry buildApplicationHistory(DomainApplication application) {
+  private static HistoryEntry buildApplicationHistory(DomainApplication application, DateTime now) {
     return new HistoryEntry.Builder()
         .setType(HistoryEntry.Type.DOMAIN_APPLICATION_STATUS_UPDATE)
         .setParent(application)
@@ -324,7 +332,10 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
 
   /** Create a poll message informing the registrar that the application status was updated. */
   private PollMessage.OneTime createOneTimePollMessage(
-      DomainApplication application, HistoryEntry historyEntry, ReservationType reservationType) {
+      DomainApplication application,
+      HistoryEntry historyEntry,
+      ReservationType reservationType,
+      DateTime now) {
     return new PollMessage.OneTime.Builder()
         .setClientId(historyEntry.getClientId())
         .setEventTime(now)
@@ -345,7 +356,7 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
   }
 
   private boolean hasLrpToken(
-      InternetDomainName domainName, Registry registry, String authInfoToken) {
+      InternetDomainName domainName, Registry registry, String authInfoToken, DateTime now) {
     return registry.getLrpPeriod().contains(now)
         && !matchesAnchorTenantReservation(domainName, authInfoToken);
   }
@@ -360,7 +371,7 @@ public class DomainAllocateFlow extends Flow implements TransactionalFlow {
   }
 
   private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
-      Registry registry, int years) throws EppException {
+      DateTime now, Registry registry, int years) throws EppException {
     EppCommandOperations commandOperations = TldSpecificLogicProxy.getCreatePrice(
         registry, targetId, clientId, now, years, eppInput);
     FeeTransformCommandExtension feeCreate =

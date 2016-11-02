@@ -27,11 +27,13 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.PollMessageId;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.MessageQueueInfo;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessageExternalKeyConverter;
+import google.registry.util.Clock;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow for requesting {@link PollMessage}s.
@@ -44,34 +46,39 @@ import javax.inject.Inject;
  *
  * @error {@link PollRequestFlow.UnexpectedMessageIdException}
  */
-public class PollRequestFlow extends Flow {
+public class PollRequestFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @PollMessageId String messageId;
+  @Inject Clock clock;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject PollRequestFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.validate();  // There are no legal extensions for this flow.
     validateClientIsLoggedIn(clientId);
     if (!messageId.isEmpty()) {
       throw new UnexpectedMessageIdException();
     }
     // Return the oldest message from the queue.
+    DateTime now = clock.nowUtc();
     PollMessage pollMessage = getPollMessagesQuery(clientId, now).first().now();
     if (pollMessage == null) {
-      return createOutput(SUCCESS_WITH_NO_MESSAGES);
+      return responseBuilder.setResultFromCode(SUCCESS_WITH_NO_MESSAGES).build();
     }
-    return createOutput(
-        SUCCESS_WITH_ACK_MESSAGE,
-        forceEmptyToNull(pollMessage.getResponseData()),
-        forceEmptyToNull(pollMessage.getResponseExtensions()),
-        MessageQueueInfo.create(
-            pollMessage.getEventTime(),
-            pollMessage.getMsg(),
-            getPollMessagesQuery(clientId, now).count(),
-            PollMessage.EXTERNAL_KEY_CONVERTER.convert(Key.create(pollMessage))));
+    return responseBuilder
+        .setResultFromCode(SUCCESS_WITH_ACK_MESSAGE)
+        .setMessageQueueInfo(new MessageQueueInfo.Builder()
+            .setQueueDate(pollMessage.getEventTime())
+            .setMsg(pollMessage.getMsg())
+            .setQueueLength(getPollMessagesQuery(clientId, now).count())
+            .setMessageId(PollMessage.EXTERNAL_KEY_CONVERTER.convert(Key.create(pollMessage)))
+            .build())
+        .setMultipleResData(forceEmptyToNull(pollMessage.getResponseData()))
+        .setExtensions(forceEmptyToNull(pollMessage.getResponseExtensions()))
+        .build();
   }
 
   /** Unexpected message id. */

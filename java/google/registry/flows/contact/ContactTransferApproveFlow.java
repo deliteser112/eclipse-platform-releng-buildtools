@@ -21,14 +21,12 @@ import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForR
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
@@ -37,12 +35,13 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppinput.ResourceCommand;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that approves a pending transfer on a contact.
@@ -57,7 +56,7 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.exceptions.NotPendingTransferException}
  */
-public final class ContactTransferApproveFlow extends Flow implements TransactionalFlow {
+public final class ContactTransferApproveFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject ExtensionManager extensionManager;
@@ -65,6 +64,7 @@ public final class ContactTransferApproveFlow extends Flow implements Transactio
   @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;
   @Inject HistoryEntry.Builder historyBuilder;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject ContactTransferApproveFlow() {}
 
   /**
@@ -72,10 +72,11 @@ public final class ContactTransferApproveFlow extends Flow implements Transactio
    * {@link ContactResource#cloneProjectedAtTime} which handles implicit server approvals.
    */
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    DateTime now = ofy().getTransactionTime();
     ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, existingContact);
     TransferData transferData = existingContact.getTransferData();
@@ -97,6 +98,8 @@ public final class ContactTransferApproveFlow extends Flow implements Transactio
     // Delete the billing event and poll messages that were written in case the transfer would have
     // been implicitly server approved.
     ofy().delete().keys(transferData.getServerApproveEntities());
-    return createOutput(SUCCESS, createTransferResponse(targetId, newContact.getTransferData()));
+    return responseBuilder
+        .setResData(createTransferResponse(targetId, newContact.getTransferData()))
+        .build();
   }
 }

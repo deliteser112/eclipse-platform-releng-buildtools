@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.common.base.Joiner;
@@ -31,8 +30,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.testing.TestLogHandler;
 import google.registry.model.eppcommon.Trid;
-import google.registry.model.eppinput.EppInput;
-import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
@@ -66,27 +63,23 @@ public class FlowRunnerTest extends ShardableTestCase {
   public void before() {
     Logger.getLogger(FlowRunner.class.getCanonicalName()).addHandler(handler);
 
-    final EppOutput eppOutput = mock(EppOutput.class);
-    EppResponse eppResponse = mock(EppResponse.class);
-    when(eppOutput.getResponse()).thenReturn(eppResponse);
+    final EppResponse eppResponse = mock(EppResponse.class);
 
     flowRunner.clientId = "TheRegistrar";
-    flowRunner.clock = new FakeClock();
     flowRunner.credentials = new PasswordOnlyTransportCredentials();
-    flowRunner.eppInput = new EppInput();
     flowRunner.eppRequestSource = EppRequestSource.UNIT_TEST;
     flowRunner.flowProvider =
         Providers.<Flow>of(
             new Flow() {
               @Override
-              protected EppOutput run() {
-                return eppOutput;
+              public EppResponse run() {
+                return eppResponse;
               }});
     flowRunner.inputXmlBytes = "<xml/>".getBytes(UTF_8);
     flowRunner.isDryRun = false;
     flowRunner.isSuperuser = false;
     flowRunner.isTransactional = false;
-    flowRunner.metric = EppMetric.builderForRequest("request-id-1", flowRunner.clock);
+    flowRunner.metric = EppMetric.builderForRequest("request-id-1", new FakeClock());
     flowRunner.sessionMetadata =
         new StatelessRequestSessionMetadata("TheRegistrar", ImmutableSet.<String>of());
     flowRunner.trid = Trid.create("client-123", "server-456");

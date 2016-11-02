@@ -52,7 +52,6 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse;
-import google.registry.model.eppoutput.Result;
 import google.registry.model.eppoutput.Result.Code;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.RequestCapturingAsyncDatastoreService;
@@ -443,8 +442,8 @@ public class DomainResourceTest extends EntityTestCase {
     int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
     EppXmlTransformer.marshal(
         EppOutput.create(new EppResponse.Builder()
-            .setResult(Result.create(Code.SUCCESS))
-            .setResData(ImmutableList.of(domain))
+            .setResultFromCode(Code.SUCCESS)
+            .setResData(domain)
             .setTrid(Trid.create(null, "abc"))
             .build()),
         ValidationMode.STRICT);

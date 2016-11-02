@@ -40,7 +40,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyClientUpdateNot
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.domain.fee.Fee.FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
@@ -50,9 +49,9 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ApplicationId;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.model.ImmutableObject;
@@ -66,10 +65,12 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that updates a domain application.
@@ -101,7 +102,7 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.UrgentAttributeNotSupportedException}
  * @error {@link DomainApplicationUpdateFlow.ApplicationStatusProhibitsUpdateException}
  */
-public class DomainApplicationUpdateFlow extends Flow implements TransactionalFlow {
+public class DomainApplicationUpdateFlow implements TransactionalFlow {
 
   /**
    * Note that CLIENT_UPDATE_PROHIBITED is intentionally not in this list. This is because it
@@ -121,15 +122,18 @@ public class DomainApplicationUpdateFlow extends Flow implements TransactionalFl
 
   @Inject ResourceCommand resourceCommand;
   @Inject ExtensionManager extensionManager;
+  @Inject EppInput eppInput;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject @ApplicationId String applicationId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject DomainApplicationUpdateFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(
         LaunchUpdateExtension.class,
         MetadataExtension.class,
@@ -137,6 +141,7 @@ public class DomainApplicationUpdateFlow extends Flow implements TransactionalFl
     extensionManager.registerAsGroup(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    DateTime now = ofy().getTransactionTime();
     Update command = cloneAndLinkReferences((Update) resourceCommand, now);
     DomainApplication existingApplication = verifyExistence(
         DomainApplication.class, applicationId, loadDomainApplication(applicationId, now));
@@ -144,11 +149,11 @@ public class DomainApplicationUpdateFlow extends Flow implements TransactionalFl
     verifyNoDisallowedStatuses(existingApplication, UPDATE_DISALLOWED_STATUSES);
     verifyOptionalAuthInfoForResource(authInfo, existingApplication);
     verifyUpdateAllowed(existingApplication, command);
-    HistoryEntry historyEntry = buildHistory(existingApplication);
-    DomainApplication newApplication = updateApplication(existingApplication, command);
+    HistoryEntry historyEntry = buildHistory(existingApplication, now);
+    DomainApplication newApplication = updateApplication(existingApplication, command, now);
     validateNewApplication(newApplication);
     ofy().save().<ImmutableObject>entities(newApplication, historyEntry);
-    return createOutput(SUCCESS);
+    return responseBuilder.build();
   }
 
   protected final void verifyUpdateAllowed(
@@ -178,7 +183,7 @@ public class DomainApplicationUpdateFlow extends Flow implements TransactionalFl
         tld, add.getNameserverFullyQualifiedHostNames());
   }
 
-  private HistoryEntry buildHistory(DomainApplication existingApplication) {
+  private HistoryEntry buildHistory(DomainApplication existingApplication, DateTime now) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_APPLICATION_UPDATE)
         .setModificationTime(now)
@@ -187,7 +192,7 @@ public class DomainApplicationUpdateFlow extends Flow implements TransactionalFl
   }
 
   private DomainApplication updateApplication(
-      DomainApplication application, Update command) throws EppException {
+      DomainApplication application, Update command, DateTime now) throws EppException {
     AddRemove add = command.getInnerAdd();
     AddRemove remove = command.getInnerRemove();
     checkSameValuesNotAddedAndRemoved(add.getNameservers(), remove.getNameservers());

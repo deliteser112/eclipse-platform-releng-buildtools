@@ -18,7 +18,6 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
@@ -27,9 +26,11 @@ import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.model.eppcommon.AuthInfo;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostResource;
+import google.registry.util.Clock;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that returns information about a host.
@@ -39,20 +40,23 @@ import javax.inject.Inject;
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  */
-public final class HostInfoFlow extends Flow {
+public final class HostInfoFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject Optional<AuthInfo> authInfo;
+  @Inject Clock clock;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject HostInfoFlow() {}
 
   @Override
-  public EppOutput run() throws EppException {
+  public EppResponse run() throws EppException {
     extensionManager.validate();  // There are no legal extensions for this flow.
     validateClientIsLoggedIn(clientId);
+    DateTime now = clock.nowUtc();
     HostResource host = loadAndVerifyExistence(HostResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, host);
-    return createOutput(SUCCESS, cloneResourceWithLinkedStatus(host, now));
+    return responseBuilder.setResData(cloneResourceWithLinkedStatus(host, now)).build();
   }
 }

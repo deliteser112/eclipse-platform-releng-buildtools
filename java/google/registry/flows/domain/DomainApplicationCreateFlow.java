@@ -39,7 +39,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRoid;
 import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
@@ -56,8 +55,8 @@ import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.ObjectAlreadyExistsException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
@@ -76,9 +75,11 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CreateData.DomainCreateData;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.index.DomainApplicationIndex;
 import google.registry.model.index.EppResourceIndex;
@@ -89,6 +90,7 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.AbstractSignedMark;
 import google.registry.model.smd.EncodedSignedMark;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that creates a new application for a domain resource.
@@ -153,18 +155,22 @@ import javax.inject.Inject;
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainFlowUtils.UnsupportedMarkTypeException}
  */
-public final class DomainApplicationCreateFlow extends Flow implements TransactionalFlow {
+public final class DomainApplicationCreateFlow implements TransactionalFlow {
 
   @Inject ExtensionManager extensionManager;
+  @Inject EppInput eppInput;
   @Inject AuthInfo authInfo;
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
+  @Inject Trid trid;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject DomainApplicationCreateFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(
         SecDnsCreateExtension.class,
         FlagsCreateCommandExtension.class,
@@ -173,6 +179,7 @@ public final class DomainApplicationCreateFlow extends Flow implements Transacti
     extensionManager.registerAsGroup(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    DateTime now = ofy().getTransactionTime();
     Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     failfastForCreate(targetId, now);
     // Fail if the domain is already registered (e.g. this is a landrush application but the domain
@@ -193,13 +200,13 @@ public final class DomainApplicationCreateFlow extends Flow implements Transacti
     validateCreateCommandContactsAndNameservers(command, tld);
     LaunchCreateExtension launchCreate = eppInput.getSingleExtension(LaunchCreateExtension.class);
     if (launchCreate != null) {
-      validateLaunchCreateExtension(launchCreate, registry, domainName);
+      validateLaunchCreateExtension(launchCreate, registry, domainName, now);
     }
     boolean isAnchorTenant =
         matchesAnchorTenantReservation(domainName, authInfo.getPw().getValue());
     if (!isSuperuser) {
       verifyPremiumNameIsNotBlocked(targetId, now, clientId);
-      prohibitLandrushIfExactlyOneSunrise(registry);
+      prohibitLandrushIfExactlyOneSunrise(registry, now);
       if (!isAnchorTenant) {
         boolean isSunriseApplication = !launchCreate.getSignedMarks().isEmpty();
         verifyNotReserved(domainName, isSunriseApplication);
@@ -236,7 +243,7 @@ public final class DomainApplicationCreateFlow extends Flow implements Transacti
               }})
             .toList())
         .build();
-    HistoryEntry historyEntry = buildHistory(newApplication.getRepoId(), command.getPeriod());
+    HistoryEntry historyEntry = buildHistory(newApplication.getRepoId(), command.getPeriod(), now);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
     handleExtraFlowLogic(
         registry.getTldStr(), command.getPeriod().getValue(), historyEntry, newApplication);
@@ -252,16 +259,18 @@ public final class DomainApplicationCreateFlow extends Flow implements Transacti
           prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
     }
     ofy().save().entities(entitiesToSave.build());
-    return createOutput(
-        SUCCESS,
-        DomainCreateData.create(targetId, now, null),
-        createResponseExtensions(
-            newApplication.getForeignKey(), launchCreate.getPhase(), feeCreate, commandOperations));
+    return responseBuilder
+        .setResData(DomainCreateData.create(targetId, now, null))
+        .setExtensions(createResponseExtensions(
+            newApplication.getForeignKey(), launchCreate.getPhase(), feeCreate, commandOperations))
+        .build();
   }
 
   private void validateLaunchCreateExtension(
-      LaunchCreateExtension launchCreate, Registry registry, InternetDomainName domainName)
-          throws EppException {
+      LaunchCreateExtension launchCreate,
+      Registry registry,
+      InternetDomainName domainName,
+      DateTime now) throws EppException {
     verifyNoCodeMarks(launchCreate);
     boolean hasClaimsNotice = launchCreate.getNotice() != null;
     if (hasClaimsNotice) {
@@ -302,7 +311,7 @@ public final class DomainApplicationCreateFlow extends Flow implements Transacti
    * Prohibit creating a landrush application in LANDRUSH (but not in SUNRUSH) if there is exactly
    * one sunrise application for the same name.
    */
-  private void prohibitLandrushIfExactlyOneSunrise(Registry registry)
+  private void prohibitLandrushIfExactlyOneSunrise(Registry registry, DateTime now)
       throws UncontestedSunriseApplicationBlockedInLandrushException {
     if (registry.getTldState(now) == TldState.LANDRUSH) {
       ImmutableSet<DomainApplication> applications =
@@ -314,7 +323,7 @@ public final class DomainApplicationCreateFlow extends Flow implements Transacti
     }
   }
 
-  private HistoryEntry buildHistory(String repoId, Period period) {
+  private HistoryEntry buildHistory(String repoId, Period period, DateTime now) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE)
         .setPeriod(period)
@@ -349,7 +358,7 @@ public final class DomainApplicationCreateFlow extends Flow implements Transacti
       extraFlowLogic.get().performAdditionalApplicationCreateLogic(
           newApplication,
           clientId,
-          now,
+          newApplication.getCreationTime(),
           years,
           eppInput,
           historyEntry);

@@ -27,7 +27,6 @@ import static google.registry.flows.domain.DomainFlowUtils.createGainingTransfer
 import static google.registry.flows.domain.DomainFlowUtils.createTransferResponse;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -38,7 +37,6 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
@@ -51,7 +49,7 @@ import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
@@ -78,13 +76,14 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.NotPendingTransferException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
-public final class DomainTransferApproveFlow extends Flow implements TransactionalFlow {
+public final class DomainTransferApproveFlow implements TransactionalFlow {
 
   @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject DomainTransferApproveFlow() {}
 
   /**
@@ -92,10 +91,11 @@ public final class DomainTransferApproveFlow extends Flow implements Transaction
    * {@link DomainResource#cloneProjectedAtTime} which handles implicit server approvals.
    */
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    DateTime now = ofy().getTransactionTime();
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyOptionalAuthInfoForResource(authInfo, existingDomain);
     verifyHasPendingTransfer(existingDomain);
@@ -187,9 +187,9 @@ public final class DomainTransferApproveFlow extends Flow implements Transaction
     // Delete the billing event and poll messages that were written in case the transfer would have
     // been implicitly server approved.
     ofy().delete().keys(existingDomain.getTransferData().getServerApproveEntities());
-    return createOutput(
-        SUCCESS,
-        createTransferResponse(
-            targetId, newDomain.getTransferData(), newDomain.getRegistrationExpirationTime()));
+    return responseBuilder
+        .setResData(createTransferResponse(
+            targetId, newDomain.getTransferData(), newDomain.getRegistrationExpirationTime()))
+        .build();
   }
 }

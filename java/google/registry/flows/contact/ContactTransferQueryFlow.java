@@ -18,7 +18,6 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
 import google.registry.flows.EppException;
@@ -30,7 +29,8 @@ import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
 import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
+import google.registry.util.Clock;
 import javax.inject.Inject;
 
 /**
@@ -48,19 +48,22 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.exceptions.NoTransferHistoryToQueryException}
  * @error {@link google.registry.flows.exceptions.NotAuthorizedToViewTransferException}
  */
-public final class ContactTransferQueryFlow extends Flow {
+public final class ContactTransferQueryFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject Clock clock;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject ContactTransferQueryFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.validate();  // There are no legal extensions for this flow.
     validateClientIsLoggedIn(clientId);
-    ContactResource contact = loadAndVerifyExistence(ContactResource.class, targetId, now);
+    ContactResource contact =
+        loadAndVerifyExistence(ContactResource.class, targetId, clock.nowUtc());
     verifyOptionalAuthInfoForResource(authInfo, contact);
     // Most of the fields on the transfer response are required, so there's no way to return valid
     // XML if the object has never been transferred (and hence the fields aren't populated).
@@ -74,6 +77,8 @@ public final class ContactTransferQueryFlow extends Flow {
         && !clientId.equals(contact.getTransferData().getLosingClientId())) {
       throw new NotAuthorizedToViewTransferException();
     }
-    return createOutput(SUCCESS, createTransferResponse(targetId, contact.getTransferData()));
+    return responseBuilder
+        .setResData(createTransferResponse(targetId, contact.getTransferData()))
+        .build();
   }
 }

@@ -15,9 +15,9 @@
 package google.registry.flows;
 
 /**
- * Marker interface indicating that a {@link Flow} needs to be run transactionally.
+ * Interface for a {@link Flow} that needs to be run transactionally.
  *
- * <p>Any flow that mutates the datastore should be tagged with this so that {@link FlowRunner} will
- * know how to run it.
+ * <p>Any flow that mutates the datastore should implement this so that {@link FlowRunner} will know
+ * how to run it.
  */
-public interface TransactionalFlow {}
+public interface TransactionalFlow extends Flow {}

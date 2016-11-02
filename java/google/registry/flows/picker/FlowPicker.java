@@ -91,7 +91,7 @@ import java.util.Set;
 public class FlowPicker {
 
   /** Marker class for unimplemented flows. */
-  private abstract static class UnimplementedFlow extends Flow {}
+  private abstract static class UnimplementedFlow implements Flow {}
 
   /** A function type that takes an {@link EppInput} and returns a {@link Flow} class. */
   private abstract static class FlowProvider {

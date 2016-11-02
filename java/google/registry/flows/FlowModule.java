@@ -31,6 +31,8 @@ import google.registry.model.eppinput.EppInput.Poll;
 import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
+import google.registry.model.eppoutput.EppResponse;
+import google.registry.model.eppoutput.Result;
 import google.registry.model.reporting.HistoryEntry;
 import java.lang.annotation.Documented;
 import javax.inject.Qualifier;
@@ -242,6 +244,19 @@ public class FlowModule {
           .setRequestedByRegistrar(metadataExtension.getRequestedByRegistrar());
     }
     return historyBuilder;
+  }
+
+  /**
+   * Provides a partially filled in {@link EppResponse} builder.
+   *
+   * <p>This is not marked with {@link FlowScope} so that each retry gets a fresh one. Otherwise,
+   * the fact that the builder is one-use would cause NPEs.
+   */
+  @Provides
+  static EppResponse.Builder provideEppResponseBuilder(Trid trid) {
+    return new EppResponse.Builder()
+        .setTrid(trid)
+        .setResultFromCode(Result.Code.SUCCESS);  // Default to success.
   }
 
   /** Wrapper class to carry an {@link EppException} to the calling code. */

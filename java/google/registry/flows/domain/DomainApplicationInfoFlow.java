@@ -22,7 +22,6 @@ import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -39,12 +38,14 @@ import google.registry.model.domain.DomainCommand.Info;
 import google.registry.model.domain.launch.LaunchInfoExtension;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
 import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.mark.Mark;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
+import google.registry.util.Clock;
 import javax.inject.Inject;
 
 /**
@@ -59,18 +60,21 @@ import javax.inject.Inject;
  * @error {@link DomainApplicationInfoFlow.ApplicationLaunchPhaseMismatchException}
  * @error {@link MissingApplicationIdException}
  */
-public final class DomainApplicationInfoFlow extends Flow {
+public final class DomainApplicationInfoFlow implements Flow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject ExtensionManager extensionManager;
+  @Inject EppInput eppInput;
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject @ApplicationId String applicationId;
+  @Inject Clock clock;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject DomainApplicationInfoFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(LaunchInfoExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
@@ -78,7 +82,9 @@ public final class DomainApplicationInfoFlow extends Flow {
       throw new MissingApplicationIdException();
     }
     DomainApplication application = verifyExistence(
-        DomainApplication.class, applicationId, loadDomainApplication(applicationId, now));
+        DomainApplication.class,
+        applicationId,
+        loadDomainApplication(applicationId, clock.nowUtc()));
     verifyApplicationDomainMatchesTargetId(application, targetId);
     verifyOptionalAuthInfoForResource(authInfo, application);
     LaunchInfoExtension launchInfo = eppInput.getSingleExtension(LaunchInfoExtension.class);
@@ -87,10 +93,10 @@ public final class DomainApplicationInfoFlow extends Flow {
     }
     // We don't support authInfo for applications, so if it's another registrar always fail.
     verifyResourceOwnership(clientId, application);
-    return createOutput(
-        SUCCESS,
-        getResourceInfo(application),
-        getDomainResponseExtensions(application, launchInfo));
+    return responseBuilder
+        .setResData(getResourceInfo(application))
+        .setExtensions(getDomainResponseExtensions(application, launchInfo))
+        .build();
   }
 
   DomainApplication getResourceInfo(DomainApplication application) {

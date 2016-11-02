@@ -17,7 +17,6 @@ package google.registry.flows.contact;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.config.ConfigModule.Config;
@@ -30,7 +29,8 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CheckData.ContactCheck;
 import google.registry.model.eppoutput.CheckData.ContactCheckData;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
+import google.registry.util.Clock;
 import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
@@ -42,26 +42,28 @@ import javax.inject.Inject;
  *
  * @error {@link google.registry.flows.exceptions.TooManyResourceChecksException}
  */
-public final class ContactCheckFlow extends Flow {
+public final class ContactCheckFlow implements Flow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
   @Inject ExtensionManager extensionManager;
+  @Inject Clock clock;
   @Inject @Config("maxChecks") int maxChecks;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject ContactCheckFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.validate();  // There are no legal extensions for this flow.
     validateClientIsLoggedIn(clientId);
     List<String> targetIds = ((Check) resourceCommand).getTargetIds();
     verifyTargetIdCount(targetIds, maxChecks);
-    Set<String> existingIds = checkResourcesExist(ContactResource.class, targetIds, now);
+    Set<String> existingIds = checkResourcesExist(ContactResource.class, targetIds, clock.nowUtc());
     ImmutableList.Builder<ContactCheck> checks = new ImmutableList.Builder<>();
     for (String id : targetIds) {
       boolean unused = !existingIds.contains(id);
       checks.add(ContactCheck.create(unused, id, unused ? null : "In use"));
     }
-    return createOutput(SUCCESS, ContactCheckData.create(checks.build()));
+    return responseBuilder.setResData(ContactCheckData.create(checks.build())).build();
   }
 }

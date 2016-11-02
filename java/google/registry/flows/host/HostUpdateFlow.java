@@ -26,7 +26,6 @@ import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.flows.host.HostFlowUtils.verifyDomainIsSameRegistrar;
-import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
@@ -41,8 +40,8 @@ import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.ExtensionManager;
-import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowEnqueuer;
@@ -53,7 +52,7 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand;
-import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostCommand.Update;
 import google.registry.model.host.HostCommand.Update.AddRemove;
 import google.registry.model.host.HostCommand.Update.Change;
@@ -62,6 +61,7 @@ import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Objects;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
  * An EPP flow that updates a host.
@@ -91,7 +91,7 @@ import javax.inject.Inject;
  * @error {@link RenameHostToExternalRemoveIpException}
  * @error {@link RenameHostToSubordinateRequiresIpException}
  */
-public final class HostUpdateFlow extends Flow implements TransactionalFlow {
+public final class HostUpdateFlow implements TransactionalFlow {
 
   /**
    * Note that CLIENT_UPDATE_PROHIBITED is intentionally not in this list. This is because it
@@ -107,19 +107,22 @@ public final class HostUpdateFlow extends Flow implements TransactionalFlow {
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
   @Inject DnsQueue dnsQueue;
+  @Inject EppResponse.Builder responseBuilder;
   @Inject HostUpdateFlow() {}
 
   @Override
-  public final EppOutput run() throws EppException {
+  public final EppResponse run() throws EppException {
     extensionManager.register(MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     Update command = (Update) resourceCommand;
     Change change = command.getInnerChange();
     String suppliedNewHostName = change.getFullyQualifiedHostName();
+    DateTime now = ofy().getTransactionTime();
     HostResource existingHost = loadAndVerifyExistence(HostResource.class, targetId, now);
     boolean isHostRename = suppliedNewHostName != null;
     String oldHostName = targetId;
@@ -169,7 +172,7 @@ public final class HostUpdateFlow extends Flow implements TransactionalFlow {
         .setParent(Key.create(existingHost))
         .build());
     ofy().save().entities(entitiesToSave.build());
-    return createOutput(SUCCESS);
+    return responseBuilder.build();
   }
 
   private void verifyUpdateAllowed(
