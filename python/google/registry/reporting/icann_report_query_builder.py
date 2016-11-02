@@ -32,6 +32,7 @@ import datetime
 # exact format, so it must be kept in sync with the logging site.
 # TODO(b/20725722): make the log statement format more robust.
 FLOWRUNNER_LOG_SIGNATURE_PATTERN = '(?:{}): EPP Command'.format('|'.join([
+    'google.registry.flows.FlowRunner run',
     'com.google.domain.registry.flows.FlowRunner run',
     # TODO(b/29397966): figure out why this is FormattingLogger vs FlowRunner.
     'com.google.domain.registry.util.FormattingLogger log',

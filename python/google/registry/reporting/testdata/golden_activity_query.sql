@@ -241,8 +241,8 @@
 
       -- Query EPP request logs and extract the clientId and raw EPP XML.
       SELECT
-        REGEXP_EXTRACT(logMessage, r'^(?:com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command\n\t.+\n\t(.+)\n') AS clientId,
-        REGEXP_EXTRACT(logMessage, r'^(?:com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command\n\t.+\n\t.+\n\t.+\n\t((?s).+)$') AS xml,
+        REGEXP_EXTRACT(logMessage, r'^(?:google.registry.flows.FlowRunner run|com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command\n\t.+\n\t(.+)\n') AS clientId,
+        REGEXP_EXTRACT(logMessage, r'^(?:google.registry.flows.FlowRunner run|com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command\n\t.+\n\t.+\n\t.+\n\t((?s).+)$') AS xml,
       FROM (
         -- BEGIN LOGS QUERY --
 
@@ -263,7 +263,7 @@
       WHERE
         -- EPP endpoints from the proxy, regtool, and console respectively.
         requestPath IN ('/_dr/epp', '/_dr/epptool', '/registrar-xhr')
-        AND REGEXP_MATCH(logMessage, r'^(?:com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command')
+        AND REGEXP_MATCH(logMessage, r'^(?:google.registry.flows.FlowRunner run|com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command')
 
         -- END EPP XML LOGS QUERY --
        )
