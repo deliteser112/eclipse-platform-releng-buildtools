@@ -14,7 +14,7 @@
 
 package google.registry.tmch;
 
-import static com.google.common.base.Throwables.throwIfInstanceOf;
+import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static google.registry.util.CacheUtils.memoizeWithLongExpiration;
 import static google.registry.util.CacheUtils.memoizeWithShortExpiration;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
@@ -125,7 +125,7 @@ public final class TmchCertificateAuthority {
     try {
       return ROOT_CACHE.get();
     } catch (RuntimeException e) {
-      throwIfInstanceOf(e.getCause(), GeneralSecurityException.class);
+      propagateIfInstanceOf(e.getCause(), GeneralSecurityException.class);
       throw e;
     }
   }
@@ -134,7 +134,7 @@ public final class TmchCertificateAuthority {
     try {
       return CRL_CACHE.get();
     } catch (RuntimeException e) {
-      throwIfInstanceOf(e.getCause(), GeneralSecurityException.class);
+      propagateIfInstanceOf(e.getCause(), GeneralSecurityException.class);
       throw e;
     }
   }

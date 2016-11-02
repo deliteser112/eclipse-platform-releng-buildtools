@@ -129,7 +129,7 @@ final class RegistryCli {
     // RemoteApiCommands need to have the remote api installed to work.
     RemoteApiInstaller installer = new RemoteApiInstaller();
     RemoteApiOptions options = new RemoteApiOptions();
-    options.server(connection.getServer().getHost(), connection.getServer().getPort());
+    options.server(connection.getServer().getHostText(), connection.getServer().getPort());
     if (connection.isLocalhost()) {
       // Use dev credentials for localhost.
       options.useDevelopmentServerCredential();

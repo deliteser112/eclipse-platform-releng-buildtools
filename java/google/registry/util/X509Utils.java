@@ -16,7 +16,7 @@ package google.registry.util;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Throwables.throwIfInstanceOf;
+import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static com.google.common.io.BaseEncoding.base64;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
@@ -76,7 +76,7 @@ public final class X509Utils {
           .from(CertificateFactory.getInstance("X.509").generateCertificates(input))
           .filter(X509Certificate.class));
     } catch (CertificateException e) {  // CertificateParsingException by specification.
-      throwIfInstanceOf(e, CertificateParsingException.class);
+      propagateIfInstanceOf(e, CertificateParsingException.class);
       throw new CertificateParsingException(e);
     } catch (NoSuchElementException e) {
       throw new CertificateParsingException("No X509Certificate found.");

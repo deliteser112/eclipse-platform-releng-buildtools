@@ -76,7 +76,7 @@ public class TlsCredentials implements TransportCredentials {
 
   static InetAddress parseInetAddress(String asciiAddr) {
     try {
-      return InetAddresses.forString(HostAndPort.fromString(asciiAddr).getHost());
+      return InetAddresses.forString(HostAndPort.fromString(asciiAddr).getHostText());
     } catch (IllegalArgumentException e) {
       return null;
     }

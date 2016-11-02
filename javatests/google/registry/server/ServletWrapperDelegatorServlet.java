@@ -62,10 +62,9 @@ public final class ServletWrapperDelegatorServlet extends HttpServlet {
     try {
       Uninterruptibles.getUninterruptibly(task);
     } catch (ExecutionException e) {
-      Throwables.throwIfInstanceOf(e.getCause(), ServletException.class);
-      Throwables.throwIfInstanceOf(e.getCause(), IOException.class);
-      Throwables.throwIfUnchecked(e.getCause());
-      throw new RuntimeException(e.getCause());
+      Throwables.propagateIfInstanceOf(e.getCause(), ServletException.class);
+      Throwables.propagateIfInstanceOf(e.getCause(), IOException.class);
+      throw Throwables.propagate(e.getCause());
     }
   }
 

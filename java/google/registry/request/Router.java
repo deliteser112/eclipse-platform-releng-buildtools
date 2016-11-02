@@ -97,7 +97,7 @@ final class Router {
         } catch (InvocationTargetException e) {
           // This means an exception was thrown during the injection process while instantiating
           // the @Action class; we should propagate that underlying exception.
-          Throwables.throwIfUnchecked(e.getCause());
+          Throwables.propagateIfPossible(e.getCause());
           throw new AssertionError(
               "Component's @Action factory method somehow threw checked exception", e);
         }

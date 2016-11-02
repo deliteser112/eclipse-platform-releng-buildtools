@@ -193,8 +193,7 @@ public class Lock extends ImmutableObject {
           TimeUnit.MILLISECONDS,
           true);
     } catch (Exception e) {
-      Throwables.throwIfUnchecked(e);
-      throw new RuntimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 

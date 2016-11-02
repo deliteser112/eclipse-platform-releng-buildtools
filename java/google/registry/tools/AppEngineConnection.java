@@ -163,7 +163,7 @@ class AppEngineConnection implements Connection {
   }
 
   boolean isLocalhost() {
-    return server.getHost().equals("localhost");
+    return server.getHostText().equals("localhost");
   }
 
   private String getUserId() {
