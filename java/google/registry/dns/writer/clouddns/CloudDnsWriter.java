@@ -56,7 +56,7 @@ import org.joda.time.Duration;
 /**
  * {@link DnsWriter} implementation that talks to Google Cloud DNS.
  *
- * @see "https://cloud.google.com/dns/docs/"
+ * @see <a href="https://cloud.google.com/dns/docs/">Google Cloud DNS Documentation</a>
  */
 class CloudDnsWriter implements DnsWriter {
 

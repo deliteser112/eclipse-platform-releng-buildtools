@@ -59,7 +59,8 @@ import org.joda.time.DateTime;
  * entity into multiple entities, each entity containing {@value #SHARD_SIZE} rows.
  *
  * @see google.registry.tmch.SmdrlCsvParser
- * @see "http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.2"
+ * @see <a href="http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.2">
+ *     TMCH functional specifications - SMD Revocation List</a>
  */
 @Entity
 @NotBackedUp(reason = Reason.EXTERNALLY_SOURCED)

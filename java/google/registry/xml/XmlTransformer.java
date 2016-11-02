@@ -140,7 +140,7 @@ public class XmlTransformer {
    *         element doesn't match {@code expect}.
    * @see com.google.common.io.Files#asByteSource
    * @see com.google.common.io.Resources#asByteSource
-   * @see "http://errorprone.info/bugpattern/TypeParameterUnusedInFormals"
+   * @see <a href="http://errorprone.info/bugpattern/TypeParameterUnusedInFormals">TypeParameterUnusedInFormals</a>
    */
   public <T> T unmarshal(Class<T> clazz, InputStream stream) throws XmlException {
     try (InputStream autoClosingStream = stream) {

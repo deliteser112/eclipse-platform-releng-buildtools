@@ -40,7 +40,8 @@ public final class IdnTable {
   /**
    * Public URL of this IDN table, which is needed by RDE.
    *
-   * @see "https://tools.ietf.org/html/draft-arias-noguchi-dnrd-objects-mapping-05#section-5.5.1.1"
+   * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-dnrd-objects-mapping-05#section-5.5.1.1">
+   *     DNRD Objects Mapping - &ltrdeIDN:idnTableRef&gt object</a>
    */
   private final URI url;
 

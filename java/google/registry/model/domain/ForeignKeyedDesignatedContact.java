@@ -22,7 +22,8 @@ import javax.xml.bind.annotation.XmlValue;
  * EPP-compatible version of XML type for contact identifiers associated with a domain, which can
  * be converted to a storable {@link DesignatedContact}.
  *
- * @see "http://tools.ietf.org/html/rfc5731#section-2.2"
+ * @see <a href="http://tools.ietf.org/html/rfc5731#section-2.2">
+ *     RFC 5731 - EPP Domain Name Mapping - Contact and Client Identifiers</a>
  */
 class ForeignKeyedDesignatedContact extends ImmutableObject {
   @XmlAttribute(required = true)

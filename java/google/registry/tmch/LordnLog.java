@@ -33,7 +33,8 @@ import org.joda.time.DateTime;
 /**
  * Parser of LORDN log responses from the MarksDB server during the NORDN process.
  *
- * @see "http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.3.1"
+ * @see <a href="http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.3.1">
+ *     TMCH functional specifications - LORDN Log File</a>
  */
 @Immutable
 public final class LordnLog implements Iterable<Entry<String, LordnLog.Result>> {

@@ -249,7 +249,8 @@ public final class RequestHandlerTest {
     verify(rsp).sendError(405);
   }
 
-  /** @see "http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.1" */
+  /** @see <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.1">
+   *     RFC2616 - HTTP/1.1 - Method</a> */
   @Test
   public void testHandleRequest_lowercaseMethod_notRecognized() throws Exception {
     when(req.getMethod()).thenReturn("get");

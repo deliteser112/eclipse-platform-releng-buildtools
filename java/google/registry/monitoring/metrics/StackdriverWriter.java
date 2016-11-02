@@ -63,7 +63,8 @@ import org.joda.time.format.ISODateTimeFormat;
  * CPU, it buffers points to be written until it has {@code maxPointsPerRequest} points buffered or
  * until {@link #flush()} is called.
  *
- * @see <a href="Stackdriver API Introduction">https://cloud.google.com/monitoring/api/v3/</a>
+ * @see <a href="https://cloud.google.com/monitoring/api/v3/">Introduction to the Stackdriver
+ *     Monitoring API</a>
  */
 // TODO(shikhman): add retry logic
 @NotThreadSafe

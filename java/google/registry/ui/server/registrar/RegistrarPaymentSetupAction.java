@@ -61,7 +61,7 @@ import org.joda.money.CurrencyUnit;
  * {@code registry.rpc.PaymentSetup} which must be updated should these definitions change.
  *
  * @see RegistrarPaymentAction
- * @see "https://developers.braintreepayments.com/start/hello-server/java#generate-a-client-token"
+ * @see <a href="https://developers.braintreepayments.com/start/hello-server/java#generate-a-client-token">Generate a client token</a>
  */
 @Action(
     path = "/registrar-payment-setup",

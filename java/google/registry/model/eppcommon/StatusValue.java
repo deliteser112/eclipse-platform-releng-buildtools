@@ -32,7 +32,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * <p>Note that {@code StatusValue.LINKED} should never be stored. Rather, it should be calculated
  * on the fly whenever needed using an eventually consistent query (i.e. in info flows).
  *
- * @see "https://www.icann.org/resources/pages/epp-status-codes-2014-06-16-en"
+ * @see <a href="https://www.icann.org/resources/pages/epp-status-codes-2014-06-16-en">EPP Status
+ *     Codes</a>
  */
 @XmlJavaTypeAdapter(StatusValueAdapter.class)
 public enum StatusValue implements EppEnum {

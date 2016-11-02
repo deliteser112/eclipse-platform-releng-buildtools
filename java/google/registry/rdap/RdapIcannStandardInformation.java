@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * This file contains boilerplate required by the ICANN RDAP Profile.
  *
- * @see "https://www.icann.org/resources/pages/rdap-operational-profile-2016-07-26-en"
+ * @see <a href="https://www.icann.org/resources/pages/rdap-operational-profile-2016-07-26-en">RDAP Operational Profile for gTLD Registries and Registrars</a>
  */
 
 public class RdapIcannStandardInformation {
@@ -75,7 +75,7 @@ public class RdapIcannStandardInformation {
   /**
    * Required by ICANN RDAP Profile section 1.4.9, as corrected by Gustavo Lozano of ICANN.
    *
-   * @see "http://mm.icann.org/pipermail/gtld-tech/2016-October/000822.html"
+   * @see <a href="http://mm.icann.org/pipermail/gtld-tech/2016-October/000822.html">Questions about the ICANN RDAP Profile</a>
    */
   static final ImmutableMap<String, Object> SUMMARY_DATA_REMARK =
       ImmutableMap.<String, Object> of(
@@ -90,7 +90,7 @@ public class RdapIcannStandardInformation {
   /**
    * Required by ICANN RDAP Profile section 1.4.8, as corrected by Gustavo Lozano of ICANN.
    *
-   * @see "http://mm.icann.org/pipermail/gtld-tech/2016-October/000822.html"
+   * @see <a href="http://mm.icann.org/pipermail/gtld-tech/2016-October/000822.html">Questions about the ICANN RDAP Profile</a>
    */
   static final ImmutableMap<String, Object> TRUNCATED_RESULT_SET_NOTICE =
       ImmutableMap.<String, Object> of(

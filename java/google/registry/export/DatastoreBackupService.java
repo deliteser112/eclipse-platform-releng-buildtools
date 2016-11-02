@@ -60,7 +60,7 @@ public class DatastoreBackupService {
   /**
    * Generates the TaskOptions needed to trigger an AppEngine datastore backup job.
    *
-   * @see "https://developers.google.com/appengine/articles/scheduled_backups"
+   * @see <a href="https://developers.google.com/appengine/articles/scheduled_backups">Scheduled Backups</a>
    */
   private static TaskOptions makeTaskOptions(
       String queue, String name, String gcsBucket, ImmutableSet<String> kinds) {

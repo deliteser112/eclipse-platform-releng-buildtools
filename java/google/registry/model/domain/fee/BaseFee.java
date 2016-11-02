@@ -105,7 +105,8 @@ public abstract class BaseFee extends ImmutableObject {
    * must always be negative. Essentially, they are the same thing, just with different sign.
    * However, we need them to be separate classes for proper JAXB handling.
    *
-   * @see "https://tools.ietf.org/html/draft-brown-epp-fees-03#section-2.4"
+   * @see <a href="https://tools.ietf.org/html/draft-brown-epp-fees-03#section-2.4">
+   *     Registry Fee Extension for EPP - Fees and Credits</a>
    */
   public BigDecimal getCost() {
     return cost;

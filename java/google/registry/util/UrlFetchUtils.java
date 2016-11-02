@@ -64,7 +64,7 @@ public final class UrlFetchUtils {
    *
    * <p>This is equivalent to running the command: {@code curl -F fieldName=@payload.txt URL}
    *
-   * @see "http://www.ietf.org/rfc/rfc2388.txt"
+   * @see <a href="http://www.ietf.org/rfc/rfc2388.txt"> RFC2388 - Returning Values from Forms</a>
    */
   public static <T> void setPayloadMultipart(
       HTTPRequest request, String name, String filename, MediaType contentType, T data) {

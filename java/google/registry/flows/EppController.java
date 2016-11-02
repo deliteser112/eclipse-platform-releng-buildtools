@@ -40,7 +40,7 @@ import org.json.simple.JSONValue;
 /**
  * An implementation of the EPP command/response protocol.
  *
- * @see "http://tools.ietf.org/html/rfc5730"
+ * @see <a href="http://tools.ietf.org/html/rfc5730">RFC 5730 - Extensible Provisioning Protocol</a>
  */
 public final class EppController {
 

@@ -23,7 +23,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * Represents a Registry Grace Period status, as defined by
  * <a href="https://tools.ietf.org/html/rfc3915">RFC 3915</a>.
  *
- * @see "https://www.icann.org/resources/pages/epp-status-codes-2014-06-16-en"
+ * @see <a href="https://www.icann.org/resources/pages/epp-status-codes-2014-06-16-en">EPP Status
+ *     Codes</a>
  */
 @XmlJavaTypeAdapter(EnumToAttributeAdapter.class)
 public enum GracePeriodStatus implements EppEnum {

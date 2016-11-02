@@ -77,7 +77,8 @@ import javax.xml.bind.annotation.XmlType;
  * client.  EPP commands are atomic, so a command will either succeed completely or fail completely.
  * Success and failure results MUST NOT be mixed."
  *
- * @see "http://tools.ietf.org/html/rfc5730#section-2.6"
+ * @see <a href="http://tools.ietf.org/html/rfc5730#section-2.6">
+ *     RFC 5730 - EPP - Response Format</a>
  */
 @XmlType(propOrder = {"result", "messageQueueInfo", "resData", "extensions", "trid"})
 public class EppResponse extends ImmutableObject implements ResponseOrGreeting {

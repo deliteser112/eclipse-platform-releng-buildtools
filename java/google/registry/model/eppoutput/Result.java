@@ -132,7 +132,8 @@ public class Result extends ImmutableObject {
     /**
      * An RFC 4646 language code.
      *
-     * @see "http://tools.ietf.org/html/rfc4646"
+     * @see <a href="http://tools.ietf.org/html/rfc4646">
+     *     RFC 4646 - Tags for Identifying Languages</a>
      */
     public final String msgLang;
 

@@ -98,7 +98,8 @@ public class BigqueryUtils {
    * printing because in some cases BigQuery does not allow any time zone specification (instead it
    * assumes UTC for whatever input you provide) for input timestamp strings (see b/16380363).
    *
-   * @see "https://developers.google.com/bigquery/timestamp"
+   * @see <a href="https://cloud.google.com/bigquery/data-types#timestamp-type">
+   *     BigQuery Data Types - TIMESTAMP</a>
    */
   public static final DateTimeFormatter BIGQUERY_TIMESTAMP_FORMAT = new DateTimeFormatterBuilder()
       .append(ISODateTimeFormat.date())
@@ -137,7 +138,7 @@ public class BigqueryUtils {
    * Converts a time (in TimeUnits since the epoch) into a numeric string that BigQuery understands
    * as a timestamp: the decimal number of seconds since the epoch, precise up to microseconds.
    *
-   * @see "https://developers.google.com/bigquery/timestamp"
+   * @see <a href="https://developers.google.com/bigquery/timestamp">Data Types</a>
    */
   public static String toBigqueryTimestamp(long timestamp, TimeUnit unit) {
     long seconds = unit.toSeconds(timestamp);
@@ -151,7 +152,7 @@ public class BigqueryUtils {
    *
    * <p>Note that since {@code DateTime} only stores milliseconds, the last 3 digits will be zero.
    *
-   * @see "https://developers.google.com/bigquery/timestamp"
+   * @see <a href="https://developers.google.com/bigquery/timestamp">Data Types</a>
    */
   public static String toBigqueryTimestamp(DateTime dateTime) {
     return toBigqueryTimestamp(dateTime.getMillis(), TimeUnit.MILLISECONDS);

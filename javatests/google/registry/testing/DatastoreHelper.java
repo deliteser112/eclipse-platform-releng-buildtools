@@ -909,8 +909,6 @@ public class DatastoreHelper {
   /**
    * Like persistResource but for multiple entities, with no helper for saving
    * ForeignKeyedEppResources.
-   *
-   * @see "http://docs.objectify-appengine.googlecode.com/git/apidocs/com/googlecode/objectify/cmd/Loader.htmls#entities(java.lang.Iterable)"
    */
   public static <R> ImmutableList<R> persistSimpleResources(final Iterable<R> resources) {
     ofy().transact(new VoidWork(){

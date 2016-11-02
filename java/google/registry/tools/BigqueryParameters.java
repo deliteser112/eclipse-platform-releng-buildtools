@@ -36,7 +36,7 @@ final class BigqueryParameters {
   /**
    * Default to 20 threads to stay within Bigquery's rate limit of 20 concurrent queries.
    *
-   * @see "https://cloud.google.com/bigquery/quota-policy"
+   * @see <a href="https://cloud.google.com/bigquery/quota-policy">BigQuery Quota Policy</a>
    */
   private static final int DEFAULT_NUM_THREADS = 20;
 

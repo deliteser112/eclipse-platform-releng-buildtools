@@ -398,7 +398,8 @@ public class EppInput extends ImmutableObject {
    * any other version doesn't validate. As a result, if we didn't do this here it would throw a
    * {@code SyntaxErrorException} when it failed to validate.
    *
-   * @see "http://tools.ietf.org/html/rfc5730#page-41"
+   * @see <a href="http://tools.ietf.org/html/rfc5730#page-41">
+   *     RFC 5730 - EPP - Command error responses</a>
    */
   public static class VersionAdapter extends XmlAdapter<String, String>  {
     @Override

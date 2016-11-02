@@ -88,7 +88,8 @@ public final class NordnVerifyAction implements Runnable {
    * available.
    *
    * @throws ConflictException if MarksDB has not yet finished processing the LORDN upload
-   * @see "http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.3.1"
+   * @see <a href="http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.3.1">
+   *     TMCH functional specifications LORDN Log File</a>
    */
   @VisibleForTesting
   LordnLog verify() throws IOException {

@@ -70,12 +70,13 @@ public final class BigqueryJobFailureException extends RuntimeException {
    * <h3>Sample Reasons</h3>
    *
    * <ul>
-   * <li>{@code "duplicate"}: The table you're trying to create already exists.
-   * <li>{@code "invalidQuery"}: Query syntax error of some sort.
-   * <li>{@code "unknown"}: Non-Bigquery errors.
+   *   <li>{@code "duplicate"}: The table you're trying to create already exists.
+   *   <li>{@code "invalidQuery"}: Query syntax error of some sort.
+   *   <li>{@code "unknown"}: Non-Bigquery errors.
    * </ul>
    *
-   * @see "https://cloud.google.com/bigquery/troubleshooting-errors"
+   * @see <a href="https://cloud.google.com/bigquery/troubleshooting-errors">
+   *     Troubleshooting Errors</a>
    */
   public String getReason() {
     if (jobStatus != null) {

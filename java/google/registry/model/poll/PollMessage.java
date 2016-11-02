@@ -68,7 +68,8 @@ import org.joda.time.DateTime;
  * <p>Poll messages are identified externally by registrars using the format defined in {@link
  * PollMessageExternalKeyConverter}.
  *
- * @see "https://tools.ietf.org/html/rfc5730#section-2.9.2.3"
+ * @see <a href="https://tools.ietf.org/html/rfc5730#section-2.9.2.3">
+ *     RFC5730 - EPP - &ltpoll&gt Command</a>
  */
 @Entity
 @ExternalMessagingName("message")

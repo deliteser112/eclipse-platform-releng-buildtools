@@ -31,7 +31,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *
  * <p>Given all of this, we can use {@link EnumToAttributeAdapter} to make this code very simple.
  *
- * @see "http://tools.ietf.org/html/draft-tan-epp-launchphase-11#section-2.3"
+ * @see <a href="http://tools.ietf.org/html/draft-tan-epp-launchphase-11#section-2.3">
+ *     Launch Phase Mapping for EPP - Status Values</a>
  */
 @XmlJavaTypeAdapter(EnumToAttributeAdapter.class)
 public enum ApplicationStatus implements EppEnum {

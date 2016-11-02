@@ -117,7 +117,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     /**
      * Predicate for validating IANA IDs for this type of registrar.
      *
-     * @see "http://www.iana.org/assignments/registrar-ids/registrar-ids.txt"
+     * @see <a href="http://www.iana.org/assignments/registrar-ids/registrar-ids.txt">Registrar IDs</a>
      */
     private final Predicate<Long> ianaIdValidator;
 
@@ -186,7 +186,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
   /**
    * Unique registrar client id. Must conform to "clIDType" as defined in RFC5730.
-   * @see "http://tools.ietf.org/html/rfc5730#section-4.2"
+   * @see <a href="http://tools.ietf.org/html/rfc5730#section-4.2">Shared Structure Schema</a>
    */
   @Id
   String clientIdentifier;
@@ -199,7 +199,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    * formally enforced in our datastore, but should be enforced by ICANN in that no two registrars
    * will be accredited with the same name.
    *
-   * @see "http://www.icann.org/registrar-reports/accredited-list.html"
+   * @see <a href="http://www.icann.org/registrar-reports/accredited-list.html">ICANN-Accredited Registrars</a>
    */
   @Index
   String registrarName;
@@ -284,7 +284,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    *   <li>9997 is used by ICAAN for SLA monitoring.
    *   <li>9999 is used for cases when the registry operator acts as registrar.
    * </ul>
-   * @see "http://www.iana.org/assignments/registrar-ids/registrar-ids.txt"
+   * @see <a href="http://www.iana.org/assignments/registrar-ids/registrar-ids.txt">Registrar IDs</a>
    */
   @Index
   Long ianaIdentifier;

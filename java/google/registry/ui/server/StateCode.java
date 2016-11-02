@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableBiMap;
 /**
  * Bimap of state codes and names for the US Regime.
  *
- * @see "http://statetable.com/"
+ * @see <a href="http://statetable.com/">State Table</a>
  */
 public final class StateCode {
 

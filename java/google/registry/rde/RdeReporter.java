@@ -55,7 +55,8 @@ public class RdeReporter {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  /** @see "http://tools.ietf.org/html/draft-lozano-icann-registry-interfaces-05#section-4" */
+  /** @see <a href="http://tools.ietf.org/html/draft-lozano-icann-registry-interfaces-05#section-4">
+   *     ICANN Registry Interfaces - Interface details</a>*/
   private static final String REPORT_MIME = "text/xml";
 
   @Inject RegistryConfig config;
@@ -102,7 +103,8 @@ public class RdeReporter {
   /**
    * Unmarshals IIRDEA XML result object from {@link HTTPResponse} payload.
    *
-   * @see "http://tools.ietf.org/html/draft-lozano-icann-registry-interfaces-05#section-4.1"
+   * @see <a href="http://tools.ietf.org/html/draft-lozano-icann-registry-interfaces-05#section-4.1">
+   *     ICANN Registry Interfaces - IIRDEA Result Object</a>
    */
   private XjcIirdeaResult parseResult(HTTPResponse rsp) throws XmlException {
     byte[] responseBytes = rsp.getContent();

@@ -23,7 +23,7 @@ public class PredicateUtils {
    * A predicate for a given class X that checks if tested classes are supertypes of X.
    *
    * <p>We need our own predicate because Guava's class predicates are backwards.
-   * @see "https://github.com/google/guava/issues/1444"
+   * @see <a href="https://github.com/google/guava/issues/1444">Guava issue #1444</a>
    */
   private static class SupertypeOfPredicate implements Predicate<Class<?>> {
 

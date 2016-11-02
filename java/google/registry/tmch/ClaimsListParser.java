@@ -28,7 +28,8 @@ import org.joda.time.DateTime;
  * <p>This is a quick and dirty CSV parser made specifically for the DNL CSV format defined in the
  * TMCH specification. It doesn't support any fancy CSV features like quotes.
  *
- * @see "http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.1"
+ * @see <a href="http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.1">
+ *     TMCH functional specifications - DNL List file</a>
  */
 public class ClaimsListParser {
 

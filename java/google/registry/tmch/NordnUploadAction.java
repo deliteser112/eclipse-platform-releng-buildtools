@@ -121,7 +121,8 @@ public final class NordnUploadAction implements Runnable {
    * <p>Idempotency: If the exact same LORDN report is uploaded twice, the MarksDB server will
    * return the same confirmation number.
    *
-   * @see "http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.3"
+   * @see <a href="http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-6.3">
+   *     TMCH functional specifications - LORDN File</a>
    */
   private void uploadCsvToLordn(String urlPath, String csvData) throws IOException {
     String url = tmchMarksdbUrl + urlPath;

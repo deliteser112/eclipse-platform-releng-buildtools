@@ -207,8 +207,10 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
   /**
    * Handles a transaction success response.
    *
-   * @see "https://developers.braintreepayments.com/reference/response/transaction/java#success"
-   * @see "https://developers.braintreepayments.com/reference/general/statuses#transaction"
+   * @see <a href="https://developers.braintreepayments.com/reference/response/transaction/java#success">
+   *     Braintree - Transaction - Success</a>
+   * @see <a href="https://developers.braintreepayments.com/reference/general/statuses#transaction">
+   *     Braintree - Statuses - Transaction</a>
    */
   private Map<String, Object> handleSuccessResponse(Transaction transaction) {
     // XXX: Currency scaling: https://github.com/braintree/braintree_java/issues/33
@@ -232,8 +234,10 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
    *
    * <p>This happens when the customer's bank blocks the transaction.
    *
-   * @see "https://developers.braintreepayments.com/reference/response/transaction/java#processor-declined"
-   * @see "https://articles.braintreepayments.com/control-panel/transactions/declines"
+   * @see <a href="https://developers.braintreepayments.com/reference/response/transaction/java#processor-declined">
+   *     Braintree - Transaction - Processor declined</a>
+   * @see <a href="https://articles.braintreepayments.com/control-panel/transactions/declines">
+   *     Braintree - Transactions/Declines</a>
    */
   private Map<String, Object> handleProcessorDeclined(Transaction transaction) {
     logger.warningfmt("Processor declined: %s %s",
@@ -248,8 +252,10 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
    * <p>This is a very rare condition that, for all intents and purposes, means the same thing as a
    * processor declined response.
    *
-   * @see "https://developers.braintreepayments.com/reference/response/transaction/java#processor-settlement-declined"
-   * @see "https://articles.braintreepayments.com/control-panel/transactions/declines"
+   * @see <a href="https://developers.braintreepayments.com/reference/response/transaction/java#processor-settlement-declined">
+   *     Braintree - Transaction - Processor settlement declined</a>
+   * @see <a href="https://articles.braintreepayments.com/control-panel/transactions/declines">
+   *     Braintree - Transactions/Declines</a>
    */
   private Map<String, Object> handleSettlementDecline(Transaction transaction) {
     logger.warningfmt("Settlement declined: %s %s",
@@ -265,10 +271,14 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
    * <p>This happens when a transaction is blocked due to settings we configured ourselves in the
    * Braintree control panel.
    *
-   * @see "https://developers.braintreepayments.com/reference/response/transaction/java#gateway-rejection"
-   * @see "https://articles.braintreepayments.com/control-panel/transactions/gateway-rejections"
-   * @see "https://articles.braintreepayments.com/guides/fraud-tools/avs-cvv"
-   * @see "https://articles.braintreepayments.com/guides/fraud-tools/overview"
+   * @see <a href="https://developers.braintreepayments.com/reference/response/transaction/java#gateway-rejection">
+   *     Braintree - Transaction - Gateway rejection</a>
+   * @see <a href="https://articles.braintreepayments.com/control-panel/transactions/gateway-rejections">
+   *     Braintree - Transactions/Gateway Rejections</a>
+   * @see <a href="https://articles.braintreepayments.com/guides/fraud-tools/avs-cvv">
+   *     Braintree - Fruad Tools/Basic Fraud Tools - AVS and CVV rules</a>
+   * @see <a href="https://articles.braintreepayments.com/guides/fraud-tools/overview">
+   *     Braintree - Fraud Tools/Overview</a>
    */
   private Map<String, Object> handleRejection(Transaction transaction) {
     logger.warningfmt("Gateway rejection: %s", transaction.getGatewayRejectionReason());
@@ -306,8 +316,10 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
   /**
    * Handles a validation error response from Braintree.
    *
-   * @see "https://developers.braintreepayments.com/reference/response/transaction/java#validation-errors"
-   * @see "https://developers.braintreepayments.com/reference/general/validation-errors/all/java"
+   * @see <a href="https://developers.braintreepayments.com/reference/response/transaction/java#validation-errors">
+   *     Braintree - Transaction - Validation errors</a>
+   * @see <a href="https://developers.braintreepayments.com/reference/general/validation-errors/all/java">
+   *     Braintree - Validation Errors/All</a>
    */
   private Map<String, Object> handleValidationErrorResponse(ValidationErrors validationErrors) {
     List<ValidationError> errors = validationErrors.getAllDeepValidationErrors();

@@ -41,7 +41,7 @@ public final class FormFields {
    *
    * <p>This trims the input and collapses whitespace.
    *
-   * @see "http://www.w3.org/TR/xmlschema11-2/#token"
+   * @see <a href="http://www.w3.org/TR/xmlschema11-2/#token">XSD Datatypes - token</a>
    */
   public static final FormField<String, String> XS_TOKEN = FormField.named("xsToken")
       .emptyToNull()
@@ -52,7 +52,8 @@ public final class FormFields {
   /**
    * Form field that ensures input does not contain tabs, line feeds, or carriage returns.
    *
-   * @see "http://www.w3.org/TR/xmlschema11-2/#normalizedString"
+   * @see <a href="http://www.w3.org/TR/xmlschema11-2/#normalizedString">
+   *     XSD Datatypes - normalizedString</a>
    */
   public static final FormField<String, String> XS_NORMALIZED_STRING =
       FormField.named("xsNormalizedString")
@@ -63,7 +64,7 @@ public final class FormFields {
   /**
    * Form field for +E164 phone numbers with a dot after the country prefix.
    *
-   * @see "http://tools.ietf.org/html/rfc5733#section-4"
+   * @see <a href="http://tools.ietf.org/html/rfc5733#section-4">RFC 5733 - EPP - Formal Syntax</a>
    */
   public static final FormField<String, String> PHONE_NUMBER =
       XS_TOKEN.asBuilderNamed("phoneNumber")
@@ -113,7 +114,7 @@ public final class FormFields {
   /**
    * Ensure value is an EPP Repository Object IDentifier (ROID).
    *
-   * @see "http://tools.ietf.org/html/rfc5730#section-4.2"
+   * @see <a href="http://tools.ietf.org/html/rfc5730#section-4.2">Shared Structure Schema</a>
    */
   public static final FormField<String, String> ROID = XS_TOKEN.asBuilderNamed("roid")
       .matches(Pattern.compile("(\\w|_){1,80}-\\w{1,8}"),

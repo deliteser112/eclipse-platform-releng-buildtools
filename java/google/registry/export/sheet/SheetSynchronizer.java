@@ -64,7 +64,7 @@ class SheetSynchronizer {
    * @throws com.google.gdata.util.ResourceNotFoundException if an entry URL is not valid.
    * @throws com.google.gdata.util.ServiceForbiddenException if the GData service cannot get the
    *     entry resource due to access constraints.
-   * @see "https://developers.google.com/google-apps/spreadsheets/"
+   * @see <a href="https://developers.google.com/google-apps/spreadsheets/">Google Sheets API</a>
    */
   void synchronize(String spreadsheetId, ImmutableList<ImmutableMap<String, String>> data)
       throws IOException, ServiceException {

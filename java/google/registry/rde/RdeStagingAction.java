@@ -150,8 +150,8 @@ import org.joda.time.Duration;
  *   guarantee referential correctness of your deposits, you must never delete a registrar entity.
  * </ul>
  *
- * @see "https://tools.ietf.org/html/draft-arias-noguchi-registry-data-escrow-06"
- * @see "https://tools.ietf.org/html/draft-arias-noguchi-dnrd-objects-mapping-05"
+ * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-registry-data-escrow-06">Registry Data Escrow Specification</a>
+ * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-dnrd-objects-mapping-05">Domain Name Registration Data Objects Mapping</a>
  */
 @Action(path = "/_dr/task/rdeStaging")
 public final class RdeStagingAction implements Runnable {
