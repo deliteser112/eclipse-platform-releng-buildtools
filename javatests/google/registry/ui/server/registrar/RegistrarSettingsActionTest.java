@@ -66,7 +66,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   @Test
   public void testRead_notAuthorized_failure() throws Exception {
     when(sessionUtils.checkRegistrarConsoleLogin(req)).thenReturn(false);
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of());
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.<String, Object>of());
     assertThat(response).containsEntry("status", "ERROR");
     assertThat((String) response.get("message")).startsWith("Not authorized");
     assertNoTasksEnqueued("sheet");
@@ -77,7 +77,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
    */
   @Test
   public void testRead_authorized_returnsRegistrarJson() throws Exception {
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of());
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.<String, Object>of());
     assertThat(response).containsEntry("status", "SUCCESS");
     assertThat(response).containsEntry("results", asList(
         Registrar.loadByClientId(CLIENT_ID).toJsonMap()));
