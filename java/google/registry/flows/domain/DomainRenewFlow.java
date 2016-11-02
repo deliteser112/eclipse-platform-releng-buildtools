@@ -17,7 +17,7 @@ package google.registry.flows.domain;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.newAutorenewBillingEvent;
@@ -184,7 +184,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
       Optional<AuthInfo> authInfo,
       DomainResource existingDomain,
       Renew command) throws EppException {
-    verifyOptionalAuthInfoForResource(authInfo, existingDomain);
+    verifyOptionalAuthInfo(authInfo, existingDomain);
     verifyNoDisallowedStatuses(existingDomain, RENEW_DISALLOWED_STATUSES);
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingDomain);

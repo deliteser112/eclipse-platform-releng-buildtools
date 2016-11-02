@@ -14,10 +14,7 @@
 
 package google.registry.model.contact;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.googlecode.objectify.annotation.Embed;
-import google.registry.model.EppResource;
 import google.registry.model.eppcommon.AuthInfo;
 import javax.xml.bind.annotation.XmlType;
 
@@ -25,25 +22,9 @@ import javax.xml.bind.annotation.XmlType;
 @Embed
 @XmlType(namespace = "urn:ietf:params:xml:ns:contact-1.0")
 public class ContactAuthInfo extends AuthInfo {
-
   public static ContactAuthInfo create(PasswordAuth pw) {
     ContactAuthInfo instance = new ContactAuthInfo();
     instance.pw = pw;
     return instance;
-  }
-
-  @Override
-  public void verifyAuthorizedFor(EppResource eppResource) throws BadAuthInfoException {
-    ContactResource contact = (ContactResource) eppResource;
-    PasswordAuth passwordAuth = checkNotNull(getPw());
-
-    // It's rather strange to specify a repoId on a contact auth info. Instead of explicitly
-    // rejecting it, we'll just make sure the repoId matches this particular contact.
-    if (passwordAuth.getRepoId() != null && !contact.getRepoId().equals(getRepoId())) {
-      throw new BadAuthInfoException();
-    }
-    if (!contact.getAuthInfo().getPw().getValue().equals(passwordAuth.getValue())) {
-      throw new BadAuthInfoException();
-    }
   }
 }

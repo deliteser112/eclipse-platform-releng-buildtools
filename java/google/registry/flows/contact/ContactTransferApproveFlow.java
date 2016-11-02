@@ -17,7 +17,7 @@ package google.registry.flows.contact;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.approvePendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
@@ -78,7 +78,7 @@ public final class ContactTransferApproveFlow implements TransactionalFlow {
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
     ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
-    verifyOptionalAuthInfoForResource(authInfo, existingContact);
+    verifyOptionalAuthInfo(authInfo, existingContact);
     TransferData transferData = existingContact.getTransferData();
     if (transferData.getTransferStatus() != TransferStatus.PENDING) {
       throw new NotPendingTransferException(targetId);

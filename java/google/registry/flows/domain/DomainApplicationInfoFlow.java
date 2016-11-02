@@ -17,7 +17,7 @@ package google.registry.flows.domain;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyExistence;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
@@ -86,7 +86,7 @@ public final class DomainApplicationInfoFlow implements Flow {
         applicationId,
         loadDomainApplication(applicationId, clock.nowUtc()));
     verifyApplicationDomainMatchesTargetId(application, targetId);
-    verifyOptionalAuthInfoForResource(authInfo, application);
+    verifyOptionalAuthInfo(authInfo, application);
     LaunchInfoExtension launchInfo = eppInput.getSingleExtension(LaunchInfoExtension.class);
     if (!application.getPhase().equals(launchInfo.getPhase())) {
       throw new ApplicationLaunchPhaseMismatchException();

@@ -15,6 +15,7 @@
 package google.registry.flows;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Sets.intersection;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.EppResourceUtils.queryDomainsUsingResource;
@@ -50,7 +51,6 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.AuthInfo;
-import google.registry.model.eppcommon.AuthInfo.BadAuthInfoException;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.index.ForeignKeyIndex;
@@ -318,29 +318,67 @@ public final class ResourceFlowUtils {
     }
   }
 
-  /** Check that the given AuthInfo is either missing or else is valid for the given resource. */
-  public static void verifyOptionalAuthInfoForResource(
-      Optional<AuthInfo> authInfo, EppResource resource) throws EppException {
-    if (authInfo.isPresent()) {
-      verifyAuthInfoForResource(authInfo.get(), resource);
-    }
-  }
-
-  /** Check that the given AuthInfo is present and valid for a resource being transferred. */
-  public static void verifyRequiredAuthInfoForResourceTransfer(
-      Optional<AuthInfo> authInfo, EppResource existingResource) throws EppException {
+  /** Check that the given AuthInfo is present for a resource being transferred. */
+  public static void verifyAuthInfoPresentForResourceTransfer(Optional<AuthInfo> authInfo)
+      throws EppException {
     if (!authInfo.isPresent()) {
       throw new MissingTransferRequestAuthInfoException();
     }
-    verifyOptionalAuthInfoForResource(authInfo, existingResource);
   }
 
-  /** Check that the given AuthInfo is valid for the given resource. */
-  public static void verifyAuthInfoForResource(AuthInfo authInfo, EppResource resource)
+  /** Check that the given AuthInfo is either missing or else is valid for the given resource. */
+  public static void verifyOptionalAuthInfo(
+      Optional<AuthInfo> authInfo, ContactResource contact) throws EppException {
+    if (authInfo.isPresent()) {
+      verifyAuthInfo(authInfo.get(), contact);
+    }
+  }
+
+  /** Check that the given AuthInfo is either missing or else is valid for the given resource. */
+  public static void verifyOptionalAuthInfo(
+      Optional<AuthInfo> authInfo, DomainBase domain) throws EppException {
+    if (authInfo.isPresent()) {
+      verifyAuthInfo(authInfo.get(), domain);
+    }
+  }
+
+  /** Check that the given {@link AuthInfo} is valid for the given domain. */
+  public static void verifyAuthInfo(AuthInfo authInfo, DomainBase domain) throws EppException {
+    final String authRepoId = authInfo.getPw().getRepoId();
+    String authPassword = authInfo.getPw().getValue();
+    if (authRepoId == null) {
+      // If no roid is specified, check the password against the domain's password.
+      String domainPassword = domain.getAuthInfo().getPw().getValue();
+      if (!domainPassword.equals(authPassword)) {
+        throw new BadAuthInfoForResourceException();
+      }
+      return;
+    }
+    // The roid should match one of the contacts.
+    Optional<Key<ContactResource>> foundContact = tryFind(
+        domain.getReferencedContacts(),
+        new Predicate<Key<ContactResource>>() {
+          @Override
+          public boolean apply(Key<ContactResource> key) {
+            return key.getName().equals(authRepoId);
+          }});
+    if (!foundContact.isPresent()) {
+      throw new BadAuthInfoForResourceException();
+    }
+    // Check the authInfo against the contact.
+    verifyAuthInfo(authInfo, ofy().load().key(foundContact.get()).now());
+  }
+
+  /** Check that the given {@link AuthInfo} is valid for the given contact. */
+  public static void verifyAuthInfo(AuthInfo authInfo, ContactResource contact)
       throws EppException {
-    try {
-      authInfo.verifyAuthorizedFor(resource);
-    } catch (BadAuthInfoException e) {
+    String authRepoId = authInfo.getPw().getRepoId();
+    String authPassword = authInfo.getPw().getValue();
+    String contactPassword = contact.getAuthInfo().getPw().getValue();
+    if (!contactPassword.equals(authPassword)
+        // It's unnecessary to specify a repoId on a contact auth info, but if it's there validate
+        // it. The usual case of this is validating a domain's auth using this method.
+        || (authRepoId != null && !authRepoId.equals(contact.getRepoId()))) {
       throw new BadAuthInfoForResourceException();
     }
   }

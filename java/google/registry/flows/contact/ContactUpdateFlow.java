@@ -20,7 +20,7 @@ import static google.registry.flows.ResourceFlowUtils.checkSameValuesNotAddedAnd
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyAllStatusesAreClientSettable;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
 import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
@@ -92,7 +92,7 @@ public final class ContactUpdateFlow implements TransactionalFlow {
     Update command = (Update) resourceCommand;
     DateTime now = ofy().getTransactionTime();
     ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
-    verifyOptionalAuthInfoForResource(authInfo, existingContact);
+    verifyOptionalAuthInfo(authInfo, existingContact);
     ImmutableSet<StatusValue> statusToRemove = command.getInnerRemove().getStatusValues();
     ImmutableSet<StatusValue> statusesToAdd = command.getInnerAdd().getStatusValues();
     if (!isSuperuser) {  // The superuser can update any contact and set any status.

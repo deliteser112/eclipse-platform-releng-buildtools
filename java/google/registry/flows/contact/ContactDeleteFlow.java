@@ -18,7 +18,7 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.failfastForAsyncDelete;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -92,7 +92,7 @@ public final class ContactDeleteFlow implements TransactionalFlow {
     failfastForAsyncDelete(targetId, now, ContactResource.class, GET_REFERENCED_CONTACTS);
     ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyNoDisallowedStatuses(existingContact, DISALLOWED_STATUSES);
-    verifyOptionalAuthInfoForResource(authInfo, existingContact);
+    verifyOptionalAuthInfo(authInfo, existingContact);
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingContact);
     }

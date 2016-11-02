@@ -22,7 +22,7 @@ import static google.registry.flows.ResourceFlowUtils.checkSameValuesNotAddedAnd
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyAllStatusesAreClientSettable;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
@@ -187,7 +187,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
   private void verifyUpdateAllowed(Update command, DomainResource existingDomain, DateTime now)
       throws EppException {
     verifyNoDisallowedStatuses(existingDomain, UPDATE_DISALLOWED_STATUSES);
-    verifyOptionalAuthInfoForResource(authInfo, existingDomain);
+    verifyOptionalAuthInfo(authInfo, existingDomain);
     AddRemove add = command.getInnerAdd();
     AddRemove remove = command.getInnerRemove();
     if (!isSuperuser) {

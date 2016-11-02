@@ -21,7 +21,6 @@ import static google.registry.flows.ResourceFlowUtils.checkSameValuesNotAddedAnd
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyAllStatusesAreClientSettable;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
@@ -49,7 +48,6 @@ import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedExcepti
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.metadata.MetadataExtension;
-import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
@@ -104,7 +102,6 @@ public final class HostUpdateFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;
   @Inject ExtensionManager extensionManager;
-  @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
   @Inject @Superuser boolean isSuperuser;
@@ -178,7 +175,6 @@ public final class HostUpdateFlow implements TransactionalFlow {
   private void verifyUpdateAllowed(
       Update command, HostResource existingResource, DomainResource superordinateDomain)
       throws EppException {
-    verifyOptionalAuthInfoForResource(authInfo, existingResource);
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingResource);
       ImmutableSet<StatusValue> statusesToAdd = command.getInnerAdd().getStatusValues();

@@ -16,7 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
@@ -82,7 +82,7 @@ public final class DomainInfoFlow implements Flow {
     validateClientIsLoggedIn(clientId);
     DateTime now = clock.nowUtc();
     DomainResource domain = loadAndVerifyExistence(DomainResource.class, targetId, now);
-    verifyOptionalAuthInfoForResource(authInfo, domain);
+    verifyOptionalAuthInfo(authInfo, domain);
     return responseBuilder
         .setResData(getResourceInfo(domain))
         .setExtensions(getDomainResponseExtensions(domain, now))

@@ -16,7 +16,7 @@ package google.registry.flows.contact;
 
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
 
 import com.google.common.base.Optional;
@@ -64,7 +64,7 @@ public final class ContactTransferQueryFlow implements Flow {
     validateClientIsLoggedIn(clientId);
     ContactResource contact =
         loadAndVerifyExistence(ContactResource.class, targetId, clock.nowUtc());
-    verifyOptionalAuthInfoForResource(authInfo, contact);
+    verifyOptionalAuthInfo(authInfo, contact);
     // Most of the fields on the transfer response are required, so there's no way to return valid
     // XML if the object has never been transferred (and hence the fields aren't populated).
     if (contact.getTransferData().getTransferStatus() == null) {

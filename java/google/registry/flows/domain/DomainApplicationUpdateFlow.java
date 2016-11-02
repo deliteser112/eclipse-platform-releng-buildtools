@@ -23,7 +23,7 @@ import static google.registry.flows.ResourceFlowUtils.checkSameValuesNotAddedAnd
 import static google.registry.flows.ResourceFlowUtils.verifyAllStatusesAreClientSettable;
 import static google.registry.flows.ResourceFlowUtils.verifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
@@ -147,7 +147,7 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
         DomainApplication.class, applicationId, loadDomainApplication(applicationId, now));
     verifyApplicationDomainMatchesTargetId(existingApplication, targetId);
     verifyNoDisallowedStatuses(existingApplication, UPDATE_DISALLOWED_STATUSES);
-    verifyOptionalAuthInfoForResource(authInfo, existingApplication);
+    verifyOptionalAuthInfo(authInfo, existingApplication);
     verifyUpdateAllowed(existingApplication, command);
     HistoryEntry historyEntry = buildHistory(existingApplication, now);
     DomainApplication newApplication = updateApplication(existingApplication, command, now);

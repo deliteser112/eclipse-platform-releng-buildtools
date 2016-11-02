@@ -21,7 +21,7 @@ import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
@@ -169,7 +169,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
   private void verifyDeleteAllowed(DomainResource existingDomain, Registry registry, DateTime now)
       throws EppException {
     verifyNoDisallowedStatuses(existingDomain, DISALLOWED_STATUSES);
-    verifyOptionalAuthInfoForResource(authInfo, existingDomain);
+    verifyOptionalAuthInfo(authInfo, existingDomain);
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingDomain);
       verifyNotInPredelegation(registry, now);

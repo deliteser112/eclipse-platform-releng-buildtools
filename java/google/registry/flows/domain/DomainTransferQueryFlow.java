@@ -16,7 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.domain.DomainFlowUtils.createTransferResponse;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 
@@ -68,7 +68,7 @@ public final class DomainTransferQueryFlow implements Flow {
     validateClientIsLoggedIn(clientId);
     DateTime now = clock.nowUtc();
     DomainResource domain = loadAndVerifyExistence(DomainResource.class, targetId, now);
-    verifyOptionalAuthInfoForResource(authInfo, domain);
+    verifyOptionalAuthInfo(authInfo, domain);
     // Most of the fields on the transfer response are required, so there's no way to return valid
     // XML if the object has never been transferred (and hence the fields aren't populated).
     TransferData transferData = domain.getTransferData();

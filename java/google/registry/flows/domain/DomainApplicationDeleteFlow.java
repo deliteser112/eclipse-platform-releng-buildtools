@@ -19,7 +19,7 @@ import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDel
 import static google.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.flows.ResourceFlowUtils.verifyExistence;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
@@ -85,7 +85,7 @@ public final class DomainApplicationDeleteFlow implements TransactionalFlow {
     DomainApplication existingApplication = verifyExistence(
         DomainApplication.class, applicationId, loadDomainApplication(applicationId, now));
     verifyApplicationDomainMatchesTargetId(existingApplication, targetId);
-    verifyOptionalAuthInfoForResource(authInfo, existingApplication);
+    verifyOptionalAuthInfo(authInfo, existingApplication);
     String tld = existingApplication.getTld();
     checkAllowedAccessToTld(clientId, tld);
     if (!isSuperuser) {

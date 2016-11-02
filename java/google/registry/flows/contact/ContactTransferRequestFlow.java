@@ -16,8 +16,9 @@ package google.registry.flows.contact;
 
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
+import static google.registry.flows.ResourceFlowUtils.verifyAuthInfo;
+import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoPresentForResourceTransfer;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
-import static google.registry.flows.ResourceFlowUtils.verifyRequiredAuthInfoForResourceTransfer;
 import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
 import static google.registry.flows.contact.ContactFlowUtils.createLosingTransferPollMessage;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
@@ -88,7 +89,8 @@ public final class ContactTransferRequestFlow implements TransactionalFlow {
     validateClientIsLoggedIn(gainingClientId);
     DateTime now = ofy().getTransactionTime();
     ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
-    verifyRequiredAuthInfoForResourceTransfer(authInfo, existingContact);
+    verifyAuthInfoPresentForResourceTransfer(authInfo);
+    verifyAuthInfo(authInfo.get(), existingContact);
     // Verify that the resource does not already have a pending transfer.
     if (TransferStatus.PENDING.equals(existingContact.getTransferData().getTransferStatus())) {
       throw new AlreadyPendingTransferException(targetId);

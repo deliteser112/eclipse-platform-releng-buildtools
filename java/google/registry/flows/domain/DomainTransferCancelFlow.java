@@ -19,7 +19,7 @@ import static google.registry.flows.ResourceFlowUtils.denyPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyHasPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.verifyIsGainingRegistrar;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.createLosingTransferPollMessage;
 import static google.registry.flows.domain.DomainFlowUtils.createTransferResponse;
@@ -79,7 +79,7 @@ public final class DomainTransferCancelFlow implements TransactionalFlow {
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
-    verifyOptionalAuthInfoForResource(authInfo, existingDomain);
+    verifyOptionalAuthInfo(authInfo, existingDomain);
     verifyHasPendingTransfer(existingDomain);
     verifyIsGainingRegistrar(existingDomain, clientId);
     checkAllowedAccessToTld(clientId, existingDomain.getTld());

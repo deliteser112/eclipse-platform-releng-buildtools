@@ -18,8 +18,9 @@ import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
+import static google.registry.flows.ResourceFlowUtils.verifyAuthInfo;
+import static google.registry.flows.ResourceFlowUtils.verifyAuthInfoPresentForResourceTransfer;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
-import static google.registry.flows.ResourceFlowUtils.verifyRequiredAuthInfoForResourceTransfer;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.createGainingTransferPollMessage;
 import static google.registry.flows.domain.DomainFlowUtils.createLosingTransferPollMessage;
@@ -195,7 +196,8 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   private void verifyTransferAllowed(DomainResource existingDomain, Period period, DateTime now)
       throws EppException {
     verifyNoDisallowedStatuses(existingDomain, DISALLOWED_STATUSES);
-    verifyRequiredAuthInfoForResourceTransfer(authInfo, existingDomain);
+    verifyAuthInfoPresentForResourceTransfer(authInfo);
+    verifyAuthInfo(authInfo.get(), existingDomain);
     // Verify that the resource does not already have a pending transfer.
     if (TransferStatus.PENDING.equals(existingDomain.getTransferData().getTransferStatus())) {
       throw new AlreadyPendingTransferException(targetId);

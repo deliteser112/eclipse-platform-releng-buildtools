@@ -16,7 +16,7 @@ package google.registry.flows.contact;
 
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
 
 import com.google.common.base.Optional;
@@ -58,7 +58,7 @@ public final class ContactInfoFlow implements Flow {
     extensionManager.validate();  // There are no legal extensions for this flow.
     validateClientIsLoggedIn(clientId);
     ContactResource contact = loadAndVerifyExistence(ContactResource.class, targetId, now);
-    verifyOptionalAuthInfoForResource(authInfo, contact);
+    verifyOptionalAuthInfo(authInfo, contact);
     if (!clientId.equals(contact.getCurrentSponsorClientId()) && !authInfo.isPresent()) {
       contact = contact.asBuilder().setAuthInfo(null).build();
     }

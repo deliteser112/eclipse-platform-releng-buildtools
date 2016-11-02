@@ -17,7 +17,7 @@ package google.registry.flows.domain;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
-import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfoForResource;
+import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.newAutorenewBillingEvent;
@@ -186,7 +186,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
       Money renewCost,
       FeeTransformCommandExtension feeUpdate,
       DateTime now) throws EppException {
-    verifyOptionalAuthInfoForResource(authInfo, existingDomain);
+    verifyOptionalAuthInfo(authInfo, existingDomain);
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingDomain);
       verifyNotReserved(InternetDomainName.from(targetId), false);
