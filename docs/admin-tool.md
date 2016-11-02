@@ -9,6 +9,16 @@ recent export failed. Its code lives inside the tools package
 (`java/google/registry/tools`), and is compiled by building the `nomulus` target
 in the Bazel BUILD file in that package.
 
+The tool connects to the Google Cloud Platform project (identified by project
+ID) that was configured in your implementation of `RegistryConfig` when the tool
+was built. See the [configuration guide](./configuration.md) for more
+information. The tool can switch between project IDs that represent different
+environments within a single overall platform (i.e. the production environment
+plus development and testing environments); see the `-e` parameter below. For
+example, if the platform is called "acme-registry", then the production project
+ID is also "acme-registry", and the project ID for the sandbox environment is
+"acme-registry-sandbox".
+
 ## Build the tool
 
 To build the `nomulus` tool, execute the following `bazel build` command inside
