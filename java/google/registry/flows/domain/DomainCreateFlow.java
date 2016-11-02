@@ -36,7 +36,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNo
 import static google.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRoid;
-import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
@@ -70,7 +69,7 @@ import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.Period;
-import google.registry.model.domain.fee.FeeTransformCommandExtension;
+import google.registry.model.domain.fee.FeeCreateCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import google.registry.model.domain.flags.FlagsCreateCommandExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
@@ -168,11 +167,11 @@ public class DomainCreateFlow implements TransactionalFlow {
   @Override
   public final EppResponse run() throws EppException {
     extensionManager.register(
+        FeeCreateCommandExtension.class,
         SecDnsCreateExtension.class,
         FlagsCreateCommandExtension.class,
         MetadataExtension.class,
         LaunchCreateExtension.class);
-    extensionManager.registerAsGroup(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
@@ -199,8 +198,8 @@ public class DomainCreateFlow implements TransactionalFlow {
     if (hasSignedMarks) {
       verifySignedMarksAllowed(tldState, isAnchorTenant);
     }
-    FeeTransformCommandExtension feeCreate =
-        eppInput.getFirstExtensionOfClasses(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    FeeCreateCommandExtension feeCreate =
+        eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     EppCommandOperations commandOperations = TldSpecificLogicProxy.getCreatePrice(
         registry, targetId, clientId, now, years, eppInput);
     validateFeeChallenge(
@@ -423,7 +422,7 @@ public class DomainCreateFlow implements TransactionalFlow {
   }
 
   private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
-      FeeTransformCommandExtension feeCreate, EppCommandOperations commandOperations) {
+      FeeCreateCommandExtension feeCreate, EppCommandOperations commandOperations) {
     return (feeCreate == null)
         ? null
         : ImmutableList.of(createFeeCreateResponse(feeCreate, commandOperations));

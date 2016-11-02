@@ -14,20 +14,32 @@
 
 package google.registry.model.domain.fee11;
 
-import google.registry.model.domain.fee.FeeTransformCommandExtension;
-import google.registry.model.domain.fee.FeeTransformCommandExtensionImpl;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+
+import com.google.common.collect.ImmutableList;
+import google.registry.model.domain.fee.Credit;
+import google.registry.model.domain.fee.FeeCreateCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
+import java.util.List;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /** A fee extension that may be present on domain create commands. */
 @XmlRootElement(name = "create")
 @XmlType(propOrder = {"currency", "fees", "credits"})
-public class FeeCreateCommandExtensionV11
-    extends FeeTransformCommandExtensionImpl implements FeeTransformCommandExtension {
+public class FeeCreateCommandExtensionV11 extends FeeCreateCommandExtension {
+
+  @XmlElement(name = "credit")
+  List<Credit> credits;
+
+  @Override
+  public ImmutableList<Credit> getCredits() {
+    return nullToEmptyImmutableCopy(credits);
+  }
 
   @Override
   public FeeTransformResponseExtension.Builder createResponseBuilder() {
-    return new FeeCreateResponseExtensionV11.Builder();
+    return new FeeTransformResponseExtension.Builder(new FeeCreateResponseExtensionV11());
   }
 }

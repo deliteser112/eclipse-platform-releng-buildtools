@@ -14,19 +14,22 @@
 
 package google.registry.model.domain.fee;
 
+import javax.xml.bind.annotation.XmlTransient;
+
 /**
  * Interface for individual fee extension items in Check commands. These are derived from the more
  * general query items (which cover Info commands as well), but may also contain a domain name,
  * depending on the version of the fee extension.
  */
-public interface FeeCheckCommandExtensionItem extends FeeQueryCommandExtensionItem {
+@XmlTransient
+public abstract class FeeCheckCommandExtensionItem extends FeeQueryCommandExtensionItem {
 
   /** True if this version of the fee extension supports domain names in Check items. */
-  public boolean isDomainNameSupported();
+  public abstract boolean isDomainNameSupported();
 
   /** The domain name being checked; throws an exception if domain names are not supported. */
-  public String getDomainName() throws UnsupportedOperationException;
+  public abstract String getDomainName();
 
   /** Create a builder for a matching fee check response item. */
-  public FeeCheckResponseExtensionItem.Builder createResponseBuilder();
+  public abstract FeeCheckResponseExtensionItem.Builder<?> createResponseBuilder();
 }

@@ -17,10 +17,8 @@ package google.registry.model.domain.fee12;
 import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
-import google.registry.model.ImmutableObject;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
-import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
@@ -41,8 +39,7 @@ import org.joda.time.DateTime;
  * the names from the non-extension check element are used.
  */
 @XmlType(propOrder = {"period", "feeClass", "feeDate"})
-public class FeeCheckCommandExtensionItemV12
-    extends ImmutableObject implements FeeCheckCommandExtensionItem {
+public class FeeCheckCommandExtensionItemV12 extends FeeCheckCommandExtensionItem {
 
   /** The default validity period (if not specified) is 1 year for all operations. */
   static final Period DEFAULT_PERIOD = Period.create(1, Period.Unit.YEARS);
@@ -55,9 +52,6 @@ public class FeeCheckCommandExtensionItemV12
 
   @XmlAttribute
   String subphase;
-
-  @XmlElement
-  Period period;
 
   @XmlElement(name = "class")
   String feeClass;
@@ -110,12 +104,7 @@ public class FeeCheckCommandExtensionItemV12
   }
 
   @Override
-  public Period getPeriod() {
-    return Optional.fromNullable(period).or(DEFAULT_PERIOD);
-  }
-
-  @Override
-  public FeeCheckResponseExtensionItem.Builder createResponseBuilder() {
+  public FeeCheckResponseExtensionItemV12.Builder createResponseBuilder() {
     return new FeeCheckResponseExtensionItemV12.Builder();
   }
 

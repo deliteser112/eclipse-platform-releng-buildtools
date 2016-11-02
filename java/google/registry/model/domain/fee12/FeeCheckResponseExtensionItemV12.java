@@ -17,24 +17,19 @@ package google.registry.model.domain.fee12;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
 
 import com.google.common.collect.ImmutableList;
-import google.registry.model.Buildable.GenericBuilder;
-import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainObjectSpec;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
 import google.registry.model.domain.fee.FeeQueryCommandExtensionItem.CommandName;
-import java.util.List;
 import javax.xml.bind.annotation.XmlType;
-import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
 
 /**
  * The version 0.12 response for a domain check on a single resource.
  */
 @XmlType(propOrder = {"object", "command"})
-public class FeeCheckResponseExtensionItemV12
-    extends ImmutableObject implements FeeCheckResponseExtensionItem {
+public class FeeCheckResponseExtensionItemV12 extends FeeCheckResponseExtensionItem {
 
   /** The domain that was checked. */
   DomainObjectSpec object;
@@ -42,6 +37,28 @@ public class FeeCheckResponseExtensionItemV12
   /** The command that was checked. */
   FeeCheckResponseExtensionItemCommandV12 command;
 
+  /**
+   * This method is overridden and not annotated for JAXB because this version of the extension
+   * doesn't support "period".
+   */
+  @Override
+  public Period getPeriod() {
+    return super.getPeriod();
+  }
+
+  /**
+   * This method is overridden and not annotated for JAXB because this version of the extension
+   * doesn't support "fee".
+   */
+  @Override
+  public ImmutableList<Fee> getFees() {
+    return super.getFees();
+  }
+
+  /**
+   * This method is not annotated for JAXB because this version of the extension doesn't support
+   * "feeClass" and because the data comes off of the command object rather than a field.
+   */
   @Override
   public String getFeeClass() {
     return command.getFeeClass();
@@ -49,15 +66,10 @@ public class FeeCheckResponseExtensionItemV12
 
   /** Builder for {@link FeeCheckResponseExtensionItemV12}. */
   public static class Builder
-      extends GenericBuilder<FeeCheckResponseExtensionItemV12, Builder>
-      implements FeeCheckResponseExtensionItem.Builder {
+      extends FeeCheckResponseExtensionItem.Builder<FeeCheckResponseExtensionItemV12> {
 
-    final FeeCheckResponseExtensionItemCommandV12.Builder commandBuilder;
-
-    Builder() {
-      super();
-      commandBuilder = new FeeCheckResponseExtensionItemCommandV12.Builder();
-    }
+    final FeeCheckResponseExtensionItemCommandV12.Builder commandBuilder =
+        new FeeCheckResponseExtensionItemCommandV12.Builder();
 
     @Override
     public Builder setCommand(CommandName commandName, String phase, String subphase) {
@@ -74,7 +86,7 @@ public class FeeCheckResponseExtensionItemV12
     }
 
     @Override
-    public Builder setFees(List<Fee> fees) {
+    public Builder setFees(ImmutableList<Fee> fees) {
       commandBuilder.setFee(forceEmptyToNull(ImmutableList.copyOf(fees)));
       return this;
     }
@@ -88,22 +100,6 @@ public class FeeCheckResponseExtensionItemV12
     @Override
     public Builder setDomainNameIfSupported(String name) {
       getInstance().object = new DomainObjectSpec(name);
-      return this;
-    }
-
-    /** Version 0.12 does not support currency in check items. */
-    @Override
-    public Builder setCurrencyIfSupported(CurrencyUnit currency) {
-      return this;
-    }
-
-    @Override
-    public Builder setAvailIfSupported(boolean avail) {
-      return this;
-    }
-
-    @Override
-    public Builder setReasonIfSupported(String reason) {
       return this;
     }
 

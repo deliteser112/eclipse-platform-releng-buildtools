@@ -16,16 +16,15 @@ package google.registry.model.domain.fee11;
 
 import google.registry.model.domain.DomainObjectSpec;
 import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
-import google.registry.model.domain.fee.FeeQueryResponseExtensionItemImpl;
+import google.registry.model.domain.fee.FeeExtensionCommandDescriptor;
+import google.registry.model.domain.fee.FeeQueryCommandExtensionItem.CommandName;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 import org.joda.money.CurrencyUnit;
-import org.joda.time.DateTime;
 
 /** The version 0.11 response for a domain check on a single resource. */
-@XmlType(propOrder = {"object", "command", "currency", "period", "fee", "feeClass", "reason"})
-public class FeeCheckResponseExtensionItemV11
-    extends FeeQueryResponseExtensionItemImpl implements FeeCheckResponseExtensionItem {
+@XmlType(propOrder = {"object", "command", "currency", "period", "fees", "feeClass", "reason"})
+public class FeeCheckResponseExtensionItemV11 extends FeeCheckResponseExtensionItem {
 
   /** Whether the domain is available. */
   @XmlAttribute
@@ -39,10 +38,18 @@ public class FeeCheckResponseExtensionItemV11
   /** The reason that the check item cannot be calculated. */
   String reason;
 
+  /** The command that was checked. */
+  FeeExtensionCommandDescriptor command;
+
   /** Builder for {@link FeeCheckResponseExtensionItemV11}. */
   public static class Builder
-      extends FeeQueryResponseExtensionItemImpl.Builder<FeeCheckResponseExtensionItemV11, Builder>
-      implements FeeCheckResponseExtensionItem.Builder {
+    extends FeeCheckResponseExtensionItem.Builder<FeeCheckResponseExtensionItemV11> {
+
+    @Override
+    public Builder setCommand(CommandName commandName, String phase, String subphase) {
+      getInstance().command = FeeExtensionCommandDescriptor.create(commandName, phase, subphase);
+      return this;
+    }
 
     @Override
     public Builder setDomainNameIfSupported(String name) {
@@ -65,16 +72,6 @@ public class FeeCheckResponseExtensionItemV11
     @Override
     public Builder setReasonIfSupported(String reason) {
       getInstance().reason = reason;
-      return this;
-    }
-
-    @Override
-    public Builder setEffectiveDateIfSupported(DateTime effectiveDate) {
-      return this;
-    }
-
-    @Override
-    public Builder setNotAfterDateIfSupported(DateTime notAfterDate) {
       return this;
     }
   }

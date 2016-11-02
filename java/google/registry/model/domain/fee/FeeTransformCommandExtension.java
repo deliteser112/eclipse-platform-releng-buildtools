@@ -14,14 +14,41 @@
 
 package google.registry.model.domain.fee;
 
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+
+import com.google.common.collect.ImmutableList;
+import google.registry.model.ImmutableObject;
 import google.registry.model.eppinput.EppInput.CommandExtension;
 import java.util.List;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
 import org.joda.money.CurrencyUnit;
 
-/** Interface for fee extensions in Create, Renew, Transfer and Update commands. */
-public interface FeeTransformCommandExtension extends CommandExtension {
-  CurrencyUnit getCurrency();
-  List<Fee> getFees();
-  List<Credit> getCredits();
-  FeeTransformResponseExtension.Builder createResponseBuilder();
+/** Base class for general transform commands with fees (create, renew, update, transfer). */
+@XmlTransient
+public abstract class FeeTransformCommandExtension
+    extends ImmutableObject implements CommandExtension {
+
+  /** The currency of the fee. */
+  CurrencyUnit currency;
+
+  /**
+   * The magnitude of the fee, in the specified units, with an optional description.
+   *
+   * <p>This is a list because a single operation can involve multiple fees.
+   */
+  @XmlElement(name = "fee")
+  List<Fee> fees;
+
+  public CurrencyUnit getCurrency() {
+    return currency;
+  }
+
+  public ImmutableList<Fee> getFees() {
+    return nullToEmptyImmutableCopy(fees);
+  }
+
+  public abstract ImmutableList<Credit> getCredits();
+
+  public abstract FeeTransformResponseExtension.Builder createResponseBuilder();
 }

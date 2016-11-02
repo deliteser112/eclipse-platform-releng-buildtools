@@ -17,24 +17,8 @@ package google.registry.model.domain.fee;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
-import google.registry.model.domain.fee06.FeeCheckCommandExtensionV06;
-import google.registry.model.domain.fee06.FeeCreateCommandExtensionV06;
-import google.registry.model.domain.fee06.FeeRenewCommandExtensionV06;
-import google.registry.model.domain.fee06.FeeTransferCommandExtensionV06;
-import google.registry.model.domain.fee06.FeeUpdateCommandExtensionV06;
-import google.registry.model.domain.fee11.FeeCheckCommandExtensionV11;
-import google.registry.model.domain.fee11.FeeCreateCommandExtensionV11;
-import google.registry.model.domain.fee11.FeeRenewCommandExtensionV11;
-import google.registry.model.domain.fee11.FeeTransferCommandExtensionV11;
-import google.registry.model.domain.fee11.FeeUpdateCommandExtensionV11;
-import google.registry.model.domain.fee12.FeeCheckCommandExtensionV12;
-import google.registry.model.domain.fee12.FeeCreateCommandExtensionV12;
-import google.registry.model.domain.fee12.FeeRenewCommandExtensionV12;
-import google.registry.model.domain.fee12.FeeTransferCommandExtensionV12;
-import google.registry.model.domain.fee12.FeeUpdateCommandExtensionV12;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import java.math.BigDecimal;
 import org.joda.time.DateTime;
@@ -60,49 +44,8 @@ public class Fee extends BaseFee {
     return instance;
   }
 
-  public static final ImmutableList<
-          Class<? extends FeeCheckCommandExtension<
-              ? extends FeeCheckCommandExtensionItem, ? extends FeeCheckResponseExtension<?>>>>
-      FEE_CHECK_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER =
-          ImmutableList.<
-                  Class<? extends FeeCheckCommandExtension<
-                      ? extends FeeCheckCommandExtensionItem,
-                      ? extends FeeCheckResponseExtension<?>>>>of(
-              FeeCheckCommandExtensionV12.class,
-              FeeCheckCommandExtensionV11.class,
-              FeeCheckCommandExtensionV06.class);
-
-  public static final ImmutableList<Class<? extends FeeTransformCommandExtension>>
-      FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER =
-          ImmutableList.<Class<? extends FeeTransformCommandExtension>>of(
-              FeeCreateCommandExtensionV12.class,
-              FeeCreateCommandExtensionV11.class,
-              FeeCreateCommandExtensionV06.class);
-
-  public static final ImmutableList<Class<? extends FeeTransformCommandExtension>>
-      FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER =
-          ImmutableList.<Class<? extends FeeTransformCommandExtension>>of(
-              FeeRenewCommandExtensionV12.class,
-              FeeRenewCommandExtensionV11.class,
-              FeeRenewCommandExtensionV06.class);
-
-  public static final ImmutableList<Class<? extends FeeTransformCommandExtension>>
-      FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER =
-          ImmutableList.<Class<? extends FeeTransformCommandExtension>>of(
-              FeeTransferCommandExtensionV12.class,
-              FeeTransferCommandExtensionV11.class,
-              FeeTransferCommandExtensionV06.class);
-
-  public static final ImmutableList<Class<? extends FeeTransformCommandExtension>>
-      FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER =
-          ImmutableList.<Class<? extends FeeTransformCommandExtension>>of(
-              FeeUpdateCommandExtensionV12.class,
-              FeeUpdateCommandExtensionV11.class,
-              FeeUpdateCommandExtensionV06.class);
-
-  public static final ImmutableSet<String> FEE_EXTENSION_URIS =
-      ImmutableSet.<String>of(
-          ServiceExtension.FEE_0_12.getUri(),
-          ServiceExtension.FEE_0_11.getUri(),
-          ServiceExtension.FEE_0_6.getUri());
+  public static final ImmutableSet<String> FEE_EXTENSION_URIS = ImmutableSet.of(
+      ServiceExtension.FEE_0_12.getUri(),
+      ServiceExtension.FEE_0_11.getUri(),
+      ServiceExtension.FEE_0_6.getUri());
 }

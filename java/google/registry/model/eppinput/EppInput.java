@@ -17,7 +17,6 @@ package google.registry.model.eppinput;
 import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -109,34 +108,6 @@ public class EppInput extends ImmutableObject {
   @Nullable
   public <E extends CommandExtension> E getSingleExtension(Class<E> clazz) {
     return FluentIterable.from(getCommandWrapper().getExtensions()).filter(clazz).first().orNull();
-  }
-
-  /** Get the extension based on type, or null, chosen from a list of possible extension classes.
-   * If there are extensions matching multiple classes, the first class listed is chosen. If there
-   * are multiple extensions of the same class, the first extension of that class is chosen
-   * (assuming that an extension matching a preceding class was not already chosen). This method is
-   * used to support multiple versions of an extension. Specify all supported versions, starting
-   * with the latest. The first-occurring extension of the latest version will be chosen, or failing
-   * that the first-occurring extension of the previous version, and so on.
-   */
-  @Nullable
-  public <E extends CommandExtension>
-      E getFirstExtensionOfClasses(ImmutableList<Class<? extends E>> classes) {
-    for (Class<? extends E> clazz : classes) {
-      Optional<? extends E> extension = FluentIterable.from(
-          getCommandWrapper().getExtensions()).filter(clazz).first();
-      if (extension.isPresent()) {
-        return extension.get();
-      }
-    }
-    return null;
-  }
-
-  @SafeVarargs
-  @Nullable
-  public final <E extends CommandExtension>
-      E getFirstExtensionOfClasses(Class<? extends E>... classes) {
-    return getFirstExtensionOfClasses(ImmutableList.copyOf(classes));
   }
 
   /** A tag that goes inside of an EPP {@literal <command>}. */

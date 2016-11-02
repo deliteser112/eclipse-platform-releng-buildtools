@@ -584,7 +584,7 @@ public class DomainFlowUtils {
    */
   static void handleFeeRequest(
       FeeQueryCommandExtensionItem feeRequest,
-      FeeQueryResponseExtensionItem.Builder builder,
+      FeeQueryResponseExtensionItem.Builder<?, ?> builder,
       InternetDomainName domain,
       String clientId,
       @Nullable CurrencyUnit topLevelCurrency,
@@ -617,7 +617,7 @@ public class DomainFlowUtils {
         .setPeriod(feeRequest.getPeriod())
         .setClass(TldSpecificLogicProxy.getFeeClass(domainNameString, now).orNull());
 
-    List<Fee> fees = ImmutableList.of();
+    ImmutableList<Fee> fees = ImmutableList.of();
     switch (feeRequest.getCommandName()) {
       case CREATE:
         if (isReserved(domain, isSunrise)) {  // Don't return a create price for reserved names.

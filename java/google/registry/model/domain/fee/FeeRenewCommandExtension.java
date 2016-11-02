@@ -12,16 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.model.domain.fee11;
+package google.registry.model.domain.fee;
 
-import google.registry.model.domain.fee.FeeTransformResponseExtension;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlTransient;
 
-/**
- * An XML data object that represents a fee extension that may be present on the response to EPP
- * domain update commands.
- */
-@XmlRootElement(name = "updData")
-@XmlType(propOrder = {"currency", "fees", "credits"})
-public class FeeUpdateResponseExtensionV11 extends FeeTransformResponseExtension {}
+/** A fee extension that may be present on domain renew commands. */
+@XmlTransient
+public abstract class FeeRenewCommandExtension extends FeeTransformCommandExtension {}

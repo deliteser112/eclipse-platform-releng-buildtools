@@ -14,8 +14,9 @@
 
 package google.registry.model.domain.fee06;
 
-import google.registry.model.domain.fee.FeeTransformCommandExtension;
-import google.registry.model.domain.fee.FeeTransformCommandExtensionImplNoCredits;
+import com.google.common.collect.ImmutableList;
+import google.registry.model.domain.fee.Credit;
+import google.registry.model.domain.fee.FeeRenewCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -23,11 +24,16 @@ import javax.xml.bind.annotation.XmlType;
 /** A fee extension that may be present on domain renew commands. */
 @XmlRootElement(name = "renew")
 @XmlType(propOrder = {"currency", "fees"})
-public class FeeRenewCommandExtensionV06
-    extends FeeTransformCommandExtensionImplNoCredits implements FeeTransformCommandExtension {
+public class FeeRenewCommandExtensionV06 extends FeeRenewCommandExtension {
 
   @Override
   public FeeTransformResponseExtension.Builder createResponseBuilder() {
-    return new FeeRenewResponseExtensionV06.Builder();
+    return new FeeTransformResponseExtension.Builder(new FeeRenewResponseExtensionV06());
+  }
+
+  /** This version of the extension doesn't support the "credit" field. */
+  @Override
+  public ImmutableList<Credit> getCredits() {
+    return ImmutableList.of();
   }
 }

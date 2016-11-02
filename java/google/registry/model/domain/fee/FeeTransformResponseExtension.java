@@ -14,18 +14,62 @@
 
 package google.registry.model.domain.fee;
 
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+
+import com.google.common.collect.ImmutableList;
+import google.registry.model.Buildable;
+import google.registry.model.ImmutableObject;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import java.util.List;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
 import org.joda.money.CurrencyUnit;
 
-/** Interface for fee extensions in Create, Renew, Transfer and Update responses. */
-public interface FeeTransformResponseExtension extends ResponseExtension {
+/** Base class for fee responses on general transform commands (create, update, renew, transfer). */
+@XmlTransient
+public class FeeTransformResponseExtension extends ImmutableObject implements ResponseExtension {
 
-  /** Builder for {@link FeeTransformResponseExtension}. */
-  public interface Builder {
-    Builder setCurrency(CurrencyUnit currency);
-    Builder setFees(List<Fee> fees);
-    Builder setCredits(List<Credit> credits);
-    FeeTransformResponseExtension build();
+  /** The currency of the fee. */
+  CurrencyUnit currency;
+
+  /**
+   * The magnitude of the fee, in the specified units, with an optional description.
+   *
+   * <p>This is a list because a single operation can involve multiple fees.
+   */
+  @XmlElement(name = "fee")
+  List<Fee> fees;
+
+  /** This field is exposed to JAXB only via the getter so that subclasses can override it. */
+  @XmlTransient
+  List<Credit> credits;
+
+  @XmlElement(name = "credit")
+  public ImmutableList<Credit> getCredits() {
+    return nullToEmptyImmutableCopy(credits);
+  }
+
+  /** Abstract builder for {@link FeeTransformResponseExtensionImpl}. */
+  public static class Builder extends Buildable.Builder<FeeTransformResponseExtension> {
+
+    public Builder(FeeTransformResponseExtension instance) {
+      super(instance);
+    }
+
+    public Builder setCurrency(CurrencyUnit currency) {
+      getInstance().currency = currency;
+      return this;
+    }
+
+    public Builder setFees(List<Fee> fees) {
+      getInstance().fees = fees;
+      return this;
+    }
+
+    public Builder setCredits(List<Credit> credits) {
+      getInstance().credits = forceEmptyToNull(credits);
+      return this;
+    }
   }
 }

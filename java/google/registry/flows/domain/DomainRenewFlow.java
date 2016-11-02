@@ -27,7 +27,6 @@ import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
-import static google.registry.model.domain.fee.Fee.FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
@@ -53,7 +52,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
-import google.registry.model.domain.fee.FeeTransformCommandExtension;
+import google.registry.model.domain.fee.FeeRenewCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -117,8 +116,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
 
   @Override
   public final EppResponse run() throws EppException {
-    extensionManager.register(MetadataExtension.class);
-    extensionManager.registerAsGroup(FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.register(FeeRenewCommandExtension.class, MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
@@ -127,8 +125,8 @@ public final class DomainRenewFlow implements TransactionalFlow {
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyRenewAllowed(authInfo, existingDomain, command);
     int years = command.getPeriod().getValue();
-    FeeTransformCommandExtension feeRenew =
-        eppInput.getFirstExtensionOfClasses(FEE_RENEW_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    FeeRenewCommandExtension feeRenew =
+        eppInput.getSingleExtension(FeeRenewCommandExtension.class);
     EppCommandOperations commandOperations = TldSpecificLogicProxy.getRenewPrice(
         Registry.get(existingDomain.getTld()), targetId, clientId, now, years, eppInput);
     validateFeeChallenge(
@@ -217,7 +215,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
   }
 
   private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
-      Money renewCost, FeeTransformCommandExtension feeRenew) {
+      Money renewCost, FeeRenewCommandExtension feeRenew) {
     return (feeRenew == null) ? null : ImmutableList.of(feeRenew
         .createResponseBuilder()
         .setCurrency(renewCost.getCurrencyUnit())

@@ -14,7 +14,7 @@
 
 package google.registry.model.domain.fee12;
 
-import google.registry.model.domain.fee.FeeTransformResponseExtensionImpl;
+import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -24,8 +24,4 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement(name = "trnData")
 @XmlType(propOrder = {"currency", "fees", "credits"})
-public class FeeTransferResponseExtensionV12 extends FeeTransformResponseExtensionImpl {
-  /** A builder for {@link FeeTransferResponseExtensionV12}. */
-  public static class Builder
-      extends FeeTransformResponseExtensionImpl.Builder<FeeTransferResponseExtensionV12, Builder> {}
-}
+public class FeeTransferResponseExtensionV12 extends FeeTransformResponseExtension {}

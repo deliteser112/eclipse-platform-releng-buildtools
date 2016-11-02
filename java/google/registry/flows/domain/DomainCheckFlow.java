@@ -23,7 +23,6 @@ import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
-import static google.registry.model.domain.fee.Fee.FEE_CHECK_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
@@ -111,8 +110,7 @@ public final class DomainCheckFlow implements Flow {
 
   @Override
   public EppResponse run() throws EppException {
-    extensionManager.register(LaunchCheckExtension.class);
-    extensionManager.registerAsGroup(FEE_CHECK_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.register(FeeCheckCommandExtension.class, LaunchCheckExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     List<String> targetIds = ((Check) resourceCommand).getTargetIds();
@@ -177,7 +175,7 @@ public final class DomainCheckFlow implements Flow {
   private ImmutableList<? extends ResponseExtension> getResponseExtensions(
       ImmutableMap<String, InternetDomainName> domainNames, DateTime now) throws EppException {
     FeeCheckCommandExtension<?, ?> feeCheck =
-        eppInput.getFirstExtensionOfClasses(FEE_CHECK_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+        eppInput.getSingleExtension(FeeCheckCommandExtension.class);
     if (feeCheck == null) {
       return null;  // No fee checks were requested.
     }
@@ -185,7 +183,7 @@ public final class DomainCheckFlow implements Flow {
         new ImmutableList.Builder<>();
     for (FeeCheckCommandExtensionItem feeCheckItem : feeCheck.getItems()) {
       for (String domainName : getDomainNamesToCheckForFee(feeCheckItem, domainNames.keySet())) {
-        FeeCheckResponseExtensionItem.Builder builder = feeCheckItem.createResponseBuilder();
+        FeeCheckResponseExtensionItem.Builder<?> builder = feeCheckItem.createResponseBuilder();
         handleFeeRequest(
             feeCheckItem,
             builder,

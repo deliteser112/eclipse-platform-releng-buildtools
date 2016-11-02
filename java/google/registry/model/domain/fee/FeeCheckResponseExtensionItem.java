@@ -14,20 +14,24 @@
 
 package google.registry.model.domain.fee;
 
-/**
- * Interface for individual fee extension items in Check responses. These are derived from the more
- * general query items (which cover Info responses as well), but may also contain a domain name,
- * depending on the version of the fee extension.
- */
-public interface FeeCheckResponseExtensionItem extends FeeQueryResponseExtensionItem {
+import javax.xml.bind.annotation.XmlTransient;
 
-  /** Builder for {@link FeeCheckResponseExtensionItem}. */
-  public interface Builder extends FeeQueryResponseExtensionItem.Builder {
+/**
+ * Abstract class for individual fee extension items in Check responses. These are derived from the
+ * more general query items (which cover Info responses as well), but may also contain a domain
+ * name, depending on the version of the fee extension.
+ */
+@XmlTransient
+public abstract class FeeCheckResponseExtensionItem extends FeeQueryResponseExtensionItem {
+
+  /** Abstract builder for {@link FeeCheckResponseExtensionItem}. */
+  public abstract static class Builder<T extends FeeCheckResponseExtensionItem>
+      extends FeeQueryResponseExtensionItem.Builder<T, Builder<T>> {
 
     /** The name associated with the item. Has no effect if domain names are not supported. */
-    public Builder setDomainNameIfSupported(String name);
-
-    public FeeCheckResponseExtensionItem build();
+    public Builder<T> setDomainNameIfSupported(@SuppressWarnings("unused") String name) {
+      return this;  // Default impl is a noop.
+    }
   }
 }
 

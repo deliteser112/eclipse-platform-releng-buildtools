@@ -37,7 +37,6 @@ import static google.registry.flows.domain.DomainFlowUtils.validateRegistrantAll
 import static google.registry.flows.domain.DomainFlowUtils.validateRequiredContactsPresent;
 import static google.registry.flows.domain.DomainFlowUtils.verifyClientUpdateNotProhibited;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
-import static google.registry.model.domain.fee.Fee.FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.earliestOf;
 
@@ -63,6 +62,7 @@ import google.registry.model.domain.DomainCommand.Update.Change;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
+import google.registry.model.domain.fee.FeeUpdateCommandExtension;
 import google.registry.model.domain.flags.FlagsUpdateCommandExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -147,10 +147,10 @@ public final class DomainUpdateFlow implements TransactionalFlow {
   @Override
   public EppResponse run() throws EppException {
     extensionManager.register(
+        FeeUpdateCommandExtension.class,
         FlagsUpdateCommandExtension.class,
         MetadataExtension.class,
         SecDnsUpdateExtension.class);
-    extensionManager.registerAsGroup(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
@@ -201,7 +201,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
         Registry.get(tld), targetId, clientId, now, eppInput);
 
     FeeTransformCommandExtension feeUpdate =
-        eppInput.getFirstExtensionOfClasses(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+        eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
     // If the fee extension is present, validate it (even if the cost is zero, to check for price
     // mismatches). Don't rely on the the validateFeeChallenge check for feeUpdate nullness, because
     // it throws an error if the name is premium, and we don't want to do that here.

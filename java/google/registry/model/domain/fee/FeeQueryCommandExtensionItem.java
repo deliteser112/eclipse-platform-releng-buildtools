@@ -15,17 +15,20 @@
 package google.registry.model.domain.fee;
 
 import com.google.common.base.Optional;
+import google.registry.model.ImmutableObject;
 import google.registry.model.domain.Period;
+import javax.xml.bind.annotation.XmlTransient;
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
 
 /**
- * Interface for individual query items in Check and Info commands. Each item indicates the command
- * to be checked, and the number of years for which the prices is requested. It may also contain the
- * currency, but some versions of the fee extension specify the currency at the top level of the
- * extension.
+ * Abstract base class for the fee request query items used in Check and Info commands. It handles
+ * the period, which is always present. Derived classes must handle the command, which may be
+ * implemented in different ways, and the currency, which may or may not be present, depending on
+ * the version of the extension being used.
  */
-public interface FeeQueryCommandExtensionItem {
+@XmlTransient
+public abstract class FeeQueryCommandExtensionItem extends ImmutableObject {
 
   /** The name of a command that might have an associated fee. */
   public enum CommandName {
@@ -37,28 +40,35 @@ public interface FeeQueryCommandExtensionItem {
     UPDATE
   }
 
+  /** The default validity period (if not specified) is 1 year for all operations. */
+  static final Period DEFAULT_PERIOD = Period.create(1, Period.Unit.YEARS);
+
+  /** The period for the command being checked. */
+  Period period;
+
   /**
    * Three-character ISO4217 currency code.
    *
    * <p>Returns null if this version of the fee extension doesn't specify currency at the top level.
    */
-  public CurrencyUnit getCurrency();
+  public abstract CurrencyUnit getCurrency();
 
   /** The as-of date for the fee extension to run. */
-  public Optional<DateTime> getEffectiveDate();
+  public abstract Optional<DateTime> getEffectiveDate();
 
   /** The name of the command being checked. */
-  public CommandName getCommandName();
+  public abstract CommandName getCommandName();
 
-  /** The unparse name of the command being checked, for use in error strings. */
-  public String getUnparsedCommandName();
+  /** The command name before being parsed into an enum, for use in error strings. */
+  public abstract String getUnparsedCommandName();
 
   /** The phase of the command being checked. */
-  public String getPhase();
+  public abstract String getPhase();
 
   /** The subphase of the command being checked. */
-  public String getSubphase();
+  public abstract String getSubphase();
 
-  /** The period for the command being checked. */
-  public Period getPeriod();
+  public Period getPeriod() {
+    return Optional.fromNullable(period).or(DEFAULT_PERIOD);
+  }
 }

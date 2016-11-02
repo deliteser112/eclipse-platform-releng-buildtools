@@ -30,7 +30,6 @@ import static google.registry.flows.domain.DomainFlowUtils.validateSecDnsExtensi
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRoid;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
-import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
@@ -63,7 +62,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.allocate.AllocateCreateExtension;
-import google.registry.model.domain.fee.FeeTransformCommandExtension;
+import google.registry.model.domain.fee.FeeCreateCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import google.registry.model.domain.flags.FlagsCreateCommandExtension;
 import google.registry.model.domain.launch.ApplicationStatus;
@@ -118,11 +117,11 @@ public class DomainAllocateFlow implements TransactionalFlow {
   @Override
   public final EppResponse run() throws EppException {
     extensionManager.register(
+        FeeCreateCommandExtension.class,
         SecDnsCreateExtension.class,
         FlagsCreateCommandExtension.class,
         MetadataExtension.class,
         AllocateCreateExtension.class);
-    extensionManager.registerAsGroup(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     verifyIsSuperuser();
@@ -374,8 +373,8 @@ public class DomainAllocateFlow implements TransactionalFlow {
       DateTime now, Registry registry, int years) throws EppException {
     EppCommandOperations commandOperations = TldSpecificLogicProxy.getCreatePrice(
         registry, targetId, clientId, now, years, eppInput);
-    FeeTransformCommandExtension feeCreate =
-        eppInput.getFirstExtensionOfClasses(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    FeeCreateCommandExtension feeCreate =
+        eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     return (feeCreate == null)
         ? null
         : ImmutableList.of(createFeeCreateResponse(feeCreate, commandOperations));

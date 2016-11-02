@@ -38,7 +38,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyRegistryStateAl
 import static google.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRoid;
-import static google.registry.model.domain.fee.Fee.FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
@@ -65,6 +64,7 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
+import google.registry.model.domain.fee.FeeCreateCommandExtension;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.domain.flags.FlagsCreateCommandExtension;
 import google.registry.model.domain.launch.ApplicationStatus;
@@ -172,11 +172,11 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
   @Override
   public final EppResponse run() throws EppException {
     extensionManager.register(
+        FeeCreateCommandExtension.class,
         SecDnsCreateExtension.class,
         FlagsCreateCommandExtension.class,
         MetadataExtension.class,
         LaunchCreateExtension.class);
-    extensionManager.registerAsGroup(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
@@ -212,8 +212,8 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
         verifyNotReserved(domainName, isSunriseApplication);
       }
     }
-    FeeTransformCommandExtension feeCreate =
-        eppInput.getFirstExtensionOfClasses(FEE_CREATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    FeeCreateCommandExtension feeCreate =
+        eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     validateFeeChallenge(targetId, tld, now, feeCreate, commandOperations.getTotalCost());
     SecDnsCreateExtension secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));

@@ -25,7 +25,6 @@ import static google.registry.flows.domain.DomainFlowUtils.newAutorenewPollMessa
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
-import static google.registry.model.domain.fee.Fee.FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
@@ -53,8 +52,8 @@ import google.registry.model.domain.DomainCommand.Update;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
-import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
+import google.registry.model.domain.fee.FeeUpdateCommandExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.rgp.RgpUpdateExtension;
@@ -119,8 +118,10 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
 
   @Override
   public final EppResponse run() throws EppException {
-    extensionManager.register(MetadataExtension.class, RgpUpdateExtension.class);
-    extensionManager.registerAsGroup(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.register(
+        FeeUpdateCommandExtension.class,
+        MetadataExtension.class,
+        RgpUpdateExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     Update command = (Update) resourceCommand;
@@ -129,8 +130,8 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
     Money restoreCost = Registry.get(existingDomain.getTld()).getStandardRestoreCost();
     EppCommandOperations renewCommandOperations = TldSpecificLogicProxy.getRenewPrice(
         Registry.get(existingDomain.getTld()), targetId, clientId, now, 1, eppInput);
-    FeeTransformCommandExtension feeUpdate = eppInput.getFirstExtensionOfClasses(
-        FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    FeeUpdateCommandExtension feeUpdate =
+        eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
     Money totalCost = renewCommandOperations.getTotalCost();
     verifyRestoreAllowed(command, existingDomain, restoreCost, totalCost, feeUpdate, now);
     HistoryEntry historyEntry = buildHistory(existingDomain, now);
@@ -184,7 +185,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
       DomainResource existingDomain,
       Money restoreCost,
       Money renewCost,
-      FeeTransformCommandExtension feeUpdate,
+      FeeUpdateCommandExtension feeUpdate,
       DateTime now) throws EppException {
     verifyOptionalAuthInfo(authInfo, existingDomain);
     if (!isSuperuser) {
@@ -258,7 +259,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
   }
 
   private static ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
-      Money restoreCost, Money renewCost, FeeTransformCommandExtension feeUpdate) {
+      Money restoreCost, Money renewCost, FeeUpdateCommandExtension feeUpdate) {
     return (feeUpdate == null) ? null : ImmutableList.of(
         feeUpdate.createResponseBuilder()
             .setCurrency(restoreCost.getCurrencyUnit())

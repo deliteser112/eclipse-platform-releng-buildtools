@@ -14,56 +14,112 @@
 
 package google.registry.model.domain.fee;
 
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+
+import com.google.common.collect.ImmutableList;
+import google.registry.model.Buildable.GenericBuilder;
+import google.registry.model.ImmutableObject;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.FeeQueryCommandExtensionItem.CommandName;
 import java.util.List;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
 
 /**
- * Interface for individual query items in Check and Info response. Each item indicates the fees and
- * class associated with a particular command and period. The currency may also be listed, but some
- * versions of the fee extension specify the currency at the top level of the extension.
+ * Abstract base class for the fee request query items used in Check and Info responses. It handles
+ * command, period, fees and class, which are always present. Derived classes must handle currency,
+ * which may or may not be present, depending on the version of the extension being used.
  */
-
-public interface FeeQueryResponseExtensionItem {
+@XmlTransient
+public class FeeQueryResponseExtensionItem extends ImmutableObject {
 
   /**
-   * The type of the fee. We will use "premium" for fees on premium names, and omit the field
-   * otherwise.
+   * The period that was checked.
+   *
+   * <p>This field is exposed to JAXB only via the getter so that subclasses can override it.
    */
-  public String getFeeClass();
+  @XmlTransient
+  Period period;
 
-  /** Builder for {@link FeeCheckResponseExtensionItem}. */
-  public interface Builder {
+  /**
+   * The magnitude of the fee, in the specified units, with an optional description.
+   *
+   * <p>This is a list because a single operation can involve multiple fees.
+   *
+   * <p>This field is exposed to JAXB only via the getter so that subclasses can override it.
+   */
+  @XmlTransient
+  List<Fee> fees;
 
-    /**
-     * If currency is not supported in this type of query response item for this version of the fee
-     * extension, this function has no effect.
-     */
-    public Builder setCurrencyIfSupported(CurrencyUnit currency);
+  /**
+   * The type of the fee.
+   *
+   * <p>We will use "premium" for fees on premium names, and omit the field otherwise.
+   *
+   * <p>This field is exposed to JAXB only via the getter so that subclasses can override it.
+   */
+  @XmlTransient
+  String feeClass;
 
-     /** Whether this check item can be calculated. If so, reason should be null. If not, fees
-      * should not be set.
-      */
-    public Builder setAvailIfSupported(boolean avail);
+  @XmlElement(name = "period")
+  public Period getPeriod() {
+    return period;
+  }
 
-    /** The reason that the check item cannot be calculated. */
-    public Builder setReasonIfSupported(String reason);
+  @XmlElement(name = "fee")
+  public ImmutableList<Fee> getFees() {
+    return nullToEmptyImmutableCopy(fees);
+  }
 
-    /** The effective date that the check is run on. */
-    public Builder setEffectiveDateIfSupported(DateTime effectiveDate);
+  @XmlElement(name = "class")
+  public String getFeeClass() {
+    return feeClass;
+  }
 
-    /** The date after which the quoted fees are no longer valid. */
-    public Builder setNotAfterDateIfSupported(DateTime notAfterDate);
+  /** Abstract builder for {@link FeeQueryResponseExtensionItemImpl}. */
+  public abstract static class
+      Builder<T extends FeeQueryResponseExtensionItem, B extends Builder<?, ?>>
+          extends GenericBuilder<T, B> {
 
-    public Builder setCommand(CommandName commandName, String phase, String subphase);
+    public abstract B setCommand(CommandName commandName, String phase, String subphase);
 
-    public Builder setPeriod(Period period);
+    public B setPeriod(Period period) {
+      getInstance().period = period;
+      return thisCastToDerived();
+    }
 
-    public Builder setFees(List<Fee> fees);
+    public B setFees(ImmutableList<Fee> fees) {
+      // If there are no fees, set the field to null to suppress the 'fee' section in the xml.
+      getInstance().fees = forceEmptyToNull(ImmutableList.copyOf(fees));
+      return thisCastToDerived();
+    }
 
-    public Builder setClass(String feeClass);
+    public B setClass(String feeClass) {
+      getInstance().feeClass = feeClass;
+      return thisCastToDerived();
+    }
+
+    public B setAvailIfSupported(@SuppressWarnings("unused") boolean avail) {
+      return thisCastToDerived();  // Default impl is a noop.
+    }
+
+    public B setReasonIfSupported(@SuppressWarnings("unused") String reason) {
+      return thisCastToDerived();  // Default impl is a noop.
+    }
+
+    public B setEffectiveDateIfSupported(@SuppressWarnings("unused") DateTime effectiveDate) {
+      return thisCastToDerived();  // Default impl is a noop.
+    }
+
+    public B setNotAfterDateIfSupported(@SuppressWarnings("unused") DateTime notAfterDate) {
+      return thisCastToDerived();  // Default impl is a noop.
+    }
+
+    public B setCurrencyIfSupported(@SuppressWarnings("unused") CurrencyUnit currency) {
+      return thisCastToDerived();  // Default impl is a noop.
+    }
   }
 }
-

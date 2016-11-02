@@ -14,7 +14,9 @@
 
 package google.registry.model.domain.fee06;
 
-import google.registry.model.domain.fee.FeeTransformResponseExtensionImplNoCredits;
+import com.google.common.collect.ImmutableList;
+import google.registry.model.domain.fee.Credit;
+import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -24,9 +26,11 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement(name = "updData")
 @XmlType(propOrder = {"currency", "fees"})
-public class FeeUpdateResponseExtensionV06 extends FeeTransformResponseExtensionImplNoCredits {
-  /** A builder for {@link FeeUpdateResponseExtensionV06}. */
-  public static class Builder
-      extends FeeTransformResponseExtensionImplNoCredits
-          .Builder<FeeUpdateResponseExtensionV06, Builder> {}
+public class FeeUpdateResponseExtensionV06 extends FeeTransformResponseExtension {
+
+  /** This version of the extension doesn't support the "credit" field. */
+  @Override
+  public ImmutableList<Credit> getCredits() {
+    return super.getCredits();
+  }
 }

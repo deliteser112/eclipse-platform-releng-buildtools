@@ -14,53 +14,42 @@
 
 package google.registry.model.domain.fee06;
 
+import google.registry.model.domain.fee.FeeExtensionCommandDescriptor;
+import google.registry.model.domain.fee.FeeQueryCommandExtensionItem.CommandName;
 import google.registry.model.domain.fee.FeeQueryResponseExtensionItem;
-import google.registry.model.domain.fee.FeeQueryResponseExtensionItemImpl;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import org.joda.money.CurrencyUnit;
-import org.joda.time.DateTime;
 
 /**
  * An XML data object that represents a fee extension that may be present on the response to EPP
  * domain info commands.
  */
 @XmlRootElement(name = "infData")
-@XmlType(propOrder = {"currency", "command", "period", "fee", "feeClass"})
+@XmlType(propOrder = {"currency", "command", "period", "fees", "feeClass"})
 public class FeeInfoResponseExtensionV06
-    extends FeeQueryResponseExtensionItemImpl implements ResponseExtension {
+    extends FeeQueryResponseExtensionItem implements ResponseExtension {
 
   CurrencyUnit currency;
 
+  /** The command that was checked. */
+  FeeExtensionCommandDescriptor command;
+
+
   /** Builder for {@link FeeInfoResponseExtensionV06}. */
   public static class Builder
-      extends FeeQueryResponseExtensionItemImpl.Builder<FeeInfoResponseExtensionV06, Builder> {
+      extends FeeQueryResponseExtensionItem.Builder<FeeInfoResponseExtensionV06, Builder> {
 
     @Override
-    public Builder setAvailIfSupported(boolean avail) {
-      return this;
+    public Builder setCommand(CommandName commandName, String phase, String subphase) {
+      getInstance().command = FeeExtensionCommandDescriptor.create(commandName, phase, subphase);
+      return thisCastToDerived();
     }
 
     @Override
-    public Builder setReasonIfSupported(String reason) {
-      return this;
-    }
-
-    @Override
-    public FeeQueryResponseExtensionItem.Builder
-        setCurrencyIfSupported(CurrencyUnit currency) {
+    public Builder setCurrencyIfSupported(CurrencyUnit currency) {
       getInstance().currency = currency;
-      return this;
-    }
-
-    @Override
-    public Builder setEffectiveDateIfSupported(DateTime effectiveDate) {
-      return this;
-    }
-
-    @Override
-    public Builder setNotAfterDateIfSupported(DateTime notAfterDate) {
       return this;
     }
   }

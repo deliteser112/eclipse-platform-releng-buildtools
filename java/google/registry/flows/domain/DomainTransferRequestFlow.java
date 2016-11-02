@@ -30,7 +30,6 @@ import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
-import static google.registry.model.domain.fee.Fee.FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
@@ -56,7 +55,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
-import google.registry.model.domain.fee.FeeTransformCommandExtension;
+import google.registry.model.domain.fee.FeeTransferCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import google.registry.model.domain.flags.FlagsTransferCommandExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -130,8 +129,10 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
 
   @Override
   public final EppResponse run() throws EppException {
-    extensionManager.register(FlagsTransferCommandExtension.class, MetadataExtension.class);
-    extensionManager.registerAsGroup(FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    extensionManager.register(
+        FeeTransferCommandExtension.class,
+        FlagsTransferCommandExtension.class,
+        MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(gainingClientId);
     Period period = ((Transfer) resourceCommand).getPeriod();
@@ -144,8 +145,8 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     // The cost of the renewal implied by a transfer.
     Money renewCost = getDomainRenewCost(targetId, now, years);
     // An optional extension from the client specifying what they think the transfer should cost.
-    FeeTransformCommandExtension feeTransfer = eppInput.getFirstExtensionOfClasses(
-        FEE_TRANSFER_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
+    FeeTransferCommandExtension feeTransfer =
+        eppInput.getSingleExtension(FeeTransferCommandExtension.class);
     validateFeeChallenge(targetId, tld, now, feeTransfer, renewCost);
     HistoryEntry historyEntry = buildHistory(period, existingDomain, now);
     DateTime automaticTransferTime = now.plus(registry.getAutomaticTransferLength());
@@ -405,7 +406,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   }
 
   private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(Money renewCost,
-      FeeTransformCommandExtension feeTransfer) {
+      FeeTransferCommandExtension feeTransfer) {
     return feeTransfer == null
         ? null
         : ImmutableList.of(feeTransfer.createResponseBuilder()

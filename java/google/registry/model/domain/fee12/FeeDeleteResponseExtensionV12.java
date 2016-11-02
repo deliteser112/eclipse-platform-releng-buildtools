@@ -14,7 +14,7 @@
 
 package google.registry.model.domain.fee12;
 
-import google.registry.model.domain.fee.FeeTransformResponseExtensionImpl;
+import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -24,9 +24,12 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement(name = "delData")
 @XmlType(propOrder = {"currency", "fees", "credits"})
-public class FeeDeleteResponseExtensionV12 extends FeeTransformResponseExtensionImpl {
+public class FeeDeleteResponseExtensionV12 extends FeeTransformResponseExtension {
 
   /** Builder for {@link FeeDeleteResponseExtensionV12}. */
-  public static class Builder
-      extends FeeTransformResponseExtensionImpl.Builder<FeeDeleteResponseExtensionV12, Builder> {}
+  public static class Builder extends FeeTransformResponseExtension.Builder {
+    public Builder() {
+      super(new FeeDeleteResponseExtensionV12());
+    }
+  }
 }

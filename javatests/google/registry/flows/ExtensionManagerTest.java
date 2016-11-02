@@ -24,7 +24,6 @@ import google.registry.flows.ExtensionManager.UndeclaredServiceExtensionExceptio
 import google.registry.flows.ExtensionManager.UnsupportedRepeatedExtensionException;
 import google.registry.flows.exceptions.OnlyToolCanPassMetadataException;
 import google.registry.flows.session.HelloFlow;
-import google.registry.model.domain.allocate.AllocateCreateExtension;
 import google.registry.model.domain.fee06.FeeInfoCommandExtensionV06;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -64,23 +63,6 @@ public class ExtensionManagerTest {
             MetadataExtension.class)
         .build();
     manager.register(MetadataExtension.class, LaunchCreateExtension.class);
-    thrown.expect(UnsupportedRepeatedExtensionException.class);
-    manager.validate();
-  }
-
-  @Test
-  public void testMultipleExtensionsFromSameGroupForbidden() throws Exception {
-    ExtensionManager manager = new TestInstanceBuilder()
-        .setEppRequestSource(EppRequestSource.TOOL)
-        .setDeclaredUris(ServiceExtension.FEE_0_6.getUri())
-        .setSuppliedExtensions(
-            MetadataExtension.class,
-            LaunchCreateExtension.class,
-            AllocateCreateExtension.class)
-        .build();
-    manager.register(MetadataExtension.class);
-    manager.registerAsGroup(
-        ImmutableList.of(LaunchCreateExtension.class, AllocateCreateExtension.class));
     thrown.expect(UnsupportedRepeatedExtensionException.class);
     manager.validate();
   }

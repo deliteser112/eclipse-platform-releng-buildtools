@@ -14,12 +14,16 @@
 
 package google.registry.flows;
 
+import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.getCommandExtensionUri;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.SyntaxErrorException;
@@ -30,7 +34,6 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.EppInput.CommandExtension;
 import google.registry.util.FormattingLogger;
-import java.util.Collection;
 import java.util.Set;
 import javax.inject.Inject;
 
@@ -49,8 +52,6 @@ public final class ExtensionManager {
 
   private final ImmutableSet.Builder<Class<? extends CommandExtension>> implementedBuilder =
       new ImmutableSet.Builder<>();
-  private final ImmutableSet.Builder<ImmutableSet<?>> implementedGroupsBuilder =
-      new ImmutableSet.Builder<>();
 
   @Inject EppInput eppInput;
   @Inject SessionMetadata sessionMetadata;
@@ -64,12 +65,6 @@ public final class ExtensionManager {
     implementedBuilder.add(extension);
   }
 
-  public <T extends CommandExtension> void registerAsGroup(
-      Collection<Class<? extends T>> extensions) {
-    implementedBuilder.addAll(extensions);
-    implementedGroupsBuilder.add(ImmutableSet.copyOf(extensions));
-  }
-
   public void validate() throws EppException {
     ImmutableSet.Builder<Class<? extends CommandExtension>> suppliedBuilder =
         new ImmutableSet.Builder<>();
@@ -79,27 +74,12 @@ public final class ExtensionManager {
     ImmutableSet<Class<? extends CommandExtension>> suppliedExtensions = suppliedBuilder.build();
     ImmutableSet<Class<? extends CommandExtension>> implementedExtensions =
         implementedBuilder.build();
-    ImmutableSet<ImmutableSet<?>> implementedExtensionGroups =
-        implementedGroupsBuilder.build();
-    checkForDuplicateExtensions(suppliedExtensions, implementedExtensionGroups);
+    ImmutableList<CommandExtension> suppliedExtensionInstances =
+        eppInput.getCommandWrapper().getExtensions();
     checkForUndeclaredExtensions(suppliedExtensions);
     checkForRestrictedExtensions(suppliedExtensions);
-    checkForUnimplementedExtensions(suppliedExtensions, implementedExtensions);
-  }
-
-  private void checkForDuplicateExtensions(
-      ImmutableSet<Class<? extends CommandExtension>> suppliedExtensions,
-      ImmutableSet<ImmutableSet<?>> implementedExtensionGroups)
-          throws UnsupportedRepeatedExtensionException {
-    if (suppliedExtensions.size() < eppInput.getCommandWrapper().getExtensions().size()) {
-      throw new UnsupportedRepeatedExtensionException();
-    }
-    // No more than one extension in an extension group can be present.
-    for (ImmutableSet<?> group : implementedExtensionGroups) {
-      if (intersection(suppliedExtensions, group).size() > 1) {
-        throw new UnsupportedRepeatedExtensionException();
-      }
-    }
+    checkForDuplicateExtensions(suppliedExtensionInstances, suppliedExtensions);
+    checkForUnimplementedExtensions(suppliedExtensionInstances, implementedExtensions);
   }
 
   private void checkForUndeclaredExtensions(
@@ -134,22 +114,39 @@ public final class ExtensionManager {
     }
   }
 
-  private void checkForUnimplementedExtensions(
-      ImmutableSet<Class<? extends CommandExtension>> suppliedExtensions,
+  private static void checkForDuplicateExtensions(
+      ImmutableList<CommandExtension> suppliedExtensionInstances,
       ImmutableSet<Class<? extends CommandExtension>> implementedExtensions)
-          throws UnimplementedExtensionException {
-    Set<Class<? extends CommandExtension>> unimplementedExtensions =
-        difference(suppliedExtensions, implementedExtensions);
-    if (!unimplementedExtensions.isEmpty()) {
-      logger.infofmt("Unimplemented extensions: %s", unimplementedExtensions);
-      throw new UnimplementedExtensionException();
+          throws UnsupportedRepeatedExtensionException {
+    for (Class<? extends CommandExtension> implemented : implementedExtensions) {
+      if (FluentIterable.from(suppliedExtensionInstances).filter(implemented).size() > 1) {
+        throw new UnsupportedRepeatedExtensionException();
+      }
     }
   }
 
-  /** Unsupported repetition of an extension. */
-  static class UnsupportedRepeatedExtensionException extends SyntaxErrorException {
-    public UnsupportedRepeatedExtensionException() {
-      super("Unsupported repetition of an extension");
+  private static void checkForUnimplementedExtensions(
+      ImmutableList<CommandExtension> suppliedExtensionInstances,
+      ImmutableSet<Class<? extends CommandExtension>> implementedExtensionClasses)
+          throws UnimplementedExtensionException {
+    ImmutableSet.Builder<Class<? extends CommandExtension>> unimplementedExtensionsBuilder =
+        new ImmutableSet.Builder<>();
+    for (final CommandExtension instance : suppliedExtensionInstances) {
+      if (!any(
+          implementedExtensionClasses,
+          new Predicate<Class<? extends CommandExtension>>() {
+            @Override
+            public boolean apply(Class<? extends CommandExtension> implementedExtensionClass) {
+              return implementedExtensionClass.isInstance(instance);
+            }})) {
+        unimplementedExtensionsBuilder.add(instance.getClass());
+      }
+    }
+    ImmutableSet<Class<? extends CommandExtension>> unimplementedExtensions =
+        unimplementedExtensionsBuilder.build();
+    if (!unimplementedExtensions.isEmpty()) {
+      logger.infofmt("Unimplemented extensions: %s", unimplementedExtensions);
+      throw new UnimplementedExtensionException();
     }
   }
 
@@ -158,6 +155,13 @@ public final class ExtensionManager {
     public UndeclaredServiceExtensionException(Set<String> undeclaredUris) {
       super(String.format("Service extension(s) must be declared at login: %s",
             Joiner.on(", ").join(undeclaredUris)));
+    }
+  }
+
+  /** Unsupported repetition of an extension. */
+  static class UnsupportedRepeatedExtensionException extends SyntaxErrorException {
+    public UnsupportedRepeatedExtensionException() {
+      super("Unsupported repetition of an extension");
     }
   }
 }

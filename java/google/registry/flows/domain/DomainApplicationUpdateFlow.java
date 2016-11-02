@@ -39,7 +39,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDoma
 import static google.registry.flows.domain.DomainFlowUtils.verifyClientUpdateNotProhibited;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
-import static google.registry.model.domain.fee.Fee.FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
@@ -138,7 +137,6 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
         LaunchUpdateExtension.class,
         MetadataExtension.class,
         SecDnsUpdateExtension.class);
-    extensionManager.registerAsGroup(FEE_UPDATE_COMMAND_EXTENSIONS_IN_PREFERENCE_ORDER);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();

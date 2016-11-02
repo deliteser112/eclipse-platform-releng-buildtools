@@ -24,7 +24,6 @@ import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.FeeCheckCommandExtension;
 import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
 import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
-import google.registry.model.domain.fee.FeeCheckResponseExtensionItem.Builder;
 import google.registry.model.domain.fee.FeeExtensionCommandDescriptor;
 import google.registry.model.domain.fee11.FeeCheckCommandExtensionV11.FeeCheckCommandExtensionItemV11;
 import javax.xml.bind.annotation.XmlElement;
@@ -88,7 +87,7 @@ public class FeeCheckCommandExtensionV11 extends ImmutableObject
   }
 
   /** Implementation of the item interface, returning values of the single "item". */
-  class FeeCheckCommandExtensionItemV11 implements FeeCheckCommandExtensionItem {
+  class FeeCheckCommandExtensionItemV11 extends FeeCheckCommandExtensionItem {
 
     /** The name of the command being checked. */
     @Override
@@ -135,7 +134,7 @@ public class FeeCheckCommandExtensionV11 extends ImmutableObject
     }
 
     @Override
-    public Builder createResponseBuilder() {
+    public FeeCheckResponseExtensionItemV11.Builder createResponseBuilder() {
       return new FeeCheckResponseExtensionItemV11.Builder();
     }
 
