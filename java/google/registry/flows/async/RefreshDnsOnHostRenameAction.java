@@ -240,8 +240,8 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
     abstract DateTime lastUpdateTime();
 
     /**
-     * Returns a packaged-up DnsRefreshRequest parsed from a task queue task, or absent if the host
-     * specified is already deleted.
+     * Returns a packaged-up {@link DnsRefreshRequest} parsed from a task queue task, or absent if
+     * the host specified is already deleted.
      */
     static Optional<DnsRefreshRequest> createFromTask(TaskHandle task, DateTime now)
         throws Exception {
