@@ -18,6 +18,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -30,7 +31,11 @@ import com.google.gdata.data.spreadsheet.ListEntry;
 import com.google.gdata.data.spreadsheet.ListFeed;
 import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
 import com.google.gdata.data.spreadsheet.WorksheetEntry;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeSleeper;
+import google.registry.util.Retrier;
 import java.net.URL;
+import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,32 +46,34 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class SheetSynchronizerTest {
 
+  private static final int MAX_RETRIES = 3;
+
   private final SpreadsheetService spreadsheetService = mock(SpreadsheetService.class);
   private final SpreadsheetEntry spreadsheet = mock(SpreadsheetEntry.class);
   private final WorksheetEntry worksheet = mock(WorksheetEntry.class);
   private final ListFeed listFeed = mock(ListFeed.class);
   private final SheetSynchronizer sheetSynchronizer = new SheetSynchronizer();
+  private final FakeSleeper sleeper =
+      new FakeSleeper(new FakeClock(DateTime.parse("2000-01-01TZ")));
 
   @Before
   public void before() throws Exception {
     sheetSynchronizer.spreadsheetService = spreadsheetService;
+    sheetSynchronizer.retrier = new Retrier(sleeper, MAX_RETRIES);
     when(spreadsheetService.getEntry(any(URL.class), eq(SpreadsheetEntry.class)))
         .thenReturn(spreadsheet);
-    when(spreadsheet.getWorksheets())
-        .thenReturn(ImmutableList.of(worksheet));
-    when(worksheet.getListFeedUrl())
-        .thenReturn(new URL("http://example.com/spreadsheet"));
-    when(spreadsheetService.getFeed(any(URL.class), eq(ListFeed.class)))
-        .thenReturn(listFeed);
-    when(worksheet.update())
-        .thenReturn(worksheet);
+    when(spreadsheet.getWorksheets()).thenReturn(ImmutableList.of(worksheet));
+    when(worksheet.getListFeedUrl()).thenReturn(new URL("http://example.com/spreadsheet"));
+    when(spreadsheetService.getFeed(any(URL.class), eq(ListFeed.class))).thenReturn(listFeed);
+    when(worksheet.update()).thenReturn(worksheet);
   }
 
   @After
   public void after() throws Exception {
-    verify(spreadsheetService).getEntry(
-        new URL("https://spreadsheets.google.com/feeds/spreadsheets/foobar"),
-        SpreadsheetEntry.class);
+    verify(spreadsheetService)
+        .getEntry(
+            new URL("https://spreadsheets.google.com/feeds/spreadsheets/foobar"),
+            SpreadsheetEntry.class);
     verify(spreadsheet).getWorksheets();
     verify(worksheet).getListFeedUrl();
     verify(spreadsheetService).getFeed(new URL("http://example.com/spreadsheet"), ListFeed.class);
@@ -86,8 +93,7 @@ public class SheetSynchronizerTest {
   public void testSynchronize_bothContainSameRow_doNothing() throws Exception {
     ListEntry entry = makeListEntry(ImmutableMap.of("key", "value"));
     when(listFeed.getEntries()).thenReturn(ImmutableList.of(entry));
-    sheetSynchronizer.synchronize("foobar", ImmutableList.of(
-        ImmutableMap.of("key", "value")));
+    sheetSynchronizer.synchronize("foobar", ImmutableList.of(ImmutableMap.of("key", "value")));
     verify(worksheet).setRowCount(2);
     verify(worksheet).update();
     verify(entry, atLeastOnce()).getCustomElements();
@@ -98,10 +104,26 @@ public class SheetSynchronizerTest {
   public void testSynchronize_cellIsDifferent_updateRow() throws Exception {
     ListEntry entry = makeListEntry(ImmutableMap.of("key", "value"));
     when(listFeed.getEntries()).thenReturn(ImmutableList.of(entry));
-    sheetSynchronizer.synchronize("foobar", ImmutableList.of(
-        ImmutableMap.of("key", "new value")));
+    sheetSynchronizer.synchronize("foobar", ImmutableList.of(ImmutableMap.of("key", "new value")));
     verify(entry.getCustomElements()).setValueLocal("key", "new value");
     verify(entry).update();
+    verify(worksheet).setRowCount(2);
+    verify(worksheet).update();
+    verify(entry, atLeastOnce()).getCustomElements();
+    verifyNoMoreInteractions(entry);
+  }
+
+  @Test
+  public void testSynchronize_cellIsDifferent_updateRow_retriesOnException() throws Exception {
+    ListEntry entry = makeListEntry(ImmutableMap.of("key", "value"));
+    when(listFeed.getEntries()).thenReturn(ImmutableList.of(entry));
+    when(entry.update())
+        .thenThrow(new RuntimeException())
+        .thenThrow(new RuntimeException())
+        .thenReturn(entry);
+    sheetSynchronizer.synchronize("foobar", ImmutableList.of(ImmutableMap.of("key", "new value")));
+    verify(entry.getCustomElements()).setValueLocal("key", "new value");
+    verify(entry, times(3)).update();
     verify(worksheet).setRowCount(2);
     verify(worksheet).update();
     verify(entry, atLeastOnce()).getCustomElements();
@@ -113,10 +135,29 @@ public class SheetSynchronizerTest {
     ListEntry entry = makeListEntry(ImmutableMap.<String, String>of());
     when(listFeed.getEntries()).thenReturn(ImmutableList.<ListEntry>of());
     when(listFeed.createEntry()).thenReturn(entry);
-    sheetSynchronizer.synchronize("foobar", ImmutableList.of(
-        ImmutableMap.of("key", "value")));
+    sheetSynchronizer.synchronize("foobar", ImmutableList.of(ImmutableMap.of("key", "value")));
     verify(entry.getCustomElements()).setValueLocal("key", "value");
     verify(listFeed).insert(entry);
+    verify(worksheet).setRowCount(2);
+    verify(worksheet).update();
+    verify(listFeed).createEntry();
+    verify(entry, atLeastOnce()).getCustomElements();
+    verifyNoMoreInteractions(entry);
+  }
+
+  @Test
+  public void testSynchronize_spreadsheetMissingRow_insertRow_retriesOnException()
+      throws Exception {
+    ListEntry entry = makeListEntry(ImmutableMap.<String, String>of());
+    when(listFeed.getEntries()).thenReturn(ImmutableList.<ListEntry>of());
+    when(listFeed.createEntry()).thenReturn(entry);
+    when(listFeed.insert(entry))
+        .thenThrow(new RuntimeException())
+        .thenThrow(new RuntimeException())
+        .thenReturn(entry);
+    sheetSynchronizer.synchronize("foobar", ImmutableList.of(ImmutableMap.of("key", "value")));
+    verify(entry.getCustomElements()).setValueLocal("key", "value");
+    verify(listFeed, times(3)).insert(entry);
     verify(worksheet).setRowCount(2);
     verify(worksheet).update();
     verify(listFeed).createEntry();

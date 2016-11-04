@@ -23,6 +23,7 @@ java_library(
         "//java/google/registry/config",
         "//java/google/registry/export/sheet",
         "//java/google/registry/model",
+        "//java/google/registry/util",
         "//javatests/google/registry/testing",
     ],
 )

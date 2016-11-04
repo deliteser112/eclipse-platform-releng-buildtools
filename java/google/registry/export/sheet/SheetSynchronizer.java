@@ -23,9 +23,11 @@ import com.google.gdata.data.spreadsheet.ListFeed;
 import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
 import com.google.gdata.data.spreadsheet.WorksheetEntry;
 import com.google.gdata.util.ServiceException;
+import google.registry.util.Retrier;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 /** Generic data synchronization utility for Google Spreadsheets. */
@@ -36,6 +38,7 @@ class SheetSynchronizer {
 
   @Inject SpreadsheetService spreadsheetService;
   @Inject SheetSynchronizer() {}
+  @Inject Retrier retrier;
 
   /**
    * Replace the contents of a Google Spreadsheet with {@code data}.
@@ -73,11 +76,12 @@ class SheetSynchronizer {
     WorksheetEntry worksheet = spreadsheet.getWorksheets().get(0);
     worksheet.setRowCount(data.size() + 1); // account for header row
     worksheet = worksheet.update();
-    ListFeed listFeed = spreadsheetService.getFeed(worksheet.getListFeedUrl(), ListFeed.class);
+    final ListFeed listFeed =
+        spreadsheetService.getFeed(worksheet.getListFeedUrl(), ListFeed.class);
     List<ListEntry> entries = listFeed.getEntries();
     int commonSize = Math.min(entries.size(), data.size());
     for (int i = 0; i < commonSize; i++) {
-      ListEntry entry = entries.get(i);
+      final ListEntry entry = entries.get(i);
       CustomElementCollection elements = entry.getCustomElements();
       boolean mutated = false;
       for (ImmutableMap.Entry<String, String> cell : data.get(i).entrySet()) {
@@ -87,17 +91,31 @@ class SheetSynchronizer {
         }
       }
       if (mutated) {
-        entry.update();
+        // Wrap in a retrier to deal with transient HTTP failures, which are IOExceptions wrapped
+        // in RuntimeExceptions.
+        retrier.callWithRetry(new Callable<Void>() {
+          @Override
+          public Void call() throws Exception {
+            entry.update();
+            return null;
+          }}, RuntimeException.class);
       }
     }
     if (data.size() > entries.size()) {
       for (int i = entries.size(); i < data.size(); i++) {
-        ListEntry entry = listFeed.createEntry();
+        final ListEntry entry = listFeed.createEntry();
         CustomElementCollection elements = entry.getCustomElements();
         for (ImmutableMap.Entry<String, String> cell : data.get(i).entrySet()) {
           elements.setValueLocal(cell.getKey(), cell.getValue());
         }
-        listFeed.insert(entry);
+        // Wrap in a retrier to deal with transient HTTP failures, which are IOExceptions wrapped
+        // in RuntimeExceptions.
+        retrier.callWithRetry(new Callable<Void>() {
+          @Override
+          public Void call() throws Exception {
+            listFeed.insert(entry);
+            return null;
+          }}, RuntimeException.class);
       }
     }
   }

@@ -78,10 +78,10 @@ public final class AsyncFlowEnqueuer {
    */
   private void addTaskToQueueWithRetry(final Queue queue, final TaskOptions task) {
     retrier.callWithRetry(new Callable<Void>() {
-    @Override
-    public Void call() throws Exception {
-      queue.add(task);
-      return null;
-    }}, TransientFailureException.class);
+      @Override
+      public Void call() throws Exception {
+        queue.add(task);
+        return null;
+      }}, TransientFailureException.class);
   }
 }
