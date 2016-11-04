@@ -16,7 +16,6 @@ package google.registry.export.sheet;
 
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -55,7 +54,6 @@ public class SyncRegistrarsSheetActionTest {
     action.syncRegistrarsSheet = syncRegistrarsSheet;
     action.idConfig = Optional.fromNullable(idConfig);
     action.idParam = Optional.fromNullable(idParam);
-    action.interval = Duration.standardHours(1);
     action.timeout = Duration.standardHours(1);
     action.run();
   }
@@ -69,22 +67,22 @@ public class SyncRegistrarsSheetActionTest {
 
   @Test
   public void testPost_withoutParams_runsSyncWithDefaultIdAndChecksIfModified() throws Exception {
-    when(syncRegistrarsSheet.wasRegistrarsModifiedInLast(any(Duration.class))).thenReturn(true);
+    when(syncRegistrarsSheet.wereRegistrarsModified()).thenReturn(true);
     runAction("jazz", null);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).startsWith("OK");
-    verify(syncRegistrarsSheet).wasRegistrarsModifiedInLast(any(Duration.class));
+    verify(syncRegistrarsSheet).wereRegistrarsModified();
     verify(syncRegistrarsSheet).run(eq("jazz"));
     verifyNoMoreInteractions(syncRegistrarsSheet);
   }
 
   @Test
   public void testPost_noModificationsToRegistrarEntities_doesNothing() throws Exception {
-    when(syncRegistrarsSheet.wasRegistrarsModifiedInLast(any(Duration.class))).thenReturn(false);
+    when(syncRegistrarsSheet.wereRegistrarsModified()).thenReturn(false);
     runAction("NewRegistrar", null);
     assertThat(response.getPayload()).startsWith("NOTMODIFIED");
-    verify(syncRegistrarsSheet).wasRegistrarsModifiedInLast(any(Duration.class));
+    verify(syncRegistrarsSheet).wereRegistrarsModified();
     verifyNoMoreInteractions(syncRegistrarsSheet);
   }
 

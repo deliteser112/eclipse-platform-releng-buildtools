@@ -111,7 +111,6 @@ public class SyncRegistrarsSheetAction implements Runnable {
   @Inject SyncRegistrarsSheet syncRegistrarsSheet;
   @Inject @Config("sheetLockTimeout") Duration timeout;
   @Inject @Config("sheetRegistrarId") Optional<String> idConfig;
-  @Inject @Config("sheetRegistrarInterval") Duration interval;
   @Inject @Parameter("id") Optional<String> idParam;
   @Inject SyncRegistrarsSheetAction() {}
 
@@ -123,8 +122,7 @@ public class SyncRegistrarsSheetAction implements Runnable {
       return;
     }
     if (!idParam.isPresent()) {
-      // TODO(b/19082368): Use a cursor.
-      if (!syncRegistrarsSheet.wasRegistrarsModifiedInLast(interval)) {
+      if (!syncRegistrarsSheet.wereRegistrarsModified()) {
         Result.NOTMODIFIED.send(response, null);
         return;
       }

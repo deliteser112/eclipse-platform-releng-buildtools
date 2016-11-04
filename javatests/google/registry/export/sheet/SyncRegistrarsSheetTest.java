@@ -16,12 +16,14 @@ package google.registry.export.sheet;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.common.Cursor.CursorType.SYNC_REGISTRAR_SHEET;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static org.joda.time.DateTimeZone.UTC;
-import static org.joda.time.Duration.standardHours;
+import static org.joda.time.Duration.standardMinutes;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
@@ -29,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.config.RegistryEnvironment;
+import google.registry.model.common.Cursor;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarAddress;
@@ -37,7 +40,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -87,14 +89,12 @@ public class SyncRegistrarsSheetTest {
   }
 
   @Test
-  public void testWasRegistrarsModifiedInLast_noRegistrars_returnsFalse() throws Exception {
-    SyncRegistrarsSheet sync = newSyncRegistrarsSheet();
-    assertThat(sync.wasRegistrarsModifiedInLast(Duration.standardHours(1))).isFalse();
+  public void test_wereRegistrarsModified_noRegistrars_returnsFalse() throws Exception {
+    assertThat(newSyncRegistrarsSheet().wereRegistrarsModified()).isFalse();
   }
 
   @Test
-  public void testWasRegistrarsModifiedInLastInterval() throws Exception {
-    Duration interval = standardHours(1);
+  public void test_wereRegistrarsModified_atDifferentCursorTimes() throws Exception {
     persistResource(new Registrar.Builder()
         .setClientId("SomeRegistrar")
         .setRegistrarName("Some Registrar Inc.")
@@ -102,14 +102,15 @@ public class SyncRegistrarsSheetTest {
         .setIanaIdentifier(8L)
         .setState(Registrar.State.ACTIVE)
         .build());
-    clock.advanceBy(interval);
-    assertThat(newSyncRegistrarsSheet().wasRegistrarsModifiedInLast(interval)).isTrue();
-    clock.advanceOneMilli();
-    assertThat(newSyncRegistrarsSheet().wasRegistrarsModifiedInLast(interval)).isFalse();
+    persistResource(Cursor.createGlobal(SYNC_REGISTRAR_SHEET, clock.nowUtc().minusHours(1)));
+    assertThat(newSyncRegistrarsSheet().wereRegistrarsModified()).isTrue();
+    persistResource(Cursor.createGlobal(SYNC_REGISTRAR_SHEET, clock.nowUtc().plusHours(1)));
+    assertThat(newSyncRegistrarsSheet().wereRegistrarsModified()).isFalse();
   }
 
   @Test
   public void testRun() throws Exception {
+    DateTime beforeExecution = clock.nowUtc();
     persistResource(new Registrar.Builder()
         .setClientId("anotherregistrar")
         .setRegistrarName("Another Registrar LLC")
@@ -190,6 +191,7 @@ public class SyncRegistrarsSheetTest {
     persistSimpleResources(contacts);
     persistResource(registrar);
 
+    clock.advanceBy(standardMinutes(1));
     newSyncRegistrarsSheet().run("foobar");
 
     verify(sheetSynchronizer).synchronize(eq("foobar"), rowsCaptor.capture());
@@ -254,8 +256,8 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("address.countryCode", "US");
     assertThat(row).containsEntry("phoneNumber", "+1.2223334444");
     assertThat(row).containsEntry("faxNumber", "");
-    assertThat(row.get("creationTime")).isEqualTo(clock.nowUtc().toString());
-    assertThat(row.get("lastUpdateTime")).isEqualTo(clock.nowUtc().toString());
+    assertThat(row.get("creationTime")).isEqualTo(beforeExecution.toString());
+    assertThat(row.get("lastUpdateTime")).isEqualTo(beforeExecution.toString());
     assertThat(row).containsEntry("allowedTlds", "example");
     assertThat(row).containsEntry("blockPremiumNames", "false");
     assertThat(row).containsEntry("ipAddressWhitelist", "");
@@ -289,8 +291,8 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("address.countryCode", "US");
     assertThat(row).containsEntry("phoneNumber", "+1.2125551212");
     assertThat(row).containsEntry("faxNumber", "+1.2125551213");
-    assertThat(row.get("creationTime")).isEqualTo(clock.nowUtc().toString());
-    assertThat(row.get("lastUpdateTime")).isEqualTo(clock.nowUtc().toString());
+    assertThat(row.get("creationTime")).isEqualTo(beforeExecution.toString());
+    assertThat(row.get("lastUpdateTime")).isEqualTo(beforeExecution.toString());
     assertThat(row).containsEntry("allowedTlds", "");
     assertThat(row).containsEntry("whoisServer", "whois.example.com");
     assertThat(row).containsEntry("blockPremiumNames", "false");
@@ -299,6 +301,10 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("referralUrl",
         ENVIRONMENT.config().getRegistrarDefaultReferralUrl().toString());
     assertThat(row).containsEntry("icannReferralEmail", "jim@example.net");
+
+    Cursor cursor = ofy().load().key(Cursor.createGlobalKey(SYNC_REGISTRAR_SHEET)).now();
+    assertThat(cursor).isNotNull();
+    assertThat(cursor.getCursorTime()).isGreaterThan(beforeExecution);
   }
 
   @Test

@@ -74,6 +74,8 @@ The following cursor types are defined:
     escrow provider's SFTP server for a given TLD.
 *   **`RECURRING_BILLING`** - Expansion of `Recurring` (renew) billing events
     into `OneTime` events.
+*   **`SYNC_REGISTRAR_SHEET`** - Tracks the last time the registrar spreadsheet
+    was successfully synced.
 
 All `Cursor` entities in Datastore contain a `DateTime` that represents the next
 timestamp at which an operation should resume processing and a `CursorType` that

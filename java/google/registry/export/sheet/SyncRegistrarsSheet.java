@@ -15,6 +15,8 @@
 package google.registry.export.sheet;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static google.registry.model.common.Cursor.CursorType.SYNC_REGISTRAR_SHEET;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registrar.RegistrarContact.Type.ABUSE;
 import static google.registry.model.registrar.RegistrarContact.Type.ADMIN;
 import static google.registry.model.registrar.RegistrarContact.Type.BILLING;
@@ -22,6 +24,7 @@ import static google.registry.model.registrar.RegistrarContact.Type.LEGAL;
 import static google.registry.model.registrar.RegistrarContact.Type.MARKETING;
 import static google.registry.model.registrar.RegistrarContact.Type.TECH;
 import static google.registry.model.registrar.RegistrarContact.Type.WHOIS;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -32,6 +35,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
 import com.google.gdata.util.ServiceException;
+import com.googlecode.objectify.VoidWork;
+import google.registry.model.common.Cursor;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarAddress;
 import google.registry.model.registrar.RegistrarContact;
@@ -41,10 +46,9 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 
 /**
- * Class for synchronizing all {@link Registrar} datastore objects to a Google Spreadsheet.
+ * Class for synchronizing all {@link Registrar} Datastore objects to a Google Spreadsheet.
  *
  * @see SyncRegistrarsSheetAction
  */
@@ -54,11 +58,15 @@ class SyncRegistrarsSheet {
   @Inject SheetSynchronizer sheetSynchronizer;
   @Inject SyncRegistrarsSheet() {}
 
-  /** Returns true if a {@link Registrar} entity was modified in past {@code duration}. */
-  boolean wasRegistrarsModifiedInLast(Duration duration) {
-    DateTime watermark = clock.nowUtc().minus(duration);
+  /**
+   * Returns true if any {@link Registrar} entity was modified since the last time this task
+   * successfully completed, as measured by a cursor.
+   */
+  boolean wereRegistrarsModified() {
+    Cursor cursor = ofy().load().key(Cursor.createGlobalKey(SYNC_REGISTRAR_SHEET)).now();
+    DateTime lastUpdateTime = (cursor == null) ? START_OF_TIME : cursor.getCursorTime();
     for (Registrar registrar : Registrar.loadAll()) {
-      if (DateTimeUtils.isAtOrAfter(registrar.getLastUpdateTime(), watermark)) {
+      if (DateTimeUtils.isAtOrAfter(registrar.getLastUpdateTime(), lastUpdateTime)) {
         return true;
       }
     }
@@ -67,6 +75,7 @@ class SyncRegistrarsSheet {
 
   /** Performs the synchronization operation. */
   void run(String spreadsheetId) throws IOException, ServiceException {
+    final DateTime executionTime = clock.nowUtc();
     sheetSynchronizer.synchronize(
         spreadsheetId,
         FluentIterable
@@ -167,6 +176,11 @@ class SyncRegistrarsSheet {
                   }
                 })
             .toList());
+    ofy().transact(new VoidWork() {
+      @Override
+      public void vrun() {
+        ofy().save().entity(Cursor.createGlobal(SYNC_REGISTRAR_SHEET, executionTime));
+      }});
   }
 
   private static String convertContacts(

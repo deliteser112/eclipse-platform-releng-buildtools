@@ -71,7 +71,14 @@ public class Cursor extends ImmutableObject {
      * for which Recurring billing events have been expanded (i.e. the inclusive first billing time
      * for the next expansion job).
      */
-    RECURRING_BILLING(EntityGroupRoot.class);
+    RECURRING_BILLING(EntityGroupRoot.class),
+
+    /**
+     * Cursor for {@link google.registry.export.sheet.SyncRegistrarsSheetAction}. The DateTime
+     * stored is the last time that registrar changes were successfully synced to the sheet. If
+     * there were no changes since the last time the action run, the cursor is not updated.
+     */
+    SYNC_REGISTRAR_SHEET(EntityGroupRoot.class);
 
     /** See the definition of scope on {@link #getScopeClass}. */
     private final Class<? extends ImmutableObject> scope;

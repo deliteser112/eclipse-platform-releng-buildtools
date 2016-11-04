@@ -18,6 +18,7 @@ java_library(
         "//third_party/java/jsr305_annotations",
         "//third_party/java/junit",
         "//third_party/java/mockito",
+        "//third_party/java/objectify:objectify-v4_1",
         "//third_party/java/servlet/servlet_api",
         "//third_party/java/truth",
         "//java/google/registry/config",

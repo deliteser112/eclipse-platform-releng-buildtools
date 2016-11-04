@@ -619,17 +619,6 @@ public final class ConfigModule {
   }
 
   /**
-   * Amount of time between synchronizations of the Registrar spreadsheet.
-   *
-   * @see google.registry.export.sheet.SyncRegistrarsSheetAction
-   */
-  @Provides
-  @Config("sheetRegistrarInterval")
-  public static Duration provideSheetRegistrarInterval() {
-    return Duration.standardHours(1);
-  }
-
-  /**
    * Returns SSH client connection and read timeout.
    *
    * @see google.registry.rde.RdeUploadAction
