@@ -58,7 +58,7 @@ import org.joda.time.Duration;
  *
  * @see <a href="https://cloud.google.com/dns/docs/">Google Cloud DNS Documentation</a>
  */
-class CloudDnsWriter implements DnsWriter {
+public class CloudDnsWriter implements DnsWriter {
 
   /**
    * The name of the pricing engine, as used in {@code Registry.dnsWriter}. Remember to change

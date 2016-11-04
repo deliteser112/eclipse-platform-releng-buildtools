@@ -64,11 +64,11 @@ public final class ConfigModule {
     String value() default "";
   }
 
-  private static final RegistryEnvironment registryEnvironment = RegistryEnvironment.get();
+  private static final RegistryEnvironment REGISTRY_ENVIRONMENT = RegistryEnvironment.get();
 
   @Provides
   public static RegistryEnvironment provideRegistryEnvironment() {
-    return registryEnvironment;
+    return REGISTRY_ENVIRONMENT;
   }
 
   @Provides
@@ -82,7 +82,11 @@ public final class ConfigModule {
     return config.getProjectId();
   }
 
-  /** The filename of the logo to be displayed in the header of the registrar console. */
+  /**
+   * The filename of the logo to be displayed in the header of the registrar console.
+   *
+   * @see google.registry.ui.server.registrar.ConsoleUiAction
+   */
   @Provides
   @Config("logoFilename")
   public static String provideLogoFilename(RegistryEnvironment environment) {
@@ -96,54 +100,73 @@ public final class ConfigModule {
     }
   }
 
-  /** The product name of this specific registry.  Used throughout the registrar console. */
+  /**
+   * The product name of this specific registry.  Used throughout the registrar console.
+   *
+   * @see google.registry.ui.server.registrar.ConsoleUiAction
+   */
   @Provides
   @Config("productName")
   public static String provideProductName(RegistryEnvironment environment) {
+    // Change this to the name of your product.
     return "Nomulus";
   }
 
   /**
    * The e-mail address for questions about integrating with the registry.  Used in the
    * "contact-us" section of the registrar console.
+   *
+   * @see google.registry.ui.server.registrar.ConsoleUiAction
    */
   @Provides
   @Config("integrationEmail")
   public static String provideIntegrationEmail(RegistryEnvironment environment) {
+    // Change this to your integration email address.
     return "integration@example.com";
   }
 
   /**
    * The e-mail address for general support.  Used in the "contact-us" section of the registrar
    * console.
+   *
+   * @see google.registry.ui.server.registrar.ConsoleUiAction
    */
   @Provides
   @Config("supportEmail")
   public static String provideSupportEmail(RegistryEnvironment environment) {
+    // Change this to your support email address.
     return "support@example.com";
   }
 
   /**
    * The "From" e-mail address for announcements.  Used in the "contact-us" section of the
    * registrar console.
+   *
+   * @see google.registry.ui.server.registrar.ConsoleUiAction
    */
   @Provides
   @Config("announcementsEmail")
   public static String provideAnnouncementsEmail(RegistryEnvironment environment) {
+    // Change this to your announcements e-mail.
     return "announcements@example.com";
   }
 
   /**
    * The contact phone number.  Used in the "contact-us" section of the registrar console.
+   *
+   * @see google.registry.ui.server.registrar.ConsoleUiAction
    */
   @Provides
   @Config("supportPhoneNumber")
   public static String provideSupportPhoneNumber(RegistryEnvironment environment) {
+    // Change this to your phone number.
     return "+1 (888) 555 0123";
   }
 
   /**
    * The URL for technical support docs.  Used in the "contact-us" section of the registrar console.
+   *
+   * @see google.registry.ui.server.registrar.ConsoleUiAction
    */
   @Provides
   @Config("technicalDocsUrl")
@@ -173,6 +196,11 @@ public final class ConfigModule {
     return config.getCommitLogDatastoreRetention();
   }
 
+  /**
+   * The GCS bucket for exporting domain lists.
+   *
+   * @see google.registry.export.ExportDomainListsAction
+   */
   @Provides
   @Config("domainListsGcsBucket")
   public static String provideDomainListsGcsBucket(RegistryConfig config) {
@@ -230,21 +258,20 @@ public final class ConfigModule {
     return DateTimeConstants.TUESDAY;
   }
 
-  /** Amount of time between BRDA deposits. */
+  /**
+   * Amount of time between BRDA deposits.
+   *
+   * @see google.registry.rde.PendingDepositChecker
+   */
   @Provides
   @Config("brdaInterval")
   public static Duration provideBrdaInterval() {
     return Duration.standardDays(7);
   }
 
-  /** Maximum amount of time generating an BRDA deposit for a TLD could take, before killing. */
-  @Provides
-  @Config("brdaLockTimeout")
-  public static Duration provideBrdaLockTimeout() {
-    return Duration.standardHours(5);
-  }
-
-  /** Returns {@code true} if the target zone should be created in DNS if it does not exist. */
+  /**
+   * Returns {@code true} if the target zone should be created in DNS if it does not exist.
+   */
   @Provides
   @Config("dnsCreateZone")
   public static boolean provideDnsCreateZone(RegistryEnvironment environment) {
@@ -259,14 +286,21 @@ public final class ConfigModule {
   /**
    * The maximum number of domain and host updates to batch together to send to
    * PublishDnsUpdatesAction, to avoid exceeding AppEngine's limits.
-   * */
+   *
+   * @see google.registry.dns.ReadDnsQueueAction
+   */
   @Provides
   @Config("dnsTldUpdateBatchSize")
   public static int provideDnsTldUpdateBatchSize() {
     return 100;
   }
 
-  /** The maximum interval (seconds) to lease tasks from the dns-pull queue. */
+  /**
+   * The maximum interval (seconds) to lease tasks from the dns-pull queue.
+   *
+   * @see google.registry.dns.ReadDnsQueueAction
+   * @see google.registry.dns.PublishDnsUpdatesAction
+   */
   @Provides
   @Config("dnsWriteLockTimeout")
   public static Duration provideDnsWriteLockTimeout() {
@@ -279,7 +313,11 @@ public final class ConfigModule {
     return Duration.standardSeconds(75);
   }
 
-  /** Returns the default time to live for DNS records. */
+  /**
+   * Returns the default time to live for DNS records.
+   *
+   * @see google.registry.dns.writer.clouddns.CloudDnsWriter
+   */
   @Provides
   @Config("dnsDefaultTtl")
   public static Duration provideDnsDefaultTtl() {
@@ -318,14 +356,11 @@ public final class ConfigModule {
   @Provides
   @Config("googleAppsAdminEmailAddress")
   public static String provideGoogleAppsAdminEmailAddress(RegistryEnvironment environment) {
-    switch (environment) {
-      case PRODUCTION:
-        return "admin@registry.google";
-      default:
-        return "admin@domainregistry-sandbox.co";
-    }
+    // Change this to your admin account.
+    return "admin@example.com";
   }
 
+  /** @see RegistryConfig#getRegistrarChangesNotificationEmailAddresses() */
   @Provides
   @Config("registrarChangesNotificationEmailAddresses")
   public static ImmutableList<String> provideRegistrarChangesNotificationEmailAddresses(
@@ -342,14 +377,11 @@ public final class ConfigModule {
   @Provides
   @Config("publicDomainName")
   public static String providePublicDomainName(RegistryEnvironment environment) {
-    switch (environment) {
-      case PRODUCTION:
-        return "registry.google";
-      default:
-        return "domainregistry-sandbox.co";
-    }
+    // Change this to your domain name.
+    return "registry.example.com";
   }
 
+  /** @see RegistryConfig#getTmchCaTestingMode() */
   @Provides
   @Config("tmchCaTestingMode")
   public static boolean provideTmchCaTestingMode(RegistryConfig config) {
@@ -376,6 +408,7 @@ public final class ConfigModule {
     }
   }
 
+  /** @see RegistryConfig#getTmchMarksdbUrl() */
   @Provides
   @Config("tmchMarksdbUrl")
   public static String provideTmchMarksdbUrl(RegistryConfig config) {
@@ -395,6 +428,9 @@ public final class ConfigModule {
 
   /**
    * Returns the Google Cloud Storage bucket for importing escrow files.
+   *
+   * @see google.registry.rde.RdeContactImportAction
+   * @see google.registry.rde.RdeHostImportAction
    */
   @Provides
   @Config("rdeImportBucket")
@@ -413,14 +449,24 @@ public final class ConfigModule {
     return 64 * 1024;
   }
 
-  /** Amount of time between RDE deposits. */
+  /**
+   * Amount of time between RDE deposits.
+   *
+   * @see google.registry.rde.PendingDepositChecker
+   * @see google.registry.rde.RdeReportAction
+   * @see google.registry.rde.RdeUploadAction
+   */
   @Provides
   @Config("rdeInterval")
   public static Duration provideRdeInterval() {
     return Duration.standardDays(1);
   }
 
-  /** Maximum amount of time for sending a small XML file to ICANN via HTTP, before killing. */
+  /**
+   * Maximum amount of time for sending a small XML file to ICANN via HTTP, before killing.
+   *
+   * @see google.registry.rde.RdeReportAction
+   */
   @Provides
   @Config("rdeReportLockTimeout")
   public static Duration provideRdeReportLockTimeout() {
@@ -459,14 +505,22 @@ public final class ConfigModule {
     return 64 * 1024;
   }
 
-  /** Maximum amount of time generating an escrow deposit for a TLD could take, before killing. */
+  /**
+   * Maximum amount of time generating an escrow deposit for a TLD could take, before killing.
+   *
+   * @see google.registry.rde.RdeStagingReducer
+   */
   @Provides
   @Config("rdeStagingLockTimeout")
   public static Duration provideRdeStagingLockTimeout() {
     return Duration.standardHours(5);
   }
 
-  /** Maximum amount of time it should ever take to upload an escrow deposit, before killing. */
+  /**
+   * Maximum amount of time it should ever take to upload an escrow deposit, before killing.
+   *
+   * @see google.registry.rde.RdeUploadAction
+   */
   @Provides
   @Config("rdeUploadLockTimeout")
   public static Duration provideRdeUploadLockTimeout() {
@@ -477,6 +531,8 @@ public final class ConfigModule {
    * Minimum amount of time to wait between consecutive SFTP uploads on a single TLD.
    *
    * <p>This value was communicated to us by the escrow provider.
+   *
+   * @see google.registry.rde.RdeStagingReducer
    */
   @Provides
   @Config("rdeUploadSftpCooldown")
@@ -493,7 +549,8 @@ public final class ConfigModule {
   @Provides
   @Config("rdeSshIdentity")
   public static String provideSshIdentity() {
-    return "rde@charlestonroadregistry.com";
+    // Change this to your RDE identity.
+    return "rde@example.com";
   }
 
   /**
@@ -514,13 +571,22 @@ public final class ConfigModule {
     }
   }
 
+  /**
+   * Whether or not the registrar console is enabled.
+   *
+   * @see google.registry.ui.server.registrar.ConsoleUiAction
+   */
   @Provides
   @Config("registrarConsoleEnabled")
   public static boolean provideRegistrarConsoleEnabled() {
     return true;
   }
 
-  /** Maximum amount of time for syncing a spreadsheet, before killing. */
+  /**
+   * Maximum amount of time for syncing a spreadsheet, before killing.
+   *
+   * @see google.registry.export.sheet.SyncRegistrarsSheetAction
+   */
   @Provides
   @Config("sheetLockTimeout")
   public static Duration provideSheetLockTimeout() {
@@ -552,7 +618,11 @@ public final class ConfigModule {
     }
   }
 
-  /** Amount of time between synchronizations of the Registrar spreadsheet. */
+  /**
+   * Amount of time between synchronizations of the Registrar spreadsheet.
+   *
+   * @see google.registry.export.sheet.SyncRegistrarsSheetAction
+   */
   @Provides
   @Config("sheetRegistrarInterval")
   public static Duration provideSheetRegistrarInterval() {
@@ -570,7 +640,11 @@ public final class ConfigModule {
     return Duration.standardSeconds(30);
   }
 
-  /** Duration after watermark where we shouldn't deposit, because transactions might be pending. */
+  /**
+   * Duration after watermark where we shouldn't deposit, because transactions might be pending.
+   *
+   * @see google.registry.rde.RdeStagingAction
+   */
   @Provides
   @Config("transactionCooldown")
   public static Duration provideTransactionCooldown() {
@@ -637,7 +711,12 @@ public final class ConfigModule {
     return null;
   }
 
-  /** Returns Braintree Merchant Account IDs for each supported currency. */
+  /**
+   * Returns Braintree Merchant Account IDs for each supported currency.
+   *
+   * @see google.registry.ui.server.registrar.RegistrarPaymentAction
+   * @see google.registry.ui.server.registrar.RegistrarPaymentSetupAction
+   */
   @Provides
   @Config("braintreeMerchantAccountIds")
   public static ImmutableMap<CurrencyUnit, String> provideBraintreeMerchantAccountId(
@@ -658,6 +737,8 @@ public final class ConfigModule {
    * Returns Braintree Merchant ID of Registry, used for accessing Braintree API.
    *
    * <p>This is a base32 value copied from the Braintree website.
+   *
+   * @see google.registry.braintree.BraintreeModule
    */
   @Provides
   @Config("braintreeMerchantId")
@@ -676,6 +757,7 @@ public final class ConfigModule {
    *
    * <p>This is a base32 value copied from the Braintree website.
    *
+   * @see google.registry.braintree.BraintreeModule
    * @see google.registry.keyring.api.Keyring#getBraintreePrivateKey()
    */
   @Provides
@@ -749,12 +831,18 @@ public final class ConfigModule {
     return Duration.standardSeconds(60);
   }
 
+  /**
+   * The time between a contact transfer request and its expiration date.
+   *
+   * @see google.registry.flows.contact.ContactTransferRequestFlow
+   */
   @Provides
   @Config("contactAutomaticTransferLength")
   public static Duration provideContactAutomaticTransferLength(RegistryConfig config) {
     return config.getContactAutomaticTransferLength();
   }
 
+  /** @see RegistryConfig#getMaxChecks() */
   @Provides
   @Config("maxChecks")
   public static int provideMaxChecks(RegistryConfig config) {
@@ -778,6 +866,8 @@ public final class ConfigModule {
    * is ok as long as the mapreduce eventually sees the new reference (and therefore asynchronously
    * fails the delete). Without this delay, the mapreduce might have started before the domain flow
    * committed, and could potentially miss the reference.
+   *
+   * @see google.registry.flows.async.AsyncFlowEnqueuer
    */
   @Provides
   @Config("asyncDeleteFlowMapreduceDelay")
