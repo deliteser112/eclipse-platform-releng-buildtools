@@ -21,11 +21,15 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
+import google.registry.flows.host.HostFlowUtils.HostNameNotLowerCaseException;
+import google.registry.flows.host.HostFlowUtils.HostNameNotNormalizedException;
+import google.registry.flows.host.HostFlowUtils.HostNameNotPunyCodedException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -38,7 +42,7 @@ import org.junit.Test;
 public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostResource> {
 
   public HostInfoFlowTest() {
-    setEppInput("host_info.xml");
+    setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld"));
   }
 
   @Before
@@ -156,6 +160,27 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_nonLowerCaseHostname() throws Exception {
+    setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "NS1.EXAMPLE.NET"));
+    thrown.expect(HostNameNotLowerCaseException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_nonPunyCodedHostname() throws Exception {
+    setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.çauçalito.tld"));
+    thrown.expect(HostNameNotPunyCodedException.class, "expected ns1.xn--aualito-txac.tld");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_nonCanonicalHostname() throws Exception {
+    setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld."));
+    thrown.expect(HostNameNotNormalizedException.class);
     runFlow();
   }
 }

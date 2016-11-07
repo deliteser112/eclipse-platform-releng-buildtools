@@ -16,6 +16,7 @@ package google.registry.flows.host;
 
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
+import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
 
 import google.registry.flows.EppException;
@@ -36,6 +37,9 @@ import org.joda.time.DateTime;
  * transfer if it has ever been transferred. Any registrar can see the information for any host.
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
+ * @error {@link HostFlowUtils.HostNameNotLowerCaseException}
+ * @error {@link HostFlowUtils.HostNameNotNormalizedException}
+ * @error {@link HostFlowUtils.HostNameNotPunyCodedException}
  */
 public final class HostInfoFlow implements Flow {
 
@@ -49,7 +53,8 @@ public final class HostInfoFlow implements Flow {
   @Override
   public EppResponse run() throws EppException {
     extensionManager.validate();  // There are no legal extensions for this flow.
-    validateClientIsLoggedIn(clientId);
+    validateClientIsLoggedIn(clientId); 
+    validateHostName(targetId);
     DateTime now = clock.nowUtc();
     HostResource host = loadAndVerifyExistence(HostResource.class, targetId, now);
     return responseBuilder.setResData(cloneResourceWithLinkedStatus(host, now)).build();

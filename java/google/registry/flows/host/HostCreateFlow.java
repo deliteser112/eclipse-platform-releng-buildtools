@@ -65,6 +65,9 @@ import org.joda.time.DateTime;
  * @error {@link HostFlowUtils.HostNameTooLongException}
  * @error {@link HostFlowUtils.HostNameTooShallowException}
  * @error {@link HostFlowUtils.InvalidHostNameException}
+ * @error {@link HostFlowUtils.HostNameNotLowerCaseException}
+ * @error {@link HostFlowUtils.HostNameNotNormalizedException}
+ * @error {@link HostFlowUtils.HostNameNotPunyCodedException}
  * @error {@link HostFlowUtils.SuperordinateDomainDoesNotExistException}
  * @error {@link SubordinateHostMustHaveIpException}
  * @error {@link UnexpectedExternalHostIpException}

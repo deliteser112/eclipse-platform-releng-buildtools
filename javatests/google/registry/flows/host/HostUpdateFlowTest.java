@@ -48,6 +48,9 @@ import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.ResourceFlowUtils.StatusNotClientSettableException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
+import google.registry.flows.host.HostFlowUtils.HostNameNotLowerCaseException;
+import google.registry.flows.host.HostFlowUtils.HostNameNotNormalizedException;
+import google.registry.flows.host.HostFlowUtils.HostNameNotPunyCodedException;
 import google.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
 import google.registry.flows.host.HostFlowUtils.InvalidHostNameException;
 import google.registry.flows.host.HostFlowUtils.SuperordinateDomainDoesNotExistException;
@@ -355,6 +358,19 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     assertAboutHosts().that(reloadResourceByForeignKey())
         .hasStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED).and()
         .hasStatusValue(StatusValue.SERVER_UPDATE_PROHIBITED);
+  }
+
+  @Test
+  public void testSuccess_superuserCanSpecifyInvalidExistingHostName() throws Exception {
+    persistActiveHost("NS1.çiça199.tld.");
+    clock.advanceOneMilli();
+    setEppHostUpdateInput("NS1.çiça199.tld.", "ns1.xn--ia199-xrab.tld", null, null);
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("host_update_response.xml"));
+    clock.advanceOneMilli();
+    assertThat(loadByForeignKey(HostResource.class, "NS1.çiça199.tld.", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns1.xn--ia199-xrab.tld", clock.nowUtc()))
+        .isNotNull();
   }
 
   @Test
@@ -697,6 +713,54 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     persistActiveHost(oldHostName());
     persistActiveHost("ns2.example.tld");
     thrown.expect(HostAlreadyExistsException.class, "ns2.example.tld");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_referToNonLowerCaseHostname() throws Exception {
+    persistActiveHost("ns1.EXAMPLE.tld");
+    setEppHostUpdateInput("ns1.EXAMPLE.tld", "ns2.example.tld", null, null);
+    thrown.expect(HostNameNotLowerCaseException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_renameToNonLowerCaseHostname() throws Exception {
+    persistActiveHost("ns1.example.tld");
+    setEppHostUpdateInput("ns1.example.tld", "ns2.EXAMPLE.tld", null, null);
+    thrown.expect(HostNameNotLowerCaseException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_referToNonPunyCodedHostname() throws Exception {
+    persistActiveHost("ns1.çauçalito.tld");
+    setEppHostUpdateInput("ns1.çauçalito.tld", "ns1.sausalito.tld", null, null);
+    thrown.expect(HostNameNotPunyCodedException.class, "expected ns1.xn--aualito-txac.tld");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_renameToNonPunyCodedHostname() throws Exception {
+    persistActiveHost("ns1.sausalito.tld");
+    setEppHostUpdateInput("ns1.sausalito.tld", "ns1.çauçalito.tld", null, null);
+    thrown.expect(HostNameNotPunyCodedException.class, "expected ns1.xn--aualito-txac.tld");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_referToNonCanonicalHostname() throws Exception {
+    persistActiveHost("ns1.example.tld.");
+    setEppHostUpdateInput("ns1.example.tld.", "ns2.example.tld", null, null);
+    thrown.expect(HostNameNotNormalizedException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_renameToNonCanonicalHostname() throws Exception {
+    persistActiveHost("ns1.example.tld");
+    setEppHostUpdateInput("ns1.example.tld", "ns2.example.tld.", null, null);
+    thrown.expect(HostNameNotNormalizedException.class);
     runFlow();
   }
 

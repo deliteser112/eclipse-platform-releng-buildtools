@@ -967,6 +967,9 @@ are enqueued to update DNS accordingly.
         addresses.
 *   2005
     *   Invalid host name.
+    *   Host names must be in lower-case.
+    *   Host names must be in normalized format.
+    *   Host names must be puny-coded.
 *   2201
     *   The specified resource belongs to another client.
 *   2302
@@ -996,6 +999,10 @@ see the information for any host.
 
 ### Errors
 
+*   2005
+    *   Host names must be in lower-case.
+    *   Host names must be in normalized format.
+    *   Host names must be puny-coded.
 *   2303
     *   Resource with this id does not exist.
 
@@ -1015,6 +1022,10 @@ or failure message when the process is complete.
 
 ### Errors
 
+*   2005
+    *   Host names must be in lower-case.
+    *   Host names must be in normalized format.
+    *   Host names must be puny-coded.
 *   2201
     *   The specified resource belongs to another client.
 *   2303
@@ -1047,6 +1058,9 @@ allows creating a host name, and if necessary enqueues tasks to update DNS.
     *   External hosts must not have ip addresses.
 *   2005
     *   Invalid host name.
+    *   Host names must be in lower-case.
+    *   Host names must be in normalized format.
+    *   Host names must be puny-coded.
 *   2302
     *   Resource with this id already exists.
 *   2303

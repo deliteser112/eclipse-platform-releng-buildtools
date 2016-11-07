@@ -82,6 +82,9 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
  * @error {@link HostFlowUtils.HostNameTooShallowException}
  * @error {@link HostFlowUtils.InvalidHostNameException}
+ * @error {@link HostFlowUtils.HostNameNotLowerCaseException}
+ * @error {@link HostFlowUtils.HostNameNotNormalizedException}
+ * @error {@link HostFlowUtils.HostNameNotPunyCodedException}
  * @error {@link HostFlowUtils.SuperordinateDomainDoesNotExistException}
  * @error {@link CannotAddIpToExternalHostException}
  * @error {@link CannotRemoveSubordinateHostLastIpException}
@@ -120,6 +123,11 @@ public final class HostUpdateFlow implements TransactionalFlow {
     Change change = command.getInnerChange();
     String suppliedNewHostName = change.getFullyQualifiedHostName();
     DateTime now = ofy().getTransactionTime();
+    // Validation is disabled for superusers to allow renaming of existing invalid hostnames.
+    // TODO(b/32328995): Remove superuser override once all bad data in prod has been fixed.
+    if (!isSuperuser) {
+      validateHostName(targetId);
+    }
     HostResource existingHost = loadAndVerifyExistence(HostResource.class, targetId, now);
     boolean isHostRename = suppliedNewHostName != null;
     String oldHostName = targetId;

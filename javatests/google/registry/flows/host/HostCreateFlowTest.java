@@ -32,6 +32,9 @@ import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.host.HostCreateFlow.SubordinateHostMustHaveIpException;
 import google.registry.flows.host.HostCreateFlow.UnexpectedExternalHostIpException;
+import google.registry.flows.host.HostFlowUtils.HostNameNotLowerCaseException;
+import google.registry.flows.host.HostFlowUtils.HostNameNotNormalizedException;
+import google.registry.flows.host.HostFlowUtils.HostNameNotPunyCodedException;
 import google.registry.flows.host.HostFlowUtils.HostNameTooLongException;
 import google.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
 import google.registry.flows.host.HostFlowUtils.InvalidHostNameException;
@@ -166,6 +169,27 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     thrown.expect(
         ResourceAlreadyExistsException.class,
         String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_nonLowerCaseHostname() throws Exception {
+    setEppHostCreateInput("ns1.EXAMPLE.tld", null);
+    thrown.expect(HostNameNotLowerCaseException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_nonPunyCodedHostname() throws Exception {
+    setEppHostCreateInput("ns1.çauçalito.みんな", null);
+    thrown.expect(HostNameNotPunyCodedException.class, "expected ns1.xn--aualito-txac.xn--q9jyb4c");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_nonCanonicalHostname() throws Exception {
+    setEppHostCreateInput("ns1.example.tld.", null);
+    thrown.expect(HostNameNotNormalizedException.class);
     runFlow();
   }
 

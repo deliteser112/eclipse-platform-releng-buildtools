@@ -19,6 +19,7 @@ import static google.registry.flows.ResourceFlowUtils.failfastForAsyncDelete;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
+import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -54,6 +55,9 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
  * @error {@link google.registry.flows.exceptions.ResourceToDeleteIsReferencedException}
+ * @error {@link HostFlowUtils.HostNameNotLowerCaseException}
+ * @error {@link HostFlowUtils.HostNameNotNormalizedException}
+ * @error {@link HostFlowUtils.HostNameNotPunyCodedException}
  */
 public final class HostDeleteFlow implements TransactionalFlow {
 
@@ -85,6 +89,7 @@ public final class HostDeleteFlow implements TransactionalFlow {
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
+    validateHostName(targetId);
     failfastForAsyncDelete(targetId, now, HostResource.class, GET_NAMESERVERS);
     HostResource existingHost = loadAndVerifyExistence(HostResource.class, targetId, now);
     verifyNoDisallowedStatuses(existingHost, DISALLOWED_STATUSES);

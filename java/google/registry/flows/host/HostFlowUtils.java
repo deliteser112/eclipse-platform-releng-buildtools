@@ -17,7 +17,9 @@ package google.registry.flows.host;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.registry.Registries.findTldForName;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
@@ -29,6 +31,7 @@ import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.model.domain.DomainResource;
+import google.registry.util.Idn;
 import org.joda.time.DateTime;
 
 /** Static utility functions for host flows. */
@@ -36,14 +39,23 @@ public class HostFlowUtils {
 
   /** Checks that a host name is valid. */
   static InternetDomainName validateHostName(String name) throws EppException {
-    if (name == null) {
-      return null;
-    }
+    checkArgumentNotNull(name, "Must specify host name to validate");
     if (name.length() > 253) {
       throw new HostNameTooLongException();
     }
+    String hostNameLowerCase = Ascii.toLowerCase(name);
+    if (!name.equals(hostNameLowerCase)) {
+      throw new HostNameNotLowerCaseException(hostNameLowerCase);
+    }
+    String hostNamePunyCoded = Idn.toASCII(name);
+    if (!name.equals(hostNamePunyCoded)) {
+      throw new HostNameNotPunyCodedException(hostNamePunyCoded);
+    }
     try {
       InternetDomainName hostName = InternetDomainName.from(name);
+      if (!name.equals(hostName.toString())) {
+        throw new HostNameNotNormalizedException(hostName.toString());
+      }
       // Checks whether a hostname is deep enough. Technically a host can be just one under a
       // public suffix (e.g. example.com) but we require by policy that it has to be at least one
       // part beyond that (e.g. ns1.example.com). The public suffix list includes all current
@@ -133,6 +145,28 @@ public class HostFlowUtils {
   static class InvalidHostNameException extends ParameterValueSyntaxErrorException {
     public InvalidHostNameException() {
       super("Invalid host name");
+    }
+  }
+
+  /** Host names must be in lower-case. */
+  static class HostNameNotLowerCaseException extends ParameterValueSyntaxErrorException {
+    public HostNameNotLowerCaseException(String expectedHostName) {
+      super(String.format("Host names must be in lower-case; expected %s", expectedHostName));
+    }
+  }
+
+  /** Host names must be puny-coded. */
+  static class HostNameNotPunyCodedException extends ParameterValueSyntaxErrorException {
+    public HostNameNotPunyCodedException(String expectedHostName) {
+      super(String.format("Host names must be puny-coded; expected %s", expectedHostName));
+    }
+  }
+
+  /** Host names must be in normalized format. */
+  static class HostNameNotNormalizedException extends ParameterValueSyntaxErrorException {
+    public HostNameNotNormalizedException(String expectedHostName) {
+      super(
+          String.format("Host names must be in normalized format; expected %s", expectedHostName));
     }
   }
 }
