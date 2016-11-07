@@ -24,6 +24,7 @@ import com.google.appengine.api.users.UserService;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
+import com.googlecode.objectify.Key;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.util.FormattingLogger;
@@ -121,7 +122,12 @@ public class SessionUtils {
     if (contact == null) {
       return Optional.absent();
     }
-    return Optional.of(ofy().load().key(contact.getParent()).safe());
+    Optional<Registrar> result = Optional.fromNullable(ofy().load().key(contact.getParent()).now());
+    if (!result.isPresent()) {
+      logger.severefmt(
+          "A contact record exists for non-existent registrar: %s.", Key.create(contact));
+    }
+    return result;
   }
 
   /** @see #hasAccessToRegistrar(Registrar, String) */

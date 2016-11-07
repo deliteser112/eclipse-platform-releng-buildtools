@@ -16,6 +16,7 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.AppEngineRule.THE_REGISTRAR_GAE_USER_ID;
+import static google.registry.testing.DatastoreHelper.deleteResource;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -104,9 +105,16 @@ public class SessionUtilsTest {
   }
 
   @Test
+  public void testCheckRegistrarConsoleLogin_orphanedContactIsDenied() throws Exception {
+    deleteResource(Registrar.loadByClientId("TheRegistrar"));
+    when(userService.getCurrentUser()).thenReturn(jart);
+    assertThat(sessionUtils.checkRegistrarConsoleLogin(req)).isFalse();
+  }
+
+  @Test
   public void testCheckRegistrarConsoleLogin_notLoggedIn_throwsIse() throws Exception {
     thrown.expect(IllegalStateException.class);
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req)).isNull();
+    boolean unused = sessionUtils.checkRegistrarConsoleLogin(req);
   }
 
   @Test
