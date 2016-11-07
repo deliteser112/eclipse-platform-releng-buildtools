@@ -24,6 +24,7 @@ java_library(
         "//java/com/google/common/net",
         "//java/com/google/common/reflect",
         "//third_party/java/appengine:appengine-api-testonly",
+        "//third_party/java/appengine:appengine-remote-api-link",
         "//third_party/java/jcommander",
         "//third_party/java/joda_money",
         "//third_party/java/joda_time",

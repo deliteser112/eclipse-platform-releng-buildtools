@@ -24,6 +24,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.appengine.tools.remoteapi.RemoteApiException;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
@@ -40,24 +42,28 @@ import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.KeyValueMapParameter.StringToIntegerMap;
 import google.registry.tools.params.KeyValueMapParameter.StringToStringMap;
 import google.registry.tools.params.PathParameter;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.Retrier;
 import google.registry.util.StringGenerator;
 import google.registry.util.TokenUtils;
 import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 /**
  * Command to create one or more LRP tokens, given assignee(s) as either a parameter or a text file.
  */
+@NonFinalForTesting
 @Parameters(
     separators = " =",
     commandDescription = "Create an LRP token for a given assignee (using -a) or import a text"
         + " file of assignees for bulk token creation (using -i). Assignee/token pairs are printed"
         + " to stdout, and should be piped to a file for distribution to assignees or for cleanup"
         + " in the event of a command interruption.")
-public final class CreateLrpTokensCommand implements RemoteApiCommand {
+public class CreateLrpTokensCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-a", "--assignee"},
@@ -95,6 +101,7 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
   private ImmutableMap<String, Integer> metadataColumns;
 
   @Inject StringGenerator stringGenerator;
+  @Inject Retrier retrier;
 
   private static final int BATCH_SIZE = 20;
   
@@ -126,7 +133,7 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
 
     String line = null;
     do {
-      ImmutableSet.Builder<LrpTokenEntity> tokensToSave = new ImmutableSet.Builder<>();
+      ImmutableSet.Builder<LrpTokenEntity> tokensToSaveBuilder = new ImmutableSet.Builder<>();
       for (String token : generateTokens(BATCH_SIZE)) {
         line = reader.readLine();
         if (!isNullOrEmpty(line)) {
@@ -155,14 +162,22 @@ public final class CreateLrpTokensCommand implements RemoteApiCommand {
             }
             tokenBuilder.setMetadata(metadataBuilder.build());
           }
-          tokensToSave.add(tokenBuilder.build());
+          tokensToSaveBuilder.add(tokenBuilder.build());
         }
       }
-      saveTokens(tokensToSave.build());
+      final ImmutableSet<LrpTokenEntity> tokensToSave = tokensToSaveBuilder.build();
+      // Wrap in a retrier to deal with transient 404 errors (thrown as RemoteApiExceptions).
+      retrier.callWithRetry(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          saveTokens(tokensToSave);
+          return null;
+        }}, RemoteApiException.class);
     } while (line != null);
   }
 
-  private void saveTokens(final ImmutableSet<LrpTokenEntity> tokens) {
+  @VisibleForTesting
+  void saveTokens(final ImmutableSet<LrpTokenEntity> tokens) {
     Collection<LrpTokenEntity> savedTokens =
         ofy().transact(new Work<Collection<LrpTokenEntity>>() {
           @Override

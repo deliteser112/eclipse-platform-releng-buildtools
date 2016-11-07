@@ -19,7 +19,11 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
+import com.google.appengine.tools.remoteapi.RemoteApiException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
@@ -28,10 +32,14 @@ import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.DeterministicStringGenerator;
 import google.registry.testing.DeterministicStringGenerator.Rule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeSleeper;
+import google.registry.util.Retrier;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,11 +56,28 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
     assigneeFile = tmpDir.newFile("lrp_assignees.txt");
     assigneeFilePath = assigneeFile.getPath();
     command.stringGenerator = stringGenerator;
+    command.retrier =
+        new Retrier(new FakeSleeper(new FakeClock(DateTime.parse("2000-01-01TZ"))), 3);
     createTld("tld");
   }
 
   @Test
   public void testSuccess_oneAssignee() throws Exception {
+    runCommand("--assignee=domain.tld", "--tlds=tld");
+    assertLrpTokens(
+        createToken("LRP_abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null, null));
+    assertInStdout("domain.tld,LRP_abcdefghijklmnop");
+  }
+
+  @Test
+  public void testSuccess_oneAssignee_retry() throws Exception {
+    CreateLrpTokensCommand spyCommand = spy(command);
+    RemoteApiException fakeException = new RemoteApiException("foo", "foo", "foo", new Exception());
+    doThrow(fakeException)
+        .doThrow(fakeException)
+        .doCallRealMethod()
+        .when(spyCommand)
+        .saveTokens(any());
     runCommand("--assignee=domain.tld", "--tlds=tld");
     assertLrpTokens(
         createToken("LRP_abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null, null));

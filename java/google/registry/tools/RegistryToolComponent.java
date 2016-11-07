@@ -25,6 +25,7 @@ import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.util.SystemClock.SystemClockModule;
+import google.registry.util.SystemSleeper.SystemSleeperModule;
 
 /**
  * Dagger component for Registry Tool.
@@ -43,6 +44,7 @@ import google.registry.util.SystemClock.SystemClockModule;
     KeyModule.class,
     RegistryToolModule.class,
     SystemClockModule.class,
+    SystemSleeperModule.class,
     URLFetchServiceModule.class,
     VoidDnsWriterModule.class,
   }

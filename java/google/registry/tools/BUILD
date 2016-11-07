@@ -66,6 +66,7 @@ java_library(
         "//java/google/registry/xjc",
         "//java/google/registry/xml",
         "//third_party/java/appengine:appengine-api",
+        "//third_party/java/appengine:appengine-remote-api-link",
         "//third_party/java/bouncycastle",
         "//third_party/java/bouncycastle_bcpg",
         "//third_party/java/dagger",
