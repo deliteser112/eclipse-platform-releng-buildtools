@@ -863,4 +863,15 @@ public final class ConfigModule {
   public static Duration provideAsyncDeleteFlowMapreduceDelay() {
     return Duration.standardSeconds(90);
   }
+
+  /**
+   * The server ID used in the 'svID' element of an EPP 'greeting'.
+   *
+   * @see <a href="https://tools.ietf.org/html/rfc5730">RFC 7530</a>
+   */
+  @Provides
+  @Config("greetingServerId")
+  public static String provideGreetingServerId() {
+    return "Charleston Road Registry";
+  }
 }
