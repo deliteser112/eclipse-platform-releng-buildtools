@@ -50,6 +50,7 @@ java_library(
         "//java/google/registry/dns/writer/dnsupdate",
         "//java/google/registry/export",
         "//java/google/registry/flows",
+        "//java/google/registry/gcs",
         "//java/google/registry/keyring/api",
         "//java/google/registry/model",
         "//java/google/registry/pricing",
