@@ -860,7 +860,7 @@ public final class ConfigModule {
    */
   @Provides
   @Config("asyncDeleteFlowMapreduceDelay")
-  public static Duration getAsyncDeleteFlowMapreduceDelay() {
+  public static Duration provideAsyncDeleteFlowMapreduceDelay() {
     return Duration.standardSeconds(90);
   }
 }
