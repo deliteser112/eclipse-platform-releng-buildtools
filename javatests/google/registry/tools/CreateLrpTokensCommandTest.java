@@ -19,7 +19,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
@@ -42,6 +41,7 @@ import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 /** Unit tests for {@link CreateLrpTokensCommand}. */
 public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensCommand> {
@@ -77,7 +77,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
         .doThrow(fakeException)
         .doCallRealMethod()
         .when(spyCommand)
-        .saveTokens(any());
+        .saveTokens(Mockito.<ImmutableSet<LrpTokenEntity>>any());
     runCommand("--assignee=domain.tld", "--tlds=tld");
     assertLrpTokens(
         createToken("LRP_abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null, null));
