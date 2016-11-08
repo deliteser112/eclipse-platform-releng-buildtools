@@ -14,7 +14,6 @@
 
 package google.registry.model;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.base.Predicates.isNull;
 import static com.google.common.base.Predicates.or;
@@ -27,7 +26,6 @@ import static java.util.Arrays.asList;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -36,7 +34,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
@@ -74,34 +71,16 @@ public class ModelUtils {
             }
             Map<String, Field> fields = new LinkedHashMap<>();
             for (Class<?> hierarchyClass : hierarchy) {
-              Package pakkage = hierarchyClass.getPackage();
               // Don't use hierarchyClass.getFields() because it only picks up public fields.
               for (Field field : hierarchyClass.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers())) {
-                  continue;
+                if (!Modifier.isStatic(field.getModifiers())) {
+                  field.setAccessible(true);
+                  fields.put(field.getName(), field);
                 }
-                // Strictly speaking this shouldn't be necessary since all of these fields
-                // are already accessible to their FieldExposer, but it is more performant
-                // to access fields if they are marked accessible this way because it skips
-                // various security checks.
-                checkNotNull(
-                    FIELD_EXPOSERS.get(pakkage),
-                    "No FieldExposer registered for %s", pakkage.getName())
-                        .setAccessible(field);
-                fields.put(field.getName(), field);
               }
             }
             return ImmutableMap.copyOf(fields);
           }});
-
-  /** Per-package trampolines to expose package-private fields for reflection. */
-  private static final Map<Package, AbstractFieldExposer> FIELD_EXPOSERS = Maps.uniqueIndex(
-      FieldExposerRegistry.getFieldExposers(),
-      new Function<AbstractFieldExposer, Package>() {
-        @Override
-        public Package apply(AbstractFieldExposer exposer) {
-          return exposer.getClass().getPackage();
-        }});
 
   /** Lists all instance fields on an object, including non-public and inherited fields. */
   static Map<String, Field> getAllFields(Class<?> clazz) {
@@ -187,10 +166,7 @@ public class ModelUtils {
   /** Retrieves a field value via reflection. */
   static Object getFieldValue(Object instance, Field field) {
     try {
-      return Preconditions.checkNotNull(
-          FIELD_EXPOSERS.get(field.getDeclaringClass().getPackage()),
-          "No FieldExposer registered for %s", field.getDeclaringClass().getPackage().getName())
-              .getFieldValue(instance, field);
+      return field.get(instance);
     } catch (IllegalAccessException e) {
       throw new IllegalStateException(e);
     }
@@ -199,10 +175,7 @@ public class ModelUtils {
   /** Sets a field value via reflection. */
   static void setFieldValue(Object instance, Field field, Object value) {
     try {
-      Preconditions.checkNotNull(
-          FIELD_EXPOSERS.get(field.getDeclaringClass().getPackage()),
-          "No FieldExposer registered for %s", field.getDeclaringClass().getPackage().getName())
-              .setFieldValue(instance, field, value);
+      field.set(instance, value);
     } catch (IllegalAccessException e) {
       throw new IllegalStateException(e);
     }
