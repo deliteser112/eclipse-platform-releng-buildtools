@@ -66,13 +66,30 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
    */
   @Override
   public Set<String> getExtensionFlags(
-      DomainResource domainResource, String clientId, DateTime asOfDate) {
+      DomainResource domain, String clientId, DateTime asOfDate) {
     // Take the part before the period, split by dashes, and treat each part after the first as
     // a flag.
     List<String> components =
         Splitter.on('-').splitToList(
             Iterables.getFirst(
-                Splitter.on('.').split(domainResource.getFullyQualifiedDomainName()), ""));
+                Splitter.on('.').split(domain.getFullyQualifiedDomainName()), ""));
+    return ImmutableSet.copyOf(components.subList(1, components.size()));
+  }
+
+  /**
+   * Gets the flags to be used in the EPP flags extension for application info commands.
+   *
+   * <p>This method works the same way as getExtensionFlags().
+   */
+  @Override
+  public Set<String> getApplicationExtensionFlags(
+      DomainApplication application, String clientId, DateTime asOfDate) {
+    // Take the part before the period, split by dashes, and treat each part after the first as
+    // a flag.
+    List<String> components =
+        Splitter.on('-').splitToList(
+            Iterables.getFirst(
+                Splitter.on('.').split(application.getFullyQualifiedDomainName()), ""));
     return ImmutableSet.copyOf(components.subList(1, components.size()));
   }
 

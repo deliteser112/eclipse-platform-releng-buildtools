@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <response>
+    <result code="1000">
+      <msg>Command completed successfully</msg>
+    </result>
+    <resData>
+      <domain:infData xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>domain-flag1-flag2.flags</domain:name>
+        <domain:roid>%ROID%</domain:roid>
+        <domain:status s="pendingCreate"/>
+        <domain:registrant>jd1234</domain:registrant>
+        <domain:contact type="admin">sh8013</domain:contact>
+        <domain:contact type="tech">sh8013</domain:contact>
+        <domain:clID>NewRegistrar</domain:clID>
+        <domain:crID>TheRegistrar</domain:crID>
+        <domain:crDate>1999-04-03T22:00:00.0Z</domain:crDate>
+        <domain:upID>NewRegistrar</domain:upID>
+        <domain:upDate>1999-12-03T09:00:00.0Z</domain:upDate>
+        <domain:authInfo>
+          <domain:pw>2fooBAR</domain:pw>
+        </domain:authInfo>
+      </domain:infData>
+    </resData>
+    <extension>
+      <launch:infData xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
+        <launch:phase name="landrush">sunrise</launch:phase>
+        <launch:applicationID>123-TLD</launch:applicationID>
+        <launch:status s="pendingValidation"/>
+      </launch:infData>
+      <flags:infData xmlns:flags="urn:google:params:xml:ns:flags-0.1">
+        <flags:flag>flag1</flags:flag>
+        <flags:flag>flag2</flags:flag>
+      </flags:infData>
+    </extension>
+    <trID>
+      <clTRID>ABC-12345</clTRID>
+      <svTRID>server-trid</svTRID>
+    </trID>
+  </response>
+</epp>
