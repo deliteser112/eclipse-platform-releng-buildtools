@@ -31,7 +31,6 @@ import com.google.common.base.Optional;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.joda.time.Duration;
@@ -76,20 +75,9 @@ public final class RequestHandler<C> {
   @NonFinalForTesting
   private static UserService userService = UserServiceFactory.getUserService();
 
-  /**
-   * Creates a new request processor based off your component methods.
-   *
-   * <p><b>Warning:</b> When using the App Engine platform, you must call
-   * {@link Method#setAccessible(boolean) setAccessible(true)} on all your component {@link Method}
-   * instances, from within the same package as the component. This is due to cross-package
-   * reflection restrictions.
-   *
-   * @param methods is the result of calling {@link Class#getMethods()} on {@code component}, which
-   *     are filtered to only include those with no arguments returning a {@link Runnable} with an
-   *     {@link Action} annotation
-   */
-  public static <C> RequestHandler<C> create(Class<C> component, Iterable<Method> methods) {
-    return new RequestHandler<>(component, Router.create(methods));
+  /** Creates a new request processor based off your component methods. */
+  public static <C> RequestHandler<C> create(Class<C> component) {
+    return new RequestHandler<>(component, Router.create(component));
   }
 
   private final Router router;
@@ -102,8 +90,7 @@ public final class RequestHandler<C> {
   /**
    * Runs the appropriate action for a servlet request.
    *
-   * @param component is an instance of the component type whose methods were passed to
-   *     {@link #create(Class, Iterable)}
+   * @param component is an instance of the component type passed to {@link #create(Class)}
    */
   public void handleRequest(HttpServletRequest req, HttpServletResponse rsp, C component)
       throws IOException {

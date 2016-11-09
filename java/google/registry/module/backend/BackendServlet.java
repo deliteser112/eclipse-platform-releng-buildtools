@@ -14,16 +14,11 @@
 
 package google.registry.module.backend;
 
-import static java.util.Arrays.asList;
-
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.request.RequestHandler;
 import google.registry.request.RequestModule;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.security.Security;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -40,14 +35,7 @@ public final class BackendServlet extends HttpServlet {
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private static final RequestHandler<BackendRequestComponent> requestHandler =
-      RequestHandler.create(BackendRequestComponent.class, FluentIterable
-          .from(asList(BackendRequestComponent.class.getMethods()))
-          .transform(new Function<Method, Method>() {
-            @Override
-            public Method apply(Method method) {
-              method.setAccessible(true);  // Make App Engine's security manager happy.
-              return method;
-            }}));
+      RequestHandler.create(BackendRequestComponent.class);
 
   @Override
   public void init() {

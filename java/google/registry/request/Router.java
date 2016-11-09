@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Path prefix request router for Nomulus.
+ * Path prefix request router.
  *
  * <p>See the documentation of {@link RequestHandler} for more information.
  *
@@ -37,14 +37,15 @@ import java.util.TreeMap;
  */
 final class Router {
 
-  static Router create(Iterable<Method> componentMethods) {
-    return new Router(extractRoutesFromComponent(componentMethods));
+  /** Create a new Router for the given component class. */
+  static Router create(Class<?> componentClass) {
+    return new Router(componentClass);
   }
 
   private final ImmutableSortedMap<String, Route> routes;
 
-  private Router(ImmutableSortedMap<String, Route> routes) {
-    this.routes = routes;
+  private Router(Class<?> componentClass) {
+    this.routes = extractRoutesFromComponent(componentClass);
   }
 
   /** Returns the appropriate action route for a request. */
@@ -61,10 +62,12 @@ final class Router {
   }
 
   private static
-      ImmutableSortedMap<String, Route> extractRoutesFromComponent(Iterable<Method> methods) {
+      ImmutableSortedMap<String, Route> extractRoutesFromComponent(Class<?> componentClass) {
     ImmutableSortedMap.Builder<String, Route> routes =
         new ImmutableSortedMap.Builder<>(Ordering.natural());
-    for (Method method : methods) {
+    for (Method method : componentClass.getMethods()) {
+      // Make App Engine's security manager happy.
+      method.setAccessible(true);
       if (!isDaggerInstantiatorOfType(Runnable.class, method)) {
         continue;
       }

@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.UserService;
-import com.google.common.collect.ImmutableList;
 import com.google.common.testing.NullPointerTester;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.testing.AppEngineRule;
@@ -149,8 +148,7 @@ public final class RequestHandlerTest {
 
   private final Component component = new Component();
   private final StringWriter httpOutput = new StringWriter();
-  private final RequestHandler<Component> handler =
-      RequestHandler.create(Component.class, ImmutableList.copyOf(Component.class.getMethods()));
+  private final RequestHandler<Component> handler = RequestHandler.create(Component.class);
 
   @Before
   public void before() throws Exception {

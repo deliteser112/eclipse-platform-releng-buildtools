@@ -14,14 +14,9 @@
 
 package google.registry.module.tools;
 
-import static java.util.Arrays.asList;
-
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import google.registry.request.RequestHandler;
 import google.registry.request.RequestModule;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.security.Security;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -34,14 +29,7 @@ public final class ToolsServlet extends HttpServlet {
   private static final ToolsComponent component = DaggerToolsComponent.create();
 
   private static final RequestHandler<ToolsRequestComponent> requestHandler =
-      RequestHandler.create(ToolsRequestComponent.class, FluentIterable
-          .from(asList(ToolsRequestComponent.class.getMethods()))
-          .transform(new Function<Method, Method>() {
-            @Override
-            public Method apply(Method method) {
-              method.setAccessible(true);  // Make App Engine's security manager happy.
-              return method;
-            }}));
+      RequestHandler.create(ToolsRequestComponent.class);
 
   @Override
   public void init() {
