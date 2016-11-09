@@ -9,6 +9,7 @@ closure_js_library(
 
 closure_js_library(
     name = "testing",
+    testonly = 1,
     exports = ["@io_bazel_rules_closure//closure/library:testing"],
 )
 
