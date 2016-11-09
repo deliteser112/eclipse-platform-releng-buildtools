@@ -165,6 +165,18 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
     return domainNameToFeeOrCredit(domainName);
   }
 
+  /** Performs additional tasks required for an allocate command. */
+  @Override
+  public void performAdditionalDomainAllocateLogic(
+      DomainResource domain,
+      String clientId,
+      DateTime asOfDate,
+      int years,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException {
+    throw new TestExtraLogicManagerSuccessException("allocated");
+  }
+
   /** Performs additional tasks required for a create command. */
   @Override
   public void performAdditionalDomainCreateLogic(

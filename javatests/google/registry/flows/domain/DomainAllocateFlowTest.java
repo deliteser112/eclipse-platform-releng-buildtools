@@ -52,6 +52,8 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.TestExtraLogicManager;
+import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
 import google.registry.model.domain.launch.LaunchNotice;
@@ -92,7 +94,9 @@ public class DomainAllocateFlowTest
 
   @Before
   public void initAllocateTest() throws Exception {
-    setEppInput("domain_allocate.xml", ImmutableMap.of("APPLICATIONID", "2-TLD"));
+    setEppInput(
+        "domain_allocate.xml",
+        ImmutableMap.of("APPLICATIONID", "2-TLD", "DOMAIN", "example-one.tld"));
     clock.setTo(APPLICATION_TIME);
   }
 
@@ -378,7 +382,9 @@ public class DomainAllocateFlowTest
 
   @Test
   public void testSuccess_hexApplicationId() throws Exception {
-    setEppInput("domain_allocate.xml", ImmutableMap.of("APPLICATIONID", "A-TLD"));
+    setEppInput(
+        "domain_allocate.xml",
+        ImmutableMap.of("APPLICATIONID", "A-TLD", "DOMAIN", "example-one.tld"));
     applicationId = "A-TLD";
     // Grab the next 8 ids so that when the application is created it gets dec 10, or hex A.
     // (one additional ID goes to the reserved list created before the application).
@@ -484,5 +490,16 @@ public class DomainAllocateFlowTest
     assertTransactionalFlow(true);
     thrown.expect(OnlySuperuserCanAllocateException.class);
     runFlow(CommitMode.LIVE, UserPrivileges.NORMAL);
+  }
+
+  @Test
+  public void testSuccess_extra() throws Exception {
+    setEppInput(
+        "domain_allocate.xml",
+        ImmutableMap.of("APPLICATIONID", "2-EXTRA", "DOMAIN", "domain.extra"));
+    setupDomainApplication("extra", TldState.QUIET_PERIOD);
+    RegistryExtraFlowLogicProxy.setOverride("extra", TestExtraLogicManager.class);
+    thrown.expect(TestExtraLogicManagerSuccessException.class, "allocated");
+    runFlowAsSuperuser();
   }
 }

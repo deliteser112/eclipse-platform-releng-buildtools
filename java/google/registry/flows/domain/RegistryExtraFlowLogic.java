@@ -69,6 +69,15 @@ public interface RegistryExtraFlowLogic {
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException;
 
+  /** Performs additional tasks required for an allocate command. */
+  public void performAdditionalDomainAllocateLogic(
+      DomainResource domain,
+      String clientId,
+      DateTime asOfDate,
+      int years,
+      EppInput eppInput,
+      HistoryEntry historyEntry) throws EppException;
+
   /** Computes the expected creation fee. */
   public BaseFee getCreateFeeOrCredit(
       String domainName,
