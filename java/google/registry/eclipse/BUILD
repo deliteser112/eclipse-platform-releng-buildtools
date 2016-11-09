@@ -18,6 +18,7 @@ java_binary(
 
 java_binary(
     name = "registry_deps",
+    testonly = 1,
     create_executable = 0,
     runtime_deps = [
         "//java/com/google/common/testing",
