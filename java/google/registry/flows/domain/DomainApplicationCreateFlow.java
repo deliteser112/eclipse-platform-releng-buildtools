@@ -358,7 +358,6 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
       extraFlowLogic.get().performAdditionalApplicationCreateLogic(
           newApplication,
           clientId,
-          newApplication.getCreationTime(),
           years,
           eppInput,
           historyEntry);

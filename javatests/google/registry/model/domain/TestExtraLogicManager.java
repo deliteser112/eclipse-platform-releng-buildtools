@@ -118,7 +118,6 @@ public class TestExtraLogicManager implements RegistryExtraFlowLogic {
   public void performAdditionalApplicationCreateLogic(
       DomainApplication application,
       String clientId,
-      DateTime asOfDate,
       int years,
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException {
