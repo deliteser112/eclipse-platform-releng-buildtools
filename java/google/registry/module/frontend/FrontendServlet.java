@@ -15,8 +15,6 @@
 package google.registry.module.frontend;
 
 import google.registry.monitoring.metrics.MetricReporter;
-import google.registry.request.RequestHandler;
-import google.registry.request.RequestModule;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.security.Security;
@@ -31,11 +29,9 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 public final class FrontendServlet extends HttpServlet {
 
   private static final FrontendComponent component = DaggerFrontendComponent.create();
+  private static final FrontendRequestHandler requestHandler = component.requestHandler();
   private static final MetricReporter metricReporter = component.metricReporter();
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
-
-  private static final RequestHandler<FrontendRequestComponent> requestHandler =
-      RequestHandler.create(FrontendRequestComponent.class);
 
   @Override
   public void init() {
@@ -61,6 +57,6 @@ public final class FrontendServlet extends HttpServlet {
 
   @Override
   public void service(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-    requestHandler.handleRequest(req, rsp, component.startRequest(new RequestModule(req, rsp)));
+    requestHandler.handleRequest(req, rsp);
   }
 }

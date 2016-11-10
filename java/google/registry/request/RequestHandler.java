@@ -26,17 +26,18 @@ import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.base.Optional;
 import google.registry.util.FormattingLogger;
-import google.registry.util.NonFinalForTesting;
+import google.registry.util.TypeUtils.TypeInstantiator;
 import java.io.IOException;
+import javax.annotation.Nullable;
+import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.joda.time.Duration;
 
 /**
- * Dagger request processor for Nomulus.
+ * Dagger-based request processor.
  *
  * <p>This class creates an HTTP request processor from a Dagger component. It routes requests from
  * your servlet to an {@link Action @Action} annotated handler class.
@@ -64,37 +65,58 @@ import org.joda.time.Duration;
  *
  * <p>This class also enforces the {@link Action#requireLogin() requireLogin} setting.
  *
- * @param <C> component type
+ * @param <C> request component type
+ * @param <B> builder for the request component
  */
-public final class RequestHandler<C> {
+public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private static final Duration XSRF_VALIDITY = Duration.standardDays(1);
 
-  @NonFinalForTesting
-  private static UserService userService = UserServiceFactory.getUserService();
-
-  /** Creates a new request processor based off your component methods. */
-  public static <C> RequestHandler<C> create(Class<C> component) {
-    return new RequestHandler<>(component, Router.create(component));
-  }
-
   private final Router router;
-
-  private RequestHandler(Class<C> component, Router router) {
-    checkNotNull(component);
-    this.router = router;
-  }
+  private final Provider<B> requestComponentBuilderProvider;
+  private final UserService userService;
 
   /**
-   * Runs the appropriate action for a servlet request.
+   * Constructor for subclasses to create a new request handler for a specific request component.
    *
-   * @param component is an instance of the component type passed to {@link #create(Class)}
+   * <p>This operation will generate a routing map for the component's {@code @Action}-returning
+   * methods using reflection, which is moderately expensive, so a given servlet should construct a
+   * single {@code RequestHandler} and re-use it across requests.
+   *
+   * @param requestComponentBuilderProvider a Dagger {@code Provider} of builder instances that can
+   *     be used to construct new instances of the request component (with the required
+   *     request-derived modules provided by this class)
+   * @param userService an instance of the App Engine UserService API
    */
-  public void handleRequest(HttpServletRequest req, HttpServletResponse rsp, C component)
-      throws IOException {
-    checkNotNull(component);
+  protected RequestHandler(Provider<B> requestComponentBuilderProvider, UserService userService) {
+    this(null, requestComponentBuilderProvider, userService);
+  }
+
+  /** Creates a new RequestHandler with an explicit component class for test purposes. */
+  public static <C, B extends RequestComponentBuilder<C, B>> RequestHandler<C, B> createForTest(
+      Class<C> component, Provider<B> requestComponentBuilderProvider, UserService userService) {
+    return new RequestHandler<>(
+        checkNotNull(component), requestComponentBuilderProvider, userService);
+  }
+
+  private RequestHandler(
+      @Nullable Class<C> component,
+      Provider<B> requestComponentBuilderProvider,
+      UserService userService) {
+    // If the component class isn't explicitly provided, infer it from the class's own typing.
+    // This is safe only for use by subclasses of RequestHandler where the generic parameter is
+    // preserved at runtime, so only expose that option via the protected constructor.
+    this.router = Router.create(
+        component != null ? component : new TypeInstantiator<C>(getClass()){}.getExactType());
+    this.requestComponentBuilderProvider = checkNotNull(requestComponentBuilderProvider);
+    this.userService = checkNotNull(userService);
+  }
+
+  /** Runs the appropriate action for a servlet request. */
+  public void handleRequest(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+    checkNotNull(req);
     checkNotNull(rsp);
     Action.Method method;
     try {
@@ -130,6 +152,11 @@ public final class RequestHandler<C> {
       rsp.sendError(SC_FORBIDDEN, "Invalid " + X_CSRF_TOKEN);
       return;
     }
+    // Build a new request component using any modules we've constructed by this point.
+    C component = requestComponentBuilderProvider.get()
+        .requestModule(new RequestModule(req, rsp))
+        .build();
+    // Apply the selected Route to the component to produce an Action instance, and run it.
     try {
       route.get().instantiator().apply(component).run();
       if (route.get().action().automaticallyPrintOk()) {

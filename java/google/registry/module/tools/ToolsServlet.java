@@ -14,8 +14,6 @@
 
 package google.registry.module.tools;
 
-import google.registry.request.RequestHandler;
-import google.registry.request.RequestModule;
 import java.io.IOException;
 import java.security.Security;
 import javax.servlet.http.HttpServlet;
@@ -27,9 +25,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 public final class ToolsServlet extends HttpServlet {
 
   private static final ToolsComponent component = DaggerToolsComponent.create();
-
-  private static final RequestHandler<ToolsRequestComponent> requestHandler =
-      RequestHandler.create(ToolsRequestComponent.class);
+  private static final ToolsRequestHandler requestHandler = component.requestHandler();
 
   @Override
   public void init() {
@@ -38,6 +34,6 @@ public final class ToolsServlet extends HttpServlet {
 
   @Override
   public void service(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-    requestHandler.handleRequest(req, rsp, component.startRequest(new RequestModule(req, rsp)));
+    requestHandler.handleRequest(req, rsp);
   }
 }

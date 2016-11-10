@@ -28,6 +28,7 @@ import com.google.common.testing.NullPointerTester;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.InjectRule;
+import google.registry.testing.Providers;
 import google.registry.testing.UserInfo;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -125,6 +126,14 @@ public final class RequestHandlerTest {
     }
   }
 
+  /** Fake Builder for the fake component above to satisfy RequestHandler expectations. */
+  public abstract static class Builder implements RequestComponentBuilder<Component, Builder> {
+    @Override
+    public Builder requestModule(RequestModule requestModule) {
+      return this;
+    }
+  }
+
   @Mock
   private HttpServletRequest req;
 
@@ -148,11 +157,21 @@ public final class RequestHandlerTest {
 
   private final Component component = new Component();
   private final StringWriter httpOutput = new StringWriter();
-  private final RequestHandler<Component> handler = RequestHandler.create(Component.class);
+  private RequestHandler<Component, Builder> handler;
 
   @Before
   public void before() throws Exception {
-    inject.setStaticField(RequestHandler.class, "userService", userService);
+    // Initialize here, not inline, so that we pick up the mocked UserService.
+    handler = RequestHandler.createForTest(
+        Component.class,
+        Providers.of(new Builder() {
+          @Override
+          public Component build() {
+            // Use a fake Builder that returns the single component instance that uses the mocks.
+            return component;
+          }
+        }),
+        userService);
     when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
   }
 
@@ -165,7 +184,7 @@ public final class RequestHandlerTest {
   public void testHandleRequest_normalRequest_works() throws Exception {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/bumblebee");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verifyZeroInteractions(rsp);
     verify(bumblebeeTask).run();
   }
@@ -174,7 +193,7 @@ public final class RequestHandlerTest {
   public void testHandleRequest_multipleMethodMappings_works() throws Exception {
     when(req.getMethod()).thenReturn("POST");
     when(req.getRequestURI()).thenReturn("/bumblebee");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(bumblebeeTask).run();
   }
 
@@ -182,7 +201,7 @@ public final class RequestHandlerTest {
   public void testHandleRequest_prefixEnabled_subpathsWork() throws Exception {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/bumblebee/hive");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(bumblebeeTask).run();
   }
 
@@ -190,7 +209,7 @@ public final class RequestHandlerTest {
   public void testHandleRequest_taskHasAutoPrintOk_printsOk() throws Exception {
     when(req.getMethod()).thenReturn("POST");
     when(req.getRequestURI()).thenReturn("/sloth");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(slothTask).run();
     verify(rsp).setContentType("text/plain; charset=utf-8");
     verify(rsp).getWriter();
@@ -201,7 +220,7 @@ public final class RequestHandlerTest {
   public void testHandleRequest_prefixDisabled_subpathsReturn404NotFound() throws Exception {
     when(req.getMethod()).thenReturn("POST");
     when(req.getRequestURI()).thenReturn("/sloth/nest");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(rsp).sendError(404);
   }
 
@@ -209,7 +228,7 @@ public final class RequestHandlerTest {
   public void testHandleRequest_taskThrowsHttpException_getsHandledByHandler() throws Exception {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/fail");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(rsp).sendError(503, "Set sail for fail");
   }
 
@@ -219,7 +238,7 @@ public final class RequestHandlerTest {
       throws Exception {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/failAtConstruction");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(rsp).sendError(503, "Fail at construction");
   }
 
@@ -227,7 +246,7 @@ public final class RequestHandlerTest {
   public void testHandleRequest_notFound_returns404NotFound() throws Exception {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/bogus");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(rsp).sendError(404);
   }
 
@@ -235,7 +254,7 @@ public final class RequestHandlerTest {
   public void testHandleRequest_methodNotAllowed_returns405MethodNotAllowed() throws Exception {
     when(req.getMethod()).thenReturn("POST");
     when(req.getRequestURI()).thenReturn("/fail");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(rsp).sendError(405);
   }
 
@@ -243,7 +262,7 @@ public final class RequestHandlerTest {
   public void testHandleRequest_insaneMethod_returns405MethodNotAllowed() throws Exception {
     when(req.getMethod()).thenReturn("FIREAWAY");
     when(req.getRequestURI()).thenReturn("/fail");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(rsp).sendError(405);
   }
 
@@ -253,7 +272,7 @@ public final class RequestHandlerTest {
   public void testHandleRequest_lowercaseMethod_notRecognized() throws Exception {
     when(req.getMethod()).thenReturn("get");
     when(req.getRequestURI()).thenReturn("/bumblebee");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(rsp).sendError(405);
   }
 
@@ -268,7 +287,7 @@ public final class RequestHandlerTest {
   public void testXsrfProtection_noTokenProvided_returns403Forbidden() throws Exception {
     when(req.getMethod()).thenReturn("POST");
     when(req.getRequestURI()).thenReturn("/safe-sloth");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(rsp).sendError(403, "Invalid X-CSRF-Token");
   }
 
@@ -277,7 +296,7 @@ public final class RequestHandlerTest {
     when(req.getMethod()).thenReturn("POST");
     when(req.getHeader("X-CSRF-Token")).thenReturn(generateToken("vampire"));
     when(req.getRequestURI()).thenReturn("/safe-sloth");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(safeSlothTask).run();
   }
 
@@ -286,7 +305,7 @@ public final class RequestHandlerTest {
     when(req.getMethod()).thenReturn("POST");
     when(req.getHeader("X-CSRF-Token")).thenReturn(generateToken("blood"));
     when(req.getRequestURI()).thenReturn("/safe-sloth");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(rsp).sendError(403, "Invalid X-CSRF-Token");
   }
 
@@ -294,7 +313,7 @@ public final class RequestHandlerTest {
   public void testXsrfProtection_GETMethodWithoutToken_doesntCheckToken() throws Exception {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/safe-sloth");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(safeSlothTask).run();
   }
 
@@ -304,7 +323,7 @@ public final class RequestHandlerTest {
     when(userService.createLoginURL("/users-only")).thenReturn("/login");
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/users-only");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(rsp).setStatus(302);
     verify(rsp).setHeader("Location", "/login");
   }
@@ -314,7 +333,7 @@ public final class RequestHandlerTest {
     when(userService.isUserLoggedIn()).thenReturn(true);
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/users-only");
-    handler.handleRequest(req, rsp, component);
+    handler.handleRequest(req, rsp);
     verify(usersOnlyAction).run();
   }
 }

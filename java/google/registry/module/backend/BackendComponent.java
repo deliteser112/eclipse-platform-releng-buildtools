@@ -26,6 +26,7 @@ import google.registry.groups.GroupsModule;
 import google.registry.groups.GroupssettingsModule;
 import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
+import google.registry.module.backend.BackendRequestComponent.BackendRequestComponentModule;
 import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.monitoring.whitebox.StackdriverModule;
 import google.registry.rde.JSchModule;
@@ -37,7 +38,7 @@ import google.registry.request.Modules.ModulesServiceModule;
 import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
-import google.registry.request.RequestModule;
+import google.registry.request.Modules.UserServiceModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
 import javax.inject.Singleton;
@@ -47,6 +48,7 @@ import javax.inject.Singleton;
 @Component(
     modules = {
         AppIdentityCredentialModule.class,
+        BackendRequestComponentModule.class,
         BigqueryModule.class,
         ConfigModule.class,
         DatastoreServiceModule.class,
@@ -68,9 +70,10 @@ import javax.inject.Singleton;
         URLFetchServiceModule.class,
         UrlFetchTransportModule.class,
         UseAppIdentityCredentialForGoogleApisModule.class,
+        UserServiceModule.class,
         VoidDnsWriterModule.class,
     })
 interface BackendComponent {
-  BackendRequestComponent startRequest(RequestModule requestModule);
+  BackendRequestHandler requestHandler();
   MetricReporter metricReporter();
 }

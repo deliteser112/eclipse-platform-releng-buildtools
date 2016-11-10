@@ -14,6 +14,7 @@
 
 package google.registry.module.tools;
 
+import dagger.Module;
 import dagger.Subcomponent;
 import google.registry.dns.DnsModule;
 import google.registry.export.PublishDetailReportAction;
@@ -24,6 +25,7 @@ import google.registry.loadtest.LoadTestAction;
 import google.registry.loadtest.LoadTestModule;
 import google.registry.mapreduce.MapreduceModule;
 import google.registry.monitoring.whitebox.WhiteboxModule;
+import google.registry.request.RequestComponentBuilder;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
 import google.registry.tools.server.CreateGroupsAction;
@@ -77,4 +79,13 @@ interface ToolsRequestComponent {
   ResaveAllEppResourcesAction resaveAllEppResourcesAction();
   UpdatePremiumListAction updatePremiumListAction();
   VerifyOteAction verifyOteAction();
+
+  @Subcomponent.Builder
+  abstract class Builder implements RequestComponentBuilder<ToolsRequestComponent, Builder> {
+    @Override public abstract Builder requestModule(RequestModule requestModule);
+    @Override public abstract ToolsRequestComponent build();
+  }
+
+  @Module(subcomponents = ToolsRequestComponent.class)
+  class ToolsRequestComponentModule {}
 }

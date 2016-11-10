@@ -11,6 +11,7 @@ java_library(
     deps = [
         "//java/com/google/common/base",
         "//java/com/google/common/collect",
+        "//third_party/java/appengine:appengine-api",
         "//third_party/java/bouncycastle",
         "//third_party/java/dagger",
         "//third_party/java/jsr305_annotations",

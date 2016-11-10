@@ -14,6 +14,7 @@
 
 package google.registry.module.frontend;
 
+import dagger.Module;
 import dagger.Subcomponent;
 import google.registry.dns.DnsModule;
 import google.registry.flows.CheckApiAction;
@@ -33,6 +34,7 @@ import google.registry.rdap.RdapIpAction;
 import google.registry.rdap.RdapModule;
 import google.registry.rdap.RdapNameserverAction;
 import google.registry.rdap.RdapNameserverSearchAction;
+import google.registry.request.RequestComponentBuilder;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
 import google.registry.ui.server.registrar.ConsoleUiAction;
@@ -77,4 +79,13 @@ interface FrontendRequestComponent {
   RdapNameserverSearchAction rdapNameserverSearchAction();
   WhoisHttpServer whoisHttpServer();
   WhoisServer whoisServer();
+
+  @Subcomponent.Builder
+  abstract class Builder implements RequestComponentBuilder<FrontendRequestComponent, Builder> {
+    @Override public abstract Builder requestModule(RequestModule requestModule);
+    @Override public abstract FrontendRequestComponent build();
+  }
+
+  @Module(subcomponents = FrontendRequestComponent.class)
+  class FrontendRequestComponentModule {}
 }
