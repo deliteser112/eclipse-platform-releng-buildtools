@@ -22,7 +22,6 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlEnumValue;
-import javax.xml.bind.annotation.XmlValue;
 
 /**
  * XML type for contact identifiers associated with a domain.
@@ -52,18 +51,12 @@ public class DesignatedContact extends ImmutableObject {
   public static DesignatedContact create(Type type, Key<ContactResource> contact) {
     DesignatedContact instance = new DesignatedContact();
     instance.type = type;
-    instance.contactId = ReferenceUnion.create(contact);
     instance.contact = contact;
     return instance;
   }
 
   @XmlAttribute(required = true)
   Type type;
-
-  @Index
-  @XmlValue
-  //TODO(b/28713909): Remove contactId and replace with contact.
-  ReferenceUnion<ContactResource> contactId;
 
   @Index
   Key<ContactResource> contact;

@@ -36,31 +36,15 @@
         <property name="allContacts.contact" direction="asc"/>
         <property name="deletionTime" direction="asc"/>
     </datastore-index>
-    <!-- TODO(b/28713909): Remove this index along with ReferenceUnions. -->
-    <datastore-index kind="DomainBase" ancestor="false" source="manual">
-        <property name="allContacts.contactId.linked" direction="asc"/>
-        <property name="deletionTime" direction="asc"/>
-    </datastore-index>
     <!-- For determining the active domains linked to a given host. -->
     <datastore-index kind="DomainBase" ancestor="false" source="manual">
         <property name="nsHosts" direction="asc"/>
-        <property name="deletionTime" direction="asc"/>
-    </datastore-index>
-    <!-- TODO(b/28713909): Remove this index along with ReferenceUnions. -->
-    <datastore-index kind="DomainBase" ancestor="false" source="manual">
-        <property name="nameservers.linked" direction="asc"/>
         <property name="deletionTime" direction="asc"/>
     </datastore-index>
     <!-- For RDAP searches by linked nameserver. -->
     <datastore-index kind="DomainBase" ancestor="false" source="manual">
         <property name="^i" direction="asc"/>
         <property name="nsHosts" direction="asc"/>
-        <property name="deletionTime" direction="asc"/>
-    </datastore-index>
-    <!-- TODO(b/28713909): Remove this index along with ReferenceUnions. -->
-    <datastore-index kind="DomainBase" ancestor="false" source="manual">
-        <property name="^i" direction="asc"/>
-        <property name="nameservers.linked" direction="asc"/>
         <property name="deletionTime" direction="asc"/>
     </datastore-index>
     <!-- For WHOIS IP address lookup -->

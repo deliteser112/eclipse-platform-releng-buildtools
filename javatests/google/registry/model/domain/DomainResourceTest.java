@@ -23,8 +23,6 @@ import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
-import static google.registry.testing.DatastoreHelper.persistActiveContact;
-import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -174,10 +172,8 @@ public class DomainResourceTest extends EntityTestCase {
   public void testIndexing() throws Exception {
     verifyIndexing(
         domain,
-        "allContacts.contactId.linked",
         "allContacts.contact",
         "fullyQualifiedDomainName",
-        "nameservers.linked",
         "nsHosts",
         "currentSponsorClientId",
         "deletionTime",
@@ -454,29 +450,5 @@ public class DomainResourceTest extends EntityTestCase {
   @Test
   public void testToHydratedString_notCircular() {
     domain.toHydratedString();  // If there are circular references, this will overflow the stack.
-  }
-
-  // TODO(b/28713909): Remove these tests once ReferenceUnion migration is complete.
-  @Test
-  public void testDualSavingOfDesignatedContact() {
-    ContactResource contact = persistActiveContact("time1006");
-    DesignatedContact designatedContact = new DesignatedContact();
-    designatedContact.contact = Key.create(contact);
-    designatedContact.type = Type.ADMIN;
-    DomainResource domainWithContact =
-        domain.asBuilder().setContacts(ImmutableSet.of(designatedContact)).build();
-    assertThat(getOnlyElement(domainWithContact.getContacts()).contactId).isNull();
-    DomainResource reloadedDomain = persistResource(domainWithContact);
-    assertThat(getOnlyElement(reloadedDomain.getContacts()).contactId)
-        .isEqualTo(ReferenceUnion.create(Key.create(contact)));
-  }
-
-  @Test
-  public void testDualSavingOfNameservers() {
-    HostResource host = persistActiveHost("zzz.xxx.yyy");
-    DomainResource domain = newDomainResource("python-django-unchained.com", host);
-    assertThat(domain.nameservers).isNull();
-    DomainResource djangoReloaded = persistResource(domain);
-    assertThat(djangoReloaded.nameservers).containsExactly(ReferenceUnion.create(Key.create(host)));
   }
 }

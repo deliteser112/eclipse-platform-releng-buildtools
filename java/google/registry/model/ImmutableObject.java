@@ -26,7 +26,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Ignore;
-import google.registry.model.domain.ReferenceUnion;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -145,9 +144,7 @@ public abstract class ImmutableObject implements Cloneable {
       new Function<Object, Object>() {
         @Override
         public Object apply(Object value) {
-          if (value instanceof ReferenceUnion) {
-            return apply(((ReferenceUnion<?>) value).getLinked());
-          } else if (value instanceof Key) {
+          if (value instanceof Key) {
             return apply(ofy().load().key((Key<?>) value).now());
           } else if (value instanceof Map) {
             return transformValues((Map<?, ?>) value, this);

@@ -50,7 +50,6 @@ public class GetHostCommandTest extends CommandTestCase<GetHostCommand> {
     runCommand("ns1.example.tld", "--expand");
     assertInStdout("fullyQualifiedHostName=ns1.example.tld");
     assertInStdout("Websafe key: agR0ZXN0chgLEgxIb3N0UmVzb3VyY2UiBjItUk9JRAw");
-    assertNotInStdout("ReferenceUnion");
     assertNotInStdout("LiveRef");
   }
 

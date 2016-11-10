@@ -50,7 +50,6 @@ public class GetContactCommandTest extends CommandTestCase<GetContactCommand> {
     runCommand("sh8013", "--expand");
     assertInStdout("contactId=sh8013");
     assertInStdout("Websafe key: agR0ZXN0chsLEg9Db250YWN0UmVzb3VyY2UiBjItUk9JRAw");
-    assertNotInStdout("ReferenceUnion");
     assertNotInStdout("LiveRef");
   }
 

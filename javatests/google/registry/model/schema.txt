@@ -189,7 +189,6 @@ enum google.registry.model.contact.PostalInfo$Type {
 class google.registry.model.domain.DesignatedContact {
   com.googlecode.objectify.Key<google.registry.model.contact.ContactResource> contact;
   google.registry.model.domain.DesignatedContact$Type type;
-  google.registry.model.domain.ReferenceUnion<google.registry.model.contact.ContactResource> contactId;
 }
 enum google.registry.model.domain.DesignatedContact$Type {
   ADMIN;
@@ -218,7 +217,6 @@ class google.registry.model.domain.DomainApplication {
   java.util.List<google.registry.model.smd.EncodedSignedMark> encodedSignedMarks;
   java.util.Set<com.googlecode.objectify.Key<google.registry.model.host.HostResource>> nsHosts;
   java.util.Set<google.registry.model.domain.DesignatedContact> allContacts;
-  java.util.Set<google.registry.model.domain.ReferenceUnion<google.registry.model.host.HostResource>> nameservers;
   java.util.Set<google.registry.model.domain.secdns.DelegationSignerData> dsData;
   java.util.Set<google.registry.model.eppcommon.StatusValue> status;
   org.joda.money.Money auctionPrice;
@@ -245,7 +243,6 @@ class google.registry.model.domain.DomainBase {
   java.lang.String tld;
   java.util.Set<com.googlecode.objectify.Key<google.registry.model.host.HostResource>> nsHosts;
   java.util.Set<google.registry.model.domain.DesignatedContact> allContacts;
-  java.util.Set<google.registry.model.domain.ReferenceUnion<google.registry.model.host.HostResource>> nameservers;
   java.util.Set<google.registry.model.domain.secdns.DelegationSignerData> dsData;
   java.util.Set<google.registry.model.eppcommon.StatusValue> status;
   org.joda.time.DateTime deletionTime;
@@ -274,7 +271,6 @@ class google.registry.model.domain.DomainResource {
   java.util.Set<com.googlecode.objectify.Key<google.registry.model.host.HostResource>> nsHosts;
   java.util.Set<google.registry.model.domain.DesignatedContact> allContacts;
   java.util.Set<google.registry.model.domain.GracePeriod> gracePeriods;
-  java.util.Set<google.registry.model.domain.ReferenceUnion<google.registry.model.host.HostResource>> nameservers;
   java.util.Set<google.registry.model.domain.secdns.DelegationSignerData> dsData;
   java.util.Set<google.registry.model.eppcommon.StatusValue> status;
   java.util.Set<java.lang.String> subordinateHosts;
@@ -306,9 +302,6 @@ class google.registry.model.domain.Period {
 enum google.registry.model.domain.Period$Unit {
   MONTHS;
   YEARS;
-}
-class google.registry.model.domain.ReferenceUnion {
-  com.googlecode.objectify.Key<T> linked;
 }
 enum google.registry.model.domain.launch.ApplicationStatus {
   ALLOCATED;

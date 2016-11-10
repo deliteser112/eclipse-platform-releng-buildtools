@@ -43,7 +43,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
     persistActiveDomain("example.tld");
     runCommand("agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw");
     assertInStdout("fullyQualifiedDomainName=example.tld");
-    assertInStdout("contactId=ReferenceUnion");
+    assertInStdout("contact=Key<?>(ContactResource(\"3-ROID\"))");
   }
 
   @Test
@@ -52,7 +52,6 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
     runCommand("agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw", "--expand");
     assertInStdout("fullyQualifiedDomainName=example.tld");
     assertInStdout("contactId=contact1234");
-    assertNotInStdout("ReferenceUnion");
     assertNotInStdout("LiveRef");
   }
 
@@ -96,7 +95,6 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
     persistActiveContact("sh8013");
     runCommand("agR0ZXN0chsLEg9Db250YWN0UmVzb3VyY2UiBjItUk9JRAw", "--expand");
     assertInStdout("contactId=sh8013");
-    assertNotInStdout("ReferenceUnion");
     assertNotInStdout("LiveRef");
   }
 
@@ -142,7 +140,6 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
     persistActiveHost("ns1.example.tld");
     runCommand("agR0ZXN0chgLEgxIb3N0UmVzb3VyY2UiBjItUk9JRAw", "--expand");
     assertInStdout("fullyQualifiedHostName=ns1.example.tld");
-    assertNotInStdout("ReferenceUnion");
     assertNotInStdout("LiveRef");
   }
 

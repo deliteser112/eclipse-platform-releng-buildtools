@@ -41,7 +41,7 @@ public class GetApplicationCommandTest extends CommandTestCase<GetApplicationCom
     persistActiveDomainApplication("example.tld");
     runCommand("2-TLD");
     assertInStdout("fullyQualifiedDomainName=example.tld");
-    assertInStdout("contactId=ReferenceUnion");
+    assertInStdout("contact=Key<?>(ContactResource(\"3-ROID\"))");
   }
 
   @Test
@@ -50,7 +50,6 @@ public class GetApplicationCommandTest extends CommandTestCase<GetApplicationCom
     runCommand("2-TLD", "--expand");
     assertInStdout("fullyQualifiedDomainName=example.tld");
     assertInStdout("contactId=contact1234");
-    assertNotInStdout("ReferenceUnion");
     assertNotInStdout("LiveRef");
   }
 

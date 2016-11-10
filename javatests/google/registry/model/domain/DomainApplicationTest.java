@@ -130,10 +130,8 @@ public class DomainApplicationTest extends EntityTestCase {
         domainApplication.asBuilder().setPeriod(Period.create(5, Period.Unit.YEARS)).build());
     verifyIndexing(
         domainApplication,
-        "allContacts.contactId.linked",
         "allContacts.contact",
         "fullyQualifiedDomainName",
-        "nameservers.linked",
         "nsHosts",
         "deletionTime",
         "currentSponsorClientId",

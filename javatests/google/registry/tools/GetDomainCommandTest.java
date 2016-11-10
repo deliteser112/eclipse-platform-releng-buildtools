@@ -41,7 +41,7 @@ public class GetDomainCommandTest extends CommandTestCase<GetDomainCommand> {
     persistActiveDomain("example.tld");
     runCommand("example.tld");
     assertInStdout("fullyQualifiedDomainName=example.tld");
-    assertInStdout("contactId=ReferenceUnion");
+    assertInStdout("contact=Key<?>(ContactResource(\"3-ROID\"))");
     assertInStdout("Websafe key: agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw");
   }
 
@@ -52,7 +52,6 @@ public class GetDomainCommandTest extends CommandTestCase<GetDomainCommand> {
     assertInStdout("fullyQualifiedDomainName=example.tld");
     assertInStdout("contactId=contact1234");
     assertInStdout("Websafe key: agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw");
-    assertNotInStdout("ReferenceUnion");
     assertNotInStdout("LiveRef");
   }
 
