@@ -89,7 +89,6 @@ public interface RegistryExtraFlowLogic {
   public void performAdditionalDomainCreateLogic(
       DomainResource domain,
       String clientId,
-      DateTime asOfDate,
       int years,
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException;

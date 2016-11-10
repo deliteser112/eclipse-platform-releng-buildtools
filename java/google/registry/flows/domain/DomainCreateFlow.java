@@ -269,7 +269,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         .setContacts(command.getContacts())
         .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.ADD, createBillingEvent))
         .build();
-    handleExtraFlowLogic(registry.getTldStr(), years, historyEntry, newDomain, now);
+    handleExtraFlowLogic(registry.getTldStr(), years, historyEntry, newDomain);
     entitiesToSave.add(
         newDomain,
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),
@@ -396,7 +396,7 @@ public class DomainCreateFlow implements TransactionalFlow {
   }
 
   private void handleExtraFlowLogic(
-      String tld, int years, HistoryEntry historyEntry, DomainResource newDomain, DateTime now)
+      String tld, int years, HistoryEntry historyEntry, DomainResource newDomain)
           throws EppException {
     Optional<RegistryExtraFlowLogic> extraFlowLogic =
         RegistryExtraFlowLogicProxy.newInstanceForTld(tld);
@@ -404,7 +404,6 @@ public class DomainCreateFlow implements TransactionalFlow {
       extraFlowLogic.get().performAdditionalDomainCreateLogic(
           newDomain,
           clientId,
-          now,
           years,
           eppInput,
           historyEntry);
