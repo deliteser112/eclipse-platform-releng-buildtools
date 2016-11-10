@@ -14,7 +14,6 @@
 
 package google.registry.export;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static google.registry.export.ExportUtils.exportReservedTerms;
@@ -62,8 +61,11 @@ public class ExportReservedTermsAction implements Runnable {
       if (registry.getReservedLists().isEmpty() && isNullOrEmpty(registry.getDriveFolderId())) {
         resultMsg = "No reserved lists configured";
         logger.infofmt("No reserved terms to export for TLD %s", tld);
+      } else if (registry.getDriveFolderId() == null) {
+        resultMsg = "Skipping export because no Drive folder is associated with this TLD";
+        logger.infofmt(
+            "Skipping reserved terms export for TLD %s because Drive folder isn't specified", tld);
       } else {
-        checkNotNull(registry.getDriveFolderId(), "No drive folder associated with this TLD");
         resultMsg = driveConnection.createOrUpdateFile(
             RESERVED_TERMS_FILENAME,
             EXPORT_MIME_TYPE,

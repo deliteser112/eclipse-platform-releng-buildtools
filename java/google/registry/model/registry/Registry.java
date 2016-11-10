@@ -270,7 +270,11 @@ public class Registry extends ImmutableObject implements Buildable {
    */
   String tldUnicode;
 
-  /** Id of the folder in drive used to publish information for this TLD. */
+  /**
+   * Id of the folder in drive used to public (export) information for this TLD.
+   *
+   * <p>This is optional; if not configured, then information won't be exported for this TLD.
+   */
   String driveFolderId;
 
   /** The type of the TLD, whether it's real or for testing. */

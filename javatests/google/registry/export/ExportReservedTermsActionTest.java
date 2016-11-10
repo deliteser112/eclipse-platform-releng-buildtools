@@ -110,15 +110,12 @@ public class ExportReservedTermsActionTest {
   }
 
   @Test
-  public void test_uploadFileToDrive_failsWhenDriveFolderIdIsNull() throws Exception {
+  public void test_uploadFileToDrive_doesNothingWhenDriveFolderIdIsNull() throws Exception {
     persistResource(Registry.get("tld").asBuilder().setDriveFolderId(null).build());
-    try {
-      runAction("tld");
-      assertWithMessage("Expected RuntimeException to be thrown").fail();
-    } catch (RuntimeException e) {
-      verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
-      assertThat(getRootCause(e)).hasMessage("No drive folder associated with this TLD");
-    }
+    runAction("tld");
+    verify(response).setStatus(SC_OK);
+    verify(response)
+        .setPayload("Skipping export because no Drive folder is associated with this TLD");
   }
 
   @Test
