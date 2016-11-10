@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.ShardableTestCase;
 import google.registry.xml.XmlTestUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -28,7 +29,7 @@ import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdeMarshaller}. */
 @RunWith(JUnit4.class)
-public class RdeMarshallerTest {
+public class RdeMarshallerTest extends ShardableTestCase {
 
   private static final String DECLARATION =
       "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";

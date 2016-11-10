@@ -35,6 +35,7 @@ import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.GcsTestingUtils;
 import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.Providers;
+import google.registry.testing.ShardableTestCase;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -53,7 +54,7 @@ import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link BrdaCopyAction}. */
 @RunWith(JUnit4.class)
-public class BrdaCopyActionTest {
+public class BrdaCopyActionTest extends ShardableTestCase {
 
   private static final ByteSource DEPOSIT_XML = RdeTestData.get("deposit_full.xml");  // 2010-10-17
 
