@@ -14,14 +14,15 @@
 
 package google.registry.tools.server;
 
-import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import google.registry.mapreduce.MapreduceRunner;
+import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.EppResource;
 import google.registry.request.Action;
 import google.registry.request.Response;
@@ -49,24 +50,24 @@ public class ResaveAllEppResourcesAction implements Runnable {
         .setModuleName("tools")
         .runMapOnly(
             new ResaveAllEppResourcesActionMapper(),
-            ImmutableList.of(createEntityInput(EppResource.class)))));
+            ImmutableList.of(EppResourceInputs.createKeyInput(EppResource.class)))));
   }
 
   /** Mapper to re-save all EPP resources. */
-  public static class ResaveAllEppResourcesActionMapper extends Mapper<EppResource, Void, Void> {
+  public static class ResaveAllEppResourcesActionMapper
+      extends Mapper<Key<EppResource>, Void, Void> {
 
     private static final long serialVersionUID = -7721628665138087001L;
     public ResaveAllEppResourcesActionMapper() {}
 
     @Override
-    public final void map(final EppResource resource) {
+    public final void map(final Key<EppResource> resourceKey) {
       ofy().transact(new VoidWork() {
         @Override
         public void vrun() {
-          ofy().save().entity(resource).now();
+          ofy().save().entity(ofy().load().key(resourceKey).now()).now();
         }});
-      getContext().incrementCounter(
-          String.format("%s entities re-saved", resource.getClass().getSimpleName()));
+      getContext().incrementCounter(String.format("%s entities re-saved", resourceKey.getKind()));
     }
   }
 }
