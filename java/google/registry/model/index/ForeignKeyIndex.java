@@ -103,7 +103,10 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
    */
   public static <E extends EppResource> ForeignKeyIndex<E> create(
       E resource, DateTime deletionTime) {
-    ForeignKeyIndex<E> instance = instantiate(RESOURCE_CLASS_TO_FKI_CLASS.get(resource.getClass()));
+    @SuppressWarnings("unchecked")
+    Class<? extends ForeignKeyIndex<E>> fkiClass =
+        (Class<? extends ForeignKeyIndex<E>>) RESOURCE_CLASS_TO_FKI_CLASS.get(resource.getClass());
+    ForeignKeyIndex<E> instance = instantiate(fkiClass);
     instance.topReference = Key.create(resource);
     instance.foreignKey = resource.getForeignKey();
     instance.deletionTime = deletionTime;

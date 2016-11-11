@@ -46,13 +46,12 @@ public class TypeUtils {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public static <T> T instantiate(Class<?> clazz) {
+  public static <T> T instantiate(Class<? extends T> clazz) {
     checkArgument(Modifier.isPublic(clazz.getModifiers()),
         "AppEngine's custom security manager won't let us reflectively access non-public types");
     try {
-      return (T) clazz.newInstance();
-    } catch (InstantiationException | IllegalAccessException e) {
+      return clazz.getConstructor().newInstance();
+    } catch (ReflectiveOperationException e) {
       throw new RuntimeException(e);
     }
   }
