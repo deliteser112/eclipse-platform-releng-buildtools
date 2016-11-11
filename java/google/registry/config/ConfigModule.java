@@ -175,18 +175,26 @@ public final class ConfigModule {
     return "http://example.com/your_support_docs/";
   }
 
-  /** @see RegistryConfig#getZoneFilesBucket() */
+  /**
+   * Returns the Google Cloud Storage bucket for storing zone files.
+   *
+   * @see google.registry.backup.ExportCommitLogDiffAction
+   */
   @Provides
   @Config("zoneFilesBucket")
-  public static String provideZoneFilesBucket(RegistryConfig config) {
-    return config.getZoneFilesBucket();
+  public static String provideZoneFilesBucket(@Config("projectId") String projectId) {
+    return projectId + "-zonefiles";
   }
 
-  /** @see RegistryConfig#getCommitsBucket() */
+  /**
+   * Returns the Google Cloud Storage bucket for storing commit logs.
+   *
+   * @see google.registry.backup.ExportCommitLogDiffAction
+   */
   @Provides
   @Config("commitLogGcsBucket")
-  public static String provideCommitLogGcsBucket(RegistryConfig config) {
-    return config.getCommitsBucket();
+  public static String provideCommitLogGcsBucket(@Config("projectId") String projectId) {
+    return projectId + "-commits";
   }
 
   /** @see RegistryConfig#getCommitLogDatastoreRetention() */
@@ -203,8 +211,8 @@ public final class ConfigModule {
    */
   @Provides
   @Config("domainListsGcsBucket")
-  public static String provideDomainListsGcsBucket(RegistryConfig config) {
-    return config.getDomainListsBucket();
+  public static String provideDomainListsGcsBucket(@Config("projectId") String projectId) {
+    return projectId + "-domain-lists";
   }
 
   /**
@@ -360,12 +368,25 @@ public final class ConfigModule {
     return "admin@example.com";
   }
 
-  /** @see RegistryConfig#getRegistrarChangesNotificationEmailAddresses() */
+  /**
+   * Returns the email address(es) that notifications of registrar and/or registrar contact updates
+   * should be sent to, or the empty list if updates should not be sent.
+   *
+   * @see google.registry.ui.server.registrar.RegistrarSettingsAction
+   */
   @Provides
   @Config("registrarChangesNotificationEmailAddresses")
   public static ImmutableList<String> provideRegistrarChangesNotificationEmailAddresses(
-      RegistryConfig config) {
-    return config.getRegistrarChangesNotificationEmailAddresses();
+      RegistryEnvironment environment) {
+    switch (environment) {
+      case PRODUCTION:
+        // Change this to an appropriate notification e-mail address.
+        return ImmutableList.of("notification@registry.example");
+      case UNITTEST:
+        return ImmutableList.of("notification@test.example", "notification2@test.example");
+      default:
+        return ImmutableList.<String>of();
+    }
   }
 
   /**
@@ -381,7 +402,11 @@ public final class ConfigModule {
     return "registry.example.com";
   }
 
-  /** @see RegistryConfig#getTmchCaTestingMode() */
+  /**
+   * Returns {@code true} if TMCH certificate authority should be in testing mode.
+   *
+   * @see RegistryConfig#getTmchCaTestingMode()
+   */
   @Provides
   @Config("tmchCaTestingMode")
   public static boolean provideTmchCaTestingMode(RegistryConfig config) {
@@ -408,11 +433,24 @@ public final class ConfigModule {
     }
   }
 
-  /** @see RegistryConfig#getTmchMarksdbUrl() */
+  /**
+   * URL prefix for communicating with MarksDB ry interface.
+   *
+   * <p>This URL is used for DNL, SMDRL, and LORDN.
+   *
+   * @see google.registry.tmch.Marksdb
+   * @see google.registry.tmch.NordnUploadAction
+   */
   @Provides
   @Config("tmchMarksdbUrl")
-  public static String provideTmchMarksdbUrl(RegistryConfig config) {
-    return config.getTmchMarksdbUrl();
+  public static String provideTmchMarksdbUrl(RegistryEnvironment environment) {
+    switch (environment) {
+      case PRODUCTION:
+      case UNITTEST:
+        return "https://ry.marksdb.org";
+      default:
+        return "https://test.ry.marksdb.org";
+    }
   }
 
   /**
@@ -831,11 +869,13 @@ public final class ConfigModule {
     return config.getContactAutomaticTransferLength();
   }
 
-  /** @see RegistryConfig#getMaxChecks() */
+  /**
+   * Returns the maximum number of entities that can be checked at one time in an EPP check flow.
+   */
   @Provides
   @Config("maxChecks")
-  public static int provideMaxChecks(RegistryConfig config) {
-    return config.getMaxChecks();
+  public static int provideMaxChecks() {
+    return 50;
   }
 
   /**

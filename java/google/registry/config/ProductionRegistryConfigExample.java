@@ -21,7 +21,6 @@ import static org.joda.time.Duration.standardDays;
 import com.google.appengine.api.utils.SystemProperty;
 import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import java.net.URL;
 import javax.annotation.concurrent.Immutable;
@@ -84,37 +83,12 @@ public final class ProductionRegistryConfigExample implements RegistryConfig {
   }
 
   @Override
-  public String getDomainListsBucket() {
-    return getProjectId() + "-domain-lists";
-  }
-
-  @Override
-  public String getCommitsBucket() {
-    return getProjectId() + "-commits";
-  }
-
-  @Override
-  public String getZoneFilesBucket() {
-    return getProjectId() + "-zonefiles";
-  }
-
-  @Override
   public boolean getTmchCaTestingMode() {
     switch (environment) {
       case PRODUCTION:
         return false;
       default:
         return true;
-    }
-  }
-
-  @Override
-  public String getTmchMarksdbUrl() {
-    switch (environment) {
-      case PRODUCTION:
-        return "https://ry.marksdb.org";
-      default:
-        return "https://test.ry.marksdb.org";
     }
   }
 
@@ -165,16 +139,6 @@ public final class ProductionRegistryConfigExample implements RegistryConfig {
   }
 
   @Override
-  public ImmutableList<String> getRegistrarChangesNotificationEmailAddresses() {
-    switch (environment) {
-      case PRODUCTION:
-        return ImmutableList.of("notification@registry.example");
-      default:
-        return ImmutableList.<String>of();
-    }
-  }
-
-  @Override
   public String getRegistrarDefaultWhoisServer() {
     return "whois.nic.registry.example";
   }
@@ -187,11 +151,6 @@ public final class ProductionRegistryConfigExample implements RegistryConfig {
   @Override
   public String getDocumentationProjectTitle() {
     return "Nomulus";
-  }
-
-  @Override
-  public int getMaxChecks() {
-    return 50;
   }
 
   @Override

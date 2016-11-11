@@ -15,7 +15,6 @@
 package google.registry.config;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import java.net.URL;
 import org.joda.time.Duration;
@@ -41,13 +40,6 @@ public interface RegistryConfig {
    * @see google.registry.export.ExportSnapshotServlet
    */
   public String getSnapshotsBucket();
-
-  /**
-   * Returns the Google Cloud Storage bucket for storing exported domain lists.
-   *
-   * @see google.registry.export.ExportDomainListsAction
-   */
-  public String getDomainListsBucket();
 
   /**
    * Number of sharded commit log buckets.
@@ -76,35 +68,11 @@ public interface RegistryConfig {
   public Duration getCommitLogDatastoreRetention();
 
   /**
-   * Returns the Google Cloud Storage bucket for storing commit logs.
-   *
-   * @see google.registry.backup.ExportCommitLogDiffAction
-   */
-  public String getCommitsBucket();
-
-  /**
-   * Returns the Google Cloud Storage bucket for storing zone files.
-   *
-   * @see google.registry.backup.ExportCommitLogDiffAction
-   */
-  public String getZoneFilesBucket();
-
-  /**
    * Returns {@code true} if TMCH certificate authority should be in testing mode.
    *
    * @see google.registry.tmch.TmchCertificateAuthority
    */
   public boolean getTmchCaTestingMode();
-
-  /**
-   * URL prefix for communicating with MarksDB ry interface.
-   *
-   * <p>This URL is used for DNL, SMDRL, and LORDN.
-   *
-   * @see google.registry.tmch.Marksdb
-   * @see google.registry.tmch.NordnUploadAction
-   */
-  public String getTmchMarksdbUrl();
 
   public Optional<String> getECatcherAddress();
 
@@ -160,14 +128,6 @@ public interface RegistryConfig {
   public String getContactAndHostRepositoryIdentifier();
 
   /**
-   * Returns the email address(es) that notifications of registrar and/or registrar contact updates
-   * should be sent to, or the empty list if updates should not be sent.
-   *
-   * @see google.registry.ui.server.registrar.RegistrarSettingsAction
-   */
-  public ImmutableList<String> getRegistrarChangesNotificationEmailAddresses();
-
-  /**
    * Returns default WHOIS server to use when {@code Registrar#getWhoisServer()} is {@code null}.
    *
    * @see "google.registry.whois.DomainWhoisResponse"
@@ -184,11 +144,6 @@ public interface RegistryConfig {
    * Returns the title of the project used in generating documentation.
    */
   public String getDocumentationProjectTitle();
-
-  /**
-   * Returns the maximum number of entities that can be checked at one time in an EPP check flow.
-   */
-  public int getMaxChecks();
 
   /**
    * Returns the number of EppResourceIndex buckets to be used.

@@ -18,7 +18,6 @@ import static google.registry.config.ConfigUtils.makeUrl;
 import static org.joda.time.Duration.standardDays;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import java.net.URL;
 import org.joda.time.Duration;
@@ -51,28 +50,8 @@ public class TestRegistryConfig implements RegistryConfig {
   }
 
   @Override
-  public String getDomainListsBucket() {
-    return getProjectId() + "-domain-lists";
-  }
-
-  @Override
-  public String getCommitsBucket() {
-    return getProjectId() + "-commits";
-  }
-
-  @Override
-  public String getZoneFilesBucket() {
-    return getProjectId() + "-zonefiles";
-  }
-
-  @Override
   public boolean getTmchCaTestingMode() {
     return true;
-  }
-
-  @Override
-  public String getTmchMarksdbUrl() {
-    return "https://ry.marksdb.org";
   }
 
   @Override
@@ -118,11 +97,6 @@ public class TestRegistryConfig implements RegistryConfig {
   }
 
   @Override
-  public ImmutableList<String> getRegistrarChangesNotificationEmailAddresses() {
-    return ImmutableList.of("notification@test.example", "notification2@test.example");
-  }
-
-  @Override
   public String getRegistrarDefaultWhoisServer() {
     return "whois.nic.fakewhois.example";
   }
@@ -135,11 +109,6 @@ public class TestRegistryConfig implements RegistryConfig {
   @Override
   public String getDocumentationProjectTitle() {
     return "Nomulus";
-  }
-
-  @Override
-  public int getMaxChecks() {
-    return 50;
   }
 
   @Override
