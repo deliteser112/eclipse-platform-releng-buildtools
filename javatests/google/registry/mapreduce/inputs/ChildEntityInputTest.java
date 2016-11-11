@@ -120,7 +120,7 @@ public class ChildEntityInputTest {
     recurringA = persistResource(
         new BillingEvent.Recurring.Builder()
             .setParent(domainHistoryEntryA)
-            .setReason(Reason.AUTO_RENEW)
+            .setReason(Reason.RENEW)
             .setEventTime(now.plusYears(1))
             .setRecurrenceEndTime(END_OF_TIME)
             .setClientId("TheRegistrar")
@@ -150,7 +150,7 @@ public class ChildEntityInputTest {
     recurringB = persistResource(
         new BillingEvent.Recurring.Builder()
             .setParent(domainHistoryEntryA)
-            .setReason(Reason.AUTO_RENEW)
+            .setReason(Reason.RENEW)
             .setEventTime(now.plusYears(1))
             .setRecurrenceEndTime(END_OF_TIME)
             .setClientId("TheRegistrar")

@@ -129,7 +129,7 @@ public class KillAllEppResourcesActionTest extends MapreduceTestCase<KillAllEppR
               .setEventTime(START_OF_TIME)
               .setClientId("")
               .setTargetId("")
-              .setReason(Reason.AUTO_RENEW)
+              .setReason(Reason.RENEW)
               .build())) {
         persistResource(descendant);
       }

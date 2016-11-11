@@ -72,7 +72,6 @@
     <url-pattern>/_dr/task/resaveAllEppResources</url-pattern>
   </servlet-mapping>
 
-
   <!-- Mapreduce to delete EppResources, children, and indices. -->
   <servlet-mapping>
     <servlet-name>tools-servlet</servlet-name>

@@ -21,7 +21,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
-import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
@@ -34,7 +33,6 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
-import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.condition.IfNull;
 import google.registry.model.Buildable;
@@ -56,8 +54,6 @@ public abstract class BillingEvent extends ImmutableObject
 
   /** The reason for the bill, which maps 1:1 to skus in go/registry-billing-skus. */
   public enum Reason {
-    // TODO(b/27777398): Drop Reason.AUTO_RENEW after migration to Flag.AUTO_RENEW.
-    AUTO_RENEW,
     CREATE,
     @Deprecated // TODO(b/31676071): remove this legacy value once old data is cleaned up.
     ERROR,
@@ -334,15 +330,6 @@ public abstract class BillingEvent extends ImmutableObject
    */
   @Entity
   public static class Recurring extends BillingEvent {
-
-    // TODO(b/27777398): Remove after migration is complete and Reason.AUTO_RENEW is removed.
-    @OnLoad
-    void setAutorenewFlag() {
-      if (Reason.AUTO_RENEW.equals(reason)) {
-        reason = Reason.RENEW;
-        flags = union(getFlags(), Flag.AUTO_RENEW);
-      }
-    }
 
     /**
      * The billing event recurs every year between {@link #eventTime} and this time on the
