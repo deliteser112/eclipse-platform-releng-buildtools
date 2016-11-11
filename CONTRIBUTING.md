@@ -32,6 +32,12 @@ results in a single commit in the repository, so it is recommended that pull
 requests contain only a single commit to minimize possible merge headaches for
 you.
 
+Contributions should abide by the [Google Java Style
+Guide](https://google.github.io/styleguide/javaguide.html). We recommend that
+you use the [`google-java-format`](https://github.com/google/google-java-format)
+utility to help you format your code (we use it ourselves). Note, please do not
+send pull requests containing formatting changes to unrelated code.
+
 ## The small print
 
 Contributions made by corporations are covered by a different agreement than the
