@@ -50,7 +50,7 @@
       This job downloads the latest DNL from MarksDB and inserts it into the database.
       (See: TmchDnlServlet, ClaimsList)
     </description>
-    <schedule>every 12 hours synchronized</schedule>
+    <schedule>every 12 hours from 00:15 to 12:15</schedule>
     <target>backend</target>
   </cron>
 
