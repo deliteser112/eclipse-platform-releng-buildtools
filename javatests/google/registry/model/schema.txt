@@ -55,7 +55,6 @@ class google.registry.model.billing.BillingEvent$OneTime {
   org.joda.time.DateTime syntheticCreationTime;
 }
 enum google.registry.model.billing.BillingEvent$Reason {
-  AUTO_RENEW;
   CREATE;
   ERROR;
   FEE_EARLY_ACCESS;
