@@ -162,7 +162,7 @@ public final class RequestHandlerTest {
   @Before
   public void before() throws Exception {
     // Initialize here, not inline, so that we pick up the mocked UserService.
-    handler = RequestHandler.createForTest(
+    handler = RequestHandler.<Component, Builder>createForTest(
         Component.class,
         Providers.of(new Builder() {
           @Override
