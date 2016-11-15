@@ -242,21 +242,6 @@ public class VerifyEntityIntegrityAction implements Runnable {
         Key<?> key = Key.create(domainBase);
         verifyExistence(key, domainBase.getReferencedContacts());
         verifyExistence(key, domainBase.getNameservers());
-        verifyExistence(key, domainBase.getTransferData().getServerApproveAutorenewEvent());
-        verifyExistence(key, domainBase.getTransferData().getServerApproveAutorenewPollMessage());
-        verifyExistence(key, domainBase.getTransferData().getServerApproveBillingEvent());
-        verifyExistence(key, FluentIterable
-            .from(domainBase.getTransferData().getServerApproveEntities())
-            .transform(
-              new Function<Key<? extends TransferServerApproveEntity>,
-                  Key<TransferServerApproveEntity>>() {
-                @SuppressWarnings("unchecked")
-                @Override
-                public Key<TransferServerApproveEntity> apply(
-                    Key<? extends TransferServerApproveEntity> key) {
-                  return (Key<TransferServerApproveEntity>) key;
-                }})
-            .toSet());
         if (domainBase instanceof DomainApplication) {
           getContext().incrementCounter("domain applications");
           DomainApplication application = (DomainApplication) domainBase;
@@ -266,6 +251,21 @@ public class VerifyEntityIntegrityAction implements Runnable {
         } else if (domainBase instanceof DomainResource) {
           getContext().incrementCounter("domain resources");
           DomainResource domain = (DomainResource) domainBase;
+          verifyExistence(key, domain.getTransferData().getServerApproveAutorenewEvent());
+          verifyExistence(key, domain.getTransferData().getServerApproveAutorenewPollMessage());
+          verifyExistence(key, domain.getTransferData().getServerApproveBillingEvent());
+          verifyExistence(key, FluentIterable
+              .from(domain.getTransferData().getServerApproveEntities())
+              .transform(
+                new Function<Key<? extends TransferServerApproveEntity>,
+                    Key<TransferServerApproveEntity>>() {
+                  @SuppressWarnings("unchecked")
+                  @Override
+                  public Key<TransferServerApproveEntity> apply(
+                      Key<? extends TransferServerApproveEntity> key) {
+                    return (Key<TransferServerApproveEntity>) key;
+                  }})
+              .toSet());
           verifyExistence(key, domain.getApplication());
           verifyExistence(key, domain.getAutorenewBillingEvent());
           for (GracePeriod gracePeriod : domain.getGracePeriods()) {

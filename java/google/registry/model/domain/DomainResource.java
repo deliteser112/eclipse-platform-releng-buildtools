@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.model.domain;
+  package google.registry.model.domain;
 
 import static com.google.common.collect.Sets.intersection;
 import static google.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
@@ -33,6 +33,7 @@ import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfNull;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
+import google.registry.model.EppResource.ResourceWithTransferData;
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -75,7 +76,8 @@ import org.joda.time.Interval;
 @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @EntitySubclass(index = true)
 @ExternalMessagingName("domain")
-public class DomainResource extends DomainBase implements ForeignKeyedEppResource {
+public class DomainResource extends DomainBase
+    implements ForeignKeyedEppResource, ResourceWithTransferData {
 
   /** The max number of years that a domain can be registered for, as set by ICANN policy. */
   public static final int MAX_REGISTRATION_YEARS = 10;
@@ -156,6 +158,10 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
   @XmlTransient
   Key<DomainApplication> application;
 
+  /** Data about any pending or past transfers on this domain. */
+  @XmlTransient
+  TransferData transferData;
+
   public ImmutableSet<String> getSubordinateHosts() {
     return nullToEmptyImmutableCopy(subordinateHosts);
   }
@@ -190,6 +196,11 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
 
   public Key<DomainApplication> getApplication() {
     return application;
+  }
+
+  @Override
+  public final TransferData getTransferData() {
+    return Optional.fromNullable(transferData).or(TransferData.EMPTY);
   }
 
   @Override
@@ -356,7 +367,8 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
   }
 
   /** A builder for constructing {@link DomainResource}, since it is immutable. */
-  public static class Builder extends DomainBase.Builder<DomainResource, Builder> {
+  public static class Builder extends DomainBase.Builder<DomainResource, Builder>
+      implements BuilderWithTransferData<Builder> {
 
     public Builder() {}
 
@@ -366,6 +378,10 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
 
     @Override
     public DomainResource build() {
+      // If TransferData is totally empty, set it to null.
+      if (TransferData.EMPTY.equals(getInstance().transferData)) {
+        setTransferData(null);
+      }
       // A DomainResource has status INACTIVE if there are no nameservers.
       if (getInstance().getNameservers().isEmpty()) {
         addStatusValue(StatusValue.INACTIVE);
@@ -439,6 +455,12 @@ public class DomainResource extends DomainBase implements ForeignKeyedEppResourc
     public Builder removeGracePeriod(GracePeriod gracePeriod) {
       getInstance().gracePeriods = difference(getInstance().getGracePeriods(), gracePeriod);
       return this;
+    }
+
+    @Override
+    public Builder setTransferData(TransferData transferData) {
+      getInstance().transferData = transferData;
+      return thisCastToDerived();
     }
   }
 }

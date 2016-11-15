@@ -20,8 +20,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.math.IntMath.divide;
 import static com.googlecode.objectify.Key.getKind;
+import static google.registry.flows.ResourceFlowUtils.createResolvedTransferData;
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
-import static google.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.EppResourceUtils.isDeleted;
@@ -66,6 +66,7 @@ import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferStatus;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.util.Clock;
@@ -313,7 +314,20 @@ public class DeleteContactsAndHostsAction implements Runnable {
 
       EppResource resourceToSave;
       if (deleteAllowed) {
-        resourceToSave = prepareDeletedResourceAsBuilder(resource, now).build();
+        EppResource.Builder<?, ?> resourceToSaveBuilder;
+        if (resource instanceof ContactResource) {
+          ContactResource contact = (ContactResource) resource;
+          resourceToSaveBuilder = contact.asBuilder()
+              .setTransferData(createResolvedTransferData(
+                  contact.getTransferData(), TransferStatus.SERVER_CANCELLED, null))
+              .wipeOut();
+        } else {
+          resourceToSaveBuilder = resource.asBuilder();
+        }
+        resourceToSave = resourceToSaveBuilder
+            .setDeletionTime(now)
+            .setStatusValues(null)
+            .build();
         performDeleteTasks(resource, resourceToSave, now, historyEntry);
         updateForeignKeyIndexDeletionTime(resourceToSave);
       } else {
@@ -346,7 +360,10 @@ public class DeleteContactsAndHostsAction implements Runnable {
         HistoryEntry historyEntryForDelete) {
       if (existingResource instanceof ContactResource) {
         handlePendingTransferOnDelete(
-            existingResource, deletedResource, deletionTime, historyEntryForDelete);
+            (ContactResource) existingResource,
+            (ContactResource) deletedResource,
+            deletionTime,
+            historyEntryForDelete);
       } else if (existingResource instanceof HostResource) {
         HostResource host = (HostResource) existingResource;
         if (host.getSuperordinateDomain() != null) {

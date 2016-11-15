@@ -23,6 +23,7 @@ import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDomainWithPendingTransfer;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
@@ -210,17 +211,23 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
         .build();
   }
 
-  protected void assertTransferFailed(EppResource resource, TransferStatus status) {
-    assertAboutEppResources().that(resource)
+  protected void assertTransferFailed(DomainResource domain, TransferStatus status) {
+    assertAboutDomains().that(domain)
         .hasTransferStatus(status).and()
         .hasPendingTransferExpirationTime(clock.nowUtc()).and()
         .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER).and()
         .hasCurrentSponsorClientId("TheRegistrar");
-    TransferData transferData = resource.getTransferData();
+    TransferData transferData = domain.getTransferData();
     assertThat(transferData.getServerApproveBillingEvent()).isNull();
     assertThat(transferData.getServerApproveAutorenewEvent()).isNull();
     assertThat(transferData.getServerApproveAutorenewPollMessage()).isNull();
     assertThat(transferData.getServerApproveEntities()).isEmpty();
+  }
+
+  protected void assertTransferFailed(HostResource resource) {
+    assertAboutEppResources().that(resource)
+        .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER).and()
+        .hasCurrentSponsorClientId("TheRegistrar");
   }
 
   /** Adds a .tld domain that has a pending transfer on it from TheRegistrar to NewRegistrar. */

@@ -117,10 +117,6 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
   /** Status values associated with this resource. */
   Set<StatusValue> status;
 
-  /** Data about any pending or past transfers on this contact. */
-  @XmlTransient
-  TransferData transferData;
-
   /**
    * Sorted map of {@link DateTime} keys (modified time) to {@link CommitLogManifest} entries.
    *
@@ -161,15 +157,6 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
     return nullToEmptyImmutableCopy(status);
   }
 
-  public final TransferData getTransferData() {
-    return Optional.fromNullable(transferData).or(TransferData.EMPTY);
-  }
-
-  /** Returns whether there is any transferData. */
-  public final boolean hasTransferData() {
-    return transferData != null;
-  }
-
   @XmlElement(name = "trDate")
   public DateTime getLastTransferTime() {
     return lastTransferTime;
@@ -195,6 +182,16 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
 
   /** EppResources that are loaded via foreign keys should implement this marker interface. */
   public interface ForeignKeyedEppResource {}
+
+  /** An interface for resources that have transfer data. */
+  public interface ResourceWithTransferData {
+    public TransferData getTransferData();
+  }
+
+  /** An interface for builders of resources that have transfer data. */
+  public interface BuilderWithTransferData<B extends BuilderWithTransferData<B>> {
+    public B setTransferData(TransferData transferData);
+  }
 
   /** Abstract builder for {@link EppResource} types. */
   public abstract static class Builder<T extends EppResource, B extends Builder<?, ?>>
@@ -292,20 +289,9 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
           difference(getInstance().getStatusValues(), statusValues)));
     }
 
-    /** Set this resource's transfer data. */
-    public B setTransferData(TransferData transferData) {
-      getInstance().transferData = transferData;
-      return thisCastToDerived();
-    }
-
     /** Set this resource's repoId. */
     public B setRepoId(String repoId) {
       getInstance().repoId = repoId;
-      return thisCastToDerived();
-    }
-
-    /** Wipe out any personal information in the resource. */
-    public B wipeOut() {
       return thisCastToDerived();
     }
 
@@ -323,10 +309,6 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
 
     /** Build the resource, nullifying empty strings and sets and setting defaults. */
     public T buildWithoutImplicitStatusValues() {
-      // If TransferData is totally empty, set it to null.
-      if (TransferData.EMPTY.equals(getInstance().transferData)) {
-        setTransferData(null);
-      }
       // If there is no deletion time, set it to END_OF_TIME.
       setDeletionTime(Optional.fromNullable(getInstance().deletionTime).or(END_OF_TIME));
       return ImmutableObject.cloneEmptyToNull(super.build());

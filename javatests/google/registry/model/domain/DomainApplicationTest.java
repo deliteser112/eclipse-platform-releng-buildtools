@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import google.registry.model.EntityTestCase;
-import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchPhase;
@@ -47,9 +46,6 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
-import google.registry.model.transfer.TransferData;
-import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
-import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.ExceptionRule;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -95,19 +91,6 @@ public class DomainApplicationTest extends EntityTestCase {
             .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))
             .setLaunchNotice(
                 LaunchNotice.create("tcnid", "validatorId", START_OF_TIME, START_OF_TIME))
-            .setTransferData(
-                new TransferData.Builder()
-                    .setExtendedRegistrationYears(0)
-                    .setGainingClientId("gaining")
-                    .setLosingClientId("losing")
-                    .setPendingTransferExpirationTime(clock.nowUtc())
-                    .setServerApproveEntities(
-                        ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
-                            Key.create(BillingEvent.OneTime.class, 1)))
-                    .setTransferRequestTime(clock.nowUtc())
-                    .setTransferStatus(TransferStatus.SERVER_APPROVED)
-                    .setTransferRequestTrid(Trid.create("client trid"))
-                    .build())
             .setCreationTrid(Trid.create("client creation trid"))
             .setPhase(LaunchPhase.LANDRUSH)
             // TODO(b/32447342): set period
@@ -181,14 +164,6 @@ public class DomainApplicationTest extends EntityTestCase {
         .build()
         .getDsData().asList().get(0).getDigest())
             .isNotNull();
-  }
-
-  @Test
-  public void testEmptyTransferDataBecomesNull() throws Exception {
-    DomainApplication withNull = emptyBuilder().setTransferData(null).build();
-    DomainApplication withEmpty = withNull.asBuilder().setTransferData(TransferData.EMPTY).build();
-    assertThat(withNull).isEqualTo(withEmpty);
-    assertThat(withEmpty.hasTransferData()).isFalse();
   }
 
   @Test

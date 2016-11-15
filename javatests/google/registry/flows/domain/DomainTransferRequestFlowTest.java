@@ -53,7 +53,6 @@ import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
-import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Cancellation.Builder;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -67,6 +66,7 @@ import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerS
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.host.HostResource;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
@@ -102,8 +102,8 @@ public class DomainTransferRequestFlowTest
     RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
-  private void assertTransferRequested(EppResource resource) throws Exception {
-    assertAboutEppResources().that(resource)
+  private void assertTransferRequested(DomainResource domain) throws Exception {
+    assertAboutDomains().that(domain)
         .hasTransferStatus(TransferStatus.PENDING).and()
         .hasTransferGainingClientId("NewRegistrar").and()
         .hasTransferLosingClientId("TheRegistrar").and()
@@ -114,13 +114,27 @@ public class DomainTransferRequestFlowTest
         .hasStatusValue(StatusValue.PENDING_TRANSFER);
   }
 
-  private void assertTransferApproved(EppResource resource) {
+  private void assertTransferRequested(HostResource host) throws Exception {
+    assertAboutEppResources().that(host)
+        .hasCurrentSponsorClientId("TheRegistrar").and()
+        .hasStatusValue(StatusValue.PENDING_TRANSFER);
+  }
+
+  private void assertTransferApproved(DomainResource domain) {
     DateTime afterAutoAck = clock.nowUtc().plus(Registry.get("tld").getAutomaticTransferLength());
-    assertAboutEppResources().that(resource)
+    assertAboutDomains().that(domain)
         .hasTransferStatus(TransferStatus.SERVER_APPROVED).and()
         .hasCurrentSponsorClientId("NewRegistrar").and()
         .hasLastTransferTime(afterAutoAck).and()
         .hasPendingTransferExpirationTime(afterAutoAck).and()
+        .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
+  }
+
+  private void assertTransferApproved(HostResource host) {
+    DateTime afterAutoAck = clock.nowUtc().plus(Registry.get("tld").getAutomaticTransferLength());
+    assertAboutEppResources().that(host)
+        .hasCurrentSponsorClientId("NewRegistrar").and()
+        .hasLastTransferTime(afterAutoAck).and()
         .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
   }
 

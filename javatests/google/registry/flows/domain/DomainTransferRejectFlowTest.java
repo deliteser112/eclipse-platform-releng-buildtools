@@ -82,9 +82,7 @@ public class DomainTransferRejectFlowTest
     // Transfer should have been rejected. Verify correct fields were set.
     domain = reloadResourceByForeignKey();
     assertTransferFailed(domain, TransferStatus.CLIENT_REJECTED);
-    assertTransferFailed(
-        reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc()),
-        TransferStatus.CLIENT_REJECTED);
+    assertTransferFailed(reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc()));
     assertAboutDomains().that(domain)
         .hasRegistrationExpirationTime(originalExpirationTime).and()
         .hasLastTransferTimeNotEqualTo(clock.nowUtc()).and()

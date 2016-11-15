@@ -43,7 +43,6 @@ import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.exceptions.NotPendingTransferException;
-import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Cancellation;
 import google.registry.model.billing.BillingEvent.Cancellation.Builder;
@@ -98,12 +97,19 @@ public class DomainTransferApproveFlowTest
     clock.advanceOneMilli();
   }
 
-  private void assertTransferApproved(EppResource resource) {
-    assertAboutEppResources().that(resource)
+  private void assertTransferApproved(DomainResource domain) {
+    assertAboutDomains().that(domain)
         .hasTransferStatus(TransferStatus.CLIENT_APPROVED).and()
         .hasCurrentSponsorClientId("NewRegistrar").and()
         .hasLastTransferTime(clock.nowUtc()).and()
         .hasPendingTransferExpirationTime(clock.nowUtc()).and()
+        .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
+  }
+
+  private void assertTransferApproved(HostResource host) {
+    assertAboutEppResources().that(host)
+        .hasCurrentSponsorClientId("NewRegistrar").and()
+        .hasLastTransferTime(clock.nowUtc()).and()
         .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
   }
 

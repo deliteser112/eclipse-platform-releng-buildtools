@@ -206,7 +206,6 @@ class google.registry.model.domain.DomainApplication {
   google.registry.model.domain.launch.LaunchNotice launchNotice;
   google.registry.model.domain.launch.LaunchPhase phase;
   google.registry.model.eppcommon.Trid creationTrid;
-  google.registry.model.transfer.TransferData transferData;
   java.lang.String creationClientId;
   java.lang.String currentSponsorClientId;
   java.lang.String fullyQualifiedDomainName;
@@ -233,7 +232,6 @@ class google.registry.model.domain.DomainBase {
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   google.registry.model.domain.DomainAuthInfo authInfo;
   google.registry.model.domain.launch.LaunchNotice launchNotice;
-  google.registry.model.transfer.TransferData transferData;
   java.lang.String creationClientId;
   java.lang.String currentSponsorClientId;
   java.lang.String fullyQualifiedDomainName;
@@ -387,7 +385,6 @@ class google.registry.model.host.HostResource {
   com.googlecode.objectify.Key<google.registry.model.domain.DomainResource> superordinateDomain;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
-  google.registry.model.transfer.TransferData transferData;
   java.lang.String creationClientId;
   java.lang.String currentSponsorClientId;
   java.lang.String fullyQualifiedHostName;

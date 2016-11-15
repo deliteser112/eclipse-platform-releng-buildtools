@@ -29,7 +29,9 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.ResultNow;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.EppResource.Builder;
+import google.registry.model.EppResource.BuilderWithTransferData;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
+import google.registry.model.EppResource.ResourceWithTransferData;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
@@ -201,8 +203,8 @@ public final class EppResourceUtils {
   }
 
   /** Process an automatic transfer on a resource. */
-  public static void setAutomaticTransferSuccessProperties(
-      Builder<?, ?> builder, TransferData transferData) {
+  public static <B extends Builder<?, B> & BuilderWithTransferData<B>>
+      void setAutomaticTransferSuccessProperties(B builder, TransferData transferData) {
     checkArgument(TransferStatus.PENDING.equals(transferData.getTransferStatus()));
     builder.removeStatusValue(StatusValue.PENDING_TRANSFER)
         .setTransferData(transferData.asBuilder()
@@ -222,8 +224,10 @@ public final class EppResourceUtils {
    *   <li>Process an automatic transfer.
    * </ul>
    */
-  public static <T extends EppResource> void projectResourceOntoBuilderAtTime(
-      T resource, Builder<?, ?> builder, DateTime now) {
+  public static <
+      T extends EppResource & ResourceWithTransferData,
+      B extends Builder<?, B> & BuilderWithTransferData<B>>
+          void projectResourceOntoBuilderAtTime(T resource, B builder, DateTime now) {
     TransferData transferData = resource.getTransferData();
     // If there's a pending transfer that has expired, process it.
     DateTime expirationTime = transferData.getPendingTransferExpirationTime();

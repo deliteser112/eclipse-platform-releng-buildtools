@@ -231,7 +231,7 @@ public class DomainResourceTest extends EntityTestCase {
         newDomainResource("example.com").asBuilder().setTransferData(null).build();
     DomainResource withEmpty = withNull.asBuilder().setTransferData(TransferData.EMPTY).build();
     assertThat(withNull).isEqualTo(withEmpty);
-    assertThat(withEmpty.hasTransferData()).isFalse();
+    assertThat(withEmpty.transferData).isNull();
   }
 
   @Test

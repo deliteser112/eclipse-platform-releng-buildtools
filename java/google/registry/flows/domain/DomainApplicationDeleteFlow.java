@@ -15,8 +15,6 @@
 package google.registry.flows.domain;
 
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
-import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
-import static google.registry.flows.ResourceFlowUtils.prepareDeletedResourceAsBuilder;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.flows.ResourceFlowUtils.verifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
@@ -100,15 +98,16 @@ public final class DomainApplicationDeleteFlow implements TransactionalFlow {
         throw new SunriseApplicationCannotBeDeletedInLandrushException();
       }
     }
-    DomainApplication newApplication =
-        prepareDeletedResourceAsBuilder(existingApplication, now).build();
+    DomainApplication newApplication = existingApplication.asBuilder()
+        .setDeletionTime(now)
+        .setStatusValues(null)
+        .build();
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_APPLICATION_DELETE)
         .setModificationTime(now)
         .setParent(Key.create(existingApplication))
         .build();
     updateForeignKeyIndexDeletionTime(newApplication);
-    handlePendingTransferOnDelete(existingApplication, newApplication, now, historyEntry);
     handleExtraFlowLogic(tld, historyEntry, existingApplication, now);
     ofy().save().<Object>entities(newApplication, historyEntry);
     return responseBuilder.build();

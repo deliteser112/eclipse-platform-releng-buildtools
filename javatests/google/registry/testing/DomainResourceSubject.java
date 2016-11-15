@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertAbout;
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.TruthChainer.And;
 import java.util.Objects;
 import org.joda.time.DateTime;
@@ -31,6 +32,42 @@ public final class DomainResourceSubject
   /** A factory for instances of this subject. */
   private static class SubjectFactory
       extends ReflectiveSubjectFactory<DomainResource, DomainResourceSubject>{}
+
+  public And<DomainResourceSubject> hasTransferStatus(TransferStatus transferStatus) {
+    return hasValue(
+        transferStatus,
+        actual().getTransferData().getTransferStatus(),
+        "has transferStatus");
+  }
+
+  public And<DomainResourceSubject> hasTransferRequestClientTrid(String clTrid) {
+    return hasValue(
+        clTrid,
+        actual().getTransferData().getTransferRequestTrid().getClientTransactionId(),
+        "has trid");
+  }
+
+  public And<DomainResourceSubject> hasPendingTransferExpirationTime(
+      DateTime pendingTransferExpirationTime) {
+    return hasValue(
+        pendingTransferExpirationTime,
+        actual().getTransferData().getPendingTransferExpirationTime(),
+        "has pendingTransferExpirationTime");
+  }
+
+  public And<DomainResourceSubject> hasTransferGainingClientId(String gainingClientId) {
+    return hasValue(
+        gainingClientId,
+        actual().getTransferData().getGainingClientId(),
+        "has transfer ga");
+  }
+
+  public And<DomainResourceSubject> hasTransferLosingClientId(String losingClientId) {
+    return hasValue(
+        losingClientId,
+        actual().getTransferData().getLosingClientId(),
+        "has transfer losingClientId");
+  }
 
   public And<DomainResourceSubject> hasRegistrationExpirationTime(DateTime expiration) {
     if (!Objects.equals(actual().getRegistrationExpirationTime(), expiration)) {

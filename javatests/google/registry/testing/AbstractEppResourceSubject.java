@@ -26,7 +26,6 @@ import com.google.common.truth.Subject;
 import google.registry.model.EppResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.TruthChainer.And;
 import google.registry.testing.TruthChainer.Which;
 import java.util.List;
@@ -192,41 +191,6 @@ abstract class AbstractEppResourceSubject
         clientId,
         actual().getCurrentSponsorClientId(),
         "has currentSponsorClientId");
-  }
-
-  public And<S> hasTransferStatus(TransferStatus transferStatus) {
-    return hasValue(
-        transferStatus,
-        actual().getTransferData().getTransferStatus(),
-        "has transferStatus");
-  }
-
-  public And<S> hasTransferRequestClientTrid(String clTrid) {
-    return hasValue(
-        clTrid,
-        actual().getTransferData().getTransferRequestTrid().getClientTransactionId(),
-        "has trid");
-  }
-
-  public And<S> hasPendingTransferExpirationTime(DateTime pendingTransferExpirationTime) {
-    return hasValue(
-        pendingTransferExpirationTime,
-        actual().getTransferData().getPendingTransferExpirationTime(),
-        "has pendingTransferExpirationTime");
-  }
-
-  public And<S> hasTransferGainingClientId(String gainingClientId) {
-    return hasValue(
-        gainingClientId,
-        actual().getTransferData().getGainingClientId(),
-        "has transfer ga");
-  }
-
-  public And<S> hasTransferLosingClientId(String losingClientId) {
-    return hasValue(
-        losingClientId,
-        actual().getTransferData().getLosingClientId(),
-        "has transfer losingClientId");
   }
 
   public And<S> isActiveAt(DateTime time) {

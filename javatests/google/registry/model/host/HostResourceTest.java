@@ -150,14 +150,6 @@ public class HostResourceTest extends EntityTestCase {
   }
 
   @Test
-  public void testEmptyTransferDataBecomesNull() throws Exception {
-    HostResource withNull = new HostResource.Builder().setTransferData(null).build();
-    HostResource withEmpty = withNull.asBuilder().setTransferData(TransferData.EMPTY).build();
-    assertThat(withNull).isEqualTo(withEmpty);
-    assertThat(withEmpty.hasTransferData()).isFalse();
-  }
-
-  @Test
   public void testImplicitStatusValues() {
     // OK is implicit if there's no other statuses.
     StatusValue[] statuses = {StatusValue.OK};
@@ -205,7 +197,6 @@ public class HostResourceTest extends EntityTestCase {
         hostResource.asBuilder()
             .setLastSuperordinateChange(superordinateChangeTime)
             .setLastTransferTime(hostTransferTime)
-            .setTransferData(null)
             .build());
     return hostResource.cloneProjectedAtTime(clock.nowUtc()).getLastTransferTime();
   }
@@ -279,8 +270,6 @@ public class HostResourceTest extends EntityTestCase {
             .build())
         .build());
     HostResource afterTransfer = hostResource.cloneProjectedAtTime(clock.nowUtc().plusDays(1));
-    assertThat(afterTransfer.getTransferData().getTransferStatus())
-        .isEqualTo(TransferStatus.SERVER_APPROVED);
     assertThat(afterTransfer.getCurrentSponsorClientId()).isEqualTo("winner");
     assertThat(afterTransfer.getLastTransferTime()).isEqualTo(clock.nowUtc().plusDays(1));
   }
