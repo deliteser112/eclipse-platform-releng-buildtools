@@ -164,7 +164,7 @@ public final class RequestHandlerTest {
     // Initialize here, not inline, so that we pick up the mocked UserService.
     handler = RequestHandler.<Component, Builder>createForTest(
         Component.class,
-        Providers.of(new Builder() {
+        Providers.<Builder>of(new Builder() {
           @Override
           public Component build() {
             // Use a fake Builder that returns the single component instance that uses the mocks.

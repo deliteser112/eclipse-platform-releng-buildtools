@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
-import static google.registry.flows.ResourceFlowUtils.resolvePendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
@@ -43,6 +42,7 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
+import google.registry.flows.ResourceFlowUtils;
 import google.registry.flows.SessionMetadata;
 import google.registry.flows.TransactionalFlow;
 import google.registry.model.ImmutableObject;
@@ -120,7 +120,9 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     Registry registry = Registry.get(existingDomain.getTld());
     verifyDeleteAllowed(existingDomain, registry, now);
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, now);
-    Builder builder = resolvePendingTransfer(existingDomain, TransferStatus.SERVER_CANCELLED, null);
+    Builder builder =
+        ResourceFlowUtils.<DomainResource, DomainResource.Builder>resolvePendingTransfer(
+            existingDomain, TransferStatus.SERVER_CANCELLED, null);
     builder.setDeletionTime(now).setStatusValues(null);
     // If the domain is in the Add Grace Period, we delete it immediately, which is already
     // reflected in the builder we just prepared. Otherwise we give it a PENDING_DELETE status.
