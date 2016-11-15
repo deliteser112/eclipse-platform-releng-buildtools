@@ -57,6 +57,28 @@ public class TypeUtils {
   }
 
   /**
+   * Returns the class referred to by a fully qualified class name string.
+   *
+   * <p>Throws an error if the loaded class is not assignable from the expected super type class.
+   */
+  public static <T> Class<T> getClassFromString(String className, Class<T> expectedSuperType) {
+    Class<?> clazz;
+    try {
+      clazz = Class.forName(className);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException(String.format("Failed to load class %s", className), e);
+    }
+    checkArgument(
+        expectedSuperType.isAssignableFrom(clazz),
+        "%s does not implement/extend %s",
+        clazz.getSimpleName(),
+        expectedSuperType.getSimpleName());
+    @SuppressWarnings("unchecked")
+    Class<T> castedClass = (Class<T>) clazz;
+    return castedClass;
+  }
+
+  /**
    * Aggregates enum "values" in a typesafe enum pattern into a string->field map.
    */
   @SuppressWarnings("unchecked")

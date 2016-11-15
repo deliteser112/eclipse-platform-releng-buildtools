@@ -17,6 +17,7 @@ package google.registry.module.frontend;
 import dagger.Component;
 import google.registry.braintree.BraintreeModule;
 import google.registry.config.ConfigModule;
+import google.registry.flows.custom.CustomLogicFactoryModule;
 import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.module.frontend.FrontendRequestComponent.FrontendRequestComponentModule;
@@ -40,6 +41,7 @@ import javax.inject.Singleton;
         BraintreeModule.class,
         ConfigModule.class,
         ConsoleConfigModule.class,
+        CustomLogicFactoryModule.class,
         DummyKeyringModule.class,
         FrontendMetricsModule.class,
         FrontendRequestComponentModule.class,

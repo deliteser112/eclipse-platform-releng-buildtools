@@ -14,7 +14,10 @@
 
 package google.registry.flows;
 
+import static google.registry.model.ofy.ObjectifyService.ofy;
+
 import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.flows.custom.EntityChanges;
 
 /** Static utility functions for flows. */
 public final class FlowUtils {
@@ -26,6 +29,12 @@ public final class FlowUtils {
     if (clientId.isEmpty()) {
       throw new NotLoggedInException();
     }
+  }
+
+  /** Persists the saves and deletes in an {@link EntityChanges} to Datastore. */
+  public static void persistEntityChanges(EntityChanges entityChanges) {
+    ofy().save().entities(entityChanges.getSaves());
+    ofy().delete().keys(entityChanges.getDeletes());
   }
 
   /** Registrar is not logged in. */

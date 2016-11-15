@@ -914,4 +914,11 @@ public final class ConfigModule {
   public static String provideGreetingServerId() {
     return "Charleston Road Registry";
   }
+
+  @Provides
+  @Config("customLogicFactoryClass")
+  public static String provideCustomLogicFactoryClass() {
+    // TODO(b/32875427): This will be moved into configuration in a text file in a future refactor.
+    return "google.registry.flows.custom.CustomLogicFactory";
+  }
 }

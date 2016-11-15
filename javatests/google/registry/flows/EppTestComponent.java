@@ -23,6 +23,7 @@ import dagger.Provides;
 import dagger.Subcomponent;
 import google.registry.config.ConfigModule;
 import google.registry.dns.DnsQueue;
+import google.registry.flows.custom.CustomLogicFactoryModule;
 import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.request.RequestScope;
@@ -35,6 +36,7 @@ import javax.inject.Singleton;
 @Component(
     modules = {
         ConfigModule.class,
+        CustomLogicFactoryModule.class,
         EppTestComponent.FakesAndMocksModule.class
     })
 interface EppTestComponent {

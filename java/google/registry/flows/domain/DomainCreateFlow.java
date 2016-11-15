@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.flows.FlowUtils.persistEntityChanges;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
@@ -57,6 +58,8 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.custom.DomainCreateFlowCustomLogic;
+import google.registry.flows.custom.EntityChanges;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
@@ -162,6 +165,7 @@ public class DomainCreateFlow implements TransactionalFlow {
   @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppResponse.Builder responseBuilder;
+  @Inject DomainCreateFlowCustomLogic customLogic;
   @Inject DomainCreateFlow() {}
 
   @Override
@@ -198,6 +202,12 @@ public class DomainCreateFlow implements TransactionalFlow {
     if (hasSignedMarks) {
       verifySignedMarksAllowed(tldState, isAnchorTenant);
     }
+    customLogic.afterValidation(
+        DomainCreateFlowCustomLogic.AfterValidationParameters.newBuilder()
+            .setDomainName(domainName)
+            .setYears(years)
+            .build());
+
     FeeCreateCommandExtension feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     EppCommandOperations commandOperations = TldSpecificLogicProxy.getCreatePrice(
@@ -269,7 +279,6 @@ public class DomainCreateFlow implements TransactionalFlow {
         .setContacts(command.getContacts())
         .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.ADD, createBillingEvent))
         .build();
-    handleExtraFlowLogic(registry.getTldStr(), years, historyEntry, newDomain);
     entitiesToSave.add(
         newDomain,
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),
@@ -282,7 +291,29 @@ public class DomainCreateFlow implements TransactionalFlow {
           prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
     }
     enqueueTasks(hasSignedMarks, hasClaimsNotice, newDomain);
-    ofy().save().entities(entitiesToSave.build());
+
+    // TODO: Remove this section and only use the customLogic.
+    Optional<RegistryExtraFlowLogic> extraFlowLogic =
+        RegistryExtraFlowLogicProxy.newInstanceForTld(registry.getTldStr());
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().performAdditionalDomainCreateLogic(
+          newDomain,
+          clientId,
+          years,
+          eppInput,
+          historyEntry);
+    }
+
+    EntityChanges entityChanges =
+        customLogic.beforeSave(
+            DomainCreateFlowCustomLogic.BeforeSaveParameters.newBuilder()
+                .setNewDomain(newDomain)
+                .setHistoryEntry(historyEntry)
+                .setYears(years)
+                .build(),
+            EntityChanges.newBuilder().setSaves(entitiesToSave.build()).build());
+    persistEntityChanges(entityChanges);
+
     return responseBuilder
         .setResData(DomainCreateData.create(targetId, now, registrationExpirationTime))
         .setExtensions(createResponseExtensions(feeCreate, commandOperations))
@@ -393,21 +424,6 @@ public class DomainCreateFlow implements TransactionalFlow {
 
   private boolean isLrpCreate(Registry registry, boolean isAnchorTenant, DateTime now) {
     return registry.getLrpPeriod().contains(now) && !isAnchorTenant;
-  }
-
-  private void handleExtraFlowLogic(
-      String tld, int years, HistoryEntry historyEntry, DomainResource newDomain)
-          throws EppException {
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(tld);
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainCreateLogic(
-          newDomain,
-          clientId,
-          years,
-          eppInput,
-          historyEntry);
-    }
   }
 
   private void enqueueTasks(

@@ -30,6 +30,7 @@ import google.registry.flows.contact.ContactTransferQueryFlow;
 import google.registry.flows.contact.ContactTransferRejectFlow;
 import google.registry.flows.contact.ContactTransferRequestFlow;
 import google.registry.flows.contact.ContactUpdateFlow;
+import google.registry.flows.custom.CustomLogicModule;
 import google.registry.flows.domain.ClaimsCheckFlow;
 import google.registry.flows.domain.DomainAllocateFlow;
 import google.registry.flows.domain.DomainApplicationCreateFlow;
@@ -66,6 +67,7 @@ import google.registry.util.SystemSleeper.SystemSleeperModule;
 @Subcomponent(modules = {
     AsyncFlowsModule.class,
     ConfigModule.class,
+    CustomLogicModule.class,
     DnsModule.class,
     FlowModule.class,
     FlowComponent.FlowComponentModule.class,
