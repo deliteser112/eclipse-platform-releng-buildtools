@@ -382,7 +382,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     Optional<RegistryExtraFlowLogic> extraFlowLogic =
         RegistryExtraFlowLogicProxy.newInstanceForDomain(existingDomain);
     if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainTransferLogic(
+      extraFlowLogic.get().performAdditionalDomainTransferRequestLogic(
           existingDomain,
           gainingClientId,
           now,

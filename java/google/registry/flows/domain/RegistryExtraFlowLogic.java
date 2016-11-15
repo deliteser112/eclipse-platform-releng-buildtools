@@ -126,8 +126,26 @@ public interface RegistryExtraFlowLogic {
       EppInput eppInput,
       HistoryEntry historyEntry) throws EppException;
 
-  /** Performs additional tasks required for a transfer command. */
-  public void performAdditionalDomainTransferLogic(
+  /** Performs additional tasks required for a domain transfer approve command. */
+  public void performAdditionalDomainTransferApproveLogic(
+      DomainResource domain,
+      String clientId,
+      HistoryEntry historyEntry) throws EppException;
+
+  /** Performs additional tasks required for a domain transfer cancel command. */
+  public void performAdditionalDomainTransferCancelLogic(
+      DomainResource domain,
+      String clientId,
+      HistoryEntry historyEntry) throws EppException;
+
+  /** Performs additional tasks required for a domain transfer reject command. */
+  public void performAdditionalDomainTransferRejectLogic(
+      DomainResource domain,
+      String clientId,
+      HistoryEntry historyEntry) throws EppException;
+
+  /** Performs additional tasks required for a transfer request command. */
+  public void performAdditionalDomainTransferRequestLogic(
       DomainResource domain,
       String clientId,
       DateTime asOfDate,

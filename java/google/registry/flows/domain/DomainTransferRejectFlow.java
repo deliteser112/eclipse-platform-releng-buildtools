@@ -90,6 +90,7 @@ public final class DomainTransferRejectFlow implements TransactionalFlow {
     checkAllowedAccessToTld(clientId, existingDomain.getTld());
     DomainResource newDomain =
         denyPendingTransfer(existingDomain, TransferStatus.CLIENT_REJECTED, now);
+    handleExtraFlowLogic(existingDomain.getTld(), historyEntry, existingDomain);
     ofy().save().<ImmutableObject>entities(
         newDomain,
         historyEntry,
@@ -104,5 +105,17 @@ public final class DomainTransferRejectFlow implements TransactionalFlow {
     return responseBuilder
         .setResData(createTransferResponse(targetId, newDomain.getTransferData(), null))
         .build();
+  }
+
+  private void handleExtraFlowLogic(
+      String tld, HistoryEntry historyEntry, DomainResource existingDomain) throws EppException {
+    Optional<RegistryExtraFlowLogic> extraFlowLogic =
+        RegistryExtraFlowLogicProxy.newInstanceForTld(tld);
+    if (extraFlowLogic.isPresent()) {
+      extraFlowLogic.get().performAdditionalDomainTransferRejectLogic(
+          existingDomain,
+          clientId,
+          historyEntry);
+    }
   }
 }
