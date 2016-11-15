@@ -89,4 +89,6 @@ objects is instructive as an example:
 *   [Step
     4](https://github.com/google/nomulus/commit/361a53a3c985c14539e5ec1a31cf4ad192f67a5d),
     which switches over to using the new fields.
-*   Step 6, which removes the old fields (work pending).
+*   [Step
+    6](https://github.com/google/nomulus/commit/780a5add78e735589f25f736059c29e9faf9aef5),
+    which removes the old fields.
