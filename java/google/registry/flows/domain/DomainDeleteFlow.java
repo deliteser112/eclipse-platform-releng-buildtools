@@ -221,7 +221,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
       DomainResource existingDomain, DateTime now) {
     FeeTransformResponseExtension.Builder feeResponseBuilder = getDeleteResponseBuilder();
     if (feeResponseBuilder == null) {
-      return null;
+      return ImmutableList.of();
     }
     ImmutableList.Builder<Credit> creditsBuilder = new ImmutableList.Builder<>();
     for (GracePeriod gracePeriod : existingDomain.getGracePeriods()) {
@@ -234,7 +234,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     }
     ImmutableList<Credit> credits = creditsBuilder.build();
     if (credits.isEmpty()) {
-      return null;
+      return ImmutableList.of();
     }
     return ImmutableList.of(feeResponseBuilder.setCredits(credits).build());
   }

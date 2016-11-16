@@ -439,7 +439,7 @@ public class DomainCreateFlow implements TransactionalFlow {
   private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
       FeeCreateCommandExtension feeCreate, EppCommandOperations commandOperations) {
     return (feeCreate == null)
-        ? null
+        ? ImmutableList.of()
         : ImmutableList.of(createFeeCreateResponse(feeCreate, commandOperations));
   }
 

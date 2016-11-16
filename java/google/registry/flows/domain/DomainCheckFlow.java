@@ -177,7 +177,7 @@ public final class DomainCheckFlow implements Flow {
     FeeCheckCommandExtension<?, ?> feeCheck =
         eppInput.getSingleExtension(FeeCheckCommandExtension.class);
     if (feeCheck == null) {
-      return null;  // No fee checks were requested.
+      return ImmutableList.of();  // No fee checks were requested.
     }
     ImmutableList.Builder<FeeCheckResponseExtensionItem> responseItems =
         new ImmutableList.Builder<>();
