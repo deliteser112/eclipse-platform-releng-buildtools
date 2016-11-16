@@ -408,7 +408,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(Money renewCost,
       FeeTransferCommandExtension feeTransfer) {
     return feeTransfer == null
-        ? ImmutableList.of()
+        ? ImmutableList.<FeeTransformResponseExtension>of()
         : ImmutableList.of(feeTransfer.createResponseBuilder()
             .setCurrency(renewCost.getCurrencyUnit())
             .setFees(ImmutableList.of(Fee.create(renewCost.getAmount(), FeeType.RENEW)))
