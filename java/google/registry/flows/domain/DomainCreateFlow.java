@@ -309,9 +309,10 @@ public class DomainCreateFlow implements TransactionalFlow {
             DomainCreateFlowCustomLogic.BeforeSaveParameters.newBuilder()
                 .setNewDomain(newDomain)
                 .setHistoryEntry(historyEntry)
+                .setEntityChanges(
+                    EntityChanges.newBuilder().setSaves(entitiesToSave.build()).build())
                 .setYears(years)
-                .build(),
-            EntityChanges.newBuilder().setSaves(entitiesToSave.build()).build());
+                .build());
     persistEntityChanges(entityChanges);
 
     return responseBuilder
