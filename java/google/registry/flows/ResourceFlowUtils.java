@@ -255,13 +255,15 @@ public final class ResourceFlowUtils {
    * including the extended registration years field, and sets the expiration time of the last
    * pending transfer to now.
    */
-  public static <R extends EppResource & ResourceWithTransferData> R approvePendingTransfer(
-      R resource, TransferStatus transferStatus, DateTime now) {
-    Builder<R, ?> builder = resolvePendingTransfer(resource, transferStatus, now);
-    builder
+  public static <
+        R extends EppResource & ResourceWithTransferData,
+        B extends Builder<R, B> & BuilderWithTransferData<B>>
+            R approvePendingTransfer(R resource, TransferStatus transferStatus, DateTime now) {
+    B builder = resolvePendingTransfer(resource, transferStatus, now);
+    return builder
         .setLastTransferTime(now)
-        .setCurrentSponsorClientId(resource.getTransferData().getGainingClientId());
-    return builder.build();
+        .setCurrentSponsorClientId(resource.getTransferData().getGainingClientId())
+        .build();
   }
 
   /**
