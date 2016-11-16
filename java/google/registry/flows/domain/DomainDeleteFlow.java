@@ -122,7 +122,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, now);
     Builder builder =
         ResourceFlowUtils.<DomainResource, DomainResource.Builder>resolvePendingTransfer(
-            existingDomain, TransferStatus.SERVER_CANCELLED, null);
+            existingDomain, TransferStatus.SERVER_CANCELLED, now);
     builder.setDeletionTime(now).setStatusValues(null);
     // If the domain is in the Add Grace Period, we delete it immediately, which is already
     // reflected in the builder we just prepared. Otherwise we give it a PENDING_DELETE status.
