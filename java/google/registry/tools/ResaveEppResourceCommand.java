@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.tools.javascrap;
+package google.registry.tools;
 
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -27,14 +27,18 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
-import google.registry.tools.MutatingCommand;
 import org.joda.time.DateTime;
 
-/** A command to load and resave an entity, which triggers @OnSave changes. */
+/**
+ * A command to load and resave an {@link EppResource} by foreign key.
+ *
+ * <p>This triggers @OnSave changes. If the entity was directly edited in the datastore viewer, this
+ * can be used to make sure that the commit logs reflect the new state.
+ */
 @Parameters(
     separators = " =",
-    commandDescription = "Load and resave an object, to trigger @OnSave changes")
-public final class LoadAndResaveCommand extends MutatingCommand {
+    commandDescription = "Load and resave EPP resources by foreign key")
+public final class ResaveEppResourceCommand extends MutatingCommand {
 
   private enum ResourceType { CONTACT, HOST, DOMAIN, APPLICATION }
 
