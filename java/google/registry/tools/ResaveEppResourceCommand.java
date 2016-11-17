@@ -14,7 +14,6 @@
 
 package google.registry.tools;
 
-import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static org.joda.time.DateTimeZone.UTC;
@@ -23,10 +22,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
-import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainApplication;
-import google.registry.model.domain.DomainResource;
-import google.registry.model.host.HostResource;
+import google.registry.tools.CommandUtilities.ResourceType;
 import org.joda.time.DateTime;
 
 /**
@@ -39,8 +35,6 @@ import org.joda.time.DateTime;
     separators = " =",
     commandDescription = "Load and resave EPP resources by foreign key")
 public final class ResaveEppResourceCommand extends MutatingCommand {
-
-  private enum ResourceType { CONTACT, HOST, DOMAIN, APPLICATION }
 
   @Parameter(
     names = "--type",
@@ -55,27 +49,11 @@ public final class ResaveEppResourceCommand extends MutatingCommand {
   @Override
   protected void init() throws Exception {
     Key<? extends EppResource> resourceKey = checkArgumentNotNull(
-        getResourceKey(type, uniqueId, DateTime.now(UTC)),
+        type.getKey(uniqueId, DateTime.now(UTC)),
         "Could not find active resource of type %s: %s", type, uniqueId);
     // Load the resource directly to bypass running cloneProjectedAtTime() automatically, which can
     // cause stageEntityChange() to fail due to implicit projection changes.
     EppResource resource = ofy().load().key(resourceKey).now();
     stageEntityChange(resource, resource);
-  }
-
-  private Key<? extends EppResource> getResourceKey(
-      ResourceType type, String uniqueId, DateTime now) {
-    switch (type) {
-      case CONTACT:
-        return loadAndGetKey(ContactResource.class, uniqueId, now);
-      case HOST:
-        return loadAndGetKey(HostResource.class, uniqueId, now);
-      case DOMAIN:
-        return loadAndGetKey(DomainResource.class, uniqueId, now);
-      case APPLICATION:
-        return Key.create(DomainApplication.class, uniqueId);
-      default:
-        throw new IllegalStateException("Unknown type: " + type);
-    }
   }
 }
