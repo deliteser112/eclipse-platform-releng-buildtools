@@ -64,8 +64,14 @@ public class DomainCreateFlowCustomLogic extends BaseFlowCustomLogic {
   @AutoValue
   public abstract static class AfterValidationParameters extends ImmutableObject {
 
+    /** The parsed domain name of the domain that is requested to be created. */
     public abstract InternetDomainName domainName();
 
+    /**
+     * The number of years that the domain name will be registered for.
+     *
+     * <p>On standard TLDs, this is usually 1.
+     */
     public abstract int years();
 
     public static Builder newBuilder() {
@@ -88,12 +94,34 @@ public class DomainCreateFlowCustomLogic extends BaseFlowCustomLogic {
   @AutoValue
   public abstract static class BeforeSaveParameters extends ImmutableObject {
 
+    /**
+     * The new {@link DomainResource} entity that is going to be persisted at the end of the
+     * transaction.
+     */
     public abstract DomainResource newDomain();
 
+    /**
+     * The new {@link HistoryEntry} entity for the domain's creation that is going to be persisted
+     * at the end of the transaction.
+     */
     public abstract HistoryEntry historyEntry();
 
+    /**
+     * The collection of {@link EntityChanges} (including new entities and those to delete) that
+     * will be persisted at the end of the transaction.
+     *
+     * <p>Note that the new domain and history entry are also included as saves in this collection,
+     * and are separated out above solely for convenience, as they are most likely to need to be
+     * changed. Removing them from the collection will cause them not to be saved, which is most
+     * likely not what you intended.
+     */
     public abstract EntityChanges entityChanges();
 
+    /**
+     * The number of years that the domain name will be registered for.
+     *
+     * <p>On standard TLDs, this is usually 1.
+     */
     public abstract int years();
 
     public static Builder newBuilder() {
