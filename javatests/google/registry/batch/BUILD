@@ -41,7 +41,7 @@ java_library(
 GenTestRules(
     name = "GeneratedTestRules",
     default_test_size = "medium",
-    shard_count = 3,
+    shard_count = 4,
     test_files = glob(["*Test.java"]),
     deps = [":batch"],
 )
