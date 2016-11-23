@@ -46,4 +46,10 @@ public class CustomLogicModule {
       CustomLogicFactory factory, EppInput eppInput, SessionMetadata sessionMetadata) {
     return factory.forDomainUpdateFlow(eppInput, sessionMetadata);
   }
+
+  @Provides
+  static DomainRenewFlowCustomLogic provideDomainRenewFlowCustomLogic(
+      CustomLogicFactory factory, EppInput eppInput, SessionMetadata sessionMetadata) {
+    return factory.forDomainRenewFlow(eppInput, sessionMetadata);
+  }
 }
