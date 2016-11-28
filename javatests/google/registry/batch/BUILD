@@ -40,8 +40,7 @@ java_library(
 
 GenTestRules(
     name = "GeneratedTestRules",
-    timeout = "long",
-    default_test_size = "medium",
+    default_test_size = "large",
     shard_count = 4,
     test_files = glob(["*Test.java"]),
     deps = [":batch"],
