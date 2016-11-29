@@ -33,7 +33,7 @@
    <extension>
     <launch:info
      xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
-      <launch:phase{if $subphase} name="{$subphase}"{/if}>{$phase}</launch:phase>
+      <launch:phase {if $subphase}name="{$subphase}"{/if}>{$phase}</launch:phase>
       <launch:applicationID>{$id}</launch:applicationID>
     </launch:info>
    </extension>
