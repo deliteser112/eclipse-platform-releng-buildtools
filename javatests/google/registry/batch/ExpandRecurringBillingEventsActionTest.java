@@ -44,6 +44,7 @@ import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
+import google.registry.util.FormattingLogger;
 import java.util.ArrayList;
 import java.util.List;
 import org.joda.money.Money;
@@ -51,17 +52,23 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-
 /** Unit tests for {@link ExpandRecurringBillingEventsAction}. */
+// The logger in this class is temporary, necessary for diagnosing some odd test failure behavior.
 @RunWith(JUnit4.class)
 public class ExpandRecurringBillingEventsActionTest
     extends MapreduceTestCase<ExpandRecurringBillingEventsAction> {
 
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
+
+  @Rule
+  public TestName testName = new TestName();
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   final FakeClock clock = new FakeClock(DateTime.parse("2000-10-02T00:00:00Z"));
 
@@ -71,6 +78,7 @@ public class ExpandRecurringBillingEventsActionTest
 
   @Before
   public void init() {
+    logger.infofmt("Running test %s", testName.getMethodName());
     action = new ExpandRecurringBillingEventsAction();
     action.mrRunner = makeDefaultRunner();
     action.clock = clock;
