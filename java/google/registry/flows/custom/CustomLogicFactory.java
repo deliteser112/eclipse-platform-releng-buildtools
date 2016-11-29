@@ -55,4 +55,9 @@ public class CustomLogicFactory {
       EppInput eppInput, SessionMetadata sessionMetadata) {
     return new DomainRenewFlowCustomLogic(eppInput, sessionMetadata);
   }
+
+  public DomainDeleteFlowCustomLogic forDomainDeleteFlow(
+      EppInput eppInput, SessionMetadata sessionMetadata) {
+    return new DomainDeleteFlowCustomLogic(eppInput, sessionMetadata);
+  }
 }
