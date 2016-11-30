@@ -16,6 +16,7 @@ package google.registry.tools.server;
 
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -95,6 +96,7 @@ public class ListRegistrarsActionTest extends ListActionTestCase {
         Optional.of("badfield"),
         null,
         null,
-        "^Field 'badfield' not found - recognized fields are:");
+        "^Field 'badfield' not found - recognized fields are:",
+        SC_BAD_REQUEST);
   }
 }

@@ -40,7 +40,7 @@ public class ListActionTestCase {
 
   private FakeJsonResponse response;
 
-  void runAction(
+  private void runAction(
       ListObjectsAction<?> action,
       Optional<String> fields,
       Optional<Boolean> printHeaderRow,
@@ -51,7 +51,6 @@ public class ListActionTestCase {
     action.printHeaderRow = printHeaderRow;
     action.fullFieldNames = fullFieldNames;
     action.run();
-    assertThat(response.getStatus()).isEqualTo(SC_OK);
   }
 
   void testRunSuccess(
@@ -62,6 +61,7 @@ public class ListActionTestCase {
       String ... expectedLinePatterns) {
     assertThat(expectedLinePatterns).isNotNull();
     runAction(action, fields, printHeaderRow, fullFieldNames);
+    assertThat(response.getStatus()).isEqualTo(SC_OK);
     assertThat(response.getResponseMap().get("status")).isEqualTo("success");
     Object obj = response.getResponseMap().get("lines");
     assertThat(obj).isInstanceOf(List.class);
@@ -78,9 +78,11 @@ public class ListActionTestCase {
       Optional<String> fields,
       Optional<Boolean> printHeaderRow,
       Optional<Boolean> fullFieldNames,
-      String expectedErrorPattern) {
+      String expectedErrorPattern,
+      int expectedResponseStatus) {
     assertThat(expectedErrorPattern).isNotNull();
     runAction(action, fields, printHeaderRow, fullFieldNames);
+    assertThat(response.getStatus()).isEqualTo(expectedResponseStatus);
     assertThat(response.getResponseMap().get("status")).isEqualTo("error");
     Object obj = response.getResponseMap().get("error");
     assertThat(obj).isInstanceOf(String.class);

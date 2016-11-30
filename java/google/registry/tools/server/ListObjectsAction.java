@@ -15,6 +15,8 @@
 package google.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -120,6 +122,8 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
       if (message == null) {
         message = e.getClass().getName();
       }
+      response.setStatus(
+          e instanceof IllegalArgumentException ? SC_BAD_REQUEST : SC_INTERNAL_SERVER_ERROR);
       response.setPayload(ImmutableMap.of(
           "error", message,
           "status", "error"));

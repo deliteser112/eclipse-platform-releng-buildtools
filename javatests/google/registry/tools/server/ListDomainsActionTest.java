@@ -17,6 +17,7 @@ package google.registry.tools.server;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -50,7 +51,8 @@ public class ListDomainsActionTest extends ListActionTestCase {
         null,
         null,
         null,
-        "^Must specify TLDs to query$");
+        "^Must specify TLDs to query$",
+        SC_BAD_REQUEST);
   }
 
   @Test
@@ -61,7 +63,8 @@ public class ListDomainsActionTest extends ListActionTestCase {
         null,
         null,
         null,
-        "^TLD %%%badtld%%% does not exist$");
+        "^TLD %%%badtld%%% does not exist$",
+        SC_BAD_REQUEST);
   }
 
   @Test
@@ -229,6 +232,7 @@ public class ListDomainsActionTest extends ListActionTestCase {
         Optional.of("badfield"),
         null,
         null,
-        "^Field 'badfield' not found - recognized fields are:");
+        "^Field 'badfield' not found - recognized fields are:",
+        SC_BAD_REQUEST);
   }
 }
