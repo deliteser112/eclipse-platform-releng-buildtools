@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static google.registry.flows.FlowUtils.persistEntityChanges;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
@@ -58,6 +59,11 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic;
+import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.AfterValidationParameters;
+import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.BeforeResponseParameters;
+import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.BeforeResponseReturnData;
+import google.registry.flows.custom.EntityChanges;
 import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
@@ -167,6 +173,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject Trid trid;
   @Inject EppResponse.Builder responseBuilder;
+  @Inject DomainApplicationCreateFlowCustomLogic customLogic;
   @Inject DomainApplicationCreateFlow() {}
 
   @Override
@@ -177,6 +184,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
         FlagsCreateCommandExtension.class,
         MetadataExtension.class,
         LaunchCreateExtension.class);
+    customLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
@@ -197,6 +205,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     // Superusers can create reserved domains, force creations on domains that require a claims
     // notice without specifying a claims key, and override blocks on registering premium domains.
     verifyUnitIsYears(command.getPeriod());
+    int years = command.getPeriod().getValue();
     validateCreateCommandContactsAndNameservers(command, tld);
     LaunchCreateExtension launchCreate = eppInput.getSingleExtension(LaunchCreateExtension.class);
     if (launchCreate != null) {
@@ -217,6 +226,11 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     validateFeeChallenge(targetId, tld, now, feeCreate, commandOperations.getTotalCost());
     SecDnsCreateExtension secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
+    customLogic.afterValidation(
+        AfterValidationParameters.newBuilder()
+            .setDomainName(domainName)
+            .setYears(years)
+            .build());
     DomainApplication newApplication = new DomainApplication.Builder()
         .setCreationTrid(trid)
         .setCreationClientId(clientId)
@@ -258,11 +272,30 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
       entitiesToSave.add(
           prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
     }
-    ofy().save().entities(entitiesToSave.build());
+    EntityChanges entityChanges =
+        customLogic.beforeSave(
+            DomainApplicationCreateFlowCustomLogic.BeforeSaveParameters.newBuilder()
+                .setNewApplication(newApplication)
+                .setHistoryEntry(historyEntry)
+                .setEntityChanges(
+                    EntityChanges.newBuilder().setSaves(entitiesToSave.build()).build())
+                .setYears(years)
+                .build());
+    persistEntityChanges(entityChanges);
+    BeforeResponseReturnData responseData =
+        customLogic.beforeResponse(
+            BeforeResponseParameters.newBuilder()
+                .setResData(DomainCreateData.create(targetId, now, null))
+                .setResponseExtensions(
+                    createResponseExtensions(
+                        newApplication.getForeignKey(),
+                        launchCreate.getPhase(),
+                        feeCreate,
+                        commandOperations))
+                .build());
     return responseBuilder
-        .setResData(DomainCreateData.create(targetId, now, null))
-        .setExtensions(createResponseExtensions(
-            newApplication.getForeignKey(), launchCreate.getPhase(), feeCreate, commandOperations))
+        .setResData(responseData.resData())
+        .setExtensions(responseData.responseExtensions())
         .build();
   }
 

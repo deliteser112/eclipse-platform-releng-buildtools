@@ -31,6 +31,11 @@ import google.registry.model.eppinput.EppInput;
  */
 public class CustomLogicFactory {
 
+  public DomainApplicationCreateFlowCustomLogic forDomainApplicationCreateFlow(
+      EppInput eppInput, SessionMetadata sessionMetadata) {
+    return new DomainApplicationCreateFlowCustomLogic(eppInput, sessionMetadata);
+  }
+
   public DomainCreateFlowCustomLogic forDomainCreateFlow(
       EppInput eppInput, SessionMetadata sessionMetadata) {
     return new DomainCreateFlowCustomLogic(eppInput, sessionMetadata);
