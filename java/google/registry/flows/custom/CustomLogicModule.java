@@ -58,4 +58,10 @@ public class CustomLogicModule {
       CustomLogicFactory factory, EppInput eppInput, SessionMetadata sessionMetadata) {
     return factory.forDomainDeleteFlow(eppInput, sessionMetadata);
   }
+
+  @Provides
+  static DomainPricingCustomLogic provideDomainPricingCustomLogic(
+      CustomLogicFactory factory, EppInput eppInput, SessionMetadata sessionMetadata) {
+    return factory.forDomainPricing(eppInput, sessionMetadata);
+  }
 }
