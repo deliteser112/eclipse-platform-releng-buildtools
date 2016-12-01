@@ -56,7 +56,7 @@ import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.EppException.UnimplementedOptionException;
-import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
+import google.registry.flows.domain.DomainPricingLogic.EppCommandOperations;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.model.EppResource;
@@ -589,7 +589,9 @@ public class DomainFlowUtils {
       String clientId,
       @Nullable CurrencyUnit topLevelCurrency,
       DateTime currentDate,
-      EppInput eppInput) throws EppException {
+      EppInput eppInput,
+      DomainPricingLogic pricingLogic)
+      throws EppException {
     DateTime now = currentDate;
     // Use the custom effective date specified in the fee check request, if there is one.
     if (feeRequest.getEffectiveDate().isPresent()) {
@@ -620,14 +622,13 @@ public class DomainFlowUtils {
     ImmutableList<Fee> fees = ImmutableList.of();
     switch (feeRequest.getCommandName()) {
       case CREATE:
-        if (isReserved(domain, isSunrise)) {  // Don't return a create price for reserved names.
-          builder.setClass("reserved");  // Override whatever class we've set above.
+        if (isReserved(domain, isSunrise)) { // Don't return a create price for reserved names.
+          builder.setClass("reserved"); // Override whatever class we've set above.
           builder.setAvailIfSupported(false);
           builder.setReasonIfSupported("reserved");
         } else {
           builder.setAvailIfSupported(true);
-          fees = TldSpecificLogicProxy.getCreatePrice(
-              registry, domainNameString, clientId, now, years, eppInput).getFees();
+          fees = pricingLogic.getCreatePrice(registry, domainNameString, now, years).getFees();
         }
         break;
       case RENEW:

@@ -105,13 +105,13 @@ import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.LrpTokenEntity;
-import google.registry.model.domain.TestExtraLogicManager;
-import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppoutput.CreateData.DomainCreateData;
+import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
@@ -158,7 +158,6 @@ public class DomainApplicationCreateFlowTest
     createTld("tld", TldState.SUNRISE);
     persistResource(Registry.get("tld").asBuilder().setReservedLists(createReservedList()).build());
     createTld("flags", TldState.LANDRUSH);
-    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
     persistResource(
         Registry.get("flags").asBuilder().setReservedLists(createReservedList()).build());
     inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
@@ -1705,7 +1704,9 @@ public class DomainApplicationCreateFlowTest
   public void testSuccess_flags() throws Exception {
     persistContactsAndHosts();
     setEppInput("domain_create_landrush_flags.xml", ImmutableMap.of("FEE", "42"));
-    thrown.expect(TestExtraLogicManagerSuccessException.class, "flag1,flag2");
-    runFlow();
+    EppOutput eppOutput = runFlow();
+    String domainNameWithFlagsPrefix =
+        ((DomainCreateData) eppOutput.getResponse().getResponseData().get(0)).name();
+    assertThat(domainNameWithFlagsPrefix).isEqualTo("flag1-flag2-create-42.flags");
   }
 }

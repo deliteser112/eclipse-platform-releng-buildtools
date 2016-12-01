@@ -15,6 +15,7 @@
 package google.registry.flows.custom;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
 import google.registry.flows.SessionMetadata;
@@ -22,6 +23,8 @@ import google.registry.flows.domain.DomainCreateFlow;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppinput.EppInput;
+import google.registry.model.eppoutput.EppResponse.ResponseData;
+import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.reporting.HistoryEntry;
 
 /**
@@ -58,6 +61,21 @@ public class DomainCreateFlowCustomLogic extends BaseFlowCustomLogic {
   @SuppressWarnings("unused")
   public EntityChanges beforeSave(BeforeSaveParameters parameters) throws EppException {
     return parameters.entityChanges();
+  }
+
+  /**
+   * A hook that runs before the response is returned.
+   *
+   * <p>This takes the {@link ResponseData} and {@link ResponseExtension}s as input and returns
+   * them, potentially with modifications.
+   */
+  @SuppressWarnings("unused")
+  public BeforeResponseReturnData beforeResponse(BeforeResponseParameters parameters)
+      throws EppException {
+    return BeforeResponseReturnData.newBuilder()
+        .setResData(parameters.resData())
+        .setResponseExtensions(parameters.responseExtensions())
+        .build();
   }
 
   /** A class to encapsulate parameters for a call to {@link #afterValidation}. */
@@ -141,6 +159,58 @@ public class DomainCreateFlowCustomLogic extends BaseFlowCustomLogic {
       public abstract Builder setYears(int years);
 
       public abstract BeforeSaveParameters build();
+    }
+  }
+
+  /** A class to encapsulate parameters for a call to {@link #beforeResponse}. */
+  @AutoValue
+  public abstract static class BeforeResponseParameters extends ImmutableObject {
+
+    public abstract ResponseData resData();
+
+    public abstract ImmutableList<? extends ResponseExtension> responseExtensions();
+
+    public static BeforeResponseParameters.Builder newBuilder() {
+      return new AutoValue_DomainCreateFlowCustomLogic_BeforeResponseParameters.Builder();
+    }
+
+    /** Builder for {@link DomainCreateFlowCustomLogic.BeforeResponseParameters}. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract BeforeResponseParameters.Builder setResData(ResponseData resData);
+
+      public abstract BeforeResponseParameters.Builder setResponseExtensions(
+          ImmutableList<? extends ResponseExtension> responseExtensions);
+
+      public abstract BeforeResponseParameters build();
+    }
+  }
+
+  /**
+   * A class to encapsulate parameters for the return values from a call to {@link #beforeResponse}.
+   */
+  @AutoValue
+  public abstract static class BeforeResponseReturnData extends ImmutableObject {
+
+    public abstract ResponseData resData();
+
+    public abstract ImmutableList<? extends ResponseExtension> responseExtensions();
+
+    public static BeforeResponseReturnData.Builder newBuilder() {
+      return new AutoValue_DomainCreateFlowCustomLogic_BeforeResponseReturnData.Builder();
+    }
+
+    /** Builder for {@link DomainCreateFlowCustomLogic.BeforeResponseReturnData}. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract BeforeResponseReturnData.Builder setResData(ResponseData resData);
+
+      public abstract BeforeResponseReturnData.Builder setResponseExtensions(
+          ImmutableList<? extends ResponseExtension> responseExtensions);
+
+      public abstract BeforeResponseReturnData build();
     }
   }
 }

@@ -43,7 +43,6 @@ import static google.registry.model.registry.label.ReservedList.matchesAnchorTen
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -59,8 +58,10 @@ import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic;
+import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseParameters;
+import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.EntityChanges;
-import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
+import google.registry.flows.domain.DomainPricingLogic.EppCommandOperations;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -166,6 +167,7 @@ public class DomainCreateFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainCreateFlowCustomLogic customLogic;
+  @Inject DomainPricingLogic pricingLogic;
   @Inject DomainCreateFlow() {}
 
   @Override
@@ -211,8 +213,8 @@ public class DomainCreateFlow implements TransactionalFlow {
 
     FeeCreateCommandExtension feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
-    EppCommandOperations commandOperations = TldSpecificLogicProxy.getCreatePrice(
-        registry, targetId, clientId, now, years, eppInput);
+    EppCommandOperations commandOperations =
+        pricingLogic.getCreatePrice(registry, targetId, now, years);
     validateFeeChallenge(
         targetId, registry.getTldStr(), now, feeCreate, commandOperations.getTotalCost());
     // Superusers can create reserved domains, force creations on domains that require a claims
@@ -293,18 +295,6 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
     enqueueTasks(hasSignedMarks, hasClaimsNotice, newDomain);
 
-    // TODO: Remove this section and only use the customLogic.
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(registry.getTldStr());
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainCreateLogic(
-          newDomain,
-          clientId,
-          years,
-          eppInput,
-          historyEntry);
-    }
-
     EntityChanges entityChanges =
         customLogic.beforeSave(
             DomainCreateFlowCustomLogic.BeforeSaveParameters.newBuilder()
@@ -316,9 +306,15 @@ public class DomainCreateFlow implements TransactionalFlow {
                 .build());
     persistEntityChanges(entityChanges);
 
+    BeforeResponseReturnData responseData =
+        customLogic.beforeResponse(
+            BeforeResponseParameters.newBuilder()
+                .setResData(DomainCreateData.create(targetId, now, registrationExpirationTime))
+                .setResponseExtensions(createResponseExtensions(feeCreate, commandOperations))
+                .build());
     return responseBuilder
-        .setResData(DomainCreateData.create(targetId, now, registrationExpirationTime))
-        .setExtensions(createResponseExtensions(feeCreate, commandOperations))
+        .setResData(responseData.resData())
+        .setExtensions(responseData.responseExtensions())
         .build();
   }
 

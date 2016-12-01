@@ -64,7 +64,7 @@ import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.After
 import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.EntityChanges;
-import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
+import google.registry.flows.domain.DomainPricingLogic.EppCommandOperations;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Create;
@@ -174,6 +174,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
   @Inject Trid trid;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainApplicationCreateFlowCustomLogic customLogic;
+  @Inject DomainPricingLogic pricingLogic;
   @Inject DomainApplicationCreateFlow() {}
 
   @Override
@@ -200,8 +201,8 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     String tld = domainName.parent().toString();
     checkAllowedAccessToTld(clientId, tld);
     Registry registry = Registry.get(tld);
-    EppCommandOperations commandOperations = TldSpecificLogicProxy.getCreatePrice(
-        registry, targetId, clientId, now, command.getPeriod().getValue(), eppInput);
+    EppCommandOperations commandOperations =
+        pricingLogic.getCreatePrice(registry, targetId, now, command.getPeriod().getValue());
     // Superusers can create reserved domains, force creations on domains that require a claims
     // notice without specifying a claims key, and override blocks on registering premium domains.
     verifyUnitIsYears(command.getPeriod());

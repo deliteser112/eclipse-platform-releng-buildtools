@@ -110,6 +110,7 @@ public final class DomainCheckFlow implements Flow {
   @Inject Clock clock;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainCheckFlowCustomLogic customLogic;
+  @Inject DomainPricingLogic pricingLogic;
   @Inject DomainCheckFlow() {}
 
   @Override
@@ -208,7 +209,8 @@ public final class DomainCheckFlow implements Flow {
             clientId,
             feeCheck.getCurrency(),
             now,
-            eppInput);
+            eppInput,
+            pricingLogic);
         responseItems.add(builder.setDomainNameIfSupported(domainName).build());
       }
     }

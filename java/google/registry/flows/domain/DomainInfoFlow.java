@@ -77,6 +77,7 @@ public final class DomainInfoFlow implements Flow {
   @Inject Clock clock;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainInfoFlowCustomLogic customLogic;
+  @Inject DomainPricingLogic pricingLogic;
 
   @Inject
   DomainInfoFlow() {}
@@ -145,7 +146,14 @@ public final class DomainInfoFlow implements Flow {
     if (feeInfo != null) { // Fee check was requested.
       FeeInfoResponseExtensionV06.Builder builder = new FeeInfoResponseExtensionV06.Builder();
       handleFeeRequest(
-          feeInfo, builder, InternetDomainName.from(targetId), clientId, null, now, eppInput);
+          feeInfo,
+          builder,
+          InternetDomainName.from(targetId),
+          clientId,
+          null,
+          now,
+          eppInput,
+          pricingLogic);
       extensions.add(builder.build());
     }
     // If the TLD uses the flags extension, add it to the info response.

@@ -63,6 +63,18 @@ public abstract class CreateData implements ResponseData {
       instance.expirationDate = expirationDate;
       return instance;
     }
+
+    public String name() {
+      return name;
+    }
+
+    public DateTime creationDate() {
+      return creationDate;
+    }
+
+    public DateTime expirationDate() {
+      return expirationDate;
+    }
   }
 
   /** An acknowledgment message indicating that a host was created. */

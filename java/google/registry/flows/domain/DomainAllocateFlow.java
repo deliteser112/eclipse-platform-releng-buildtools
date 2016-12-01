@@ -52,7 +52,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
+import google.registry.flows.domain.DomainPricingLogic.EppCommandOperations;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -113,6 +113,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppInput eppInput;
   @Inject EppResponse.Builder responseBuilder;
+  @Inject DomainPricingLogic pricingLogic;
   @Inject DomainAllocateFlow() {}
 
   @Override
@@ -389,8 +390,8 @@ public class DomainAllocateFlow implements TransactionalFlow {
 
   private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
       DateTime now, Registry registry, int years) throws EppException {
-    EppCommandOperations commandOperations = TldSpecificLogicProxy.getCreatePrice(
-        registry, targetId, clientId, now, years, eppInput);
+    EppCommandOperations commandOperations =
+        pricingLogic.getCreatePrice(registry, targetId, now, years);
     FeeCreateCommandExtension feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     return (feeCreate == null)
