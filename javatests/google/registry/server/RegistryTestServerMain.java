@@ -16,6 +16,7 @@ package google.registry.server;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import google.registry.testing.AppEngineRule;
@@ -27,6 +28,7 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 /** Command-line interface for {@link RegistryTestServer}. */
+@Parameters(separators = " =", commandDescription = "Runs web development server.")
 public final class RegistryTestServerMain {
 
   private static final String RESET = "\u001b[0m";

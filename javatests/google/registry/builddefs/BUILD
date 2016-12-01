@@ -29,9 +29,9 @@ zip_contents_test(
     name = "zip_emptyMapping_leavesShortPathsInTact",
     src = "basic.zip",
     contents = {
-        "javatests/google/registry/builddefs/generated.txt": "generated",
-        "javatests/google/registry/builddefs/hello.txt": "hello",
-        "javatests/google/registry/builddefs/world.txt": "world",
+        "domain_registry/javatests/google/registry/builddefs/generated.txt": "generated",
+        "domain_registry/javatests/google/registry/builddefs/hello.txt": "hello",
+        "domain_registry/javatests/google/registry/builddefs/world.txt": "world",
     },
 )
 
@@ -39,7 +39,7 @@ zip_file(
     name = "stripped",
     srcs = ["hello.txt"],
     out = "stripped.zip",
-    mappings = {"javatests/google/registry/builddefs": ""},
+    mappings = {"domain_registry/javatests/google/registry/builddefs": ""},
 )
 
 zip_contents_test(
@@ -57,8 +57,8 @@ zip_file(
     ],
     out = "repath.zip",
     mappings = {
-        "javatests/google/registry/builddefs": "a/b/c",
-        "javatests/google/registry/builddefs/generated.txt": "x/y/z/generated.txt",
+        "domain_registry/javatests/google/registry/builddefs": "a/b/c",
+        "domain_registry/javatests/google/registry/builddefs/generated.txt": "x/y/z/generated.txt",
     },
 )
 
@@ -76,7 +76,7 @@ zip_file(
     name = "overridden",
     srcs = ["override/hello.txt"],
     out = "overridden.zip",
-    mappings = {"javatests/google/registry/builddefs/override": "a/b/c"},
+    mappings = {"domain_registry/javatests/google/registry/builddefs/override": "a/b/c"},
     deps = [":repath"],
 )
 

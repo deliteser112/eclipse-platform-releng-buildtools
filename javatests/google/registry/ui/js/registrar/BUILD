@@ -13,8 +13,8 @@ closure_js_library(
     deps = [
         "//java/google/registry/ui/js",
         "//java/google/registry/ui/js/registrar",
-        "//javascript/closure",
-        "//javascript/closure:testing",
+        "@io_bazel_rules_closure//closure/library",
+        "@io_bazel_rules_closure//closure/library:testing",
     ],
 )
 
@@ -28,9 +28,9 @@ closure_js_test(
         ":console_test_util",
         "//java/google/registry/ui/js",
         "//java/google/registry/ui/js/registrar",
-        "//java/google/registry/ui/soy/registrar:Console",
-        "//javascript/closure",
-        "//javascript/closure:testing",
+        "//java/google/registry/ui/soy/registrar",
         "//javatests/google/registry/ui/js:testing",
+        "@io_bazel_rules_closure//closure/library",
+        "@io_bazel_rules_closure//closure/library:testing",
     ],
 )

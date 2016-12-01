@@ -23,7 +23,7 @@ zip_file(
     ],
     out = "mandatory_stuff.war",
     mappings = {
-        "external/appengine_api_sdk/jar": "WEB-INF/lib",
+        "appengine_api_sdk/jar": "WEB-INF/lib",
     },
     visibility = ["//visibility:private"],
 )
@@ -59,9 +59,9 @@ zip_file(
     ],
     out = "registry_default.war",
     mappings = {
-        "java/google/registry/env/common/default": "",
-        "java/google/registry/env/production/default": "",
-        "java/google/registry/module/frontend": "WEB-INF/lib",
+        "domain_registry/java/google/registry/env/common/default": "",
+        "domain_registry/java/google/registry/env/production/default": "",
+        "domain_registry/java/google/registry/module/frontend": "WEB-INF/lib",
     },
     deps = [
         ":common_war",
@@ -79,9 +79,9 @@ zip_file(
     ],
     out = "registry_backend.war",
     mappings = {
-        "java/google/registry/env/common/backend": "",
-        "java/google/registry/env/production/backend": "",
-        "java/google/registry/module/backend": "WEB-INF/lib",
+        "domain_registry/java/google/registry/env/common/backend": "",
+        "domain_registry/java/google/registry/env/production/backend": "",
+        "domain_registry/java/google/registry/module/backend": "WEB-INF/lib",
     },
     deps = [
         ":common_war",
@@ -99,9 +99,9 @@ zip_file(
     ],
     out = "registry_tools.war",
     mappings = {
-        "java/google/registry/env/common/tools": "",
-        "java/google/registry/env/production/tools": "",
-        "java/google/registry/module/tools": "WEB-INF/lib",
+        "domain_registry/java/google/registry/env/common/tools": "",
+        "domain_registry/java/google/registry/env/production/tools": "",
+        "domain_registry/java/google/registry/module/tools": "WEB-INF/lib",
     },
     deps = [
         ":common_war",
@@ -136,7 +136,7 @@ zip_file(
         "env/sandbox/default/WEB-INF/cron.xml",
     ],
     out = "registry_default_sandbox.war",
-    mappings = {"java/google/registry/env/sandbox/default": ""},
+    mappings = {"domain_registry/java/google/registry/env/sandbox/default": ""},
     deps = [":registry_default_war"],
 )
 
@@ -144,7 +144,7 @@ zip_file(
     name = "registry_backend_sandbox_war",
     srcs = ["env/sandbox/backend/WEB-INF/appengine-web.xml"],
     out = "registry_backend_sandbox.war",
-    mappings = {"java/google/registry/env/sandbox/backend": ""},
+    mappings = {"domain_registry/java/google/registry/env/sandbox/backend": ""},
     deps = [":registry_backend_war"],
 )
 
@@ -152,7 +152,7 @@ zip_file(
     name = "registry_tools_sandbox_war",
     srcs = ["env/sandbox/tools/WEB-INF/appengine-web.xml"],
     out = "registry_tools_sandbox.war",
-    mappings = {"java/google/registry/env/sandbox/tools": ""},
+    mappings = {"domain_registry/java/google/registry/env/sandbox/tools": ""},
     deps = [":registry_tools_war"],
 )
 
@@ -182,7 +182,7 @@ zip_file(
         "env/alpha/default/WEB-INF/cron.xml",
     ],
     out = "registry_default_alpha.war",
-    mappings = {"java/google/registry/env/alpha/default": ""},
+    mappings = {"domain_registry/java/google/registry/env/alpha/default": ""},
     deps = [":registry_default_war"],
 )
 
@@ -190,7 +190,7 @@ zip_file(
     name = "registry_backend_alpha_war",
     srcs = ["env/alpha/backend/WEB-INF/appengine-web.xml"],
     out = "registry_backend_alpha.war",
-    mappings = {"java/google/registry/env/alpha/backend": ""},
+    mappings = {"domain_registry/java/google/registry/env/alpha/backend": ""},
     deps = [":registry_backend_war"],
 )
 
@@ -198,7 +198,7 @@ zip_file(
     name = "registry_tools_alpha_war",
     srcs = ["env/alpha/tools/WEB-INF/appengine-web.xml"],
     out = "registry_tools_alpha.war",
-    mappings = {"java/google/registry/env/alpha/tools": ""},
+    mappings = {"domain_registry/java/google/registry/env/alpha/tools": ""},
     deps = [":registry_tools_war"],
 )
 
@@ -228,7 +228,7 @@ zip_file(
         "env/crash/default/WEB-INF/cron.xml",
     ],
     out = "registry_default_crash.war",
-    mappings = {"java/google/registry/env/crash/default": ""},
+    mappings = {"domain_registry/java/google/registry/env/crash/default": ""},
     deps = [":registry_default_war"],
 )
 
@@ -236,7 +236,7 @@ zip_file(
     name = "registry_backend_crash_war",
     srcs = ["env/crash/backend/WEB-INF/appengine-web.xml"],
     out = "registry_backend_crash.war",
-    mappings = {"java/google/registry/env/crash/backend": ""},
+    mappings = {"domain_registry/java/google/registry/env/crash/backend": ""},
     deps = [":registry_backend_war"],
 )
 
@@ -244,7 +244,7 @@ zip_file(
     name = "registry_tools_crash_war",
     srcs = ["env/crash/tools/WEB-INF/appengine-web.xml"],
     out = "registry_tools_crash.war",
-    mappings = {"java/google/registry/env/crash/tools": ""},
+    mappings = {"domain_registry/java/google/registry/env/crash/tools": ""},
     deps = [":registry_tools_war"],
 )
 
@@ -271,7 +271,7 @@ zip_file(
     name = "registry_default_local_war",
     srcs = ["env/local/default/WEB-INF/appengine-web.xml"],
     out = "registry_default_local.war",
-    mappings = {"java/google/registry/env/local/default": ""},
+    mappings = {"domain_registry/java/google/registry/env/local/default": ""},
     deps = [":registry_default_war"],
 )
 
@@ -279,7 +279,7 @@ zip_file(
     name = "registry_backend_local_war",
     srcs = ["env/local/backend/WEB-INF/appengine-web.xml"],
     out = "registry_backend_local.war",
-    mappings = {"java/google/registry/env/local/backend": ""},
+    mappings = {"domain_registry/java/google/registry/env/local/backend": ""},
     deps = [":registry_backend_war"],
 )
 
@@ -287,6 +287,6 @@ zip_file(
     name = "registry_tools_local_war",
     srcs = ["env/local/tools/WEB-INF/appengine-web.xml"],
     out = "registry_tools_local.war",
-    mappings = {"java/google/registry/env/local/tools": ""},
+    mappings = {"domain_registry/java/google/registry/env/local/tools": ""},
     deps = [":registry_tools_war"],
 )

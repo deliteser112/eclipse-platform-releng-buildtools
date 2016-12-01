@@ -17,7 +17,6 @@ package google.registry.server;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
@@ -122,12 +121,7 @@ public final class StaticResourceServlet extends HttpServlet {
 
     Optional<Path> doHead(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
       verify(req.getRequestURI().startsWith(prefix));
-      Path file = root.resolve(req.getRequestURI().substring(prefix.length())).normalize();
-      if (!file.startsWith(root)) {
-        logger.infofmt("Evil request: %s (%s) (%s + %s)", req.getRequestURI(), file, root, prefix);
-        rsp.sendError(SC_BAD_REQUEST, "Naughty naughty!");
-        return Optional.absent();
-      }
+      Path file = root.resolve(req.getRequestURI().substring(prefix.length()));
       if (!Files.exists(file)) {
         logger.infofmt("Not found: %s (%s)", req.getRequestURI(), file);
         rsp.sendError(SC_NOT_FOUND, "Not found");

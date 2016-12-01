@@ -11,8 +11,8 @@ closure_js_library(
     name = "testing",
     srcs = ["testing.js"],
     deps = [
-        "//javascript/closure",
-        "//javascript/closure:testing",
+        "@io_bazel_rules_closure//closure/library",
+        "@io_bazel_rules_closure//closure/library:testing",
     ],
 )
 
@@ -25,7 +25,7 @@ closure_js_test(
     deps = [
         ":testing",
         "//java/google/registry/ui/js",
-        "//javascript/closure",
-        "//javascript/closure:testing",
+        "@io_bazel_rules_closure//closure/library",
+        "@io_bazel_rules_closure//closure/library:testing",
     ],
 )

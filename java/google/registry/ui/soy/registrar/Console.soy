@@ -24,7 +24,6 @@
   {@param xsrfToken: string} /** Security token. */
   {@param clientId: string} /** Registrar client identifier. */
   {@param username: string} /** Arbitrary username to display. */
-  {@param isAdmin: bool} /** Is this user an App Engine account admin? */
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param showPaymentLink: bool}
   {@param productName: string} /** Name to display for this software product. */
@@ -51,18 +50,13 @@
   </div>
   {switch DEBUG}
     {case google.registry.ui.ConsoleDebug.PRODUCTION}
-      {if $isAdmin}
-        <script src="/assets/js/registrar_bin_map.js"></script>
-      {else}
-        <script src="/assets/js/registrar_bin.js"></script>
-      {/if}
+      <script src="/assets/js/registrar_bin.js"></script>
     {case google.registry.ui.ConsoleDebug.DEBUG}
       <script src="/assets/js/registrar_dbg.js"></script>
     {case google.registry.ui.ConsoleDebug.RAW}
       <script>var CLOSURE_NO_DEPS = true;</script>
-      <script src="/assets/sources/external/closure_library/closure/goog/base.js">
-      </script>
-      <script src="/assets/sources/deps.js"></script>
+      <script src="/assets/sources/closure_library/closure/goog/base.js"></script>
+      <script src="/assets/sources/domain_registry/java/google/registry/ui/deps.js"></script>
       <script>goog.require('registry.registrar.main');</script>
   {/switch}
   {if isNonnull(DEBUG)}

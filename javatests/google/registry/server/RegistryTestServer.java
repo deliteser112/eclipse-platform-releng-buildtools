@@ -30,17 +30,22 @@ public final class RegistryTestServer {
       new ImmutableMap.Builder<String, Path>()
           .put(
               "/index.html",
-              Paths.get("java/google/registry/ui/html/index.html"))
+              Paths.get(
+                  "../domain_registry/java/google/registry/ui/html/index.html"))
           .put(
               "/error.html",
-              Paths.get("java/google/registry/ui/html/error.html"))
-          .put("/assets/js/*", Paths.get("java/google/registry/ui"))
-          .put("/assets/css/*", Paths.get("java/google/registry/ui/css"))
+              Paths.get(
+                  "../domain_registry/java/google/registry/ui/html/error.html"))
           .put(
-              "/assets/sources/deps.js",
-              Paths.get("java/google/registry/ui/deps.js"))
-          .put("/assets/sources/*", Paths.get(""))
-          .put("/assets/*", Paths.get("java/google/registry/ui/assets"))
+              "/assets/js/*",
+              Paths.get("../domain_registry/java/google/registry/ui"))
+          .put(
+              "/assets/css/*",
+              Paths.get("../domain_registry/java/google/registry/ui/css"))
+          .put("/assets/sources/*", Paths.get(".."))
+          .put(
+              "/assets/*",
+              Paths.get("../domain_registry/java/google/registry/ui/assets"))
           .build();
 
   private static final ImmutableList<Route> ROUTES = ImmutableList.of(

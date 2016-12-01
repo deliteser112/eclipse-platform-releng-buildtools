@@ -50,13 +50,8 @@
     {case google.registry.ui.ConsoleDebug.DEBUG}
       <link rel="stylesheet" href="/assets/css/{$app}_dbg.css">
     {case google.registry.ui.ConsoleDebug.RAW}
-      {if $app == 'admin'}
-        <link rel="stylesheet"
-              href="/assets/sources/java/google/registry/ui/css/admin_imports_raw.css">
-      {else}
-        <link rel="stylesheet"
-              href="/assets/sources/java/google/registry/ui/css/registrar_imports_raw.css">
-      {/if}
+      <link rel="stylesheet"
+            href="/assets/sources/domain_registry/java/google/registry/ui/css/{$app}_imports_raw.css">
     {default}
       <!-- No DEBUG option set. -->
   {/switch}
