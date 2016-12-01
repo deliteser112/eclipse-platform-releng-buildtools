@@ -610,7 +610,6 @@ An EPP flow that creates a new domain resource.
 
 *   2002
     *   Service extension(s) must be declared at login.
-    *   Signed marks are not accepted in the current registry phase.
     *   The current registry phase does not allow for general registrations.
 *   2003
     *   Fees must be explicitly acknowledged when performing any operations on a

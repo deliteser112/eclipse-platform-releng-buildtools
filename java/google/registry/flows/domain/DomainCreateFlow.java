@@ -106,7 +106,6 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException}
  * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
- * @error {@link DomainCreateFlow.SignedMarksNotAcceptedInCurrentPhaseException}
  * @error {@link DomainFlowUtils.AcceptedTooLongAgoException}
  * @error {@link DomainFlowUtils.BadDomainNameCharacterException}
  * @error {@link DomainFlowUtils.BadDomainNamePartsCountException}
@@ -154,7 +153,7 @@ import org.joda.time.DateTime;
 
 public class DomainCreateFlow implements TransactionalFlow {
 
-  private static final Set<TldState> QLP_SMD_ALLOWED_STATES =
+  private static final Set<TldState> SUNRISE_STATES =
       Sets.immutableEnumSet(TldState.SUNRISE, TldState.SUNRUSH);
 
   @Inject ExtensionManager extensionManager;
@@ -202,9 +201,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       verifyNoCodeMarks(launchCreate);
       validateLaunchCreateNotice(launchCreate.getNotice(), domainLabel, isSuperuser, now);
     }
-    if (hasSignedMarks) {
-      verifySignedMarksAllowed(tldState, isAnchorTenant);
-    }
+    boolean isSunriseCreate = hasSignedMarks && SUNRISE_STATES.contains(tldState);
     customLogic.afterValidation(
         DomainCreateFlowCustomLogic.AfterValidationParameters.newBuilder()
             .setDomainName(domainName)
@@ -226,7 +223,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         verifyLaunchPhaseMatchesRegistryPhase(registry, launchCreate, now);
       }
       if (!isAnchorTenant) {
-        verifyNotReserved(domainName, hasSignedMarks);
+        verifyNotReserved(domainName, isSunriseCreate);
       }
       if (hasClaimsNotice) {
         verifyClaimsPeriodNotEnded(registry, now);
@@ -293,7 +290,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       entitiesToSave.add(
           prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
     }
-    enqueueTasks(hasSignedMarks, hasClaimsNotice, newDomain);
+    enqueueTasks(isSunriseCreate, hasClaimsNotice, newDomain);
 
     EntityChanges entityChanges =
         customLogic.beforeSave(
@@ -322,14 +319,6 @@ public class DomainCreateFlow implements TransactionalFlow {
     MetadataExtension metadataExtension = eppInput.getSingleExtension(MetadataExtension.class);
     return matchesAnchorTenantReservation(domainName, authInfo.getPw().getValue())
         || (metadataExtension != null && metadataExtension.getIsAnchorTenant());
-  }
-
-  /** Only QLP domains can have a signed mark on a domain create, and only in sunrise or sunrush. */
-  private void verifySignedMarksAllowed(TldState tldState, boolean isAnchorTenant)
-      throws SignedMarksNotAcceptedInCurrentPhaseException {
-    if (!isAnchorTenant || !QLP_SMD_ALLOWED_STATES.contains(tldState)) {
-      throw new SignedMarksNotAcceptedInCurrentPhaseException();
-    }
   }
 
   /** Prohibit creating a domain if there is an open application for the same name. */
@@ -425,11 +414,11 @@ public class DomainCreateFlow implements TransactionalFlow {
   }
 
   private void enqueueTasks(
-      boolean hasSignedMarks, boolean hasClaimsNotice, DomainResource newDomain) {
+      boolean isSunriseCreate, boolean hasClaimsNotice, DomainResource newDomain) {
     if (newDomain.shouldPublishToDns()) {
       DnsQueue.create().addDomainRefreshTask(newDomain.getFullyQualifiedDomainName());
     }
-    if (hasClaimsNotice || hasSignedMarks) {
+    if (hasClaimsNotice || isSunriseCreate) {
       LordnTask.enqueueDomainResourceTask(newDomain);
     }
   }
@@ -445,13 +434,6 @@ public class DomainCreateFlow implements TransactionalFlow {
   static class DomainHasOpenApplicationsException extends StatusProhibitsOperationException {
     public DomainHasOpenApplicationsException() {
       super("There is an open application for this domain");
-    }
-  }
-
-  /** Signed marks are not accepted in the current registry phase. */
-  static class SignedMarksNotAcceptedInCurrentPhaseException extends CommandUseErrorException {
-    public SignedMarksNotAcceptedInCurrentPhaseException() {
-      super("Signed marks are not accepted in the current registry phase");
     }
   }
 
