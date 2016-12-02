@@ -162,7 +162,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
     }
 
     // If an entity was broken, abort after writing as much logs/deposit data as possible.
-    verify(!failed);
+    verify(!failed, "RDE staging failed for TLD %s", tld);
 
     // Write a file to GCS containing the byte length (ASCII) of the raw unencrypted XML.
     //

@@ -148,7 +148,7 @@ public final class RdeMarshaller implements Serializable {
           Key.create(resource),
           e.getLinkedException(),
           getMarshaller().marshalLenient(element));
-      logger.severe(error);
+      logger.severe(e, error);
     }
     return DepositFragment.create(type, xml, error);
   }
