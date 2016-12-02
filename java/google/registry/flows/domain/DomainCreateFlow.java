@@ -167,6 +167,7 @@ public class DomainCreateFlow implements TransactionalFlow {
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainCreateFlowCustomLogic customLogic;
   @Inject DomainPricingLogic pricingLogic;
+  @Inject DnsQueue dnsQueue;
   @Inject DomainCreateFlow() {}
 
   @Override
@@ -416,7 +417,7 @@ public class DomainCreateFlow implements TransactionalFlow {
   private void enqueueTasks(
       boolean isSunriseCreate, boolean hasClaimsNotice, DomainResource newDomain) {
     if (newDomain.shouldPublishToDns()) {
-      DnsQueue.create().addDomainRefreshTask(newDomain.getFullyQualifiedDomainName());
+      dnsQueue.addDomainRefreshTask(newDomain.getFullyQualifiedDomainName());
     }
     if (hasClaimsNotice || isSunriseCreate) {
       LordnTask.enqueueDomainResourceTask(newDomain);
