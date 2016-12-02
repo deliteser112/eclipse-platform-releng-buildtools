@@ -131,9 +131,10 @@ public final class DomainDeleteFlow implements TransactionalFlow {
         AfterValidationParameters.newBuilder().setExistingDomain(existingDomain).build());
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, now);
-    Builder builder =
-        ResourceFlowUtils.<DomainResource, DomainResource.Builder>resolvePendingTransfer(
-            existingDomain, TransferStatus.SERVER_CANCELLED, now);
+    Builder builder = existingDomain.getStatusValues().contains(StatusValue.PENDING_TRANSFER)
+        ? ResourceFlowUtils.<DomainResource, DomainResource.Builder>resolvePendingTransfer(
+            existingDomain, TransferStatus.SERVER_CANCELLED, now)
+        : existingDomain.asBuilder();
     builder.setDeletionTime(now).setStatusValues(null);
     // If the domain is in the Add Grace Period, we delete it immediately, which is already
     // reflected in the builder we just prepared. Otherwise we give it a PENDING_DELETE status.

@@ -63,6 +63,7 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
+import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
@@ -317,10 +318,12 @@ public class DeleteContactsAndHostsAction implements Runnable {
         EppResource.Builder<?, ?> resourceToSaveBuilder;
         if (resource instanceof ContactResource) {
           ContactResource contact = (ContactResource) resource;
-          resourceToSaveBuilder = contact.asBuilder()
-              .setTransferData(createResolvedTransferData(
-                  contact.getTransferData(), TransferStatus.SERVER_CANCELLED, now))
-              .wipeOut();
+          ContactResource.Builder contactToSaveBuilder = contact.asBuilder();
+          if (contact.getStatusValues().contains(StatusValue.PENDING_TRANSFER)) {
+            contactToSaveBuilder = contactToSaveBuilder.setTransferData(createResolvedTransferData(
+                contact.getTransferData(), TransferStatus.SERVER_CANCELLED, now));
+          }
+          resourceToSaveBuilder = contactToSaveBuilder.wipeOut();
         } else {
           resourceToSaveBuilder = resource.asBuilder();
         }

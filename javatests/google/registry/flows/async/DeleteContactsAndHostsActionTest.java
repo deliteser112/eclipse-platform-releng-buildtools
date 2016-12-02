@@ -75,6 +75,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessage.OneTime;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
@@ -194,6 +195,16 @@ public class DeleteContactsAndHostsActionTest
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(contactAfterDeletion, CONTACT_DELETE);
     assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted contact jim919.");
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
+  }
+
+  @Test
+  public void testSuccess_contactWithoutPendingTransfer_isDeletedAndHasNoTransferData()
+      throws Exception {
+    ContactResource contact = persistContactPendingDelete("blah8221");
+    enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
+    runMapreduce();
+    ContactResource contactAfterDeletion = ofy().load().entity(contact).now();
+    assertThat(contactAfterDeletion.getTransferData()).isEqualTo(TransferData.EMPTY);
   }
 
   @Test

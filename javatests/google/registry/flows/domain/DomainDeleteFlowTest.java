@@ -481,6 +481,16 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   @Test
+  public void testSuccess_noPendingTransfer_deletedAndHasNoTransferData() throws Exception {
+    setClientIdForFlow("TheRegistrar");
+    setupSuccessfulTest();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(readFile("domain_delete_response_pending.xml"));
+    DomainResource domain = reloadResourceByForeignKey();
+    assertThat(domain.getTransferData()).isEqualTo(TransferData.EMPTY);
+  }
+
+  @Test
   public void testSuccess_pendingTransfer() throws Exception {
     setClientIdForFlow("TheRegistrar");
     setupSuccessfulTest();

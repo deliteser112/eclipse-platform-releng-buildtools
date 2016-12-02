@@ -14,6 +14,7 @@
 
 package google.registry.flows;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.tryFind;
@@ -214,6 +215,7 @@ public final class ResourceFlowUtils {
    */
   public static TransferData createResolvedTransferData(
       TransferData oldTransferData, TransferStatus transferStatus, DateTime now) {
+    checkArgument(!oldTransferData.equals(TransferData.EMPTY), "No old transfer to resolve.");
     return oldTransferData.asBuilder()
         .setExtendedRegistrationYears(null)
         .setServerApproveEntities(null)
@@ -238,6 +240,9 @@ public final class ResourceFlowUtils {
       R extends EppResource & ResourceWithTransferData,
       B extends EppResource.Builder<R, B> & BuilderWithTransferData<B>> B resolvePendingTransfer(
           R resource, TransferStatus transferStatus, DateTime now) {
+    checkState(
+        resource.getStatusValues().contains(StatusValue.PENDING_TRANSFER),
+        "Resource is not in pending transfer status.");
     return ((B) resource.asBuilder())
         .removeStatusValue(StatusValue.PENDING_TRANSFER)
         .setTransferData(
