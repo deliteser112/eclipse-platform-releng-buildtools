@@ -144,6 +144,7 @@ public class RdapEntityActionTest {
     action = new RdapEntityAction();
     action.clock = clock;
     action.response = response;
+    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
   }

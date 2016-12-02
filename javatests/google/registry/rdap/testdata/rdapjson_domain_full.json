@@ -13,9 +13,9 @@
   "links" :
   [
     {
-      "value" : "http://myserver.google.com/domain/cat.xn--q9jyb4c",
+      "value" : "http://myserver.example.com/domain/cat.xn--q9jyb4c",
       "rel" : "self",
-      "href" : "http://myserver.google.com/domain/cat.xn--q9jyb4c",
+      "href" : "http://myserver.example.com/domain/cat.xn--q9jyb4c",
       "type" : "application/rdap+json"
     }
   ],
@@ -49,9 +49,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.google.com/nameserver/ns1.cat.xn--q9jyb4c",
+          "value" : "http://myserver.example.com/nameserver/ns1.cat.xn--q9jyb4c",
           "rel" : "self",
-          "href" : "http://myserver.google.com/nameserver/ns1.cat.xn--q9jyb4c",
+          "href" : "http://myserver.example.com/nameserver/ns1.cat.xn--q9jyb4c",
           "type" : "application/rdap+json"
         }
       ],
@@ -80,9 +80,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.google.com/nameserver/ns2.cat.xn--q9jyb4c",
+          "value" : "http://myserver.example.com/nameserver/ns2.cat.xn--q9jyb4c",
           "rel" : "self",
-          "href" : "http://myserver.google.com/nameserver/ns2.cat.xn--q9jyb4c",
+          "href" : "http://myserver.example.com/nameserver/ns2.cat.xn--q9jyb4c",
           "type" : "application/rdap+json"
         }
       ],
@@ -113,9 +113,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.google.com/entity/4-ROID",
+          "value" : "http://myserver.example.com/entity/4-ROID",
           "rel" : "self",
-          "href" : "http://myserver.google.com/entity/4-ROID",
+          "href" : "http://myserver.example.com/entity/4-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -162,9 +162,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.google.com/entity/6-ROID",
+          "value" : "http://myserver.example.com/entity/6-ROID",
           "rel" : "self",
-          "href" : "http://myserver.google.com/entity/6-ROID",
+          "href" : "http://myserver.example.com/entity/6-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -211,9 +211,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.google.com/entity/2-ROID",
+          "value" : "http://myserver.example.com/entity/2-ROID",
           "rel" : "self",
-          "href" : "http://myserver.google.com/entity/2-ROID",
+          "href" : "http://myserver.example.com/entity/2-ROID",
           "type" : "application/rdap+json"
         }
       ],

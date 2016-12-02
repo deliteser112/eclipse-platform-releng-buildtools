@@ -132,6 +132,7 @@ public class RdapNameserverSearchActionTest {
     action.clock = clock;
     action.requestPath = RdapNameserverSearchAction.PATH;
     action.response = response;
+    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapResultSetMaxSize = 4;
     action.rdapLinkBase = "https://example.tld/rdap/";
     action.rdapWhoisServer = null;
@@ -140,7 +141,7 @@ public class RdapNameserverSearchActionTest {
   }
 
   private Object generateExpectedJson(String expectedOutputFile) {
-    return generateExpectedJson(null, null, null, null, null, expectedOutputFile);    
+    return generateExpectedJson(null, null, null, null, null, expectedOutputFile);
   }
 
   private Object generateExpectedJson(String name, String expectedOutputFile) {
@@ -207,7 +208,7 @@ public class RdapNameserverSearchActionTest {
             .setSubordinateHosts(subordinateHostsBuilder.build())
             .build());
   }
-  
+
   @Test
   public void testInvalidPath_rejected() throws Exception {
     action.requestPath = RdapDomainSearchAction.PATH + "/path";
@@ -354,7 +355,7 @@ public class RdapNameserverSearchActionTest {
     generateActualJsonWithName("dog*");
     assertThat(response.getStatus()).isEqualTo(404);
   }
-  
+
   @Test
   public void testNameMatch_nontruncatedResultSet() throws Exception {
     createManyHosts(4);

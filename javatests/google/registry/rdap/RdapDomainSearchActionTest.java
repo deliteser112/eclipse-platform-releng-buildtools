@@ -301,6 +301,7 @@ public class RdapDomainSearchActionTest {
 
     action.clock = clock;
     action.response = response;
+    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
   }
@@ -552,7 +553,7 @@ public class RdapDomainSearchActionTest {
     }
     persistResources(domainsBuilder.build());
   }
-  
+
   private Object readMultiDomainFile(
       String fileName,
       String domainName1,
@@ -988,7 +989,7 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(generateExpectedJson("No domains found", null, null, "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
   }
-  
+
   @Test
   public void testAddressMatch_nontruncatedResultsSet() throws Exception {
     createManyDomainsAndHosts(4, 1, 2);

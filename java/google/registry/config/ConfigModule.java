@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URL;
 import javax.annotation.Nullable;
 import javax.inject.Qualifier;
+import javax.inject.Singleton;
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.Duration;
@@ -920,5 +921,90 @@ public final class ConfigModule {
   public static String provideCustomLogicFactoryClass() {
     // TODO(b/32875427): This will be moved into configuration in a text file in a future refactor.
     return "google.registry.flows.custom.CustomLogicFactory";
+  }
+
+  /**
+   * Returns the help path for the RDAP terms of service.
+   *
+   * <p>Make sure that this path is equal to the key of the entry in the RDAP help map containing
+   * the terms of service. The ICANN operational profile requires that the TOS be included in all
+   * responses, and this string is used to find the TOS in the help map.
+   */
+  @Provides
+  @Config("rdapTosPath")
+  public static String provideRdapTosPath() {
+    return "/tos";
+  }
+
+  /**
+   * Returns the help text to be used by RDAP.
+   *
+   * <p>Make sure that the map entry for the terms of service use the same key as specified in
+   * rdapTosPath above.
+   */
+  @Singleton
+  @Provides
+  @Config("rdapHelpMap")
+  public static ImmutableMap<String, RdapNoticeDescriptor> provideRdapHelpMap() {
+    return new ImmutableMap.Builder<String, RdapNoticeDescriptor>()
+        .put("/", RdapNoticeDescriptor.builder()
+            .setTitle("RDAP Help")
+            .setDescription(ImmutableList.of(
+                "RDAP Help Topics (use /help/topic for information)",
+                "syntax",
+                "tos (Terms of Service)"))
+            .setLinkValueSuffix("help/")
+            .build())
+        .put("/index", RdapNoticeDescriptor.builder()
+            .setTitle("RDAP Help")
+            .setDescription(ImmutableList.of(
+                "RDAP Help Topics (use /help/topic for information)",
+                "syntax",
+                "tos (Terms of Service)"))
+            .setLinkValueSuffix("help/index")
+            .build())
+        .put("/syntax", RdapNoticeDescriptor.builder()
+            .setTitle("RDAP Command Syntax")
+            .setDescription(ImmutableList.of(
+                "domain/XXXX",
+                "nameserver/XXXX",
+                "entity/XXXX",
+                "domains?name=XXXX",
+                "domains?nsLdhName=XXXX",
+                "domains?nsIp=XXXX",
+                "nameservers?name=XXXX",
+                "nameservers?ip=XXXX",
+                "entities?fn=XXXX",
+                "entities?handle=XXXX",
+                "help/XXXX"))
+            .setLinkValueSuffix("help/syntax")
+            .build())
+        .put("/tos", RdapNoticeDescriptor.builder()
+            .setTitle("RDAP Terms of Service")
+            .setDescription(ImmutableList.of(
+                "By querying our Domain Database, you are agreeing to comply with these terms so"
+                    + " please read them carefully.",
+                "Any information provided is 'as is' without any guarantee of accuracy.",
+                "Please do not misuse the Domain Database. It is intended solely for"
+                    + " query-based access.",
+                "Don't use the Domain Database to allow, enable, or otherwise support the"
+                    + " transmission of mass unsolicited, commercial advertising or"
+                    + " solicitations.",
+                "Don't access our Domain Database through the use of high volume, automated"
+                    + " electronic processes that send queries or data to the systems of any"
+                    + " ICANN-accredited registrar.",
+                "You may only use the information contained in the Domain Database for lawful"
+                    + " purposes.",
+                "Do not compile, repackage, disseminate, or otherwise use the information"
+                    + " contained in the Domain Database in its entirety, or in any substantial"
+                    + " portion, without our prior written permission.",
+                "We may retain certain details about queries to our Domain Database for the"
+                    + " purposes of detecting and preventing misuse.",
+                "We reserve the right to restrict or deny your access to the database if we"
+                    + " suspect that you have failed to comply with these terms.",
+                "We reserve the right to modify this agreement at any time."))
+            .setLinkValueSuffix("help/tos")
+            .build())
+        .build();
   }
 }

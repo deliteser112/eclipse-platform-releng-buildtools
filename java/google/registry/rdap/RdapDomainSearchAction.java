@@ -126,7 +126,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
     }
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("domainSearchResults", results.jsonList());
-    RdapJsonFormatter.addTopLevelEntries(
+    rdapJsonFormatter.addTopLevelEntries(
         builder,
         BoilerplateType.DOMAIN,
         results.isTruncated()
@@ -296,7 +296,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
     ImmutableList.Builder<ImmutableMap<String, Object>> jsonBuilder = new ImmutableList.Builder<>();
     for (DomainResource domain : domains) {
       jsonBuilder.add(
-          RdapJsonFormatter.makeRdapJsonForDomain(
+          rdapJsonFormatter.makeRdapJsonForDomain(
               domain, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
     }
     return RdapSearchResults.create(jsonBuilder.build(), isTruncated);

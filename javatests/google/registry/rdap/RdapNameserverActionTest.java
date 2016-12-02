@@ -75,6 +75,7 @@ public class RdapNameserverActionTest {
     action.clock = clock;
     action.response = response;
     action.requestPath = RdapNameserverAction.PATH.concat(input);
+    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapLinkBase = "https://example.tld/rdap/";
     action.rdapWhoisServer = null;
     return action;

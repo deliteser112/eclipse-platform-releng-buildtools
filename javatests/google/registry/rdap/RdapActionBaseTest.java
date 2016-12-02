@@ -80,12 +80,12 @@ public class RdapActionBaseTest {
       }
       ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
       builder.put("key", "value");
-      RdapJsonFormatter.addTopLevelEntries(
+      rdapJsonFormatter.addTopLevelEntries(
           builder,
           BoilerplateType.OTHER,
           ImmutableList.<ImmutableMap<String, Object>>of(),
           ImmutableList.<ImmutableMap<String, Object>>of(),
-          "http://myserver.google.com/");
+          "http://myserver.example.com/");
       return builder.build();
     }
   }
@@ -98,12 +98,13 @@ public class RdapActionBaseTest {
     inject.setStaticField(Ofy.class, "clock", clock);
     action = new RdapTestAction();
     action.response = response;
+    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
   }
 
   private Object generateActualJson(String domainName) {
     action.requestPath = RdapTestAction.PATH + domainName;
     action.requestMethod = GET;
-    action.rdapLinkBase = "http://myserver.google.com/";
+    action.rdapLinkBase = "http://myserver.example.com/";
     action.run();
     return JSONValue.parse(response.getPayload());
   }
@@ -111,7 +112,7 @@ public class RdapActionBaseTest {
   private String generateHeadPayload(String domainName) {
     action.requestPath = RdapTestAction.PATH + domainName;
     action.requestMethod = HEAD;
-    action.rdapLinkBase = "http://myserver.google.com/";
+    action.rdapLinkBase = "http://myserver.example.com/";
     action.run();
     return response.getPayload();
   }

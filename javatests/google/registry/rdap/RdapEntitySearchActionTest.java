@@ -124,6 +124,7 @@ public class RdapEntitySearchActionTest {
     action.clock = clock;
     action.requestPath = RdapEntitySearchAction.PATH;
     action.response = response;
+    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapResultSetMaxSize = 4;
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
@@ -444,7 +445,7 @@ public class RdapEntitySearchActionTest {
     generateActualJsonWithHandle("3test*");
     assertThat(response.getStatus()).isEqualTo(404);
   }
-  
+
   @Test
   public void testHandleMatch_truncatedEntities() throws Exception {
     createManyContactsAndRegistrars(300, 0);

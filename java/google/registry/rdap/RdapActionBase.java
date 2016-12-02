@@ -68,6 +68,7 @@ public abstract class RdapActionBase implements Runnable {
   @Inject Response response;
   @Inject @RequestMethod Action.Method requestMethod;
   @Inject @RequestPath String requestPath;
+  @Inject RdapJsonFormatter rdapJsonFormatter;
   @Inject @Config("rdapLinkBase") String rdapLinkBase;
   @Inject @Config("rdapWhoisServer") @Nullable String rdapWhoisServer;
 
@@ -130,7 +131,7 @@ public abstract class RdapActionBase implements Runnable {
     try {
       if (requestMethod != Action.Method.HEAD) {
         response.setPayload(
-            JSONValue.toJSONString(RdapJsonFormatter.makeError(status, title, description)));
+            JSONValue.toJSONString(rdapJsonFormatter.makeError(status, title, description)));
       }
       response.setContentType(RESPONSE_MEDIA_TYPE);
     } catch (Exception ex) {

@@ -9,10 +9,10 @@
   "links" :
   [
     {
-      "value" : "http://myserver.google.com/help/index",
+      "value" : "http://myserver.example.com/help/index",
       "rel" : "alternate",
       "type" : "text/html",
-      "href" : "http://myserver.google.com/about/rdap/index.html"
+      "href" : "http://myserver.example.com/about/rdap/index.html"
     }
   ]
 }

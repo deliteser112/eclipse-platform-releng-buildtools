@@ -49,6 +49,7 @@ public class RdapHelpActionTest {
     action = new RdapHelpAction();
     action.clock = clock;
     action.response = response;
+    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapLinkBase = "https://example.tld/rdap/";
     action.rdapWhoisServer = null;
   }

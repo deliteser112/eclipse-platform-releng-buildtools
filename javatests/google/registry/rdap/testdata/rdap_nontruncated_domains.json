@@ -126,7 +126,7 @@
         "Any information provided is 'as is' without any guarantee of accuracy.",
         "Please do not misuse the Domain Database. It is intended solely for query-based access.",
         "Don't use the Domain Database to allow, enable, or otherwise support the transmission of mass unsolicited, commercial advertising or solicitations.",
-        "Don't access our Domain Database through the use of high volume, automated electronic processes that send queries or data to the systems of Charleston Road Registry or any ICANN-accredited registrar.",
+        "Don't access our Domain Database through the use of high volume, automated electronic processes that send queries or data to the systems of any ICANN-accredited registrar.",
         "You may only use the information contained in the Domain Database for lawful purposes.",
         "Do not compile, repackage, disseminate, or otherwise use the information contained in the Domain Database in its entirety, or in any substantial portion, without our prior written permission.",
         "We may retain certain details about queries to our Domain Database for the purposes of detecting and preventing misuse.",
@@ -138,7 +138,7 @@
         {
           "value" : "https://example.com/rdap/help/tos",
           "rel" : "alternate",
-          "href" : "https://www.registry.google/about/rdap/tos.html",
+          "href" : "https://www.registry.tld/about/rdap/tos.html",
           "type" : "text/html"
         }
       ]

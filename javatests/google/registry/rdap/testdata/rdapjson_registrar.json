@@ -6,9 +6,9 @@
   "links" :
   [
     {
-      "value" : "http://myserver.google.com/entity/1",
+      "value" : "http://myserver.example.com/entity/1",
       "rel" : "self",
-      "href" : "http://myserver.google.com/entity/1",
+      "href" : "http://myserver.example.com/entity/1",
       "type" : "application/rdap+json"
     }
   ],

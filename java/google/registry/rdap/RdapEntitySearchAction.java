@@ -101,7 +101,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
     }
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("entitySearchResults", results.jsonList());
-    RdapJsonFormatter.addTopLevelEntries(
+    rdapJsonFormatter.addTopLevelEntries(
         jsonBuilder,
         BoilerplateType.ENTITY,
         results.isTruncated()
@@ -243,7 +243,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
       }
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
-      jsonOutputList.add(RdapJsonFormatter.makeRdapJsonForContact(
+      jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForContact(
           contact,
           false,
           Optional.<DesignatedContact.Type>absent(),
@@ -257,7 +257,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
         if (jsonOutputList.size() >= rdapResultSetMaxSize) {
           return RdapSearchResults.create(ImmutableList.copyOf(jsonOutputList), true);
         }
-        jsonOutputList.add(RdapJsonFormatter.makeRdapJsonForRegistrar(
+        jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForRegistrar(
             registrar, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
       }
     }

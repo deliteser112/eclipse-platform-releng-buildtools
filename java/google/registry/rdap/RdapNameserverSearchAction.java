@@ -105,7 +105,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     }
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("nameserverSearchResults", results.jsonList());
-    RdapJsonFormatter.addTopLevelEntries(
+    rdapJsonFormatter.addTopLevelEntries(
         jsonBuilder,
         BoilerplateType.NAMESERVER,
         results.isTruncated()
@@ -127,7 +127,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
       }
       return RdapSearchResults.create(
           ImmutableList.of(
-              RdapJsonFormatter.makeRdapJsonForHost(
+              rdapJsonFormatter.makeRdapJsonForHost(
                   hostResource, false, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL)));
     // Handle queries with a wildcard, but no suffix. There are no pending deletes for hosts, so we
     // can call queryUndeleted.
@@ -186,7 +186,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
         new ImmutableList.Builder<>();
     for (HostResource host : Iterables.limit(hosts, rdapResultSetMaxSize)) {
       jsonListBuilder.add(
-          RdapJsonFormatter.makeRdapJsonForHost(
+          rdapJsonFormatter.makeRdapJsonForHost(
               host, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
     }
     ImmutableList<ImmutableMap<String, Object>> jsonList = jsonListBuilder.build();

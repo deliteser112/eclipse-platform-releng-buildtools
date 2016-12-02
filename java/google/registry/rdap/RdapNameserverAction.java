@@ -59,7 +59,7 @@ public class RdapNameserverAction extends RdapActionBase {
     if (hostResource == null) {
       throw new NotFoundException(pathSearchString + " not found");
     }
-    return RdapJsonFormatter.makeRdapJsonForHost(
+    return rdapJsonFormatter.makeRdapJsonForHost(
         hostResource, true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
   }
 }

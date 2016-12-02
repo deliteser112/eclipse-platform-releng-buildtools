@@ -16,6 +16,7 @@ java_library(
         "//java/com/google/common/collect",
         "//java/com/google/common/io",
         "//java/com/google/common/net",
+        "//java/google/registry/config",
         "//java/google/registry/model",
         "//java/google/registry/rdap",
         "//java/google/registry/request",

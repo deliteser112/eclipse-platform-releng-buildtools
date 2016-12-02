@@ -18,7 +18,6 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
-import com.google.auto.value.AutoValue;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
@@ -30,6 +29,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
+import google.registry.config.ConfigModule.Config;
+import google.registry.config.RdapNoticeDescriptor;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
@@ -44,6 +45,9 @@ import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarAddress;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.request.HttpException.NotFoundException;
+import google.registry.util.FormattingLogger;
 import google.registry.util.Idn;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -53,6 +57,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Nullable;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import org.joda.time.DateTime;
 
 /**
@@ -66,7 +72,14 @@ import org.joda.time.DateTime;
  * @see <a href="https://tools.ietf.org/html/rfc7483">
  *        RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
  */
+@Singleton
 public class RdapJsonFormatter {
+
+  @Inject @Config("rdapTosPath") String rdapTosPath;
+  @Inject @Config("rdapHelpMap") ImmutableMap<String, RdapNoticeDescriptor> rdapHelpMap;
+  @Inject RdapJsonFormatter() {}
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   /**
    * What type of data to generate. Summary data includes only information about the object itself,
@@ -277,6 +290,26 @@ public class RdapJsonFormatter {
           return designatedContact.getType();
         }});
 
+  ImmutableMap<String, Object> getJsonTosNotice(String rdapLinkBase) {
+    return getJsonHelpNotice(rdapTosPath, rdapLinkBase);
+  }
+
+  ImmutableMap<String, Object> getJsonHelpNotice(
+      String pathSearchString, String rdapLinkBase) {
+    if (pathSearchString.isEmpty()) {
+      pathSearchString = "/";
+    }
+    if (!rdapHelpMap.containsKey(pathSearchString)) {
+      throw new NotFoundException("no help found for " + pathSearchString);
+    }
+    try {
+      return RdapJsonFormatter.makeRdapJsonNotice(rdapHelpMap.get(pathSearchString), rdapLinkBase);
+    } catch (Exception e) {
+      logger.warningfmt(e, "Error reading RDAP help file: %s", pathSearchString);
+      throw new InternalServerErrorException("unable to read help for " + pathSearchString);
+    }
+  }
+
   /**
    * Adds the required top-level boilerplate. RFC 7483 specifies that the top-level object should
    * include an entry indicating the conformance level. The ICANN RDAP Profile document (dated 3
@@ -292,7 +325,7 @@ public class RdapJsonFormatter {
    * @param remarks a list of remarks to be inserted before the boilerplate notices.
    * @param rdapLinkBase the base for link URLs
    */
-  static void addTopLevelEntries(
+  void addTopLevelEntries(
       ImmutableMap.Builder<String, Object> jsonBuilder,
       BoilerplateType boilerplateType,
       List<ImmutableMap<String, Object>> notices,
@@ -301,8 +334,7 @@ public class RdapJsonFormatter {
     jsonBuilder.put("rdapConformance", CONFORMANCE_LIST);
     ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
         new ImmutableList.Builder<>();
-    ImmutableMap<String, Object> tosNotice =
-        RdapHelpAction.getJsonHelpNotice(RdapHelpAction.TERMS_OF_SERVICE_PATH, rdapLinkBase);
+    ImmutableMap<String, Object> tosNotice = getJsonTosNotice(rdapLinkBase);
     boolean tosNoticeFound = false;
     if (!notices.isEmpty()) {
       noticesBuilder.addAll(notices);
@@ -337,31 +369,6 @@ public class RdapJsonFormatter {
     }
   }
 
-  /** AutoValue class to build parameters to {@link #makeRdapJsonNotice}. */
-  @AutoValue
-  abstract static class MakeRdapJsonNoticeParameters {
-    static Builder builder() {
-      return new AutoValue_RdapJsonFormatter_MakeRdapJsonNoticeParameters.Builder();
-    }
-
-    @Nullable abstract String title();
-    abstract ImmutableList<String> description();
-    @Nullable abstract String typeString();
-    @Nullable abstract String linkValueSuffix();
-    @Nullable abstract String linkHrefUrlString();
-
-    @AutoValue.Builder
-    abstract static class Builder {
-      abstract Builder title(@Nullable String title);
-      abstract Builder description(Iterable<String> description);
-      abstract Builder typeString(@Nullable String typeString);
-      abstract Builder linkValueSuffix(@Nullable String linkValueSuffix);
-      abstract Builder linkHrefUrlString(@Nullable String linkHrefUrlString);
-
-      abstract MakeRdapJsonNoticeParameters build();
-    }
-  }
-
   /**
    * Creates a JSON object containing a notice or remark object, as defined by RFC 7483 § 4.3.
    * The object should then be inserted into a notices or remarks array. The builder fields are:
@@ -391,22 +398,22 @@ public class RdapJsonFormatter {
    *     RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
    */
   static ImmutableMap<String, Object> makeRdapJsonNotice(
-      MakeRdapJsonNoticeParameters parameters, @Nullable String linkBase) {
+      RdapNoticeDescriptor parameters, @Nullable String linkBase) {
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    if (parameters.title() != null) {
-      jsonBuilder.put("title", parameters.title());
+    if (parameters.getTitle() != null) {
+      jsonBuilder.put("title", parameters.getTitle());
     }
     ImmutableList.Builder<String> descriptionBuilder = new ImmutableList.Builder<>();
-    for (String line : parameters.description()) {
+    for (String line : parameters.getDescription()) {
       descriptionBuilder.add(nullToEmpty(line));
     }
     jsonBuilder.put("description", descriptionBuilder.build());
-    if (parameters.typeString() != null) {
-      jsonBuilder.put("typeString", parameters.typeString());
+    if (parameters.getTypeString() != null) {
+      jsonBuilder.put("typeString", parameters.getTypeString());
     }
     String linkValueString =
-        nullToEmpty(linkBase) + nullToEmpty(parameters.linkValueSuffix());
-    if (parameters.linkHrefUrlString() == null) {
+        nullToEmpty(linkBase) + nullToEmpty(parameters.getLinkValueSuffix());
+    if (parameters.getLinkHrefUrlString() == null) {
       jsonBuilder.put("links", ImmutableList.of(ImmutableMap.of(
           "value", linkValueString,
           "rel", "self",
@@ -414,7 +421,7 @@ public class RdapJsonFormatter {
           "type", "application/rdap+json")));
     } else {
       URI htmlBaseURI = URI.create(nullToEmpty(linkBase));
-      URI htmlUri = htmlBaseURI.resolve(parameters.linkHrefUrlString());
+      URI htmlUri = htmlBaseURI.resolve(parameters.getLinkHrefUrlString());
       jsonBuilder.put("links", ImmutableList.of(ImmutableMap.of(
           "value", linkValueString,
           "rel", "alternate",
@@ -435,7 +442,7 @@ public class RdapJsonFormatter {
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
    */
-  static ImmutableMap<String, Object> makeRdapJsonForDomain(
+  ImmutableMap<String, Object> makeRdapJsonForDomain(
       DomainResource domainResource,
       boolean isTopLevel,
       @Nullable String linkBase,
@@ -529,7 +536,7 @@ public class RdapJsonFormatter {
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
    */
-  static ImmutableMap<String, Object> makeRdapJsonForHost(
+  ImmutableMap<String, Object> makeRdapJsonForHost(
       HostResource hostResource,
       boolean isTopLevel,
       @Nullable String linkBase,
@@ -612,7 +619,7 @@ public class RdapJsonFormatter {
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
    */
-  static ImmutableMap<String, Object> makeRdapJsonForContact(
+  ImmutableMap<String, Object> makeRdapJsonForContact(
       ContactResource contactResource,
       boolean isTopLevel,
       Optional<DesignatedContact.Type> contactType,
@@ -701,7 +708,7 @@ public class RdapJsonFormatter {
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
    */
-  static ImmutableMap<String, Object> makeRdapJsonForRegistrar(
+  ImmutableMap<String, Object> makeRdapJsonForRegistrar(
       Registrar registrar,
       boolean isTopLevel,
       @Nullable String linkBase,
@@ -1044,8 +1051,7 @@ public class RdapJsonFormatter {
    * @see <a href="https://tools.ietf.org/html/rfc7483">
    *        RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
    */
-  static ImmutableMap<String, Object> makeError(
-      int status, String title, String description) {
+  ImmutableMap<String, Object> makeError(int status, String title, String description) {
     return ImmutableMap.<String, Object>of(
         "rdapConformance", CONFORMANCE_LIST,
         "lang", "en",

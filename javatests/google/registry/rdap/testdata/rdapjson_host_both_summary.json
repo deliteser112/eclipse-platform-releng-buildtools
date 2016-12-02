@@ -7,9 +7,9 @@
   "links" :
   [
     {
-      "value" : "http://myserver.google.com/nameserver/ns3.cat.xn--q9jyb4c",
+      "value" : "http://myserver.example.com/nameserver/ns3.cat.xn--q9jyb4c",
       "rel" : "self",
-      "href" : "http://myserver.google.com/nameserver/ns3.cat.xn--q9jyb4c",
+      "href" : "http://myserver.example.com/nameserver/ns3.cat.xn--q9jyb4c",
       "type" : "application/rdap+json"
     }
   ],

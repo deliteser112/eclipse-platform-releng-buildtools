@@ -79,7 +79,7 @@ public class RdapEntityAction extends RdapActionBase {
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
       if ((contactResource != null) && now.isBefore(contactResource.getDeletionTime())) {
-        return RdapJsonFormatter.makeRdapJsonForContact(
+        return rdapJsonFormatter.makeRdapJsonForContact(
             contactResource,
             true,
             Optional.<DesignatedContact.Type>absent(),
@@ -95,7 +95,7 @@ public class RdapEntityAction extends RdapActionBase {
       Registrar registrar = Iterables.getOnlyElement(
           Registrar.loadByIanaIdentifierRange(ianaIdentifier, ianaIdentifier + 1, 1), null);
       if ((registrar != null) && registrar.isActiveAndPubliclyVisible()) {
-        return RdapJsonFormatter.makeRdapJsonForRegistrar(
+        return rdapJsonFormatter.makeRdapJsonForRegistrar(
             registrar, true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
       }
     } catch (NumberFormatException e) {

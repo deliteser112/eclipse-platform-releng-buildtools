@@ -13,6 +13,7 @@ java_library(
         "//java/com/google/common/collect",
         "//java/com/google/common/net",
         "//third_party/java/appengine:appengine-api",
+        "//third_party/java/auto:auto_value",
         "//third_party/java/dagger",
         "//third_party/java/joda_money",
         "//third_party/java/joda_time",

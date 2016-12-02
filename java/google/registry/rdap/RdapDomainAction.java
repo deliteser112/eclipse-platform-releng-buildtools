@@ -59,7 +59,7 @@ public class RdapDomainAction extends RdapActionBase {
     if (domainResource == null) {
       throw new NotFoundException(pathSearchString + " not found");
     }
-    return RdapJsonFormatter.makeRdapJsonForDomain(
+    return rdapJsonFormatter.makeRdapJsonForDomain(
         domainResource, true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
   }
 }

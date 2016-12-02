@@ -123,6 +123,7 @@ public class RdapDomainActionTest {
     action = new RdapDomainAction();
     action.clock = clock;
     action.response = response;
+    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
 
