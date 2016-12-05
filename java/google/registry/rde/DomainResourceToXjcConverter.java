@@ -18,6 +18,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
@@ -223,8 +224,13 @@ final class DomainResourceToXjcConverter {
         //       domain name object's validity period (expiry date) if the
         //       transfer caused or causes a change in the validity period.
         if (model.getTransferData() != TransferData.EMPTY) {
-          bean.setTrnData(
-              convertTransferData(model.getTransferData(), model.getRegistrationExpirationTime()));
+          // Temporary check to make sure that there really was a transfer. A bug caused spurious
+          // empty transfer records to get generated for deleted domains.
+          // TODO(b/33289763): remove the hasGainingAndLosingRegistrars check in February 2017
+          if (hasGainingAndLosingRegistrars(model)) {
+            bean.setTrnData(convertTransferData(model.getTransferData(),
+                model.getRegistrationExpirationTime()));
+          }
         }
 
         break;
@@ -233,6 +239,12 @@ final class DomainResourceToXjcConverter {
     }
 
     return bean;
+  }
+
+  private static boolean hasGainingAndLosingRegistrars(DomainResource model) {
+    return
+        !Strings.isNullOrEmpty(model.getTransferData().getGainingClientId())
+        && !Strings.isNullOrEmpty(model.getTransferData().getLosingClientId());
   }
 
   /** Converts {@link TransferData} to {@link XjcRdeDomainTransferDataType}. */
