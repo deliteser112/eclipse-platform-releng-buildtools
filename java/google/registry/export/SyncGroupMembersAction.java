@@ -26,6 +26,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.VoidWork;
 import google.registry.config.ConfigModule.Config;
@@ -35,12 +36,14 @@ import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.request.Action;
 import google.registry.request.Response;
-import google.registry.util.Concurrent;
 import google.registry.util.FormattingLogger;
+import google.registry.util.Retrier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -51,14 +54,6 @@ import javax.inject.Inject;
  */
 @Action(path = "/_dr/task/syncGroupMembers", method = POST)
 public final class SyncGroupMembersAction implements Runnable {
-
-  /**
-   * The number of threads to run simultaneously (one per registrar) while processing group syncs.
-   * This number is purposefully low because App Engine will complain about a large number of
-   * requests per second, so it's better to spread the work out (as we are only running this servlet
-   * once per hour anyway).
-   */
-  private static final int NUM_WORK_THREADS = 2;
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -87,8 +82,9 @@ public final class SyncGroupMembersAction implements Runnable {
   }
 
   @Inject GroupsConnection groupsConnection;
-  @Inject Response response;
   @Inject @Config("publicDomainName") String publicDomainName;
+  @Inject Response response;
+  @Inject Retrier retrier;
   @Inject SyncGroupMembersAction() {}
 
   private void sendResponse(Result result, @Nullable List<Throwable> causes) {
@@ -134,23 +130,24 @@ public final class SyncGroupMembersAction implements Runnable {
       return;
     }
 
-    // Run multiple threads to communicate with Google Groups simultaneously.
-    ImmutableList<Optional<Throwable>> results = Concurrent.transform(
-        dirtyRegistrars,
-        NUM_WORK_THREADS,
-        new Function<Registrar, Optional<Throwable>>() {
+    ImmutableMap.Builder<Registrar, Optional<Throwable>> resultsBuilder =
+        new ImmutableMap.Builder<>();
+    for (final Registrar registrar : dirtyRegistrars) {
+      try {
+        retrier.callWithRetry(new Callable<Void>() {
           @Override
-          public Optional<Throwable> apply(final Registrar registrar) {
-            try {
-              syncRegistrarContacts(registrar);
-              return Optional.<Throwable> absent();
-            } catch (Throwable e) {
-              logger.severe(e, e.getMessage());
-              return Optional.of(e);
-            }
-          }});
+          public Void call() throws Exception {
+            syncRegistrarContacts(registrar);
+            return null;
+          }}, RuntimeException.class);
+        resultsBuilder.put(registrar, Optional.absent());
+      } catch (Throwable e) {
+        logger.severe(e, e.getMessage());
+        resultsBuilder.put(registrar, Optional.of(e));
+      }
+    }
 
-    List<Throwable> errors = getErrorsAndUpdateFlagsForSuccesses(dirtyRegistrars, results);
+    List<Throwable> errors = getErrorsAndUpdateFlagsForSuccesses(resultsBuilder.build());
     // If there were no errors, return success; otherwise return a failed status and log the errors.
     if (errors.isEmpty()) {
       sendResponse(Result.OK, null);
@@ -163,18 +160,15 @@ public final class SyncGroupMembersAction implements Runnable {
    * Parses the results from Google Groups for each registrar, setting the dirty flag to false in
    * Datastore for the calls that succeeded and accumulating the errors for the calls that failed.
    */
-  private List<Throwable> getErrorsAndUpdateFlagsForSuccesses(
-      List<Registrar> registrars,
-      List<Optional<Throwable>> results) {
+  private static List<Throwable> getErrorsAndUpdateFlagsForSuccesses(
+      ImmutableMap<Registrar, Optional<Throwable>> results) {
     final ImmutableList.Builder<Registrar> registrarsToSave = new ImmutableList.Builder<>();
     List<Throwable> errors = new ArrayList<>();
-    for (int i = 0; i < results.size(); i++) {
-      Optional<Throwable> opt = results.get(i);
-      if (opt.isPresent()) {
-        errors.add(opt.get());
+    for (Map.Entry<Registrar, Optional<Throwable>> result : results.entrySet()) {
+      if (result.getValue().isPresent()) {
+        errors.add(result.getValue().get());
       } else {
-        registrarsToSave.add(
-            registrars.get(i).asBuilder().setContactsRequireSyncing(false).build());
+        registrarsToSave.add(result.getKey().asBuilder().setContactsRequireSyncing(false).build());
       }
     }
     ofy().transactNew(new VoidWork() {
@@ -222,10 +216,7 @@ public final class SyncGroupMembersAction implements Runnable {
           totalAdded,
           totalRemoved);
     } catch (IOException e) {
-      // Bail out of the current sync job if an error occurs. This is OK because (a) errors usually
-      // indicate that retrying won't succeed at all, or at least not immediately, and (b) the sync
-      // job will run within an hour anyway and effectively resume where it left off if this was a
-      // transient error.
+      // Package up exception and re-throw with attached additional relevant info.
       String msg = String.format("Couldn't sync contacts for registrar %s to group %s",
           registrar.getClientId(), groupKey);
       throw new RuntimeException(msg, e);

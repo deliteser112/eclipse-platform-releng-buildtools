@@ -23,6 +23,10 @@ import static google.registry.model.registrar.RegistrarContact.Type.TECH;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,7 +40,10 @@ import google.registry.model.registrar.RegistrarContact;
 import google.registry.request.Response;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeSleeper;
 import google.registry.testing.InjectRule;
+import google.registry.util.Retrier;
 import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,8 +80,9 @@ public class SyncGroupMembersActionTest {
   private void runAction() {
     SyncGroupMembersAction action = new SyncGroupMembersAction();
     action.groupsConnection = connection;
-    action.response = response;
     action.publicDomainName = "domain-registry.example";
+    action.response = response;
+    action.retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
     action.run();
   }
 
@@ -214,9 +222,27 @@ public class SyncGroupMembersActionTest {
         "newregistrar-primary-contacts@domain-registry.example",
         "janedoe@theregistrar.com",
         Role.MEMBER);
+    verify(connection, times(3))
+        .getMembersOfGroup("theregistrar-primary-contacts@domain-registry.example");
     verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
     verify(response).setPayload("FAILED Error occurred while updating registrar contacts.\n");
     assertThat(Registrar.loadByClientId("NewRegistrar").getContactsRequireSyncing()).isFalse();
     assertThat(Registrar.loadByClientId("TheRegistrar").getContactsRequireSyncing()).isTrue();
+  }
+
+  @Test
+  public void test_doPost_retriesOnTransientException() throws Exception {
+    doThrow(IOException.class)
+        .doNothing()
+        .when(connection)
+        .addMemberToGroup(anyString(), anyString(), any(Role.class));
+    runAction();
+    verify(connection, times(2)).addMemberToGroup(
+        "newregistrar-primary-contacts@domain-registry.example",
+        "janedoe@theregistrar.com",
+        Role.MEMBER);
+    verify(response).setStatus(SC_OK);
+    verify(response).setPayload("OK Group memberships successfully updated.\n");
+    assertThat(Registrar.loadByClientId("NewRegistrar").getContactsRequireSyncing()).isFalse();
   }
 }
