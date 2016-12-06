@@ -14,8 +14,17 @@
 
 package google.registry.model.domain.rgp;
 
+import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.base.Predicates.not;
+import static java.util.Arrays.asList;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import google.registry.model.translators.EnumToAttributeAdapter;
 import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
+import java.util.Map;
+import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -90,6 +99,18 @@ public enum GracePeriodStatus implements EppEnum {
    */
   TRANSFER("transferPeriod");
 
+  /** Provide a quick lookup of GracePeriodStatus from XML name. */
+  private static final Map<String, GracePeriodStatus> XML_NAME_TO_GRACE_PERIOD_STATUS =
+      Maps.uniqueIndex(
+          // SUNRUSH_ADD isn't a real grace period type visible in EPP XML, so exclude it.
+          Iterables.filter(asList(GracePeriodStatus.values()), not(equalTo(SUNRUSH_ADD))),
+          new Function<GracePeriodStatus, String>() {
+            @Override
+            public String apply(GracePeriodStatus gracePeriodStatus) {
+              return gracePeriodStatus.xmlName;
+            }
+          });
+
   @XmlAttribute(name = "s")
   private final String xmlName;
 
@@ -100,5 +121,15 @@ public enum GracePeriodStatus implements EppEnum {
   @Override
   public String getXmlName() {
     return xmlName;
+  }
+
+  /**
+   * Maps from xmlName to {@link GracePeriodStatus}.
+   *
+   * If no match is found for xmlName, null is returned.
+   */
+  @Nullable
+  public static GracePeriodStatus fromXmlName(String xmlName) {
+    return XML_NAME_TO_GRACE_PERIOD_STATUS.get(xmlName);
   }
 }
