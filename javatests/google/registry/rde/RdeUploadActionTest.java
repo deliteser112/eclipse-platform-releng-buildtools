@@ -31,9 +31,13 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardSeconds;
 import static org.junit.Assume.assumeTrue;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
@@ -43,6 +47,9 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.googlecode.objectify.VoidWork;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.Keyring;
 import google.registry.model.common.Cursor;
@@ -57,6 +64,7 @@ import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
+import google.registry.testing.FakeSleeper;
 import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.IoSpyRule;
 import google.registry.testing.Providers;
@@ -81,6 +89,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.OngoingStubbing;
 
 /** Unit tests for {@link RdeUploadAction}. */
 @RunWith(MockitoJUnitRunner.class)
@@ -202,8 +211,20 @@ public class RdeUploadActionTest {
       action.reportQueue = QueueFactory.getQueue("rde-report");
       action.runner = runner;
       action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
+      action.retrier = new Retrier(new FakeSleeper(clock), 3);
       return action;
     }
+  }
+
+  private static JSch createThrowingJSchSpy(JSch jsch, int numTimesToThrow) throws JSchException {
+    JSch jschSpy = spy(jsch);
+    OngoingStubbing<Session> stubbing =
+        when(jschSpy.getSession(anyString(), anyString(), anyInt()));
+    for (int i = 0; i < numTimesToThrow; i++) {
+      stubbing = stubbing.thenThrow(new JSchException("The crow flies in square circles."));
+    }
+    stubbing.thenCallRealMethod();
+    return jschSpy;
   }
 
   @Before
@@ -253,7 +274,7 @@ public class RdeUploadActionTest {
   }
 
   @Test
-  public void testRunWithLock() throws Exception {
+  public void testRunWithLock_succeedsOnThirdTry() throws Exception {
     // XXX: For any port other than 22, JSch will reformat the hostname IPv6 style which causes
     //      known host matching to fail.
     int port = sftpd.serve("user", "password", folder.getRoot());
@@ -262,7 +283,9 @@ public class RdeUploadActionTest {
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
-    createAction(uploadUrl).runWithLock(uploadCursor);
+    RdeUploadAction action = createAction(uploadUrl);
+    action.jsch = createThrowingJSchSpy(action.jsch, 2);
+    action.runWithLock(uploadCursor);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo("OK tld 2010-10-17T00:00:00.000Z\n");
@@ -271,6 +294,20 @@ public class RdeUploadActionTest {
         .containsExactly(
             "tld_2010-10-17_full_S1_R0.ryde",
             "tld_2010-10-17_full_S1_R0.sig");
+  }
+
+  @Test
+  public void testRunWithLock_failsAfterThreeAttempts() throws Exception {
+    int port = sftpd.serve("user", "password", folder.getRoot());
+    URI uploadUrl = URI.create(String.format("sftp://user:password@127.0.0.1:%d/", port));
+    DateTime stagingCursor = DateTime.parse("2010-10-18TZ");
+    DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
+    persistResource(
+        Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
+    RdeUploadAction action = createAction(uploadUrl);
+    action.jsch = createThrowingJSchSpy(action.jsch, 3);
+    thrown.expect(RuntimeException.class, "The crow flies in square circles.");
+    action.runWithLock(uploadCursor);
   }
 
   @Test

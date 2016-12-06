@@ -27,9 +27,11 @@ import static java.util.Arrays.asList;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteStreams;
 import com.googlecode.objectify.VoidWork;
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import google.registry.config.ConfigModule.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule.Key;
@@ -47,6 +49,7 @@ import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
+import google.registry.util.Retrier;
 import google.registry.util.TaskEnqueuer;
 import google.registry.util.TeeOutputStream;
 import java.io.ByteArrayInputStream;
@@ -54,6 +57,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.bouncycastle.openpgp.PGPKeyPair;
@@ -92,6 +96,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
   @Inject RydePgpSigningOutputStreamFactory pgpSigningFactory;
   @Inject RydeTarOutputStreamFactory tarFactory;
   @Inject TaskEnqueuer taskEnqueuer;
+  @Inject Retrier retrier;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
   @Inject @Config("rdeBucket") String bucket;
   @Inject @Config("rdeInterval") Duration interval;
@@ -113,7 +118,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
   }
 
   @Override
-  public void runWithLock(DateTime watermark) throws Exception {
+  public void runWithLock(final DateTime watermark) throws Exception {
     DateTime stagingCursorTime = getCursorTimeOrStartOfTime(
         ofy().load().key(Cursor.createKey(CursorType.RDE_STAGING, Registry.get(tld))).now());
     if (!stagingCursorTime.isAfter(watermark)) {
@@ -129,14 +134,22 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
     }
     int revision = RdeRevision.getNextRevision(tld, watermark, FULL) - 1;
     verify(revision >= 0, "RdeRevision was not set on generated deposit");
-    String name = RdeNamingUtils.makeRydeFilename(tld, watermark, FULL, 1, revision);
-    GcsFilename xmlFilename = new GcsFilename(bucket, name + ".xml.ghostryde");
-    GcsFilename xmlLengthFilename = new GcsFilename(bucket, name + ".xml.length");
+    final String name = RdeNamingUtils.makeRydeFilename(tld, watermark, FULL, 1, revision);
+    final GcsFilename xmlFilename = new GcsFilename(bucket, name + ".xml.ghostryde");
+    final GcsFilename xmlLengthFilename = new GcsFilename(bucket, name + ".xml.length");
     GcsFilename reportFilename = new GcsFilename(bucket, name + "-report.xml.ghostryde");
     verifyFileExists(xmlFilename);
     verifyFileExists(xmlLengthFilename);
     verifyFileExists(reportFilename);
-    upload(xmlFilename, readXmlLength(xmlLengthFilename), watermark, name);
+    final long xmlLength = readXmlLength(xmlLengthFilename);
+    retrier.callWithRetry(
+        new Callable<Void>() {
+          @Override
+          public Void call() throws Exception {
+            upload(xmlFilename, xmlLength, watermark, name);
+            return null;
+          }},
+        JSchException.class);
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
@@ -172,7 +185,8 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
    *    && cat /tmp/sig > gs://bucket/$rydeFilename.sig      # Save a copy of signature to GCS.
    *   }</pre>
    */
-  private void upload(
+  @VisibleForTesting
+  protected void upload(
       GcsFilename xmlFile, long xmlLength, DateTime watermark, String name) throws Exception {
     logger.infofmt("Uploading %s to %s", xmlFile, uploadUrl);
     try (InputStream gcsInput = gcsUtils.openInputStream(xmlFile);
