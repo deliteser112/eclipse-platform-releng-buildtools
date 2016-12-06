@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
 import google.registry.config.ConfigModule.Config;
 import google.registry.dns.DnsConstants.TargetType;
@@ -121,7 +122,7 @@ public final class ReadDnsQueueAction implements Runnable {
     // each TLD will be grouped together, and domains and hosts will be grouped within a TLD. The
     // grouping and ordering of domains and hosts is not technically necessary, but a predictable
     // ordering makes it possible to write detailed tests.
-    TreeMultimap<String, RefreshItem> refreshItemMultimap = TreeMultimap.create();
+    SortedSetMultimap<String, RefreshItem> refreshItemMultimap = TreeMultimap.create();
     // Read all tasks on the DNS pull queue and load them into the refresh item multimap.
     for (TaskHandle task : tasks) {
       try {

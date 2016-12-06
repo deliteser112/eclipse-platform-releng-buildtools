@@ -37,7 +37,7 @@ public final class UriParameters {
    */
   public static ListMultimap<String, String> parse(String query) {
     checkNotNull(query);
-    ArrayListMultimap<String, String> map = ArrayListMultimap.create();
+    ListMultimap<String, String> map = ArrayListMultimap.create();
     if (!query.isEmpty()) {
       int start = 0;
       while (start <= query.length()) {
