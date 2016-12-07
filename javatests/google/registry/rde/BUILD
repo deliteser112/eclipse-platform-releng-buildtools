@@ -40,7 +40,7 @@ java_library(
         "//third_party/java/hamcrest",
         "//third_party/java/joda_money",
         "//third_party/java/joda_time",
-        "//third_party/java/jsch/v0_1_44_google",
+        "//third_party/java/jsch",
         "//third_party/java/jsr305_annotations",
         "//third_party/java/jsr330_inject",
         "//third_party/java/junit",
