@@ -152,7 +152,7 @@ public interface RegistryConfig {
 
   /**
    * Returns the global automatic transfer length for contacts.  After this amount of time has
-   * elapsed, the transfer is automatically improved.
+   * elapsed, the transfer is automatically approved.
    */
   public Duration getContactAutomaticTransferLength();
 
