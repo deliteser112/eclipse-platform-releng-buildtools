@@ -107,11 +107,6 @@ public class TestRegistryConfig implements RegistryConfig {
   }
 
   @Override
-  public String getDocumentationProjectTitle() {
-    return "Nomulus";
-  }
-
-  @Override
   public int getEppResourceIndexBucketCount() {
     return 2;
   }

@@ -141,11 +141,6 @@ public interface RegistryConfig {
   public URL getRegistrarDefaultReferralUrl();
 
   /**
-   * Returns the title of the project used in generating documentation.
-   */
-  public String getDocumentationProjectTitle();
-
-  /**
    * Returns the number of EppResourceIndex buckets to be used.
    */
   public int getEppResourceIndexBucketCount();

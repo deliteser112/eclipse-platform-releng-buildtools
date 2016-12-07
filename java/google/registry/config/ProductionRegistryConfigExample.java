@@ -149,11 +149,6 @@ public final class ProductionRegistryConfigExample implements RegistryConfig {
   }
 
   @Override
-  public String getDocumentationProjectTitle() {
-    return "Nomulus";
-  }
-
-  @Override
   public int getEppResourceIndexBucketCount() {
     return 997;
   }
