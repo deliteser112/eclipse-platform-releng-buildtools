@@ -59,6 +59,7 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.JsonMapBuilder;
 import google.registry.model.Jsonifiable;
 import google.registry.model.UpdateAutoTimestamp;
+import google.registry.model.annotations.ReportedOn;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.util.CidrAddressBlock;
 import google.registry.util.NonFinalForTesting;
@@ -76,6 +77,7 @@ import org.joda.time.DateTime;
 
 /** Information about a registrar. */
 @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
+@ReportedOn
 @Entity
 public class Registrar extends ImmutableObject implements Buildable, Jsonifiable {
 

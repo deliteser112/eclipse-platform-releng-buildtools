@@ -51,6 +51,7 @@ import com.googlecode.objectify.cmd.Query;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
+import google.registry.model.annotations.ReportedOn;
 import google.registry.model.annotations.VirtualEntity;
 import google.registry.model.registry.Registry;
 import java.util.List;
@@ -64,6 +65,7 @@ import org.joda.time.DateTime;
 /**
  * A premium list entity, persisted to Datastore, that is used to check domain label prices.
  */
+@ReportedOn
 @Entity
 @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.PremiumListEntry> {
@@ -192,6 +194,7 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
    * A premium list entry entity, persisted to Datastore.  Each instance represents the price of a
    * single label on a given TLD.
    */
+  @ReportedOn
   @Entity
   @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   public static class PremiumListEntry extends DomainLabelEntry<Money, PremiumListEntry>
