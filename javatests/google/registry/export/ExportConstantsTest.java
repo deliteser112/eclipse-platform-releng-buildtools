@@ -15,6 +15,7 @@
 package google.registry.export;
 
 import static com.google.common.base.Strings.repeat;
+import static com.google.common.io.Resources.getResource;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.export.ExportConstants.getBackupKinds;
@@ -28,7 +29,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.re2j.Pattern;
-import java.util.List;
 import javax.annotation.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,16 +70,15 @@ public class ExportConstantsTest {
 
   private static void checkKindsMatchGoldenFile(
       String kindsName, String goldenFilename, ImmutableSet<String> actualKinds) {
-    List<String> goldenKinds = extractListFromFile(goldenFilename);
     String updateInstructions =
         String.format(
             UPDATE_INSTRUCTIONS_TEMPLATE,
             kindsName,
-            Joiner.on('\n').join(goldenKinds),
+            getResource(ExportConstantsTest.class, goldenFilename).toString(),
             Joiner.on('\n').join(actualKinds));
     assertWithMessage(updateInstructions)
         .that(actualKinds)
-        .containsExactlyElementsIn(goldenKinds)
+        .containsExactlyElementsIn(extractListFromFile(goldenFilename))
         .inOrder();
   }
 
