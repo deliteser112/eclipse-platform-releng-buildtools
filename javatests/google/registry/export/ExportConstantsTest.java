@@ -14,9 +14,11 @@
 
 package google.registry.export;
 
-import static com.google.common.io.Resources.getResource;
+import static com.google.common.base.Strings.repeat;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static google.registry.export.ExportConstants.getBackupKinds;
+import static google.registry.export.ExportConstants.getReportingKinds;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.google.common.base.Function;
@@ -26,7 +28,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.re2j.Pattern;
-import java.net.URL;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.junit.Test;
@@ -43,60 +44,43 @@ public class ExportConstantsTest {
 
   private static final String UPDATE_INSTRUCTIONS_TEMPLATE = Joiner.on('\n').join(
       "",
-      "---------------------------------------------------------------------------------",
+      repeat("-", 80),
       "Your changes affect the list of %s kinds in the golden file:",
       "  %s",
       "If these changes are desired, update the golden file with the following contents:",
-      "=================================================================================",
+      repeat("=", 80),
       "%s",
-      "=================================================================================",
+      repeat("=", 80),
       "");
 
   @Test
   public void testBackupKinds_matchGoldenBackupKindsFile() throws Exception {
-    URL goldenBackupKindsResource =
-        getResource(ExportConstantsTest.class, GOLDEN_BACKUP_KINDS_FILENAME);
-    List<String> goldenKinds = extractListFromFile(GOLDEN_BACKUP_KINDS_FILENAME);
-    ImmutableSet<String> actualKinds = ExportConstants.getBackupKinds();
-    String updateInstructions =
-        getUpdateInstructions("backed-up", goldenBackupKindsResource.toString(), actualKinds);
-    assertWithMessage(updateInstructions)
-        .that(actualKinds)
-        .containsExactlyElementsIn(goldenKinds)
-        .inOrder();
+    checkKindsMatchGoldenFile("backed-up", GOLDEN_BACKUP_KINDS_FILENAME, getBackupKinds());
   }
 
   @Test
   public void testReportingKinds_matchGoldenReportingKindsFile() throws Exception {
-    URL goldenReportingKindsResource =
-        getResource(ExportConstantsTest.class, GOLDEN_REPORTING_KINDS_FILENAME);
-    List<String> goldenReportingKinds = extractListFromFile(GOLDEN_REPORTING_KINDS_FILENAME);
-    ImmutableSet<String> actualKinds = ExportConstants.getReportingKinds();
-    String updateInstructions =
-        getUpdateInstructions("reporting", goldenReportingKindsResource.toString(), actualKinds);
-    assertWithMessage(updateInstructions)
-        .that(actualKinds)
-        .containsExactlyElementsIn(goldenReportingKinds)
-        .inOrder();
+    checkKindsMatchGoldenFile("reporting", GOLDEN_REPORTING_KINDS_FILENAME, getReportingKinds());
   }
 
   @Test
   public void testReportingKinds_areSubsetOfBackupKinds() throws Exception {
-    assertThat(ExportConstants.getBackupKinds()).containsAllIn(ExportConstants.getReportingKinds());
+    assertThat(getBackupKinds()).containsAllIn(getReportingKinds());
   }
 
-  /**
-   * Helper method to get update instructions
-   *
-   * @param name - type of entity
-   * @param resource - Resource file contents
-   * @param actualKinds - data from ExportConstants
-   * @return String of update instructions
-   */
-  private static String getUpdateInstructions(
-      String name, String resource, ImmutableSet<String> actualKinds) {
-    return String.format(
-        UPDATE_INSTRUCTIONS_TEMPLATE, name, resource, Joiner.on('\n').join(actualKinds));
+  private static void checkKindsMatchGoldenFile(
+      String kindsName, String goldenFilename, ImmutableSet<String> actualKinds) {
+    List<String> goldenKinds = extractListFromFile(goldenFilename);
+    String updateInstructions =
+        String.format(
+            UPDATE_INSTRUCTIONS_TEMPLATE,
+            kindsName,
+            Joiner.on('\n').join(goldenKinds),
+            Joiner.on('\n').join(actualKinds));
+    assertWithMessage(updateInstructions)
+        .that(actualKinds)
+        .containsExactlyElementsIn(goldenKinds)
+        .inOrder();
   }
 
   /**
