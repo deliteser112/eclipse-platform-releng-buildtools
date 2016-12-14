@@ -55,7 +55,7 @@ public final class RegistrarCredit extends ImmutableObject implements Buildable 
     PROMOTION("Promotional Credit");
 
     /** A descriptive name for a credit of this type. */
-    private String descriptiveName;
+    private final String descriptiveName;
 
     CreditType(String descriptiveName) {
       this.descriptiveName = descriptiveName;
