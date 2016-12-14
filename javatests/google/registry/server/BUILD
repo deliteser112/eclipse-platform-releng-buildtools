@@ -58,7 +58,7 @@ java_library(
         "//java/google/registry/module/backend",
         "//java/google/registry/module/frontend",
         "//third_party/java/jsr305_annotations",
-        "//third_party/java/objectify/v4_1:v4_1_3",
+        "//third_party/java/objectify:objectify-v4_1",
         "//third_party/java/servlet/servlet_api",
     ],
 )
