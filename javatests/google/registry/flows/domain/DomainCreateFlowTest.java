@@ -956,9 +956,36 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_anchorTenantViaAuthCode() throws Exception {
     setEppInput("domain_create_anchor_authcode.xml");
     persistContactsAndHosts();
-    runFlow();
+    runFlowAssertResponse(readFile("domain_create_anchor_response.xml"));
     assertSuccessfulCreate("tld", true);
+    assertNoLordn();
   }
+
+  @Test
+  public void testSuccess_anchorTenantViaAuthCode_duringLrp() throws Exception {
+    persistResource(Registry.get("tld").asBuilder()
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
+        .build());
+    setEppInput("domain_create_anchor_authcode.xml");
+    persistContactsAndHosts();
+    runFlowAssertResponse(readFile("domain_create_anchor_response.xml"));
+    assertSuccessfulCreate("tld", true);
+    assertNoLordn();
+  }
+
+  @Test
+  public void testSuccess_anchorTenantViaExtension_duringLrp() throws Exception {
+    persistResource(Registry.get("tld").asBuilder()
+        .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
+        .build());
+    eppRequestSource = EppRequestSource.TOOL;
+    setEppInput("domain_create_anchor_tenant.xml");
+    persistContactsAndHosts();
+    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    assertSuccessfulCreate("tld", true);
+    assertNoLordn();
+  }
+
 
   @Test
   public void testSuccess_anchorTenantViaAuthCode_withClaims() throws Exception {
