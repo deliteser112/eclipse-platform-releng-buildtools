@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.flows.async;
+package google.registry.batch;
 
 import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
@@ -23,6 +23,10 @@ import static com.googlecode.objectify.Key.getKind;
 import static google.registry.flows.ResourceFlowUtils.createResolvedTransferData;
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_IS_SUPERUSER;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTING_CLIENT_ID;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.EppResourceUtils.isDeleted;
 import static google.registry.model.eppcommon.StatusValue.PENDING_DELETE;
@@ -53,8 +57,8 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Multiset;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
+import google.registry.batch.DeleteContactsAndHostsAction.DeletionResult.Type;
 import google.registry.dns.DnsQueue;
-import google.registry.flows.async.DeleteContactsAndHostsAction.DeletionResult.Type;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.mapreduce.inputs.NullInput;
@@ -88,12 +92,6 @@ import org.joda.time.DateTime;
  */
 @Action(path = "/_dr/task/deleteContactsAndHosts")
 public class DeleteContactsAndHostsAction implements Runnable {
-
-  /** The HTTP parameter name used to specify the websafe key of the resource to delete. */
-  public static final String PARAM_RESOURCE_KEY = "resourceKey";
-  public static final String PARAM_REQUESTING_CLIENT_ID = "requestingClientId";
-  public static final String PARAM_IS_SUPERUSER = "isSuperuser";
-  public static final String QUEUE_ASYNC_DELETE = "async-delete-pull";
 
   static final String KIND_CONTACT = getKind(ContactResource.class);
   static final String KIND_HOST = getKind(HostResource.class);

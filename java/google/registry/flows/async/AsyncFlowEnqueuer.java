@@ -14,16 +14,11 @@
 
 package google.registry.flows.async;
 
-import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_IS_SUPERUSER;
-import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_REQUESTING_CLIENT_ID;
-import static google.registry.flows.async.DeleteContactsAndHostsAction.PARAM_RESOURCE_KEY;
-import static google.registry.flows.async.RefreshDnsOnHostRenameAction.PARAM_HOST_KEY;
-import static google.registry.flows.async.RefreshDnsOnHostRenameAction.QUEUE_ASYNC_HOST_RENAME;
-
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.TransientFailureException;
+import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.Key;
 import google.registry.config.ConfigModule.Config;
 import google.registry.model.EppResource;
@@ -38,13 +33,40 @@ import org.joda.time.Duration;
 /** Helper class to enqueue tasks for handling asynchronous operations in flows. */
 public final class AsyncFlowEnqueuer {
 
+  /** The HTTP parameter names used by async flows. */
+  public static final String PARAM_RESOURCE_KEY = "resourceKey";
+  public static final String PARAM_REQUESTING_CLIENT_ID = "requestingClientId";
+  public static final String PARAM_IS_SUPERUSER = "isSuperuser";
+  public static final String PARAM_HOST_KEY = "hostKey";
+
+  /** The task queue names used by async flows. */
+  public static final String QUEUE_ASYNC_DELETE = "async-delete-pull";
+  public static final String QUEUE_ASYNC_HOST_RENAME = "async-host-rename-pull";
+
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject @Config("asyncDeleteFlowMapreduceDelay") Duration asyncDeleteDelay;
-  @Inject @Named("async-delete-pull") Queue asyncDeletePullQueue;
-  @Inject @Named(QUEUE_ASYNC_HOST_RENAME) Queue asyncDnsRefreshPullQueue;
-  @Inject Retrier retrier;
-  @Inject AsyncFlowEnqueuer() {}
+  @VisibleForTesting
+  @Inject
+  @Config("asyncDeleteFlowMapreduceDelay")
+  public Duration asyncDeleteDelay;
+
+  @VisibleForTesting
+  @Inject
+  @Named("async-delete-pull")
+  public Queue asyncDeletePullQueue;
+
+  @VisibleForTesting
+  @Inject
+  @Named(QUEUE_ASYNC_HOST_RENAME)
+  public Queue asyncDnsRefreshPullQueue;
+
+  @VisibleForTesting
+  @Inject
+  public Retrier retrier;
+
+  @VisibleForTesting
+  @Inject
+  public AsyncFlowEnqueuer() {}
 
   /** Enqueues a task to asynchronously delete a contact or host, by key. */
   public void enqueueAsyncDelete(

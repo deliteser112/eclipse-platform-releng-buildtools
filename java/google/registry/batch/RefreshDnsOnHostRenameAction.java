@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.flows.async;
+package google.registry.batch;
 
 import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_HOST_KEY;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.EppResourceUtils.isDeleted;
@@ -60,10 +62,6 @@ import org.joda.time.DateTime;
 /** Performs batched DNS refreshes for applicable domains following a host rename. */
 @Action(path = "/_dr/task/refreshDnsOnHostRename")
 public class RefreshDnsOnHostRenameAction implements Runnable {
-
-  /** The HTTP parameter name used to specify the websafe key of the host to rename. */
-  public static final String PARAM_HOST_KEY = "hostKey";
-  public static final String QUEUE_ASYNC_HOST_RENAME = "async-host-rename-pull";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
   private static final long LEASE_MINUTES = 20;

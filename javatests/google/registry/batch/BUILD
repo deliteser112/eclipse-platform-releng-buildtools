@@ -17,6 +17,7 @@ java_library(
         "//java/com/google/common/io",
         "//java/com/google/common/net",
         "//java/google/registry/batch",
+        "//java/google/registry/flows",
         "//java/google/registry/model",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
