@@ -6,4 +6,7 @@ java_library(
         "@google_api_client//jar",
         "@google_http_client_jackson2//jar",
     ],
+    runtime_deps = [
+        "@jackson_core//jar",
+    ],
 )
