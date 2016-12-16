@@ -42,7 +42,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
+import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.OneTime;
@@ -114,6 +114,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject DnsQueue dnsQueue;
   @Inject EppResponse.Builder responseBuilder;
+  @Inject DomainPricingLogic pricingLogic;
   @Inject DomainRestoreRequestFlow() {}
 
   @Override
@@ -128,11 +129,11 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
     DateTime now = ofy().getTransactionTime();
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     Money restoreCost = Registry.get(existingDomain.getTld()).getStandardRestoreCost();
-    EppCommandOperations renewCommandOperations = TldSpecificLogicProxy.getRenewPrice(
-        Registry.get(existingDomain.getTld()), targetId, clientId, now, 1, eppInput);
+    FeesAndCredits feesAndCredits =
+        pricingLogic.getRenewPrice(Registry.get(existingDomain.getTld()), targetId, now, 1);
     FeeUpdateCommandExtension feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
-    Money totalCost = renewCommandOperations.getTotalCost();
+    Money totalCost = feesAndCredits.getTotalCost();
     verifyRestoreAllowed(command, existingDomain, restoreCost, totalCost, feeUpdate, now);
     HistoryEntry historyEntry = buildHistory(existingDomain, now);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
@@ -153,13 +154,6 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         .setAutorenewEndTime(END_OF_TIME)
         .setParent(historyEntry)
         .build();
-    // Handle extra flow logic, if any.
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForDomain(existingDomain);
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainRestoreLogic(
-          existingDomain, clientId, now, eppInput, historyEntry);
-    }
     DomainResource newDomain =
         performRestore(existingDomain, newExpirationTime, autorenewEvent, autorenewPollMessage);
     updateForeignKeyIndexDeletionTime(newDomain);

@@ -21,6 +21,7 @@ import google.registry.flows.SessionMetadata;
 import google.registry.flows.domain.DomainPricingLogic;
 import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.model.ImmutableObject;
+import google.registry.model.domain.DomainApplication;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.registry.Registry;
 import org.joda.time.DateTime;
@@ -36,11 +37,78 @@ public class DomainPricingCustomLogic extends BaseFlowCustomLogic {
     super(eppInput, sessionMetadata);
   }
 
-  /** A hook that customizes create price. */
+  /** A hook that customizes the application update price. */
   @SuppressWarnings("unused")
-  public FeesAndCredits customizeCreatePrice(CreatePriceParameters createPriceParameters)
+  public FeesAndCredits customizeApplicationUpdatePrice(
+      ApplicationUpdatePriceParameters priceParameters) throws EppException {
+    return priceParameters.feesAndCredits();
+  }
+
+  /** A hook that customizes the create price. */
+  @SuppressWarnings("unused")
+  public FeesAndCredits customizeCreatePrice(CreatePriceParameters priceParameters)
       throws EppException {
-    return createPriceParameters.feesAndCredits();
+    return priceParameters.feesAndCredits();
+  }
+
+  /** A hook that customizes the renew price. */
+  @SuppressWarnings("unused")
+  public FeesAndCredits customizeRenewPrice(RenewPriceParameters priceParameters)
+      throws EppException {
+    return priceParameters.feesAndCredits();
+  }
+
+  /** A hook that customizes the restore price. */
+  @SuppressWarnings("unused")
+  public FeesAndCredits customizeRestorePrice(RestorePriceParameters priceParameters)
+      throws EppException {
+    return priceParameters.feesAndCredits();
+  }
+
+  /** A hook that customizes the transfer price. */
+  @SuppressWarnings("unused")
+  public FeesAndCredits customizeTransferPrice(TransferPriceParameters priceParameters)
+      throws EppException {
+    return priceParameters.feesAndCredits();
+  }
+
+  /** A hook that customizes the update price. */
+  @SuppressWarnings("unused")
+  public FeesAndCredits customizeUpdatePrice(UpdatePriceParameters priceParameters)
+      throws EppException {
+    return priceParameters.feesAndCredits();
+  }
+
+  /** A class to encapsulate parameters for a call to {@link #customizeApplicationUpdatePrice} . */
+  @AutoValue
+  public abstract static class ApplicationUpdatePriceParameters extends ImmutableObject {
+
+    public abstract FeesAndCredits feesAndCredits();
+
+    public abstract Registry registry();
+
+    public abstract DomainApplication domainApplication();
+
+    public abstract DateTime asOfDate();
+
+    public static Builder newBuilder() {
+      return new AutoValue_DomainPricingCustomLogic_ApplicationUpdatePriceParameters.Builder();
+    }
+
+    /** Builder for {@link ApplicationUpdatePriceParameters}. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setFeesAndCredits(FeesAndCredits feesAndCredits);
+
+      public abstract Builder setRegistry(Registry registry);
+
+      public abstract Builder setDomainApplication(DomainApplication domainApplication);
+
+      public abstract Builder setAsOfDate(DateTime asOfDate);
+
+      public abstract ApplicationUpdatePriceParameters build();
+    }
   }
 
   /** A class to encapsulate parameters for a call to {@link #customizeCreatePrice} . */
@@ -76,6 +144,142 @@ public class DomainPricingCustomLogic extends BaseFlowCustomLogic {
       public abstract Builder setYears(int years);
 
       public abstract CreatePriceParameters build();
+    }
+  }
+
+  /** A class to encapsulate parameters for a call to {@link #customizeRenewPrice} . */
+  @AutoValue
+  public abstract static class RenewPriceParameters extends ImmutableObject {
+
+    public abstract FeesAndCredits feesAndCredits();
+
+    public abstract Registry registry();
+
+    public abstract InternetDomainName domainName();
+
+    public abstract DateTime asOfDate();
+
+    public abstract int years();
+
+    public static Builder newBuilder() {
+      return new AutoValue_DomainPricingCustomLogic_RenewPriceParameters.Builder();
+    }
+
+    /** Builder for {@link RenewPriceParameters}. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setFeesAndCredits(FeesAndCredits feesAndCredits);
+
+      public abstract Builder setRegistry(Registry registry);
+
+      public abstract Builder setDomainName(InternetDomainName domainName);
+
+      public abstract Builder setAsOfDate(DateTime asOfDate);
+
+      public abstract Builder setYears(int years);
+
+      public abstract RenewPriceParameters build();
+    }
+  }
+
+  /** A class to encapsulate parameters for a call to {@link #customizeRestorePrice} . */
+  @AutoValue
+  public abstract static class RestorePriceParameters extends ImmutableObject {
+
+    public abstract FeesAndCredits feesAndCredits();
+
+    public abstract Registry registry();
+
+    public abstract InternetDomainName domainName();
+
+    public abstract DateTime asOfDate();
+
+    public static Builder newBuilder() {
+      return new AutoValue_DomainPricingCustomLogic_RestorePriceParameters.Builder();
+    }
+
+    /** Builder for {@link RestorePriceParameters}. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setFeesAndCredits(FeesAndCredits feesAndCredits);
+
+      public abstract Builder setRegistry(Registry registry);
+
+      public abstract Builder setDomainName(InternetDomainName domainName);
+
+      public abstract Builder setAsOfDate(DateTime asOfDate);
+
+      public abstract RestorePriceParameters build();
+    }
+  }
+
+  /** A class to encapsulate parameters for a call to {@link #customizeTransferPrice} . */
+  @AutoValue
+  public abstract static class TransferPriceParameters extends ImmutableObject {
+
+    public abstract FeesAndCredits feesAndCredits();
+
+    public abstract Registry registry();
+
+    public abstract InternetDomainName domainName();
+
+    public abstract DateTime asOfDate();
+
+    public abstract int years();
+
+    public static Builder newBuilder() {
+      return new AutoValue_DomainPricingCustomLogic_TransferPriceParameters.Builder();
+    }
+
+    /** Builder for {@link TransferPriceParameters}. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setFeesAndCredits(FeesAndCredits feesAndCredits);
+
+      public abstract Builder setRegistry(Registry registry);
+
+      public abstract Builder setDomainName(InternetDomainName domainName);
+
+      public abstract Builder setAsOfDate(DateTime asOfDate);
+
+      public abstract Builder setYears(int years);
+
+      public abstract TransferPriceParameters build();
+    }
+  }
+
+  /** A class to encapsulate parameters for a call to {@link #customizeUpdatePrice} . */
+  @AutoValue
+  public abstract static class UpdatePriceParameters extends ImmutableObject {
+
+    public abstract FeesAndCredits feesAndCredits();
+
+    public abstract Registry registry();
+
+    public abstract InternetDomainName domainName();
+
+    public abstract DateTime asOfDate();
+
+    public static Builder newBuilder() {
+      return new AutoValue_DomainPricingCustomLogic_UpdatePriceParameters.Builder();
+    }
+
+    /** Builder for {@link UpdatePriceParameters}. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setFeesAndCredits(FeesAndCredits feesAndCredits);
+
+      public abstract Builder setRegistry(Registry registry);
+
+      public abstract Builder setDomainName(InternetDomainName domainName);
+
+      public abstract Builder setAsOfDate(DateTime asOfDate);
+
+      public abstract UpdatePriceParameters build();
     }
   }
 }

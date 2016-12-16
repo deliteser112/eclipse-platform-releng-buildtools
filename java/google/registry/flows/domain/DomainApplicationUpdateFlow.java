@@ -55,7 +55,7 @@ import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeUpdateException;
-import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
+import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Update;
@@ -137,6 +137,7 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
   @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppResponse.Builder responseBuilder;
+  @Inject DomainPricingLogic pricingLogic;
   @Inject DomainApplicationUpdateFlow() {}
 
   @Override
@@ -160,7 +161,6 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
     HistoryEntry historyEntry = buildHistory(existingApplication, now);
     DomainApplication newApplication = updateApplication(existingApplication, command, now);
     validateNewApplication(newApplication);
-    handleExtraFlowLogic(newApplication.getTld(), historyEntry, newApplication, now);
     ofy().save().<ImmutableObject>entities(newApplication, historyEntry);
     return responseBuilder.build();
   }
@@ -181,14 +181,14 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
       throw new ApplicationStatusProhibitsUpdateException(
           existingApplication.getApplicationStatus());
     }
-    EppCommandOperations commandOperations = TldSpecificLogicProxy.getApplicationUpdatePrice(
-        Registry.get(tld), existingApplication, clientId, now, eppInput);
+    FeesAndCredits feesAndCredits =
+        pricingLogic.getApplicationUpdatePrice(Registry.get(tld), existingApplication, now);
     FeeUpdateCommandExtension feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
     // If the fee extension is present, validate it (even if the cost is zero, to check for price
     // mismatches). Don't rely on the the validateFeeChallenge check for feeUpdate nullness, because
     // it throws an error if the name is premium, and we don't want to do that here.
-    Money totalCost = commandOperations.getTotalCost();
+    Money totalCost = feesAndCredits.getTotalCost();
     if (feeUpdate != null) {
       validateFeeChallenge(targetId, tld, now, feeUpdate, totalCost);
     } else if (!totalCost.isZero()) {
@@ -246,16 +246,6 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
     validateRequiredContactsPresent(newApplication.getRegistrant(), newApplication.getContacts());
     validateDsData(newApplication.getDsData());
     validateNameserversCountForTld(newApplication.getTld(), newApplication.getNameservers().size());
-  }
-
-  private void handleExtraFlowLogic(String tld, HistoryEntry historyEntry,
-      DomainApplication newApplication, DateTime now) throws EppException {
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(tld);
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalApplicationUpdateLogic(
-          newApplication, clientId, now, eppInput, historyEntry);
-    }
   }
 
   /** Application status prohibits this domain update. */

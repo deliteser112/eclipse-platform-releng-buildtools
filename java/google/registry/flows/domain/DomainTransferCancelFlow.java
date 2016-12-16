@@ -92,7 +92,6 @@ public final class DomainTransferCancelFlow implements TransactionalFlow {
         .build();
     DomainResource newDomain =
         denyPendingTransfer(existingDomain, TransferStatus.CLIENT_CANCELLED, now);
-    handleExtraFlowLogic(existingDomain.getTld(), historyEntry, existingDomain);
     ofy().save().<ImmutableObject>entities(
         newDomain,
         historyEntry,
@@ -107,17 +106,5 @@ public final class DomainTransferCancelFlow implements TransactionalFlow {
     return responseBuilder
         .setResData(createTransferResponse(targetId, newDomain.getTransferData(), null))
         .build();
-  }
-
-  private void handleExtraFlowLogic(
-      String tld, HistoryEntry historyEntry, DomainResource existingDomain) throws EppException {
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(tld);
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainTransferCancelLogic(
-          existingDomain,
-          clientId,
-          historyEntry);
-    }
   }
 }

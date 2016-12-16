@@ -176,7 +176,6 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     // cloneProjectedAtTime() will replace these old autorenew entities with the server approve ones
     // that we've created in this flow and stored in pendingTransferData.
     updateAutorenewRecurrenceEndTime(existingDomain, automaticTransferTime);
-    handleExtraFlowLogic(years, existingDomain, historyEntry, now);
     DomainResource newDomain = existingDomain.asBuilder()
         .setTransferData(pendingTransferData)
         .addStatusValue(StatusValue.PENDING_TRANSFER)
@@ -374,22 +373,6 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
             getOnlyElement(filter(serverApproveEntities, PollMessage.Autorenew.class))))
         .setServerApproveEntities(serverApproveEntityKeys.build())
         .build();
-  }
-
-  private void handleExtraFlowLogic(
-      int years, DomainResource existingDomain, HistoryEntry historyEntry, DateTime now)
-          throws EppException {
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForDomain(existingDomain);
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainTransferRequestLogic(
-          existingDomain,
-          gainingClientId,
-          now,
-          years,
-          eppInput,
-          historyEntry);
-    }
   }
 
   private DomainTransferResponse createResponse(

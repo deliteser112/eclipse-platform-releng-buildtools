@@ -61,8 +61,6 @@ import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.TestExtraLogicManager;
-import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
@@ -99,7 +97,6 @@ public class DomainTransferRequestFlowTest
     setClientIdForFlow("NewRegistrar");
     setupDomain("tld");
     createTld("flags");
-    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   private void assertTransferRequested(DomainResource domain) throws Exception {
@@ -777,15 +774,5 @@ public class DomainTransferRequestFlowTest
         domain.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build());
     thrown.expect(ResourceStatusProhibitsOperationException.class);
     doFailingTest("domain_transfer_request.xml");
-  }
-
-  @Test
-  public void testSuccess_flags() throws Exception {
-    setEppInput("domain_transfer_request_flags.xml");
-    setupDomain("example", "flags");
-    eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    thrown.expect(
-        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
-    runFlow();
   }
 }

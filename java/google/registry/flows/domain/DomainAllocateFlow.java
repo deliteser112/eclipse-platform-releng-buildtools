@@ -37,7 +37,6 @@ import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
@@ -177,7 +176,6 @@ public class DomainAllocateFlow implements TransactionalFlow {
         .setNameservers(command.getNameservers())
         .setContacts(command.getContacts())
         .build();
-    handleExtraFlowLogic(registry.getTldStr(), years, historyEntry, newDomain, now);
     entitiesToSave.add(
         newDomain,
         buildApplicationHistory(application, now),
@@ -361,22 +359,6 @@ public class DomainAllocateFlow implements TransactionalFlow {
       InternetDomainName domainName, Registry registry, String authInfoToken, DateTime now) {
     return registry.getLrpPeriod().contains(now)
         && !matchesAnchorTenantReservation(domainName, authInfoToken);
-  }
-
-  private void handleExtraFlowLogic(
-      String tld, int years, HistoryEntry historyEntry, DomainResource newDomain, DateTime now)
-          throws EppException {
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(tld);
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainAllocateLogic(
-          newDomain,
-          clientId,
-          now,
-          years,
-          eppInput,
-          historyEntry);
-    }
   }
 
   private void enqueueTasks(AllocateCreateExtension allocateCreate, DomainResource newDomain) {

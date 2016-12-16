@@ -49,7 +49,7 @@ import google.registry.flows.custom.DomainRenewFlowCustomLogic.BeforeResponsePar
 import google.registry.flows.custom.DomainRenewFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.DomainRenewFlowCustomLogic.BeforeSaveParameters;
 import google.registry.flows.custom.EntityChanges;
-import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
+import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.OneTime;
@@ -121,6 +121,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainRenewFlowCustomLogic customLogic;
+  @Inject DomainPricingLogic pricingLogic;
   @Inject DomainRenewFlow() {}
 
   @Override
@@ -137,10 +138,10 @@ public final class DomainRenewFlow implements TransactionalFlow {
     int years = command.getPeriod().getValue();
     FeeRenewCommandExtension feeRenew =
         eppInput.getSingleExtension(FeeRenewCommandExtension.class);
-    EppCommandOperations commandOperations = TldSpecificLogicProxy.getRenewPrice(
-        Registry.get(existingDomain.getTld()), targetId, clientId, now, years, eppInput);
+    FeesAndCredits feesAndCredits =
+        pricingLogic.getRenewPrice(Registry.get(existingDomain.getTld()), targetId, now, years);
     validateFeeChallenge(
-        targetId, existingDomain.getTld(), now, feeRenew, commandOperations.getTotalCost());
+        targetId, existingDomain.getTld(), now, feeRenew, feesAndCredits.getTotalCost());
     customLogic.afterValidation(
         AfterValidationParameters.newBuilder()
             .setExistingDomain(existingDomain)
@@ -161,7 +162,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
     String tld = existingDomain.getTld();
     // Bill for this explicit renew itself.
     BillingEvent.OneTime explicitRenewEvent =
-        createRenewBillingEvent(tld, commandOperations.getTotalCost(), years, historyEntry, now);
+        createRenewBillingEvent(tld, feesAndCredits.getTotalCost(), years, historyEntry, now);
     // Create a new autorenew billing event and poll message starting at the new expiration time.
     BillingEvent.Recurring newAutorenewEvent = newAutorenewBillingEvent(existingDomain)
         .setEventTime(newExpirationTime)
@@ -173,13 +174,6 @@ public final class DomainRenewFlow implements TransactionalFlow {
         .build();
     // End the old autorenew billing event and poll message now. This may delete the poll message.
     updateAutorenewRecurrenceEndTime(existingDomain, now);
-    // Handle extra flow logic, if any.
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForDomain(existingDomain);
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainRenewLogic(
-          existingDomain, clientId, now, years, eppInput, historyEntry);
-    }
     DomainResource newDomain = existingDomain.asBuilder()
         .setRegistrationExpirationTime(newExpirationTime)
         .setAutorenewBillingEvent(Key.create(newAutorenewEvent))
@@ -212,7 +206,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
                 .setDomain(newDomain)
                 .setResData(DomainRenewData.create(targetId, newExpirationTime))
                 .setResponseExtensions(
-                    createResponseExtensions(commandOperations.getTotalCost(), feeRenew))
+                    createResponseExtensions(feesAndCredits.getTotalCost(), feeRenew))
                 .build());
     return responseBuilder
         .setResData(responseData.resData())

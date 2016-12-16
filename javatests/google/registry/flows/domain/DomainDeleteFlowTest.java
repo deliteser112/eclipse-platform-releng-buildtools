@@ -58,8 +58,6 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.TestExtraLogicManager;
-import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppcommon.StatusValue;
@@ -107,7 +105,6 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   public void initDomainTest() throws Exception {
     createTlds("tld", "flags");
     // For flags extension tests.
-    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   private void setupSuccessfulTest() throws Exception {
@@ -733,14 +730,6 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setEppInput("domain_delete_metadata.xml");
     persistResource(newDomainResource(getUniqueIdFromCommand()));
     thrown.expect(OnlyToolCanPassMetadataException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testSuccess_flags() throws Exception {
-    setEppInput("domain_delete_flags.xml");
-    setupSuccessfulTest();
-    thrown.expect(TestExtraLogicManagerSuccessException.class, "deleted");
     runFlow();
   }
 }

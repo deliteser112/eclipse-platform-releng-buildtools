@@ -156,7 +156,6 @@ public final class DomainDeleteFlow implements TransactionalFlow {
               clientId)))
           .setDeletePollMessage(Key.create(deletePollMessage));
     }
-    handleExtraFlowLogic(existingDomain, historyEntry, now);
     DomainResource newDomain = builder.build();
     updateForeignKeyIndexDeletionTime(newDomain);
     handlePendingTransferOnDelete(existingDomain, newDomain, now, historyEntry);
@@ -231,17 +230,6 @@ public final class DomainDeleteFlow implements TransactionalFlow {
                 existingResource.getFullyQualifiedDomainName(), true, trid, deletionTime)))
         .setParent(historyEntry)
         .build();
-  }
-
-  private void handleExtraFlowLogic(
-      DomainResource existingResource, HistoryEntry historyEntry, DateTime now)
-          throws EppException {
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForDomain(existingResource);
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainDeleteLogic(
-          existingResource, clientId, now, eppInput, historyEntry);
-    }
   }
 
   @Nullable

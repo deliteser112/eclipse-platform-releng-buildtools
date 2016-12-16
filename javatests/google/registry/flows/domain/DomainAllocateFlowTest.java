@@ -52,8 +52,6 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.TestExtraLogicManager;
-import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
 import google.registry.model.domain.launch.LaunchNotice;
@@ -490,16 +488,5 @@ public class DomainAllocateFlowTest
     assertTransactionalFlow(true);
     thrown.expect(OnlySuperuserCanAllocateException.class);
     runFlow(CommitMode.LIVE, UserPrivileges.NORMAL);
-  }
-
-  @Test
-  public void testSuccess_extra() throws Exception {
-    setEppInput(
-        "domain_allocate.xml",
-        ImmutableMap.of("APPLICATIONID", "2-EXTRA", "DOMAIN", "domain.extra"));
-    setupDomainApplication("extra", TldState.QUIET_PERIOD);
-    RegistryExtraFlowLogicProxy.setOverride("extra", TestExtraLogicManager.class);
-    thrown.expect(TestExtraLogicManagerSuccessException.class, "allocated");
-    runFlowAsSuperuser();
   }
 }

@@ -51,8 +51,6 @@ import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.TestExtraLogicManager;
-import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
@@ -96,7 +94,6 @@ public class DomainTransferApproveFlowTest
             .build());
     setClientIdForFlow("TheRegistrar");
     createTld("extra");
-    RegistryExtraFlowLogicProxy.setOverride("extra", TestExtraLogicManager.class);
     setupDomainWithPendingTransfer();
     clock.advanceOneMilli();
   }
@@ -494,12 +491,4 @@ public class DomainTransferApproveFlowTest
 
   // NB: No need to test pending delete status since pending transfers will get cancelled upon
   // entering pending delete phase. So it's already handled in that test case.
-
-  @Test
-  public void testSuccess_extra() throws Exception {
-    setupDomainWithPendingTransfer("extra");
-    clock.advanceOneMilli();
-    thrown.expect(TestExtraLogicManagerSuccessException.class, "transfer approved");
-    doFailingTest("domain_transfer_approve_extra.xml");
-  }
 }

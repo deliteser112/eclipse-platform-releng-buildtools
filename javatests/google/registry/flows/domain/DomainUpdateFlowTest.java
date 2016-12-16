@@ -22,7 +22,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
@@ -30,7 +29,6 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
-import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
@@ -76,8 +74,6 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.TestExtraLogicManager;
-import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
@@ -108,17 +104,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Before
   public void initDomainTest() {
-    createTlds("tld", "flags");
-    // Super-hack premium list: The domain name has to be of the form feetype-amount for the
-    // test extra logic manager to be happy. So we use domain name "renew-0" to designate a premium
-    // name with a zero-cost update. This has nothing to do with renewals -- we just need to use a
-    // valid fee type.
-    persistResource(
-        Registry.get("flags").asBuilder()
-            .setPremiumList(persistPremiumList("flags", "renew-0,USD 100"))
-            .build());
-    // For flags extension tests.
-    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
+    createTld("tld");
   }
 
   private void persistReferencedEntities() {
@@ -1194,105 +1180,23 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     runFlow();
   }
 
-  // This test should work, because the fee extension is not required when the fee is zero.
   @Test
-  public void testAddAndRemoveFlags_free_noFee() throws Exception {
-    setEppInput("domain_update_addremove_flags.xml", ImmutableMap.of("DOMAIN", "update-0"));
-    persistReferencedEntities();
-    persistDomain();
-    thrown.expect(
-        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
-    runFlow();
-  }
-
-  @Test
-  public void testAddAndRemoveFlags_free_wrongFee() throws Exception {
-    setEppInput(
-        "domain_update_addremove_flags_fee.xml",
-        ImmutableMap.of("DOMAIN", "update-0", "FEE", "1.00"));
+  public void testFailure_freePremium_wrongFee() throws Exception {
+    setEppInput("domain_update_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistReferencedEntities();
     persistDomain();
     thrown.expect(FeesMismatchException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testAddAndRemoveFlags_free_correctFee() throws Exception {
-    setEppInput(
-        "domain_update_addremove_flags_fee.xml",
-        ImmutableMap.of("DOMAIN", "update-0", "FEE", "0.00"));
-    persistReferencedEntities();
-    persistDomain();
-    thrown.expect(
-        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
-    runFlow();
-  }
-
-  // This should also work, even though the domain is premium (previously, a bug caused it to fail).
-  @Test
-  public void testAddAndRemoveFlags_freePremium_noFee() throws Exception {
-    setEppInput("domain_update_addremove_flags.xml", ImmutableMap.of("DOMAIN", "renew-0"));
-    persistReferencedEntities();
-    persistDomain();
-    thrown.expect(
-        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
-    runFlow();
-  }
-
-  @Test
-  public void testAddAndRemoveFlags_freePremium_wrongFee() throws Exception {
-    setEppInput(
-        "domain_update_addremove_flags_fee.xml",
-        ImmutableMap.of("DOMAIN", "renew-0", "FEE", "1.00"));
-    persistReferencedEntities();
-    persistDomain();
-    thrown.expect(FeesMismatchException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testAddAndRemoveFlags_freePremium_correctFee() throws Exception {
-    setEppInput(
-        "domain_update_addremove_flags_fee.xml",
-        ImmutableMap.of("DOMAIN", "renew-0", "FEE", "0.00"));
-    persistReferencedEntities();
-    persistDomain();
-    thrown.expect(
-        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
     runFlow();
   }
 
   // This test should throw an exception, because the fee extension is required when the fee is not
   // zero.
   @Test
-  public void testAddAndRemoveFlags_paid_noFee() throws Exception {
-    setEppInput("domain_update_addremove_flags.xml", ImmutableMap.of("DOMAIN", "update-13"));
+  public void testFailure_missingFeeOnNonFreeUpdate() throws Exception {
+    setEppInput("domain_update_wildcard.xml", ImmutableMap.of("DOMAIN", "non-free-update.tld"));
     persistReferencedEntities();
     persistDomain();
     thrown.expect(FeesRequiredForNonFreeUpdateException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testAddAndRemoveFlags_paid_wrongFee() throws Exception {
-    setEppInput(
-        "domain_update_addremove_flags_fee.xml",
-        ImmutableMap.of("DOMAIN", "update-13", "FEE", "11.00"));
-    persistReferencedEntities();
-    persistDomain();
-    thrown.expect(FeesMismatchException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testAddAndRemoveFlags_paid_correctFee() throws Exception {
-    setEppInput(
-        "domain_update_addremove_flags_fee.xml",
-        ImmutableMap.of("DOMAIN", "update-13", "FEE", "13.00"));
-    persistReferencedEntities();
-    persistDomain();
-    thrown.expect(
-        TestExtraLogicManagerSuccessException.class, "add:flag1,flag2;remove:flag3,flag4");
     runFlow();
   }
 }

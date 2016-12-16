@@ -15,6 +15,8 @@
 package google.registry.flows.custom;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Iterables.toArray;
+import static java.math.BigDecimal.TEN;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Splitter;
@@ -61,13 +63,12 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
     }
   }
 
-  /** A hook that customizes create price. */
   @Override
-  public FeesAndCredits customizeCreatePrice(CreatePriceParameters createPriceParameters)
+  public FeesAndCredits customizeCreatePrice(CreatePriceParameters priceParameters)
       throws EppException {
-    InternetDomainName domainName = createPriceParameters.domainName();
+    InternetDomainName domainName = priceParameters.domainName();
     if (domainName.parent().toString().equals("flags")) {
-      FeesAndCredits feesAndCredits = createPriceParameters.feesAndCredits();
+      FeesAndCredits feesAndCredits = priceParameters.feesAndCredits();
       ImmutableList.Builder<BaseFee> baseFeeBuilder = new ImmutableList.Builder<>();
       baseFeeBuilder.addAll(feesAndCredits.getCredits());
       for (BaseFee fee : feesAndCredits.getFees()) {
@@ -77,7 +78,40 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
       return new FeesAndCredits(
           feesAndCredits.getCurrency(), Iterables.toArray(baseFeeBuilder.build(), BaseFee.class));
     } else {
-      return createPriceParameters.feesAndCredits();
+      return priceParameters.feesAndCredits();
+    }
+  }
+
+  @Override
+  public FeesAndCredits customizeRenewPrice(RenewPriceParameters priceParameters)
+      throws EppException {
+    if (priceParameters.domainName().toString().startsWith("costly-renew")) {
+      FeesAndCredits feesAndCredits = priceParameters.feesAndCredits();
+      List<BaseFee> newFeesAndCredits =
+          new ImmutableList.Builder<BaseFee>()
+              .addAll(feesAndCredits.getFeesAndCredits())
+              .add(Fee.create(BigDecimal.valueOf(100), FeeType.RENEW))
+              .build();
+      return new FeesAndCredits(
+          feesAndCredits.getCurrency(), toArray(newFeesAndCredits, BaseFee.class));
+    } else {
+      return priceParameters.feesAndCredits();
+    }
+  }
+
+  @Override
+  public FeesAndCredits customizeUpdatePrice(UpdatePriceParameters priceParameters) {
+    if (priceParameters.domainName().toString().startsWith("non-free-update")) {
+      FeesAndCredits feesAndCredits = priceParameters.feesAndCredits();
+      List<BaseFee> newFeesAndCredits =
+          new ImmutableList.Builder<BaseFee>()
+              .addAll(feesAndCredits.getFeesAndCredits())
+              .add(Fee.create(TEN, FeeType.UPDATE))
+              .build();
+      return new FeesAndCredits(
+          feesAndCredits.getCurrency(), toArray(newFeesAndCredits, BaseFee.class));
+    } else {
+      return priceParameters.feesAndCredits();
     }
   }
 }

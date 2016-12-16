@@ -14,7 +14,7 @@
 
 package google.registry.flows.domain;
 
-import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static com.google.common.collect.Iterables.concat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static google.registry.pricing.PricingEngineProxy.getDomainFeeClass;
@@ -28,20 +28,21 @@ import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowScope;
-import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.custom.DomainPricingCustomLogic;
+import google.registry.flows.custom.DomainPricingCustomLogic.ApplicationUpdatePriceParameters;
 import google.registry.flows.custom.DomainPricingCustomLogic.CreatePriceParameters;
+import google.registry.flows.custom.DomainPricingCustomLogic.RenewPriceParameters;
+import google.registry.flows.custom.DomainPricingCustomLogic.RestorePriceParameters;
+import google.registry.flows.custom.DomainPricingCustomLogic.TransferPriceParameters;
+import google.registry.flows.custom.DomainPricingCustomLogic.UpdatePriceParameters;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Credit;
 import google.registry.model.domain.fee.Fee;
-import google.registry.model.eppinput.EppInput;
 import google.registry.model.registry.Registry;
-import java.util.List;
 import javax.inject.Inject;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -62,11 +63,12 @@ public final class DomainPricingLogic {
 
   /** A collection of fees and credits for a specific EPP transform. */
   public static final class FeesAndCredits extends ImmutableObject {
+
     private final CurrencyUnit currency;
     private final ImmutableList<Fee> fees;
     private final ImmutableList<Credit> credits;
 
-    /** Constructs an FeesAndCredits object. The arguments are sorted into fees and credits. */
+    /** Constructs a new instance. The currency must be the same across all fees and credits. */
     public FeesAndCredits(CurrencyUnit currency, BaseFee... baseFees) {
       this.currency = checkArgumentNotNull(currency, "Currency may not be null in FeesAndCredits.");
       ImmutableList.Builder<Fee> feeBuilder = new ImmutableList.Builder<>();
@@ -121,13 +123,18 @@ public final class DomainPricingLogic {
     }
 
     /** Returns the list of credits for the event. */
-    public List<Credit> getCredits() {
-      return nullToEmpty(credits);
+    public ImmutableList<Credit> getCredits() {
+      return ImmutableList.copyOf(nullToEmpty(credits));
     }
 
     /** Returns the currency for all fees in the event. */
     public final CurrencyUnit getCurrency() {
       return currency;
+    }
+
+    /** Returns all fees and credits for the event. */
+    public ImmutableList<BaseFee> getFeesAndCredits() {
+      return ImmutableList.copyOf(concat(getFees(), getCredits()));
     }
   }
 
@@ -164,121 +171,97 @@ public final class DomainPricingLogic {
 
   // TODO: (b/33000134) clean up the rest of the pricing calls.
 
-  /**
-   * Computes the renew fee or credit. This is called by other methods which use the renew fee
-   * (renew, restore, etc).
-   */
-  static BaseFee getRenewFeeOrCredit(
-      Registry registry,
-      String domainName,
-      String clientId,
-      DateTime date,
-      int years,
-      EppInput eppInput)
-      throws EppException {
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(registry.getTldStr());
-    if (extraFlowLogic.isPresent()) {
-      // TODO: Consider changing the method definition to have the domain passed in to begin with.
-      DomainResource domain = loadByForeignKey(DomainResource.class, domainName, date);
-      if (domain == null) {
-        throw new ResourceDoesNotExistException(DomainResource.class, domainName);
-      }
-      return extraFlowLogic.get().getRenewFeeOrCredit(domain, clientId, date, years, eppInput);
-    } else {
-      return Fee.create(getDomainRenewCost(domainName, date, years).getAmount(), FeeType.RENEW);
-    }
-  }
-
   /** Returns a new renew price for the pricer. */
-  public static FeesAndCredits getRenewPrice(
+  @SuppressWarnings("unused")
+  public FeesAndCredits getRenewPrice(
       Registry registry,
       String domainName,
-      String clientId,
       DateTime date,
-      int years,
-      EppInput eppInput)
+      int years)
       throws EppException {
-    return new FeesAndCredits(
-        registry.getCurrency(),
-        getRenewFeeOrCredit(registry, domainName, clientId, date, years, eppInput));
+    Money renewCost = getDomainRenewCost(domainName, date, years);
+    return customLogic.customizeRenewPrice(
+        RenewPriceParameters.newBuilder()
+            .setFeesAndCredits(
+                new FeesAndCredits(
+                    registry.getCurrency(), Fee.create(renewCost.getAmount(), FeeType.RENEW)))
+            .setRegistry(registry)
+            .setDomainName(InternetDomainName.from(domainName))
+            .setAsOfDate(date)
+            .setYears(years)
+            .build());
   }
 
   /** Returns a new restore price for the pricer. */
-  public static FeesAndCredits getRestorePrice(
-      Registry registry, String domainName, String clientId, DateTime date, EppInput eppInput)
+  @SuppressWarnings("unused")
+  public FeesAndCredits getRestorePrice(Registry registry, String domainName, DateTime date)
       throws EppException {
-    return new FeesAndCredits(
-        registry.getCurrency(),
-        getRenewFeeOrCredit(registry, domainName, clientId, date, 1, eppInput),
-        Fee.create(registry.getStandardRestoreCost().getAmount(), FeeType.RESTORE));
+    FeesAndCredits feesAndCredits =
+        new FeesAndCredits(
+            registry.getCurrency(),
+            Fee.create(getDomainRenewCost(domainName, date, 1).getAmount(), FeeType.RENEW),
+            Fee.create(registry.getStandardRestoreCost().getAmount(), FeeType.RESTORE));
+    return customLogic.customizeRestorePrice(
+        RestorePriceParameters.newBuilder()
+            .setFeesAndCredits(feesAndCredits)
+            .setRegistry(registry)
+            .setDomainName(InternetDomainName.from(domainName))
+            .setAsOfDate(date)
+            .build());
   }
 
   /** Returns a new transfer price for the pricer. */
-  public static FeesAndCredits getTransferPrice(
+  public FeesAndCredits getTransferPrice(
       Registry registry,
       String domainName,
-      String clientId,
       DateTime transferDate,
-      int years,
-      EppInput eppInput)
+      int years)
       throws EppException {
-    // Currently, all transfer prices = renew prices, so just pass through.
-    return getRenewPrice(registry, domainName, clientId, transferDate, years, eppInput);
+    Money renewCost = getDomainRenewCost(domainName, transferDate, years);
+    return customLogic.customizeTransferPrice(
+        TransferPriceParameters.newBuilder()
+            .setFeesAndCredits(
+                new FeesAndCredits(
+                    registry.getCurrency(), Fee.create(renewCost.getAmount(), FeeType.RENEW)))
+            .setRegistry(registry)
+            .setDomainName(InternetDomainName.from(domainName))
+            .setAsOfDate(transferDate)
+            .setYears(years)
+            .build());
   }
 
   /** Returns a new update price for the pricer. */
-  public static FeesAndCredits getUpdatePrice(
-      Registry registry, String domainName, String clientId, DateTime date, EppInput eppInput)
+  public FeesAndCredits getUpdatePrice(Registry registry, String domainName, DateTime date)
       throws EppException {
     CurrencyUnit currency = registry.getCurrency();
-
-    // If there is extra flow logic, it may specify an update price. Otherwise, there is none.
-    BaseFee feeOrCredit;
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(registry.getTldStr());
-    if (extraFlowLogic.isPresent()) {
-      // TODO: Consider changing the method definition to have the domain passed in to begin with.
-      DomainResource domain = loadByForeignKey(DomainResource.class, domainName, date);
-      if (domain == null) {
-        throw new ResourceDoesNotExistException(DomainResource.class, domainName);
-      }
-      feeOrCredit = extraFlowLogic.get().getUpdateFeeOrCredit(domain, clientId, date, eppInput);
-    } else {
-      feeOrCredit = Fee.create(Money.zero(registry.getCurrency()).getAmount(), FeeType.UPDATE);
-    }
-
-    return new FeesAndCredits(currency, feeOrCredit);
+    BaseFee feeOrCredit =
+        Fee.create(Money.zero(registry.getCurrency()).getAmount(), FeeType.UPDATE);
+    return customLogic.customizeUpdatePrice(
+        UpdatePriceParameters.newBuilder()
+            .setFeesAndCredits(new FeesAndCredits(currency, feeOrCredit))
+            .setRegistry(registry)
+            .setDomainName(InternetDomainName.from(domainName))
+            .setAsOfDate(date)
+            .build());
   }
 
   /** Returns a new domain application update price for the pricer. */
-  public static FeesAndCredits getApplicationUpdatePrice(
-      Registry registry,
-      DomainApplication application,
-      String clientId,
-      DateTime date,
-      EppInput eppInput)
-      throws EppException {
-    CurrencyUnit currency = registry.getCurrency();
-
-    // If there is extra flow logic, it may specify an update price. Otherwise, there is none.
-    BaseFee feeOrCredit;
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(registry.getTldStr());
-    if (extraFlowLogic.isPresent()) {
-      feeOrCredit =
-          extraFlowLogic
-              .get()
-              .getApplicationUpdateFeeOrCredit(application, clientId, date, eppInput);
-    } else {
-      feeOrCredit = Fee.create(Money.zero(registry.getCurrency()).getAmount(), FeeType.UPDATE);
-    }
-
-    return new FeesAndCredits(currency, feeOrCredit);
+  @SuppressWarnings("unused")
+  public FeesAndCredits getApplicationUpdatePrice(
+      Registry registry, DomainApplication application, DateTime date) throws EppException {
+    BaseFee feeOrCredit =
+        Fee.create(Money.zero(registry.getCurrency()).getAmount(), FeeType.UPDATE);
+    return customLogic.customizeApplicationUpdatePrice(
+        ApplicationUpdatePriceParameters.newBuilder()
+            .setFeesAndCredits(new FeesAndCredits(registry.getCurrency(), feeOrCredit))
+            .setRegistry(registry)
+            .setDomainApplication(application)
+            .setAsOfDate(date)
+            .build());
   }
 
   /** Returns the fee class for a given domain and date. */
-  public static Optional<String> getFeeClass(String domainName, DateTime date) {
+  public Optional<String> getFeeClass(String domainName, DateTime date) {
     return getDomainFeeClass(domainName, date);
   }
 

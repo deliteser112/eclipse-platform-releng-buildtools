@@ -39,7 +39,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.fee06.FeeInfoCommandExtensionV06;
 import google.registry.model.domain.fee06.FeeInfoResponseExtensionV06;
-import google.registry.model.domain.flags.FlagsInfoResponseExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.rgp.RgpInfoExtension;
 import google.registry.model.eppcommon.AuthInfo;
@@ -48,7 +47,6 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.util.Clock;
-import java.util.Set;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -149,25 +147,10 @@ public final class DomainInfoFlow implements Flow {
           feeInfo,
           builder,
           InternetDomainName.from(targetId),
-          clientId,
           null,
           now,
-          eppInput,
           pricingLogic);
       extensions.add(builder.build());
-    }
-    // If the TLD uses the flags extension, add it to the info response.
-    Optional<RegistryExtraFlowLogic> extraLogicManager =
-        RegistryExtraFlowLogicProxy.newInstanceForDomain(domain);
-    if (extraLogicManager.isPresent()) {
-      Set<String> flags =
-          extraLogicManager
-              .get()
-              .getExtensionFlags(
-                  domain, clientId, now); // As-of date is always now for info commands.
-      if (!flags.isEmpty()) {
-        extensions.add(FlagsInfoResponseExtension.create(ImmutableList.copyOf(flags)));
-      }
     }
     return extensions.build();
   }

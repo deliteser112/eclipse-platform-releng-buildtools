@@ -177,7 +177,6 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
         newDomain.getTransferData(),
         newExpirationTime,
         historyEntry);
-    handleExtraFlowLogic(tld, historyEntry, newDomain);
     ofy().save().<ImmutableObject>entities(
         newDomain,
         historyEntry,
@@ -192,17 +191,5 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
         .setResData(createTransferResponse(
             targetId, newDomain.getTransferData(), newDomain.getRegistrationExpirationTime()))
         .build();
-  }
-
-  private void handleExtraFlowLogic(
-      String tld, HistoryEntry historyEntry, DomainResource newDomain) throws EppException {
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(tld);
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainTransferApproveLogic(
-          newDomain,
-          clientId,
-          historyEntry);
-    }
   }
 }

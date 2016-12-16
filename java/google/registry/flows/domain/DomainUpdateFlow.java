@@ -56,7 +56,7 @@ import google.registry.flows.custom.DomainUpdateFlowCustomLogic.AfterValidationP
 import google.registry.flows.custom.DomainUpdateFlowCustomLogic.BeforeSaveParameters;
 import google.registry.flows.custom.EntityChanges;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeUpdateException;
-import google.registry.flows.domain.TldSpecificLogicProxy.EppCommandOperations;
+import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -146,7 +146,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
   @Inject DnsQueue dnsQueue;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainUpdateFlowCustomLogic customLogic;
-
+  @Inject DomainPricingLogic pricingLogic;
   @Inject DomainUpdateFlow() {}
 
   @Override
@@ -179,7 +179,6 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     }
     validateNewState(newDomain);
     dnsQueue.addDomainRefreshTask(targetId);
-    handleExtraFlowLogic(existingDomain, historyEntry, now);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
     entitiesToSave.add(newDomain, historyEntry);
     Optional<BillingEvent.OneTime> statusUpdateBillingEvent =
@@ -214,15 +213,13 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     }
     String tld = existingDomain.getTld();
     checkAllowedAccessToTld(clientId, tld);
-    EppCommandOperations commandOperations = TldSpecificLogicProxy.getUpdatePrice(
-        Registry.get(tld), targetId, clientId, now, eppInput);
-
     FeeTransformCommandExtension feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
     // If the fee extension is present, validate it (even if the cost is zero, to check for price
     // mismatches). Don't rely on the the validateFeeChallenge check for feeUpdate nullness, because
     // it throws an error if the name is premium, and we don't want to do that here.
-    Money totalCost = commandOperations.getTotalCost();
+    FeesAndCredits feesAndCredits = pricingLogic.getUpdatePrice(Registry.get(tld), targetId, now);
+    Money totalCost = feesAndCredits.getTotalCost();
     if (feeUpdate != null) {
       validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, totalCost);
     } else if (!totalCost.isZero()) {
@@ -351,15 +348,5 @@ public final class DomainUpdateFlow implements TransactionalFlow {
       }
     }
     return Optional.absent();
-  }
-
-  private void handleExtraFlowLogic(
-      DomainResource existingDomain, HistoryEntry historyEntry, DateTime now) throws EppException {
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForDomain(existingDomain);
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalDomainUpdateLogic(
-          existingDomain, clientId, now, eppInput, historyEntry);
-    }
   }
 }

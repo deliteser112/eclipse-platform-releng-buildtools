@@ -206,10 +206,8 @@ public final class DomainCheckFlow implements Flow {
             feeCheckItem,
             builder,
             domainNames.get(domainName),
-            clientId,
             feeCheck.getCurrency(),
             now,
-            eppInput,
             pricingLogic);
         responseItems.add(builder.setDomainNameIfSupported(domainName).build());
       }

@@ -56,8 +56,6 @@ import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.TestExtraLogicManager;
-import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
@@ -87,8 +85,6 @@ public class DomainRestoreRequestFlowTest extends
   @Before
   public void initDomainTest() {
     createTlds("tld", "flags");
-    // For flags extension tests.
-    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   void persistPendingDeleteDomain() throws Exception {
@@ -560,18 +556,6 @@ public class DomainRestoreRequestFlowTest extends
         ImmutableMap.of("DOMAIN", "renew-42.flags", "FEE", "12"));
     persistPendingDeleteDomain();
     thrown.expect(FeesMismatchException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testSuccess_flagsWithCorrectFee() throws Exception {
-    // The total cost should be the renewal cost of 42 (set in the XML file) plus the restore cost
-    // of 17 (set in the test registry).
-    setEppInput(
-        "domain_update_restore_request_flags.xml",
-        ImmutableMap.of("DOMAIN", "renew-42.flags", "FEE", "59"));
-    persistPendingDeleteDomain();
-    thrown.expect(TestExtraLogicManagerSuccessException.class, "restored");
     runFlow();
   }
 }

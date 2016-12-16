@@ -108,19 +108,8 @@ public final class DomainApplicationDeleteFlow implements TransactionalFlow {
         .setParent(Key.create(existingApplication))
         .build();
     updateForeignKeyIndexDeletionTime(newApplication);
-    handleExtraFlowLogic(tld, historyEntry, existingApplication, now);
     ofy().save().<Object>entities(newApplication, historyEntry);
     return responseBuilder.build();
-  }
-
-  private void handleExtraFlowLogic(String tld, HistoryEntry historyEntry,
-      DomainApplication existingApplication, DateTime now) throws EppException {
-    Optional<RegistryExtraFlowLogic> extraFlowLogic =
-        RegistryExtraFlowLogicProxy.newInstanceForTld(tld);
-    if (extraFlowLogic.isPresent()) {
-      extraFlowLogic.get().performAdditionalApplicationDeleteLogic(
-          existingApplication, clientId, now, eppInput, historyEntry);
-    }
   }
 
   /** A sunrise application cannot be deleted during landrush. */

@@ -18,7 +18,6 @@ import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWit
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -54,8 +53,6 @@ import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.TestExtraLogicManager;
-import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
@@ -88,9 +85,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
 
   @Before
   public void initDomainTest() {
-    createTlds("tld", "flags");
-    // For flags extension tests.
-    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
+    createTld("tld");
   }
 
   private void persistDomain(StatusValue... statusValues) throws Exception {
@@ -131,10 +126,22 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   private void doSuccessfulTest(String responseFilename, int renewalYears) throws Exception {
     doSuccessfulTest(responseFilename, renewalYears, ImmutableMap.<String, String>of());
   }
+
+  private void doSuccessfulTest(
+      String responseFilename, int renewalYears, Map<String, String> substitutions)
+      throws Exception {
+    doSuccessfulTest(
+        responseFilename,
+        renewalYears,
+        substitutions,
+        Money.of(USD, 11).multipliedBy(renewalYears));
+  }
+
   private void doSuccessfulTest(
       String responseFilename,
       int renewalYears,
-      Map<String, String> substitutions) throws Exception {
+      Map<String, String> substitutions,
+      Money totalRenewCost) throws Exception {
     assertTransactionalFlow(true);
     DateTime currentExpiration = reloadResourceByForeignKey().getRegistrationExpirationTime();
     DateTime newExpiration = currentExpiration.plusYears(renewalYears);
@@ -155,7 +162,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
         .setReason(Reason.RENEW)
         .setTargetId(getUniqueIdFromCommand())
         .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11).multipliedBy(renewalYears))
+        .setCost(totalRenewCost)
         .setPeriodYears(renewalYears)
         .setEventTime(clock.nowUtc())
         .setBillingTime(clock.nowUtc().plus(Registry.get("tld").getRenewGracePeriodLength()))
@@ -213,6 +220,27 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testSuccess() throws Exception {
     persistDomain();
     doSuccessfulTest("domain_renew_response.xml", 5);
+  }
+
+  @Test
+  public void testSuccess_customLogicFee() throws Exception {
+    // The "costly-renew" domain has an additional RENEW fee of 100 from custom logic on top of the
+    // normal $11 standard renew price for this TLD.
+    setEppInput(
+        "domain_renew_fee_wildcard.xml",
+        ImmutableMap.of("DOMAIN", "costly-renew.tld", "FEE_VERSION", "0.6", "AMOUNT", "111.00"));
+    persistDomain();
+    doSuccessfulTest(
+        "domain_renew_response_fee_wildcard.xml",
+        1,
+        new ImmutableMap.Builder<String, String>()
+            .put("DOMAIN", "costly-renew.tld")
+            .put("FEE_VERSION", "0.6")
+            .put("FEE_NS", "fee")
+            .put("AMOUNT", "111.00")
+            .put("EX_DATE", "2001-04-03T22:00:00.000Z")
+            .build(),
+        Money.of(USD, 111));
   }
 
   @Test
@@ -612,23 +640,4 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     thrown.expect(FeesRequiredForPremiumNameException.class);
     runFlow();
   }
-
-  @Test
-  public void testFailure_flags_feeMismatch() throws Exception {
-    setEppInput(
-        "domain_renew_flags.xml", ImmutableMap.of("DOMAIN", "renew-42.flags", "FEE", "11"));
-    persistDomain();
-    thrown.expect(FeesMismatchException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testSuccess_flags() throws Exception {
-    setEppInput(
-        "domain_renew_flags.xml", ImmutableMap.of("DOMAIN", "renew-42.flags", "FEE", "42"));
-    persistDomain();
-    thrown.expect(TestExtraLogicManagerSuccessException.class, "renewed");
-    runFlow();
-  }
-
 }

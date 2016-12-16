@@ -37,7 +37,6 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainAuthInfo;
-import google.registry.model.domain.TestExtraLogicManager;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.launch.LaunchPhase;
@@ -71,9 +70,6 @@ public class DomainApplicationInfoFlowTest
     setEppInput("domain_info_sunrise.xml");
     sessionMetadata.setClientId("NewRegistrar");
     createTld("tld", TldState.SUNRUSH);
-    createTld("flags", TldState.SUNRUSH);
-    // For flags extension tests.
-    RegistryExtraFlowLogicProxy.setOverride("flags", TestExtraLogicManager.class);
   }
 
   private void persistTestEntities(HostsState hostsState, MarksState marksState) throws Exception {
@@ -107,33 +103,6 @@ public class DomainApplicationInfoFlowTest
                     .getSingleExtension(LaunchCreateExtension.class)
                     .getSignedMarks().get(0))
             : null)
-        .build());
-  }
-
-  private void persistFlagsTestEntities(String domainName, HostsState hostsState) throws Exception {
-    registrant = persistActiveContact("jd1234");
-    contact = persistActiveContact("sh8013");
-    host1 = persistActiveHost("ns1.example.net");
-    host2 = persistActiveHost("ns1.example.tld");
-    application = persistResource(new DomainApplication.Builder()
-        .setRepoId("123-TLD")
-        .setFullyQualifiedDomainName(domainName)
-        .setPhase(LaunchPhase.SUNRUSH)
-        .setCurrentSponsorClientId("NewRegistrar")
-        .setCreationClientId("TheRegistrar")
-        .setLastEppUpdateClientId("NewRegistrar")
-        .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
-        .setLastEppUpdateTime(DateTime.parse("1999-12-03T09:00:00.0Z"))
-        .setRegistrant(Key.create(registrant))
-        .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, Key.create(contact)),
-            DesignatedContact.create(Type.TECH, Key.create(contact))))
-        .setNameservers(hostsState.equals(HostsState.HOSTS_EXIST) ? ImmutableSet.of(
-            Key.create(host1), Key.create(host2)) : null)
-        .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
-        .addStatusValue(StatusValue.PENDING_CREATE)
-        .setApplicationStatus(ApplicationStatus.PENDING_VALIDATION)
-        .setEncodedSignedMarks(null)
         .build());
   }
 
@@ -347,22 +316,5 @@ public class DomainApplicationInfoFlowTest
         application.asBuilder().setPhase(LaunchPhase.SUNRISE).build());
     thrown.expect(ApplicationLaunchPhaseMismatchException.class);
     runFlow();
-  }
-
-
-  /** Test registry extra logic manager with no flags. */
-  @Test
-  public void testExtraLogicManager_noFlags() throws Exception {
-    setEppInput("domain_info_sunrise_flags_none.xml");
-    persistFlagsTestEntities("domain.flags", HostsState.NO_HOSTS_EXIST);
-    doSuccessfulTest("domain_info_response_sunrise_flags_none.xml", HostsState.NO_HOSTS_EXIST);
-  }
-
-  /** Test registry extra logic manager with two flags. */
-  @Test
-  public void testExtraLogicManager_twoFlags() throws Exception {
-    setEppInput("domain_info_sunrise_flags_two.xml");
-    persistFlagsTestEntities("domain-flag1-flag2.flags", HostsState.NO_HOSTS_EXIST);
-    doSuccessfulTest("domain_info_response_sunrise_flags_two.xml", HostsState.NO_HOSTS_EXIST);
   }
 }

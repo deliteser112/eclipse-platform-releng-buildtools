@@ -35,8 +35,6 @@ import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.TestExtraLogicManager;
-import google.registry.model.domain.TestExtraLogicManager.TestExtraLogicManagerSuccessException;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
@@ -299,13 +297,4 @@ public class DomainTransferCancelFlowTest
 
   // NB: No need to test pending delete status since pending transfers will get cancelled upon
   // entering pending delete phase. So it's already handled in that test case.
-
-  @Test
-  public void testSuccess_extra() throws Exception {
-    setupDomainWithPendingTransfer("extra");
-    clock.advanceOneMilli();
-    RegistryExtraFlowLogicProxy.setOverride("extra", TestExtraLogicManager.class);
-    thrown.expect(TestExtraLogicManagerSuccessException.class, "transfer cancelled");
-    doFailingTest("domain_transfer_cancel_extra.xml");
-  }
 }

@@ -35,7 +35,6 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Info;
-import google.registry.model.domain.flags.FlagsInfoResponseExtension;
 import google.registry.model.domain.launch.LaunchInfoExtension;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
 import google.registry.model.eppcommon.AuthInfo;
@@ -47,7 +46,6 @@ import google.registry.model.mark.Mark;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
 import google.registry.util.Clock;
-import java.util.Set;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -136,16 +134,6 @@ public final class DomainApplicationInfoFlow implements Flow {
         .setMarks(marksBuilder.build())
         .build());
     addSecDnsExtensionIfPresent(extensions, application.getDsData());
-    // If the TLD uses the flags extension, add it to the info response.
-    Optional<RegistryExtraFlowLogic> extraLogicManager =
-        RegistryExtraFlowLogicProxy.newInstanceForDomain(application);
-    if (extraLogicManager.isPresent()) {
-      Set<String> flags = extraLogicManager.get().getApplicationExtensionFlags(
-          application, clientId, now); // As-of date is always now for info commands.
-      if (!flags.isEmpty()) {
-        extensions.add(FlagsInfoResponseExtension.create(ImmutableList.copyOf(flags)));
-      }
-    }
     return extensions.build();
   }
 
