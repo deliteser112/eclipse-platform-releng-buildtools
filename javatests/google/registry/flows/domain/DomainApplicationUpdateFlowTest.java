@@ -673,11 +673,13 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_flags_feeMismatch() throws Exception {
+  public void testFailure_customPricingLogic_feeMismatch() throws Exception {
     persistReferencedEntities();
     persistResource(
-        newDomainApplication("update-42.flags").asBuilder().setRepoId("1-ROID").build());
-    setEppInput("domain_update_sunrise_flags.xml", ImmutableMap.of("FEE", "12"));
+        newDomainApplication("non-free-update.tld").asBuilder().setRepoId("1-ROID").build());
+    setEppInput(
+        "domain_update_sunrise_fee.xml",
+        ImmutableMap.of("DOMAIN", "non-free-update.tld", "AMOUNT", "12"));
     clock.advanceOneMilli();
     thrown.expect(FeesMismatchException.class);
     runFlow();

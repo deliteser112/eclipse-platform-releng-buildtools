@@ -83,6 +83,26 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
   }
 
   @Override
+  public FeesAndCredits customizeApplicationUpdatePrice(
+      ApplicationUpdatePriceParameters priceParameters) throws EppException {
+    if (priceParameters
+        .domainApplication()
+        .getFullyQualifiedDomainName()
+        .startsWith("non-free-update")) {
+      FeesAndCredits feesAndCredits = priceParameters.feesAndCredits();
+      List<BaseFee> newFeesAndCredits =
+          new ImmutableList.Builder<BaseFee>()
+              .addAll(feesAndCredits.getFeesAndCredits())
+              .add(Fee.create(BigDecimal.valueOf(100), FeeType.UPDATE))
+              .build();
+      return new FeesAndCredits(
+          feesAndCredits.getCurrency(), toArray(newFeesAndCredits, BaseFee.class));
+    } else {
+      return priceParameters.feesAndCredits();
+    }
+  }
+
+  @Override
   public FeesAndCredits customizeRenewPrice(RenewPriceParameters priceParameters)
       throws EppException {
     if (priceParameters.domainName().toString().startsWith("costly-renew")) {
