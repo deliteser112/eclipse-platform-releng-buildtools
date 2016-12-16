@@ -25,9 +25,12 @@ Note that in order for the automated RDE processing to work correctly, you will
 need to implement a working and secure key store from which RDE can pull the
 private key used to transmit the deposits via sFTP.
 
-For each phase in the process, the system maintains a `Cursor` entity in
-Datastore, which contains a timestamp indicating that everything up to the day
-before the timestamp is current. For RDE, there are four cursor types:
+For each phase and TLD in the process, the system maintains a `Cursor` entity in
+Datastore, which contains a timestamp indicating that everything before the
+timestamp is current (except for RDE_UPLOAD_SFTP, which works a little
+differently). Only if the current time is after the cursor time do the actions
+check to see if they have work to do. For RDE, there are separate cursor types
+for each phase, plus the special RDE_UPLOAD_SFTP cursor:
 
 *   `RDE_STAGING`
 *   `RDE_UPLOAD`
@@ -58,8 +61,24 @@ $ nomulus -e production list_cursors --type RDE_REPORT
 [....]
 ```
 
+In this example, RDE deposits for all four TLDs are up to date through the day
+before May 22, 2015. The first time that the RDE staging action runs after
+midnight on 2015-05-22, it will realize that a new day's worth of deposits needs
+to be generated, and will kick off the series of phases. As each phase is
+completed for a particular TLD, the appropriate cursor will be updated to
+2015-05-23. If everything is operating normally, you should see all three
+cursors set to tomorrow for all TLDs.
+
 The `RDE_UPLOAD_SFTP` cursor is used to avoid uploading multiple files to the
-escrow provider within too short a time span, as described below.
+escrow provider within too short a time span, as described below. Therefore, the
+values of the cursor are a little different. Rather than pointing to tomorrow,
+they point to the last time that an RDE deposit for the specified TLD was
+uploaded to the escrow provider. This will usually be some time between midnight
+and 2:00 am of the current day. When it runs, the RDE upload action checks that
+the current time is after the RDE_UPLOAD_SFTP cursor value plus a cooldown
+period set by the `rdeUploadSftpCooldown` config parameter (usually, two hours).
+If not, the upload is delayed until the next run of the action (usually, four
+hours).
 
 ## Listing deposits in Cloud Storage
 
