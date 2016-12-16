@@ -12,25 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.monitoring.whitebox;
+package google.registry.batch;
 
 import dagger.Component;
 import google.registry.bigquery.BigqueryModule;
 import google.registry.config.ConfigModule;
+import google.registry.monitoring.whitebox.WhiteboxModule;
 import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
 import javax.inject.Singleton;
 
-/** Dagger component with instance lifetime for Whitebox package. */
+/** Dagger component with instance lifetime for batch package. */
 @Singleton
 @Component(
     modules = {
+        BatchModule.class,
         BigqueryModule.class,
         ConfigModule.class,
         DatastoreServiceModule.class,
         SystemSleeperModule.class,
         WhiteboxModule.class
     })
-interface WhiteboxComponent {
+interface BatchComponent {
   VerifyEntityIntegrityStreamerFactory verifyEntityIntegrityStreamerFactory();
 }

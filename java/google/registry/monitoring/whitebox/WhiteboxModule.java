@@ -46,13 +46,6 @@ public class WhiteboxModule {
   }
 
   @Provides
-  @IntoMap
-  @StringKey(EntityIntegrityAlertsSchema.TABLE_ID)
-  static ImmutableList<TableFieldSchema> provideEntityIntegrityAlertsSchema() {
-    return EntityIntegrityAlertsSchema.SCHEMA_FIELDS;
-  }
-
-  @Provides
   @Parameter("tableId")
   static String provideTableId(HttpServletRequest req) {
     return extractRequiredParameter(req, "tableId");

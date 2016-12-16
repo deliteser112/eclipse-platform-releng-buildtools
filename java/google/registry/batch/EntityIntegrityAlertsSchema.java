@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.monitoring.whitebox;
+package google.registry.batch;
 
 import static google.registry.bigquery.BigqueryUtils.FieldType.STRING;
 import static google.registry.bigquery.BigqueryUtils.FieldType.TIMESTAMP;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.monitoring.whitebox;
+package google.registry.batch;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -95,7 +95,7 @@ public class VerifyEntityIntegrityAction implements Runnable {
   private static final int NUM_SHARDS = 200;
   @NonFinalForTesting
   @VisibleForTesting
-  static WhiteboxComponent component = DaggerWhiteboxComponent.create();
+  static BatchComponent component = DaggerBatchComponent.create();
   private static final ImmutableSet<Class<?>> RESOURCE_CLASSES =
       ImmutableSet.<Class<?>>of(
           ForeignKeyDomainIndex.class,

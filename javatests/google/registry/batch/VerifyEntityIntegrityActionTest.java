@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.monitoring.whitebox;
+package google.registry.batch;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -104,7 +104,7 @@ public class VerifyEntityIntegrityActionTest
     action = new VerifyEntityIntegrityAction();
     action.mrRunner = new MapreduceRunner(Optional.of(2), Optional.of(2));
     action.response = new FakeResponse();
-    WhiteboxComponent component = mock(WhiteboxComponent.class);
+    BatchComponent component = mock(BatchComponent.class);
     inject.setStaticField(VerifyEntityIntegrityAction.class, "component", component);
     integrity =
         new VerifyEntityIntegrityStreamer(

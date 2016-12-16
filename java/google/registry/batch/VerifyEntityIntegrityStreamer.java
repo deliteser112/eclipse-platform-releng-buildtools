@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.monitoring.whitebox;
+package google.registry.batch;
 
 import static com.google.api.client.util.Data.NULL_STRING;
-import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.DATASET;
-import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_MESSAGE;
-import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_SCANTIME;
-import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_SOURCE;
-import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.FIELD_TARGET;
-import static google.registry.monitoring.whitebox.EntityIntegrityAlertsSchema.TABLE_ID;
+import static google.registry.batch.EntityIntegrityAlertsSchema.DATASET;
+import static google.registry.batch.EntityIntegrityAlertsSchema.FIELD_MESSAGE;
+import static google.registry.batch.EntityIntegrityAlertsSchema.FIELD_SCANTIME;
+import static google.registry.batch.EntityIntegrityAlertsSchema.FIELD_SOURCE;
+import static google.registry.batch.EntityIntegrityAlertsSchema.FIELD_TARGET;
+import static google.registry.batch.EntityIntegrityAlertsSchema.TABLE_ID;
 
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.Bigquery.Tabledata.InsertAll;
