@@ -11,16 +11,15 @@ java_library(
     name = "forms",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/base",
-        "//java/com/google/common/collect",
-        "//java/com/google/common/testing",
         "//java/google/registry/ui/forms",
         "//javatests/google/registry/testing",
-        "//third_party/java/hamcrest",
-        "//third_party/java/junit",
-        "//third_party/java/mockito",
-        "//third_party/java/re2j",
-        "//third_party/java/truth",
+        "@com_google_guava",
+        "@com_google_guava_testlib",
+        "@com_google_re2j",
+        "@com_google_truth",
+        "@junit",
+        "@org_hamcrest_library",
+        "@org_mockito_all",
     ],
 )
 

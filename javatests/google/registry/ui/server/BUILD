@@ -14,9 +14,9 @@ java_library(
         "//java/google/registry/ui/forms",
         "//java/google/registry/ui/server",
         "//javatests/google/registry/testing",
-        "//third_party/java/hamcrest",
-        "//third_party/java/junit",
-        "//third_party/java/truth",
+        "@com_google_truth",
+        "@junit",
+        "@org_hamcrest_library",
     ],
 )
 

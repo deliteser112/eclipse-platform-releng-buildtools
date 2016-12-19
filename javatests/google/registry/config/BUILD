@@ -11,10 +11,10 @@ java_library(
     name = "config",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/annotations",
         "//java/google/registry/config",
-        "//third_party/java/junit",
-        "//third_party/java/truth",
+        "@com_google_guava",
+        "@com_google_truth",
+        "@junit",
     ],
 )
 

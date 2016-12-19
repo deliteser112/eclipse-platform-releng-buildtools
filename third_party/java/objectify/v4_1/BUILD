@@ -12,7 +12,7 @@ java_import(
     jars = ["objectify-4.1.3.jar"],
     srcjar = "objectify-4.1.3-src.jar",
     deps = [
-        "//third_party/java/appengine:appengine-api",
-        "//third_party/java/servlet/servlet_api",
+        "@com_google_appengine_api_1_0_sdk",
+        "@javax_servlet_api",
     ],
 )

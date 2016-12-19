@@ -6,11 +6,9 @@ java_library(
     name = "appengine_mapreduce",
     exports = ["@appengine_mapreduce//jar"],
     runtime_deps = [
-        "//third_party/java/appengine_gcs_client",
-        "//third_party/java/appengine_pipeline",
         "//third_party/java/charts4j",
-        "//third_party/java/joda_time",
-        "//third_party/java/servlet/servlet_api",
+        "@com_google_appengine_tools_appengine_gcs_client",
+        "@com_google_appengine_tools_appengine_pipeline",
         "@fastutil//jar",
         "@google_api_client//jar",
         "@google_api_client_appengine//jar",
@@ -20,6 +18,8 @@ java_library(
         "@guava//jar",
         "@jackson_core//jar",
         "@jackson_databind//jar",
+        "@javax_servlet_api",
+        "@joda_time",
         "@protobuf_java//jar",
     ],
 )

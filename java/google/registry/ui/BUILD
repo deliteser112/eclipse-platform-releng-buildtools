@@ -61,11 +61,11 @@ java_library(
     srcs = glob(["*.java"]),
     visibility = ["//visibility:public"],
     deps = [
-        "//java/com/google/common/base",
         "//java/google/registry/config",
-        "//third_party/java/appengine:appengine-api",
-        "//third_party/java/dagger",
-        "//third_party/java/jsr305_annotations",
+        "@com_google_appengine_api_1_0_sdk",
+        "@com_google_code_findbugs_jsr305",
+        "@com_google_dagger",
+        "@com_google_guava",
     ],
 )
 

@@ -15,11 +15,11 @@ java_library(
         "//java/google/registry/util",
         "//java/google/registry/xjc",
         "//javatests/google/registry/testing",
-        "//third_party/java/hamcrest",
-        "//third_party/java/jsr305_annotations",
-        "//third_party/java/junit",
-        "//third_party/java/re2j",
-        "//third_party/java/truth",
+        "@com_google_code_findbugs_jsr305",
+        "@com_google_re2j",
+        "@com_google_truth",
+        "@junit",
+        "@org_hamcrest_library",
     ],
 )
 

@@ -11,10 +11,10 @@ java_library(
     srcs = glob(["*.java"]) + xjc_generated_files + pkginfo_generated_files,
     visibility = ["//visibility:public"],
     deps = [
-        "//java/com/google/common/collect",
         "//java/google/registry/xml",
-        "//third_party/java/joda_time",
-        "//third_party/java/jsr305_annotations",
+        "@com_google_code_findbugs_jsr305",
+        "@com_google_guava",
+        "@joda_time",
     ],
 )
 
@@ -24,7 +24,7 @@ sh_binary(
     data = [
         "bindings.xjb",
         "//java/google/registry/xml:xml_schema_files",
-        "//third_party/java/jaxb:jaxb-xjc",
+        "@com_sun_xml_bind_jaxb_xjc//:XJCFacade",
     ],
 )
 
@@ -37,7 +37,7 @@ genrule(
     outs = xjc_generated_files,
     cmd = " && ".join([
         "REP=$$(pwd)",
-        "XJC=$$REP/$(location //third_party/java/jaxb:jaxb-xjc)",
+        "XJC=$$REP/$(location @com_sun_xml_bind_jaxb_xjc//:XJCFacade)",
         "OUT=$$REP/$(GENDIR)/java",
         "TMP=$$(mktemp -d $${TMPDIR:-/tmp}/jaxb.XXXXXXXXXX)",
         "mkdir -p $$OUT",
@@ -51,7 +51,7 @@ genrule(
         "cd $$REP",
         "rm -rf $$TMP",
     ]),
-    tools = ["//third_party/java/jaxb:jaxb-xjc"],
+    tools = ["@com_sun_xml_bind_jaxb_xjc//:XJCFacade"],
 )
 
 sh_binary(

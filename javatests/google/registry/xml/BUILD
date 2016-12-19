@@ -12,17 +12,15 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["testdata/*.xml"]),
     deps = [
-        "//java/com/google/common/base",
-        "//java/com/google/common/collect",
-        "//java/com/google/common/net",
         "//java/google/registry/util",
         "//java/google/registry/xml",
         "//javatests/google/registry/testing",
-        "//third_party/java/joda_time",
-        "//third_party/java/json",
-        "//third_party/java/jsr305_annotations",
-        "//third_party/java/junit",
-        "//third_party/java/truth",
+        "@com_google_code_findbugs_jsr305",
+        "@com_google_guava",
+        "@com_google_truth",
+        "@joda_time",
+        "@junit",
+        "@org_json",
     ],
 )
 

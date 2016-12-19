@@ -11,15 +11,15 @@ java_library(
     resources = glob(["testdata/*"]),
     runtime_deps = [
         # TODO(b/19332643): Remove this dependency when Modules is lazy.
-        "//third_party/java/appengine:appengine-api-testonly",
+        "@com_google_appengine_api_1_0_sdk//:testonly",
     ],
     deps = [
         "//java/google/registry/module/backend",
         "//javatests/google/registry/testing",
-        "//third_party/java/junit",
-        "//third_party/java/mockito",
-        "//third_party/java/servlet/servlet_api",
-        "//third_party/java/truth",
+        "@com_google_truth",
+        "@javax_servlet_api",
+        "@junit",
+        "@org_mockito_all",
     ],
 )
 

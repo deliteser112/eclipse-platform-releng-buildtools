@@ -14,11 +14,9 @@ java_library(
     srcs = glob(["*.java"]),
     resources = [":xml_schema_files"],
     deps = [
-        "//java/com/google/common/base",
-        "//java/com/google/common/collect",
-        "//java/com/google/common/io",
-        "//third_party/java/joda_time",
-        "//third_party/java/jsr305_annotations",
-        "//third_party/java/re2j",
+        "@com_google_code_findbugs_jsr305",
+        "@com_google_guava",
+        "@com_google_re2j",
+        "@joda_time",
     ],
 )

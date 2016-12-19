@@ -8,8 +8,6 @@ java_library(
     name = "tools",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/base",
-        "//java/com/google/common/collect",
         "//java/google/registry/config",
         "//java/google/registry/dns",
         "//java/google/registry/export",
@@ -25,12 +23,13 @@ java_library(
         "//java/google/registry/tools/server",
         "//java/google/registry/tools/server/javascrap",
         "//java/google/registry/util",
-        "//third_party/java/appengine:appengine-api",
-        "//third_party/java/bouncycastle",
-        "//third_party/java/dagger",
-        "//third_party/java/jsr305_annotations",
-        "//third_party/java/jsr330_inject",
-        "//third_party/java/servlet/servlet_api",
+        "@com_google_appengine_api_1_0_sdk",
+        "@com_google_code_findbugs_jsr305",
+        "@com_google_dagger",
+        "@com_google_guava",
+        "@javax_inject",
+        "@javax_servlet_api",
+        "@org_bouncycastle_bcpkix_jdk15on",
     ],
 )
 

@@ -11,16 +11,14 @@ java_library(
     name = "drive",
     srcs = glob(["*Test.java"]),
     deps = [
-        "//apiserving/discoverydata/drive",
-        "//java/com/google/api/client/http",
-        "//java/com/google/common/collect",
-        "//java/com/google/common/io",
-        "//java/com/google/common/net",
         "//java/google/registry/storage/drive",
         "//javatests/google/registry/testing",
-        "//third_party/java/junit",
-        "//third_party/java/mockito",
-        "//third_party/java/truth",
+        "@com_google_apis_google_api_services_drive",
+        "@com_google_guava",
+        "@com_google_http_client",
+        "@com_google_truth",
+        "@junit",
+        "@org_mockito_all",
     ],
 )
 

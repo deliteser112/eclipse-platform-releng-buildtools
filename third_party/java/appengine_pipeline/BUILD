@@ -6,9 +6,9 @@ java_library(
     name = "appengine_pipeline",
     exports = ["@appengine_pipeline//jar"],
     runtime_deps = [
-        "//third_party/java/appengine_gcs_client",
-        "//third_party/java/servlet/servlet_api",
+        "@com_google_appengine_tools_appengine_gcs_client",
         "@guava//jar",
+        "@javax_servlet_api",
         "@json//jar",
     ],
 )

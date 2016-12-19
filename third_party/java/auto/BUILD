@@ -54,8 +54,8 @@ java_plugin(
     visibility = ["//visibility:private"],
     deps = [
         ":auto_common",
-        "//third_party/java/jsr305_annotations",
         "@auto_value//jar",
+        "@com_google_code_findbugs_jsr305",
         "@guava//jar",
     ],
 )

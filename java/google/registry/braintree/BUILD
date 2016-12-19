@@ -8,13 +8,13 @@ java_library(
     name = "braintree",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/base",
         "//java/google/registry/config",
         "//java/google/registry/keyring/api",
         "//java/google/registry/model",
-        "//third_party/java/braintree",
-        "//third_party/java/dagger",
-        "//third_party/java/jsr305_annotations",
-        "//third_party/java/jsr330_inject",
+        "@com_braintreepayments_gateway_braintree_java",
+        "@com_google_code_findbugs_jsr305",
+        "@com_google_dagger",
+        "@com_google_guava",
+        "@javax_inject",
     ],
 )

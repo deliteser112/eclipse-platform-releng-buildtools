@@ -9,11 +9,10 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["*.asc"]),
     deps = [
-        "//java/com/google/common/base",
-        "//java/com/google/common/io",
-        "//third_party/java/bouncycastle",
-        "//third_party/java/bouncycastle_bcpg",
-        "//third_party/java/dagger",
-        "//third_party/java/jsr305_annotations",
+        "@com_google_code_findbugs_jsr305",
+        "@com_google_dagger",
+        "@com_google_guava",
+        "@org_bouncycastle_bcpg_jdk15on",
+        "@org_bouncycastle_bcpkix_jdk15on",
     ],
 )

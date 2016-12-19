@@ -13,12 +13,11 @@ java_library(
         "*.java",
     ]),
     deps = [
-        "//java/com/google/common/base",
-        "//java/com/google/common/collect",
         "//java/google/registry/tldconfig/idn",
         "//javatests/google/registry/testing",
-        "//third_party/java/junit",
-        "//third_party/java/truth",
+        "@com_google_guava",
+        "@com_google_truth",
+        "@junit",
     ],
 )
 
