@@ -32,7 +32,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
@@ -45,6 +44,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
 import google.registry.model.billing.BillingEvent;
@@ -53,8 +53,6 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainCommand.Transfer;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
-import google.registry.model.domain.fee.BaseFee.FeeType;
-import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeTransferCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import google.registry.model.domain.flags.FlagsTransferCommandExtension;
@@ -125,6 +123,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject Trid trid;
   @Inject EppResponse.Builder responseBuilder;
+  @Inject DomainPricingLogic pricingLogic;
   @Inject DomainTransferRequestFlow() {}
 
   @Override
@@ -142,12 +141,11 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     verifyTransferAllowed(existingDomain, period, now);
     String tld = existingDomain.getTld();
     Registry registry = Registry.get(tld);
-    // The cost of the renewal implied by a transfer.
-    Money renewCost = getDomainRenewCost(targetId, now, years);
     // An optional extension from the client specifying what they think the transfer should cost.
     FeeTransferCommandExtension feeTransfer =
         eppInput.getSingleExtension(FeeTransferCommandExtension.class);
-    validateFeeChallenge(targetId, tld, now, feeTransfer, renewCost);
+    FeesAndCredits feesAndCredits = pricingLogic.getTransferPrice(registry, targetId, now, years);
+    validateFeeChallenge(targetId, tld, now, feeTransfer, feesAndCredits.getTotalCost());
     HistoryEntry historyEntry = buildHistory(period, existingDomain, now);
     DateTime automaticTransferTime = now.plus(registry.getAutomaticTransferLength());
     // The new expiration time if there is a server approval.
@@ -160,7 +158,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
             serverApproveNewExpirationTime,
             historyEntry,
             existingDomain,
-            renewCost,
+            feesAndCredits.getTotalCost(),
             years,
             now);
     // Create the transfer data that represents the pending transfer.
@@ -189,7 +187,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     return responseBuilder
         .setResultFromCode(SUCCESS_WITH_ACTION_PENDING)
         .setResData(createResponse(period, existingDomain, newDomain, now))
-        .setExtensions(createResponseExtensions(renewCost, feeTransfer))
+        .setExtensions(createResponseExtensions(feesAndCredits, feeTransfer))
         .build();
   }
 
@@ -241,7 +239,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
       DateTime serverApproveNewExpirationTime,
       HistoryEntry historyEntry,
       DomainResource existingDomain,
-      Money renewCost,
+      Money transferCost,
       int years,
       DateTime now) {
     // Create a TransferData for the server-approve case to use for the speculative poll messages.
@@ -252,7 +250,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     Registry registry = Registry.get(existingDomain.getTld());
     return new ImmutableSet.Builder<TransferServerApproveEntity>()
         .add(createTransferBillingEvent(
-            automaticTransferTime, historyEntry, registry, renewCost, years))
+            automaticTransferTime, historyEntry, registry, transferCost, years))
         .addAll(createOptionalAutorenewCancellation(
             automaticTransferTime, historyEntry, existingDomain)
                 .asSet())
@@ -271,13 +269,13 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
       DateTime automaticTransferTime,
       HistoryEntry historyEntry,
       Registry registry,
-      Money renewCost,
+      Money transferCost,
       int years) {
     return new BillingEvent.OneTime.Builder()
         .setReason(Reason.TRANSFER)
         .setTargetId(targetId)
         .setClientId(gainingClientId)
-        .setCost(renewCost)
+        .setCost(transferCost)
         .setPeriodYears(years)
         .setEventTime(automaticTransferTime)
         .setBillingTime(automaticTransferTime.plus(registry.getTransferGracePeriodLength()))
@@ -388,13 +386,14 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
         targetId, newDomain.getTransferData(), approveNowExtendedRegistrationTime);
   }
 
-  private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(Money renewCost,
-      FeeTransferCommandExtension feeTransfer) {
+  private static ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
+      FeesAndCredits feesAndCredits, FeeTransferCommandExtension feeTransfer) {
     return feeTransfer == null
         ? ImmutableList.<FeeTransformResponseExtension>of()
         : ImmutableList.of(feeTransfer.createResponseBuilder()
-            .setCurrency(renewCost.getCurrencyUnit())
-            .setFees(ImmutableList.of(Fee.create(renewCost.getAmount(), FeeType.RENEW)))
+            .setFees(feesAndCredits.getFees())
+            .setCredits(feesAndCredits.getCredits())
+            .setCurrency(feesAndCredits.getCurrency())
             .build());
   }
 }

@@ -48,6 +48,14 @@ public abstract class BaseFee extends ImmutableObject {
     EAP("Early Access Period, fee expires: %s"),
     RENEW("renew"),
     RESTORE("restore"),
+    /**
+     * A transfer fee.
+     *
+     * <p>These are not used by the default system, in which the only fee associated with a transfer
+     * is the RENEW fee. These exist so that custom pricing logic can create a custom transfer fee
+     * if desired.
+     */
+    TRANSFER("transfer"),
     UPDATE("update"),
     CREDIT("%s credit");
 

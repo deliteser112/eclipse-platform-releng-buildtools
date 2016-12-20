@@ -53,7 +53,7 @@ public class DomainTransferCancelFlowTest
   public void setUp() throws Exception {
     setEppInput("domain_transfer_cancel.xml");
     setClientIdForFlow("NewRegistrar");
-    setupDomainWithPendingTransfer();
+    setupDomainWithPendingTransfer("example", "tld");
   }
 
   private void doSuccessfulTest(String commandFilename, String expectedXmlFilename)

@@ -42,27 +42,6 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
     super(eppInput, sessionMetadata);
   }
 
-  private static BaseFee domainNameToFeeOrCredit(InternetDomainName domainName) {
-    // The second-level domain should be of the form "description-price", where description is the
-    // description string of the fee or credit, and price is the price (credit if negative, fee
-    // otherwise). To make sure this is a valid domain name, don't use any spaces, and limit prices
-    // to integers. Don't use a two-character description for credits, since it is illegal to have
-    // both the third and fourth characters of a domain name label be hyphens.
-    List<String> components =
-        Splitter.on('-')
-            .limit(2)
-            .splitToList(Iterables.getFirst(Splitter.on('.').split(domainName.toString()), ""));
-    checkArgument(components.size() == 2, "Domain name must be of the form description-price.tld");
-    int price = Integer.parseInt(components.get(1));
-    if (price < 0) {
-      return Credit.create(
-          new BigDecimal(price), FeeType.valueOf(Ascii.toUpperCase(components.get(0))));
-    } else {
-      return Fee.create(
-          new BigDecimal(price), FeeType.valueOf(Ascii.toUpperCase(components.get(0))));
-    }
-  }
-
   @Override
   public FeesAndCredits customizeCreatePrice(CreatePriceParameters priceParameters)
       throws EppException {
@@ -85,53 +64,68 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
   @Override
   public FeesAndCredits customizeApplicationUpdatePrice(
       ApplicationUpdatePriceParameters priceParameters) throws EppException {
-    if (priceParameters
-        .domainApplication()
-        .getFullyQualifiedDomainName()
-        .startsWith("non-free-update")) {
-      FeesAndCredits feesAndCredits = priceParameters.feesAndCredits();
-      List<BaseFee> newFeesAndCredits =
-          new ImmutableList.Builder<BaseFee>()
-              .addAll(feesAndCredits.getFeesAndCredits())
-              .add(Fee.create(BigDecimal.valueOf(100), FeeType.UPDATE))
-              .build();
-      return new FeesAndCredits(
-          feesAndCredits.getCurrency(), toArray(newFeesAndCredits, BaseFee.class));
-    } else {
-      return priceParameters.feesAndCredits();
-    }
+    return (priceParameters
+            .domainApplication()
+            .getFullyQualifiedDomainName()
+            .startsWith("non-free-update"))
+        ? addCustomFee(
+            priceParameters.feesAndCredits(), Fee.create(BigDecimal.valueOf(100), FeeType.UPDATE))
+        : priceParameters.feesAndCredits();
   }
 
   @Override
   public FeesAndCredits customizeRenewPrice(RenewPriceParameters priceParameters)
       throws EppException {
-    if (priceParameters.domainName().toString().startsWith("costly-renew")) {
-      FeesAndCredits feesAndCredits = priceParameters.feesAndCredits();
-      List<BaseFee> newFeesAndCredits =
-          new ImmutableList.Builder<BaseFee>()
-              .addAll(feesAndCredits.getFeesAndCredits())
-              .add(Fee.create(BigDecimal.valueOf(100), FeeType.RENEW))
-              .build();
-      return new FeesAndCredits(
-          feesAndCredits.getCurrency(), toArray(newFeesAndCredits, BaseFee.class));
-    } else {
-      return priceParameters.feesAndCredits();
-    }
+    return (priceParameters.domainName().toString().startsWith("costly-renew"))
+        ? addCustomFee(
+            priceParameters.feesAndCredits(), Fee.create(BigDecimal.valueOf(100), FeeType.RENEW))
+        : priceParameters.feesAndCredits();
+  }
+
+  @Override
+  public FeesAndCredits customizeTransferPrice(TransferPriceParameters priceParameters)
+      throws EppException {
+    return (priceParameters.domainName().toString().startsWith("expensive"))
+        ? addCustomFee(
+            priceParameters.feesAndCredits(), Fee.create(BigDecimal.valueOf(100), FeeType.TRANSFER))
+        : priceParameters.feesAndCredits();
   }
 
   @Override
   public FeesAndCredits customizeUpdatePrice(UpdatePriceParameters priceParameters) {
-    if (priceParameters.domainName().toString().startsWith("non-free-update")) {
-      FeesAndCredits feesAndCredits = priceParameters.feesAndCredits();
-      List<BaseFee> newFeesAndCredits =
-          new ImmutableList.Builder<BaseFee>()
-              .addAll(feesAndCredits.getFeesAndCredits())
-              .add(Fee.create(TEN, FeeType.UPDATE))
-              .build();
-      return new FeesAndCredits(
-          feesAndCredits.getCurrency(), toArray(newFeesAndCredits, BaseFee.class));
+    return (priceParameters.domainName().toString().startsWith("non-free-update"))
+        ? addCustomFee(priceParameters.feesAndCredits(), Fee.create(TEN, FeeType.UPDATE))
+        : priceParameters.feesAndCredits();
+  }
+
+  private static FeesAndCredits addCustomFee(FeesAndCredits feesAndCredits, BaseFee customFee) {
+    List<BaseFee> newFeesAndCredits =
+        new ImmutableList.Builder<BaseFee>()
+            .addAll(feesAndCredits.getFeesAndCredits())
+            .add(customFee)
+            .build();
+    return new FeesAndCredits(
+        feesAndCredits.getCurrency(), toArray(newFeesAndCredits, BaseFee.class));
+  }
+
+  private static BaseFee domainNameToFeeOrCredit(InternetDomainName domainName) {
+    // The second-level domain should be of the form "description-price", where description is the
+    // description string of the fee or credit, and price is the price (credit if negative, fee
+    // otherwise). To make sure this is a valid domain name, don't use any spaces, and limit prices
+    // to integers. Don't use a two-character description for credits, since it is illegal to have
+    // both the third and fourth characters of a domain name label be hyphens.
+    List<String> components =
+        Splitter.on('-')
+            .limit(2)
+            .splitToList(Iterables.getFirst(Splitter.on('.').split(domainName.toString()), ""));
+    checkArgument(components.size() == 2, "Domain name must be of the form description-price.tld");
+    int price = Integer.parseInt(components.get(1));
+    if (price < 0) {
+      return Credit.create(
+          new BigDecimal(price), FeeType.valueOf(Ascii.toUpperCase(components.get(0))));
     } else {
-      return priceParameters.feesAndCredits();
+      return Fee.create(
+          new BigDecimal(price), FeeType.valueOf(Ascii.toUpperCase(components.get(0))));
     }
   }
 }

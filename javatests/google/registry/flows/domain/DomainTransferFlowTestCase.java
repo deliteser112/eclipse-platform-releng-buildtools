@@ -106,10 +106,6 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
         TRANSFER_REQUEST_TIME);
   }
 
-  protected void setupDomain(String tld) throws Exception {
-    setupDomain("example", tld);
-  }
-
   /** Adds a domain with no pending transfer on it. */
   protected void setupDomain(String label, String tld) throws Exception {
     createTld(tld);
@@ -230,14 +226,9 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
         .hasCurrentSponsorClientId("TheRegistrar");
   }
 
-  /** Adds a .tld domain that has a pending transfer on it from TheRegistrar to NewRegistrar. */
-  protected void setupDomainWithPendingTransfer() throws Exception {
-    setupDomainWithPendingTransfer("tld");
-  }
-
   /** Adds a domain that has a pending transfer on it from TheRegistrar to NewRegistrar. */
-  protected void setupDomainWithPendingTransfer(String tld) throws Exception {
-    setupDomain(tld);
+  protected void setupDomainWithPendingTransfer(String label, String tld) throws Exception {
+    setupDomain(label, tld);
     domain = persistWithPendingTransfer(domain);
   }
 

@@ -94,7 +94,7 @@ public class DomainTransferApproveFlowTest
             .build());
     setClientIdForFlow("TheRegistrar");
     createTld("extra");
-    setupDomainWithPendingTransfer();
+    setupDomainWithPendingTransfer("example", "tld");
     clock.advanceOneMilli();
   }
 
@@ -278,7 +278,7 @@ public class DomainTransferApproveFlowTest
             .asBuilder()
             .setTransferGracePeriodLength(Duration.standardMinutes(10))
             .build());
-    setupDomainWithPendingTransfer("net");
+    setupDomainWithPendingTransfer("example", "net");
     doSuccessfulTest(
         "net",
         "domain_transfer_approve_net.xml",

@@ -55,7 +55,7 @@ public class DomainTransferRejectFlowTest
   public void setUp() throws Exception {
     setEppInput("domain_transfer_reject.xml");
     setClientIdForFlow("TheRegistrar");
-    setupDomainWithPendingTransfer();
+    setupDomainWithPendingTransfer("example", "tld");
     clock.advanceOneMilli();
   }
 

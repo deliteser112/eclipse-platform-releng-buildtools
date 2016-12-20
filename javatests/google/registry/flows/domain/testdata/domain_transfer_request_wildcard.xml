@@ -4,7 +4,7 @@
       <domain:transfer
        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
         <domain:name>%DOMAIN%</domain:name>
-        <domain:period unit="y">1</domain:period>
+        <domain:period unit="y">%YEARS%</domain:period>
         <domain:authInfo>
           <domain:pw roid="JD1234-REP">2fooBAR</domain:pw>
         </domain:authInfo>
