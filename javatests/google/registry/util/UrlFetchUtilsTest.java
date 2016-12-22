@@ -17,27 +17,30 @@ package google.registry.util;
 import static com.google.common.net.HttpHeaders.CONTENT_LENGTH;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.common.net.MediaType.CSV_UTF_8;
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.util.UrlFetchUtils.setPayloadMultipart;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
-import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.ArgumentMatcher;
+import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -50,54 +53,56 @@ public class UrlFetchUtilsTest {
       .build();
 
   @Rule
+  public final ExceptionRule thrown = new ExceptionRule();
+
+  @Rule
   public final InjectRule inject = new InjectRule();
 
   @Before
   public void setupRandomZeroes() throws Exception {
-    SecureRandom secureRandom = mock(SecureRandom.class);
-    inject.setStaticField(UrlFetchUtils.class, "secureRandom", secureRandom);
+    Random random = mock(Random.class);
+    inject.setStaticField(UrlFetchUtils.class, "random", random);
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock info) throws Throwable {
-        byte[] bytes = (byte[]) info.getArguments()[0];
-        Arrays.fill(bytes, (byte) 0);
+        Arrays.fill((byte[]) info.getArguments()[0], (byte) 0);
         return null;
-      }}).when(secureRandom).nextBytes(any(byte[].class));
+      }}).when(random).nextBytes(any(byte[].class));
   }
 
   @Test
   public void testSetPayloadMultipart() throws Exception {
-    String payload = "--------------------------------AAAAAAAA\r\n"
+    HTTPRequest request = mock(HTTPRequest.class);
+    setPayloadMultipart(
+        request, "lol", "cat", CSV_UTF_8, "The nice people at the store say hello. ヘ(◕。◕ヘ)");
+    ArgumentCaptor<HTTPHeader> headerCaptor = ArgumentCaptor.forClass(HTTPHeader.class);
+    verify(request, times(2)).addHeader(headerCaptor.capture());
+    List<HTTPHeader> addedHeaders = headerCaptor.getAllValues();
+    assertThat(addedHeaders.get(0).getName()).isEqualTo(CONTENT_TYPE);
+    assertThat(addedHeaders.get(0).getValue())
+        .isEqualTo(
+            "multipart/form-data; "
+                + "boundary=\"------------------------------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"");
+    assertThat(addedHeaders.get(1).getName()).isEqualTo(CONTENT_LENGTH);
+    assertThat(addedHeaders.get(1).getValue()).isEqualTo("292");
+    String payload = "--------------------------------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\r\n"
         + "Content-Disposition: form-data; name=\"lol\"; filename=\"cat\"\r\n"
         + "Content-Type: text/csv; charset=utf-8\r\n"
         + "\r\n"
         + "The nice people at the store say hello. ヘ(◕。◕ヘ)\r\n"
-        + "--------------------------------AAAAAAAA--";
-    HTTPRequest request = mock(HTTPRequest.class);
-    setPayloadMultipart(
-        request, "lol", "cat", CSV_UTF_8, "The nice people at the store say hello. ヘ(◕。◕ヘ)");
-    verify(request).addHeader(argThat(new HTTPHeaderMatcher(
-        CONTENT_TYPE, "multipart/form-data; boundary=------------------------------AAAAAAAA")));
-    verify(request).addHeader(argThat(new HTTPHeaderMatcher(CONTENT_LENGTH, "244")));
+        + "--------------------------------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA--";
     verify(request).setPayload(payload.getBytes(UTF_8));
     verifyNoMoreInteractions(request);
   }
 
-  /** Mockito matcher for {@link HTTPHeader}. */
-  public static class HTTPHeaderMatcher extends ArgumentMatcher<HTTPHeader> {
-    private final String name;
-    private final String value;
-
-    public HTTPHeaderMatcher(String name, String value) {
-      this.name = name;
-      this.value = value;
-    }
-
-    @Override
-    public boolean matches(Object arg) {
-      HTTPHeader header = (HTTPHeader) arg;
-      return name.equals(header.getName())
-          && value.equals(header.getValue());
-    }
+  @Test
+  public void testSetPayloadMultipart_boundaryInPayload() throws Exception {
+    HTTPRequest request = mock(HTTPRequest.class);
+    String payload = "I screamed------------------------------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHH";
+    thrown.expect(
+        IllegalStateException.class,
+        "Multipart data contains autogenerated boundary: "
+            + "------------------------------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    setPayloadMultipart(request, "lol", "cat", CSV_UTF_8, payload);
   }
 }
