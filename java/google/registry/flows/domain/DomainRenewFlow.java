@@ -49,7 +49,6 @@ import google.registry.flows.custom.DomainRenewFlowCustomLogic.BeforeResponsePar
 import google.registry.flows.custom.DomainRenewFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.DomainRenewFlowCustomLogic.BeforeSaveParameters;
 import google.registry.flows.custom.EntityChanges;
-import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.OneTime;
@@ -140,8 +139,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
         eppInput.getSingleExtension(FeeRenewCommandExtension.class);
     FeesAndCredits feesAndCredits =
         pricingLogic.getRenewPrice(Registry.get(existingDomain.getTld()), targetId, now, years);
-    validateFeeChallenge(
-        targetId, existingDomain.getTld(), now, feeRenew, feesAndCredits.getTotalCost());
+    validateFeeChallenge(targetId, existingDomain.getTld(), now, feeRenew, feesAndCredits);
     customLogic.afterValidation(
         AfterValidationParameters.newBuilder()
             .setExistingDomain(existingDomain)

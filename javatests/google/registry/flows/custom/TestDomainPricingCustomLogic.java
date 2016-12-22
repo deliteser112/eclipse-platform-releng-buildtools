@@ -15,8 +15,6 @@
 package google.registry.flows.custom;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Iterables.toArray;
-import static java.math.BigDecimal.TEN;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Splitter;
@@ -26,7 +24,7 @@ import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
 import google.registry.flows.SessionMetadata;
 import google.registry.flows.domain.DomainPricingLogic;
-import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
+import google.registry.flows.domain.FeesAndCredits;
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Credit;
@@ -34,9 +32,13 @@ import google.registry.model.domain.fee.Fee;
 import google.registry.model.eppinput.EppInput;
 import java.math.BigDecimal;
 import java.util.List;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
 
 /** A class to customize {@link DomainPricingLogic} for testing. */
 public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
+
+  private static final BigDecimal ONE_HUNDRED_BUCKS = Money.of(CurrencyUnit.USD, 100).getAmount();
 
   protected TestDomainPricingCustomLogic(EppInput eppInput, SessionMetadata sessionMetadata) {
     super(eppInput, sessionMetadata);
@@ -48,14 +50,16 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
     InternetDomainName domainName = priceParameters.domainName();
     if (domainName.parent().toString().equals("flags")) {
       FeesAndCredits feesAndCredits = priceParameters.feesAndCredits();
+      FeesAndCredits.Builder feesBuilder =
+          new FeesAndCredits.Builder().setCurrency(feesAndCredits.getCurrency());
       ImmutableList.Builder<BaseFee> baseFeeBuilder = new ImmutableList.Builder<>();
       baseFeeBuilder.addAll(feesAndCredits.getCredits());
       for (BaseFee fee : feesAndCredits.getFees()) {
         baseFeeBuilder.add(
             fee.getType() == FeeType.CREATE ? domainNameToFeeOrCredit(domainName) : fee);
+        feesBuilder.setFeeExtensionRequired(true);
       }
-      return new FeesAndCredits(
-          feesAndCredits.getCurrency(), Iterables.toArray(baseFeeBuilder.build(), BaseFee.class));
+      return feesBuilder.setFeesAndCredits(baseFeeBuilder.build()).build();
     } else {
       return priceParameters.feesAndCredits();
     }
@@ -69,7 +73,7 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
             .getFullyQualifiedDomainName()
             .startsWith("non-free-update"))
         ? addCustomFee(
-            priceParameters.feesAndCredits(), Fee.create(BigDecimal.valueOf(100), FeeType.UPDATE))
+            priceParameters.feesAndCredits(), Fee.create(ONE_HUNDRED_BUCKS, FeeType.UPDATE))
         : priceParameters.feesAndCredits();
   }
 
@@ -78,7 +82,7 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
       throws EppException {
     return (priceParameters.domainName().toString().startsWith("costly-renew"))
         ? addCustomFee(
-            priceParameters.feesAndCredits(), Fee.create(BigDecimal.valueOf(100), FeeType.RENEW))
+            priceParameters.feesAndCredits(), Fee.create(ONE_HUNDRED_BUCKS, FeeType.RENEW))
         : priceParameters.feesAndCredits();
   }
 
@@ -87,25 +91,24 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
       throws EppException {
     return (priceParameters.domainName().toString().startsWith("expensive"))
         ? addCustomFee(
-            priceParameters.feesAndCredits(), Fee.create(BigDecimal.valueOf(100), FeeType.TRANSFER))
+            priceParameters.feesAndCredits(), Fee.create(ONE_HUNDRED_BUCKS, FeeType.TRANSFER))
         : priceParameters.feesAndCredits();
   }
 
   @Override
   public FeesAndCredits customizeUpdatePrice(UpdatePriceParameters priceParameters) {
     return (priceParameters.domainName().toString().startsWith("non-free-update"))
-        ? addCustomFee(priceParameters.feesAndCredits(), Fee.create(TEN, FeeType.UPDATE))
+        ? addCustomFee(
+            priceParameters.feesAndCredits(), Fee.create(ONE_HUNDRED_BUCKS, FeeType.UPDATE))
         : priceParameters.feesAndCredits();
   }
 
   private static FeesAndCredits addCustomFee(FeesAndCredits feesAndCredits, BaseFee customFee) {
-    List<BaseFee> newFeesAndCredits =
-        new ImmutableList.Builder<BaseFee>()
-            .addAll(feesAndCredits.getFeesAndCredits())
-            .add(customFee)
-            .build();
-    return new FeesAndCredits(
-        feesAndCredits.getCurrency(), toArray(newFeesAndCredits, BaseFee.class));
+    return feesAndCredits
+        .asBuilder()
+        .setFeeExtensionRequired(true)
+        .addFeeOrCredit(customFee)
+        .build();
   }
 
   private static BaseFee domainNameToFeeOrCredit(InternetDomainName domainName) {

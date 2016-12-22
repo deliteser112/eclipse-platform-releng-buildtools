@@ -15,6 +15,13 @@
         <domain:exDate>%EXDATE%</domain:exDate>
       </domain:trnData>
     </resData>
+    <extension>
+      <fee:trnData xmlns:fee="urn:ietf:params:xml:ns:fee-%FEE_VERSION%">
+        <fee:currency>USD</fee:currency>
+        <fee:fee description="renew">33.00</fee:fee>
+        <fee:fee description="transfer">100.00</fee:fee>
+      </fee:trnData>
+    </extension>
     <trID>
       <clTRID>ABC-12345</clTRID>
       <svTRID>server-trid</svTRID>

@@ -14,16 +14,12 @@
 
 package google.registry.flows.domain;
 
-import static com.google.common.collect.Iterables.concat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static google.registry.pricing.PricingEngineProxy.getDomainFeeClass;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
-import static google.registry.util.CollectionUtils.nullToEmpty;
-import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
@@ -35,12 +31,10 @@ import google.registry.flows.custom.DomainPricingCustomLogic.RenewPriceParameter
 import google.registry.flows.custom.DomainPricingCustomLogic.RestorePriceParameters;
 import google.registry.flows.custom.DomainPricingCustomLogic.TransferPriceParameters;
 import google.registry.flows.custom.DomainPricingCustomLogic.UpdatePriceParameters;
-import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
-import google.registry.model.domain.fee.Credit;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.registry.Registry;
 import javax.inject.Inject;
@@ -61,83 +55,6 @@ public final class DomainPricingLogic {
   @Inject
   DomainPricingLogic() {}
 
-  /** A collection of fees and credits for a specific EPP transform. */
-  public static final class FeesAndCredits extends ImmutableObject {
-
-    private final CurrencyUnit currency;
-    private final ImmutableList<Fee> fees;
-    private final ImmutableList<Credit> credits;
-
-    /** Constructs a new instance. The currency must be the same across all fees and credits. */
-    public FeesAndCredits(CurrencyUnit currency, BaseFee... baseFees) {
-      this.currency = checkArgumentNotNull(currency, "Currency may not be null in FeesAndCredits.");
-      ImmutableList.Builder<Fee> feeBuilder = new ImmutableList.Builder<>();
-      ImmutableList.Builder<Credit> creditBuilder = new ImmutableList.Builder<>();
-      for (BaseFee feeOrCredit : baseFees) {
-        if (feeOrCredit instanceof Credit) {
-          creditBuilder.add((Credit) feeOrCredit);
-        } else {
-          feeBuilder.add((Fee) feeOrCredit);
-        }
-      }
-      this.fees = feeBuilder.build();
-      this.credits = creditBuilder.build();
-    }
-
-    private Money getTotalCostForType(FeeType type) {
-      Money result = Money.zero(currency);
-      checkArgumentNotNull(type);
-      for (Fee fee : fees) {
-        if (fee.getType() == type) {
-          result = result.plus(fee.getCost());
-        }
-      }
-      return result;
-    }
-
-    /** Returns the total cost of all fees and credits for the event. */
-    public Money getTotalCost() {
-      Money result = Money.zero(currency);
-      for (Fee fee : fees) {
-        result = result.plus(fee.getCost());
-      }
-      for (Credit credit : credits) {
-        result = result.plus(credit.getCost());
-      }
-      return result;
-    }
-
-    /** Returns the create cost for the event. */
-    public Money getCreateCost() {
-      return getTotalCostForType(FeeType.CREATE);
-    }
-
-    /** Returns the EAP cost for the event. */
-    public Money getEapCost() {
-      return getTotalCostForType(FeeType.EAP);
-    }
-
-    /** Returns the list of fees for the event. */
-    public ImmutableList<Fee> getFees() {
-      return fees;
-    }
-
-    /** Returns the list of credits for the event. */
-    public ImmutableList<Credit> getCredits() {
-      return ImmutableList.copyOf(nullToEmpty(credits));
-    }
-
-    /** Returns the currency for all fees in the event. */
-    public final CurrencyUnit getCurrency() {
-      return currency;
-    }
-
-    /** Returns all fees and credits for the event. */
-    public ImmutableList<BaseFee> getFeesAndCredits() {
-      return ImmutableList.copyOf(concat(getFees(), getCredits()));
-    }
-  }
-
   /** Returns a new create price for the Pricer. */
   public FeesAndCredits getCreatePrice(
       Registry registry, String domainName, DateTime date, int years) throws EppException {
@@ -147,20 +64,18 @@ public final class DomainPricingLogic {
     BaseFee createFeeOrCredit =
         Fee.create(getDomainCreateCost(domainName, date, years).getAmount(), FeeType.CREATE);
 
-    FeesAndCredits feesAndCredits;
-
     // Create fees for the cost and the EAP fee, if any.
     Fee eapFee = registry.getEapFeeFor(date);
+    FeesAndCredits.Builder feesBuilder =
+        new FeesAndCredits.Builder().setCurrency(currency).addFeeOrCredit(createFeeOrCredit);
     if (!eapFee.hasZeroCost()) {
-      feesAndCredits = new FeesAndCredits(currency, createFeeOrCredit, eapFee);
-    } else {
-      feesAndCredits = new FeesAndCredits(currency, createFeeOrCredit);
+      feesBuilder.addFeeOrCredit(eapFee);
     }
 
     // Apply custom logic to the create fee, if any.
     return customLogic.customizeCreatePrice(
         CreatePriceParameters.newBuilder()
-            .setFeesAndCredits(feesAndCredits)
+            .setFeesAndCredits(feesBuilder.build())
             .setRegistry(registry)
             .setDomainName(InternetDomainName.from(domainName))
             .setAsOfDate(date)
@@ -183,8 +98,10 @@ public final class DomainPricingLogic {
     return customLogic.customizeRenewPrice(
         RenewPriceParameters.newBuilder()
             .setFeesAndCredits(
-                new FeesAndCredits(
-                    registry.getCurrency(), Fee.create(renewCost.getAmount(), FeeType.RENEW)))
+                new FeesAndCredits.Builder()
+                    .setCurrency(registry.getCurrency())
+                    .addFeeOrCredit(Fee.create(renewCost.getAmount(), FeeType.RENEW))
+                    .build())
             .setRegistry(registry)
             .setDomainName(InternetDomainName.from(domainName))
             .setAsOfDate(date)
@@ -197,10 +114,13 @@ public final class DomainPricingLogic {
   public FeesAndCredits getRestorePrice(Registry registry, String domainName, DateTime date)
       throws EppException {
     FeesAndCredits feesAndCredits =
-        new FeesAndCredits(
-            registry.getCurrency(),
-            Fee.create(getDomainRenewCost(domainName, date, 1).getAmount(), FeeType.RENEW),
-            Fee.create(registry.getStandardRestoreCost().getAmount(), FeeType.RESTORE));
+        new FeesAndCredits.Builder()
+            .setCurrency(registry.getCurrency())
+            .addFeeOrCredit(
+                Fee.create(getDomainRenewCost(domainName, date, 1).getAmount(), FeeType.RENEW))
+            .addFeeOrCredit(
+                Fee.create(registry.getStandardRestoreCost().getAmount(), FeeType.RESTORE))
+            .build();
     return customLogic.customizeRestorePrice(
         RestorePriceParameters.newBuilder()
             .setFeesAndCredits(feesAndCredits)
@@ -221,8 +141,10 @@ public final class DomainPricingLogic {
     return customLogic.customizeTransferPrice(
         TransferPriceParameters.newBuilder()
             .setFeesAndCredits(
-                new FeesAndCredits(
-                    registry.getCurrency(), Fee.create(renewCost.getAmount(), FeeType.RENEW)))
+                new FeesAndCredits.Builder()
+                    .setCurrency(registry.getCurrency())
+                    .addFeeOrCredit(Fee.create(renewCost.getAmount(), FeeType.RENEW))
+                    .build())
             .setRegistry(registry)
             .setDomainName(InternetDomainName.from(domainName))
             .setAsOfDate(transferDate)
@@ -238,7 +160,11 @@ public final class DomainPricingLogic {
         Fee.create(Money.zero(registry.getCurrency()).getAmount(), FeeType.UPDATE);
     return customLogic.customizeUpdatePrice(
         UpdatePriceParameters.newBuilder()
-            .setFeesAndCredits(new FeesAndCredits(currency, feeOrCredit))
+            .setFeesAndCredits(
+                new FeesAndCredits.Builder()
+                    .setCurrency(currency)
+                    .addFeeOrCredit(feeOrCredit)
+                    .build())
             .setRegistry(registry)
             .setDomainName(InternetDomainName.from(domainName))
             .setAsOfDate(date)
@@ -253,7 +179,11 @@ public final class DomainPricingLogic {
         Fee.create(Money.zero(registry.getCurrency()).getAmount(), FeeType.UPDATE);
     return customLogic.customizeApplicationUpdatePrice(
         ApplicationUpdatePriceParameters.newBuilder()
-            .setFeesAndCredits(new FeesAndCredits(registry.getCurrency(), feeOrCredit))
+            .setFeesAndCredits(
+                new FeesAndCredits.Builder()
+                    .setCurrency(registry.getCurrency())
+                    .setFeesAndCredits(feeOrCredit)
+                    .build())
             .setRegistry(registry)
             .setDomainApplication(application)
             .setAsOfDate(date)

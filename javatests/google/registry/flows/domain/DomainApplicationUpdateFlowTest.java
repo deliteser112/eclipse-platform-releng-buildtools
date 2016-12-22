@@ -679,7 +679,7 @@ public class DomainApplicationUpdateFlowTest
         newDomainApplication("non-free-update.tld").asBuilder().setRepoId("1-ROID").build());
     setEppInput(
         "domain_update_sunrise_fee.xml",
-        ImmutableMap.of("DOMAIN", "non-free-update.tld", "AMOUNT", "12"));
+        ImmutableMap.of("DOMAIN", "non-free-update.tld", "AMOUNT", "12.00"));
     clock.advanceOneMilli();
     thrown.expect(FeesMismatchException.class);
     runFlow();

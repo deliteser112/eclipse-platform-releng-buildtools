@@ -19,7 +19,7 @@ import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
 import google.registry.flows.SessionMetadata;
 import google.registry.flows.domain.DomainPricingLogic;
-import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
+import google.registry.flows.domain.FeesAndCredits;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.eppinput.EppInput;

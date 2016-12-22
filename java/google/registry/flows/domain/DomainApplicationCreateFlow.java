@@ -63,7 +63,6 @@ import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.After
 import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.EntityChanges;
-import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Create;
@@ -223,7 +222,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     }
     FeeCreateCommandExtension feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
-    validateFeeChallenge(targetId, tld, now, feeCreate, feesAndCredits.getTotalCost());
+    validateFeeChallenge(targetId, tld, now, feeCreate, feesAndCredits);
     SecDnsCreateExtension secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     customLogic.afterValidation(

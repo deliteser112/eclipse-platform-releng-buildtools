@@ -42,7 +42,6 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.OneTime;
@@ -128,17 +127,16 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
     Update command = (Update) resourceCommand;
     DateTime now = ofy().getTransactionTime();
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
-    Money restoreCost = Registry.get(existingDomain.getTld()).getStandardRestoreCost();
     FeesAndCredits feesAndCredits =
-        pricingLogic.getRenewPrice(Registry.get(existingDomain.getTld()), targetId, now, 1);
+        pricingLogic.getRestorePrice(Registry.get(existingDomain.getTld()), targetId, now);
     FeeUpdateCommandExtension feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
-    Money totalCost = feesAndCredits.getTotalCost();
-    verifyRestoreAllowed(command, existingDomain, restoreCost, totalCost, feeUpdate, now);
+    verifyRestoreAllowed(command, existingDomain, feeUpdate, feesAndCredits, now);
     HistoryEntry historyEntry = buildHistory(existingDomain, now);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
     entitiesToSave.addAll(
-        createRestoreAndRenewBillingEvents(historyEntry, restoreCost, totalCost, now));
+        createRestoreAndRenewBillingEvents(
+            historyEntry, feesAndCredits.getRestoreCost(), feesAndCredits.getRenewCost(), now));
     // We don't preserve the original expiration time of the domain when we restore, since doing so
     // would require us to know if they received a grace period refund when they deleted the domain,
     // and to charge them for that again. Instead, we just say that all restores get a fresh year of
@@ -162,7 +160,9 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
     ofy().delete().key(existingDomain.getDeletePollMessage());
     dnsQueue.addDomainRefreshTask(existingDomain.getFullyQualifiedDomainName());
     return responseBuilder
-        .setExtensions(createResponseExtensions(restoreCost, totalCost, feeUpdate))
+        .setExtensions(
+            createResponseExtensions(
+                feesAndCredits.getRestoreCost(), feesAndCredits.getRenewCost(), feeUpdate))
         .build();
   }
 
@@ -177,9 +177,8 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
   private void verifyRestoreAllowed(
       Update command,
       DomainResource existingDomain,
-      Money restoreCost,
-      Money renewCost,
       FeeUpdateCommandExtension feeUpdate,
+      FeesAndCredits feesAndCredits,
       DateTime now) throws EppException {
     verifyOptionalAuthInfo(authInfo, existingDomain);
     if (!isSuperuser) {
@@ -196,7 +195,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
       throw new DomainNotEligibleForRestoreException();
     }
     checkAllowedAccessToTld(clientId, existingDomain.getTld());
-    validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, restoreCost, renewCost);
+    validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, feesAndCredits);
   }
 
   private ImmutableSet<BillingEvent.OneTime> createRestoreAndRenewBillingEvents(

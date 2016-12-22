@@ -44,7 +44,6 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
 import google.registry.model.billing.BillingEvent;
@@ -145,7 +144,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     FeeTransferCommandExtension feeTransfer =
         eppInput.getSingleExtension(FeeTransferCommandExtension.class);
     FeesAndCredits feesAndCredits = pricingLogic.getTransferPrice(registry, targetId, now, years);
-    validateFeeChallenge(targetId, tld, now, feeTransfer, feesAndCredits.getTotalCost());
+    validateFeeChallenge(targetId, tld, now, feeTransfer, feesAndCredits);
     HistoryEntry historyEntry = buildHistory(period, existingDomain, now);
     DateTime automaticTransferTime = now.plus(registry.getAutomaticTransferLength());
     // The new expiration time if there is a server approval.

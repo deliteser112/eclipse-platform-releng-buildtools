@@ -56,7 +56,6 @@ import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.EppException.UnimplementedOptionException;
-import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.model.EppResource;
@@ -674,8 +673,7 @@ public class DomainFlowUtils {
       String tld,
       DateTime priceTime,
       final FeeTransformCommandExtension feeCommand,
-      Money cost,
-      Money... otherCosts)
+      FeesAndCredits feesAndCredits)
       throws EppException {
     Registry registry = Registry.get(tld);
     if (registry.getPremiumPriceAckRequired()
@@ -683,9 +681,17 @@ public class DomainFlowUtils {
         && feeCommand == null) {
       throw new FeesRequiredForPremiumNameException();
     }
+
+    // Check for the case where a fee command extension was required but not provided.
+    // This only happens when the total fees are non-zero and include custom fees requiring the
+    // extension.
     if (feeCommand == null) {
-      return;
+      if (feesAndCredits.getTotalCost().isZero() || !feesAndCredits.isFeeExtensionRequired()) {
+        return;
+      }
+      throw new FeesRequiredForNonFreeOperationException(feesAndCredits.getTotalCost());
     }
+
     List<Fee> fees = feeCommand.getFees();
     // The schema guarantees that at least one fee will be present.
     checkState(!fees.isEmpty());
@@ -710,16 +716,11 @@ public class DomainFlowUtils {
       throw new CurrencyValueScaleException();
     }
 
-    Money costTotal = cost;
-    for (Money otherCost : otherCosts) {
-      costTotal = costTotal.plus(otherCost);
-    }
-
-    if (!feeTotal.getCurrencyUnit().equals(costTotal.getCurrencyUnit())) {
+    if (!feeTotal.getCurrencyUnit().equals(feesAndCredits.getCurrency())) {
       throw new CurrencyUnitMismatchException();
     }
-    if (!feeTotal.equals(costTotal)) {
-      throw new FeesMismatchException(costTotal);
+    if (!feeTotal.equals(feesAndCredits.getTotalCost())) {
+      throw new FeesMismatchException(feesAndCredits.getTotalCost());
     }
   }
 
@@ -1282,10 +1283,17 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Fees must be explicitly acknowledged when performing an update which is not free. */
-  static class FeesRequiredForNonFreeUpdateException extends RequiredParameterMissingException {
-    FeesRequiredForNonFreeUpdateException() {
-      super("Fees must be explicitly acknowledged when performing an update which is not free.");
+  /** Fees must be explicitly acknowledged when performing an operation which is not free. */
+  static class FeesRequiredForNonFreeOperationException extends RequiredParameterMissingException {
+    FeesRequiredForNonFreeOperationException() {
+      super("Fees must be explicitly acknowledged when performing an operation which is not free.");
+    }
+
+    public FeesRequiredForNonFreeOperationException(Money expectedFee) {
+      super(
+          "Fees must be explicitly acknowledged when performing an operation which is not free."
+              + " The total fee is: "
+              + expectedFee);
     }
   }
 

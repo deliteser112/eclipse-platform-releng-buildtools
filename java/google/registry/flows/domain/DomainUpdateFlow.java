@@ -55,8 +55,7 @@ import google.registry.flows.custom.DomainUpdateFlowCustomLogic;
 import google.registry.flows.custom.DomainUpdateFlowCustomLogic.AfterValidationParameters;
 import google.registry.flows.custom.DomainUpdateFlowCustomLogic.BeforeSaveParameters;
 import google.registry.flows.custom.EntityChanges;
-import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeUpdateException;
-import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
+import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeOperationException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -79,7 +78,6 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import javax.inject.Inject;
-import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /**
@@ -109,7 +107,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
  * @error {@link DomainFlowUtils.EmptySecDnsUpdateException}
  * @error {@link DomainFlowUtils.FeesMismatchException}
- * @error {@link DomainFlowUtils.FeesRequiredForNonFreeUpdateException}
+ * @error {@link DomainFlowUtils.FeesRequiredForNonFreeOperationException}
  * @error {@link DomainFlowUtils.LinkedResourcesDoNotExistException}
  * @error {@link DomainFlowUtils.LinkedResourceInPendingDeleteProhibitsOperationException}
  * @error {@link DomainFlowUtils.MaxSigLifeChangeNotSupportedException}
@@ -219,12 +217,11 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     // mismatches). Don't rely on the the validateFeeChallenge check for feeUpdate nullness, because
     // it throws an error if the name is premium, and we don't want to do that here.
     FeesAndCredits feesAndCredits = pricingLogic.getUpdatePrice(Registry.get(tld), targetId, now);
-    Money totalCost = feesAndCredits.getTotalCost();
     if (feeUpdate != null) {
-      validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, totalCost);
-    } else if (!totalCost.isZero()) {
+      validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, feesAndCredits);
+    } else if (!feesAndCredits.getTotalCost().isZero()) {
       // If it's not present but the cost is not zero, throw an exception.
-      throw new FeesRequiredForNonFreeUpdateException();
+      throw new FeesRequiredForNonFreeOperationException(feesAndCredits.getTotalCost());
     }
     verifyNotInPendingDelete(
         add.getContacts(),

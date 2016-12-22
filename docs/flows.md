@@ -246,8 +246,8 @@ the domain to convert to a normal create and be billed for accordingly.
 
 *   2003
     *   At least one of 'add' or 'rem' is required on a secDNS update.
-    *   Fees must be explicitly acknowledged when performing an update which is
-        not free.
+    *   Fees must be explicitly acknowledged when performing an operation which
+        is not free.
     *   Admin contact is required.
     *   Technical contact is required.
 *   2004

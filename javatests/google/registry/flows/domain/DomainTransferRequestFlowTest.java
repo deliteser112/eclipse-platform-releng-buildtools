@@ -84,13 +84,30 @@ import org.junit.Test;
 public class DomainTransferRequestFlowTest
     extends DomainTransferFlowTestCase<DomainTransferRequestFlow, DomainResource> {
 
+  private static final ImmutableMap<String, String> BASE_FEE_MAP =
+      new ImmutableMap.Builder<String, String>()
+          .put("DOMAIN", "example.tld")
+          .put("YEARS", "1")
+          .put("AMOUNT", "11.00")
+          .build();
   private static final ImmutableMap<String, String> FEE_06_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee");
+      new ImmutableMap.Builder<String, String>()
+          .putAll(BASE_FEE_MAP)
+          .put("FEE_VERSION", "0.6")
+          .put("FEE_NS", "fee")
+          .build();
   private static final ImmutableMap<String, String> FEE_11_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.11", "FEE_NS", "fee11");
+      new ImmutableMap.Builder<String, String>()
+          .putAll(BASE_FEE_MAP)
+          .put("FEE_VERSION", "0.11")
+          .put("FEE_NS", "fee11")
+          .build();
   private static final ImmutableMap<String, String> FEE_12_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.12", "FEE_NS", "fee12");
-
+      new ImmutableMap.Builder<String, String>()
+          .putAll(BASE_FEE_MAP)
+          .put("FEE_VERSION", "0.12")
+          .put("FEE_NS", "fee12")
+          .build();
 
   @Before
   public void setUp() throws Exception {
@@ -532,13 +549,16 @@ public class DomainTransferRequestFlowTest
     setupDomain("expensive-domain", "foo");
     clock.advanceOneMilli();
     doSuccessfulTest(
-        "domain_transfer_request_wildcard.xml",
-        "domain_transfer_request_response_wildcard.xml",
+        "domain_transfer_request_fee.xml",
+        "domain_transfer_request_response_fees.xml",
         domain.getRegistrationExpirationTime().plusYears(3),
         new ImmutableMap.Builder<String, String>()
             .put("DOMAIN", "expensive-domain.foo")
             .put("YEARS", "3")
+            .put("AMOUNT", "133.00")
             .put("EXDATE", "2004-09-08T22:00:00.0Z")
+            .put("FEE_VERSION", "0.6")
+            .put("FEE_NS", "fee")
             .build(),
         Optional.of(Money.of(USD, 133)));
   }

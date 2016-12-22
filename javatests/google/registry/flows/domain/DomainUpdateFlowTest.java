@@ -49,7 +49,7 @@ import google.registry.flows.ResourceFlowUtils.StatusNotClientSettableException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
 import google.registry.flows.domain.DomainFlowUtils.EmptySecDnsUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
-import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeUpdateException;
+import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeOperationException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourceInPendingDeleteProhibitsOperationException;
 import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.MaxSigLifeChangeNotSupportedException;
@@ -1196,7 +1196,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_wildcard.xml", ImmutableMap.of("DOMAIN", "non-free-update.tld"));
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(FeesRequiredForNonFreeUpdateException.class);
+    thrown.expect(FeesRequiredForNonFreeOperationException.class);
     runFlow();
   }
 }

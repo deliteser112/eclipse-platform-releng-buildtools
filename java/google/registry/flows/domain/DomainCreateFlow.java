@@ -61,7 +61,6 @@ import google.registry.flows.custom.DomainCreateFlowCustomLogic;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.EntityChanges;
-import google.registry.flows.domain.DomainPricingLogic.FeesAndCredits;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -212,8 +211,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     FeeCreateCommandExtension feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     FeesAndCredits feesAndCredits = pricingLogic.getCreatePrice(registry, targetId, now, years);
-    validateFeeChallenge(
-        targetId, registry.getTldStr(), now, feeCreate, feesAndCredits.getTotalCost());
+    validateFeeChallenge(targetId, registry.getTldStr(), now, feeCreate, feesAndCredits);
     // Superusers can create reserved domains, force creations on domains that require a claims
     // notice without specifying a claims key, ignore the registry phase, and override blocks on
     // registering premium domains.
