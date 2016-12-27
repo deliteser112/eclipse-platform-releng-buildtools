@@ -16,7 +16,6 @@ package google.registry.model.registry.label;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
@@ -36,7 +35,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
@@ -233,22 +231,6 @@ public final class ReservedList
         public ReservedList load(String listName) {
           return ofy().load().type(ReservedList.class).parent(getCrossTldKey()).id(listName).now();
           }});
-
-  /** Deletes the ReservedList with the given name. */
-  public static void delete(final String listName) {
-    final ReservedList reservedList = ReservedList.get(listName).orNull();
-    checkState(
-        reservedList != null,
-        "Attempted to delete reserved list %s which doesn't exist",
-        listName);
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().entity(reservedList).now();
-      }
-    });
-    cache.invalidate(listName);
-  }
 
   /**
    * Gets the {@link ReservationType} of a label in a single ReservedList, or returns an absent

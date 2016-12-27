@@ -233,14 +233,6 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testDelete() throws Exception {
-    persistReservedList("reserved", "trombone,FULLY_BLOCKED");
-    assertThat(ReservedList.get("reserved")).isPresent();
-    ReservedList.delete("reserved");
-    assertThat(ReservedList.get("reserved")).isAbsent();
-  }
-
-  @Test
   public void testSetFromInputLines() throws Exception {
     ReservedList reservedList = persistReservedList("reserved", "trombone,FULLY_BLOCKED");
     assertThat(ReservedList.get("reserved").get().getReservedListEntries()).hasSize(1);
@@ -261,12 +253,6 @@ public class ReservedListTest {
     assertThat(clone.lastUpdateTime).isEqualTo(original.lastUpdateTime);
     assertThat(clone.parent).isEqualTo(original.parent);
     assertThat(original.getReservedListEntries()).isEqualTo(clone.getReservedListEntries());
-  }
-
-  @Test
-  public void testDelete_failsWhenListDoesntExist() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    ReservedList.delete("reserved");
   }
 
   @Test
