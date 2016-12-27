@@ -643,7 +643,6 @@ public class DatastoreHelper {
             FluentIterable.from(asList(expected)).transform(BILLING_EVENT_ID_STRIPPER));
   }
 
-
   /** Assert that there are no billing events. */
   public static void assertNoBillingEvents() {
     assertThat(getBillingEvents()).isEmpty();

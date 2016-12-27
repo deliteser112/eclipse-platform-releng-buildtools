@@ -158,6 +158,12 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
     }
   }
 
+  /**
+   * Executes tasks in the mapreduce queue until all are finished.
+   *
+   * <p>If you are mocking a clock in your tests, use the
+   * {@link #executeTasksUntilEmpty(String, FakeClock)} version instead.
+   */
   protected void executeTasksUntilEmpty(String queueName) throws Exception {
     executeTasksUntilEmpty(queueName, null);
   }
@@ -168,8 +174,8 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
    * <p>Incrementing the clock between tasks is important if tasks have transactions inside the
    * mapper or reducer, which don't have access to the fake clock.
    */
-  protected void
-      executeTasksUntilEmpty(String queueName, @Nullable FakeClock clock) throws Exception {
+  protected void executeTasksUntilEmpty(String queueName, @Nullable FakeClock clock)
+      throws Exception {
     while (true) {
       ofy().clearSessionCache();
       // We have to re-acquire task list every time, because local implementation returns a copy.

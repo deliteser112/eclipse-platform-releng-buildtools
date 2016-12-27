@@ -142,6 +142,7 @@ public class DeleteContactsAndHostsActionTest
     createTld("tld");
     clock.advanceOneMilli();
   }
+
   @Test
   public void testSuccess_contact_referencedByActiveDomain_doesNotGetDeleted() throws Exception {
     ContactResource contact = persistContactPendingDelete("blah8221");
