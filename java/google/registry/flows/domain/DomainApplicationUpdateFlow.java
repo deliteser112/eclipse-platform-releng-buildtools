@@ -61,7 +61,6 @@ import google.registry.model.domain.DomainCommand.Update;
 import google.registry.model.domain.DomainCommand.Update.AddRemove;
 import google.registry.model.domain.DomainCommand.Update.Change;
 import google.registry.model.domain.fee.FeeUpdateCommandExtension;
-import google.registry.model.domain.flags.FlagsUpdateCommandExtension;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchUpdateExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -144,8 +143,7 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
         FeeUpdateCommandExtension.class,
         LaunchUpdateExtension.class,
         MetadataExtension.class,
-        SecDnsUpdateExtension.class,
-        FlagsUpdateCommandExtension.class);
+        SecDnsUpdateExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();

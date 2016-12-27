@@ -44,9 +44,6 @@ import google.registry.model.domain.fee12.FeeDeleteResponseExtensionV12;
 import google.registry.model.domain.fee12.FeeRenewResponseExtensionV12;
 import google.registry.model.domain.fee12.FeeTransferResponseExtensionV12;
 import google.registry.model.domain.fee12.FeeUpdateResponseExtensionV12;
-import google.registry.model.domain.flags.FlagsCreateResponseExtension;
-import google.registry.model.domain.flags.FlagsInfoResponseExtension;
-import google.registry.model.domain.flags.FlagsPollResponseExtension;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension;
 import google.registry.model.domain.launch.LaunchCreateResponseExtension;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
@@ -141,9 +138,6 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
       @XmlElementRef(type = FeeRenewResponseExtensionV12.class),
       @XmlElementRef(type = FeeTransferResponseExtensionV12.class),
       @XmlElementRef(type = FeeUpdateResponseExtensionV12.class),
-      @XmlElementRef(type = FlagsCreateResponseExtension.class),
-      @XmlElementRef(type = FlagsInfoResponseExtension.class),
-      @XmlElementRef(type = FlagsPollResponseExtension.class),
       @XmlElementRef(type = LaunchCheckResponseExtension.class),
       @XmlElementRef(type = LaunchCreateResponseExtension.class),
       @XmlElementRef(type = LaunchInfoResponseExtension.class),

@@ -66,7 +66,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.domain.fee.FeeUpdateCommandExtension;
-import google.registry.model.domain.flags.FlagsUpdateCommandExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
@@ -151,7 +150,6 @@ public final class DomainUpdateFlow implements TransactionalFlow {
   public EppResponse run() throws EppException {
     extensionManager.register(
         FeeUpdateCommandExtension.class,
-        FlagsUpdateCommandExtension.class,
         MetadataExtension.class,
         SecDnsUpdateExtension.class);
     customLogic.beforeValidation();

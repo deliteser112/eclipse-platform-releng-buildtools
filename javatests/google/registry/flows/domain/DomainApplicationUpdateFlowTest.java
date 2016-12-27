@@ -91,7 +91,6 @@ public class DomainApplicationUpdateFlowTest
   @Before
   public void setUp() {
     createTld("tld", TldState.SUNRUSH);
-    createTld("flags", TldState.SUNRISE);
   }
 
   private void persistReferencedEntities() {

@@ -54,7 +54,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.FeeTransferCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
-import google.registry.model.domain.flags.FlagsTransferCommandExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
@@ -129,7 +128,6 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   public final EppResponse run() throws EppException {
     extensionManager.register(
         FeeTransferCommandExtension.class,
-        FlagsTransferCommandExtension.class,
         MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(gainingClientId);

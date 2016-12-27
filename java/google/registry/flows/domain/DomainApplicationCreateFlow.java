@@ -70,7 +70,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.FeeCreateCommandExtension;
 import google.registry.model.domain.fee.FeeTransformCommandExtension;
-import google.registry.model.domain.flags.FlagsCreateCommandExtension;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.launch.LaunchCreateResponseExtension;
@@ -180,7 +179,6 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     extensionManager.register(
         FeeCreateCommandExtension.class,
         SecDnsCreateExtension.class,
-        FlagsCreateCommandExtension.class,
         MetadataExtension.class,
         LaunchCreateExtension.class);
     customLogic.beforeValidation();

@@ -110,8 +110,6 @@ import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
-import google.registry.model.eppoutput.CreateData.DomainCreateData;
-import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
@@ -157,9 +155,6 @@ public class DomainApplicationCreateFlowTest
     setEppInput("domain_create_sunrise_encoded_signed_mark.xml");
     createTld("tld", TldState.SUNRISE);
     persistResource(Registry.get("tld").asBuilder().setReservedLists(createReservedList()).build());
-    createTld("flags", TldState.LANDRUSH);
-    persistResource(
-        Registry.get("flags").asBuilder().setReservedLists(createReservedList()).build());
     inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
   }
@@ -1690,23 +1685,5 @@ public class DomainApplicationCreateFlowTest
   public void testFailure_invalidIdnCodePoints() throws Exception {
     // ❤☀☆☂☻♞☯.tld
     doFailingDomainNameTest("xn--k3hel9n7bxlu1e.tld", InvalidIdnDomainLabelException.class);
-  }
-
-  @Test
-  public void testFailure_flags_feeMismatch() throws Exception {
-    persistContactsAndHosts();
-    setEppInput("domain_create_landrush_flags.xml", ImmutableMap.of("FEE", "12"));
-    thrown.expect(FeesMismatchException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testSuccess_flags() throws Exception {
-    persistContactsAndHosts();
-    setEppInput("domain_create_landrush_flags.xml", ImmutableMap.of("FEE", "42"));
-    EppOutput eppOutput = runFlow();
-    String domainNameWithFlagsPrefix =
-        ((DomainCreateData) eppOutput.getResponse().getResponseData().get(0)).name();
-    assertThat(domainNameWithFlagsPrefix).isEqualTo("flag1-flag2-create-42.flags");
   }
 }

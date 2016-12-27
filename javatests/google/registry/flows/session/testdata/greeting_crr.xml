@@ -15,7 +15,6 @@
         <extURI>urn:ietf:params:xml:ns:fee-0.6</extURI>
         <extURI>urn:ietf:params:xml:ns:fee-0.11</extURI>
         <extURI>urn:ietf:params:xml:ns:fee-0.12</extURI>
-        <extURI>urn:google:params:xml:ns:flags-0.1</extURI>
       </svcExtension>
     </svcMenu>
     <dcp>

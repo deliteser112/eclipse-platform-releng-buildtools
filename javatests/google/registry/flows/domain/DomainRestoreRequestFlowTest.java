@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
@@ -84,7 +83,7 @@ public class DomainRestoreRequestFlowTest extends
 
   @Before
   public void initDomainTest() {
-    createTlds("tld", "flags");
+    createTld("tld");
   }
 
   void persistPendingDeleteDomain() throws Exception {
@@ -546,16 +545,6 @@ public class DomainRestoreRequestFlowTest extends
     setEppInput("domain_update_restore_request_premium.xml");
     persistPendingDeleteDomain();
     thrown.expect(FeesRequiredForPremiumNameException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testFlags_flagsWithWrongFee() throws Exception {
-    setEppInput(
-        "domain_update_restore_request_flags.xml",
-        ImmutableMap.of("DOMAIN", "renew-42.flags", "FEE", "12"));
-    persistPendingDeleteDomain();
-    thrown.expect(FeesMismatchException.class);
     runFlow();
   }
 }

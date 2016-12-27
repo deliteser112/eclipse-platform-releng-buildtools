@@ -51,15 +51,6 @@
       </nameXmlTransform>
     </schemaBindings>
   </bindings>
-  <bindings schemaLocation="flags.xsd" node="/xsd:schema">
-    <schemaBindings>
-      <package name="google.registry.xjc.flags"/>
-      <nameXmlTransform>
-        <elementName prefix="XjcDomain"/>
-        <typeName prefix="XjcDomain"/>
-      </nameXmlTransform>
-    </schemaBindings>
-  </bindings>
   <bindings schemaLocation="host.xsd" node="/xsd:schema">
     <schemaBindings>
       <package name="google.registry.xjc.host"/>

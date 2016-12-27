@@ -40,10 +40,6 @@ import google.registry.model.domain.fee12.FeeCreateCommandExtensionV12;
 import google.registry.model.domain.fee12.FeeRenewCommandExtensionV12;
 import google.registry.model.domain.fee12.FeeTransferCommandExtensionV12;
 import google.registry.model.domain.fee12.FeeUpdateCommandExtensionV12;
-import google.registry.model.domain.flags.FlagsCheckCommandExtension;
-import google.registry.model.domain.flags.FlagsCreateCommandExtension;
-import google.registry.model.domain.flags.FlagsTransferCommandExtension;
-import google.registry.model.domain.flags.FlagsUpdateCommandExtension;
 import google.registry.model.domain.launch.LaunchCheckExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.launch.LaunchDeleteExtension;
@@ -298,10 +294,6 @@ public class EppInput extends ImmutableObject {
         @XmlElementRef(type = FeeTransferCommandExtensionV12.class),
         @XmlElementRef(type = FeeUpdateCommandExtensionV12.class),
         // other extensions
-        @XmlElementRef(type = FlagsCheckCommandExtension.class),
-        @XmlElementRef(type = FlagsCreateCommandExtension.class),
-        @XmlElementRef(type = FlagsTransferCommandExtension.class),
-        @XmlElementRef(type = FlagsUpdateCommandExtension.class),
         @XmlElementRef(type = LaunchCheckExtension.class),
         @XmlElementRef(type = LaunchCreateExtension.class),
         @XmlElementRef(type = LaunchDeleteExtension.class),

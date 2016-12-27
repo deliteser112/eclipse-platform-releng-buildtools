@@ -28,7 +28,6 @@ import google.registry.model.domain.fee11.FeeCheckCommandExtensionV11;
 import google.registry.model.domain.fee11.FeeCheckResponseExtensionV11;
 import google.registry.model.domain.fee12.FeeCheckCommandExtensionV12;
 import google.registry.model.domain.fee12.FeeCheckResponseExtensionV12;
-import google.registry.model.domain.flags.FlagsCheckCommandExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.RgpUpdateExtension;
@@ -58,7 +57,6 @@ public class ProtocolDefinition {
     FEE_0_6(FeeCheckCommandExtensionV06.class, FeeCheckResponseExtensionV06.class, true),
     FEE_0_11(FeeCheckCommandExtensionV11.class, FeeCheckResponseExtensionV11.class, true),
     FEE_0_12(FeeCheckCommandExtensionV12.class, FeeCheckResponseExtensionV12.class, true),
-    FLAGS_0_1(FlagsCheckCommandExtension.class, null, true),
     ALLOCATE_1_0(AllocateCreateExtension.class, null, false),
     METADATA_1_0(MetadataExtension.class, null, false);
 

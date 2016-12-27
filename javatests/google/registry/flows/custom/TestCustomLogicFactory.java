@@ -25,16 +25,4 @@ public class TestCustomLogicFactory extends CustomLogicFactory {
       EppInput eppInput, SessionMetadata sessionMetadata) {
     return new TestDomainPricingCustomLogic(eppInput, sessionMetadata);
   }
-
-  @Override
-  public DomainCreateFlowCustomLogic forDomainCreateFlow(
-      EppInput eppInput, SessionMetadata sessionMetadata) {
-    return new TestDomainCreateFlowCustomLogic(eppInput, sessionMetadata);
-  }
-
-  @Override
-  public DomainApplicationCreateFlowCustomLogic forDomainApplicationCreateFlow(
-      EppInput eppInput, SessionMetadata sessionMetadata) {
-    return new TestDomainApplicationCreateFlowCustomLogic(eppInput, sessionMetadata);
-  }
 }

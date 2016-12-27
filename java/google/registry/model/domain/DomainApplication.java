@@ -148,8 +148,7 @@ public class DomainApplication extends DomainBase {
       "dsig.xsd",
       "smd.xsd",
       "launch.xsd",
-      "allocate.xsd",
-      "flags.xsd");
+      "allocate.xsd");
 
   private static final XmlTransformer INPUT_TRANSFORMER =
       new XmlTransformer(SCHEMAS, EppInput.class);

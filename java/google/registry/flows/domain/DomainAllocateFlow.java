@@ -63,7 +63,6 @@ import google.registry.model.domain.Period;
 import google.registry.model.domain.allocate.AllocateCreateExtension;
 import google.registry.model.domain.fee.FeeCreateCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
-import google.registry.model.domain.flags.FlagsCreateCommandExtension;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -119,7 +118,6 @@ public class DomainAllocateFlow implements TransactionalFlow {
     extensionManager.register(
         FeeCreateCommandExtension.class,
         SecDnsCreateExtension.class,
-        FlagsCreateCommandExtension.class,
         MetadataExtension.class,
         AllocateCreateExtension.class);
     extensionManager.validate();

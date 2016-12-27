@@ -20,7 +20,6 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
@@ -103,7 +102,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Before
   public void initDomainTest() throws Exception {
-    createTlds("tld", "flags");
+    createTld("tld");
     // For flags extension tests.
   }
 
