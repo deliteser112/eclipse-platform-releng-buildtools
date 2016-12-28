@@ -657,6 +657,22 @@ public class DatastoreHelper {
           return billingEvent.asBuilder().setId(1L).build();
         }};
 
+  public static void assertPollMessagesForResource(EppResource resource, PollMessage... expected)
+      throws Exception {
+    assertThat(FluentIterable.from(getPollMessages(resource)).transform(POLL_MESSAGE_ID_STRIPPER))
+        .containsExactlyElementsIn(
+            FluentIterable.from(asList(expected)).transform(POLL_MESSAGE_ID_STRIPPER));
+  }
+
+  /** Helper to effectively erase the poll message ID to facilitate comparison. */
+  public static final Function<PollMessage, PollMessage> POLL_MESSAGE_ID_STRIPPER =
+      new Function<PollMessage, PollMessage>() {
+        @Override
+        public PollMessage apply(PollMessage pollMessage) {
+          // Can't use id=0 because that causes the builder to generate a new id.
+          return pollMessage.asBuilder().setId(1L).build();
+        }};
+
   public static ImmutableList<PollMessage> getPollMessages() {
     return FluentIterable.from(ofy().load().type(PollMessage.class)).toList();
   }
@@ -665,6 +681,10 @@ public class DatastoreHelper {
     return FluentIterable
         .from(ofy().load().type(PollMessage.class).filter("clientId", clientId))
         .toList();
+  }
+
+  public static ImmutableList<PollMessage> getPollMessages(EppResource resource) {
+    return FluentIterable.from(ofy().load().type(PollMessage.class).ancestor(resource)).toList();
   }
 
   public static ImmutableList<PollMessage> getPollMessages(String clientId, DateTime now) {

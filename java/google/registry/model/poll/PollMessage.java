@@ -14,11 +14,11 @@
 
 package google.registry.model.poll;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Converter;
@@ -172,9 +172,9 @@ public abstract class PollMessage extends ImmutableObject
     @Override
     public T build() {
       T instance = getInstance();
-      checkNotNull(instance.clientId);
-      checkNotNull(instance.eventTime);
-      checkNotNull(instance.parent);
+      checkArgumentNotNull(instance.clientId, "clientId must be specified");
+      checkArgumentNotNull(instance.eventTime, "eventTime must be specified");
+      checkArgumentNotNull(instance.parent, "parent must be specified");
       return super.build();
     }
   }
