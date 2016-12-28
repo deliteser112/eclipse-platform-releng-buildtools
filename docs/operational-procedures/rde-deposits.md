@@ -69,6 +69,22 @@ completed for a particular TLD, the appropriate cursor will be updated to
 2015-05-23. If everything is operating normally, you should see all three
 cursors set to tomorrow for all TLDs.
 
+As a special case, if a cursor is not yet defined, it is treated as if it were
+set to today. This will happen when a TLD begins operating. The first time the
+staging job runs, it will assume that the cursor is set to today, generate a
+deposit for the TLD today, and set the cursor to tomorrow. Likewise, the first
+time the upload job runs, it will upload today's data, if available, and set the
+cursor to tomorrow. One thing to be aware of: If, as sometimes happens with new
+TLDs, something is misconfigured, and the RDE staging job is unable to generate
+a deposit, the cursors will stay undefined. After the problem is resolved, the
+RDE process will begin generating and uploading with the current day, because
+undefined cursors are always assumed to be set to today. If ICANN requires that
+the deposits be backfilled to some date, all three cursors (`RDE_STAGING`,
+`RDE_UPLOAD` and `RDE_REPORT`) should be manually set to the first day to be
+backfilled, using the `nomulus` tool. The system will then generate and upload
+the missing daily deposits at the rate of one deposit every four hours,
+eventually catching up.
+
 The `RDE_UPLOAD_SFTP` cursor is used to avoid uploading multiple files to the
 escrow provider within too short a time span, as described below. Therefore, the
 values of the cursor are a little different. Rather than pointing to tomorrow,
@@ -78,7 +94,8 @@ and 2:00 am of the current day. When it runs, the RDE upload action checks that
 the current time is after the RDE_UPLOAD_SFTP cursor value plus a cooldown
 period set by the `rdeUploadSftpCooldown` config parameter (usually, two hours).
 If not, the upload is delayed until the next run of the action (usually, four
-hours).
+hours). If the `RDE_UPLOAD_SFTP` cursor is not yet defined, the system assumes
+that no cooldown period is necessary.
 
 ## Listing deposits in Cloud Storage
 
