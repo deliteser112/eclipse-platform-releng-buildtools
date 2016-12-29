@@ -115,7 +115,7 @@ public abstract class RdapActionBase implements Runnable {
       if (requestMethod != Action.Method.HEAD) {
         response.setPayload(JSONValue.toJSONString(rdapJson));
       }
-      response.setContentType(MediaType.create("application", "rdap+json"));
+      response.setContentType(RESPONSE_MEDIA_TYPE);
     } catch (HttpException e) {
       setError(e.getResponseCode(), e.getResponseCodeString(), e.getMessage());
     } catch (URISyntaxException | IllegalArgumentException e) {
