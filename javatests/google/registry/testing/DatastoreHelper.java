@@ -20,9 +20,10 @@ import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static google.registry.config.ConfigModule.LocalTestConfig.CONTACT_AND_HOST_ROID_SUFFIX;
 import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
-import static google.registry.model.EppResourceUtils.createContactHostRoid;
-import static google.registry.model.EppResourceUtils.createDomainRoid;
+import static google.registry.model.EppResourceUtils.createDomainRepoId;
+import static google.registry.model.EppResourceUtils.createRepoId;
 import static google.registry.model.domain.launch.ApplicationStatus.VALIDATED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
@@ -736,7 +737,7 @@ public class DatastoreHelper {
 
   /** Returns a newly allocated, globally unique domain repoId of the format HEX-TLD. */
   public static String generateNewDomainRoid(String tld) {
-    return createDomainRoid(ObjectifyService.allocateId(), tld);
+    return createDomainRepoId(ObjectifyService.allocateId(), tld);
   }
 
   /**
@@ -744,7 +745,7 @@ public class DatastoreHelper {
    * HEX_TLD-ROID.
    */
   public static String generateNewContactHostRoid() {
-    return createContactHostRoid(ObjectifyService.allocateId());
+    return createRepoId(ObjectifyService.allocateId(), CONTACT_AND_HOST_ROID_SUFFIX);
   }
 
   /**

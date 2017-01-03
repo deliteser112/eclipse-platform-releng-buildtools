@@ -36,7 +36,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
 import static google.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
-import static google.registry.model.EppResourceUtils.createDomainRoid;
+import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
@@ -233,7 +233,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
     SecDnsCreateExtension secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
-    String repoId = createDomainRoid(ObjectifyService.allocateId(), registry.getTldStr());
+    String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
     HistoryEntry historyEntry = buildHistory(repoId, period, now);
     // Bill for the create.

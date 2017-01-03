@@ -28,7 +28,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 import static google.registry.flows.domain.DomainFlowUtils.validateSecDnsExtension;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
-import static google.registry.model.EppResourceUtils.createDomainRoid;
+import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
@@ -140,7 +140,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
         eppInput.getSingleExtension(AllocateCreateExtension.class);
     DomainApplication application =
         loadAndValidateApplication(allocateCreate.getApplicationRoid(), now);
-    String repoId = createDomainRoid(ObjectifyService.allocateId(), registry.getTldStr());
+    String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
     HistoryEntry historyEntry = buildHistory(repoId, period, now);
     entitiesToSave.add(historyEntry);

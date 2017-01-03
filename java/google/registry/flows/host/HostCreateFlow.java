@@ -19,7 +19,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist
 import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.flows.host.HostFlowUtils.verifyDomainIsSameRegistrar;
-import static google.registry.model.EppResourceUtils.createContactHostRoid;
+import static google.registry.model.EppResourceUtils.createRepoId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.CollectionUtils.union;
@@ -27,6 +27,7 @@ import static google.registry.util.CollectionUtils.union;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.config.ConfigModule.Config;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
@@ -81,6 +82,7 @@ public final class HostCreateFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject DnsQueue dnsQueue;
   @Inject EppResponse.Builder responseBuilder;
+  @Inject @Config("contactAndHostRoidSuffix") String roidSuffix;
   @Inject HostCreateFlow() {}
 
   @Override
@@ -110,7 +112,7 @@ public final class HostCreateFlow implements TransactionalFlow {
         .setCurrentSponsorClientId(clientId)
         .setFullyQualifiedHostName(targetId)
         .setInetAddresses(command.getInetAddresses())
-        .setRepoId(createContactHostRoid(ObjectifyService.allocateId()))
+        .setRepoId(createRepoId(ObjectifyService.allocateId(), roidSuffix))
         .setSuperordinateDomain(
             superordinateDomain.isPresent() ? Key.create(superordinateDomain.get()) : null)
         .build();

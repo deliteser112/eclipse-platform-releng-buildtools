@@ -119,15 +119,6 @@ public interface RegistryConfig {
   public String getGoogleAppsSendFromEmailAddress();
 
   /**
-   * Returns the roid suffix to be used for the roids of all contacts and hosts.  E.g. a value of
-   * "ROID" would end up creating roids that look like "ABC123-ROID".
-   *
-   * @see <a href="http://www.iana.org/assignments/epp-repository-ids/epp-repository-ids.xhtml">
-   *      Extensible Provisioning Protocol (EPP) Repository Identifiers</a>
-   */
-  public String getContactAndHostRepositoryIdentifier();
-
-  /**
    * Returns default WHOIS server to use when {@code Registrar#getWhoisServer()} is {@code null}.
    *
    * @see "google.registry.whois.DomainWhoisResponse"

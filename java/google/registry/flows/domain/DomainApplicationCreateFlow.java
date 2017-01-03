@@ -38,7 +38,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNo
 import static google.registry.flows.domain.DomainFlowUtils.verifyRegistryStateAllowsLaunchFlows;
 import static google.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
-import static google.registry.model.EppResourceUtils.createDomainRoid;
+import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
@@ -232,7 +232,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
         .setCreationTrid(trid)
         .setCreationClientId(clientId)
         .setCurrentSponsorClientId(clientId)
-        .setRepoId(createDomainRoid(ObjectifyService.allocateId(), tld))
+        .setRepoId(createDomainRepoId(ObjectifyService.allocateId(), tld))
         .setLaunchNotice(launchCreate == null ? null : launchCreate.getNotice())
         .setIdnTableName(idnTableName)
         .setPhase(launchCreate.getPhase())

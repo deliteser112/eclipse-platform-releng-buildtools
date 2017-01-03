@@ -18,10 +18,11 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostalInfo;
 import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
-import static google.registry.model.EppResourceUtils.createContactHostRoid;
+import static google.registry.model.EppResourceUtils.createRepoId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.Key;
+import google.registry.config.ConfigModule.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
@@ -56,6 +57,7 @@ public final class ContactCreateFlow implements TransactionalFlow {
   @Inject @TargetId String targetId;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppResponse.Builder responseBuilder;
+  @Inject @Config("contactAndHostRoidSuffix") String roidSuffix;
   @Inject ContactCreateFlow() {}
 
   @Override
@@ -71,7 +73,7 @@ public final class ContactCreateFlow implements TransactionalFlow {
         .setAuthInfo(command.getAuthInfo())
         .setCreationClientId(clientId)
         .setCurrentSponsorClientId(clientId)
-        .setRepoId(createContactHostRoid(ObjectifyService.allocateId()))
+        .setRepoId(createRepoId(ObjectifyService.allocateId(), roidSuffix))
         .setFaxNumber(command.getFax())
         .setVoiceNumber(command.getVoice())
         .setDisclose(command.getDisclose())

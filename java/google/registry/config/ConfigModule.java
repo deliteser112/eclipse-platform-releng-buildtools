@@ -114,6 +114,19 @@ public final class ConfigModule {
   }
 
   /**
+   * Returns the roid suffix to be used for the roids of all contacts and hosts.  E.g. a value of
+   * "ROID" would end up creating roids that look like "ABC123-ROID".
+   *
+   * @see <a href="http://www.iana.org/assignments/epp-repository-ids/epp-repository-ids.xhtml">
+   *      Extensible Provisioning Protocol (EPP) Repository Identifiers</a>
+   */
+  @Provides
+  @Config("contactAndHostRoidSuffix")
+  public static String provideContactAndHostRoidSuffix(RegistryEnvironment environment) {
+    return LocalTestConfig.CONTACT_AND_HOST_ROID_SUFFIX;
+  }
+
+  /**
    * The e-mail address for questions about integrating with the registry.  Used in the
    * "contact-us" section of the registrar console.
    *
@@ -1006,5 +1019,11 @@ public final class ConfigModule {
             .setLinkValueSuffix("help/tos")
             .build())
         .build();
+  }
+
+  /** Config values used for local and unit test environments. */
+  public static class LocalTestConfig {
+
+    public static final String CONTACT_AND_HOST_ROID_SUFFIX = "ROID";
   }
 }

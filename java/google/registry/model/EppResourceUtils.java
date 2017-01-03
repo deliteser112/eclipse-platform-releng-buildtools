@@ -27,7 +27,6 @@ import com.google.common.base.Function;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.ResultNow;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.EppResource.Builder;
 import google.registry.model.EppResource.BuilderWithTransferData;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
@@ -55,20 +54,13 @@ public final class EppResourceUtils {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  /** Returns the full domain repoId of the format HEX-TLD for the specified long id and tld. */
-  public static String createDomainRoid(long repoId, String tld) {
-    return createRoid(repoId, getRoidSuffixForTld(tld));
+  /** Returns the full domain repoId in the format HEX-TLD for the specified long id and tld. */
+  public static String createDomainRepoId(long repoId, String tld) {
+    return createRepoId(repoId, getRoidSuffixForTld(tld));
   }
 
-  /**
-   * Returns the full contact/host repoId of the format HEX-GOOGLE for the specified long repo id.
-   */
-  public static String createContactHostRoid(long repoId) {
-    return createRoid(
-        repoId, RegistryEnvironment.get().config().getContactAndHostRepositoryIdentifier());
-  }
-
-  private static String createRoid(long repoId, String roidSuffix) {
+  /** Returns the full repoId in the format HEX-TLD for the specified long id and ROID suffix. */
+  public static String createRepoId(long repoId, String roidSuffix) {
     // %X is uppercase hexadecimal.
     return String.format("%X-%s", repoId, roidSuffix);
   }

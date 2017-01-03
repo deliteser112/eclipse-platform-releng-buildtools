@@ -159,11 +159,6 @@ public final class ProductionRegistryConfigExample implements RegistryConfig {
   }
 
   @Override
-  public String getContactAndHostRepositoryIdentifier() {
-    return "ROID";
-  }
-
-  @Override
   public Duration getContactAutomaticTransferLength() {
     return standardDays(5);
   }
