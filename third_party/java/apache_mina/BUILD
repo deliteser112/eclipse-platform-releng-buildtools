@@ -1,9 +1,0 @@
-package(default_visibility = ["//visibility:public"])
-
-licenses(["notice"])  # Apache License 2.0
-
-java_library(
-    name = "core",
-    exports = ["@mina_core//jar"],
-    runtime_deps = ["//third_party/java/slf4j_api"],
-)

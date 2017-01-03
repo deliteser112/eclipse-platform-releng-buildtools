@@ -20,7 +20,6 @@ java_library(
         "@com_google_dagger",
         "@com_google_guava",
         "@com_googlecode_json_simple",
-        "@javax_inject",
         "@javax_servlet_api",
         "@joda_time",
     ],

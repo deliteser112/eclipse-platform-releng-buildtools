@@ -8,11 +8,12 @@ java_binary(
     name = "annotation_processors_ide",
     create_executable = False,
     runtime_deps = [
-        "@auto_factory//jar",
-        "@auto_service//jar",
-        "@auto_value//jar",
+        "@com_google_auto_common",
+        "@com_google_auto_factory//:processor",
+        "@com_google_auto_service//:processor",
+        "@com_google_auto_value//:processor",
         "@com_google_dagger_compiler",
-        "@javawriter//jar",
+        "@com_squareup_javawriter",
     ],
 )
 

@@ -16,7 +16,6 @@ java_library(
         "@com_google_dagger",
         "@com_google_guava",
         "@dnsjava",
-        "@javax_inject",
         "@joda_time",
     ],
 )

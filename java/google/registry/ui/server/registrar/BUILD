@@ -32,7 +32,6 @@ java_library(
         "@com_google_guava",
         "@com_google_re2j",
         "@io_bazel_rules_closure//closure/templates",
-        "@javax_inject",
         "@javax_servlet_api",
         "@org_joda_money",
     ],

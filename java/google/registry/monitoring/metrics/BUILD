@@ -18,7 +18,6 @@ java_library(
         "@com_google_guava",
         "@com_google_http_client",
         "@com_google_re2j",
-        "@javax_inject",
         "@joda_time",
     ],
 )

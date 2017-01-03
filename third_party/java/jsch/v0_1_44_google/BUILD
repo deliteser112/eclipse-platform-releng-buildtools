@@ -11,5 +11,5 @@ java_import(
     name = "v0_1_44_google",
     jars = ["jsch-0.1.44_google.jar"],
     srcjar = "jsch-0.1.44_google-src.jar",
-    deps = ["//third_party/java/jzlib"],
+    deps = ["@com_jcraft_jzlib"],
 )

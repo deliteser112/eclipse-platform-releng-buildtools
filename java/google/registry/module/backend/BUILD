@@ -37,7 +37,6 @@ java_library(
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",
-        "@javax_inject",
         "@javax_servlet_api",
         "@joda_time",
         "@org_bouncycastle_bcpkix_jdk15on",

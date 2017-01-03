@@ -16,7 +16,6 @@ java_library(
         "@com_google_appengine_tools_appengine_pipeline",
         "@com_google_dagger",
         "@com_google_guava",
-        "@javax_inject",
         "@javax_servlet_api",
         "@joda_time",
     ],

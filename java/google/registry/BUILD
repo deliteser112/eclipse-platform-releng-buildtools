@@ -19,11 +19,11 @@ package_group(
 zip_file(
     name = "common_war",
     srcs = [
-        "@appengine_api_sdk//jar",
+        "@com_google_appengine_api_1_0_sdk",
     ],
     out = "mandatory_stuff.war",
     mappings = {
-        "appengine_api_sdk/jar": "WEB-INF/lib",
+        "com_google_appengine_api_1_0_sdk": "WEB-INF/lib",
     },
     visibility = ["//visibility:private"],
 )

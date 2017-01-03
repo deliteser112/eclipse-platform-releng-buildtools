@@ -42,7 +42,6 @@ java_library(
         "@com_google_re2j",
         "@com_google_truth",
         "@com_googlecode_json_simple",
-        "@javax_inject",
         "@joda_time",
         "@junit",
         "@org_joda_money",

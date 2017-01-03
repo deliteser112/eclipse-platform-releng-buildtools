@@ -15,6 +15,5 @@ java_library(
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",
-        "@javax_inject",
     ],
 )
