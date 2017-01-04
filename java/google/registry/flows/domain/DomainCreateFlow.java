@@ -34,7 +34,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyLaunchPhaseMatc
 import static google.registry.flows.domain.DomainFlowUtils.verifyNoCodeMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
-import static google.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
@@ -164,6 +163,7 @@ public class DomainCreateFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainCreateFlowCustomLogic customLogic;
+  @Inject DomainFlowTmchUtils tmchUtils;
   @Inject DomainPricingLogic pricingLogic;
   @Inject DnsQueue dnsQueue;
   @Inject DomainCreateFlow() {}
@@ -266,7 +266,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         .setLaunchNotice(hasClaimsNotice ? launchCreate.getNotice() : null)
         .setSmdId(hasSignedMarks
             // If a signed mark was provided, then it must match the desired domain label.
-            ? verifySignedMarks(launchCreate.getSignedMarks(), domainLabel, now).getId()
+            ? tmchUtils.verifySignedMarks(launchCreate.getSignedMarks(), domainLabel, now).getId()
             : null)
         .setDsData(secDnsCreate == null ? null : secDnsCreate.getDsData())
         .setRegistrant(command.getRegistrant())

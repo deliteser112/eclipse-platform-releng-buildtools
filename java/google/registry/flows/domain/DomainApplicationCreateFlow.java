@@ -36,7 +36,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyNoCodeMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
 import static google.registry.flows.domain.DomainFlowUtils.verifyRegistryStateAllowsLaunchFlows;
-import static google.registry.flows.domain.DomainFlowUtils.verifySignedMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
@@ -109,7 +108,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.BadDomainNameCharacterException}
  * @error {@link DomainFlowUtils.BadDomainNamePartsCountException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
- * @error {@link DomainFlowUtils.Base64RequiredForEncodedSignedMarksException}
+ * @error {@link DomainFlowTmchUtils.Base64RequiredForEncodedSignedMarksException}
  * @error {@link DomainFlowUtils.ClaimsPeriodEndedException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}
@@ -135,24 +134,24 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedException}
  * @error {@link DomainFlowUtils.NameserversNotSpecifiedException}
- * @error {@link DomainFlowUtils.NoMarksFoundMatchingDomainException}
+ * @error {@link DomainFlowTmchUtils.NoMarksFoundMatchingDomainException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
- * @error {@link DomainFlowUtils.SignedMarksMustBeEncodedException}
- * @error {@link DomainFlowUtils.SignedMarkCertificateExpiredException}
- * @error {@link DomainFlowUtils.SignedMarkCertificateInvalidException}
- * @error {@link DomainFlowUtils.SignedMarkCertificateNotYetValidException}
- * @error {@link DomainFlowUtils.SignedMarkCertificateRevokedException}
- * @error {@link DomainFlowUtils.SignedMarkCertificateSignatureException}
- * @error {@link DomainFlowUtils.SignedMarkEncodingErrorException}
- * @error {@link DomainFlowUtils.SignedMarkParsingErrorException}
- * @error {@link DomainFlowUtils.SignedMarkRevokedErrorException}
- * @error {@link DomainFlowUtils.SignedMarkSignatureException}
+ * @error {@link DomainFlowTmchUtils.SignedMarksMustBeEncodedException}
+ * @error {@link DomainFlowTmchUtils.SignedMarkCertificateExpiredException}
+ * @error {@link DomainFlowTmchUtils.SignedMarkCertificateInvalidException}
+ * @error {@link DomainFlowTmchUtils.SignedMarkCertificateNotYetValidException}
+ * @error {@link DomainFlowTmchUtils.SignedMarkCertificateRevokedException}
+ * @error {@link DomainFlowTmchUtils.SignedMarkCertificateSignatureException}
+ * @error {@link DomainFlowTmchUtils.SignedMarkEncodingErrorException}
+ * @error {@link DomainFlowTmchUtils.SignedMarkParsingErrorException}
+ * @error {@link DomainFlowTmchUtils.SignedMarkRevokedErrorException}
+ * @error {@link DomainFlowTmchUtils.SignedMarkSignatureException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
  * @error {@link DomainFlowUtils.TooManyDsRecordsException}
  * @error {@link DomainFlowUtils.TooManyNameserversException}
- * @error {@link DomainFlowUtils.TooManySignedMarksException}
+ * @error {@link DomainFlowTmchUtils.TooManySignedMarksException}
  * @error {@link DomainFlowUtils.TrailingDashException}
  * @error {@link DomainFlowUtils.UnexpectedClaimsNoticeException}
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
@@ -171,6 +170,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
   @Inject Trid trid;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainApplicationCreateFlowCustomLogic customLogic;
+  @Inject DomainFlowTmchUtils tmchUtils;
   @Inject DomainPricingLogic pricingLogic;
   @Inject DomainApplicationCreateFlow() {}
 
@@ -331,7 +331,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     validateLaunchCreateNotice(launchCreate.getNotice(), domainLabel, isSuperuser, now);
     // If a signed mark was provided, then it must match the desired domain label.
     if (!launchCreate.getSignedMarks().isEmpty()) {
-      verifySignedMarks(launchCreate.getSignedMarks(), domainLabel, now);
+      tmchUtils.verifySignedMarks(launchCreate.getSignedMarks(), domainLabel, now);
     }
   }
 

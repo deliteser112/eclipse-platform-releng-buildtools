@@ -25,6 +25,7 @@ import google.registry.config.ConfigModule;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.custom.CustomLogicFactory;
 import google.registry.flows.custom.TestCustomLogicFactory;
+import google.registry.flows.domain.DomainFlowTmchUtils;
 import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.request.RequestScope;
@@ -49,15 +50,17 @@ interface EppTestComponent {
   @Module
   static class FakesAndMocksModule {
 
-    final FakeClock clock;
-    final Sleeper sleeper;
-    final DnsQueue dnsQueue;
     final BigQueryMetricsEnqueuer metricsEnqueuer;
+    final DnsQueue dnsQueue;
+    final DomainFlowTmchUtils domainFlowTmchUtils;
     final EppMetric.Builder metricBuilder;
+    final FakeClock clock;
     final ModulesService modulesService;
+    final Sleeper sleeper;
 
     FakesAndMocksModule(FakeClock clock) {
       this.clock = clock;
+      this.domainFlowTmchUtils = new DomainFlowTmchUtils();
       this.sleeper = new FakeSleeper(clock);
       this.dnsQueue = DnsQueue.create();
       this.metricBuilder = EppMetric.builderForRequest("request-id-1", clock);
@@ -66,18 +69,28 @@ interface EppTestComponent {
     }
 
     @Provides
+    BigQueryMetricsEnqueuer provideBigQueryMetricsEnqueuer() {
+      return metricsEnqueuer;
+    }
+
+    @Provides
     Clock provideClock() {
       return clock;
     }
 
     @Provides
-    Sleeper provideSleeper() {
-      return sleeper;
+    CustomLogicFactory provideCustomLogicFactory() {
+      return new TestCustomLogicFactory();
     }
 
     @Provides
     DnsQueue provideDnsQueue() {
       return dnsQueue;
+    }
+
+    @Provides
+    DomainFlowTmchUtils provideDomainFlowTmchUtils() {
+      return domainFlowTmchUtils;
     }
 
     @Provides
@@ -91,13 +104,8 @@ interface EppTestComponent {
     }
 
     @Provides
-    BigQueryMetricsEnqueuer provideBigQueryMetricsEnqueuer() {
-      return metricsEnqueuer;
-    }
-
-    @Provides
-    CustomLogicFactory provideCustomLogicFactory() {
-      return new TestCustomLogicFactory();
+    Sleeper provideSleeper() {
+      return sleeper;
     }
   }
 
