@@ -393,6 +393,18 @@ public class ExpandRecurringBillingEventsActionTest
   }
 
   @Test
+  public void testSuccess_expandSingleEvent_recurrenceEndBeforeEvent() throws Exception {
+    // This can occur when a domain is transferred or deleted before a domain comes up for renewal.
+    recurring = persistResource(recurring.asBuilder()
+        .setRecurrenceEndTime(recurring.getEventTime().minusDays(5))
+        .build());
+    action.cursorTimeParam = Optional.of(START_OF_TIME);
+    runMapreduce();
+    assertBillingEventsForResource(domain, recurring);
+    assertCursorAt(beginningOfTest);
+  }
+
+  @Test
   public void testSuccess_expandSingleEvent_dryRun() throws Exception {
     persistResource(recurring);
     action.isDryRun = true;

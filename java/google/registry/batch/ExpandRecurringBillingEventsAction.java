@@ -139,7 +139,9 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
       }
       getContext().incrementCounter("Recurring billing events encountered");
       // Ignore any recurring billing events that have yet to apply.
-      if (recurring.getEventTime().isAfter(executeTime)) {
+      if (recurring.getEventTime().isAfter(executeTime)
+          // This second case occurs when a domain is transferred or deleted before first renewal.
+          || recurring.getRecurrenceEndTime().isBefore(recurring.getEventTime())) {
         getContext().incrementCounter("Recurring billing events ignored");
         return;
       }
