@@ -72,21 +72,21 @@ public class HostResourceTest extends EntityTestCase {
                 .build())
             .build());
     hostResource =
-        cloneAndSetAutoTimestamps(
-            new HostResource.Builder()
-                .setRepoId("DEADBEEF-COM")
-                .setFullyQualifiedHostName("ns1.example.com")
-                .setCreationClientId("a registrar")
-                .setLastEppUpdateTime(clock.nowUtc())
-                .setLastEppUpdateClientId("another registrar")
-                .setLastTransferTime(clock.nowUtc())
-                .setInetAddresses(ImmutableSet.of(InetAddresses.forString("127.0.0.1")))
-                .setStatusValues(ImmutableSet.of(StatusValue.OK))
-                .setSuperordinateDomain(
-                    Key.create(
-                        loadByForeignKey(DomainResource.class, "example.com", clock.nowUtc())))
-                .build());
-    persistResource(hostResource);
+        persistResource(
+            cloneAndSetAutoTimestamps(
+                new HostResource.Builder()
+                    .setRepoId("DEADBEEF-COM")
+                    .setFullyQualifiedHostName("ns1.example.com")
+                    .setCreationClientId("a registrar")
+                    .setLastEppUpdateTime(clock.nowUtc())
+                    .setLastEppUpdateClientId("another registrar")
+                    .setLastTransferTime(clock.nowUtc())
+                    .setInetAddresses(ImmutableSet.of(InetAddresses.forString("127.0.0.1")))
+                    .setStatusValues(ImmutableSet.of(StatusValue.OK))
+                    .setSuperordinateDomain(
+                        Key.create(
+                            loadByForeignKey(DomainResource.class, "example.com", clock.nowUtc())))
+                    .build()));
   }
 
   @Test

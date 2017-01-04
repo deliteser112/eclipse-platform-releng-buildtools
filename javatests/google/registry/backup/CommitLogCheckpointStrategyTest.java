@@ -24,7 +24,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.VoidWork;
-import google.registry.config.TestRegistryConfig;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.ofy.CommitLogBucket;
@@ -92,13 +91,6 @@ public class CommitLogCheckpointStrategyTest {
   public void before() throws Exception {
     strategy.clock = clock;
     strategy.ofy = ofy;
-
-    // Use three commit log buckets for easier but sufficiently complex testing.
-    configRule.override(new TestRegistryConfig() {
-      @Override
-      public int getCommitLogBucketCount() {
-        return 3;
-      }});
 
     // Need to inject clock into Ofy so that createTld() below will get the right time.
     inject.setStaticField(Ofy.class, "clock", clock);

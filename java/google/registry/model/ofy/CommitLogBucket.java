@@ -17,6 +17,7 @@ package google.registry.model.ofy;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.DiscreteDomain.integers;
 import static com.googlecode.objectify.ObjectifyService.ofy;
+import static google.registry.config.RegistryConfig.getCommitLogBucketCount;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Function;
@@ -29,7 +30,7 @@ import com.google.common.collect.Range;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-import google.registry.config.RegistryEnvironment;
+import google.registry.config.RegistryConfig;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.NotBackedUp;
@@ -41,8 +42,8 @@ import org.joda.time.DateTime;
 /**
  * Root for a random commit log bucket.
  *
- * <p>This is used to shard {@link CommitLogManifest} objects into {@link
- * google.registry.config.RegistryConfig#getCommitLogBucketCount() N} entity groups. This increases
+ * <p>This is used to shard {@link CommitLogManifest} objects into
+ * {@link RegistryConfig#getCommitLogBucketCount() N} entity groups. This increases
  * transaction throughput, while maintaining the ability to perform strongly-consistent ancestor
  * queries.
  *
@@ -53,11 +54,11 @@ import org.joda.time.DateTime;
 @NotBackedUp(reason = Reason.COMMIT_LOGS)
 public class CommitLogBucket extends ImmutableObject implements Buildable {
 
-  private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
-
-  /** Ranges from 1 to {@link #getNumBuckets()}, inclusive; starts at 1 since IDs can't be 0. */
-  @Id
-  long bucketNum;
+  /**
+   * Ranges from 1 to {@link RegistryConfig#getCommitLogBucketCount()}, inclusive; starts at 1 since
+   * IDs can't be 0.
+   */
+  @Id long bucketNum;
 
   /** The timestamp of the last {@link CommitLogManifest} written to this bucket. */
   DateTime lastWrittenTime = START_OF_TIME;
@@ -90,12 +91,8 @@ public class CommitLogBucket extends ImmutableObject implements Buildable {
     return ContiguousSet.create(getBucketIdRange(), integers());
   }
 
-  private static int getNumBuckets() {
-    return ENVIRONMENT.config().getCommitLogBucketCount();
-  }
-
   private static Range<Integer> getBucketIdRange() {
-    return Range.closed(1, getNumBuckets());
+    return Range.closed(1, getCommitLogBucketCount());
   }
 
   /** Returns an arbitrary numeric bucket ID.  Default behavior is randomly chosen IDs. */
@@ -116,7 +113,7 @@ public class CommitLogBucket extends ImmutableObject implements Buildable {
 
         @Override
         public Integer get() {
-          return random.nextInt(getNumBuckets()) + 1;  // Add 1 since IDs can't be 0.
+          return random.nextInt(getCommitLogBucketCount()) + 1;  // Add 1 since IDs can't be 0.
         }
       };
 

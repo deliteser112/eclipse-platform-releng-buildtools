@@ -25,19 +25,9 @@ import org.joda.time.Duration;
 /**
  * An implementation of RegistryConfig for unit testing that contains suitable testing data.
  */
-public class TestRegistryConfig implements RegistryConfig {
+public class TestRegistryConfig extends RegistryConfig {
 
   public TestRegistryConfig() {}
-
-  @Override
-  public String getProjectId() {
-    return "domain-registry";
-  }
-
-  @Override
-  public int getCommitLogBucketCount() {
-    return 1;
-  }
 
   @Override
   public Duration getCommitLogDatastoreRetention() {
@@ -46,7 +36,7 @@ public class TestRegistryConfig implements RegistryConfig {
 
   @Override
   public String getSnapshotsBucket() {
-    return getProjectId() + "-snapshots";
+    return RegistryConfig.getProjectId() + "-snapshots";
   }
 
   @Override

@@ -19,7 +19,6 @@ import static google.registry.config.ConfigUtils.makeUrl;
 import static org.joda.time.Duration.standardDays;
 
 import com.google.appengine.api.utils.SystemProperty;
-import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
 import com.google.common.net.HostAndPort;
 import java.net.URL;
@@ -34,7 +33,7 @@ import org.joda.time.Duration;
  * described in the {@link RegistryConfigLoader} documentation.
  */
 @Immutable
-public final class ProductionRegistryConfigExample implements RegistryConfig {
+public final class ProductionRegistryConfigExample extends RegistryConfig {
 
   private final RegistryEnvironment environment;
 
@@ -47,22 +46,6 @@ public final class ProductionRegistryConfigExample implements RegistryConfig {
 
   public ProductionRegistryConfigExample(RegistryEnvironment environment) {
     this.environment = checkNotNull(environment);
-  }
-
-  @Override
-  public String getProjectId() {
-    String prodProjectId = "domain-registry";
-    switch (environment) {
-      case PRODUCTION:
-        return prodProjectId;
-      default:
-        return prodProjectId + "-" + Ascii.toLowerCase(environment.name());
-    }
-  }
-
-  @Override
-  public int getCommitLogBucketCount() {
-    return 100;  // if you decrease this number, the world ends
   }
 
   /**
@@ -79,7 +62,7 @@ public final class ProductionRegistryConfigExample implements RegistryConfig {
 
   @Override
   public String getSnapshotsBucket() {
-    return getProjectId() + "-snapshots";
+    return RegistryConfig.getProjectId() + "-snapshots";
   }
 
   @Override

@@ -19,12 +19,10 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
-import google.registry.config.TestRegistryConfig;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.RegistryConfigRule;
 import org.joda.time.DateTime;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,16 +47,6 @@ public class CommitLogCheckpointTest {
   private static final DateTime T2 = START_OF_TIME.plusMillis(1);
   private static final DateTime T3 = START_OF_TIME.plusMillis(2);
 
-  @Before
-  public void before() {
-    // Use 3 buckets to make the tests below more realistic.
-    configRule.override(new TestRegistryConfig() {
-      @Override
-      public int getCommitLogBucketCount() {
-        return 3;
-      }});
-  }
-
   @Test
   public void test_getCheckpointTime() {
     DateTime now = DateTime.now(UTC);
@@ -72,18 +60,6 @@ public class CommitLogCheckpointTest {
     CommitLogCheckpoint checkpoint =
         CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(1, T1, 2, T2, 3, T3));
     assertThat(checkpoint.getBucketTimestamps()).containsExactly(1, T1, 2, T2, 3, T3);
-  }
-
-  @Test
-  public void test_getBucketTimestamps_whenOnlyOneBucket_stillWorks() {
-    configRule.override(new TestRegistryConfig() {
-      @Override
-      public int getCommitLogBucketCount() {
-        return 1;
-      }});
-    CommitLogCheckpoint checkpoint =
-        CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(1, T1));
-    assertThat(checkpoint.getBucketTimestamps()).containsExactly(1, T1);
   }
 
   @Test

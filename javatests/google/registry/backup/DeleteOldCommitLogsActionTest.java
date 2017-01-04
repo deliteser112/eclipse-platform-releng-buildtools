@@ -15,10 +15,11 @@
 package google.registry.backup;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.config.RegistryConfig.getCommitLogBucketCount;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.Duration.millis;
 
 import com.googlecode.objectify.VoidWork;
-import google.registry.config.TestRegistryConfig;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
 import google.registry.model.ofy.Ofy;
@@ -26,10 +27,8 @@ import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
-import google.registry.testing.RegistryConfigRule;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,28 +44,27 @@ public class DeleteOldCommitLogsActionTest {
       .build();
 
   @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule();
-
-  @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
   private final Ofy ofy = new Ofy(clock);
-  private final DeleteOldCommitLogsAction task = new DeleteOldCommitLogsAction();
 
-  @Before
-  public void before() throws Exception {
-    task.bucketNum = 1;
-    task.clock = clock;
-    task.maxAge = Duration.millis(2);
-    task.maxDeletes = 4;
-    task.ofy = ofy;
+  private void runInAllBuckets(int maxDeletes) {
+    for (int bucketNum = 1; bucketNum <= getCommitLogBucketCount(); bucketNum++) {
+      DeleteOldCommitLogsAction task = new DeleteOldCommitLogsAction();
+      task.bucketNum = bucketNum;
+      task.clock = clock;
+      task.maxAge = Duration.millis(2);
+      task.maxDeletes = maxDeletes;
+      task.ofy = ofy;
+      task.run();
+    }
   }
 
   @Test
   public void testRun_noCommitLogs_doesNothing() throws Exception {
     assertManifestAndMutationCounts(0, 0);
-    task.run();
+    runInAllBuckets(4);
     assertManifestAndMutationCounts(0, 0);
   }
 
@@ -75,7 +73,7 @@ public class DeleteOldCommitLogsActionTest {
     createCommitLog();
     clock.advanceOneMilli();
     assertManifestAndMutationCounts(1, 2);
-    task.run();
+    runInAllBuckets(4);
     assertManifestAndMutationCounts(1, 2);
   }
 
@@ -83,7 +81,7 @@ public class DeleteOldCommitLogsActionTest {
   public void testRun_commitLogEqualToThreshold_doesntGetDeleted() throws Exception {
     createCommitLog();
     clock.advanceBy(millis(2));
-    task.run();
+    runInAllBuckets(4);
     assertManifestAndMutationCounts(1, 2);
   }
 
@@ -91,7 +89,7 @@ public class DeleteOldCommitLogsActionTest {
   public void testRun_commitLogOlderThanThreshold_getsDeleted() throws Exception {
     createCommitLog();
     clock.advanceBy(millis(3));
-    task.run();
+    runInAllBuckets(4);
     assertManifestAndMutationCounts(0, 0);
   }
 
@@ -101,34 +99,31 @@ public class DeleteOldCommitLogsActionTest {
     clock.advanceBy(millis(3));
     createCommitLog();
     assertManifestAndMutationCounts(2, 4);
-    task.run();
+    runInAllBuckets(4);
     assertManifestAndMutationCounts(1, 2);
   }
 
   @Test
   public void testRun_twoOlderThanThreshold_bothGetDeletedInSameTransaction() throws Exception {
-    task.maxDeletes = 2;
     createCommitLog();
     clock.advanceOneMilli();
     createCommitLog();
     clock.advanceBy(millis(3));
     assertManifestAndMutationCounts(2, 4);
-    task.run();
+    runInAllBuckets(2);
     assertManifestAndMutationCounts(0, 0);
   }
 
   @Test
   public void testRun_twoOlderThanThreshold_bothGetDeletedInTwoTransactions() throws Exception {
-    task.maxDeletes = 1;
     createCommitLog();
     clock.advanceOneMilli();
     createCommitLog();
     clock.advanceBy(millis(3));
     createCommitLog();
     assertManifestAndMutationCounts(3, 6);
-    task.run();
-    assertManifestAndMutationCounts(2, 4);
-    task.run();
+    runInAllBuckets(1);
+    runInAllBuckets(1);
     assertManifestAndMutationCounts(1, 2);
   }
 
@@ -136,20 +131,22 @@ public class DeleteOldCommitLogsActionTest {
   public void testRun_commitLogOlderButInADifferentBucket_doesntGetDeleted() throws Exception {
     createCommitLog();
     clock.advanceBy(millis(31337));
-    configRule.override(new TestRegistryConfig() {
-      @Override public int getCommitLogBucketCount() { return 2; }
-    });
-    task.bucketNum = 2;
+    int usedBucketNum = ofy().load().type(CommitLogManifest.class).list().get(0).getBucketId();
+    DeleteOldCommitLogsAction task = new DeleteOldCommitLogsAction();
+    task.bucketNum = (usedBucketNum % getCommitLogBucketCount()) + 1;
+    task.clock = clock;
+    task.maxAge = Duration.millis(2);
+    task.maxDeletes = 20;
+    task.ofy = ofy;
     task.run();
     assertManifestAndMutationCounts(1, 2);
   }
 
   @Test
   public void testRun_lessThanATenthOfOldData_doesntGetDeleted() throws Exception {
-    task.maxDeletes = 20;
     createCommitLog();
     clock.advanceBy(millis(2));
-    task.run();
+    runInAllBuckets(20);
     assertManifestAndMutationCounts(1, 2);
   }
 

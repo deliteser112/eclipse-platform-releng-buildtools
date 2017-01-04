@@ -62,8 +62,10 @@ public class CommitLogCheckpointActionTest {
     task.clock = new FakeClock(now);
     task.strategy = strategy;
     task.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
-    when(strategy.computeCheckpoint()).thenReturn(
-        CommitLogCheckpoint.create(now, ImmutableMap.of(1, START_OF_TIME)));
+    when(strategy.computeCheckpoint())
+        .thenReturn(
+            CommitLogCheckpoint.create(
+                now, ImmutableMap.of(1, START_OF_TIME, 2, START_OF_TIME, 3, START_OF_TIME)));
   }
 
   @Test

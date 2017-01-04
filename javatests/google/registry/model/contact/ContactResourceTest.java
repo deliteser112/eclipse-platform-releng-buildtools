@@ -53,7 +53,7 @@ public class ContactResourceTest extends EntityTestCase {
   public void setUp() throws Exception {
     createTld("foobar");
     // Set up a new persisted ContactResource entity.
-    contactResource = cloneAndSetAutoTimestamps(
+    contactResource = persistResource(cloneAndSetAutoTimestamps(
         new ContactResource.Builder()
             .setContactId("contact_id")
             .setRepoId("1-FOOBAR")
@@ -113,8 +113,7 @@ public class ContactResourceTest extends EntityTestCase {
                 .setTransferStatus(TransferStatus.SERVER_APPROVED)
                 .setTransferRequestTrid(Trid.create("client trid"))
                 .build())
-            .build());
-    persistResource(contactResource);
+            .build()));
   }
 
   @Test

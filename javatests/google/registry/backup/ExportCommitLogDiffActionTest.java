@@ -30,7 +30,6 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
-import google.registry.config.TestRegistryConfig;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpoint;
@@ -38,7 +37,6 @@ import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.GcsTestingUtils;
-import google.registry.testing.RegistryConfigRule;
 import google.registry.testing.TestObject;
 import java.util.List;
 import org.joda.time.DateTime;
@@ -52,19 +50,10 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ExportCommitLogDiffActionTest {
 
-  private static final int NUM_BUCKETS = 3;
-
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule(
-      new TestRegistryConfig() {
-        @Override public int getCommitLogBucketCount() {
-          return NUM_BUCKETS;
-        }});
 
   /** Local GCS service available for testing. */
   private final GcsService gcsService = GcsServiceFactory.createGcsService();

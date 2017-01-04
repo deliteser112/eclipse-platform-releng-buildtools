@@ -14,6 +14,7 @@
 
 package google.registry.config;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
 import com.google.common.net.HostAndPort;
 import java.net.URL;
@@ -24,22 +25,31 @@ import org.joda.time.Duration;
  *
  * <p>The goal of this custom configuration system is to have our project environments configured
  * in type-safe Java code that can be refactored, rather than XML files and system properties.
- *
- * <p><b>Note:</b> This interface is deprecated by {@link ConfigModule}.
  */
-public interface RegistryConfig {
+public abstract class RegistryConfig {
 
   /**
    * Returns the App Engine project ID, which is based off the environment name.
    */
-  public String getProjectId();
+  public static String getProjectId() {
+    String prodProjectId = "domain-registry";
+    RegistryEnvironment environment = RegistryEnvironment.get();
+    switch (environment) {
+      case PRODUCTION:
+      case UNITTEST:
+      case LOCAL:
+        return prodProjectId;
+      default:
+        return prodProjectId + "-" + Ascii.toLowerCase(environment.name());
+    }
+  }
 
   /**
    * Returns the Google Cloud Storage bucket for storing backup snapshots.
    *
    * @see google.registry.export.ExportSnapshotServlet
    */
-  public String getSnapshotsBucket();
+  public abstract String getSnapshotsBucket();
 
   /**
    * Number of sharded commit log buckets.
@@ -54,7 +64,14 @@ public interface RegistryConfig {
    *
    * @see google.registry.model.ofy.CommitLogBucket
    */
-  public int getCommitLogBucketCount();
+  public static int getCommitLogBucketCount() {
+    switch (RegistryEnvironment.get()) {
+      case UNITTEST:
+        return 3;
+      default:
+        return 100;
+    }
+  }
 
   /**
    * Returns the length of time before commit logs should be deleted from datastore.
@@ -65,26 +82,26 @@ public interface RegistryConfig {
    * @see google.registry.backup.DeleteOldCommitLogsAction
    * @see google.registry.model.translators.CommitLogRevisionsTranslatorFactory
    */
-  public Duration getCommitLogDatastoreRetention();
+  public abstract Duration getCommitLogDatastoreRetention();
 
   /**
    * Returns {@code true} if TMCH certificate authority should be in testing mode.
    *
    * @see google.registry.tmch.TmchCertificateAuthority
    */
-  public boolean getTmchCaTestingMode();
+  public abstract boolean getTmchCaTestingMode();
 
-  public Optional<String> getECatcherAddress();
+  public abstract Optional<String> getECatcherAddress();
 
   /**
    * Returns the address of the Nomulus app HTTP server.
    *
    * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
    */
-  public HostAndPort getServer();
+  public abstract HostAndPort getServer();
 
   /** Returns the amount of time a singleton should be cached, before expiring. */
-  public Duration getSingletonCacheRefreshDuration();
+  public abstract Duration getSingletonCacheRefreshDuration();
 
   /**
    * Returns the amount of time a domain label list should be cached in memory before expiring.
@@ -92,31 +109,31 @@ public interface RegistryConfig {
    * @see google.registry.model.registry.label.ReservedList
    * @see google.registry.model.registry.label.PremiumList
    */
-  public Duration getDomainLabelListCacheDuration();
+  public abstract Duration getDomainLabelListCacheDuration();
 
   /** Returns the amount of time a singleton should be cached in persist mode, before expiring. */
-  public Duration getSingletonCachePersistDuration();
+  public abstract Duration getSingletonCachePersistDuration();
 
   /**
    * Returns the header text at the top of the reserved terms exported list.
    *
    * @see google.registry.export.ExportUtils#exportReservedTerms
    */
-  public String getReservedTermsExportDisclaimer();
+  public abstract String getReservedTermsExportDisclaimer();
 
   /**
    * Returns a display name that is used on outgoing emails sent by Nomulus.
    *
    * @see google.registry.util.SendEmailUtils
    */
-  public String getGoogleAppsAdminEmailDisplayName();
+  public abstract String getGoogleAppsAdminEmailDisplayName();
 
   /**
    * Returns the email address that outgoing emails from the app are sent from.
    *
    * @see google.registry.util.SendEmailUtils
    */
-  public String getGoogleAppsSendFromEmailAddress();
+  public abstract String getGoogleAppsSendFromEmailAddress();
 
   /**
    * Returns default WHOIS server to use when {@code Registrar#getWhoisServer()} is {@code null}.
@@ -124,33 +141,33 @@ public interface RegistryConfig {
    * @see "google.registry.whois.DomainWhoisResponse"
    * @see "google.registry.whois.RegistrarWhoisResponse"
    */
-  public String getRegistrarDefaultWhoisServer();
+  public abstract String getRegistrarDefaultWhoisServer();
 
   /**
    * Returns the default referral URL that is used unless registrars have specified otherwise.
    */
-  public URL getRegistrarDefaultReferralUrl();
+  public abstract URL getRegistrarDefaultReferralUrl();
 
   /**
    * Returns the number of EppResourceIndex buckets to be used.
    */
-  public int getEppResourceIndexBucketCount();
+  public abstract int getEppResourceIndexBucketCount();
 
   /**
    * Returns the base duration that gets doubled on each retry within {@code Ofy}.
    */
-  public Duration getBaseOfyRetryDuration();
+  public abstract Duration getBaseOfyRetryDuration();
 
   /**
    * Returns the global automatic transfer length for contacts.  After this amount of time has
    * elapsed, the transfer is automatically approved.
    */
-  public Duration getContactAutomaticTransferLength();
+  public abstract Duration getContactAutomaticTransferLength();
 
   /**
    * Returns the clientId of the registrar used by the {@code CheckApiServlet}.
    */
-  public String getCheckApiServletRegistrarClientId();
+  public abstract String getCheckApiServletRegistrarClientId();
 
   // XXX: Please consider using ConfigModule instead of adding new methods to this file.
 }

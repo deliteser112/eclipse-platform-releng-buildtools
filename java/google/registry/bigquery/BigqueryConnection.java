@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Verify.verify;
 import static google.registry.bigquery.BigqueryUtils.toJobReferenceString;
+import static google.registry.config.RegistryConfig.getProjectId;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
@@ -60,7 +61,6 @@ import google.registry.bigquery.BigqueryUtils.DestinationFormat;
 import google.registry.bigquery.BigqueryUtils.SourceFormat;
 import google.registry.bigquery.BigqueryUtils.TableType;
 import google.registry.bigquery.BigqueryUtils.WriteDisposition;
-import google.registry.config.RegistryEnvironment;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import google.registry.util.Sleeper;
@@ -246,7 +246,7 @@ public class BigqueryConnection implements AutoCloseable {
       }
 
       public DestinationTable build() {
-        tableRef.setProjectId(getEnvironmentProjectId());
+        tableRef.setProjectId(getProjectId());
         table.setTableReference(tableRef);
         checkState(!isNullOrEmpty(table.getTableReference().getDatasetId()));
         checkState(!isNullOrEmpty(table.getTableReference().getTableId()));
@@ -702,16 +702,6 @@ public class BigqueryConnection implements AutoCloseable {
       }
       throw e;
     }
-  }
-
-  /** Returns the projectId set by the environment, or {@code null} if none is set. */
-  public static String getEnvironmentProjectId() {
-    return RegistryEnvironment.get().config().getProjectId();
-  }
-
-  /** Returns the projectId associated with this bigquery connection. */
-  public String getProjectId() {
-    return getEnvironmentProjectId();
   }
 
   /** Returns the dataset name that this bigquery connection uses by default. */

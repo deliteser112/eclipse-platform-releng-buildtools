@@ -79,8 +79,8 @@ public final class ConfigModule {
 
   @Provides
   @Config("projectId")
-  public static String provideProjectId(RegistryConfig config) {
-    return config.getProjectId();
+  public static String provideProjectId() {
+    return RegistryConfig.getProjectId();
   }
 
   /**

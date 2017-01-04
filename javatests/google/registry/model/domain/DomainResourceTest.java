@@ -107,7 +107,7 @@ public class DomainResourceTest extends EntityTestCase {
     Key<PollMessage.OneTime> onetimePollKey =
         Key.create(historyEntryKey, PollMessage.OneTime.class, 1);
     // Set up a new persisted domain entity.
-    domain = cloneAndSetAutoTimestamps(
+    domain = persistResource(cloneAndSetAutoTimestamps(
         new DomainResource.Builder()
             .setFullyQualifiedDomainName("example.com")
             .setRepoId("4-COM")
@@ -158,8 +158,7 @@ public class DomainResourceTest extends EntityTestCase {
             .setApplication(Key.create(DomainApplication.class, 1))
             .addGracePeriod(GracePeriod.create(
                 GracePeriodStatus.ADD, clock.nowUtc().plusDays(1), "registrar", null))
-            .build());
-    persistResource(domain);
+            .build()));
   }
 
   @Test

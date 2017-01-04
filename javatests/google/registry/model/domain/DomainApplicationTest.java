@@ -65,7 +65,7 @@ public class DomainApplicationTest extends EntityTestCase {
   public void setUp() throws Exception {
     createTld("com");
     // Set up a new persisted domain application entity.
-    domainApplication = cloneAndSetAutoTimestamps(
+    domainApplication = persistResource(cloneAndSetAutoTimestamps(
         new DomainApplication.Builder()
             .setFullyQualifiedDomainName("example.com")
             .setRepoId("1-COM")
@@ -96,8 +96,7 @@ public class DomainApplicationTest extends EntityTestCase {
             .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "abcdefg=")))
             .setApplicationStatus(ApplicationStatus.ALLOCATED)
             .setAuctionPrice(Money.of(USD, 11))
-            .build());
-    persistResource(domainApplication);
+            .build()));
   }
 
   @Test

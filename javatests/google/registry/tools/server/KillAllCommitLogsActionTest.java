@@ -40,6 +40,7 @@ import google.registry.model.ofy.CommitLogMutation;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
 import java.util.List;
+import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -72,10 +73,11 @@ public class KillAllCommitLogsActionTest extends MapreduceTestCase<KillAllCommit
           newContactResource(String.format("abc%d", nextContactId++)));
     }
     persistResource(CommitLogCheckpointRoot.create(START_OF_TIME.plusDays(1)));
+    DateTime bucketTime = START_OF_TIME.plusDays(2);
     persistResource(
         CommitLogCheckpoint.create(
             START_OF_TIME.plusDays(1),
-            ImmutableMap.of(1, START_OF_TIME.plusDays(2))));
+            ImmutableMap.of(1, bucketTime, 2, bucketTime, 3, bucketTime)));
     for (Class<?> clazz : AFFECTED_TYPES) {
       assertThat(ofy().load().type(clazz)).named("entities of type " + clazz).isNotEmpty();
     }
