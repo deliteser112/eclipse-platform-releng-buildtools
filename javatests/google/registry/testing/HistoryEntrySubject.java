@@ -40,7 +40,10 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
 
   @Override
   public String actualCustomStringRepresentation() {
-    return Optional.fromNullable(customDisplaySubject).or(super.actualAsString());
+    // This will unfortunately not use the customName field in the superclass, but we can't call
+    // super.actualAsString(), because as currently implemented, it would result in an infinite
+    // recursion.
+    return Optional.fromNullable(customDisplaySubject).or(String.valueOf(actual()));
   }
 
   public HistoryEntrySubject withCustomDisplaySubject(String customDisplaySubject) {
