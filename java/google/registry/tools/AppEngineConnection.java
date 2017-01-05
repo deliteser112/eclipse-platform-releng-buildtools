@@ -15,51 +15,46 @@
 package google.registry.tools;
 
 import static com.google.common.base.Suppliers.memoize;
-import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.common.net.HttpHeaders.X_REQUESTED_WITH;
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static google.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
 import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
+import com.google.api.client.http.ByteArrayContent;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpHeaders;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpUnsuccessfulResponseHandler;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.MediaType;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-import google.registry.config.RegistryEnvironment;
 import google.registry.security.XsrfTokenManager;
 import google.registry.tools.ServerSideCommand.Connection;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.Map;
-import java.util.Map.Entry;
+import javax.inject.Inject;
 import org.json.simple.JSONValue;
 
 /** An http connection to the appengine server. */
-@Parameters(separators = " =")
 class AppEngineConnection implements Connection {
 
   /** Pattern to heuristically extract title tag contents in HTML responses. */
   private static final Pattern HTML_TITLE_TAG_PATTERN = Pattern.compile("<title>(.*?)</title>");
 
+  @Inject HttpRequestFactory requestFactory;
+  @Inject HostAndPort server;
 
-  @Parameter(
-      names = "--server",
-      description = "HOST[:PORT] to which remote commands are sent.")
-  private HostAndPort server = RegistryEnvironment.get().config().getServer();
-
+  @Inject
+  AppEngineConnection() {}
 
   /**
    * Memoized XSRF security token.
@@ -86,55 +81,50 @@ class AppEngineConnection implements Connection {
   }
 
   /** Returns the HTML from the connection error stream, if any, otherwise the empty string. */
-  private static String getErrorHtmlAsString(HttpURLConnection connection) throws IOException {
-    return connection.getErrorStream() != null
-        ? CharStreams.toString(new InputStreamReader(connection.getErrorStream(), UTF_8))
-        : "";
+  private static String getErrorHtmlAsString(HttpResponse response) throws IOException {
+    return CharStreams.toString(new InputStreamReader(response.getContent(), UTF_8));
   }
 
   @Override
   public String send(
       String endpoint, Map<String, ?> params, MediaType contentType, byte[] payload)
           throws IOException {
-    HttpURLConnection connection = getHttpURLConnection(
-        new URL(String.format("%s%s?%s", getServerUrl(), endpoint, encodeParams(params))));
-    connection.setRequestMethod("POST");
-    // Disable following redirects, which we shouldn't normally encounter.
-    connection.setInstanceFollowRedirects(false);
-    connection.setUseCaches(false);
-    connection.setRequestProperty(CONTENT_TYPE, contentType.toString());
-    connection.setRequestProperty(X_CSRF_TOKEN, xsrfToken.get());
-    connection.setRequestProperty(X_REQUESTED_WITH, "RegistryTool");
-    connection.setDoOutput(true);
-    connection.connect();
-    try (OutputStream output = connection.getOutputStream()) {
-      output.write(payload);
-    }
-    if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-      String errorTitle = extractHtmlTitle(getErrorHtmlAsString(connection));
-      throw new IOException(String.format(
-          "Error from %s: %d %s%s",
-          connection.getURL(),
-          connection.getResponseCode(),
-          connection.getResponseMessage(),
-          (errorTitle == null ? "" : ": " + errorTitle)));
-    }
-    return CharStreams.toString(new InputStreamReader(connection.getInputStream(), UTF_8));
-  }
-
-  private String encodeParams(Map<String, ?> params) {
-    return Joiner.on('&').join(Iterables.transform(
-        params.entrySet(),
-        new Function<Entry<String, ?>, String>() {
+    GenericUrl url = new GenericUrl(String.format("%s%s", getServerUrl(), endpoint));
+    url.putAll(params);
+    HttpRequest request =
+        requestFactory.buildPostRequest(url, new ByteArrayContent(contentType.toString(), payload));
+    HttpHeaders headers = request.getHeaders();
+    headers.setCacheControl("no-cache");
+    headers.put(X_CSRF_TOKEN, ImmutableList.of(xsrfToken.get()));
+    headers.put(X_REQUESTED_WITH, ImmutableList.of("RegistryTool"));
+    request.setHeaders(headers);
+    request.setFollowRedirects(false);
+    request.setThrowExceptionOnExecuteError(false);
+    request.setUnsuccessfulResponseHandler(
+        new HttpUnsuccessfulResponseHandler() {
           @Override
-          public String apply(Entry<String, ?> entry) {
-            try {
-              return entry.getKey()
-                  + "=" + URLEncoder.encode(entry.getValue().toString(), UTF_8.name());
-            } catch (Exception e) {  // UnsupportedEncodingException
-              throw new RuntimeException(e);
-            }
-          }}));
+          public boolean handleResponse(
+              HttpRequest request, HttpResponse response, boolean supportsRetry)
+              throws IOException {
+            String errorTitle = extractHtmlTitle(getErrorHtmlAsString(response));
+            throw new IOException(
+                String.format(
+                    "Error from %s: %d %s%s",
+                    request.getUrl().toString(),
+                    response.getStatusCode(),
+                    response.getStatusMessage(),
+                    (errorTitle == null ? "" : ": " + errorTitle)));
+          }
+        });
+    HttpResponse response = null;
+    try {
+      response = request.execute();
+      return CharStreams.toString(new InputStreamReader(response.getContent(), UTF_8));
+    } finally {
+      if (response != null) {
+        response.disconnect();
+      }
+    }
   }
 
   @Override
@@ -146,11 +136,6 @@ class AppEngineConnection implements Connection {
         JSON_UTF_8,
         JSONValue.toJSONString(object).getBytes(UTF_8));
     return (Map<String, Object>) JSONValue.parse(response.substring(JSON_SAFETY_PREFIX.length()));
-  }
-
-  private HttpURLConnection getHttpURLConnection(URL remoteUrl) throws IOException {
-    // TODO(b/28219927): Figure out authentication.
-    return (HttpURLConnection) remoteUrl.openConnection();
   }
 
   @Override

@@ -49,7 +49,9 @@ final class RegistryCli {
 
   // Do not make this final - compile-time constant inlining may interfere with JCommander.
   @ParametersDelegate
-  private AppEngineConnection connection = new AppEngineConnection();
+  private AppEngineConnectionFlags appEngineConnectionFlags =
+      new AppEngineConnectionFlags();
+
 
   // Do not make this final - compile-time constant inlining may interfere with JCommander.
   @ParametersDelegate
@@ -115,13 +117,29 @@ final class RegistryCli {
       return;
     }
     loggingParams.configureLogging();  // Must be called after parameters are parsed.
-    injectReflectively(RegistryToolComponent.class, DaggerRegistryToolComponent.create(), command);
+
+    // Decide which HTTP connection to use for App Engine
+    HttpRequestFactoryComponent requestFactoryComponent;
+    if (appEngineConnectionFlags.getServer().getHostText().equals("localhost")) {
+      requestFactoryComponent = new LocalhostRequestFactoryComponent();
+    } else {
+      requestFactoryComponent = new BasicHttpRequestFactoryComponent();
+    }
+
+    // Create the main component and use it to inject the command class.
+    RegistryToolComponent component = DaggerRegistryToolComponent.builder()
+        .httpRequestFactoryComponent(requestFactoryComponent)
+        .appEngineConnectionFlagsModule(
+            new AppEngineConnectionFlagsModule(appEngineConnectionFlags))
+        .build();
+    injectReflectively(RegistryToolComponent.class, component, command);
 
     if (!(command instanceof RemoteApiCommand)) {
       command.run();
       return;
     }
 
+    AppEngineConnection connection = component.appEngineConnection();
     if (command instanceof ServerSideCommand) {
       ((ServerSideCommand) command).setConnection(connection);
     }
