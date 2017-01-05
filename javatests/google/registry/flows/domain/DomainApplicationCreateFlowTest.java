@@ -117,7 +117,6 @@ import google.registry.model.registry.label.ReservedList;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.testing.DatastoreHelper;
-import google.registry.testing.RegistryConfigRule;
 import google.registry.tmch.TmchCertificateAuthority;
 import java.util.Collections;
 import java.util.Comparator;
@@ -128,7 +127,6 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 
 /** Unit tests for {@link DomainApplicationCreateFlow}. */
@@ -136,9 +134,6 @@ public class DomainApplicationCreateFlowTest
     extends ResourceFlowTestCase<DomainApplicationCreateFlow, DomainApplication> {
 
   private static final String CLAIMS_KEY = "2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001";
-
-  @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule();
 
   /** This is the id of the SMD stored in "domain_create_sunrise_encoded_signed_mark.xml". */
   public static final String SMD_ID = "0000001761376042759136-65535";

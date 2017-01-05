@@ -16,6 +16,7 @@ package google.registry.model.registry.label;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.config.RegistryConfig.getDomainLabelListCacheDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
@@ -40,7 +41,6 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.mapper.Mapper;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.registry.Registry;
 import java.util.List;
 import java.util.Map;
@@ -221,16 +221,20 @@ public final class ReservedList
     return builder.build();
   }
 
-  private static LoadingCache<String, ReservedList> cache = CacheBuilder
-      .newBuilder()
-      .expireAfterWrite(
-          RegistryEnvironment.get().config().getDomainLabelListCacheDuration().getMillis(),
-          MILLISECONDS)
-      .build(new CacheLoader<String, ReservedList>() {
-        @Override
-        public ReservedList load(String listName) {
-          return ofy().load().type(ReservedList.class).parent(getCrossTldKey()).id(listName).now();
-          }});
+  private static LoadingCache<String, ReservedList> cache =
+      CacheBuilder.newBuilder()
+          .expireAfterWrite(getDomainLabelListCacheDuration().getMillis(), MILLISECONDS)
+          .build(
+              new CacheLoader<String, ReservedList>() {
+                @Override
+                public ReservedList load(String listName) {
+                  return ofy()
+                      .load()
+                      .type(ReservedList.class)
+                      .parent(getCrossTldKey())
+                      .id(listName)
+                      .now();
+                }});
 
   /**
    * Gets the {@link ReservationType} of a label in a single ReservedList, or returns an absent

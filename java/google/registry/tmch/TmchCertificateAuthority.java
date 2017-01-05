@@ -14,6 +14,8 @@
 
 package google.registry.tmch;
 
+import static google.registry.config.RegistryConfig.getSingletonCachePersistDuration;
+import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -21,7 +23,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import google.registry.config.ConfigModule.Config;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.tmch.TmchCrl;
 import google.registry.util.Clock;
 import google.registry.util.NonFinalForTesting;
@@ -46,8 +47,6 @@ import javax.inject.Inject;
 @ThreadSafe
 public final class TmchCertificateAuthority {
 
-  private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
-
   private static final String ROOT_CRT_FILE = "icann-tmch.crt";
   private static final String TEST_ROOT_CRT_FILE = "icann-tmch-test.crt";
   private static final String CRL_FILE = "icann-tmch.crl";
@@ -71,8 +70,7 @@ public final class TmchCertificateAuthority {
    */
   private static final LoadingCache<Boolean, X509CRL> CRL_CACHE =
       CacheBuilder.newBuilder()
-          .expireAfterWrite(
-              ENVIRONMENT.config().getSingletonCacheRefreshDuration().getMillis(), MILLISECONDS)
+          .expireAfterWrite(getSingletonCacheRefreshDuration().getMillis(), MILLISECONDS)
           .build(
               new CacheLoader<Boolean, X509CRL>() {
                 @Override
@@ -102,8 +100,7 @@ public final class TmchCertificateAuthority {
   /** A cached function that loads the CRT from a jar resource. */
   private static final LoadingCache<Boolean, X509Certificate> ROOT_CACHE =
       CacheBuilder.newBuilder()
-          .expireAfterWrite(
-              ENVIRONMENT.config().getSingletonCachePersistDuration().getMillis(), MILLISECONDS)
+          .expireAfterWrite(getSingletonCachePersistDuration().getMillis(), MILLISECONDS)
           .build(
               new CacheLoader<Boolean, X509Certificate>() {
                 @Override

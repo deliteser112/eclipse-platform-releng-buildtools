@@ -15,7 +15,6 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.util.SendEmailUtils.sendEmail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -23,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
+import google.registry.config.ConfigModule.LocalTestConfig;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
 import java.util.Properties;
@@ -53,20 +53,26 @@ public class SendEmailUtilsTest {
   private SendEmailService emailService;
 
   private Message message;
+  private SendEmailUtils sendEmailUtils;
 
   @Before
   public void init() throws Exception {
     inject.setStaticField(SendEmailUtils.class, "emailService", emailService);
     message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
     when(emailService.createMessage()).thenReturn(message);
+    sendEmailUtils = new SendEmailUtils(
+        LocalTestConfig.GOOGLE_APPS_SEND_FROM_EMAIL_ADDRESS,
+        LocalTestConfig.GOOGLE_APPS_ADMIN_EMAIL_DISPLAY_NAME);
   }
 
   @Test
   public void testSuccess_sendToOneAddress() throws Exception {
-    assertThat(sendEmail(
-        "johnny@fakesite.tld",
-        "Welcome to the Internet",
-        "It is a dark and scary place.")).isTrue();
+    assertThat(
+            sendEmailUtils.sendEmail(
+                ImmutableList.of("johnny@fakesite.tld"),
+                "Welcome to the Internet",
+                "It is a dark and scary place."))
+        .isTrue();
     verifyMessageSent();
     assertThat(message.getRecipients(RecipientType.TO)).asList()
         .containsExactly(new InternetAddress("johnny@fakesite.tld"));
@@ -76,10 +82,12 @@ public class SendEmailUtilsTest {
 
   @Test
   public void testSuccess_sendToMultipleAddresses() throws Exception {
-    assertThat(sendEmail(
-        ImmutableList.of("foo@example.com", "bar@example.com"),
-        "Welcome to the Internet",
-        "It is a dark and scary place.")).isTrue();
+    assertThat(
+            sendEmailUtils.sendEmail(
+                ImmutableList.of("foo@example.com", "bar@example.com"),
+                "Welcome to the Internet",
+                "It is a dark and scary place."))
+        .isTrue();
     verifyMessageSent();
     assertThat(message.getAllRecipients()).asList().containsExactly(
         new InternetAddress("foo@example.com"),
@@ -88,10 +96,12 @@ public class SendEmailUtilsTest {
 
   @Test
   public void testSuccess_ignoresMalformedEmailAddress() throws Exception {
-    assertThat(sendEmail(
-        ImmutableList.of("foo@example.com", "1iñvalidemail"),
-        "Welcome to the Internet",
-        "It is a dark and scary place.")).isTrue();
+    assertThat(
+            sendEmailUtils.sendEmail(
+                ImmutableList.of("foo@example.com", "1iñvalidemail"),
+                "Welcome to the Internet",
+                "It is a dark and scary place."))
+        .isTrue();
     verifyMessageSent();
     assertThat(message.getAllRecipients()).asList()
         .containsExactly(new InternetAddress("foo@example.com"));
@@ -99,22 +109,27 @@ public class SendEmailUtilsTest {
 
   @Test
   public void testFailure_onlyGivenMalformedAddress() throws Exception {
-    assertThat(sendEmail(
-        ImmutableList.of("1iñvalidemail"),
-        "Welcome to the Internet",
-        "It is a dark and scary place.")).isFalse();
+    assertThat(
+            sendEmailUtils.sendEmail(
+                ImmutableList.of("1iñvalidemail"),
+                "Welcome to the Internet",
+                "It is a dark and scary place."))
+        .isFalse();
     verify(emailService, never()).sendMessage(any(Message.class));
   }
 
   @Test
   public void testFailure_exceptionThrownDuringSend() throws Exception {
     doThrow(new MessagingException()).when(emailService).sendMessage(any(Message.class));
-    assertThat(sendEmail(
-        ImmutableList.of("foo@example.com"),
-        "Welcome to the Internet",
-        "It is a dark and scary place.")).isFalse();
+    assertThat(
+            sendEmailUtils.sendEmail(
+                ImmutableList.of("foo@example.com"),
+                "Welcome to the Internet",
+                "It is a dark and scary place."))
+        .isFalse();
     verifyMessageSent();
-    assertThat(message.getAllRecipients()).asList()
+    assertThat(message.getAllRecipients())
+        .asList()
         .containsExactly(new InternetAddress("foo@example.com"));
   }
 

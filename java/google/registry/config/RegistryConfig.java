@@ -49,7 +49,9 @@ public abstract class RegistryConfig {
    *
    * @see google.registry.export.ExportSnapshotServlet
    */
-  public abstract String getSnapshotsBucket();
+  public static String getSnapshotsBucket() {
+    return getProjectId() + "-snapshots";
+  }
 
   /**
    * Number of sharded commit log buckets.
@@ -82,14 +84,23 @@ public abstract class RegistryConfig {
    * @see google.registry.backup.DeleteOldCommitLogsAction
    * @see google.registry.model.translators.CommitLogRevisionsTranslatorFactory
    */
-  public abstract Duration getCommitLogDatastoreRetention();
+  public static Duration getCommitLogDatastoreRetention() {
+    return Duration.standardDays(30);
+  }
 
   /**
    * Returns {@code true} if TMCH certificate authority should be in testing mode.
    *
    * @see google.registry.tmch.TmchCertificateAuthority
    */
-  public abstract boolean getTmchCaTestingMode();
+  public static boolean getTmchCaTestingMode() {
+    switch (RegistryEnvironment.get()) {
+      case PRODUCTION:
+        return false;
+      default:
+        return true;
+    }
+  }
 
   public abstract Optional<String> getECatcherAddress();
 
@@ -101,7 +112,16 @@ public abstract class RegistryConfig {
   public abstract HostAndPort getServer();
 
   /** Returns the amount of time a singleton should be cached, before expiring. */
-  public abstract Duration getSingletonCacheRefreshDuration();
+  public static Duration getSingletonCacheRefreshDuration() {
+    switch (RegistryEnvironment.get()) {
+      case UNITTEST:
+        // All cache durations are set to zero so that unit tests can update and then retrieve data
+        // immediately without failure.
+        return Duration.ZERO;
+      default:
+        return Duration.standardMinutes(10);
+    }
+  }
 
   /**
    * Returns the amount of time a domain label list should be cached in memory before expiring.
@@ -109,10 +129,24 @@ public abstract class RegistryConfig {
    * @see google.registry.model.registry.label.ReservedList
    * @see google.registry.model.registry.label.PremiumList
    */
-  public abstract Duration getDomainLabelListCacheDuration();
+  public static Duration getDomainLabelListCacheDuration() {
+    switch (RegistryEnvironment.get()) {
+      case UNITTEST:
+        return Duration.ZERO;
+      default:
+        return Duration.standardHours(1);
+    }
+  }
 
   /** Returns the amount of time a singleton should be cached in persist mode, before expiring. */
-  public abstract Duration getSingletonCachePersistDuration();
+  public static Duration getSingletonCachePersistDuration() {
+    switch (RegistryEnvironment.get()) {
+      case UNITTEST:
+        return Duration.ZERO;
+      default:
+        return Duration.standardDays(365);
+    }
+  }
 
   /**
    * Returns the header text at the top of the reserved terms exported list.
@@ -120,20 +154,6 @@ public abstract class RegistryConfig {
    * @see google.registry.export.ExportUtils#exportReservedTerms
    */
   public abstract String getReservedTermsExportDisclaimer();
-
-  /**
-   * Returns a display name that is used on outgoing emails sent by Nomulus.
-   *
-   * @see google.registry.util.SendEmailUtils
-   */
-  public abstract String getGoogleAppsAdminEmailDisplayName();
-
-  /**
-   * Returns the email address that outgoing emails from the app are sent from.
-   *
-   * @see google.registry.util.SendEmailUtils
-   */
-  public abstract String getGoogleAppsSendFromEmailAddress();
 
   /**
    * Returns default WHOIS server to use when {@code Registrar#getWhoisServer()} is {@code null}.

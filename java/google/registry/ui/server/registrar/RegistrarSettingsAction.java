@@ -71,9 +71,10 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
   private static final String ARGS_PARAM = "args";
 
   @Inject HttpServletRequest request;
-  @Inject SessionUtils sessionUtils;
   @Inject JsonActionRunner jsonActionRunner;
   @Inject Registrar initialRegistrar;
+  @Inject SendEmailUtils sendEmailUtils;
+  @Inject SessionUtils sessionUtils;
   @Inject @Config("registrarChangesNotificationEmailAddresses") ImmutableList<String>
       registrarChangesNotificationEmailAddresses;
   @Inject RegistrarSettingsAction() {}
@@ -285,7 +286,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     }
     SyncRegistrarsSheetAction.enqueueBackendTask();
     if (!registrarChangesNotificationEmailAddresses.isEmpty()) {
-      SendEmailUtils.sendEmail(
+      sendEmailUtils.sendEmail(
           registrarChangesNotificationEmailAddresses,
           String.format("Registrar %s updated", registrarName),
           "The following changes were made to the registrar:\n"

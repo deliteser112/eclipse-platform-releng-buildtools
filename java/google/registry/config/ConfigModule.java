@@ -16,6 +16,7 @@ package google.registry.config;
 
 import static google.registry.config.ConfigUtils.makeUrl;
 
+import com.google.appengine.api.utils.SystemProperty;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -214,8 +215,8 @@ public final class ConfigModule {
   /** @see RegistryConfig#getCommitLogDatastoreRetention() */
   @Provides
   @Config("commitLogDatastoreRetention")
-  public static Duration provideCommitLogDatastoreRetention(RegistryConfig config) {
-    return config.getCommitLogDatastoreRetention();
+  public static Duration provideCommitLogDatastoreRetention() {
+    return RegistryConfig.getCommitLogDatastoreRetention();
   }
 
   /**
@@ -423,8 +424,8 @@ public final class ConfigModule {
    */
   @Provides
   @Config("tmchCaTestingMode")
-  public static boolean provideTmchCaTestingMode(RegistryConfig config) {
-    return config.getTmchCaTestingMode();
+  public static boolean provideTmchCaTestingMode() {
+    return RegistryConfig.getTmchCaTestingMode();
   }
 
   /**
@@ -465,6 +466,29 @@ public final class ConfigModule {
       default:
         return "https://test.ry.marksdb.org";
     }
+  }
+
+  /**
+   * The email address that outgoing emails from the app are sent from.
+   *
+   * @see google.registry.util.SendEmailUtils
+   */
+  @Provides
+  @Config("googleAppsSendFromEmailAddress")
+  public static String provideGoogleAppsSendFromEmailAddress() {
+    return String.format("noreply@%s.appspotmail.com", SystemProperty.applicationId.get());
+  }
+
+  /**
+   * The display name that is used on outgoing emails sent by Nomulus.
+   *
+   * @see google.registry.util.SendEmailUtils
+   */
+  @Provides
+  @Config("googleAppsAdminEmailDisplayName")
+  public static String provideGoogleAppsAdminEmailDisplayName() {
+    // Production example: "Example Registry"
+    return "Google Domain Registry";
   }
 
   /**
@@ -1025,5 +1049,9 @@ public final class ConfigModule {
   public static class LocalTestConfig {
 
     public static final String CONTACT_AND_HOST_ROID_SUFFIX = "ROID";
+
+    public static final String GOOGLE_APPS_SEND_FROM_EMAIL_ADDRESS = "noreply@testing.example";
+
+    public static final String GOOGLE_APPS_ADMIN_EMAIL_DISPLAY_NAME = "Testing Nomulus";
   }
 }

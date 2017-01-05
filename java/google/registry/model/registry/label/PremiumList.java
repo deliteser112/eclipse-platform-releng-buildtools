@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.partition;
+import static google.registry.config.RegistryConfig.getDomainLabelListCacheDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.allocateId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -48,7 +49,6 @@ import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.cmd.Query;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ReportedOn;
@@ -97,24 +97,22 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
     }
   }
 
-  private static LoadingCache<String, PremiumList> cache = CacheBuilder
-      .newBuilder()
-      .expireAfterWrite(
-          RegistryEnvironment.get().config().getDomainLabelListCacheDuration().getMillis(),
-          MILLISECONDS)
-      .build(new CacheLoader<String, PremiumList>() {
-        @Override
-        public PremiumList load(final String listName) {
-          return ofy().doTransactionless(new Work<PremiumList>() {
+  private static LoadingCache<String, PremiumList> cache =
+      CacheBuilder.newBuilder()
+          .expireAfterWrite(getDomainLabelListCacheDuration().getMillis(), MILLISECONDS)
+          .build(new CacheLoader<String, PremiumList>() {
             @Override
-            public PremiumList run() {
-              return ofy().load()
-                  .type(PremiumList.class)
-                  .parent(getCrossTldKey())
-                  .id(listName)
-                  .now();
+            public PremiumList load(final String listName) {
+              return ofy().doTransactionless(new Work<PremiumList>() {
+                @Override
+                public PremiumList run() {
+                  return ofy().load()
+                      .type(PremiumList.class)
+                      .parent(getCrossTldKey())
+                      .id(listName)
+                      .now();
+                }});
             }});
-        }});
 
   /**
    * Gets the premium price for the specified label on the specified tld, or returns Optional.absent

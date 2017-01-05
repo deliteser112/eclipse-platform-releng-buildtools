@@ -22,6 +22,7 @@ import google.registry.config.RegistryEnvironment;
 import org.junit.rules.ExternalResource;
 
 /** JUnit Rule for overriding Nomulus configuration values. */
+@Deprecated // is obsoleted by YAML config; see b/33386530 for details
 public final class RegistryConfigRule extends ExternalResource {
 
   private final Optional<RegistryConfig> override;

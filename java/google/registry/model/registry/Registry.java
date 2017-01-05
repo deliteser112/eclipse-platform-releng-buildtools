@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
+import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
@@ -49,7 +50,6 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.Buildable;
 import google.registry.model.CreateAutoTimestamp;
 import google.registry.model.ImmutableObject;
@@ -211,24 +211,23 @@ public class Registry extends ImmutableObject implements Buildable {
   }
 
   /** A cache that loads the {@link Registry} for a given tld. */
-  private static final LoadingCache<String, Optional<Registry>> CACHE = CacheBuilder.newBuilder()
-        .expireAfterWrite(
-            RegistryEnvironment.get().config().getSingletonCacheRefreshDuration().getMillis(),
-            MILLISECONDS)
-        .build(new CacheLoader<String, Optional<Registry>>() {
-            @Override
-            public Optional<Registry> load(final String tld) {
-              // Enter a transactionless context briefly; we don't want to enroll every TLD in a
-              // transaction that might be wrapping this call, and memcached results are fine here.
-              return Optional.fromNullable(ofy().doTransactionless(new Work<Registry>() {
-                  @Override
-                  public Registry run() {
-                    return ofy()
-                        .load()
-                        .key(Key.create(getCrossTldKey(), Registry.class, tld))
-                        .now();
-                  }}));
-            }});
+  private static final LoadingCache<String, Optional<Registry>> CACHE =
+      CacheBuilder.newBuilder()
+          .expireAfterWrite(getSingletonCacheRefreshDuration().getMillis(), MILLISECONDS)
+          .build(new CacheLoader<String, Optional<Registry>>() {
+              @Override
+              public Optional<Registry> load(final String tld) {
+                // Enter a transactionless context briefly; we don't want to enroll every TLD in a
+                // transaction that might be wrapping this call, and memcached results are fine here
+                return Optional.fromNullable(ofy().doTransactionless(new Work<Registry>() {
+                    @Override
+                    public Registry run() {
+                      return ofy()
+                          .load()
+                          .key(Key.create(getCrossTldKey(), Registry.class, tld))
+                          .now();
+                    }}));
+              }});
 
   /** Returns the registry for a given TLD, throwing if none exists. */
   public static Registry get(String tld) {

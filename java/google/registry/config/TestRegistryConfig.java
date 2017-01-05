@@ -30,21 +30,6 @@ public class TestRegistryConfig extends RegistryConfig {
   public TestRegistryConfig() {}
 
   @Override
-  public Duration getCommitLogDatastoreRetention() {
-    return Duration.standardDays(30);
-  }
-
-  @Override
-  public String getSnapshotsBucket() {
-    return RegistryConfig.getProjectId() + "-snapshots";
-  }
-
-  @Override
-  public boolean getTmchCaTestingMode() {
-    return true;
-  }
-
-  @Override
   public Optional<String> getECatcherAddress() {
     throw new UnsupportedOperationException();
   }
@@ -55,35 +40,8 @@ public class TestRegistryConfig extends RegistryConfig {
   }
 
   @Override
-  public Duration getSingletonCacheRefreshDuration() {
-    // All cache durations are set to zero so that unit tests can update and then retrieve data
-    // immediately without failure.
-    return Duration.ZERO;
-  }
-
-  @Override
-  public Duration getDomainLabelListCacheDuration() {
-    return Duration.ZERO;
-  }
-
-  @Override
-  public Duration getSingletonCachePersistDuration() {
-    return Duration.ZERO;
-  }
-
-  @Override
   public String getReservedTermsExportDisclaimer() {
     return "This is a disclaimer.\n";
-  }
-
-  @Override
-  public String getGoogleAppsAdminEmailDisplayName() {
-    return "Testing Nomulus";
-  }
-
-  @Override
-  public String getGoogleAppsSendFromEmailAddress() {
-    return "noreply@testing.example";
   }
 
   @Override

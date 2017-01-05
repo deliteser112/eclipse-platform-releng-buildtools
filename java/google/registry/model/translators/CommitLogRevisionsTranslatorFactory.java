@@ -15,13 +15,13 @@
 package google.registry.model.translators;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static google.registry.config.RegistryConfig.getCommitLogDatastoreRetention;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
 import com.googlecode.objectify.Key;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.ofy.CommitLogManifest;
 import org.joda.time.DateTime;
 
@@ -47,8 +47,6 @@ import org.joda.time.DateTime;
 public final class CommitLogRevisionsTranslatorFactory
     extends ImmutableSortedMapTranslatorFactory<DateTime, Key<CommitLogManifest>> {
 
-  private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
-
   /**
    * Add a reference to the current commit log to the resource's revisions map.
    *
@@ -65,7 +63,7 @@ public final class CommitLogRevisionsTranslatorFactory
   ImmutableSortedMap<DateTime, Key<CommitLogManifest>> transformBeforeSave(
       ImmutableSortedMap<DateTime, Key<CommitLogManifest>> revisions) {
     DateTime now = ofy().getTransactionTime();
-    DateTime threshold = now.minus(ENVIRONMENT.config().getCommitLogDatastoreRetention());
+    DateTime threshold = now.minus(getCommitLogDatastoreRetention());
     DateTime preThresholdTime = firstNonNull(revisions.floorKey(threshold), START_OF_TIME);
     return new ImmutableSortedMap.Builder<DateTime, Key<CommitLogManifest>>(Ordering.natural())
         .putAll(revisions.subMap(preThresholdTime, true, now.withTimeAtStartOfDay(), false))

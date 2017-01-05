@@ -26,7 +26,6 @@ import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
-import google.registry.config.TestRegistryConfig;
 import google.registry.model.common.CrossTldSingleton;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.Ofy;
@@ -34,10 +33,8 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-import google.registry.testing.RegistryConfigRule;
 import java.util.List;
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -65,15 +62,6 @@ public class CommitLogRevisionsTranslatorFactoryTest {
 
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
-
-  @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule(
-      new TestRegistryConfig() {
-        @Override
-        public Duration getCommitLogDatastoreRetention() {
-          return Duration.standardDays(30);
-        }
-      });
 
   private final FakeClock clock = new FakeClock(START_TIME);
 

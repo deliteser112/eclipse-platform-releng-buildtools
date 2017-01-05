@@ -72,14 +72,19 @@ public enum RegistryEnvironment {
 
   /** Globally override registry configuration from within a unit test. */
   @VisibleForTesting
+  @Deprecated
   public static void overrideConfigurationForTesting(@Nullable RegistryConfig newConfig) {
     configOverride = newConfig;
   }
 
   @Nullable
+  @Deprecated
   private static RegistryConfig configOverride;
 
+  @Deprecated
   private static final RegistryConfig testingConfig = new TestRegistryConfig();
+
+  @Deprecated
   private final RegistryConfig config = RegistryConfigLoader.load(this);
 
   /** System property for configuring which environment we should use. */

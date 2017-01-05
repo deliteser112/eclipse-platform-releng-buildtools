@@ -14,8 +14,6 @@
 
 package google.registry.config;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -27,15 +25,5 @@ public class RegistryEnvironmentTest {
   @Test
   public void testGet() throws Exception {
     RegistryEnvironment.get();
-  }
-
-  @Test
-  public void testOverride() throws Exception {
-    RegistryEnvironment.overrideConfigurationForTesting(new TestRegistryConfig() {
-      @Override
-      public String getSnapshotsBucket() {
-        return "black velvet";
-      }});
-    assertThat(RegistryEnvironment.get().config().getSnapshotsBucket()).isEqualTo("black velvet");
   }
 }

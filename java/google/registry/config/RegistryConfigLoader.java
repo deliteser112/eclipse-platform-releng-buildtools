@@ -28,6 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * passing the {@link RegistryEnvironment} as a single parameter.
  */
 @ThreadSafe
+@Deprecated // will be replaced by YAML config; see b/33386530 for details
 public final class RegistryConfigLoader {
 
   public static final String REGISTRY_CONFIG_PROPERTY = "google.registry.config";

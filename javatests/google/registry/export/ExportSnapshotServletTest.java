@@ -19,10 +19,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import google.registry.config.TestRegistryConfig;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-import google.registry.testing.RegistryConfigRule;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import javax.servlet.ServletConfig;
@@ -42,12 +40,6 @@ public class ExportSnapshotServletTest {
 
   @Rule
   public final InjectRule inject = new InjectRule();
-
-  @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule(new TestRegistryConfig() {
-    @Override public String getSnapshotsBucket() {
-      return "Bucket-Id";
-    }});
 
   @Mock
   private HttpServletRequest req;
@@ -87,7 +79,7 @@ public class ExportSnapshotServletTest {
     verify(backupService).launchNewBackup(
         ExportSnapshotServlet.QUEUE,
         "auto_snapshot_20140801_010203",
-        "Bucket-Id",
+        "domain-registry-snapshots",
         ExportConstants.getBackupKinds());
     verify(checkSnapshotServlet)
         .enqueuePollTask("auto_snapshot_20140801_010203", ExportConstants.getReportingKinds());

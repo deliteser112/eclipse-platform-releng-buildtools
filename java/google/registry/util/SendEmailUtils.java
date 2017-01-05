@@ -20,10 +20,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import google.registry.config.RegistryConfig;
-import google.registry.config.RegistryEnvironment;
+import google.registry.config.ConfigModule.Config;
 import java.util.List;
+import javax.inject.Inject;
 import javax.mail.Message;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
@@ -33,30 +32,31 @@ import javax.mail.internet.InternetAddress;
  */
 public class SendEmailUtils {
 
-  private static final RegistryConfig CONFIG = RegistryEnvironment.get().config();
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+
+  private final String googleAppsSendFromEmailAddress;
+  private final String googleAppsAdminEmailDisplayName;
+
+  @Inject
+  public SendEmailUtils(
+      @Config("googleAppsSendFromEmailAddress") String googleAppsSendFromEmailAddress,
+      @Config("googleAppsAdminEmailDisplayName") String googleAppsAdminEmailDisplayName) {
+    this.googleAppsSendFromEmailAddress = googleAppsSendFromEmailAddress;
+    this.googleAppsAdminEmailDisplayName = googleAppsAdminEmailDisplayName;
+  }
 
   @NonFinalForTesting
   private static SendEmailService emailService = new SendEmailService();
 
   /**
-   * Sends an email from Nomulus to the specified recipient. Returns true iff sending was
+   * Sends an email from Nomulus to the specified recipient(s). Returns true iff sending was
    * successful.
    */
-  public static boolean sendEmail(String address, String subject, String body) {
-    return sendEmail(ImmutableList.of(address), subject, body);
-  }
-
-  /**
-   * Sends an email from Nomulus to the specified recipients. Returns true iff sending was
-   * successful.
-   */
-  public static boolean sendEmail(Iterable<String> addresses, final String subject, String body) {
+  public boolean sendEmail(Iterable<String> addresses, final String subject, String body) {
     try {
       Message msg = emailService.createMessage();
-      msg.setFrom(new InternetAddress(
-          CONFIG.getGoogleAppsSendFromEmailAddress(),
-          CONFIG.getGoogleAppsAdminEmailDisplayName()));
+      msg.setFrom(
+          new InternetAddress(googleAppsSendFromEmailAddress, googleAppsAdminEmailDisplayName));
       List<InternetAddress> emails = FluentIterable
           .from(addresses)
           .transform(new Function<String, InternetAddress>() {

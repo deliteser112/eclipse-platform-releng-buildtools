@@ -11,6 +11,7 @@ java_library(
     name = "util",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/google/registry/config",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
         "@com_google_appengine_api_1_0_sdk",

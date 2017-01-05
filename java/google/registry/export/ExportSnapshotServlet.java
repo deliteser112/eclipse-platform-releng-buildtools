@@ -21,7 +21,7 @@ import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.net.MediaType;
-import google.registry.config.RegistryEnvironment;
+import google.registry.config.RegistryConfig;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
@@ -43,8 +43,6 @@ import javax.servlet.http.HttpServletResponse;
  * </ol>
  */
 public class ExportSnapshotServlet extends HttpServlet {
-
-  private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
 
   /** Queue to use for enqueuing the task that will actually launch the backup. */
   static final String QUEUE = "export-snapshot";  // See queue.xml.
@@ -71,7 +69,7 @@ public class ExportSnapshotServlet extends HttpServlet {
       backupService.launchNewBackup(
           QUEUE,
           snapshotName,
-          ENVIRONMENT.config().getSnapshotsBucket(),
+          RegistryConfig.getSnapshotsBucket(),
           ExportConstants.getBackupKinds());
       // Enqueue a poll task to monitor the backup and load reporting-related kinds into bigquery.
       checkSnapshotServlet.enqueuePollTask(snapshotName, ExportConstants.getReportingKinds());

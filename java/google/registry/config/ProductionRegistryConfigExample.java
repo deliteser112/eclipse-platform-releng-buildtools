@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.config.ConfigUtils.makeUrl;
 import static org.joda.time.Duration.standardDays;
 
-import com.google.appengine.api.utils.SystemProperty;
 import com.google.common.base.Optional;
 import com.google.common.net.HostAndPort;
 import java.net.URL;
@@ -48,33 +47,6 @@ public final class ProductionRegistryConfigExample extends RegistryConfig {
     this.environment = checkNotNull(environment);
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * <p>Thirty days makes a sane default, because it's highly unlikely we'll ever need to generate a
-   * deposit older than that. And if we do, we could always bring up a separate App Engine instance
-   * and replay the commit logs off GCS.
-   */
-  @Override
-  public Duration getCommitLogDatastoreRetention() {
-    return Duration.standardDays(30);
-  }
-
-  @Override
-  public String getSnapshotsBucket() {
-    return RegistryConfig.getProjectId() + "-snapshots";
-  }
-
-  @Override
-  public boolean getTmchCaTestingMode() {
-    switch (environment) {
-      case PRODUCTION:
-        return false;
-      default:
-        return true;
-    }
-  }
-
   @Override
   public Optional<String> getECatcherAddress() {
     throw new UnsupportedOperationException();  // n/a
@@ -92,33 +64,8 @@ public final class ProductionRegistryConfigExample extends RegistryConfig {
   }
 
   @Override
-  public Duration getSingletonCacheRefreshDuration() {
-    return Duration.standardMinutes(10);
-  }
-
-  @Override
-  public Duration getDomainLabelListCacheDuration() {
-    return Duration.standardHours(1);
-  }
-
-  @Override
-  public Duration getSingletonCachePersistDuration() {
-    return Duration.standardDays(365);
-  }
-
-  @Override
   public String getReservedTermsExportDisclaimer() {
     return RESERVED_TERMS_EXPORT_DISCLAIMER;
-  }
-
-  @Override
-  public String getGoogleAppsAdminEmailDisplayName() {
-    return "Example Registry";
-  }
-
-  @Override
-  public String getGoogleAppsSendFromEmailAddress() {
-    return String.format("noreply@%s.appspotmail.com", SystemProperty.applicationId.get());
   }
 
   @Override

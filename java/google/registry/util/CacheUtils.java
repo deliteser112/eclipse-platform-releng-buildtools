@@ -15,17 +15,16 @@
 package google.registry.util;
 
 import static com.google.common.base.Suppliers.memoizeWithExpiration;
+import static google.registry.config.RegistryConfig.getSingletonCachePersistDuration;
+import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.time.Duration.ZERO;
 
 import com.google.common.base.Supplier;
-import google.registry.config.RegistryEnvironment;
 import org.joda.time.Duration;
 
 /** Utility methods related to caching. */
 public class CacheUtils {
-
-  private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
 
   /**
    * Memoize a supplier, with a short expiration specified in the environment config.
@@ -34,7 +33,7 @@ public class CacheUtils {
    * lists downloaded from the TMCH get updated in datastore and the caches need to be refreshed.)
    */
   public static <T> Supplier<T> memoizeWithShortExpiration(Supplier<T> original) {
-    return memoizeForDuration(original, ENVIRONMENT.config().getSingletonCacheRefreshDuration());
+    return memoizeForDuration(original, getSingletonCacheRefreshDuration());
   }
 
   /**
@@ -45,7 +44,7 @@ public class CacheUtils {
    * while allowing the production config to set the expiration to forever.
    */
   public static <T> Supplier<T> memoizeWithLongExpiration(Supplier<T> original) {
-    return memoizeForDuration(original, ENVIRONMENT.config().getSingletonCachePersistDuration());
+    return memoizeForDuration(original, getSingletonCachePersistDuration());
   }
 
   /** Memoize a supplier, with a given expiration. */
