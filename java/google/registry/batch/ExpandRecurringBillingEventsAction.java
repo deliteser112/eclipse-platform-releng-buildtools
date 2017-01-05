@@ -167,13 +167,6 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
             Iterable<OneTime> oneTimesForDomain = ofy().load()
                 .type(OneTime.class)
                 .ancestor(recurring.getParentKey().getParent());
-                /*
-                .ancestor(loadByForeignKey(
-                    DomainResource.class,
-                    recurring.getTargetId(),
-                    // Whether or not a domain currently exists, it always exists one millisecond
-                    // before the recurrence end time.
-                    recurring.getRecurrenceEndTime().minusMillis(1))); */
 
             // Determine the billing times that already have OneTime events persisted.
             ImmutableSet<DateTime> existingBillingTimes =
