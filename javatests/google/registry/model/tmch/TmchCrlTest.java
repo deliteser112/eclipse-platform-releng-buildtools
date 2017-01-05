@@ -32,7 +32,7 @@ public class TmchCrlTest {
   @SuppressWarnings("null")
   public void testSuccess() throws Exception {
     assertThat(TmchCrl.get()).isNull();
-    TmchCrl.set("lolcat");
+    TmchCrl.set("lolcat", "http://lol.cat");
     assertThat(TmchCrl.get().getCrl()).isEqualTo("lolcat");
   }
 }

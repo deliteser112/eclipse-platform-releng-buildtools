@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Optional;
 import google.registry.config.RegistryConfig;
 import google.registry.config.RegistryEnvironment;
-import google.registry.config.TestRegistryConfig;
 import org.junit.rules.ExternalResource;
 
 /** JUnit Rule for overriding Nomulus configuration values. */
@@ -40,15 +39,6 @@ public final class RegistryConfigRule extends ExternalResource {
   /** Override registry configuration from inside a test method. */
   public void override(RegistryConfig override) {
     RegistryEnvironment.overrideConfigurationForTesting(checkNotNull(override));
-  }
-
-  /** Override registry configuration to use TMCH production CA. */
-  public void useTmchProdCert() {
-    override(new TestRegistryConfig() {
-      @Override
-      public boolean getTmchCaTestingMode() {
-        return false;
-      }});
   }
 
   @Override

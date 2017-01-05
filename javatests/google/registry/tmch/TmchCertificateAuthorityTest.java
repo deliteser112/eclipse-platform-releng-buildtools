@@ -23,7 +23,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-import google.registry.testing.RegistryConfigRule;
 import java.security.SignatureException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
@@ -53,9 +52,6 @@ public class TmchCertificateAuthorityTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule();
-
   private FakeClock clock = new FakeClock(DateTime.parse("2014-01-01T00:00:00Z"));
 
   @Before
@@ -65,45 +61,49 @@ public class TmchCertificateAuthorityTest {
 
   @Test
   public void testFailure_prodRootExpired() throws Exception {
-    configRule.useTmchProdCert();
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(false);
     clock.setTo(DateTime.parse("2024-01-01T00:00:00Z"));
     thrown.expectRootCause(
         CertificateExpiredException.class, "NotAfter: Sun Jul 23 23:59:59 UTC 2023");
-    TmchCertificateAuthority.getRoot();
+    tmchCertificateAuthority.getRoot();
   }
 
   @Test
   public void testFailure_prodRootNotYetValid() throws Exception {
-    configRule.useTmchProdCert();
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(false);
     clock.setTo(DateTime.parse("2000-01-01T00:00:00Z"));
     thrown.expectRootCause(CertificateNotYetValidException.class,
         "NotBefore: Wed Jul 24 00:00:00 UTC 2013");
-    TmchCertificateAuthority.getRoot();
+    tmchCertificateAuthority.getRoot();
   }
 
   @Test
   public void testFailure_crlDoesntMatchCerts() throws Exception {
     // Use the prod cl, which won't match our test certificate.
-    TmchCrl.set(readResourceUtf8(TmchCertificateAuthority.class, "icann-tmch.crl"));
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(true);
+    TmchCrl.set(
+        readResourceUtf8(TmchCertificateAuthority.class, "icann-tmch.crl"), "http://cert.crl");
     thrown.expectRootCause(SignatureException.class, "Signature does not match");
-    TmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE));
+    tmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE));
   }
 
   @Test
   public void testSuccess_verify() throws Exception {
-    TmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE));
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(true);
+    tmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE));
   }
 
   @Test
   public void testFailure_verifySignatureDoesntMatch() throws Exception {
-    configRule.useTmchProdCert();
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(false);
     thrown.expectRootCause(SignatureException.class, "Signature does not match");
-    TmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE));
+    tmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE));
   }
 
   @Test
   public void testFailure_verifyRevoked() throws Exception {
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(true);
     thrown.expect(CertificateRevokedException.class, "revoked, reason: KEY_COMPROMISE");
-    TmchCertificateAuthority.verify(loadCertificate(REVOKED_TEST_CERTIFICATE));
+    tmchCertificateAuthority.verify(loadCertificate(REVOKED_TEST_CERTIFICATE));
   }
 }

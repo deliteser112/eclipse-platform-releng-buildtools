@@ -31,6 +31,8 @@ import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.request.RequestScope;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
+import google.registry.tmch.TmchCertificateAuthority;
+import google.registry.tmch.TmchXmlSignature;
 import google.registry.util.Clock;
 import google.registry.util.Sleeper;
 import javax.inject.Singleton;
@@ -58,9 +60,15 @@ interface EppTestComponent {
     final ModulesService modulesService;
     final Sleeper sleeper;
 
-    FakesAndMocksModule(FakeClock clock) {
+    FakesAndMocksModule() {
+      this(new FakeClock(), true);
+    }
+
+    FakesAndMocksModule(FakeClock clock, boolean tmchCaTestingMode) {
       this.clock = clock;
-      this.domainFlowTmchUtils = new DomainFlowTmchUtils();
+      this.domainFlowTmchUtils =
+          new DomainFlowTmchUtils(
+              new TmchXmlSignature(new TmchCertificateAuthority(tmchCaTestingMode)));
       this.sleeper = new FakeSleeper(clock);
       this.dnsQueue = DnsQueue.create();
       this.metricBuilder = EppMetric.builderForRequest("request-id-1", clock);

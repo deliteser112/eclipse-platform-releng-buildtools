@@ -282,7 +282,6 @@ public class DomainApplicationCreateFlowTest
     setEppInput("domain_create_sunrush_encoded_signed_mark.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    clock.setTo(DateTime.parse("2012-07-26T00:01:00Z"));
     clock.setTo(DateTime.parse("2012-07-22T00:01:00Z"));
     thrown.expect(SignedMarkCertificateNotYetValidException.class);
     runFlow();
@@ -291,7 +290,7 @@ public class DomainApplicationCreateFlowTest
   @Test
   @Ignore("I'm not sure how to get this to throw without creating a custom CA / certs")
   public void testFailure_signedMarkCertificateCorrupt() throws Exception {
-    configRule.useTmchProdCert();
+    useTmchProdCert();
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_encoded_signed_mark_certificate_corrupt.xml");
     persistContactsAndHosts();
@@ -302,7 +301,7 @@ public class DomainApplicationCreateFlowTest
 
   @Test
   public void testFailure_signedMarkCertificateSignature() throws Exception {
-    configRule.useTmchProdCert();
+    useTmchProdCert();
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_encoded_signed_mark.xml");
     persistContactsAndHosts();

@@ -48,7 +48,12 @@ import org.xml.sax.SAXException;
 /** TMCH utility functions for domain flows. */
 public final class DomainFlowTmchUtils {
 
-  @Inject public DomainFlowTmchUtils() {}
+  private final TmchXmlSignature tmchXmlSignature;
+
+  @Inject
+  public DomainFlowTmchUtils(TmchXmlSignature tmchXmlSignature) {
+    this.tmchXmlSignature = tmchXmlSignature;
+  }
 
   public SignedMark verifySignedMarks(
       ImmutableList<AbstractSignedMark> signedMarks, String domainLabel, DateTime now)
@@ -86,7 +91,7 @@ public final class DomainFlowTmchUtils {
     }
 
     try {
-      TmchXmlSignature.verify(signedMarkData);
+      tmchXmlSignature.verify(signedMarkData);
     } catch (CertificateExpiredException e) {
       throw new SignedMarkCertificateExpiredException();
     } catch (CertificateNotYetValidException e) {

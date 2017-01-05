@@ -31,14 +31,16 @@ public final class TmchCrlAction implements Runnable {
 
   @Inject Marksdb marksdb;
   @Inject @Config("tmchCrlUrl") URL tmchCrlUrl;
+  @Inject TmchCertificateAuthority tmchCertificateAuthority;
   @Inject TmchCrlAction() {}
 
   /** Synchronously fetches latest ICANN TMCH CRL and saves it to datastore. */
   @Override
   public void run() {
     try {
-      TmchCertificateAuthority
-          .updateCrl(new String(marksdb.fetch(tmchCrlUrl, Optional.<String>absent()), UTF_8));
+      tmchCertificateAuthority.updateCrl(
+          new String(marksdb.fetch(tmchCrlUrl, Optional.<String>absent()), UTF_8),
+          tmchCrlUrl.toString());
     } catch (IOException | GeneralSecurityException e) {
       throw new RuntimeException("Failed to update ICANN TMCH CRL.", e);
     }

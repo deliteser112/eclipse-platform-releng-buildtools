@@ -30,9 +30,10 @@ import org.junit.Test;
 /** Unit tests for {@link TmchCrlAction}. */
 public class TmchCrlActionTest extends TmchActionTestCase {
 
-  private TmchCrlAction newTmchCrlAction() throws MalformedURLException {
+  private TmchCrlAction newTmchCrlAction(boolean tmchCaTestingMode) throws MalformedURLException {
     TmchCrlAction action = new TmchCrlAction();
     action.marksdb = marksdb;
+    action.tmchCertificateAuthority = new TmchCertificateAuthority(tmchCaTestingMode);
     action.tmchCrlUrl = new URL("http://sloth.lol/tmch.crl");
     return action;
   }
@@ -40,10 +41,9 @@ public class TmchCrlActionTest extends TmchActionTestCase {
   @Test
   public void testSuccess() throws Exception {
     clock.setTo(DateTime.parse("2013-07-24TZ"));
-    configRule.useTmchProdCert();
     when(httpResponse.getContent()).thenReturn(
         readResourceBytes(TmchCertificateAuthority.class, "icann-tmch.crl").read());
-    newTmchCrlAction().run();
+    newTmchCrlAction(false).run();
     verify(httpResponse).getContent();
     verify(fetchService).fetch(httpRequest.capture());
     assertThat(httpRequest.getValue().getURL().toString()).isEqualTo("http://sloth.lol/tmch.crl");
@@ -52,11 +52,11 @@ public class TmchCrlActionTest extends TmchActionTestCase {
   @Test
   public void testFailure_crlTooOld() throws Exception {
     clock.setTo(DateTime.parse("2020-01-01TZ"));
-    configRule.useTmchProdCert();
     when(httpResponse.getContent()).thenReturn(
         readResourceBytes(TmchCertificateAuthority.class, "icann-tmch-test.crl").read());
+    TmchCrlAction action = newTmchCrlAction(false);
     thrown.expectRootCause(CRLException.class, "New CRL is more out of date than our current CRL.");
-    newTmchCrlAction().run();
+    action.run();
   }
 
   @Test
@@ -65,7 +65,7 @@ public class TmchCrlActionTest extends TmchActionTestCase {
     when(httpResponse.getContent()).thenReturn(
         readResourceBytes(TmchCertificateAuthority.class, "icann-tmch.crl").read());
     thrown.expectRootCause(SignatureException.class, "Signature does not match.");
-    newTmchCrlAction().run();
+    newTmchCrlAction(true).run();
   }
 
   @Test
@@ -74,6 +74,6 @@ public class TmchCrlActionTest extends TmchActionTestCase {
     when(httpResponse.getContent()).thenReturn(
         readResourceBytes(TmchCertificateAuthority.class, "icann-tmch-test.crl").read());
     thrown.expectRootCause(CertificateNotYetValidException.class);
-    newTmchCrlAction().run();
+    newTmchCrlAction(true).run();
   }
 }

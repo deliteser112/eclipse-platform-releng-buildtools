@@ -37,6 +37,7 @@ public final class TmchCrl extends CrossTldSingleton {
 
   String crl;
   DateTime updated;
+  String url;
 
   /** Returns the singleton instance of this entity, without memoization. */
   @Nullable
@@ -50,13 +51,14 @@ public final class TmchCrl extends CrossTldSingleton {
    * <p>Please do not call this function unless your CRL is properly formatted, signed by the root,
    * and actually newer than the one currently in the datastore.
    */
-  public static void set(final String crl) {
+  public static void set(final String crl, final String url) {
     ofy().transactNew(new VoidWork() {
       @Override
       public void vrun() {
         TmchCrl tmchCrl = new TmchCrl();
         tmchCrl.updated = ofy().getTransactionTime();
         tmchCrl.crl = checkNotNull(crl, "crl");
+        tmchCrl.url = checkNotNull(url, "url");
         ofy().saveWithoutBackup().entity(tmchCrl);
       }});
   }
@@ -66,7 +68,12 @@ public final class TmchCrl extends CrossTldSingleton {
     return crl;
   }
 
-  /** Time we last updated the datastore with a newer ICANN CRL. */
+  /** Returns the URL that the CRL was downloaded from. */
+  public final String getUrl() {
+    return crl;
+  }
+
+  /** Time we last updated the Datastore with a newer ICANN CRL. */
   public final DateTime getUpdated() {
     return updated;
   }

@@ -277,7 +277,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
         .isEqualTo(new TypeInstantiator<F>(getClass()){}.getExactType());
     // Run the flow.
     return DaggerEppTestComponent.builder()
-        .fakesAndMocksModule(new FakesAndMocksModule(clock))
+        .fakesAndMocksModule(new FakesAndMocksModule(clock, tmchCaTestingMode))
         .build()
         .startRequest()
         .flowComponentBuilder()
@@ -337,6 +337,12 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     // Clear the cache so that we don't see stale results in tests.
     ofy().clearSessionCache();
     return output;
+  }
+
+  private boolean tmchCaTestingMode = true;
+
+  protected void useTmchProdCert() {
+    tmchCaTestingMode = false;
   }
 
   public EppOutput dryRunFlowAssertResponse(String xml, String... ignoredPaths) throws Exception {

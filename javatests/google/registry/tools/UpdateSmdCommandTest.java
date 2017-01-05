@@ -34,7 +34,9 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMarkRevocationList;
+import google.registry.tmch.TmchCertificateAuthority;
 import google.registry.tmch.TmchData;
+import google.registry.tmch.TmchXmlSignature;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,7 +68,8 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
         .setCurrentSponsorClientId("TheRegistrar")
         .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "garbage")))
         .build());
-    command.tmchUtils = new DomainFlowTmchUtils();
+    command.tmchUtils =
+        new DomainFlowTmchUtils(new TmchXmlSignature(new TmchCertificateAuthority(true)));
   }
 
   private DomainApplication reloadDomainApplication() {

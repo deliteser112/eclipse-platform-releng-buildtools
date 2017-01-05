@@ -71,7 +71,7 @@ public class EppCommitLogsTest extends ShardableTestCase {
     SessionMetadata sessionMetadata = new HttpSessionMetadata(new FakeHttpSession());
     sessionMetadata.setClientId("TheRegistrar");
     DaggerEppTestComponent.builder()
-        .fakesAndMocksModule(new FakesAndMocksModule(clock))
+        .fakesAndMocksModule(new FakesAndMocksModule(clock, true))
         .build()
         .startRequest()
         .flowComponentBuilder()

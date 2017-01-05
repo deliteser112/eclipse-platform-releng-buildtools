@@ -26,7 +26,6 @@ import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import java.util.Map;
 import org.json.simple.JSONValue;
@@ -63,7 +62,7 @@ public class CheckApiActionTest {
     action.response = new FakeResponse();
     action.config = RegistryEnvironment.UNITTEST.config();
     action.eppController = DaggerEppTestComponent.builder()
-        .fakesAndMocksModule(new FakesAndMocksModule(new FakeClock()))
+        .fakesAndMocksModule(new FakesAndMocksModule())
         .build()
         .startRequest()
         .eppController();

@@ -71,8 +71,8 @@ final class GenerateApplicationsReportCommand implements RemoteApiCommand {
       validateWith = PathParameter.OutputFile.class)
   private Path output = Paths.get("/dev/stdout");
 
-  @Inject
-  Clock clock;
+  @Inject Clock clock;
+  @Inject TmchXmlSignature tmchXmlSignature;
 
   @Override
   public void run() throws Exception {
@@ -143,7 +143,7 @@ final class GenerateApplicationsReportCommand implements RemoteApiCommand {
       }
 
       try {
-        TmchXmlSignature.verify(signedMarkData);
+        tmchXmlSignature.verify(signedMarkData);
       } catch (Exception e) {
         return Optional.of(
             makeLine(domainApplication, String.format("Invalid SMD (%s)", e.getMessage())));
