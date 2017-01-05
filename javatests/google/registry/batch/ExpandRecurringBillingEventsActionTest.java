@@ -21,6 +21,7 @@ import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.assertBillingEventsForResource;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -137,6 +138,41 @@ public class ExpandRecurringBillingEventsActionTest
         .setTargetId(domain.getFullyQualifiedDomainName())
         .build();
     assertBillingEventsForResource(domain, expected, recurring);
+    assertCursorAt(beginningOfTest);
+  }
+
+  @Test
+  public void testSuccess_expandSingleEvent_deletedDomain() throws Exception {
+    DateTime deletionTime = DateTime.parse("2000-08-01T00:00:00Z");
+    DomainResource deletedDomain = persistDeletedDomain("deleted.tld", deletionTime);
+    historyEntry = persistResource(new HistoryEntry.Builder().setParent(deletedDomain).build());
+    recurring = persistResource(new BillingEvent.Recurring.Builder()
+        .setParent(historyEntry)
+        .setClientId(deletedDomain.getCreationClientId())
+        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
+        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
+        .setId(2L)
+        .setReason(Reason.RENEW)
+        .setRecurrenceEndTime(deletionTime)
+        .setTargetId(deletedDomain.getFullyQualifiedDomainName())
+        .build());
+    action.cursorTimeParam = Optional.of(START_OF_TIME);
+    runMapreduce();
+    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
+        // Default renew grace period of 45 days.
+        .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
+        .setClientId("TheRegistrar")
+        .setCost(Money.of(USD, 11))
+        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
+        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
+        .setParent(historyEntry)
+        .setPeriodYears(1)
+        .setReason(Reason.RENEW)
+        .setSyntheticCreationTime(beginningOfTest)
+        .setCancellationMatchingBillingEvent(Key.create(recurring))
+        .setTargetId(deletedDomain.getFullyQualifiedDomainName())
+        .build();
+    assertBillingEventsForResource(deletedDomain, expected, recurring);
     assertCursorAt(beginningOfTest);
   }
 
