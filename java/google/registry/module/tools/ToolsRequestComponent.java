@@ -44,6 +44,7 @@ import google.registry.tools.server.ResaveAllEppResourcesAction;
 import google.registry.tools.server.ToolsServerModule;
 import google.registry.tools.server.UpdatePremiumListAction;
 import google.registry.tools.server.VerifyOteAction;
+import google.registry.tools.server.javascrap.PurgeSyntheticBillingEventsAction;
 import google.registry.tools.server.javascrap.RefreshAllDomainsAction;
 
 /** Dagger component with per-request lifetime for "tools" App Engine module. */
@@ -75,6 +76,7 @@ interface ToolsRequestComponent {
   ListTldsAction listTldsAction();
   LoadTestAction loadTestAction();
   PublishDetailReportAction publishDetailReportAction();
+  PurgeSyntheticBillingEventsAction purgeSyntheticBillingEventsAction();
   RefreshAllDomainsAction refreshAllDomainsAction();
   ResaveAllEppResourcesAction resaveAllEppResourcesAction();
   UpdatePremiumListAction updatePremiumListAction();

@@ -110,6 +110,12 @@
     <url-pattern>/_dr/task/refreshAllDomains</url-pattern>
   </servlet-mapping>
 
+  <!-- Purge synthetic OneTime billing events -->
+  <servlet-mapping>
+    <servlet-name>tools-servlet</servlet-name>
+    <url-pattern>/_dr/task/purgeSyntheticBillingEvents</url-pattern>
+  </servlet-mapping>
+
   <!-- Registrar detail report publishing action. -->
   <servlet-mapping>
     <servlet-name>tools-servlet</servlet-name>
