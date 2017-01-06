@@ -21,6 +21,7 @@ import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.config.ConfigModule.LocalTestConfig.CONTACT_AND_HOST_ROID_SUFFIX;
+import static google.registry.config.ConfigModule.LocalTestConfig.CONTACT_AUTOMATIC_TRANSFER_LENGTH;
 import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.EppResourceUtils.createRepoId;
@@ -52,7 +53,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Saver;
-import google.registry.config.RegistryEnvironment;
 import google.registry.dns.writer.VoidDnsWriter;
 import google.registry.model.Buildable;
 import google.registry.model.EppResource;
@@ -75,6 +75,7 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.DomainApplicationIndex;
 import google.registry.model.index.EppResourceIndex;
+import google.registry.model.index.EppResourceIndexBucket;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.model.poll.PollMessage;
@@ -479,8 +480,7 @@ public class DatastoreHelper {
             .setCurrentSponsorClientId("TheRegistrar")
             .addStatusValue(StatusValue.PENDING_TRANSFER)
             .setTransferData(createTransferDataBuilder(requestTime, expirationTime)
-                    .setPendingTransferExpirationTime(now.plus(
-                        RegistryEnvironment.get().config().getContactAutomaticTransferLength()))
+                    .setPendingTransferExpirationTime(now.plus(CONTACT_AUTOMATIC_TRANSFER_LENGTH))
                 .setServerApproveEntities(
                     ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
                     // Pretend it's 3 days since the request
@@ -770,22 +770,27 @@ public class DatastoreHelper {
     return persistResource(resource, true);
   }
 
-  private static <R> void saveResource(final R resource, final boolean wantBackup) {
+  private static <R> void saveResource(R resource, boolean wantBackup) {
     Saver saver = wantBackup ? ofy().save() : ofy().saveWithoutBackup();
     saver.entity(resource);
     if (resource instanceof EppResource) {
       EppResource eppResource = (EppResource) resource;
-      assertWithMessage("Cannot persist an EppResource with a missing repoId in tests")
-          .that(eppResource.getRepoId()).isNotEmpty();
-      Key<EppResource> eppResourceKey = Key.create(eppResource);
-      saver.entity(EppResourceIndex.create(eppResourceKey));
-      if (resource instanceof ForeignKeyedEppResource) {
-        saver.entity(ForeignKeyIndex.create(eppResource, eppResource.getDeletionTime()));
-      }
-      if (resource instanceof DomainApplication) {
-        saver.entity(
-            DomainApplicationIndex.createUpdatedInstance((DomainApplication) resource));
-      }
+      persistEppResourceExtras(
+          eppResource, EppResourceIndex.create(Key.create(eppResource)), saver);
+    }
+  }
+
+  private static <R extends EppResource> void persistEppResourceExtras(
+      R resource, EppResourceIndex index, Saver saver) {
+    assertWithMessage("Cannot persist an EppResource with a missing repoId in tests")
+        .that(resource.getRepoId())
+        .isNotEmpty();
+    saver.entity(index);
+    if (resource instanceof ForeignKeyedEppResource) {
+      saver.entity(ForeignKeyIndex.create(resource, resource.getDeletionTime()));
+    }
+    if (resource instanceof DomainApplication) {
+      saver.entity(DomainApplicationIndex.createUpdatedInstance((DomainApplication) resource));
     }
   }
 
@@ -800,6 +805,21 @@ public class DatastoreHelper {
       }});
     // Force the session to be cleared so that when we read it back, we read from the datastore
     // and not from the transaction cache or memcache.
+    ofy().clearSessionCache();
+    return ofy().load().entity(resource).now();
+  }
+
+  /** Persists an EPP resource with the {@link EppResourceIndex} always going into bucket one. */
+  public static <R extends EppResource> R persistEppResourceInFirstBucket(final R resource) {
+    final EppResourceIndex eppResourceIndex =
+        EppResourceIndex.create(Key.create(EppResourceIndexBucket.class, 1), Key.create(resource));
+    ofy().transact(new VoidWork() {
+      @Override
+      public void vrun() {
+        Saver saver = ofy().save();
+        saver.entity(resource);
+        persistEppResourceExtras(resource, eppResourceIndex, saver);
+      }});
     ofy().clearSessionCache();
     return ofy().load().entity(resource).now();
   }

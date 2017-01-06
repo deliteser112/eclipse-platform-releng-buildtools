@@ -18,22 +18,28 @@ import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 
 import com.google.common.base.Joiner;
 import com.googlecode.objectify.Key;
-import google.registry.config.RegistryEnvironment;
+import google.registry.config.ConfigModule.Config;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.registry.label.ReservedList.ReservedListEntry;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.inject.Inject;
 
-/** Container class for exported-related static utility methods. */
-public class ExportUtils {
+/** Container class for exported-related utility methods. */
+public final class ExportUtils {
 
-  private ExportUtils() {}
+  private final String reservedTermsExportDisclaimer;
+
+  @Inject
+  public ExportUtils(
+      @Config("reservedTermsExportDisclaimer") String reservedTermsExportDisclaimer) {
+    this.reservedTermsExportDisclaimer = reservedTermsExportDisclaimer;
+  }
 
   /** Returns the file contents of the auto-export reserved terms document for the given TLD. */
-  public static String exportReservedTerms(Registry registry) {
-    StringBuilder termsBuilder =
-        new StringBuilder(RegistryEnvironment.get().config().getReservedTermsExportDisclaimer());
+  public String exportReservedTerms(Registry registry) {
+    StringBuilder termsBuilder = new StringBuilder(reservedTermsExportDisclaimer);
     Set<String> reservedTerms = new TreeSet<>();
     for (Key<ReservedList> key : registry.getReservedLists()) {
       ReservedList reservedList = ReservedList.load(key).get();

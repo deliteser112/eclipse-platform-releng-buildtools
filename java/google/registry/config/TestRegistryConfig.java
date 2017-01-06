@@ -14,13 +14,7 @@
 
 package google.registry.config;
 
-import static google.registry.config.ConfigUtils.makeUrl;
-import static org.joda.time.Duration.standardDays;
-
 import com.google.common.base.Optional;
-import com.google.common.net.HostAndPort;
-import java.net.URL;
-import org.joda.time.Duration;
 
 /**
  * An implementation of RegistryConfig for unit testing that contains suitable testing data.
@@ -32,45 +26,5 @@ public class TestRegistryConfig extends RegistryConfig {
   @Override
   public Optional<String> getECatcherAddress() {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public HostAndPort getServer() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public String getReservedTermsExportDisclaimer() {
-    return "This is a disclaimer.\n";
-  }
-
-  @Override
-  public String getRegistrarDefaultWhoisServer() {
-    return "whois.nic.fakewhois.example";
-  }
-
-  @Override
-  public URL getRegistrarDefaultReferralUrl() {
-    return makeUrl("http://www.referral.example/path");
-  }
-
-  @Override
-  public int getEppResourceIndexBucketCount() {
-    return 2;
-  }
-
-  @Override
-  public Duration getBaseOfyRetryDuration() {
-    return Duration.ZERO;
-  }
-
-  @Override
-  public Duration getContactAutomaticTransferLength() {
-    return standardDays(5);
-  }
-
-  @Override
-  public String getCheckApiServletRegistrarClientId() {
-    return "TheRegistrar";
   }
 }

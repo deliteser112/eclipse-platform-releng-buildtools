@@ -15,6 +15,7 @@
 package google.registry.config;
 
 import static google.registry.config.ConfigUtils.makeUrl;
+import static org.joda.time.Duration.standardDays;
 
 import com.google.appengine.api.utils.SystemProperty;
 import com.google.common.base.Optional;
@@ -71,11 +72,6 @@ public final class ConfigModule {
   @Provides
   public static RegistryEnvironment provideRegistryEnvironment() {
     return REGISTRY_ENVIRONMENT;
-  }
-
-  @Provides
-  public static RegistryConfig provideConfig(RegistryEnvironment environment) {
-    return environment.config();
   }
 
   @Provides
@@ -356,8 +352,8 @@ public final class ConfigModule {
    */
   @Provides
   @Config("eppResourceIndexBucketCount")
-  public static int provideEppResourceIndexBucketCount(RegistryConfig config) {
-    return config.getEppResourceIndexBucketCount();
+  public static int provideEppResourceIndexBucketCount() {
+    return RegistryConfig.getEppResourceIndexBucketCount();
   }
 
   /**
@@ -897,14 +893,15 @@ public final class ConfigModule {
   }
 
   /**
-   * The time between a contact transfer request and its expiration date.
+   * The global automatic transfer length for contacts.  After this amount of time has
+   * elapsed, the transfer is automatically approved.
    *
    * @see google.registry.flows.contact.ContactTransferRequestFlow
    */
   @Provides
   @Config("contactAutomaticTransferLength")
-  public static Duration provideContactAutomaticTransferLength(RegistryConfig config) {
-    return config.getContactAutomaticTransferLength();
+  public static Duration provideContactAutomaticTransferLength() {
+    return standardDays(5);
   }
 
   /**
@@ -958,6 +955,33 @@ public final class ConfigModule {
   public static String provideCustomLogicFactoryClass() {
     // TODO(b/32875427): This will be moved into configuration in a text file in a future refactor.
     return "google.registry.flows.custom.CustomLogicFactory";
+  }
+
+  private static final String RESERVED_TERMS_EXPORT_DISCLAIMER = ""
+      + "# This list contains reserve terms for the TLD. Other terms may be reserved\n"
+      + "# but not included in this list, including terms EXAMPLE REGISTRY chooses not\n"
+      + "# to publish, and terms that ICANN commonly mandates to be reserved. This\n"
+      + "# list is subject to change and the most up-to-date source is always to\n"
+      + "# check availability directly with the Registry server.\n";
+
+  /**
+   * Returns the header text at the top of the reserved terms exported list.
+   *
+   * @see google.registry.export.ExportUtils#exportReservedTerms
+   */
+  @Provides
+  @Config("reservedTermsExportDisclaimer")
+  public static String provideReservedTermsExportDisclaimer() {
+    return RESERVED_TERMS_EXPORT_DISCLAIMER;
+  }
+
+  /**
+   * Returns the clientId of the registrar used by the {@code CheckApiServlet}.
+   */
+  @Provides
+  @Config("checkApiServletRegistrarClientId")
+  public static String provideCheckApiServletRegistrarClientId() {
+    return "TheRegistrar";
   }
 
   /**
@@ -1050,8 +1074,12 @@ public final class ConfigModule {
 
     public static final String CONTACT_AND_HOST_ROID_SUFFIX = "ROID";
 
+    public static final String RESERVED_TERMS_TEST_EXPORT_DISCLAIMER = "This is a disclaimer.\n";
+
     public static final String GOOGLE_APPS_SEND_FROM_EMAIL_ADDRESS = "noreply@testing.example";
 
     public static final String GOOGLE_APPS_ADMIN_EMAIL_DISPLAY_NAME = "Testing Nomulus";
+
+    public static final Duration CONTACT_AUTOMATIC_TRANSFER_LENGTH = standardDays(5);
   }
 }

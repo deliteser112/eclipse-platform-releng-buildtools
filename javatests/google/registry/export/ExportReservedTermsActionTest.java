@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
+import google.registry.config.ConfigModule.LocalTestConfig;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.request.Response;
@@ -64,6 +65,7 @@ public class ExportReservedTermsActionTest {
     ExportReservedTermsAction action = new ExportReservedTermsAction();
     action.response = response;
     action.driveConnection = driveConnection;
+    action.exportUtils = new ExportUtils(LocalTestConfig.RESERVED_TERMS_TEST_EXPORT_DISCLAIMER);
     action.tld = tld;
     action.run();
   }

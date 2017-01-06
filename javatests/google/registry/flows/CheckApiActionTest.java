@@ -21,7 +21,6 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableSet;
-import google.registry.config.RegistryEnvironment;
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
@@ -60,7 +59,7 @@ public class CheckApiActionTest {
   private Map<String, Object> getCheckResponse(String domain) {
     action.domain = domain;
     action.response = new FakeResponse();
-    action.config = RegistryEnvironment.UNITTEST.config();
+    action.checkApiServletRegistrarClientId = "TheRegistrar";
     action.eppController = DaggerEppTestComponent.builder()
         .fakesAndMocksModule(new FakesAndMocksModule())
         .build()

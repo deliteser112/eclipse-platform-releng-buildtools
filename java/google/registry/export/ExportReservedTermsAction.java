@@ -16,7 +16,6 @@ package google.registry.export;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
-import static google.registry.export.ExportUtils.exportReservedTerms;
 import static google.registry.request.Action.Method.POST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -41,6 +40,7 @@ public class ExportReservedTermsAction implements Runnable {
   static final String RESERVED_TERMS_FILENAME = "reserved_terms.txt";
 
   @Inject DriveConnection driveConnection;
+  @Inject ExportUtils exportUtils;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
   @Inject Response response;
   @Inject ExportReservedTermsAction() {}
@@ -70,7 +70,7 @@ public class ExportReservedTermsAction implements Runnable {
             RESERVED_TERMS_FILENAME,
             EXPORT_MIME_TYPE,
             registry.getDriveFolderId(),
-            exportReservedTerms(registry).getBytes(UTF_8));
+            exportUtils.exportReservedTerms(registry).getBytes(UTF_8));
         logger.infofmt("Exporting reserved terms succeeded for TLD %s, response was: %s",
             tld, resultMsg);
       }

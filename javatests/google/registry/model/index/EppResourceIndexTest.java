@@ -15,6 +15,7 @@
 package google.registry.model.index;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.config.RegistryConfig.getEppResourceIndexBucketCount;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
@@ -23,7 +24,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.EntityTestCase;
 import google.registry.model.contact.ContactResource;
 import org.junit.Before;
@@ -62,10 +62,9 @@ public class EppResourceIndexTest extends EntityTestCase  {
   /**
    * Returns all EppResourceIndex objects across all buckets.
    */
-  private ImmutableList<EppResourceIndex> getEppResourceIndexObjects() {
-    int numBuckets = RegistryEnvironment.get().config().getEppResourceIndexBucketCount();
+  private static ImmutableList<EppResourceIndex> getEppResourceIndexObjects() {
     ImmutableList.Builder<EppResourceIndex> indexEntities = new ImmutableList.Builder<>();
-    for (int i = 0; i < numBuckets; i++) {
+    for (int i = 0; i < getEppResourceIndexBucketCount(); i++) {
       indexEntities.addAll(ofy().load()
           .type(EppResourceIndex.class)
           .ancestor(Key.create(EppResourceIndexBucket.class, i + 1)));

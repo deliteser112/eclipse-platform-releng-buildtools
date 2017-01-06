@@ -35,7 +35,7 @@ import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.tofu.SoyTofu;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.RegistryConfig;
+import google.registry.config.ConfigModule.Config;
 import google.registry.flows.soy.DomainCheckFeeEppSoyInfo;
 import google.registry.model.domain.fee.FeeCheckResponseExtension;
 import google.registry.model.eppoutput.CheckData.DomainCheck;
@@ -69,7 +69,7 @@ public class CheckApiAction implements Runnable {
   @Inject @Parameter("domain") String domain;
   @Inject Response response;
   @Inject EppController eppController;
-  @Inject RegistryConfig config;
+  @Inject @Config("checkApiServletRegistrarClientId") String checkApiServletRegistrarClientId;
   @Inject CheckApiAction() {}
 
   @Override
@@ -96,9 +96,8 @@ public class CheckApiAction implements Runnable {
           .setData(ImmutableMap.of("domainName", domainString))
           .render()
           .getBytes(UTF_8);
-      SessionMetadata sessionMetadata = new StatelessRequestSessionMetadata(
-          config.getCheckApiServletRegistrarClientId(),
-          FEE_EXTENSION_URIS);
+      SessionMetadata sessionMetadata =
+          new StatelessRequestSessionMetadata(checkApiServletRegistrarClientId, FEE_EXTENSION_URIS);
       EppResponse response = eppController
           .handleEppCommand(
               sessionMetadata,

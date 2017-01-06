@@ -14,6 +14,8 @@
 
 package google.registry.config;
 
+import static google.registry.config.ConfigUtils.makeUrl;
+
 import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
 import com.google.common.net.HostAndPort;
@@ -109,7 +111,17 @@ public abstract class RegistryConfig {
    *
    * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
    */
-  public abstract HostAndPort getServer();
+  public static HostAndPort getServer() {
+    switch (RegistryEnvironment.get()) {
+      case LOCAL:
+        return HostAndPort.fromParts("localhost", 8080);
+      case UNITTEST:
+        throw new UnsupportedOperationException("Unit tests can't spin up a full server");
+      default:
+        return HostAndPort.fromParts(
+            String.format("tools-dot-%s.appspot.com", getProjectId()), 443);
+    }
+  }
 
   /** Returns the amount of time a singleton should be cached, before expiring. */
   public static Duration getSingletonCacheRefreshDuration() {
@@ -149,45 +161,55 @@ public abstract class RegistryConfig {
   }
 
   /**
-   * Returns the header text at the top of the reserved terms exported list.
-   *
-   * @see google.registry.export.ExportUtils#exportReservedTerms
-   */
-  public abstract String getReservedTermsExportDisclaimer();
-
-  /**
    * Returns default WHOIS server to use when {@code Registrar#getWhoisServer()} is {@code null}.
    *
    * @see "google.registry.whois.DomainWhoisResponse"
    * @see "google.registry.whois.RegistrarWhoisResponse"
    */
-  public abstract String getRegistrarDefaultWhoisServer();
+  public static String getRegistrarDefaultWhoisServer() {
+    switch (RegistryEnvironment.get()) {
+      case UNITTEST:
+        return "whois.nic.fakewhois.example";
+      default:
+        return "whois.nic.registry.example";
+    }
+  }
 
   /**
    * Returns the default referral URL that is used unless registrars have specified otherwise.
    */
-  public abstract URL getRegistrarDefaultReferralUrl();
+  public static URL getRegistrarDefaultReferralUrl() {
+    switch (RegistryEnvironment.get()) {
+      case UNITTEST:
+        return makeUrl("http://www.referral.example/path");
+      default:
+        return makeUrl("https://www.registry.example");
+    }
+  }
 
   /**
-   * Returns the number of EppResourceIndex buckets to be used.
+   * Returns the number of {@code EppResourceIndex} buckets to be used.
    */
-  public abstract int getEppResourceIndexBucketCount();
+  public static int getEppResourceIndexBucketCount() {
+    switch (RegistryEnvironment.get()) {
+      case UNITTEST:
+        return 3;
+      default:
+        return 997;
+    }
+  }
 
   /**
-   * Returns the base duration that gets doubled on each retry within {@code Ofy}.
+   * Returns the base retry duration that gets doubled after each failure within {@code Ofy}.
    */
-  public abstract Duration getBaseOfyRetryDuration();
-
-  /**
-   * Returns the global automatic transfer length for contacts.  After this amount of time has
-   * elapsed, the transfer is automatically approved.
-   */
-  public abstract Duration getContactAutomaticTransferLength();
-
-  /**
-   * Returns the clientId of the registrar used by the {@code CheckApiServlet}.
-   */
-  public abstract String getCheckApiServletRegistrarClientId();
+  public static Duration getBaseOfyRetryDuration() {
+    switch (RegistryEnvironment.get()) {
+      case UNITTEST:
+        return Duration.ZERO;
+      default:
+        return Duration.millis(100);
+    }
+  }
 
   // XXX: Please consider using ConfigModule instead of adding new methods to this file.
 }

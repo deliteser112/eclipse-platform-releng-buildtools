@@ -27,7 +27,7 @@ import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import google.registry.config.TestRegistryConfig;
+import google.registry.config.RegistryConfig;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
@@ -77,7 +77,7 @@ public class GenerateEscrowDepositCommandTest
     inject.setStaticField(Ofy.class, "clock", clock);
     command.encryptor = EncryptEscrowDepositCommandTest.createEncryptor();
     command.counter = new RdeCounter();
-    command.eppResourceIndexBucketCount = new TestRegistryConfig().getEppResourceIndexBucketCount();
+    command.eppResourceIndexBucketCount = RegistryConfig.getEppResourceIndexBucketCount();
   }
 
   @Test

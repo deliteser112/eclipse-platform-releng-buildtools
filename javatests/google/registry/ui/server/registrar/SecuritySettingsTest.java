@@ -15,6 +15,8 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.config.RegistryConfig.getRegistrarDefaultReferralUrl;
+import static google.registry.config.RegistryConfig.getRegistrarDefaultWhoisServer;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT2;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT2_HASH;
@@ -23,7 +25,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
 
 import com.google.common.collect.ImmutableMap;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
 import java.util.Map;
 import org.junit.Test;
@@ -48,11 +49,12 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
         "op", "update",
         "args", modified.toJsonMap()));
     // Empty whoisServer and referralUrl fields should be set to defaults by server.
-    modified = modified.asBuilder()
-        .setWhoisServer(RegistryEnvironment.get().config().getRegistrarDefaultWhoisServer())
-        .setReferralUrl(
-            RegistryEnvironment.get().config().getRegistrarDefaultReferralUrl().toString())
-        .build();
+    modified =
+        modified
+            .asBuilder()
+            .setWhoisServer(getRegistrarDefaultWhoisServer())
+            .setReferralUrl(getRegistrarDefaultReferralUrl().toString())
+            .build();
     assertThat(response).containsEntry("status", "SUCCESS");
     assertThat(response).containsEntry("results", asList(modified.toJsonMap()));
     assertThat(Registrar.loadByClientId(CLIENT_ID)).isEqualTo(modified);

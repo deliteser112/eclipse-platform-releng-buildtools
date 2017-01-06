@@ -15,6 +15,7 @@
 package google.registry.testing.mapreduce;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.config.RegistryConfig.getEppResourceIndexBucketCount;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -33,7 +34,6 @@ import com.google.appengine.tools.pipeline.impl.servlets.TaskHandler;
 import com.google.apphosting.api.ApiProxy;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
-import google.registry.config.RegistryEnvironment;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -88,8 +88,8 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
   }
 
   protected MapreduceRunner makeDefaultRunner() {
-    int numBuckets = RegistryEnvironment.get().config().getEppResourceIndexBucketCount();
-    return new MapreduceRunner(Optional.<Integer>of(numBuckets), Optional.<Integer>of(1));
+    return new MapreduceRunner(
+        Optional.<Integer>of(getEppResourceIndexBucketCount()), Optional.<Integer>of(1));
   }
 
   protected List<QueueStateInfo.TaskStateInfo> getTasks(String queueName) {

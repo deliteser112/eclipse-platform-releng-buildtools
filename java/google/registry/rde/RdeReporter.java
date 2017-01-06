@@ -29,7 +29,6 @@ import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import google.registry.config.ConfigModule.Config;
-import google.registry.config.RegistryConfig;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.util.FormattingLogger;
@@ -62,7 +61,6 @@ public class RdeReporter {
    *     ICANN Registry Interfaces - Interface details</a>*/
   private static final String REPORT_MIME = "text/xml";
 
-  @Inject RegistryConfig config;
   @Inject Retrier retrier;
   @Inject URLFetchService urlFetchService;
   @Inject @Config("rdeReportUrlPrefix") String reportUrlPrefix;

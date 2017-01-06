@@ -42,8 +42,6 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
-import google.registry.config.RegistryConfig;
-import google.registry.config.RegistryEnvironment;
 import google.registry.gcs.GcsUtils;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
@@ -97,13 +95,11 @@ public class RdeReportActionTest {
   private final HTTPResponse httpResponse = mock(HTTPResponse.class);
 
   private final GcsService gcsService = GcsServiceFactory.createGcsService();
-  private final RegistryConfig config = RegistryEnvironment.get().config();
   private final GcsFilename reportFile =
       new GcsFilename("tub", "test_2006-06-06_full_S1_R0-report.xml.ghostryde");
 
   private RdeReportAction createAction() {
     RdeReporter reporter = new RdeReporter();
-    reporter.config = config;
     reporter.reportUrlPrefix = "https://rde-report.example";
     reporter.urlFetchService = urlFetchService;
     reporter.password = "foo";

@@ -14,12 +14,13 @@
 
 package google.registry.model.index;
 
+import static google.registry.config.RegistryConfig.getEppResourceIndexBucketCount;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.Hashing;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.VirtualEntity;
@@ -38,7 +39,7 @@ public class EppResourceIndexBucket extends ImmutableObject {
    * change the number of buckets and utilize a random distribution once we do.
    */
   private static long getBucketIdFromEppResource(Key<? extends EppResource> resourceKey) {
-    int numBuckets = RegistryEnvironment.get().config().getEppResourceIndexBucketCount();
+    int numBuckets = getEppResourceIndexBucketCount();
     // IDs can't be 0, so add 1 to the hash.
     return Hashing.consistentHash(resourceKey.getName().hashCode(), numBuckets) + 1;
   }
@@ -56,8 +57,7 @@ public class EppResourceIndexBucket extends ImmutableObject {
   /** Returns the keys to all buckets. */
   public static Iterable<Key<EppResourceIndexBucket>> getAllBuckets() {
     ImmutableList.Builder<Key<EppResourceIndexBucket>> builder = new ImmutableList.Builder<>();
-    int numBuckets = RegistryEnvironment.get().config().getEppResourceIndexBucketCount();
-    for (int bucketId = 1; bucketId <= numBuckets; bucketId++) {
+    for (int bucketId = 1; bucketId <= getEppResourceIndexBucketCount(); bucketId++) {
       builder.add(getBucketKey(bucketId));
     }
     return builder.build();
