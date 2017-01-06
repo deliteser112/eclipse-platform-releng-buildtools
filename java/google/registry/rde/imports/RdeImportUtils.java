@@ -20,7 +20,7 @@ import static com.google.common.base.Preconditions.checkState;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;

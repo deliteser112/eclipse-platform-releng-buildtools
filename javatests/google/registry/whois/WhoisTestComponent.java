@@ -15,7 +15,7 @@
 package google.registry.whois;
 
 import dagger.Component;
-import google.registry.config.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.request.RequestModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import javax.inject.Singleton;

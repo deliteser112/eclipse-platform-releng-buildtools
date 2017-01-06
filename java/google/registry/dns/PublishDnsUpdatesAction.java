@@ -19,7 +19,7 @@ import static google.registry.request.Action.Method.POST;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.net.InternetDomainName;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.DnsMetrics.Status;
 import google.registry.dns.writer.DnsWriter;
 import google.registry.request.Action;

@@ -14,7 +14,7 @@
 
 package google.registry.whois;
 
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.util.Clock;
 import java.io.IOException;
 import java.io.StringReader;

@@ -14,7 +14,7 @@
 
 package google.registry.flows.session;
 
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;

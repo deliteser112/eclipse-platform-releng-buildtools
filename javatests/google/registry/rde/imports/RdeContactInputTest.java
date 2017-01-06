@@ -23,7 +23,7 @@ import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.common.base.Optional;
 import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
-import google.registry.config.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
 import google.registry.testing.AppEngineRule;
 import java.io.IOException;

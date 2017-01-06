@@ -36,7 +36,7 @@ import com.google.common.collect.ImmutableSet;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

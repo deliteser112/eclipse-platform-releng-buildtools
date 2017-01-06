@@ -34,7 +34,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.ExtensionManager;

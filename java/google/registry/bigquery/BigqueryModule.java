@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.Multibinds;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import java.util.Map;
 import java.util.Set;
 

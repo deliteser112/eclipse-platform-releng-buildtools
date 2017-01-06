@@ -34,7 +34,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.registry.Registry;
 import google.registry.request.Action;

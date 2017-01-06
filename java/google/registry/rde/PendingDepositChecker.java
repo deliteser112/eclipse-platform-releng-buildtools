@@ -20,7 +20,7 @@ import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.collect.ImmutableSetMultimap;
 import com.googlecode.objectify.Work;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.rde.RdeMode;

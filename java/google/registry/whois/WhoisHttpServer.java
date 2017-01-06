@@ -27,7 +27,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.RequestPath;
 import google.registry.request.Response;

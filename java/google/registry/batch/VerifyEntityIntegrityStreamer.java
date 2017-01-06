@@ -37,7 +37,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.bigquery.BigqueryFactory;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.util.Retrier;
 import java.io.IOException;
 import java.util.List;

@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.bigquery.BigqueryFactory;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.ParameterMap;

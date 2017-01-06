@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.EppResource;
 import google.registry.model.EppResourceUtils;
 import google.registry.model.ImmutableObject;

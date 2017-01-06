@@ -17,7 +17,7 @@ package google.registry.braintree;
 import com.braintreegateway.BraintreeGateway;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryEnvironment;
 import google.registry.keyring.api.KeyModule.Key;
 import javax.inject.Singleton;

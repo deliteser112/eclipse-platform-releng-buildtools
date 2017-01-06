@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import google.registry.config.ConfigModule.LocalTestConfig;
+import google.registry.config.RegistryConfig.LocalTestConfig;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
 import java.util.Properties;

@@ -29,7 +29,7 @@ import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Optional;
 import com.google.gdata.util.ServiceException;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.server.Lock;
 import google.registry.request.Action;
 import google.registry.request.Parameter;

@@ -18,7 +18,7 @@ import static google.registry.request.Action.Method.POST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Optional;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import java.io.IOException;
 import java.net.URL;

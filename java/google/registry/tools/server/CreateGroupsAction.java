@@ -21,7 +21,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.groups.GroupsConnection.Role;
 import google.registry.model.registrar.Registrar;

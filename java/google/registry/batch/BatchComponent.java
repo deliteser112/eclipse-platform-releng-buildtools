@@ -16,7 +16,7 @@ package google.registry.batch;
 
 import dagger.Component;
 import google.registry.bigquery.BigqueryModule;
-import google.registry.config.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.monitoring.whitebox.WhiteboxModule;
 import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;

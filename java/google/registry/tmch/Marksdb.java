@@ -26,7 +26,7 @@ import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.base.Optional;
 import com.google.common.io.ByteSource;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.util.UrlFetchException;
 import java.io.ByteArrayInputStream;

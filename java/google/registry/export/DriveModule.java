@@ -22,7 +22,7 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.common.base.Function;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import java.util.Set;
 
 /** Dagger module for Google {@link Drive} service connection objects. */

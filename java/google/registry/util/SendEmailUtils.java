@@ -20,7 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import java.util.List;
 import javax.inject.Inject;
 import javax.mail.Message;

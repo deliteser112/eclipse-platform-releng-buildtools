@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Booleans;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;

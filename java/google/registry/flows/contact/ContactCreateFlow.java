@@ -22,7 +22,7 @@ import static google.registry.model.EppResourceUtils.createRepoId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.googlecode.objectify.Key;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;

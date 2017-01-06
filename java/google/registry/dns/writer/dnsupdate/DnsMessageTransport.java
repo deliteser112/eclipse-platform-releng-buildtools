@@ -19,7 +19,7 @@ import static com.google.common.base.Verify.verify;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Ints;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;

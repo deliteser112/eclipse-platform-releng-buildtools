@@ -24,7 +24,7 @@ import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import google.registry.config.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
 import google.registry.model.host.HostResource;
 import google.registry.rde.imports.RdeParser.RdeHeader;

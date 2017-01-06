@@ -22,7 +22,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.tmch.TmchCrl;
 import google.registry.util.Clock;
 import google.registry.util.NonFinalForTesting;

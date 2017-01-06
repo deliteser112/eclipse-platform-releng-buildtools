@@ -19,7 +19,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 
 import com.google.common.collect.ImmutableList;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;

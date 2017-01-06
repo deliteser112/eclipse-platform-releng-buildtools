@@ -26,7 +26,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.monitoring.metrics.MetricWriter;
 import google.registry.monitoring.metrics.StackdriverWriter;
 import java.util.Set;

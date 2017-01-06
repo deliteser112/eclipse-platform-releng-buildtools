@@ -35,7 +35,7 @@ import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.tofu.SoyTofu;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.flows.soy.DomainCheckFeeEppSoyInfo;
 import google.registry.model.domain.fee.FeeCheckResponseExtension;
 import google.registry.model.eppoutput.CheckData.DomainCheck;

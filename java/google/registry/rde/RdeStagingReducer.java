@@ -28,7 +28,7 @@ import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.googlecode.objectify.VoidWork;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.api.PgpHelper;

@@ -31,7 +31,7 @@ import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.cmd.Query;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.EppResource;
 import google.registry.request.Action;
 import google.registry.request.HttpException;

@@ -30,7 +30,7 @@ import com.braintreegateway.ValidationErrors;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.re2j.Pattern;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import google.registry.request.JsonActionRunner;

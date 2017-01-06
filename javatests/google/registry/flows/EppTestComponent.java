@@ -21,7 +21,7 @@ import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
 import dagger.Subcomponent;
-import google.registry.config.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.custom.CustomLogicFactory;
 import google.registry.flows.custom.TestCustomLogicFactory;

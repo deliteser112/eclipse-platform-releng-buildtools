@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.VoidWork;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.groups.GroupsConnection.Role;
 import google.registry.model.registrar.Registrar;

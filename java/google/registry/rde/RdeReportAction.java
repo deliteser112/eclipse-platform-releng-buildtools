@@ -23,7 +23,7 @@ import static google.registry.request.Action.Method.POST;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.io.ByteStreams;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.model.common.Cursor;

@@ -25,7 +25,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Query;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
@@ -58,9 +58,9 @@ import org.joda.time.Duration;
  * therefore serves little use as an early warning to increase the number of buckets.
  *
  * <p>Before running, this task will perform an eventually consistent count query outside of a
- * transaction to see how much data actually exists to delete. If it's less than a tenth of
- * {@link #maxDeletes}, then we don't bother running the task. This is to minimize contention on the
- * bucket and avoid wasting resources.
+ * transaction to see how much data actually exists to delete. If it's less than a tenth of {@link
+ * #maxDeletes}, then we don't bother running the task. This is to minimize contention on the bucket
+ * and avoid wasting resources.
  *
  * <h3>Dimensioning</h3>
  *
@@ -68,8 +68,8 @@ import org.joda.time.Duration;
  * there's a 10mB upper bound on transaction size and a four minute time limit, we can only delete
  * so many commit logs at once. So given the above constraints, five hundred would make a safe
  * default value for {@code maxDeletes}. See {@linkplain
- * google.registry.config.ConfigModule#provideCommitLogMaxDeletes() commitLogMaxDeletes}
- * for further documentation on this matter.
+ * google.registry.config.RegistryConfig.ConfigModule#provideCommitLogMaxDeletes()
+ * commitLogMaxDeletes} for further documentation on this matter.
  *
  * <p>Finally, we need to pick an appropriate cron interval time for this task. Since a bucket
  * represents a single datastore entity group, it's only guaranteed to have one transaction per

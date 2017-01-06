@@ -24,7 +24,7 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.io.InputStream;

@@ -22,7 +22,7 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
-import google.registry.config.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
 import google.registry.model.contact.ContactResource;
 import google.registry.testing.AppEngineRule;

@@ -20,7 +20,7 @@ import com.google.api.services.groupssettings.GroupssettingsScopes;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import javax.inject.Named;
 
 /** Dagger module for the Google {@link Groupssettings} service. */

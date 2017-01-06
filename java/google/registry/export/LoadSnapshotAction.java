@@ -37,7 +37,7 @@ import com.google.common.collect.ImmutableSet;
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.bigquery.BigqueryUtils.SourceFormat;
 import google.registry.bigquery.BigqueryUtils.WriteDisposition;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;

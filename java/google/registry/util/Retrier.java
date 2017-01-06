@@ -21,7 +21,7 @@ import static google.registry.util.PredicateUtils.supertypeOf;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import java.io.Serializable;
 import java.util.Set;
 import java.util.concurrent.Callable;

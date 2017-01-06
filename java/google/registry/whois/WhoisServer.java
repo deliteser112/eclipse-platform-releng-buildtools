@@ -18,7 +18,7 @@ import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.net.MediaType;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.util.Clock;

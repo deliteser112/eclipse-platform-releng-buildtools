@@ -23,7 +23,7 @@ import com.google.api.services.bigquery.model.ViewDefinition;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import google.registry.bigquery.BigqueryFactory;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.request.Parameter;

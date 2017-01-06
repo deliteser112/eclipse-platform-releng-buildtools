@@ -15,7 +15,7 @@
 package google.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.config.ConfigModule.LocalTestConfig.RESERVED_TERMS_TEST_EXPORT_DISCLAIMER;
+import static google.registry.config.RegistryConfig.LocalTestConfig.RESERVED_TERMS_TEST_EXPORT_DISCLAIMER;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;

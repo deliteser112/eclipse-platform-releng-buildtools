@@ -30,7 +30,7 @@ import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.domain.DomainResource;

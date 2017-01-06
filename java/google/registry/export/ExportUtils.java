@@ -18,7 +18,7 @@ import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 
 import com.google.common.base.Joiner;
 import com.googlecode.objectify.Key;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.registry.label.ReservedList.ReservedListEntry;

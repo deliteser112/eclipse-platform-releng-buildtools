@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
-import google.registry.config.ConfigModule.LocalTestConfig;
+import google.registry.config.RegistryConfig.LocalTestConfig;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.request.Response;

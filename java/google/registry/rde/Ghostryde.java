@@ -24,7 +24,7 @@ import static org.bouncycastle.openpgp.PGPLiteralData.BINARY;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.io.ByteStreams;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.util.FormattingLogger;
 import google.registry.util.ImprovedInputStream;
 import google.registry.util.ImprovedOutputStream;

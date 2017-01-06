@@ -26,7 +26,7 @@ import dagger.Provides;
 import dagger.multibindings.IntoMap;
 import dagger.multibindings.IntoSet;
 import dagger.multibindings.StringKey;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.writer.DnsWriter;
 import java.util.Set;
 import javax.inject.Named;

@@ -16,7 +16,7 @@ package google.registry.module.frontend;
 
 import dagger.Component;
 import google.registry.braintree.BraintreeModule;
-import google.registry.config.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.flows.custom.CustomLogicFactoryModule;
 import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;

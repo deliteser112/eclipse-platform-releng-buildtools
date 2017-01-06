@@ -20,7 +20,7 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.Key;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.EppResource;
 import google.registry.model.host.HostResource;
 import google.registry.util.FormattingLogger;

@@ -29,7 +29,7 @@ import com.google.api.services.groupssettings.model.Groups;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.util.Set;

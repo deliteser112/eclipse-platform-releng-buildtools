@@ -23,7 +23,7 @@ import com.braintreegateway.BraintreeGateway;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import google.registry.braintree.BraintreeRegistrarSyncer;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import google.registry.request.JsonActionRunner;

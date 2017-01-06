@@ -15,7 +15,7 @@
 package google.registry.dns;
 
 import dagger.Component;
-import google.registry.config.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.cron.CronModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.module.backend.BackendModule;

@@ -14,7 +14,7 @@
 
 package google.registry.flows.custom;
 
-import google.registry.config.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.flows.SessionMetadata;
 import google.registry.model.eppinput.EppInput;
 

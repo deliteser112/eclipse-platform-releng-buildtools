@@ -39,7 +39,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpoint;

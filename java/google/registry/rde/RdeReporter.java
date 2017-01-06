@@ -28,7 +28,7 @@ import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.util.FormattingLogger;

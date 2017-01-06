@@ -22,7 +22,7 @@ import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
-import google.registry.config.ConfigModule.LocalTestConfig;
+import google.registry.config.RegistryConfig.LocalTestConfig;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;

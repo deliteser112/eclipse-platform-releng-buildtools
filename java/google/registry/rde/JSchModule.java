@@ -21,7 +21,7 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
 
 /** Dagger module for {@link JSch} which provides SSH/SFTP connectivity. */

@@ -19,7 +19,7 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.InputReader;
-import google.registry.config.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
 import google.registry.model.host.HostResource;
 import google.registry.util.FormattingLogger;

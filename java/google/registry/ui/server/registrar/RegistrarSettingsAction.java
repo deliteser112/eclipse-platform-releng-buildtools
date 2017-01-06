@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.googlecode.objectify.Work;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;

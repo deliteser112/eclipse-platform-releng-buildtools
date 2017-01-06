@@ -19,7 +19,7 @@ import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
 
 import com.google.auto.factory.AutoFactory;
 import com.google.auto.factory.Provided;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.util.ImprovedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;

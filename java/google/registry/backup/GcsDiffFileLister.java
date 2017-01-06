@@ -31,7 +31,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import google.registry.backup.BackupModule.Backups;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.util.HashMap;

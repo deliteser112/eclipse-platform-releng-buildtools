@@ -19,7 +19,7 @@ import static google.registry.util.TypeUtils.instantiate;
 
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.ConfigModule.Config;
+import google.registry.config.RegistryConfig.Config;
 
 /** Dagger module for custom logic factories. */
 @Module

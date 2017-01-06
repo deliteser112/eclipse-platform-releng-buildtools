@@ -14,8 +14,8 @@
 
 package google.registry.ui.server.registrar;
 
-import static google.registry.config.ConfigModule.LocalTestConfig.GOOGLE_APPS_ADMIN_EMAIL_DISPLAY_NAME;
-import static google.registry.config.ConfigModule.LocalTestConfig.GOOGLE_APPS_SEND_FROM_EMAIL_ADDRESS;
+import static google.registry.config.RegistryConfig.LocalTestConfig.GOOGLE_APPS_ADMIN_EMAIL_DISPLAY_NAME;
+import static google.registry.config.RegistryConfig.LocalTestConfig.GOOGLE_APPS_SEND_FROM_EMAIL_ADDRESS;
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.security.JsonHttpTestUtils.createJsonResponseSupplier;
 import static google.registry.security.XsrfTokenManager.generateToken;

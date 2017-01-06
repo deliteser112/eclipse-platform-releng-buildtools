@@ -15,7 +15,7 @@
 package google.registry.module.tools;
 
 import dagger.Component;
-import google.registry.config.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.export.DriveModule;
 import google.registry.flows.custom.CustomLogicFactoryModule;
 import google.registry.gcs.GcsServiceModule;
