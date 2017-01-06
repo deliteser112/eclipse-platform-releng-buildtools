@@ -103,6 +103,15 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
   @Index
   String clientId;
 
+  /**
+   * For transfers, the id of the other registrar.
+   *
+   * <p>For requests and cancels, the other registrar is the losing party (because the registrar
+   * sending the EPP transfer command is the gaining party). For approves and rejects, the other
+   * registrar is the gaining party.
+   */
+  String otherClientId;
+
   /** Transaction id that made this change. */
   Trid trid;
 
@@ -137,6 +146,10 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
 
   public String getClientId() {
     return clientId;
+  }
+
+  public String getOtherClientId() {
+    return otherClientId;
   }
 
   public Trid getTrid() {
@@ -200,6 +213,11 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
 
     public Builder setClientId(String clientId) {
       getInstance().clientId = clientId;
+      return this;
+    }
+
+    public Builder setOtherClientId(String otherClientId) {
+      getInstance().otherClientId = otherClientId;
       return this;
     }
 

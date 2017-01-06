@@ -87,6 +87,7 @@ public final class DomainTransferCancelFlow implements TransactionalFlow {
     checkAllowedAccessToTld(clientId, existingDomain.getTld());
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_TRANSFER_CANCEL)
+        .setOtherClientId(existingDomain.getTransferData().getLosingClientId())
         .setModificationTime(now)
         .setParent(Key.create(existingDomain))
         .build();
