@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.Maps.uniqueIndex;
 import static com.googlecode.objectify.ObjectifyService.ofy;
+import static google.registry.config.RegistryConfig.getBaseOfyRetryDuration;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
 
@@ -37,7 +38,6 @@ import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.VirtualEntity;
 import google.registry.model.ofy.ReadOnlyWork.KillTransactionException;
@@ -212,7 +212,7 @@ public class Ofy {
    */
   @VisibleForTesting
   <R> R transactCommitLoggedWork(CommitLoggedWork<R> work) {
-    long baseRetryMillis = RegistryEnvironment.get().config().getBaseOfyRetryDuration().getMillis();
+    long baseRetryMillis = getBaseOfyRetryDuration().getMillis();
     for (long attempt = 0, sleepMillis = baseRetryMillis;
         true;
         attempt++, sleepMillis *= 2) {

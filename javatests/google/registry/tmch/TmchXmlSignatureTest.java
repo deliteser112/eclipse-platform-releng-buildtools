@@ -20,7 +20,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-import google.registry.testing.RegistryConfigRule;
 import java.security.SignatureException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
@@ -51,9 +50,6 @@ public class TmchXmlSignatureTest {
 
   @Rule
   public final InjectRule inject = new InjectRule();
-
-  @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule();
 
   private final FakeClock clock = new FakeClock(DateTime.parse("2013-11-24T23:15:37.4Z"));
   private byte[] smdData;

@@ -21,7 +21,6 @@ import static org.joda.time.DateTimeZone.UTC;
 import com.google.common.collect.ImmutableMap;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
-import google.registry.testing.RegistryConfigRule;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,9 +35,6 @@ public class CommitLogCheckpointTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule();
 
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();

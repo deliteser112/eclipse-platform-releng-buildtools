@@ -33,7 +33,6 @@ import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-import google.registry.testing.RegistryConfigRule;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;
@@ -53,9 +52,6 @@ public class CommitLogCheckpointStrategyTest {
 
   @Rule
   public final InjectRule inject = new InjectRule();
-
-  @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule();
 
   final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
   final Ofy ofy = new Ofy(clock);

@@ -24,6 +24,7 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Sets.immutableEnumSet;
 import static com.google.common.io.BaseEncoding.base64;
+import static google.registry.config.RegistryConfig.getRegistrarDefaultReferralUrl;
 import static google.registry.config.RegistryConfig.getRegistrarDefaultWhoisServer;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -53,7 +54,6 @@ import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.condition.IfNull;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.Buildable;
 import google.registry.model.CreateAutoTimestamp;
 import google.registry.model.ImmutableObject;
@@ -161,8 +161,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     /** Billing method where we accept Braintree credit card payments in the Registrar Console. */
     BRAINTREE;
   }
-
-  private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
 
   /** Regex for E.164 phone number format specified by {@code contact.xsd}. */
   private static final Pattern E164_PATTERN = Pattern.compile("\\+[0-9]{1,3}\\.[0-9]{1,14}");
@@ -463,10 +461,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   }
 
   public String getReferralUrl() {
-    if (referralUrl == null) {
-      return ENVIRONMENT.config().getRegistrarDefaultReferralUrl().toString();
-    }
-    return referralUrl;
+    return firstNonNull(referralUrl, getRegistrarDefaultReferralUrl().toString());
   }
 
   public String getIcannReferralEmail() {

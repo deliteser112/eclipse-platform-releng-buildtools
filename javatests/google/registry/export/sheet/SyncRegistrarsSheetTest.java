@@ -32,7 +32,6 @@ import static org.mockito.Mockito.verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.common.Cursor;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
@@ -54,8 +53,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 /** Unit tests for {@link SyncRegistrarsSheet}. */
 @RunWith(MockitoJUnitRunner.class)
 public class SyncRegistrarsSheetTest {
-
-  private static final RegistryEnvironment ENVIRONMENT = RegistryEnvironment.get();
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -345,8 +342,7 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("blockPremiumNames", "false");
     assertThat(row).containsEntry("ipAddressWhitelist", "");
     assertThat(row).containsEntry("url", "");
-    assertThat(row).containsEntry("referralUrl",
-        ENVIRONMENT.config().getRegistrarDefaultReferralUrl().toString());
+    assertThat(row).containsEntry("referralUrl", getRegistrarDefaultReferralUrl().toString());
     assertThat(row).containsEntry("icannReferralEmail", "");
   }
 }

@@ -56,41 +56,15 @@ queues, and thus edit those associated XML files.
 
 ## Global configuration
 
-There are two different mechanisms by which global configuration is managed:
-`RegistryConfig` (the old way) and `ConfigModule` (the new way). Ideally there
-would just be one, but the required code cleanup that hasn't been completed yet.
-If you are adding new options, prefer adding them to `ConfigModule`.
-
-**`RegistryConfig`** is an interface, of which you write an implementing class
-containing the configuration values. `RegistryConfigLoader` is the class that
-provides the instance of `RegistryConfig`, and defaults to returning
-`ProductionRegistryConfigExample`.
-
-In order to create a configuration specific to your registry, we recommend
-copying the `ProductionRegistryConfigExample` class to a new class that will not
-be shared publicly, setting the `google.registry.config` system property in the
-`appengine-web.xml` files to the fully qualified class name of that new class so
-that `RegistryConfigLoader` will load it instead, and then editing said new
-class to add your specific configuration options. There is one
-`appengine-web.xml` file per service (so three per environment). The same
-configuration class must be used for each service, but different ones can be
-used for different environments.
-
-The `RegistryConfig` class has documentation on all of the methods that should
-be sufficient to explain what each option is, and
-`ProductionRegistryConfigExample` provides an example value for each one. Some
-example configuration options in this interface include the App Engine project
-ID, the number of days to retain commit logs, the names of various Cloud Storage
-bucket names, and URLs for some required services both external and internal.
-
-**`ConfigModule`** is a Dagger module that provides injectable configuration
-options (some of which come from `RegistryConfig` above, but most of which do
-not). This is preferred over `RegistryConfig` for new configuration options
-because being able to inject configuration options is a nicer pattern that makes
-for cleaner code. Some configuration options that can be changed in this class
-include timeout lengths and buffer sizes for various tasks, email addresses and
-URLs to use for various services, more Cloud Storage bucket names, and WHOIS
-disclaimer text.
+Global configuration is managed through **`ConfigModule`**, which is a Dagger
+module that provides injectable configuration options. Some configuration
+options that can be changed in this class include timeout lengths and buffer
+sizes for various tasks, email addresses and URLs to use for various services,
+more Cloud Storage bucket names, and WHOIS disclaimer text. Currently, in order
+to configure custom configuration, you need to copy `ConfigModule`, make changes
+to it, and include your new version instead of the default one in all Dagger
+components. In the near future, configuration via YAML files will be supported,
+after which point changes to `ConfigModule` will not be required at all.
 
 ## Sensitive global configuration
 

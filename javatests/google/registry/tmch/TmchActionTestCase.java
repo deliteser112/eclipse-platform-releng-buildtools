@@ -26,7 +26,6 @@ import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-import google.registry.testing.RegistryConfigRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
@@ -50,9 +49,6 @@ public class TmchActionTestCase {
 
   @Rule
   public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
-
-  @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule();
 
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();

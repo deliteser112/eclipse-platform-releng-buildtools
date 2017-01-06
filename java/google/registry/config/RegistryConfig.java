@@ -17,18 +17,14 @@ package google.registry.config;
 import static google.registry.config.ConfigUtils.makeUrl;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Optional;
 import com.google.common.net.HostAndPort;
 import java.net.URL;
 import org.joda.time.Duration;
 
 /**
  * Registry configuration for global constants that can't be injected.
- *
- * <p>The goal of this custom configuration system is to have our project environments configured
- * in type-safe Java code that can be refactored, rather than XML files and system properties.
  */
-public abstract class RegistryConfig {
+public final class RegistryConfig {
 
   /**
    * Returns the App Engine project ID, which is based off the environment name.
@@ -103,8 +99,6 @@ public abstract class RegistryConfig {
         return true;
     }
   }
-
-  public abstract Optional<String> getECatcherAddress();
 
   /**
    * Returns the address of the Nomulus app HTTP server.
@@ -211,5 +205,5 @@ public abstract class RegistryConfig {
     }
   }
 
-  // XXX: Please consider using ConfigModule instead of adding new methods to this file.
+  private RegistryConfig() {}
 }

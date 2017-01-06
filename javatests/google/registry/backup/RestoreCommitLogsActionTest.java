@@ -49,7 +49,6 @@ import google.registry.model.ofy.CommitLogMutation;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
-import google.registry.testing.RegistryConfigRule;
 import google.registry.testing.TestObject;
 import google.registry.util.Retrier;
 import java.io.ByteArrayOutputStream;
@@ -79,9 +78,6 @@ public class RestoreCommitLogsActionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final RegistryConfigRule configRule = new RegistryConfigRule();
 
   @Before
   public void init() {

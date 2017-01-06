@@ -14,9 +14,7 @@
 
 package google.registry.config;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ascii;
-import javax.annotation.Nullable;
 
 /** Registry environments. */
 public enum RegistryEnvironment {
@@ -53,39 +51,6 @@ public enum RegistryEnvironment {
   public static RegistryEnvironment get() {
     return valueOf(Ascii.toUpperCase(System.getProperty(PROPERTY, UNITTEST.name())));
   }
-
-  /**
-   * Returns configuration for this registry environment.
-   *
-   * <p><b>WARNING:</b> Do not store this value to a static field, otherwise you won't be able to
-   * override it for testing. You should instead store the environment object to a static field.
-   */
-  public RegistryConfig config() {
-    if (configOverride != null) {
-      return configOverride;
-    } else if (this == UNITTEST) {
-      return testingConfig;
-    } else {
-      return config;
-    }
-  }
-
-  /** Globally override registry configuration from within a unit test. */
-  @VisibleForTesting
-  @Deprecated
-  public static void overrideConfigurationForTesting(@Nullable RegistryConfig newConfig) {
-    configOverride = newConfig;
-  }
-
-  @Nullable
-  @Deprecated
-  private static RegistryConfig configOverride;
-
-  @Deprecated
-  private static final RegistryConfig testingConfig = new TestRegistryConfig();
-
-  @Deprecated
-  private final RegistryConfig config = RegistryConfigLoader.load(this);
 
   /** System property for configuring which environment we should use. */
   public static final String PROPERTY = "google.registry.environment";

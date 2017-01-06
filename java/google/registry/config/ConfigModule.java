@@ -52,10 +52,6 @@ import org.joda.time.Duration;
  * in the user's repository. For this to work, other files need to be copied too, such as the
  * {@code @Component} instances under {@code google.registry.module}.  This allows modules to be
  * substituted at the {@code @Component} level.
- *
- * <p>There's also a deprecated configuration class that needs to be overridden and supplied via a
- * system property. See the instructions in {@link ProductionRegistryConfigExample} and
- * {@link RegistryConfigLoader}.
  */
 @Module
 public final class ConfigModule {

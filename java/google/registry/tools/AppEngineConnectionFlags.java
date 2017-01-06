@@ -17,7 +17,7 @@ package google.registry.tools;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.net.HostAndPort;
-import google.registry.config.RegistryEnvironment;
+import google.registry.config.RegistryConfig;
 
 /**
  * Class to contain the configuration flags for AppEngineConnection.
@@ -29,7 +29,7 @@ import google.registry.config.RegistryEnvironment;
 class AppEngineConnectionFlags {
 
   @Parameter(names = "--server", description = "HOST[:PORT] to which remote commands are sent.")
-  private static HostAndPort server = RegistryEnvironment.get().config().getServer();
+  private static HostAndPort server = RegistryConfig.getServer();
 
   HostAndPort getServer() {
     return server;
