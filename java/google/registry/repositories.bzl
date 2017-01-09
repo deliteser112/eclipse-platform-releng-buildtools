@@ -926,6 +926,9 @@ def com_google_guava():
           "http://maven.ibiblio.org/maven2/com/google/guava/guava/20.0/guava-20.0.jar",
       ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
+      deps = [
+          "@com_google_errorprone_error_prone_annotations",
+      ],
   )
 
 def com_google_guava_testlib():
