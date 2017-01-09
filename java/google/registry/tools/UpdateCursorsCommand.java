@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -29,9 +30,7 @@ import org.joda.time.DateTime;
 @Parameters(separators = " =", commandDescription = "Modifies cursor timestamps used by LRC tasks")
 final class UpdateCursorsCommand extends MutatingCommand {
 
-  @Parameter(
-      description = "TLDs on which to operate.",
-      required = true)
+  @Parameter(description = "TLDs on which to operate. Omit for global cursors.")
   private List<String> tlds;
 
   @Parameter(
@@ -49,12 +48,17 @@ final class UpdateCursorsCommand extends MutatingCommand {
 
   @Override
   protected void init() throws Exception {
-    for (String tld : tlds) {
-      Registry registry = Registry.get(tld);
-      Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
-      stageEntityChange(
-          cursor,
-          Cursor.create(cursorType, newTimestamp, registry));
+    if (isNullOrEmpty(tlds)) {
+      Cursor cursor = ofy().load().key(Cursor.createGlobalKey(cursorType)).now();
+      stageEntityChange(cursor, Cursor.createGlobal(cursorType, newTimestamp));
+    } else {
+      for (String tld : tlds) {
+        Registry registry = Registry.get(tld);
+        Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
+        stageEntityChange(
+            cursor,
+            Cursor.create(cursorType, newTimestamp, registry));
+      }
     }
   }
 }
