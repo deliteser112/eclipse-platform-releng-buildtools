@@ -127,7 +127,7 @@ public class StackdriverWriter implements MetricWriter {
   private final RateLimiter rateLimiter;
 
   /**
-   * Constructs a StackdriverWriter.
+   * Constructs a {@link StackdriverWriter}.
    *
    * <p>The monitoringClient must have read and write permissions to the Cloud Monitoring API v3 on
    * the provided project.
@@ -135,7 +135,7 @@ public class StackdriverWriter implements MetricWriter {
   @Inject
   public StackdriverWriter(
       Monitoring monitoringClient,
-      String project,
+      @Named("stackdriverGcpProject") String project,
       MonitoredResource monitoredResource,
       @Named("stackdriverMaxQps") int maxQps,
       @Named("stackdriverMaxPointsPerRequest") int maxPointsPerRequest) {
@@ -148,7 +148,7 @@ public class StackdriverWriter implements MetricWriter {
   }
 
   @VisibleForTesting
-  static ImmutableList<LabelDescriptor> createLabelDescriptors(
+  static ImmutableList<LabelDescriptor> encodeLabelDescriptors(
       ImmutableSet<google.registry.monitoring.metrics.LabelDescriptor> labelDescriptors) {
     List<LabelDescriptor> stackDriverLabelDescriptors = new ArrayList<>(labelDescriptors.size());
 
@@ -164,14 +164,14 @@ public class StackdriverWriter implements MetricWriter {
   }
 
   @VisibleForTesting
-  static <V> MetricDescriptor createMetricDescriptor(
+  static <V> MetricDescriptor encodeMetricDescriptor(
       google.registry.monitoring.metrics.Metric<V> metric) {
     return new MetricDescriptor()
         .setType(METRIC_DOMAIN + metric.getMetricSchema().name())
         .setDescription(metric.getMetricSchema().description())
         .setDisplayName(metric.getMetricSchema().valueDisplayName())
         .setValueType(ENCODED_METRIC_TYPES.get(metric.getValueClass()))
-        .setLabels(createLabelDescriptors(metric.getMetricSchema().labels()))
+        .setLabels(encodeLabelDescriptors(metric.getMetricSchema().labels()))
         .setMetricKind(ENCODED_METRIC_KINDS.get(metric.getMetricSchema().kind().name()));
   }
 
@@ -230,7 +230,7 @@ public class StackdriverWriter implements MetricWriter {
       return registeredDescriptors.get(metric);
     }
 
-    MetricDescriptor descriptor = createMetricDescriptor(metric);
+    MetricDescriptor descriptor = encodeMetricDescriptor(metric);
 
     rateLimiter.acquire();
     // We try to create a descriptor, but it may have been created already, so we re-fetch it on

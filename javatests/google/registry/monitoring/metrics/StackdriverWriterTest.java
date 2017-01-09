@@ -82,7 +82,7 @@ public class StackdriverWriterTest {
             "desc",
             "vdn",
             ImmutableSet.of(LabelDescriptor.create("label", "description")));
-    descriptor = StackdriverWriter.createMetricDescriptor(metric);
+    descriptor = StackdriverWriter.encodeMetricDescriptor(metric);
     when(client.projects()).thenReturn(projects);
     when(projects.metricDescriptors()).thenReturn(metricDescriptors);
     when(projects.timeSeries()).thenReturn(timeSeries);
@@ -185,7 +185,7 @@ public class StackdriverWriterTest {
             client
                 .projects()
                 .metricDescriptors()
-                .create(PROJECT, StackdriverWriter.createMetricDescriptor(metric)))
+                .create(PROJECT, StackdriverWriter.encodeMetricDescriptor(metric)))
         .execute();
   }
 
@@ -201,7 +201,7 @@ public class StackdriverWriterTest {
             client
                 .projects()
                 .metricDescriptors()
-                .create(PROJECT, StackdriverWriter.createMetricDescriptor(metric)))
+                .create(PROJECT, StackdriverWriter.encodeMetricDescriptor(metric)))
         .execute();
   }
 
@@ -272,8 +272,8 @@ public class StackdriverWriterTest {
   }
 
   @Test
-  public void createMetricDescriptor_simpleMetric_encodes() {
-    MetricDescriptor descriptor = StackdriverWriter.createMetricDescriptor(metric);
+  public void encodeMetricDescriptor_simpleMetric_encodes() {
+    MetricDescriptor descriptor = StackdriverWriter.encodeMetricDescriptor(metric);
 
     assertThat(descriptor.getType()).isEqualTo("custom.googleapis.com/name");
     assertThat(descriptor.getValueType()).isEqualTo("INT64");
@@ -288,14 +288,14 @@ public class StackdriverWriterTest {
   }
 
   @Test
-  public void createLabelDescriptors_simpleLabels_encodes() {
+  public void encodeLabelDescriptors_simpleLabels_encodes() {
     ImmutableSet<LabelDescriptor> descriptors =
         ImmutableSet.of(
             LabelDescriptor.create("label1", "description1"),
             LabelDescriptor.create("label2", "description2"));
 
     ImmutableList<com.google.api.services.monitoring.v3.model.LabelDescriptor> encodedDescritors =
-        StackdriverWriter.createLabelDescriptors(descriptors);
+        StackdriverWriter.encodeLabelDescriptors(descriptors);
 
     assertThat(encodedDescritors)
         .containsExactly(
@@ -364,7 +364,7 @@ public class StackdriverWriterTest {
             ImmutableSet.of(LabelDescriptor.create("label", "description")),
             Long.class);
     when(metricDescriptorCreate.execute())
-        .thenReturn(StackdriverWriter.createMetricDescriptor(metric));
+        .thenReturn(StackdriverWriter.encodeMetricDescriptor(metric));
     MetricPoint<Long> nativePoint =
         MetricPoint.create(
             metric, ImmutableList.of("foo"), new Instant(1337), new Instant(1337), 10L);
@@ -392,7 +392,7 @@ public class StackdriverWriterTest {
             "vdn",
             ImmutableSet.of(LabelDescriptor.create("label", "description")),
             Boolean.class);
-    MetricDescriptor boolDescriptor = StackdriverWriter.createMetricDescriptor(boolMetric);
+    MetricDescriptor boolDescriptor = StackdriverWriter.encodeMetricDescriptor(boolMetric);
     when(metricDescriptorCreate.execute()).thenReturn(boolDescriptor);
     MetricPoint<Boolean> nativePoint =
         MetricPoint.create(boolMetric, ImmutableList.of("foo"), new Instant(1337), true);
@@ -420,7 +420,7 @@ public class StackdriverWriterTest {
             "vdn",
             ImmutableSet.of(LabelDescriptor.create("label", "description")),
             Distribution.class);
-    MetricDescriptor descriptor = StackdriverWriter.createMetricDescriptor(metric);
+    MetricDescriptor descriptor = StackdriverWriter.encodeMetricDescriptor(metric);
     when(metricDescriptorCreate.execute()).thenReturn(descriptor);
     MutableDistribution distribution =
         new MutableDistribution(CustomFitter.create(ImmutableSet.of(5.0)));
@@ -461,7 +461,7 @@ public class StackdriverWriterTest {
             "vdn",
             ImmutableSet.of(LabelDescriptor.create("label", "description")),
             Distribution.class);
-    MetricDescriptor descriptor = StackdriverWriter.createMetricDescriptor(metric);
+    MetricDescriptor descriptor = StackdriverWriter.encodeMetricDescriptor(metric);
     when(metricDescriptorCreate.execute()).thenReturn(descriptor);
     MutableDistribution distribution = new MutableDistribution(LinearFitter.create(2, 5.0, 3.0));
     distribution.add(0.0, 1L);
@@ -504,7 +504,7 @@ public class StackdriverWriterTest {
             "vdn",
             ImmutableSet.of(LabelDescriptor.create("label", "description")),
             Distribution.class);
-    MetricDescriptor descriptor = StackdriverWriter.createMetricDescriptor(metric);
+    MetricDescriptor descriptor = StackdriverWriter.encodeMetricDescriptor(metric);
     when(metricDescriptorCreate.execute()).thenReturn(descriptor);
     MutableDistribution distribution =
         new MutableDistribution(ExponentialFitter.create(2, 3.0, 0.5));
