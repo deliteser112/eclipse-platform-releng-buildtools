@@ -15,6 +15,7 @@
 package google.registry.flows.custom;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
@@ -92,6 +93,13 @@ public class DomainCreateFlowCustomLogic extends BaseFlowCustomLogic {
      */
     public abstract int years();
 
+    /**
+     * The ID of the validated signed mark.
+     *
+     * <p>If a signed mark was not supplied, this value will be absent.
+     */
+    public abstract Optional<String> signedMarkId();
+
     public static Builder newBuilder() {
       return new AutoValue_DomainCreateFlowCustomLogic_AfterValidationParameters.Builder();
     }
@@ -103,6 +111,8 @@ public class DomainCreateFlowCustomLogic extends BaseFlowCustomLogic {
       public abstract Builder setDomainName(InternetDomainName domainName);
 
       public abstract Builder setYears(int years);
+
+      public abstract Builder setSignedMarkId(Optional<String> signedMarkId);
 
       public abstract AfterValidationParameters build();
     }
