@@ -19,6 +19,9 @@
 -- Since the only Recurring events are for automatic renewals, this means each
 -- row stands in for the renewal OneTime that would be created for a given
 -- Recurring event if it were materialized as individual explicit renewals.
+--
+-- TODO(b/27562876): Drop this query once we begin materializing Recurring
+-- billing events as synthetic OneTime events.
 SELECT
   id,
   kind,  -- Needed for joining Cancellation information downstream.

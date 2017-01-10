@@ -94,6 +94,9 @@ FROM (
         (SELECT tld FROM [%DEST_DATASET%.RegistryData] WHERE type = 'REAL')
     ), (
     -- Extract synthetic recurring events from view of Recurring data.
+    --
+    -- TODO(b/27562876): Drop this section of the query once we verify
+    -- that expanded OneTime events via MapReduce are correct and complete.
     SELECT
       id,
       kind,
