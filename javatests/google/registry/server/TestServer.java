@@ -15,11 +15,12 @@
 package google.registry.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.util.concurrent.Runnables.doNothing;
 import static google.registry.util.NetworkUtils.getCanonicalHostName;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
-import com.google.common.util.concurrent.Callables;
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,7 +35,6 @@ import javax.annotation.Nullable;
 import javax.servlet.Filter;
 import javax.servlet.http.HttpServlet;
 import org.mortbay.jetty.Connector;
-import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.bio.SocketConnector;
 import org.mortbay.jetty.servlet.Context;
@@ -85,8 +85,8 @@ public final class TestServer {
   public TestServer(
       HostAndPort address,
       Map<String, Path> runfiles,
-      Iterable<Route> routes,
-      Iterable<Class<? extends Filter>> filters) {
+      ImmutableList<Route> routes,
+      ImmutableList<Class<? extends Filter>> filters) {
     urlAddress = createUrlAddress(address);
     server.addConnector(createConnector(address));
     server.addHandler(createHandler(runfiles, routes, filters));
@@ -120,7 +120,7 @@ public final class TestServer {
    * main event loop, for post-request processing.
    */
   public void ping() {
-    requestQueue.add(new FutureTask<>(Callables.<Void>returning(null)));
+    requestQueue.add(new FutureTask<Void>(doNothing(), null));
   }
 
   /** Stops the HTTP server. */
@@ -151,8 +151,8 @@ public final class TestServer {
 
   private Context createHandler(
       Map<String, Path> runfiles,
-      Iterable<Route> routes,
-      Iterable<Class<? extends Filter>> filters) {
+      ImmutableList<Route> routes,
+      ImmutableList<Class<? extends Filter>> filters) {
     Context context = new Context(server, CONTEXT_PATH, Context.SESSIONS);
     context.addServlet(new ServletHolder(HealthzServlet.class), "/healthz");
     for (Map.Entry<String, Path> runfile : runfiles.entrySet()) {
@@ -161,10 +161,8 @@ public final class TestServer {
           runfile.getKey());
     }
     for (Route route : routes) {
-      context.addServlet(new ServletHolder(wrapServlet(route.servletClass())), route.path());
-    }
-    for (Class<? extends Filter> filter : filters) {
-      context.addFilter(filter, "/*", Handler.REQUEST);
+      context.addServlet(
+          new ServletHolder(wrapServlet(route.servletClass(), filters)), route.path());
     }
     ServletHolder holder = new ServletHolder(DefaultServlet.class);
     holder.setInitParameter("aliases", "1");
@@ -172,8 +170,9 @@ public final class TestServer {
     return context;
   }
 
-  private HttpServlet wrapServlet(Class<? extends HttpServlet> servletClass) {
-    return new ServletWrapperDelegatorServlet(servletClass, requestQueue);
+  private HttpServlet wrapServlet(
+      Class<? extends HttpServlet> servletClass, ImmutableList<Class<? extends Filter>> filters) {
+    return new ServletWrapperDelegatorServlet(servletClass, filters, requestQueue);
   }
 
   private static Connector createConnector(HostAndPort address) {
