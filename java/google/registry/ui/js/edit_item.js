@@ -241,7 +241,7 @@ registry.EditItem.prototype.save = function() {
  */
 registry.EditItem.prototype.cancel = function() {
   this.toggleEdit();
-  // XXX: The presence of a model is sufficent for non-collection pages, but an
+  // XXX: The presence of a model is sufficient for non-collection pages, but an
   //      empty id also means go to the collection in collection pages. Should
   //      be simplified.
   if (this.model && this.id != '') {
@@ -277,7 +277,7 @@ registry.EditItem.prototype.sendDelete = goog.abstractMethod;
 
 
 /**
- * Sublcasses should override to populate update queryParams with form
+ * Subclasses should override to populate update queryParams with form
  * fields as needed. {@code queryParams.nextId} MUST be set to the
  * new object's ID.
  * @param {!Object} queryParams
@@ -286,7 +286,7 @@ registry.EditItem.prototype.prepareUpdate = goog.abstractMethod;
 
 
 /**
- * Subclasses should provide a funtion to parse either XML or JSON response
+ * Subclasses should provide a function to parse either XML or JSON response
  * from server and return a result object as described below.
  * @param {!Object} rsp Decoded XML/JSON response from the server.
  * @return {!Object} a result object describing next steps.  On
