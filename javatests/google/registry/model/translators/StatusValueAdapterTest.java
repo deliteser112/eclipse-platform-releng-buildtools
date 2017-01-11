@@ -15,9 +15,11 @@
 package google.registry.model.translators;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppXmlTransformer;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.EppInput;
@@ -25,10 +27,11 @@ import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostCommand;
-import google.registry.model.host.HostResource;
+import google.registry.model.host.HostInfoData;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.EppLoader;
 import google.registry.xml.ValidationMode;
+import java.net.InetAddress;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,8 +53,14 @@ public class StatusValueAdapterTest {
     String marshalled = new String(
         EppXmlTransformer.marshal(
             EppOutput.create(new EppResponse.Builder()
-                .setResData(new HostResource.Builder()
-                    .addStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED)
+                .setResData(HostInfoData.newBuilder()
+                    .setCreationClientId("")
+                    .setCreationTime(START_OF_TIME)
+                    .setCurrentSponsorClientId("")
+                    .setFullyQualifiedHostName("")
+                    .setInetAddresses(ImmutableSet.<InetAddress>of())
+                    .setRepoId("")
+                    .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
                     .build())
                 .build()),
             ValidationMode.LENIENT),

@@ -112,6 +112,7 @@ public class DatastoreHelper {
   public static HostResource newHostResource(String hostName) {
     return new HostResource.Builder()
         .setFullyQualifiedHostName(hostName)
+        .setCreationClientId("TheRegistrar")
         .setCurrentSponsorClientId("TheRegistrar")
         .setCreationTimeForTest(START_OF_TIME)
         .setRepoId(generateNewContactHostRoid())
@@ -218,6 +219,7 @@ public class DatastoreHelper {
     return new ContactResource.Builder()
         .setRepoId(repoId)
         .setContactId(contactId)
+        .setCreationClientId("TheRegistrar")
         .setCurrentSponsorClientId("TheRegistrar")
         .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("2fooBAR")))
         .setCreationTimeForTest(START_OF_TIME)

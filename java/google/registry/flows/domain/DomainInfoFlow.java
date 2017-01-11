@@ -19,6 +19,9 @@ import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
+import static google.registry.flows.domain.DomainFlowUtils.loadForeignKeyedDesignatedContacts;
+import static google.registry.flows.domain.DomainFlowUtils.prefetchReferencedResources;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -35,6 +38,7 @@ import google.registry.flows.custom.DomainInfoFlowCustomLogic.BeforeResponsePara
 import google.registry.flows.custom.DomainInfoFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.model.domain.DomainCommand.Info;
 import google.registry.model.domain.DomainCommand.Info.HostsRequest;
+import google.registry.model.domain.DomainInfoData;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.fee06.FeeInfoCommandExtensionV06;
@@ -97,8 +101,26 @@ public final class DomainInfoFlow implements Flow {
                 .setResData(getResourceInfo(domain))
                 .setResponseExtensions(getDomainResponseExtensions(domain, now))
                 .build());
+    domain = responseData.resData();
+    prefetchReferencedResources(domain);
     return responseBuilder
-        .setResData(responseData.resData())
+        .setResData(DomainInfoData.newBuilder()
+            .setFullyQualifiedDomainName(domain.getFullyQualifiedDomainName())
+            .setRepoId(domain.getRepoId())
+            .setStatusValues(domain.getStatusValues())
+            .setRegistrant(ofy().load().key(domain.getRegistrant()).now().getContactId())
+            .setContacts(loadForeignKeyedDesignatedContacts(domain.getContacts()))
+            .setNameservers(domain.loadNameserverFullyQualifiedHostNames())
+            .setSubordinateHosts(domain.getSubordinateHosts())
+            .setCurrentSponsorClientId(domain.getCurrentSponsorClientId())
+            .setCreationClientId(domain.getCreationClientId())
+            .setCreationTime(domain.getCreationTime())
+            .setLastEppUpdateClientId(domain.getLastEppUpdateClientId())
+            .setLastEppUpdateTime(domain.getLastEppUpdateTime())
+            .setRegistrationExpirationTime(domain.getRegistrationExpirationTime())
+            .setLastTransferTime(domain.getLastTransferTime())
+            .setAuthInfo(domain.getAuthInfo())
+            .build())
         .setExtensions(responseData.responseExtensions())
         .build();
   }

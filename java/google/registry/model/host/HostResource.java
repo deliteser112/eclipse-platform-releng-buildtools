@@ -39,10 +39,6 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import java.net.InetAddress;
 import java.util.Set;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
 import org.joda.time.DateTime;
 
 /**
@@ -53,18 +49,6 @@ import org.joda.time.DateTime;
  *
  * @see <a href="https://tools.ietf.org/html/rfc5732">RFC 5732</a>
  */
-@XmlRootElement(name = "infData")
-@XmlType(propOrder = {
-    "fullyQualifiedHostName",
-    "repoId",
-    "status",
-    "inetAddresses",
-    "currentSponsorClientId",
-    "creationClientId",
-    "creationTime",
-    "lastEppUpdateClientId",
-    "lastEppUpdateTime",
-    "lastTransferTime" })
 @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @ReportedOn
 @Entity
@@ -79,18 +63,15 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
    * However, there can be many hosts with the same name and non-overlapping lifetimes.
    */
   @Index
-  @XmlTransient
   String fullyQualifiedHostName;
 
   /** IP Addresses for this host. Can be null if this is an external host. */
   @Index
-  @XmlTransient
   Set<InetAddress> inetAddresses;
 
   /** The superordinate domain of this host, or null if this is an external host. */
   @Index
   @IgnoreSave(IfNull.class)
-  @XmlTransient
   @DoNotHydrate
   Key<DomainResource> superordinateDomain;
 
@@ -99,17 +80,14 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
    *
    * <p>Can be null if the resource has never been transferred.
    */
-  @XmlElement(name = "trDate")
   DateTime lastTransferTime;
 
   /**
    * The most recent time that the superordinate domain was changed, or null if this host is
    * external.
    */
-  @XmlTransient
   DateTime lastSuperordinateChange;
 
-  @XmlElement(name = "name")
   public String getFullyQualifiedHostName() {
     return fullyQualifiedHostName;
   }
@@ -118,7 +96,6 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
     return superordinateDomain;
   }
 
-  @XmlElement(name = "addr")
   public ImmutableSet<InetAddress> getInetAddresses() {
     return nullToEmptyImmutableCopy(inetAddresses);
   }

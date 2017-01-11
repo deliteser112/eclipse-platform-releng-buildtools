@@ -25,14 +25,15 @@ import javax.xml.bind.annotation.XmlValue;
  * @see <a href="http://tools.ietf.org/html/rfc5731#section-2.2">
  *     RFC 5731 - EPP Domain Name Mapping - Contact and Client Identifiers</a>
  */
-class ForeignKeyedDesignatedContact extends ImmutableObject {
+public class ForeignKeyedDesignatedContact extends ImmutableObject {
   @XmlAttribute(required = true)
   DesignatedContact.Type type;
 
   @XmlValue
   String contactId;
 
-  static ForeignKeyedDesignatedContact create(DesignatedContact.Type type, String contactId) {
+  public static ForeignKeyedDesignatedContact create(
+      DesignatedContact.Type type, String contactId) {
     ForeignKeyedDesignatedContact instance = new ForeignKeyedDesignatedContact();
     instance.type = type;
     instance.contactId = contactId;

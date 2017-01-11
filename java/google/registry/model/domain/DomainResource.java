@@ -44,10 +44,6 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import java.util.HashSet;
 import java.util.Set;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -56,23 +52,6 @@ import org.joda.time.Interval;
  *
  * @see <a href="https://tools.ietf.org/html/rfc5731">RFC 5731</a>
  */
-@XmlRootElement(name = "infData")
-@XmlType(propOrder = {
-    "fullyQualifiedDomainName",
-    "repoId",
-    "status",
-    "marshalledRegistrant",
-    "marshalledContacts",
-    "marshalledNameservers",
-    "subordinateHosts",
-    "currentSponsorClientId",
-    "creationClientId",
-    "creationTime",
-    "lastEppUpdateClientId",
-    "lastEppUpdateTime",
-    "registrationExpirationTime",
-    "lastTransferTime",
-    "authInfo"})
 @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @EntitySubclass(index = true)
 @ExternalMessagingName("domain")
@@ -91,11 +70,9 @@ public class DomainResource extends DomainBase
           StatusValue.SERVER_HOLD);
 
   /** Fully qualified host names of this domain's active subordinate hosts. */
-  @XmlElement(name = "host")
   Set<String> subordinateHosts;
 
   /** When this domain's registration will expire. */
-  @XmlElement(name = "exDate")
   DateTime registrationExpirationTime;
 
   /**
@@ -105,7 +82,6 @@ public class DomainResource extends DomainBase
    * refer to a {@link PollMessage} timed to when the domain is fully deleted. If the domain is
    * restored, the message should be deleted.
    */
-  @XmlTransient
   Key<PollMessage.OneTime> deletePollMessage;
 
   /**
@@ -116,7 +92,6 @@ public class DomainResource extends DomainBase
    * {@link #registrationExpirationTime} is changed the recurrence should be closed, a new one
    * should be created, and this field should be updated to point to the new one.
    */
-  @XmlTransient
   Key<BillingEvent.Recurring> autorenewBillingEvent;
 
   /**
@@ -127,11 +102,9 @@ public class DomainResource extends DomainBase
    * {@link #registrationExpirationTime} is changed the recurrence should be closed, a new one
    * should be created, and this field should be updated to point to the new one.
    */
-  @XmlTransient
   Key<PollMessage.Autorenew> autorenewPollMessage;
 
   /** The unexpired grace periods for this domain (some of which may not be active yet). */
-  @XmlTransient
   Set<GracePeriod> gracePeriods;
 
   /**
@@ -139,7 +112,6 @@ public class DomainResource extends DomainBase
    * Will only be populated for domains allocated from a sunrise application.
    */
   @IgnoreSave(IfNull.class)
-  @XmlTransient
   String smdId;
 
   /**
@@ -147,7 +119,6 @@ public class DomainResource extends DomainBase
    * for domains allocated from an application.
    */
   @IgnoreSave(IfNull.class)
-  @XmlTransient
   DateTime applicationTime;
 
   /**
@@ -155,11 +126,9 @@ public class DomainResource extends DomainBase
    * allocated from an application.
    */
   @IgnoreSave(IfNull.class)
-  @XmlTransient
   Key<DomainApplication> application;
 
   /** Data about any pending or past transfers on this domain. */
-  @XmlTransient
   TransferData transferData;
 
   /**
@@ -167,7 +136,6 @@ public class DomainResource extends DomainBase
    *
    * <p>Can be null if the resource has never been transferred.
    */
-  @XmlElement(name = "trDate")
   DateTime lastTransferTime;
 
   public ImmutableSet<String> getSubordinateHosts() {

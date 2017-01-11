@@ -70,6 +70,7 @@ import google.registry.model.domain.DomainCommand.CreateOrUpdate;
 import google.registry.model.domain.DomainCommand.InvalidReferencesException;
 import google.registry.model.domain.DomainCommand.Update;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.ForeignKeyedDesignatedContact;
 import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.Credit;
@@ -894,6 +895,23 @@ public class DomainFlowUtils {
         .setFees(feesAndCredits.getFees())
         .setCredits(feesAndCredits.getCredits())
         .build();
+  }
+
+  /** Bulk-load all referenced resources on a domain so they are in the session cache. */
+  static void prefetchReferencedResources(DomainBase domain) {
+    // Calling values() on the result blocks until loading is done.
+    ofy().load().values(union(domain.getNameservers(), domain.getReferencedContacts())).values();
+  }
+
+  static ImmutableSet<ForeignKeyedDesignatedContact> loadForeignKeyedDesignatedContacts(
+      ImmutableSet<DesignatedContact> contacts) {
+    ImmutableSet.Builder<ForeignKeyedDesignatedContact> builder = new ImmutableSet.Builder<>();
+    for (DesignatedContact contact : contacts) {
+      builder.add(ForeignKeyedDesignatedContact.create(
+          contact.getType(),
+          ofy().load().key(contact.getContactKey()).now().getContactId()));
+    }
+    return builder.build();
   }
 
   /** Resource linked to this domain does not exist. */

@@ -25,6 +25,7 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
+import google.registry.model.contact.ContactInfoData;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppoutput.EppResponse;
@@ -59,9 +60,27 @@ public final class ContactInfoFlow implements Flow {
     validateClientIsLoggedIn(clientId);
     ContactResource contact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyOptionalAuthInfo(authInfo, contact);
-    if (!clientId.equals(contact.getCurrentSponsorClientId()) && !authInfo.isPresent()) {
-      contact = contact.asBuilder().setAuthInfo(null).build();
-    }
-    return responseBuilder.setResData(cloneResourceWithLinkedStatus(contact, now)).build();
+    contact = (ContactResource) cloneResourceWithLinkedStatus(contact, now);
+    boolean includeAuthInfo =
+        clientId.equals(contact.getCurrentSponsorClientId()) || authInfo.isPresent();
+    return responseBuilder
+        .setResData(ContactInfoData.newBuilder()
+            .setContactId(contact.getContactId())
+            .setRepoId(contact.getRepoId())
+            .setStatusValues(contact.getStatusValues())
+            .setPostalInfos(contact.getPostalInfosAsList())
+            .setVoiceNumber(contact.getVoiceNumber())
+            .setFaxNumber(contact.getFaxNumber())
+            .setEmailAddress(contact.getEmailAddress())
+            .setCurrentSponsorClientId(contact.getCurrentSponsorClientId())
+            .setCreationClientId(contact.getCreationClientId())
+            .setCreationTime(contact.getCreationTime())
+            .setLastEppUpdateClientId(contact.getLastEppUpdateClientId())
+            .setLastEppUpdateTime(contact.getLastEppUpdateTime())
+            .setLastTransferTime(contact.getLastTransferTime())
+            .setAuthInfo(includeAuthInfo ? contact.getAuthInfo() : null)
+            .setDisclose(contact.getDisclose())
+            .build())
+        .build();
   }
 }

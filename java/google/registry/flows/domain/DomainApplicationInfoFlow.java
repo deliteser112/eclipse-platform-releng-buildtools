@@ -20,8 +20,11 @@ import static google.registry.flows.ResourceFlowUtils.verifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
+import static google.registry.flows.domain.DomainFlowUtils.loadForeignKeyedDesignatedContacts;
+import static google.registry.flows.domain.DomainFlowUtils.prefetchReferencedResources;
 import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -35,6 +38,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Info;
+import google.registry.model.domain.DomainInfoData;
 import google.registry.model.domain.launch.LaunchInfoExtension;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
 import google.registry.model.eppcommon.AuthInfo;
@@ -95,8 +99,23 @@ public final class DomainApplicationInfoFlow implements Flow {
     }
     // We don't support authInfo for applications, so if it's another registrar always fail.
     verifyResourceOwnership(clientId, application);
+    application = getResourceInfo(application);
+    prefetchReferencedResources(application);
     return responseBuilder
-        .setResData(getResourceInfo(application))
+        .setResData(DomainInfoData.newBuilder()
+            .setFullyQualifiedDomainName(application.getFullyQualifiedDomainName())
+            .setRepoId(application.getRepoId())
+            .setStatusValues(application.getStatusValues())
+            .setRegistrant(ofy().load().key(application.getRegistrant()).now().getContactId())
+            .setContacts(loadForeignKeyedDesignatedContacts(application.getContacts()))
+            .setNameservers(application.loadNameserverFullyQualifiedHostNames())
+            .setCurrentSponsorClientId(application.getCurrentSponsorClientId())
+            .setCreationClientId(application.getCreationClientId())
+            .setCreationTime(application.getCreationTime())
+            .setLastEppUpdateClientId(application.getLastEppUpdateClientId())
+            .setLastEppUpdateTime(application.getLastEppUpdateTime())
+            .setAuthInfo(application.getAuthInfo())
+            .build())
         .setExtensions(getDomainResponseExtensions(application, launchInfo, now))
         .build();
   }

@@ -29,17 +29,13 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.eppoutput.EppResponse.ResponseData;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.transfer.TransferData;
 import java.util.Set;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
 import org.joda.time.DateTime;
 
 /** An EPP entity object (i.e. a domain, application, contact, or host). */
-@XmlTransient
-public abstract class EppResource extends BackupGroupRoot implements Buildable, ResponseData {
+public abstract class EppResource extends BackupGroupRoot implements Buildable {
 
   /**
    * Unique identifier in the registry for this resource.
@@ -48,16 +44,13 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
    * @see <a href="https://tools.ietf.org/html/rfc5730">RFC 5730</a>
    */
   @Id
-  @XmlElement(name = "roid")
   String repoId;
 
   /** The ID of the registrar that is currently sponsoring this resource. */
   @Index
-  @XmlElement(name = "clID")
   String currentSponsorClientId;
 
   /** The ID of the registrar that created this resource. */
-  @XmlElement(name = "crID")
   String creationClientId;
 
   /**
@@ -67,14 +60,12 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
    * edits; it only includes EPP-visible modifications such as {@literal <update>}. Can be null if
    * the resource has never been modified.
    */
-  @XmlElement(name = "upID")
   String lastEppUpdateClientId;
 
   /** The time when this resource was created. */
   // Map the method to XML, not the field, because if we map the field (with an adaptor class) it
   // will never be omitted from the xml even if the timestamp inside creationTime is null and we
   // return null from the adaptor. (Instead it gets written as an empty tag.)
-  @XmlTransient
   CreateAutoTimestamp creationTime = CreateAutoTimestamp.create(null);
 
   /**
@@ -91,7 +82,6 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
    * now.
    */
   @Index
-  @XmlTransient
   DateTime deletionTime;
 
 
@@ -102,7 +92,6 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
    * edits; it only includes EPP-visible modifications such as {@literal <update>}. Can be null if
    * the resource has never been modified.
    */
-  @XmlElement(name = "upDate")
   DateTime lastEppUpdateTime;
 
   /** Status values associated with this resource. */
@@ -116,14 +105,12 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable, 
    *
    * @see google.registry.model.translators.CommitLogRevisionsTranslatorFactory
    */
-  @XmlTransient
   ImmutableSortedMap<DateTime, Key<CommitLogManifest>> revisions = ImmutableSortedMap.of();
 
   public final String getRepoId() {
     return repoId;
   }
 
-  @XmlElement(name = "crDate")
   public final DateTime getCreationTime() {
     return creationTime.getTimestamp();
   }

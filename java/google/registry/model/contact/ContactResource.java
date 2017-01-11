@@ -21,6 +21,7 @@ import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
@@ -34,13 +35,7 @@ import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.contact.PostalInfo.Type;
 import google.registry.model.transfer.TransferData;
-import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.joda.time.DateTime;
 
 /**
@@ -48,23 +43,6 @@ import org.joda.time.DateTime;
  *
  * @see <a href="https://tools.ietf.org/html/rfc5733">RFC 5733</a>
  */
-@XmlRootElement(name = "infData")
-@XmlType(propOrder = {
-    "contactId",
-    "repoId",
-    "status",
-    "postalInfosAsList",
-    "voice",
-    "fax",
-    "email",
-    "currentSponsorClientId",
-    "creationClientId",
-    "creationTime",
-    "lastEppUpdateClientId",
-    "lastEppUpdateTime",
-    "lastTransferTime",
-    "authInfo",
-    "disclose" })
 @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @ReportedOn
 @Entity
@@ -79,7 +57,6 @@ public class ContactResource extends EppResource
    * from (creationTime, deletionTime) there can only be one contact in the datastore with this id.
    * However, there can be many contacts with the same id and non-overlapping lifetimes.
    */
-  @XmlTransient
   String contactId;
 
   /**
@@ -87,7 +64,6 @@ public class ContactResource extends EppResource
    * US-ASCII character set. Personal info; cleared by {@link Builder#wipeOut}.
    */
   @IgnoreSave(IfNull.class)
-  @XmlTransient
   PostalInfo localizedPostalInfo;
 
   /**
@@ -95,7 +71,6 @@ public class ContactResource extends EppResource
    * {@link Builder#wipeOut}.
    */
   @IgnoreSave(IfNull.class)
-  @XmlTransient
   PostalInfo internationalizedPostalInfo;
 
   /**
@@ -104,7 +79,6 @@ public class ContactResource extends EppResource
    * info; cleared by {@link Builder#wipeOut}.
    */
   @Index
-  @XmlTransient
   String searchName;
 
   /** Contact’s voice number. Personal info; cleared by {@link Builder#wipeOut}. */
@@ -117,14 +91,12 @@ public class ContactResource extends EppResource
 
   /** Contact’s email address. Personal info; cleared by {@link Builder#wipeOut}. */
   @IgnoreSave(IfNull.class)
-  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
   String email;
 
   /** Authorization info (aka transfer secret) of the contact. */
   ContactAuthInfo authInfo;
 
   /** Data about any pending or past transfers on this contact. */
-  @XmlTransient
   TransferData transferData;
 
   /**
@@ -132,17 +104,14 @@ public class ContactResource extends EppResource
    *
    * <p>Can be null if the resource has never been transferred.
    */
-  @XmlElement(name = "trDate")
   DateTime lastTransferTime;
 
   // If any new fields are added which contain personal information, make sure they are cleared by
   // the wipeOut() function, so that data is not kept around for deleted contacts.
 
   /** Disclosure policy. */
-  @IgnoreSave(IfNull.class)
   Disclose disclose;
 
-  @XmlElement(name = "id")
   public String getContactId() {
     return contactId;
   }
@@ -199,7 +168,7 @@ public class ContactResource extends EppResource
    * transforms the persisted format to the XML format for marshalling.
    */
   @XmlElement(name = "postalInfo")
-  public List<PostalInfo> getPostalInfosAsList() {
+  public ImmutableList<PostalInfo> getPostalInfosAsList() {
     return FluentIterable
         .from(Lists.newArrayList(localizedPostalInfo, internationalizedPostalInfo))
         .filter(Predicates.notNull())

@@ -33,27 +33,10 @@ import google.registry.model.smd.EncodedSignedMark;
 import google.registry.xml.XmlTransformer;
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /** An application to create a domain. */
-@XmlRootElement(name = "infData")
-@XmlType(propOrder = {
-    "fullyQualifiedDomainName",
-    "repoId",
-    "status",
-    "marshalledRegistrant",
-    "marshalledContacts",
-    "marshalledNameservers",
-    "currentSponsorClientId",
-    "creationClientId",
-    "creationTime",
-    "lastEppUpdateClientId",
-    "lastEppUpdateTime",
-    "authInfo"})
 @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @EntitySubclass(index = true)
 @ExternalMessagingName("application")
@@ -66,30 +49,24 @@ public class DomainApplication extends DomainBase {
    *
    * <p>This field may be null for applications that were created before the field was added.
    */
-  @XmlTransient
   Trid creationTrid;
 
   /**
    * The phase which this application is registered for. We store this only so we can return it back
    * to the user on info commands.
    */
-  @XmlTransient
   LaunchPhase phase;
 
   /** The requested registration period. */
-  @XmlTransient
   Period period;
 
   /** The current status of this application. */
-  @XmlTransient
   ApplicationStatus applicationStatus;
 
   /** The encoded signed marks which were asserted when this application was created. */
-  @XmlTransient
   List<EncodedSignedMark> encodedSignedMarks;
 
   /** The amount paid at auction for the right to register the domain. Used only for reporting. */
-  @XmlTransient
   Money auctionPrice;
 
   // TODO(b/32447342): remove this once the period has been populated on all DomainApplications

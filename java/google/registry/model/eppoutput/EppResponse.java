@@ -21,10 +21,9 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
-import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainApplication;
+import google.registry.model.contact.ContactInfoData;
+import google.registry.model.domain.DomainInfoData;
 import google.registry.model.domain.DomainRenewData;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee06.FeeCheckResponseExtensionV06;
 import google.registry.model.domain.fee06.FeeCreateResponseExtensionV06;
 import google.registry.model.domain.fee06.FeeDeleteResponseExtensionV06;
@@ -57,7 +56,7 @@ import google.registry.model.eppoutput.CreateData.ContactCreateData;
 import google.registry.model.eppoutput.CreateData.DomainCreateData;
 import google.registry.model.eppoutput.CreateData.HostCreateData;
 import google.registry.model.eppoutput.EppOutput.ResponseOrGreeting;
-import google.registry.model.host.HostResource;
+import google.registry.model.host.HostInfoData;
 import google.registry.model.poll.MessageQueueInfo;
 import google.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
@@ -99,21 +98,20 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
 
   /** Zero or more response "resData" results. */
   @XmlElementRefs({
-      @XmlElementRef(type = ContactResource.class),
-      @XmlElementRef(type = DomainApplication.class),
-      @XmlElementRef(type = DomainResource.class),
-      @XmlElementRef(type = HostResource.class),
       @XmlElementRef(type = ContactCheckData.class),
       @XmlElementRef(type = ContactCreateData.class),
+      @XmlElementRef(type = ContactInfoData.class),
       @XmlElementRef(type = ContactPendingActionNotificationResponse.class),
       @XmlElementRef(type = ContactTransferResponse.class),
       @XmlElementRef(type = DomainCheckData.class),
       @XmlElementRef(type = DomainCreateData.class),
+      @XmlElementRef(type = DomainInfoData.class),
       @XmlElementRef(type = DomainPendingActionNotificationResponse.class),
       @XmlElementRef(type = DomainRenewData.class),
       @XmlElementRef(type = DomainTransferResponse.class),
       @XmlElementRef(type = HostCheckData.class),
-      @XmlElementRef(type = HostCreateData.class)})
+      @XmlElementRef(type = HostCreateData.class),
+      @XmlElementRef(type = HostInfoData.class)})
   @XmlElementWrapper
   ImmutableList<? extends ResponseData> resData;
 

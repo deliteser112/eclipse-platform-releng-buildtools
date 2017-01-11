@@ -25,6 +25,7 @@ import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.model.eppoutput.EppResponse;
+import google.registry.model.host.HostInfoData;
 import google.registry.model.host.HostResource;
 import google.registry.util.Clock;
 import javax.inject.Inject;
@@ -53,10 +54,24 @@ public final class HostInfoFlow implements Flow {
   @Override
   public EppResponse run() throws EppException {
     extensionManager.validate();  // There are no legal extensions for this flow.
-    validateClientIsLoggedIn(clientId); 
+    validateClientIsLoggedIn(clientId);
     validateHostName(targetId);
     DateTime now = clock.nowUtc();
     HostResource host = loadAndVerifyExistence(HostResource.class, targetId, now);
-    return responseBuilder.setResData(cloneResourceWithLinkedStatus(host, now)).build();
+    host = (HostResource) cloneResourceWithLinkedStatus(host, now);
+    return responseBuilder
+        .setResData(HostInfoData.newBuilder()
+            .setFullyQualifiedHostName(host.getFullyQualifiedHostName())
+            .setRepoId(host.getRepoId())
+            .setStatusValues(host.getStatusValues())
+            .setInetAddresses(host.getInetAddresses())
+            .setCurrentSponsorClientId(host.getCurrentSponsorClientId())
+            .setCreationClientId(host.getCreationClientId())
+            .setCreationTime(host.getCreationTime())
+            .setLastEppUpdateClientId(host.getLastEppUpdateClientId())
+            .setLastEppUpdateTime(host.getLastEppUpdateTime())
+            .setLastTransferTime(host.getLastTransferTime())
+            .build())
+        .build();
   }
 }

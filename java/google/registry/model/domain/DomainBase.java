@@ -22,7 +22,6 @@ import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.CollectionUtils.forceEmptyToNull;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
@@ -49,12 +48,8 @@ import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
 import java.util.Set;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlTransient;
 
 /** Shared base class for {@link DomainResource} and {@link DomainApplication}. */
-@XmlTransient
 @ReportedOn
 @Entity
 public abstract class DomainBase extends EppResource {
@@ -69,17 +64,14 @@ public abstract class DomainBase extends EppResource {
    * @invariant fullyQualifiedDomainName == fullyQualifiedDomainName.toLowerCase()
    */
   @Index
-  @XmlElement(name = "name")
   String fullyQualifiedDomainName;
 
   /** The top level domain this is under, dernormalized from {@link #fullyQualifiedDomainName}. */
   @Index
-  @XmlTransient
   String tld;
 
   /** References to hosts that are the nameservers for the domain. */
   @Index
-  @XmlTransient
   Set<Key<HostResource>> nsHosts;
 
   /**
@@ -87,7 +79,6 @@ public abstract class DomainBase extends EppResource {
    *
    * <p>These are stored in one field so that we can query across all contacts at once.
    */
-  @XmlTransient
   Set<DesignatedContact> allContacts;
 
   /** Authorization info (aka transfer secret) of the domain. */
@@ -99,7 +90,6 @@ public abstract class DomainBase extends EppResource {
    * <p>This is {@literal @}XmlTransient because it needs to be returned under the "extension" tag
    * of an info response rather than inside the "infData" tag.
    */
-  @XmlTransient
   Set<DelegationSignerData> dsData;
 
   /**
@@ -107,7 +97,6 @@ public abstract class DomainBase extends EppResource {
    * {@literal @}XmlTransient because it's not returned in an info response.
    */
   @IgnoreSave(IfNull.class)
-  @XmlTransient
   LaunchNotice launchNotice;
 
   /**
@@ -116,51 +105,7 @@ public abstract class DomainBase extends EppResource {
    * @see google.registry.tldconfig.idn.IdnLabelValidator#findValidIdnTableForTld
    */
   @IgnoreSave(IfNull.class)
-  @XmlTransient
   String idnTableName;
-
-  /**
-   * Synchronously load all referenced contacts and hosts into the Objectify session cache.
-   *
-   * <p>This saves an extra datastore roundtrip on marshalling, since contacts, hosts, and the
-   * registrant will all be in the session cache when their respective methods are called.
-   */
-  private void preMarshal() {
-    // Calling values() blocks until loading is done.
-    ofy().load().values(union(getNameservers(), getReferencedContacts())).values();
-  }
-
-  /** JAXB java beans property to marshal nameserver hostnames. */
-  @XmlElementWrapper(name = "ns")
-  @XmlElement(name = "hostObj")
-  private ImmutableSet<String> getMarshalledNameservers() {
-    preMarshal();
-    // If there are no nameservers we must return null, or an empty "ns" element will be marshalled.
-    return forceEmptyToNull(loadNameserverFullyQualifiedHostNames());
-  }
-
-  /** JAXB java beans property to marshal non-registrant contact ids. */
-  @XmlElement(name = "contact")
-  private ImmutableSet<ForeignKeyedDesignatedContact> getMarshalledContacts() {
-    preMarshal();
-    return FluentIterable.from(getContacts())
-        .transform(
-            new Function<DesignatedContact, ForeignKeyedDesignatedContact>() {
-              @Override
-              public ForeignKeyedDesignatedContact apply(DesignatedContact designated) {
-                return ForeignKeyedDesignatedContact.create(
-                    designated.getType(),
-                    ofy().load().key(designated.getContactKey()).now().getContactId());
-              }})
-        .toSet();
-  }
-
-  /** JAXB java beans property to marshal nameserver hostnames. */
-  @XmlElement(name = "registrant")
-  private String getMarshalledRegistrant() {
-    preMarshal();
-    return ofy().load().key(getRegistrant()).now().getContactId();
-  }
 
   public String getFullyQualifiedDomainName() {
     return fullyQualifiedDomainName;
