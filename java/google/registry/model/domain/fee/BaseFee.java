@@ -133,11 +133,6 @@ public abstract class BaseFee extends ImmutableObject {
     return validDateRange;
   }
 
-  protected void generateDescription(Object... args) {
-    checkState(type != null);
-    description = type.renderDescription(args);
-  }
-
   public boolean hasZeroCost() {
     return cost.signum() == 0;
   }

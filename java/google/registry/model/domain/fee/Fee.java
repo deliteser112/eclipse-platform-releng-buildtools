@@ -16,6 +16,7 @@ package google.registry.model.domain.fee;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
@@ -28,15 +29,14 @@ import org.joda.time.DateTime;
  * description.
  */
 public class Fee extends BaseFee {
+
+  /** Creates a Fee for the given cost and type with the default description. */
   public static Fee create(BigDecimal cost, FeeType type, Object... descriptionArgs) {
-    Fee instance = new Fee();
-    instance.cost = checkNotNull(cost);
-    checkArgument(instance.cost.signum() >= 0);
-    instance.type = checkNotNull(type);
-    instance.generateDescription(descriptionArgs);
-    return instance;
+    checkArgumentNotNull(type, "Must specify the type of the fee");
+    return createWithCustomDescription(cost, type, type.renderDescription(descriptionArgs));
   }
 
+  /** Creates a Fee for the given cost, type, and valid date range with the default description. */
   public static Fee create(
       BigDecimal cost, FeeType type, Range<DateTime> validDateRange, Object... descriptionArgs) {
     Fee instance = create(cost, type, descriptionArgs);
@@ -44,8 +44,19 @@ public class Fee extends BaseFee {
     return instance;
   }
 
-  public static final ImmutableSet<String> FEE_EXTENSION_URIS = ImmutableSet.of(
-      ServiceExtension.FEE_0_12.getUri(),
-      ServiceExtension.FEE_0_11.getUri(),
-      ServiceExtension.FEE_0_6.getUri());
+  /** Creates a Fee for the given cost and type with a custom description. */
+  public static Fee createWithCustomDescription(BigDecimal cost, FeeType type, String description) {
+    Fee instance = new Fee();
+    instance.cost = checkNotNull(cost);
+    checkArgument(instance.cost.signum() >= 0);
+    instance.type = checkNotNull(type);
+    instance.description = description;
+    return instance;
+  }
+
+  public static final ImmutableSet<String> FEE_EXTENSION_URIS =
+      ImmutableSet.of(
+          ServiceExtension.FEE_0_12.getUri(),
+          ServiceExtension.FEE_0_11.getUri(),
+          ServiceExtension.FEE_0_6.getUri());
 }
