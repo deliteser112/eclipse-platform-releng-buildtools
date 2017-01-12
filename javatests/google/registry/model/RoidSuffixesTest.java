@@ -39,4 +39,12 @@ public class RoidSuffixesTest {
     persistResource(newRegistry("tld", "MEOW"));
     assertThat(getRoidSuffixForTld("tld")).isEqualTo("MEOW");
   }
+
+  @Test
+  public void test_allowDupeRoidSuffixes() {
+    persistResource(newRegistry("tld", "MEOW"));
+    persistResource(newRegistry("example", "MEOW"));
+    assertThat(getRoidSuffixForTld("tld")).isEqualTo("MEOW");
+    assertThat(getRoidSuffixForTld("example")).isEqualTo("MEOW");
+  }
 }

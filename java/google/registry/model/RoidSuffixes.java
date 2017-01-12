@@ -20,30 +20,29 @@ import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Supplier;
-import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Work;
 import google.registry.model.registry.Registry;
 
 /** Utility class for dealing with EPP ROID suffixes. */
 public final class RoidSuffixes {
 
-  private static Supplier<HashBiMap<String, String>> roidSuffixMapCache =
-      memoizeWithShortExpiration(new Supplier<HashBiMap<String, String>>() {
+  /** A cached map of TLD strings to ROID suffixes. */
+  private static final Supplier<ImmutableMap<String, String>> ROID_SUFFIX_MAP_CACHE =
+      memoizeWithShortExpiration(new Supplier<ImmutableMap<String, String>>() {
         @Override
-        public HashBiMap<String, String> get() {
-          return ofy().doTransactionless(new Work<HashBiMap<String, String>>() {
+        public ImmutableMap<String, String> get() {
+          return ofy().doTransactionless(new Work<ImmutableMap<String, String>>() {
             @Override
-            public HashBiMap<String, String> run() {
-              HashBiMap<String, String> bimap = HashBiMap.create();
+            public ImmutableMap<String, String> run() {
+              ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
               for (Registry registry :
                   ofy().load().type(Registry.class).ancestor(getCrossTldKey()).list()) {
-                bimap.put(registry.getTldStr(), registry.getRoidSuffix());
+                builder.put(registry.getTldStr(), registry.getRoidSuffix());
               }
-              return bimap;
-            }
-          });
-        }
-      });
+              return builder.build();
+            }});
+        }});
 
   /**
    * Returns the roid suffix corresponding to the given tld using the per-tld roidSuffix field.
@@ -52,13 +51,12 @@ public final class RoidSuffixes {
    * configured on it
    */
   public static String getRoidSuffixForTld(String tld) {
-    String roidSuffix = roidSuffixMapCache.get().get(tld);
+    String roidSuffix = ROID_SUFFIX_MAP_CACHE.get().get(tld);
     checkState(roidSuffix != null, "Could not find ROID suffix for TLD %s", tld);
     return roidSuffix;
   }
 
   public static boolean isRoidSuffixUsed(String roidSuffix) {
-    return roidSuffixMapCache.get().containsValue(roidSuffix);
+    return ROID_SUFFIX_MAP_CACHE.get().containsValue(roidSuffix);
   }
-
 }
