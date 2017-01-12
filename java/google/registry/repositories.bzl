@@ -745,11 +745,10 @@ def com_google_auto_service():
 def com_google_auto_value():
   java_import_external(
       name = "com_google_auto_value",
-      jar_sha256 = "8065c6829cc716279c8b870f44c903b6e01aa5ca3949fc81e858a1ac144e8a6e",
+      jar_sha256 = "ea26f99150825f61752efc8784739cf50dd25d7956774573f8cdc3b948b23086",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/value/auto-value/1.3/auto-value-1.3.jar",
-          "http://repo1.maven.org/maven2/com/google/auto/value/auto-value/1.3/auto-value-1.3.jar",
-          "http://maven.ibiblio.org/maven2/com/google/auto/value/auto-value/1.3/auto-value-1.3.jar",
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/value/auto-value/1.4-rc2/auto-value-1.4-rc2.jar",
+          "http://repo1.maven.org/maven2/com/google/auto/value/auto-value/1.4-rc2/auto-value-1.4-rc2.jar",
       ],
       licenses = ["notice"],  # Apache 2.0
       neverlink = True,
