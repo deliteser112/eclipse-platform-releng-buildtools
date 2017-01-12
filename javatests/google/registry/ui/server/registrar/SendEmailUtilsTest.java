@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.util;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import google.registry.config.RegistryConfig.LocalTestConfig;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
+import google.registry.util.SendEmailService;
 import java.util.Properties;
 import javax.mail.Message;
 import javax.mail.Message.RecipientType;

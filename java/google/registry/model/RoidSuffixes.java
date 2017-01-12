@@ -15,9 +15,9 @@
 package google.registry.model;
 
 import static com.google.common.base.Preconditions.checkState;
+import static google.registry.model.CacheUtils.memoizeWithShortExpiration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.CacheUtils.memoizeWithShortExpiration;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.HashBiMap;

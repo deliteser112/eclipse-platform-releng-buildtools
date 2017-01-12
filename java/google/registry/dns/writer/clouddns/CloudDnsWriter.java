@@ -72,7 +72,7 @@ public class CloudDnsWriter implements DnsWriter {
 
   private final Clock clock;
   private final RateLimiter rateLimiter;
-  // TODO(shikhman): This uses @Config("transientFailureRetries") which may not be tuned for this
+  // TODO(shikhman): This uses @Named("transientFailureRetries") which may not be tuned for this
   // application.
   private final Retrier retrier;
   private final Duration defaultTtl;

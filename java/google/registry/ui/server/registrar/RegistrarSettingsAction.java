@@ -45,7 +45,6 @@ import google.registry.ui.server.RegistrarFormFields;
 import google.registry.util.CidrAddressBlock;
 import google.registry.util.CollectionUtils;
 import google.registry.util.DiffUtils;
-import google.registry.util.SendEmailUtils;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;

@@ -37,7 +37,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.util.SendEmailService;
-import google.registry.util.SendEmailUtils;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Map;

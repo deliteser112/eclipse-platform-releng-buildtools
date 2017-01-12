@@ -21,11 +21,11 @@ import static google.registry.util.PredicateUtils.supertypeOf;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import google.registry.config.RegistryConfig.Config;
 import java.io.Serializable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
+import javax.inject.Named;
 import org.joda.time.Duration;
 
 /** Wrapper that does retry with exponential backoff. */
@@ -39,7 +39,7 @@ public class Retrier implements Serializable {
   private final int attempts;
 
   @Inject
-  public Retrier(Sleeper sleeper, @Config("transientFailureRetries") int transientFailureRetries) {
+  public Retrier(Sleeper sleeper, @Named("transientFailureRetries") int transientFailureRetries) {
     this.sleeper = sleeper;
     checkArgument(transientFailureRetries > 0, "Number of attempts must be positive");
     this.attempts = transientFailureRetries;

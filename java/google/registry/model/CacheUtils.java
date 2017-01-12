@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.util;
+package google.registry.model;
 
 import static com.google.common.base.Suppliers.memoizeWithExpiration;
-import static google.registry.config.RegistryConfig.getSingletonCachePersistDuration;
 import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.time.Duration.ZERO;
@@ -23,7 +22,7 @@ import static org.joda.time.Duration.ZERO;
 import com.google.common.base.Supplier;
 import org.joda.time.Duration;
 
-/** Utility methods related to caching. */
+/** Utility methods related to caching Datastore entities. */
 public class CacheUtils {
 
   /**
@@ -33,25 +32,9 @@ public class CacheUtils {
    * lists downloaded from the TMCH get updated in datastore and the caches need to be refreshed.)
    */
   public static <T> Supplier<T> memoizeWithShortExpiration(Supplier<T> original) {
-    return memoizeForDuration(original, getSingletonCacheRefreshDuration());
-  }
-
-  /**
-   * Memoize a supplier, with a long expiration specified in the environment config.
-   *
-   * <p>Use this for things that are loaded lazily but then will never change. This allows the test
-   * config to set the expiration time to zero so that different test values can be substituted in,
-   * while allowing the production config to set the expiration to forever.
-   */
-  public static <T> Supplier<T> memoizeWithLongExpiration(Supplier<T> original) {
-    return memoizeForDuration(original, getSingletonCachePersistDuration());
-  }
-
-  /** Memoize a supplier, with a given expiration. */
-  private static <T> Supplier<T> memoizeForDuration(Supplier<T> original, Duration expiration) {
+    Duration expiration = getSingletonCacheRefreshDuration();
     return expiration.isEqual(ZERO)
-        ? original  // memoizeWithExpiration won't accept 0 as a refresh duration.
+        ? original
         : memoizeWithExpiration(original, expiration.getMillis(), MILLISECONDS);
   }
 }
-

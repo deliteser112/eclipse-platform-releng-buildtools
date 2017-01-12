@@ -16,7 +16,7 @@ package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static google.registry.util.CacheUtils.memoizeWithShortExpiration;
+import static google.registry.model.CacheUtils.memoizeWithShortExpiration;
 import static google.registry.util.RegistrarUtils.normalizeRegistrarName;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 

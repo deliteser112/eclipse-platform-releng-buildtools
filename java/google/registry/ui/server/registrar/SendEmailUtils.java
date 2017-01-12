@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.util;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.collect.Iterables.toArray;
 
@@ -21,6 +21,9 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.SendEmailService;
 import java.util.List;
 import javax.inject.Inject;
 import javax.mail.Message;

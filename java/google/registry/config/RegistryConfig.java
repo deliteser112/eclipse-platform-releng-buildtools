@@ -15,6 +15,7 @@
 package google.registry.config;
 
 import static google.registry.config.ConfigUtils.makeUrl;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.joda.time.Duration.standardDays;
 
 import com.google.appengine.api.utils.SystemProperty;
@@ -26,9 +27,11 @@ import com.google.common.net.HostAndPort;
 import dagger.Module;
 import dagger.Provides;
 import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
 import java.net.URI;
 import java.net.URL;
 import javax.annotation.Nullable;
+import javax.inject.Named;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
 import org.joda.money.CurrencyUnit;
@@ -42,6 +45,7 @@ public final class RegistryConfig {
 
   /** Dagger qualifier for configuration settings. */
   @Qualifier
+  @Retention(RUNTIME)
   @Documented
   public static @interface Config {
     String value() default "";
@@ -474,7 +478,7 @@ public final class RegistryConfig {
     /**
      * The email address that outgoing emails from the app are sent from.
      *
-     * @see google.registry.util.SendEmailUtils
+     * @see google.registry.ui.server.registrar.SendEmailUtils
      */
     @Provides
     @Config("googleAppsSendFromEmailAddress")
@@ -485,7 +489,7 @@ public final class RegistryConfig {
     /**
      * The display name that is used on outgoing emails sent by Nomulus.
      *
-     * @see google.registry.util.SendEmailUtils
+     * @see google.registry.ui.server.registrar.SendEmailUtils
      */
     @Provides
     @Config("googleAppsAdminEmailDisplayName")
@@ -724,10 +728,13 @@ public final class RegistryConfig {
      *
      * <p>The number of milliseconds it'll sleep before giving up is {@code 2^n - 2}.
      *
+     * <p>Note that this uses {@code @Named} instead of {@code @Config} so that it can be used from
+     * the low-level util package, which cannot have a dependency on the config package.
+     *
      * @see google.registry.util.TaskEnqueuer
      */
     @Provides
-    @Config("transientFailureRetries")
+    @Named("transientFailureRetries")
     public static int provideTransientFailureRetries() {
       return 12;  // Four seconds.
     }
