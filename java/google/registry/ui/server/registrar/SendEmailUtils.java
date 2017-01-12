@@ -66,7 +66,7 @@ public class SendEmailUtils {
             @Override
             public InternetAddress apply(String emailAddress) {
               try {
-                return new InternetAddress(emailAddress);
+                return new InternetAddress(emailAddress, true);
               } catch (AddressException e) {
                 logger.severefmt(
                     e,
