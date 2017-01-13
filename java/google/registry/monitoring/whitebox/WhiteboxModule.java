@@ -14,9 +14,12 @@
 
 package google.registry.monitoring.whitebox;
 
+import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
+import static google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer.QUEUE_BIGQUERY_STREAMING_METRICS;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.appengine.api.taskqueue.Queue;
 import com.google.apphosting.api.ApiProxy;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -79,5 +82,11 @@ public class WhiteboxModule {
   static EppMetric.Builder provideEppMetricBuilder(
       @Named("requestLogId") String requestLogId, Clock clock) {
     return EppMetric.builderForRequest(requestLogId, clock);
+  }
+
+  @Provides
+  @Named(QUEUE_BIGQUERY_STREAMING_METRICS)
+  static Queue provideBigQueryStreamingMetricsQueue() {
+    return getQueue(QUEUE_BIGQUERY_STREAMING_METRICS);
   }
 }

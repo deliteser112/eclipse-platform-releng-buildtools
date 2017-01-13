@@ -14,7 +14,9 @@
 
 package google.registry.monitoring.whitebox;
 
+import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
+import static google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer.QUEUE_BIGQUERY_STREAMING_METRICS;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Mockito.when;
 
@@ -59,6 +61,7 @@ public class BigQueryMetricsEnqueuerTest {
     enqueuer = new BigQueryMetricsEnqueuer();
     enqueuer.idGenerator = Suppliers.ofInstance("laffo");
     enqueuer.modulesService = modulesService;
+    enqueuer.queue = getQueue(QUEUE_BIGQUERY_STREAMING_METRICS);
     when(modulesService.getVersionHostname(Matchers.anyString(), Matchers.anyString()))
         .thenReturn("1.backend.test.localhost");
   }
