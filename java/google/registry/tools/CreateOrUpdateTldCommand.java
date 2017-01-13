@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static google.registry.model.RoidSuffixes.isRoidSuffixUsed;
 import static google.registry.util.CollectionUtils.findDuplicates;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
@@ -263,13 +262,6 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
           !CharMatcher.javaDigit().matches(tld.charAt(0)),
           "TLDs cannot begin with a number.");
       Registry oldRegistry = getOldRegistry(tld);
-      if (roidSuffix != null) {
-        checkArgument(
-            !isRoidSuffixUsed(roidSuffix)
-                || (oldRegistry != null && roidSuffix.equals(oldRegistry.getRoidSuffix())),
-            "The roid suffix %s is already in use",
-            roidSuffix);
-      }
       // TODO(b/26901539): Add a flag to set the pricing engine once we have more than one option.
       Registry.Builder builder =
           oldRegistry == null

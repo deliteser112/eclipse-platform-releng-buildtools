@@ -16,7 +16,6 @@ package google.registry.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.transform;
-import static google.registry.model.RoidSuffixes.getRoidSuffixForTld;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
@@ -39,6 +38,7 @@ import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
+import google.registry.model.registry.Registry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.util.FormattingLogger;
@@ -56,7 +56,7 @@ public final class EppResourceUtils {
 
   /** Returns the full domain repoId in the format HEX-TLD for the specified long id and tld. */
   public static String createDomainRepoId(long repoId, String tld) {
-    return createRepoId(repoId, getRoidSuffixForTld(tld));
+    return createRepoId(repoId, Registry.get(tld).getRoidSuffix());
   }
 
   /** Returns the full repoId in the format HEX-TLD for the specified long id and ROID suffix. */

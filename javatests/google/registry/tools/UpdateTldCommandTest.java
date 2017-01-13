@@ -699,14 +699,6 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   }
 
   @Test
-  public void testFailure_roidSuffixAlreadyInUse() throws Exception {
-    createTld("foo", "BLAH");
-    createTld("bar", "BAR");
-    thrown.expect(IllegalArgumentException.class, "The roid suffix BLAH is already in use");
-    runCommandForced("--roid_suffix=BLAH", "bar");
-  }
-
-  @Test
   public void testSuccess_canSetRoidSuffixToWhatItAlreadyIs() throws Exception {
     createTld("foo", "BLAH");
     runCommandForced("--roid_suffix=BLAH", "foo");

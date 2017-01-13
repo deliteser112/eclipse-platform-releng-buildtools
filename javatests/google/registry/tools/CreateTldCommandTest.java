@@ -417,13 +417,6 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_roidSuffixAlreadyInUse() throws Exception {
-    createTld("foo", "BLAH");
-    thrown.expect(IllegalArgumentException.class, "The roid suffix BLAH is already in use");
-    runCommandForced("--roid_suffix=BLAH", "randomtld");
-  }
-
-  @Test
   public void testFailure_addLrpPeriod_backwardsInterval() throws Exception {
     thrown.expect(
         ParameterException.class,
