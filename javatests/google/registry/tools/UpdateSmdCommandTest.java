@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.io.BaseEncoding.base64;
+import static google.registry.config.RegistryConfig.ConfigModule.TmchCaMode.PILOT;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
@@ -69,7 +70,7 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
         .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "garbage")))
         .build());
     command.tmchUtils =
-        new DomainFlowTmchUtils(new TmchXmlSignature(new TmchCertificateAuthority(true)));
+        new DomainFlowTmchUtils(new TmchXmlSignature(new TmchCertificateAuthority(PILOT)));
   }
 
   private DomainApplication reloadDomainApplication() {

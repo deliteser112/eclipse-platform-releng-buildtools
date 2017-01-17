@@ -17,6 +17,7 @@ java_library(
         "testdata/*/*/*",
     ]),
     deps = [
+        "//java/google/registry/config",
         "//java/google/registry/model",
         "//java/google/registry/request",
         "//java/google/registry/tmch",

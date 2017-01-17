@@ -14,6 +14,7 @@
 
 package google.registry.tmch;
 
+import static google.registry.config.RegistryConfig.ConfigModule.TmchCaMode.PILOT;
 import static google.registry.config.RegistryConfig.getSingletonCachePersistDuration;
 import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
@@ -23,6 +24,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import google.registry.model.tmch.TmchCrl;
 import google.registry.util.Clock;
 import google.registry.util.NonFinalForTesting;
@@ -39,23 +41,26 @@ import javax.inject.Inject;
 /**
  * Helper methods for accessing ICANN's TMCH root certificate and revocation list.
  *
- * <p>There are two CRLs, a real one for the production environment and a testing one for
+ * <p>There are two CRLs, a real one for the production environment and a pilot one for
  * non-production environments. The Datastore singleton {@link TmchCrl} entity is used to cache this
  * CRL once loaded and will always contain the proper one corresponding to the environment.
+ *
+ * <p>The CRTs do not change and are included as files in the codebase that are not refreshed. They
+ * were downloaded from https://ca.icann.org/tmch.crt and https://ca.icann.org/tmch_pilot.crt
  */
 @Immutable
 @ThreadSafe
 public final class TmchCertificateAuthority {
 
   private static final String ROOT_CRT_FILE = "icann-tmch.crt";
-  private static final String TEST_ROOT_CRT_FILE = "icann-tmch-test.crt";
+  private static final String ROOT_CRT_PILOT_FILE = "icann-tmch-pilot.crt";
   private static final String CRL_FILE = "icann-tmch.crl";
-  private static final String TEST_CRL_FILE = "icann-tmch-test.crl";
+  private static final String CRL_PILOT_FILE = "icann-tmch-pilot.crl";
 
-  private boolean tmchCaTestingMode;
+  private final TmchCaMode tmchCaMode;
 
-  public @Inject TmchCertificateAuthority(@Config("tmchCaTestingMode") boolean tmchCaTestingMode) {
-    this.tmchCaTestingMode = tmchCaTestingMode;
+  public @Inject TmchCertificateAuthority(@Config("tmchCaMode") TmchCaMode tmchCaMode) {
+    this.tmchCaMode = tmchCaMode;
   }
 
   /**
@@ -65,28 +70,27 @@ public final class TmchCertificateAuthority {
    * string into an X509CRL instance is expensive and should itself be cached.
    *
    * <p>Note that the stored CRL won't exist for tests, and on deployed environments will always
-   * correspond to the correct CRL for the given testing mode because {@link TmchCrlAction} can
+   * correspond to the correct CRL for the given TMCH CA mode because {@link TmchCrlAction} can
    * only persist the correct one for this given environment.
    */
-  private static final LoadingCache<Boolean, X509CRL> CRL_CACHE =
+  private static final LoadingCache<TmchCaMode, X509CRL> CRL_CACHE =
       CacheBuilder.newBuilder()
           .expireAfterWrite(getSingletonCacheRefreshDuration().getMillis(), MILLISECONDS)
           .build(
-              new CacheLoader<Boolean, X509CRL>() {
+              new CacheLoader<TmchCaMode, X509CRL>() {
                 @Override
-                public X509CRL load(final Boolean tmchCaTestingMode)
-                    throws GeneralSecurityException {
+                public X509CRL load(final TmchCaMode tmchCaMode) throws GeneralSecurityException {
                   TmchCrl storedCrl = TmchCrl.get();
+                  String crlContents;
+                  if (storedCrl == null) {
+                    String file = (tmchCaMode == PILOT) ? CRL_PILOT_FILE : CRL_FILE;
+                    crlContents = readResourceUtf8(TmchCertificateAuthority.class, file);
+                  } else {
+                    crlContents = storedCrl.getCrl();
+                  }
+                  X509CRL crl = X509Utils.loadCrl(crlContents);
                   try {
-                    String crlContents;
-                    if (storedCrl == null) {
-                      String file = tmchCaTestingMode.booleanValue() ? TEST_CRL_FILE : CRL_FILE;
-                      crlContents = readResourceUtf8(TmchCertificateAuthority.class, file);
-                    } else {
-                      crlContents = storedCrl.getCrl();
-                    }
-                    X509CRL crl = X509Utils.loadCrl(crlContents);
-                    crl.verify(ROOT_CACHE.get(tmchCaTestingMode).getPublicKey());
+                    crl.verify(ROOT_CACHE.get(tmchCaMode).getPublicKey());
                     return crl;
                   } catch (ExecutionException e) {
                     if (e.getCause() instanceof GeneralSecurityException) {
@@ -98,16 +102,15 @@ public final class TmchCertificateAuthority {
                 }});
 
   /** A cached function that loads the CRT from a jar resource. */
-  private static final LoadingCache<Boolean, X509Certificate> ROOT_CACHE =
+  private static final LoadingCache<TmchCaMode, X509Certificate> ROOT_CACHE =
       CacheBuilder.newBuilder()
           .expireAfterWrite(getSingletonCachePersistDuration().getMillis(), MILLISECONDS)
           .build(
-              new CacheLoader<Boolean, X509Certificate>() {
+              new CacheLoader<TmchCaMode, X509Certificate>() {
                 @Override
-                public X509Certificate load(final Boolean tmchCaTestingMode)
+                public X509Certificate load(final TmchCaMode tmchCaMode)
                     throws GeneralSecurityException {
-                  String file =
-                      tmchCaTestingMode.booleanValue() ? TEST_ROOT_CRT_FILE : ROOT_CRT_FILE;
+                  String file = (tmchCaMode == PILOT) ? ROOT_CRT_PILOT_FILE : ROOT_CRT_FILE;
                   X509Certificate root =
                       X509Utils.loadCertificate(
                           readResourceUtf8(TmchCertificateAuthority.class, file));
@@ -153,7 +156,7 @@ public final class TmchCertificateAuthority {
 
   public X509Certificate getRoot() throws GeneralSecurityException {
     try {
-      return ROOT_CACHE.get(tmchCaTestingMode);
+      return ROOT_CACHE.get(tmchCaMode);
     } catch (Exception e) {
       if (e.getCause() instanceof GeneralSecurityException) {
         throw (GeneralSecurityException) e.getCause();
@@ -166,7 +169,7 @@ public final class TmchCertificateAuthority {
 
   public X509CRL getCrl() throws GeneralSecurityException {
     try {
-      return CRL_CACHE.get(tmchCaTestingMode);
+      return CRL_CACHE.get(tmchCaMode);
     } catch (Exception e) {
       if (e.getCause() instanceof GeneralSecurityException) {
         throw (GeneralSecurityException) e.getCause();

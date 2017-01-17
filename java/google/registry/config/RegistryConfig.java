@@ -424,21 +424,36 @@ public final class RegistryConfig {
     }
 
     /**
-     * Returns {@code true} if TMCH certificate authority should be in testing mode.
+     * Returns the mode that TMCH certificate authority should run in.
      *
-     * @see RegistryConfig#getTmchCaTestingMode()
+     * @see google.registry.tmch.TmchCertificateAuthority
      */
     @Provides
-    @Config("tmchCaTestingMode")
-    public static boolean provideTmchCaTestingMode() {
-      return RegistryConfig.getTmchCaTestingMode();
+    @Config("tmchCaMode")
+    public static TmchCaMode provideTmchCaMode() {
+      switch (RegistryEnvironment.get()) {
+        case PRODUCTION:
+          return TmchCaMode.PRODUCTION;
+        default:
+          return TmchCaMode.PILOT;
+      }
+    }
+
+    /** The mode that the {@code TmchCertificateAuthority} operates in. */
+    public enum TmchCaMode {
+
+      /** Production mode, suitable for live environments hosting TLDs. */
+      PRODUCTION,
+
+      /** Pilot mode, for everything else (e.g. sandbox). */
+      PILOT;
     }
 
     /**
      * ICANN TMCH Certificate Revocation List URL.
      *
      * <p>This file needs to be downloaded at least once a day and verified to make sure it was
-     * signed by {@code icann-tmch.crt}.
+     * signed by {@code icann-tmch.crt} or {@code icann-tmch-pilot.crt} depending on TMCH CA mode.
      *
      * @see google.registry.tmch.TmchCrlAction
      * @see <a href="http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-5.2.3.2">TMCH
@@ -1144,20 +1159,6 @@ public final class RegistryConfig {
    */
   public static Duration getCommitLogDatastoreRetention() {
     return Duration.standardDays(30);
-  }
-
-  /**
-   * Returns {@code true} if TMCH certificate authority should be in testing mode.
-   *
-   * @see google.registry.tmch.TmchCertificateAuthority
-   */
-  public static boolean getTmchCaTestingMode() {
-    switch (RegistryEnvironment.get()) {
-      case PRODUCTION:
-        return false;
-      default:
-        return true;
-    }
   }
 
   /**

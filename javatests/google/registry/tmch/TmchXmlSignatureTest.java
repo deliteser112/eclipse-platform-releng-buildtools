@@ -16,6 +16,7 @@ package google.registry.tmch;
 
 import static google.registry.tmch.TmchTestData.loadSmd;
 
+import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
@@ -58,11 +59,11 @@ public class TmchXmlSignatureTest {
   @Before
   public void before() throws Exception {
     inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
-    tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(true));
+    tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PILOT));
   }
 
   public void wrongCertificateAuthority() throws Exception {
-    tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(false));
+    tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PRODUCTION));
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
     thrown.expectRootCause(SignatureException.class, "Signature does not match");
     tmchXmlSignature.verify(smdData);

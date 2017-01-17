@@ -22,6 +22,7 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.Subcomponent;
 import google.registry.config.RegistryConfig.ConfigModule;
+import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.custom.CustomLogicFactory;
 import google.registry.flows.custom.TestCustomLogicFactory;
@@ -61,14 +62,13 @@ interface EppTestComponent {
     final Sleeper sleeper;
 
     FakesAndMocksModule() {
-      this(new FakeClock(), true);
+      this(new FakeClock(), TmchCaMode.PILOT);
     }
 
-    FakesAndMocksModule(FakeClock clock, boolean tmchCaTestingMode) {
+    FakesAndMocksModule(FakeClock clock, TmchCaMode tmchCaMode) {
       this.clock = clock;
       this.domainFlowTmchUtils =
-          new DomainFlowTmchUtils(
-              new TmchXmlSignature(new TmchCertificateAuthority(tmchCaTestingMode)));
+          new DomainFlowTmchUtils(new TmchXmlSignature(new TmchCertificateAuthority(tmchCaMode)));
       this.sleeper = new FakeSleeper(clock);
       this.dnsQueue = DnsQueue.create();
       this.metricBuilder = EppMetric.builderForRequest("request-id-1", clock);

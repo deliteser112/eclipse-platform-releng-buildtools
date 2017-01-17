@@ -14,6 +14,8 @@
 
 package google.registry.tmch;
 
+import static google.registry.config.RegistryConfig.ConfigModule.TmchCaMode.PILOT;
+import static google.registry.config.RegistryConfig.ConfigModule.TmchCaMode.PRODUCTION;
 import static google.registry.tmch.TmchTestData.loadString;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static google.registry.util.X509Utils.loadCertificate;
@@ -61,7 +63,7 @@ public class TmchCertificateAuthorityTest {
 
   @Test
   public void testFailure_prodRootExpired() throws Exception {
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(false);
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
     clock.setTo(DateTime.parse("2024-01-01T00:00:00Z"));
     thrown.expectRootCause(
         CertificateExpiredException.class, "NotAfter: Sun Jul 23 23:59:59 UTC 2023");
@@ -70,7 +72,7 @@ public class TmchCertificateAuthorityTest {
 
   @Test
   public void testFailure_prodRootNotYetValid() throws Exception {
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(false);
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
     clock.setTo(DateTime.parse("2000-01-01T00:00:00Z"));
     thrown.expectRootCause(CertificateNotYetValidException.class,
         "NotBefore: Wed Jul 24 00:00:00 UTC 2013");
@@ -80,7 +82,7 @@ public class TmchCertificateAuthorityTest {
   @Test
   public void testFailure_crlDoesntMatchCerts() throws Exception {
     // Use the prod cl, which won't match our test certificate.
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(true);
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT);
     TmchCrl.set(
         readResourceUtf8(TmchCertificateAuthority.class, "icann-tmch.crl"), "http://cert.crl");
     thrown.expectRootCause(SignatureException.class, "Signature does not match");
@@ -89,20 +91,20 @@ public class TmchCertificateAuthorityTest {
 
   @Test
   public void testSuccess_verify() throws Exception {
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(true);
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT);
     tmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE));
   }
 
   @Test
   public void testFailure_verifySignatureDoesntMatch() throws Exception {
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(false);
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
     thrown.expectRootCause(SignatureException.class, "Signature does not match");
     tmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE));
   }
 
   @Test
   public void testFailure_verifyRevoked() throws Exception {
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(true);
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT);
     thrown.expect(CertificateRevokedException.class, "revoked, reason: KEY_COMPROMISE");
     tmchCertificateAuthority.verify(loadCertificate(REVOKED_TEST_CERTIFICATE));
   }

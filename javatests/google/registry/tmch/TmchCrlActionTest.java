@@ -19,6 +19,7 @@ import static google.registry.util.ResourceUtils.readResourceBytes;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.SignatureException;
@@ -30,10 +31,10 @@ import org.junit.Test;
 /** Unit tests for {@link TmchCrlAction}. */
 public class TmchCrlActionTest extends TmchActionTestCase {
 
-  private TmchCrlAction newTmchCrlAction(boolean tmchCaTestingMode) throws MalformedURLException {
+  private TmchCrlAction newTmchCrlAction(TmchCaMode tmchCaMode) throws MalformedURLException {
     TmchCrlAction action = new TmchCrlAction();
     action.marksdb = marksdb;
-    action.tmchCertificateAuthority = new TmchCertificateAuthority(tmchCaTestingMode);
+    action.tmchCertificateAuthority = new TmchCertificateAuthority(tmchCaMode);
     action.tmchCrlUrl = new URL("http://sloth.lol/tmch.crl");
     return action;
   }
@@ -43,7 +44,7 @@ public class TmchCrlActionTest extends TmchActionTestCase {
     clock.setTo(DateTime.parse("2013-07-24TZ"));
     when(httpResponse.getContent()).thenReturn(
         readResourceBytes(TmchCertificateAuthority.class, "icann-tmch.crl").read());
-    newTmchCrlAction(false).run();
+    newTmchCrlAction(TmchCaMode.PRODUCTION).run();
     verify(httpResponse).getContent();
     verify(fetchService).fetch(httpRequest.capture());
     assertThat(httpRequest.getValue().getURL().toString()).isEqualTo("http://sloth.lol/tmch.crl");
@@ -53,8 +54,12 @@ public class TmchCrlActionTest extends TmchActionTestCase {
   public void testFailure_crlTooOld() throws Exception {
     clock.setTo(DateTime.parse("2020-01-01TZ"));
     when(httpResponse.getContent()).thenReturn(
-        readResourceBytes(TmchCertificateAuthority.class, "icann-tmch-test.crl").read());
-    TmchCrlAction action = newTmchCrlAction(false);
+        readResourceBytes(TmchCertificateAuthority.class, "icann-tmch-pilot.crl").read());
+    // We use the pilot CRL here only because we know that it was generated more recently than the
+    // production CRL, and thus attempting to replace it with the production CRL will fail. It
+    // doesn't matter that the wrong CRT would be used to verify it because that check happens after
+    // the age check.
+    TmchCrlAction action = newTmchCrlAction(TmchCaMode.PRODUCTION);
     thrown.expectRootCause(CRLException.class, "New CRL is more out of date than our current CRL.");
     action.run();
   }
@@ -65,15 +70,15 @@ public class TmchCrlActionTest extends TmchActionTestCase {
     when(httpResponse.getContent()).thenReturn(
         readResourceBytes(TmchCertificateAuthority.class, "icann-tmch.crl").read());
     thrown.expectRootCause(SignatureException.class, "Signature does not match.");
-    newTmchCrlAction(true).run();
+    newTmchCrlAction(TmchCaMode.PILOT).run();
   }
 
   @Test
   public void testFailure_crlNotYetValid() throws Exception {
     clock.setTo(DateTime.parse("1984-01-01TZ"));
     when(httpResponse.getContent()).thenReturn(
-        readResourceBytes(TmchCertificateAuthority.class, "icann-tmch-test.crl").read());
+        readResourceBytes(TmchCertificateAuthority.class, "icann-tmch-pilot.crl").read());
     thrown.expectRootCause(CertificateNotYetValidException.class);
-    newTmchCrlAction(true).run();
+    newTmchCrlAction(TmchCaMode.PILOT).run();
   }
 }
