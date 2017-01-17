@@ -151,7 +151,7 @@ def _zip_file(ctx):
   if hasattr(ctx, 'bin_dir'):
     script = ctx.new_file(ctx.bin_dir, '%s.sh' % ctx.label.name)
   else:
-    # TODO(user): remove this once Bazel 4.0+ is required.
+    # TODO(kchodorow): remove this once Bazel 4.0+ is required.
     script = ctx.new_file(ctx.configuration.bin_dir, '%s.sh' % ctx.label.name)
   ctx.file_action(output=script, content='\n'.join(cmd), executable=True)
   inputs = [ctx.file._zipper]
