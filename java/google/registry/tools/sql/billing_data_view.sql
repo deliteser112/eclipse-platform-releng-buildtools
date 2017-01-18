@@ -92,6 +92,10 @@ FROM (
       -- Filter out prober data.
       tld IN
         (SELECT tld FROM [%DEST_DATASET%.RegistryData] WHERE type = 'REAL')
+        -- TODO(b/27562876): Filter out synthetic OneTime events until we
+        -- verify that expanded OneTime events via MapReduce are correct and
+        -- complete.
+        AND syntheticCreationTime IS NULL
     ), (
     -- Extract synthetic recurring events from view of Recurring data.
     --
@@ -149,10 +153,7 @@ LEFT JOIN EACH (
       [%SOURCE_DATASET%.Cancellation]
     WHERE
       -- Filter out Registry 1.0 data - TODO(b/20828509): remove this.
-      __key__.namespace = ''
-        -- TODO(b/27562876): Filter out synthetic OneTime events until we verify
-        -- that expanded OneTime events via MapReduce are correct and complete.
-        AND syntheticCreationTime IS NULL)
+      __key__.namespace = '')
   WHERE
     -- Filter out prober data.
     tld IN
