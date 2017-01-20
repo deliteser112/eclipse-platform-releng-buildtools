@@ -21,11 +21,8 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.bigquery.BigqueryScopes;
 import google.registry.bigquery.BigqueryConnection;
-import google.registry.tools.params.PathParameter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import org.joda.time.Duration;
 
@@ -39,18 +36,6 @@ final class BigqueryParameters {
    * @see <a href="https://cloud.google.com/bigquery/quota-policy">BigQuery Quota Policy</a>
    */
   private static final int DEFAULT_NUM_THREADS = 20;
-
-  @Parameter(
-      names = "--bigquery_service_account",
-      description = "Email for the Google APIs service account to use.")
-  private String bigqueryServiceAccountEmail =
-      "1080941367941-ic4pknfqcj1q7hhc9ob0bls920v80unu@developer.gserviceaccount.com";
-
-  @Parameter(
-      names = "--bigquery_service_account_key",
-      description = "PKCS file (.p12) containing the private key for the service account.",
-      validateWith = PathParameter.InputFile.class)
-  private Path bigqueryServiceAccountKeyFile = Paths.get("key.p12");
 
   @Parameter(
       names = "--bigquery_dataset",
@@ -88,13 +73,15 @@ final class BigqueryParameters {
     return connection;
   }
 
-  /** Creates a credential object for the Bigquery client service using a service account. */
-  private GoogleCredential newCredential() throws Exception {
-    return new GoogleCredential.Builder().setTransport(HTTP_TRANSPORT)
-        .setJsonFactory(JSON_FACTORY)
-        .setServiceAccountId(bigqueryServiceAccountEmail)
-        .setServiceAccountScopes(BigqueryScopes.all())
-        .setServiceAccountPrivateKeyFromP12File(bigqueryServiceAccountKeyFile.toFile())
-        .build();
+  /** Creates a credential object for the Bigquery client using application default credentials. */
+  private GoogleCredential newCredential() {
+    try {
+      return GoogleCredential.getApplicationDefault(HTTP_TRANSPORT, JSON_FACTORY);
+    } catch (IOException e) {
+      throw new RuntimeException(
+          "Could not obtain application default credentials - "
+              + "did you remember to run 'gcloud auth application-default login'?",
+          e);
+    }
   }
 }
