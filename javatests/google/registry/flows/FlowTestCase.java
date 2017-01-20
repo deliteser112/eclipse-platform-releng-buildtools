@@ -157,7 +157,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     }
   }
 
-  public void assertNoHistory() throws Exception {
+  protected void assertNoHistory() throws Exception {
     assertThat(ofy().load().type(HistoryEntry.class)).isEmpty();
   }
 
