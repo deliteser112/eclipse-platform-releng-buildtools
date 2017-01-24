@@ -185,6 +185,4 @@
     <schedule>every 15 minutes</schedule>
     <target>backend</target>
   </cron>
-
-
 </cronentries>
