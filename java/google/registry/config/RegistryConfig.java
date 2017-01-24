@@ -1254,6 +1254,19 @@ public final class RegistryConfig {
     }
   }
 
+  /**
+   * Memoizes loading of the {@link RegistryConfigSettings} POJO.
+   *
+   * <p>Memoizing without cache expiration is used because the app must be re-deployed in order to
+   * change the contents of the YAML config files.
+   */
+  private static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
+      memoize(new Supplier<RegistryConfigSettings>() {
+        @Override
+        public RegistryConfigSettings get() {
+          return getConfigSettings();
+        }});
+
   /** Returns the roid suffix to be used for the roids of all contacts and hosts. */
   public static String getContactAndHostRoidSuffix() {
     return CONFIG_SETTINGS.get().registryPolicy.contactAndHostRoidSuffix;

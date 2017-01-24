@@ -1,10 +1,1 @@
-
-appEngine:
-  projectId: domain-registry-sandbox
-
-registryPolicy:
-  contactAndHostRoidSuffix: GOOGLE
-  productName: Google Registry Sandbox
-
-registrarConsole:
-  logoFilename: google_registry.png
+# Add environment-specific configuration here
