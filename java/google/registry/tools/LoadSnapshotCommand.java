@@ -15,6 +15,8 @@
 package google.registry.tools;
 
 import static com.google.common.base.Predicates.notNull;
+import static com.google.common.util.concurrent.Futures.addCallback;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -97,22 +99,25 @@ final class LoadSnapshotCommand extends BigqueryCommand {
     // Add callbacks to each load job that print information on successful completion or failure.
     for (final String jobId : loadJobs.keySet()) {
       final String jobName = "load-" + jobId;
-      Futures.addCallback(loadJobs.get(jobId), new FutureCallback<Object>() {
-        private double elapsedSeconds() {
-          return (System.currentTimeMillis() - startTime) / 1000.0;
-        }
+      addCallback(
+          loadJobs.get(jobId),
+          new FutureCallback<Object>() {
+            private double elapsedSeconds() {
+              return (System.currentTimeMillis() - startTime) / 1000.0;
+            }
 
-        @Override
-        public void onSuccess(Object unused) {
-          System.err.printf("Job %s succeeded (%.3fs)\n", jobName, elapsedSeconds());
-        }
+            @Override
+            public void onSuccess(Object unused) {
+              System.err.printf("Job %s succeeded (%.3fs)\n", jobName, elapsedSeconds());
+            }
 
-        @Override
-        public void onFailure(Throwable error) {
-          System.err.printf(
-              "Job %s failed (%.3fs): %s\n", jobName, elapsedSeconds(), error.getMessage());
-        }
-      });
+            @Override
+            public void onFailure(Throwable error) {
+              System.err.printf(
+                  "Job %s failed (%.3fs): %s\n", jobName, elapsedSeconds(), error.getMessage());
+            }
+          },
+          directExecutor());
     }
     // Block on the completion of all the load jobs.
     List<?> results = Futures.successfulAsList(loadJobs.values()).get();
