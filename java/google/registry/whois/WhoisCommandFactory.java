@@ -17,7 +17,6 @@ package google.registry.whois;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.RegistryConfig.ConfigModule;
 import java.net.InetAddress;
-import javax.annotation.Nullable;
 
 /**
  * A class used to configure WHOIS commands.
@@ -28,17 +27,8 @@ import javax.annotation.Nullable;
 public class WhoisCommandFactory {
 
   /** Returns a new {@link WhoisCommand} to perform a domain lookup on the specified domain name. */
-  public final WhoisCommand domainLookup(InternetDomainName domainName) {
-    return domainLookup(domainName, null);
-  }
-
-  /**
-   * Returns a new {@link WhoisCommand} to perform a domain lookup on the specified domain name in
-   * the specified TLD.
-   */
-  public WhoisCommand domainLookup(
-      InternetDomainName domainName, @Nullable InternetDomainName tld) {
-    return new DomainLookupCommand(domainName, tld);
+  public WhoisCommand domainLookup(InternetDomainName domainName) {
+    return new DomainLookupCommand(domainName);
   }
 
   /**
@@ -51,17 +41,8 @@ public class WhoisCommandFactory {
   /**
    * Returns a new {@link WhoisCommand} to perform a nameserver lookup on the specified host name.
    */
-  public final WhoisCommand nameserverLookupByHost(InternetDomainName hostName) {
-    return nameserverLookupByHost(hostName, null);
-  }
-
-  /**
-   * Returns a new {@link WhoisCommand} to perform a nameserver lookup on the specified host name in
-   * the specified TLD.
-   */
-  public WhoisCommand nameserverLookupByHost(
-      InternetDomainName hostName, @Nullable InternetDomainName tld) {
-    return new NameserverLookupByHostCommand(hostName, tld);
+  public WhoisCommand nameserverLookupByHost(InternetDomainName hostName) {
+    return new NameserverLookupByHostCommand(hostName);
   }
 
   /**

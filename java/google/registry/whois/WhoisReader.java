@@ -179,14 +179,14 @@ class WhoisReader {
           return new RegistrarLookupCommand(arg1);
         }
 
-        // If the target is exactly one level above the TLD, then this is an second level domain
+        // If the target is exactly one level above the TLD, then this is a second level domain
         // (SLD) and we should do a domain lookup on it.
         if (targetName.parent().equals(tld.get())) {
-          return commandFactory.domainLookup(targetName, tld.get());
+          return commandFactory.domainLookup(targetName);
         }
 
         // The target is more than one level above the TLD, so we'll assume it's a nameserver.
-        return commandFactory.nameserverLookupByHost(targetName, tld.get());
+        return commandFactory.nameserverLookupByHost(targetName);
       } catch (IllegalArgumentException e) {
         // Silently ignore this exception.
       }

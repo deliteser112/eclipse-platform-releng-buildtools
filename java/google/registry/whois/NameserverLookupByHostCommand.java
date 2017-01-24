@@ -19,18 +19,13 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
 import google.registry.model.host.HostResource;
-import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /** Represents a WHOIS lookup on a nameserver based on its hostname. */
 public class NameserverLookupByHostCommand extends DomainOrHostLookupCommand {
 
   NameserverLookupByHostCommand(InternetDomainName hostName) {
-    this(hostName, null);
-  }
-
-  NameserverLookupByHostCommand(InternetDomainName hostName, @Nullable InternetDomainName tld) {
-    super(hostName, tld, "Nameserver");
+    super(hostName, "Nameserver");
   }
 
   @Override

@@ -19,18 +19,13 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
 import google.registry.model.domain.DomainResource;
-import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /** Represents a WHOIS lookup on a domain name (i.e. SLD). */
 public class DomainLookupCommand extends DomainOrHostLookupCommand {
 
-  DomainLookupCommand(InternetDomainName domainName) {
-    this(domainName, null);
-  }
-
-  public DomainLookupCommand(InternetDomainName domainName, @Nullable InternetDomainName tld) {
-    super(domainName, tld, "Domain");
+  public DomainLookupCommand(InternetDomainName domainName) {
+    super(domainName, "Domain");
   }
 
   @Override

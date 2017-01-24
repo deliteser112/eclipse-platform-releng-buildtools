@@ -22,7 +22,6 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
-import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /** Represents a WHOIS lookup on a domain name (i.e. SLD) or a nameserver. */
@@ -32,21 +31,15 @@ public abstract class DomainOrHostLookupCommand implements WhoisCommand {
 
   private final String errorPrefix;
 
-  private Optional<InternetDomainName> tld;
-
-  DomainOrHostLookupCommand(
-      InternetDomainName domainName, @Nullable InternetDomainName tld, String errorPrefix) {
+  DomainOrHostLookupCommand(InternetDomainName domainName, String errorPrefix) {
     this.errorPrefix = errorPrefix;
     this.domainOrHostName = checkNotNull(domainName, "domainOrHostName");
-    this.tld = Optional.fromNullable(tld);
   }
 
   @Override
   public final WhoisResponse executeQuery(final DateTime now) throws WhoisException {
-    if (!tld.isPresent()) {
-      tld = findTldForName(domainOrHostName);
-    }
-    // Google Policy: Do not return records under TLDs for which we're not authoritative.
+    Optional<InternetDomainName> tld = findTldForName(domainOrHostName);
+    // Google Registry Policy: Do not return records under TLDs for which we're not authoritative.
     if (tld.isPresent() && getTlds().contains(tld.get().toString())) {
       final Optional<WhoisResponse> response = getResponse(domainOrHostName, now);
       if (response.isPresent()) {
