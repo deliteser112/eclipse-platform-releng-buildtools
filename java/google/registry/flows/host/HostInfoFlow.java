@@ -17,13 +17,17 @@ package google.registry.flows.host;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
-import static google.registry.model.EppResourceUtils.cloneResourceWithLinkedStatus;
+import static google.registry.model.EppResourceUtils.isLinked;
+import static google.registry.util.CollectionUtils.difference;
 
+import com.google.common.collect.ImmutableSet;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
+import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostInfoData;
 import google.registry.model.host.HostResource;
@@ -58,12 +62,17 @@ public final class HostInfoFlow implements Flow {
     validateHostName(targetId);
     DateTime now = clock.nowUtc();
     HostResource host = loadAndVerifyExistence(HostResource.class, targetId, now);
-    host = (HostResource) cloneResourceWithLinkedStatus(host, now);
+    ImmutableSet.Builder<StatusValue> statusValues = new ImmutableSet.Builder<>();
+    // TODO(b/34664935): When LINKED is no longer persisted we won't need to filter it out.
+    statusValues.addAll(difference(host.getStatusValues(), StatusValue.LINKED));
+    if (isLinked(Key.create(host), now)) {
+      statusValues.add(StatusValue.LINKED);
+    }
     return responseBuilder
         .setResData(HostInfoData.newBuilder()
             .setFullyQualifiedHostName(host.getFullyQualifiedHostName())
             .setRepoId(host.getRepoId())
-            .setStatusValues(host.getStatusValues())
+            .setStatusValues(statusValues.build())
             .setInetAddresses(host.getInetAddresses())
             .setCurrentSponsorClientId(host.getCurrentSponsorClientId())
             .setCreationClientId(host.getCreationClientId())

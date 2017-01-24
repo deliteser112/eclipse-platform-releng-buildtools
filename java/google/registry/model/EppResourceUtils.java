@@ -360,17 +360,6 @@ public final class EppResourceUtils {
     return queryForLinkedDomains(key, now).limit(1).count() > 0;
   }
 
-  /** Clone a contact or host with an eventually-consistent notion of LINKED. */
-  public static EppResource cloneResourceWithLinkedStatus(EppResource resource, DateTime now) {
-    Builder<?, ?> builder = resource.asBuilder();
-    if (isLinked(Key.create(resource), now)) {
-      builder.addStatusValue(StatusValue.LINKED);
-    } else {
-      builder.removeStatusValue(StatusValue.LINKED);
-    }
-    return builder.build();
-  }
-
   /** Exception to throw when failing to parse a repo id. */
   public static class InvalidRepoIdException extends Exception {
 
