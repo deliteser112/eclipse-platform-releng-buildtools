@@ -61,7 +61,6 @@ import org.joda.time.DateTime;
 public final class ContactDeleteFlow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(
-      StatusValue.LINKED,
       StatusValue.CLIENT_DELETE_PROHIBITED,
       StatusValue.PENDING_DELETE,
       StatusValue.SERVER_DELETE_PROHIBITED);
