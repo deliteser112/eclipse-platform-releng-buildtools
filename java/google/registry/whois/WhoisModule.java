@@ -14,8 +14,12 @@
 
 package google.registry.whois;
 
+import static google.registry.util.TypeUtils.getClassFromString;
+import static google.registry.util.TypeUtils.instantiate;
+
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.RegistryConfig.Config;
 import java.io.IOException;
 import java.io.Reader;
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +30,7 @@ import javax.servlet.http.HttpServletRequest;
  * <h3>Dependencies</h3>
  *
  * <ul>
- * <li>{@link google.registry.request.RequestModule RequestModule}
+ *   <li>{@link google.registry.request.RequestModule RequestModule}
  * </ul>
  *
  * @see "google.registry.module.frontend.FrontendComponent"
@@ -41,5 +45,12 @@ public final class WhoisModule {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Provides
+  @Config("whoisCommandFactory")
+  static WhoisCommandFactory provideWhoisCommandFactory(
+      @Config("whoisCommandFactoryClass") String factoryClass) {
+    return instantiate(getClassFromString(factoryClass, WhoisCommandFactory.class));
   }
 }

@@ -31,13 +31,9 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class WhoisReaderTest {
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExceptionRule thrown = new ExceptionRule();
 
   private final FakeClock clock = new FakeClock();
 
@@ -46,9 +42,11 @@ public class WhoisReaderTest {
     createTlds("tld", "xn--kgbechtv", "1.test");
   }
 
-  @SuppressWarnings("unchecked")  // XXX: Generic abuse ftw.
+  @SuppressWarnings("unchecked") // XXX: Generic abuse ftw.
   <T> T readCommand(String commandStr) throws Exception {
-    return (T) new WhoisReader(new StringReader(commandStr), clock.nowUtc()).readCommand();
+    return (T)
+        new WhoisReader(new StringReader(commandStr), new WhoisCommandFactory(), clock.nowUtc())
+            .readCommand();
   }
 
   void assertLoadsExampleTld(String commandString) throws Exception {
@@ -73,8 +71,8 @@ public class WhoisReaderTest {
 
   void assertNsLookup(String commandString, String expectedIpAddress) throws Exception {
     assertThat(
-        this.<NameserverLookupByIpCommand>readCommand(commandString).ipAddress.getHostAddress())
-            .isEqualTo(expectedIpAddress);
+            this.<NameserverLookupByIpCommand>readCommand(commandString).ipAddress.getHostAddress())
+        .isEqualTo(expectedIpAddress);
   }
 
   void assertLoadsRegistrar(String commandString) throws Exception {
