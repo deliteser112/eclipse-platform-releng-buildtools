@@ -105,7 +105,8 @@ def domain_registry_repositories(
     omit_org_mortbay_jetty=False,
     omit_org_mortbay_jetty_servlet_api=False,
     omit_org_mortbay_jetty_util=False,
-    omit_org_slf4j_api=False):
+    omit_org_slf4j_api=False,
+    omit_org_yaml_snakeyaml=False):
   """Imports dependencies for Nomulus."""
   domain_registry_bazel_check()
   if not omit_com_beust_jcommander:
@@ -276,6 +277,8 @@ def domain_registry_repositories(
     org_mortbay_jetty_util()
   if not omit_org_slf4j_api:
     org_slf4j_api()
+  if not omit_org_yaml_snakeyaml:
+    org_yaml_snakeyaml()
 
 def com_beust_jcommander():
   java_import_external(
@@ -1618,6 +1621,17 @@ def org_slf4j_api():
           "http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.16/slf4j-api-1.7.16.jar",
       ],
       licenses = ["notice"],  # MIT License
+  )
+
+def org_yaml_snakeyaml():
+  java_import_external(
+      name = "org_yaml_snakeyaml",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "5666b36f9db46f06dd5a19d73bbff3b588d5969c0f4b8848fde0f5ec849430a5",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar",
+          "http://repo1.maven.org/maven2/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar",
+      ],
   )
 
 def _check_bazel_version(project, bazel_version):

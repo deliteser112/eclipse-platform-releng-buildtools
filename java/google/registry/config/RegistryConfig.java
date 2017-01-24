@@ -14,13 +14,15 @@
 
 package google.registry.config;
 
+import static com.google.common.base.Suppliers.memoize;
 import static google.registry.config.ConfigUtils.makeUrl;
+import static google.registry.config.YamlUtils.getConfigSettings;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.joda.time.Duration.standardDays;
 
 import com.google.appengine.api.utils.SystemProperty;
-import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
@@ -83,8 +85,8 @@ public final class RegistryConfig {
 
     @Provides
     @Config("projectId")
-    public static String provideProjectId() {
-      return RegistryConfig.getProjectId();
+    public static String provideProjectId(RegistryConfigSettings config) {
+      return config.general.appEngineProjectId;
     }
 
     /**
@@ -362,8 +364,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("eppResourceIndexBucketCount")
-    public static int provideEppResourceIndexBucketCount() {
-      return RegistryConfig.getEppResourceIndexBucketCount();
+    public static int provideEppResourceIndexBucketCount(RegistryConfigSettings config) {
+      return config.datastore.eppResourceIndexBucketsNum;
     }
 
     /**
@@ -893,8 +895,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("stackdriverMaxQps")
-    public static int provideStackdriverMaxQps() {
-      return 30;
+    public static int provideStackdriverMaxQps(RegistryConfigSettings config) {
+      return config.monitoring.stackdriverMaxQps;
     }
 
     /**
@@ -905,8 +907,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("stackdriverMaxPointsPerRequest")
-    public static int provideStackdriverMaxPointsPerRequest() {
-      return 200;
+    public static int provideStackdriverMaxPointsPerRequest(RegistryConfigSettings config) {
+      return config.monitoring.stackdriverMaxPointsPerRequest;
     }
 
     /**
@@ -917,8 +919,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("metricsWriteInterval")
-    public static Duration provideMetricsWriteInterval() {
-      return Duration.standardSeconds(60);
+    public static Duration provideMetricsWriteInterval(RegistryConfigSettings config) {
+      return Duration.standardSeconds(config.monitoring.writeIntervalSeconds);
     }
 
     /**
@@ -1015,6 +1017,12 @@ public final class RegistryConfig {
       return "TheRegistrar";
     }
 
+    @Singleton
+    @Provides
+    static RegistryConfigSettings provideRegistryConfigSettings() {
+      return CONFIG_SETTINGS.get();
+    }
+
     /**
      * Returns the help path for the RDAP terms of service.
      *
@@ -1105,16 +1113,7 @@ public final class RegistryConfig {
    * Returns the App Engine project ID, which is based off the environment name.
    */
   public static String getProjectId() {
-    String prodProjectId = "domain-registry";
-    RegistryEnvironment environment = RegistryEnvironment.get();
-    switch (environment) {
-      case PRODUCTION:
-      case UNITTEST:
-      case LOCAL:
-        return prodProjectId;
-      default:
-        return prodProjectId + "-" + Ascii.toLowerCase(environment.name());
-    }
+    return CONFIG_SETTINGS.get().general.appEngineProjectId;
   }
 
   /**
@@ -1140,12 +1139,7 @@ public final class RegistryConfig {
    * @see google.registry.model.ofy.CommitLogBucket
    */
   public static int getCommitLogBucketCount() {
-    switch (RegistryEnvironment.get()) {
-      case UNITTEST:
-        return 3;
-      default:
-        return 100;
-    }
+    return CONFIG_SETTINGS.get().datastore.commitLogBucketsNum;
   }
 
   /**
@@ -1246,12 +1240,7 @@ public final class RegistryConfig {
    * Returns the number of {@code EppResourceIndex} buckets to be used.
    */
   public static int getEppResourceIndexBucketCount() {
-    switch (RegistryEnvironment.get()) {
-      case UNITTEST:
-        return 3;
-      default:
-        return 997;
-    }
+    return CONFIG_SETTINGS.get().datastore.eppResourceIndexBucketsNum;
   }
 
   /**
@@ -1265,6 +1254,19 @@ public final class RegistryConfig {
         return Duration.millis(100);
     }
   }
+
+  /**
+   * Memoizes loading of the {@link RegistryConfigSettings} POJO.
+   *
+   * <p>Memoizing without cache expiration is used because the app must be re-deployed in order to
+   * change the contents of the YAML config files.
+   */
+  private static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
+      memoize(new Supplier<RegistryConfigSettings>() {
+        @Override
+        public RegistryConfigSettings get() {
+          return getConfigSettings();
+        }});
 
   /** Config values used for local and unit test environments. */
   public static class LocalTestConfig {

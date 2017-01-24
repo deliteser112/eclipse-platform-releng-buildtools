@@ -7,7 +7,9 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "config",
     srcs = glob(["*.java"]),
+    resources = glob(["*.yaml"]),
     deps = [
+        "//java/google/registry/util",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
@@ -15,5 +17,6 @@ java_library(
         "@com_google_guava",
         "@joda_time",
         "@org_joda_money",
+        "@org_yaml_snakeyaml",
     ],
 )

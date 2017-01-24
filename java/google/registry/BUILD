@@ -53,6 +53,7 @@ zip_file(
         "env/common/default/WEB-INF/logging.properties",
         "env/common/default/WEB-INF/queue.xml",
         "env/common/default/WEB-INF/web.xml",
+        "env/production/common/WEB-INF/nomulus-config.yaml",
         "env/production/default/WEB-INF/appengine-web.xml",
         "env/production/default/WEB-INF/cron.xml",
         "//java/google/registry/module/frontend:frontend_jar_deploy.jar",
@@ -60,6 +61,7 @@ zip_file(
     out = "registry_default.war",
     mappings = {
         "domain_registry/java/google/registry/env/common/default": "",
+        "domain_registry/java/google/registry/env/production/common": "",
         "domain_registry/java/google/registry/env/production/default": "",
         "domain_registry/java/google/registry/module/frontend": "WEB-INF/lib",
     },
@@ -75,12 +77,14 @@ zip_file(
         "env/common/backend/WEB-INF/logging.properties",
         "env/common/backend/WEB-INF/web.xml",
         "env/production/backend/WEB-INF/appengine-web.xml",
+        "env/production/common/WEB-INF/nomulus-config.yaml",
         "//java/google/registry/module/backend:backend_jar_deploy.jar",
     ],
     out = "registry_backend.war",
     mappings = {
         "domain_registry/java/google/registry/env/common/backend": "",
         "domain_registry/java/google/registry/env/production/backend": "",
+        "domain_registry/java/google/registry/env/production/common": "",
         "domain_registry/java/google/registry/module/backend": "WEB-INF/lib",
     },
     deps = [
@@ -94,12 +98,14 @@ zip_file(
     srcs = [
         "env/common/tools/WEB-INF/logging.properties",
         "env/common/tools/WEB-INF/web.xml",
+        "env/production/common/WEB-INF/nomulus-config.yaml",
         "env/production/tools/WEB-INF/appengine-web.xml",
         "//java/google/registry/module/tools:tools_jar_deploy.jar",
     ],
     out = "registry_tools.war",
     mappings = {
         "domain_registry/java/google/registry/env/common/tools": "",
+        "domain_registry/java/google/registry/env/production/common": "",
         "domain_registry/java/google/registry/env/production/tools": "",
         "domain_registry/java/google/registry/module/tools": "WEB-INF/lib",
     },
@@ -132,27 +138,43 @@ registry_ear_file(
 zip_file(
     name = "registry_default_sandbox_war",
     srcs = [
+        "env/sandbox/common/WEB-INF/nomulus-config.yaml",
         "env/sandbox/default/WEB-INF/appengine-web.xml",
         "env/sandbox/default/WEB-INF/cron.xml",
     ],
     out = "registry_default_sandbox.war",
-    mappings = {"domain_registry/java/google/registry/env/sandbox/default": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/sandbox/common": "",
+        "domain_registry/java/google/registry/env/sandbox/default": "",
+    },
     deps = [":registry_default_war"],
 )
 
 zip_file(
     name = "registry_backend_sandbox_war",
-    srcs = ["env/sandbox/backend/WEB-INF/appengine-web.xml"],
+    srcs = [
+        "env/sandbox/backend/WEB-INF/appengine-web.xml",
+        "env/sandbox/common/WEB-INF/nomulus-config.yaml",
+    ],
     out = "registry_backend_sandbox.war",
-    mappings = {"domain_registry/java/google/registry/env/sandbox/backend": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/sandbox/backend": "",
+        "domain_registry/java/google/registry/env/sandbox/common": "",
+    },
     deps = [":registry_backend_war"],
 )
 
 zip_file(
     name = "registry_tools_sandbox_war",
-    srcs = ["env/sandbox/tools/WEB-INF/appengine-web.xml"],
+    srcs = [
+        "env/sandbox/common/WEB-INF/nomulus-config.yaml",
+        "env/sandbox/tools/WEB-INF/appengine-web.xml",
+    ],
     out = "registry_tools_sandbox.war",
-    mappings = {"domain_registry/java/google/registry/env/sandbox/tools": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/sandbox/common": "",
+        "domain_registry/java/google/registry/env/sandbox/tools": "",
+    },
     deps = [":registry_tools_war"],
 )
 
@@ -178,27 +200,43 @@ registry_ear_file(
 zip_file(
     name = "registry_default_alpha_war",
     srcs = [
+        "env/alpha/common/WEB-INF/nomulus-config.yaml",
         "env/alpha/default/WEB-INF/appengine-web.xml",
         "env/alpha/default/WEB-INF/cron.xml",
     ],
     out = "registry_default_alpha.war",
-    mappings = {"domain_registry/java/google/registry/env/alpha/default": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/alpha/common": "",
+        "domain_registry/java/google/registry/env/alpha/default": "",
+    },
     deps = [":registry_default_war"],
 )
 
 zip_file(
     name = "registry_backend_alpha_war",
-    srcs = ["env/alpha/backend/WEB-INF/appengine-web.xml"],
+    srcs = [
+        "env/alpha/backend/WEB-INF/appengine-web.xml",
+        "env/alpha/common/WEB-INF/nomulus-config.yaml",
+    ],
     out = "registry_backend_alpha.war",
-    mappings = {"domain_registry/java/google/registry/env/alpha/backend": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/alpha/backend": "",
+        "domain_registry/java/google/registry/env/alpha/common": "",
+    },
     deps = [":registry_backend_war"],
 )
 
 zip_file(
     name = "registry_tools_alpha_war",
-    srcs = ["env/alpha/tools/WEB-INF/appengine-web.xml"],
+    srcs = [
+        "env/alpha/common/WEB-INF/nomulus-config.yaml",
+        "env/alpha/tools/WEB-INF/appengine-web.xml",
+    ],
     out = "registry_tools_alpha.war",
-    mappings = {"domain_registry/java/google/registry/env/alpha/tools": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/alpha/common": "",
+        "domain_registry/java/google/registry/env/alpha/tools": "",
+    },
     deps = [":registry_tools_war"],
 )
 
@@ -224,27 +262,43 @@ registry_ear_file(
 zip_file(
     name = "registry_default_crash_war",
     srcs = [
+        "env/crash/common/WEB-INF/nomulus-config.yaml",
         "env/crash/default/WEB-INF/appengine-web.xml",
         "env/crash/default/WEB-INF/cron.xml",
     ],
     out = "registry_default_crash.war",
-    mappings = {"domain_registry/java/google/registry/env/crash/default": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/crash/common": "",
+        "domain_registry/java/google/registry/env/crash/default": "",
+    },
     deps = [":registry_default_war"],
 )
 
 zip_file(
     name = "registry_backend_crash_war",
-    srcs = ["env/crash/backend/WEB-INF/appengine-web.xml"],
+    srcs = [
+        "env/crash/backend/WEB-INF/appengine-web.xml",
+        "env/crash/common/WEB-INF/nomulus-config.yaml",
+    ],
     out = "registry_backend_crash.war",
-    mappings = {"domain_registry/java/google/registry/env/crash/backend": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/crash/backend": "",
+        "domain_registry/java/google/registry/env/crash/common": "",
+    },
     deps = [":registry_backend_war"],
 )
 
 zip_file(
     name = "registry_tools_crash_war",
-    srcs = ["env/crash/tools/WEB-INF/appengine-web.xml"],
+    srcs = [
+        "env/crash/common/WEB-INF/nomulus-config.yaml",
+        "env/crash/tools/WEB-INF/appengine-web.xml",
+    ],
     out = "registry_tools_crash.war",
-    mappings = {"domain_registry/java/google/registry/env/crash/tools": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/crash/common": "",
+        "domain_registry/java/google/registry/env/crash/tools": "",
+    },
     deps = [":registry_tools_war"],
 )
 
@@ -269,24 +323,42 @@ registry_ear_file(
 
 zip_file(
     name = "registry_default_local_war",
-    srcs = ["env/local/default/WEB-INF/appengine-web.xml"],
+    srcs = [
+        "env/local/common/WEB-INF/nomulus-config.yaml",
+        "env/local/default/WEB-INF/appengine-web.xml",
+    ],
     out = "registry_default_local.war",
-    mappings = {"domain_registry/java/google/registry/env/local/default": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/local/common": "",
+        "domain_registry/java/google/registry/env/local/default": "",
+    },
     deps = [":registry_default_war"],
 )
 
 zip_file(
     name = "registry_backend_local_war",
-    srcs = ["env/local/backend/WEB-INF/appengine-web.xml"],
+    srcs = [
+        "env/local/backend/WEB-INF/appengine-web.xml",
+        "env/local/common/WEB-INF/nomulus-config.yaml",
+    ],
     out = "registry_backend_local.war",
-    mappings = {"domain_registry/java/google/registry/env/local/backend": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/local/backend": "",
+        "domain_registry/java/google/registry/env/local/common": "",
+    },
     deps = [":registry_backend_war"],
 )
 
 zip_file(
     name = "registry_tools_local_war",
-    srcs = ["env/local/tools/WEB-INF/appengine-web.xml"],
+    srcs = [
+        "env/local/common/WEB-INF/nomulus-config.yaml",
+        "env/local/tools/WEB-INF/appengine-web.xml",
+    ],
     out = "registry_tools_local.war",
-    mappings = {"domain_registry/java/google/registry/env/local/tools": ""},
+    mappings = {
+        "domain_registry/java/google/registry/env/local/common": "",
+        "domain_registry/java/google/registry/env/local/tools": "",
+    },
     deps = [":registry_tools_war"],
 )

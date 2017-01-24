@@ -1,0 +1,29 @@
+# This is the default configuration file for Nomulus. Do not make changes to it
+# unless you are writing new features that requires you to. To customize an
+# individual deployment or environment, create a nomulus-config.yaml file in the
+# WEB-INF/ directory overriding only the values you wish to change.
+
+general:
+  # Globally unique App Engine project ID
+  appEngineProjectId: domain-registry
+
+datastore:
+  # The number of commit log buckets in Datastore. Don't change after initial
+  # install.
+  commitLogBucketsNum: 100
+
+  # The number of EPP resource index buckets in Datastore. Don’t change after
+  # initial install.
+  eppResourceIndexBucketsNum: 997
+
+monitoring:
+  # Max queries per second for the Google Cloud Monitoring V3 (aka Stackdriver)
+  # API. The limit can be adjusted by contacting Cloud Support.
+  stackdriverMaxQps: 30
+
+  # Max number of points that can be sent to Stackdriver in a single
+  # TimeSeries.Create API call.
+  stackdriverMaxPointsPerRequest: 200
+
+  # How often metrics are exported to BigQuery.
+  writeIntervalSeconds: 60
