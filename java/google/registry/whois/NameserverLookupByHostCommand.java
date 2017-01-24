@@ -37,7 +37,7 @@ public class NameserverLookupByHostCommand extends DomainOrHostLookupCommand {
   protected Optional<WhoisResponse> getResponse(InternetDomainName hostName, DateTime now) {
     final HostResource hostResource =
         loadByForeignKey(HostResource.class, hostName.toString(), now);
-    return Optional.fromNullable(
+    return Optional.<WhoisResponse>fromNullable(
         hostResource == null ? null : new NameserverWhoisResponse(hostResource, now));
   }
 }
