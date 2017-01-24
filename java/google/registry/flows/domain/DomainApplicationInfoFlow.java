@@ -51,7 +51,6 @@ import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
 import google.registry.util.Clock;
 import javax.inject.Inject;
-import org.joda.time.DateTime;
 
 /**
  * An EPP flow that returns information about a domain application.
@@ -83,7 +82,6 @@ public final class DomainApplicationInfoFlow implements Flow {
     extensionManager.register(LaunchInfoExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
-    DateTime now = clock.nowUtc();
     if (applicationId.isEmpty()) {
       throw new MissingApplicationIdException();
     }
@@ -116,7 +114,7 @@ public final class DomainApplicationInfoFlow implements Flow {
             .setLastEppUpdateTime(application.getLastEppUpdateTime())
             .setAuthInfo(application.getAuthInfo())
             .build())
-        .setExtensions(getDomainResponseExtensions(application, launchInfo, now))
+        .setExtensions(getDomainResponseExtensions(application, launchInfo))
         .build();
   }
 
@@ -132,8 +130,8 @@ public final class DomainApplicationInfoFlow implements Flow {
     return application;
   }
 
-  ImmutableList<ResponseExtension> getDomainResponseExtensions(DomainApplication application,
-      LaunchInfoExtension launchInfo, DateTime now) throws EppException {
+  ImmutableList<ResponseExtension> getDomainResponseExtensions(
+      DomainApplication application, LaunchInfoExtension launchInfo) {
     ImmutableList.Builder<Mark> marksBuilder = new ImmutableList.Builder<>();
     if (Boolean.TRUE.equals(launchInfo.getIncludeMark())) {  // Default to false.
       for (EncodedSignedMark encodedMark : application.getEncodedSignedMarks()) {
