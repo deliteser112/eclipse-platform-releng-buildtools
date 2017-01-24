@@ -17,6 +17,7 @@ package google.registry.flows.custom;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowMetadata;
 import google.registry.flows.SessionMetadata;
 import google.registry.flows.domain.DomainDeleteFlow;
 import google.registry.model.ImmutableObject;
@@ -33,8 +34,9 @@ import google.registry.model.reporting.HistoryEntry;
  */
 public class DomainDeleteFlowCustomLogic extends BaseFlowCustomLogic {
 
-  protected DomainDeleteFlowCustomLogic(EppInput eppInput, SessionMetadata sessionMetadata) {
-    super(eppInput, sessionMetadata);
+  protected DomainDeleteFlowCustomLogic(
+      EppInput eppInput, SessionMetadata sessionMetadata, FlowMetadata flowMetadata) {
+    super(eppInput, sessionMetadata, flowMetadata);
   }
 
   /** A hook that runs before any validation. This is useful to e.g. add allowable extensions. */
@@ -65,10 +67,9 @@ public class DomainDeleteFlowCustomLogic extends BaseFlowCustomLogic {
   /**
    * A hook that runs before the response is returned.
    *
-   * <p>This takes the {@link Result.Code} and {@link ResponseExtension}s as input and returns
-   * them, potentially with modifications.
+   * <p>This takes the {@link Result.Code} and {@link ResponseExtension}s as input and returns them,
+   * potentially with modifications.
    */
-
   @SuppressWarnings("unused")
   public BeforeResponseReturnData beforeResponse(BeforeResponseParameters parameters)
       throws EppException {
@@ -114,7 +115,6 @@ public class DomainDeleteFlowCustomLogic extends BaseFlowCustomLogic {
 
     public abstract HistoryEntry historyEntry();
 
-
     public abstract EntityChanges entityChanges();
 
     public static Builder newBuilder() {
@@ -136,7 +136,7 @@ public class DomainDeleteFlowCustomLogic extends BaseFlowCustomLogic {
       public abstract BeforeSaveParameters build();
     }
   }
-    /** A class to encapsulate parameters for a call to {@link #beforeResponse}. */
+  /** A class to encapsulate parameters for a call to {@link #beforeResponse}. */
   @AutoValue
   public abstract static class BeforeResponseParameters extends ImmutableObject {
 

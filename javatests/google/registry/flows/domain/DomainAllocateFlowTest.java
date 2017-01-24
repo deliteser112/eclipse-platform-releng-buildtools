@@ -213,11 +213,6 @@ public class DomainAllocateFlowTest
     }
   }
 
-  private void runFlowAsSuperuser() throws Exception {
-    assertTransactionalFlow(true);
-    runFlow(CommitMode.LIVE, UserPrivileges.SUPERUSER);
-  }
-
   @Test
   public void testSuccess() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
