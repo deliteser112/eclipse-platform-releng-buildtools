@@ -17,16 +17,28 @@ package google.registry.config;
 /** The POJO that YAML config files are deserialized into. */
 public class RegistryConfigSettings {
 
-  public General general;
+  public AppEngine appEngine;
+
+  public RegistryPolicy registryPolicy;
 
   public Datastore datastore;
 
+  public RegistrarConsole registrarConsole;
+
   public Monitoring monitoring;
 
-  /** General configuration options that apply to the entire App Engine project. */
-  public static class General {
+  /** Configuration options that apply to the entire App Engine project. */
+  public static class AppEngine {
 
-    public String appEngineProjectId;
+    public String projectId;
+  }
+
+  /** Configuration options for registry policy. */
+  public static class RegistryPolicy {
+
+    public String contactAndHostRoidSuffix;
+
+    public String productName;
   }
 
   /** Configuration for Cloud Datastore. */
@@ -35,6 +47,12 @@ public class RegistryConfigSettings {
     public int commitLogBucketsNum;
 
     public int eppResourceIndexBucketsNum;
+  }
+
+  /** Configuration for the web-based registrar console. */
+  public static class RegistrarConsole {
+
+    public String logoFilename;
   }
 
   /** Configuration for monitoring. */

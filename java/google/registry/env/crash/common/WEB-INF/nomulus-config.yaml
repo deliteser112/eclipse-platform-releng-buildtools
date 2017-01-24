@@ -1,3 +1,10 @@
 
-general:
-  appEngineProjectId: domain-registry-crash
+appEngine:
+  projectId: domain-registry-crash
+
+registryPolicy:
+  contactAndHostRoidSuffix: GOOGLE
+  productName: Google Registry Crash
+
+registrarConsole:
+  logoFilename: google_registry.png

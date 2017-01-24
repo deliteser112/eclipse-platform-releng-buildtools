@@ -1,3 +1,10 @@
 
-general:
-  appEngineProjectId: domain-registry-sandbox
+appEngine:
+  projectId: domain-registry-sandbox
+
+registryPolicy:
+  contactAndHostRoidSuffix: GOOGLE
+  productName: Google Registry Sandbox
+
+registrarConsole:
+  logoFilename: google_registry.png

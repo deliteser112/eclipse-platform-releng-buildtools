@@ -86,7 +86,7 @@ public final class RegistryConfig {
     @Provides
     @Config("projectId")
     public static String provideProjectId(RegistryConfigSettings config) {
-      return config.general.appEngineProjectId;
+      return config.appEngine.projectId;
     }
 
     /**
@@ -96,15 +96,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("logoFilename")
-    public static String provideLogoFilename(RegistryEnvironment environment) {
-      switch (environment) {
-        case UNITTEST:
-        case LOCAL:
-          return "logo.png";
-        default:
-          // Change this to the filename of your logo.
-          return "google_registry.png";
-      }
+    public static String provideLogoFilename(RegistryConfigSettings config) {
+      return config.registrarConsole.logoFilename;
     }
 
     /**
@@ -114,9 +107,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("productName")
-    public static String provideProductName(RegistryEnvironment environment) {
-      // Change this to the name of your product.
-      return "Nomulus";
+    public static String provideProductName(RegistryConfigSettings config) {
+      return config.registryPolicy.productName;
     }
 
     /**
@@ -128,8 +120,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("contactAndHostRoidSuffix")
-    public static String provideContactAndHostRoidSuffix(RegistryEnvironment environment) {
-      return LocalTestConfig.CONTACT_AND_HOST_ROID_SUFFIX;
+    public static String provideContactAndHostRoidSuffix(RegistryConfigSettings config) {
+      return config.registryPolicy.contactAndHostRoidSuffix;
     }
 
     /**
@@ -1120,7 +1112,7 @@ public final class RegistryConfig {
    * Returns the App Engine project ID, which is based off the environment name.
    */
   public static String getProjectId() {
-    return CONFIG_SETTINGS.get().general.appEngineProjectId;
+    return CONFIG_SETTINGS.get().appEngine.projectId;
   }
 
   /**
@@ -1262,6 +1254,11 @@ public final class RegistryConfig {
     }
   }
 
+  /** Returns the roid suffix to be used for the roids of all contacts and hosts. */
+  public static String getContactAndHostRoidSuffix() {
+    return CONFIG_SETTINGS.get().registryPolicy.contactAndHostRoidSuffix;
+  }
+
   /**
    * Memoizes loading of the {@link RegistryConfigSettings} POJO.
    *
@@ -1277,8 +1274,6 @@ public final class RegistryConfig {
 
   /** Config values used for local and unit test environments. */
   public static class LocalTestConfig {
-
-    public static final String CONTACT_AND_HOST_ROID_SUFFIX = "ROID";
 
     public static final String RESERVED_TERMS_TEST_EXPORT_DISCLAIMER = "This is a disclaimer.\n";
 

@@ -1,3 +1,10 @@
 
-general:
-  appEngineProjectId: domain-registry-alpha
+appEngine:
+  projectId: domain-registry-alpha
+
+registryPolicy:
+  contactAndHostRoidSuffix: GOOGLE
+  productName: Google Registry Alpha
+
+registrarConsole:
+  logoFilename: google_registry.png
