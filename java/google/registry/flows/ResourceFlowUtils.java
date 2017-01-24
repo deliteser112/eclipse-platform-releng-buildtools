@@ -20,7 +20,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Sets.intersection;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
-import static google.registry.model.EppResourceUtils.queryDomainsUsingResource;
+import static google.registry.model.EppResourceUtils.queryForLinkedDomains;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -189,8 +189,8 @@ public final class ResourceFlowUtils {
         // eventually consistent and so might be very stale, but the direct load will not be stale,
         // just non-transactional. If we find at least one actual reference then we can reliably
         // fail. If we don't find any, we can't trust the query and need to do the full mapreduce.
-        List<Key<DomainBase>> keys = queryDomainsUsingResource(
-            resourceClass, fki.getResourceKey(), now, FAILFAST_CHECK_COUNT);
+        Iterable<Key<DomainBase>> keys =
+            queryForLinkedDomains(fki.getResourceKey(), now).limit(FAILFAST_CHECK_COUNT).keys();
         Predicate<DomainBase> predicate = new Predicate<DomainBase>() {
           @Override
           public boolean apply(DomainBase domain) {

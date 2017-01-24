@@ -25,6 +25,7 @@ import static google.registry.util.DateTimeUtils.latestOf;
 import com.google.common.base.Function;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
+import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.util.ResultNow;
 import google.registry.model.EppResource.Builder;
 import google.registry.model.EppResource.BuilderWithTransferData;
@@ -34,7 +35,6 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
@@ -331,35 +331,42 @@ public final class EppResourceUtils {
   }
 
   /**
-   * Find keys of domains or applications that reference a specified contact or host.
+   * Returns a query for domains or applications that reference a specified contact or host.
    *
    * <p>This is an eventually consistent query.
    *
-   * @param clazz the referent type (contact or host)
    * @param key the referent key
    * @param now the logical time of the check
-   * @param limit max number of keys to return
    */
-  public static List<Key<DomainBase>> queryDomainsUsingResource(
-      Class<? extends EppResource> clazz, Key<? extends EppResource> key, DateTime now, int limit) {
-    checkArgument(ContactResource.class.equals(clazz) || HostResource.class.equals(clazz));
+  public static Query<DomainBase> queryForLinkedDomains(
+      Key<? extends EppResource> key, DateTime now) {
+    boolean isContactKey = key.getKind().equals(Key.getKind(ContactResource.class));
     return ofy()
         .load()
         .type(DomainBase.class)
-        .filter(clazz.equals(ContactResource.class) ? "allContacts.contact" : "nsHosts", key)
-        .filter("deletionTime >", now)
-        .limit(limit)
-        .keys()
-        .list();
+        .filter(isContactKey ? "allContacts.contact" : "nsHosts", key)
+        .filter("deletionTime >", now);
+  }
+
+  /**
+   * Returns whether the given contact or host is linked to (that is, referenced by) a domain.
+   *
+   * <p>This is an eventually consistent query.
+   *
+   * @param key the referent key
+   * @param now the logical time of the check
+   */
+  public static boolean isLinked(Key<? extends EppResource> key, DateTime now) {
+    return queryForLinkedDomains(key, now).limit(1).count() > 0;
   }
 
   /** Clone a contact or host with an eventually-consistent notion of LINKED. */
   public static EppResource cloneResourceWithLinkedStatus(EppResource resource, DateTime now) {
     Builder<?, ?> builder = resource.asBuilder();
-    if (queryDomainsUsingResource(resource.getClass(), Key.create(resource), now, 1).isEmpty()) {
-      builder.removeStatusValue(StatusValue.LINKED);
-    } else {
+    if (isLinked(Key.create(resource), now)) {
       builder.addStatusValue(StatusValue.LINKED);
+    } else {
+      builder.removeStatusValue(StatusValue.LINKED);
     }
     return builder.build();
   }
