@@ -1254,6 +1254,11 @@ public final class RegistryConfig {
     }
   }
 
+  /** Returns the roid suffix to be used for the roids of all contacts and hosts. */
+  public static String getContactAndHostRoidSuffix() {
+    return CONFIG_SETTINGS.get().registryPolicy.contactAndHostRoidSuffix;
+  }
+
   /**
    * Memoizes loading of the {@link RegistryConfigSettings} POJO.
    *
