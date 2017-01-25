@@ -1,9 +1,9 @@
 {
   "objectClassName" : "nameserver",
-  "handle" : "C-ROID",
+  "handle" : "E-ROID",
   "ldhName" : "ns3.cat.xn--q9jyb4c",
   "unicodeName" : "ns3.cat.みんな",
-  "status" : ["active"],
+  "status" : ["active", "associated"],
   "links" :
   [
     {

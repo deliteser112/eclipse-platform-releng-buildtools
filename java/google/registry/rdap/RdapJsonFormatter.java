@@ -15,7 +15,9 @@
 package google.registry.rdap;
 
 import static com.google.common.base.Strings.nullToEmpty;
+import static google.registry.model.EppResourceUtils.isLinked;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
 import com.google.common.base.Function;
@@ -551,7 +553,10 @@ public class RdapJsonFormatter {
     if (hasUnicodeComponents(hostResource.getFullyQualifiedHostName())) {
       jsonBuilder.put("unicodeName", Idn.toUnicode(hostResource.getFullyQualifiedHostName()));
     }
-    jsonBuilder.put("status", makeStatusValueList(hostResource.getStatusValues()));
+    jsonBuilder.put("status", makeStatusValueList(
+        isLinked(Key.create(hostResource), now)
+            ? union(hostResource.getStatusValues(), StatusValue.LINKED)
+            : hostResource.getStatusValues()));
     jsonBuilder.put("links", ImmutableList.of(
         makeLink("nameserver", hostResource.getFullyQualifiedHostName(), linkBase)));
     List<ImmutableMap<String, Object>> remarks;
@@ -630,7 +635,10 @@ public class RdapJsonFormatter {
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("objectClassName", "entity");
     jsonBuilder.put("handle", contactResource.getRepoId());
-    jsonBuilder.put("status", makeStatusValueList(contactResource.getStatusValues()));
+    jsonBuilder.put("status", makeStatusValueList(
+        isLinked(Key.create(contactResource), now)
+            ? union(contactResource.getStatusValues(), StatusValue.LINKED)
+            : contactResource.getStatusValues()));
     if (contactType.isPresent()) {
       jsonBuilder.put("roles",
           ImmutableList.of(convertContactTypeToRdapRole(contactType.get())));

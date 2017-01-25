@@ -1,0 +1,33 @@
+{
+  "status": [
+    "active",
+    "associated"
+  ],
+  "ldhName": "%NAME%",
+  "handle": "%HANDLE%",
+  "links": [
+    {
+      "href": "https://example.tld/rdap/nameserver/%NAME%",
+      "type": "application/rdap+json",
+      "rel": "self",
+      "value": "https://example.tld/rdap/nameserver/%NAME%"
+    }
+  ],
+  "ipAddresses": {
+    "%ADDRESSTYPE%": [
+      "%ADDRESS%"
+    ]
+  },
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventActor": "foo",
+      "eventDate": "1999-01-01T00:00:00.000Z"
+    },
+    {
+      "eventAction": "last update of RDAP database",
+      "eventDate": "2000-01-01T00:00:00.000Z"
+    }
+  ],
+  "objectClassName": "nameserver"
+}

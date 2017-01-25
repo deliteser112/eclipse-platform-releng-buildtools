@@ -37,7 +37,8 @@
   "nameservers": [
     {
       "status": [
-        "active"
+        "active",
+        "associated"
       ],
       "handle": "8-ROID",
       "links": [
@@ -69,7 +70,8 @@
     },
     {
       "status": [
-        "active"
+        "active",
+        "associated"
       ],
       "handle": "A-ROID",
       "links": [
@@ -104,7 +106,8 @@
   "entities": [
     {
       "status": [
-        "active"
+        "active",
+        "associated"
       ],
       "handle": "4-ROID",
       "roles": [
@@ -196,7 +199,8 @@
     },
     {
       "status": [
-        "active"
+        "active",
+        "associated"
       ],
       "handle": "6-ROID",
       "roles": [
@@ -288,7 +292,8 @@
     },
     {
       "status": [
-        "active"
+        "active",
+        "associated"
       ],
       "handle": "2-ROID",
       "roles": [

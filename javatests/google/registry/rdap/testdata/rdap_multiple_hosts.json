@@ -4,7 +4,7 @@
     {
       "objectClassName" : "nameserver",
       "handle" : "4-ROID",
-      "status" : ["active"],
+      "status" : ["active", "associated"],
       "ldhName" : "ns2.cat.lol",
       "links" :
       [

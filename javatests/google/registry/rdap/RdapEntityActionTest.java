@@ -78,19 +78,19 @@ public class RdapEntityActionTest {
         "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE, 101L));
     persistSimpleResources(makeRegistrarContacts(registrarLol));
     registrant = makeAndPersistContactResource(
-        "8372808-ERL",
+        "8372808-REG",
         "(◕‿◕)",
         "lol@cat.みんな",
         ImmutableList.of("1 Smiley Row", "Suite みんな"),
         clock.nowUtc());
     adminContact = makeAndPersistContactResource(
-        "8372808-ERL",
+        "8372808-ADM",
         "(◕‿◕)",
         "lol@cat.みんな",
         ImmutableList.of("1 Smiley Row", "Suite みんな"),
         clock.nowUtc());
     techContact = makeAndPersistContactResource(
-        "8372808-ERL",
+        "8372808-TEC",
         "(◕‿◕)",
         "lol@cat.みんな",
         ImmutableList.of("1 Smiley Row", "Suite みんな"),
@@ -130,13 +130,13 @@ public class RdapEntityActionTest {
         host2,
         registrar1tld));
     disconnectedContact = makeAndPersistContactResource(
-        "8372808-ERL",
+        "8372808-DIS",
         "(◕‿◕)",
         "lol@cat.みんな",
         ImmutableList.of("1 Smiley Row", "Suite みんな"),
         clock.nowUtc());
     deletedContact = persistResource(makeContactResource(
-            "8372808-ERL",
+            "8372808-DEL",
             "(◕‿◕)",
             "lol@cat.みんな",
             ImmutableList.of("1 Smiley Row", "Suite みんな"))
@@ -211,21 +211,24 @@ public class RdapEntityActionTest {
   @Test
   public void testValidRegistrantContact_works() throws Exception {
     assertThat(generateActualJson(registrant.getRepoId())).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries(registrant.getRepoId(), "rdap_contact.json"));
+        generateExpectedJsonWithTopLevelEntries(
+            registrant.getRepoId(), "rdap_associated_contact.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testValidAdminContact_works() throws Exception {
     assertThat(generateActualJson(adminContact.getRepoId())).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries(adminContact.getRepoId(), "rdap_contact.json"));
+        generateExpectedJsonWithTopLevelEntries(
+            adminContact.getRepoId(), "rdap_associated_contact.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testValidTechContact_works() throws Exception {
     assertThat(generateActualJson(techContact.getRepoId())).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries(techContact.getRepoId(), "rdap_contact.json"));
+        generateExpectedJsonWithTopLevelEntries(
+            techContact.getRepoId(), "rdap_associated_contact.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -272,7 +275,8 @@ public class RdapEntityActionTest {
   @Test
   public void testQueryParameter_ignored() throws Exception {
     assertThat(generateActualJson(techContact.getRepoId() + "?key=value")).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries(techContact.getRepoId(), "rdap_contact.json"));
+        generateExpectedJsonWithTopLevelEntries(
+            techContact.getRepoId(), "rdap_associated_contact.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 }

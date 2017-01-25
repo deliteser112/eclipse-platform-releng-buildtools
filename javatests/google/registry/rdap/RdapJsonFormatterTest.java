@@ -74,9 +74,11 @@ public class RdapJsonFormatterTest {
   private HostResource hostResourceIpv6;
   private HostResource hostResourceBoth;
   private HostResource hostResourceNoAddresses;
+  private HostResource hostResourceNotLinked;
   private ContactResource contactResourceRegistrant;
   private ContactResource contactResourceAdmin;
   private ContactResource contactResourceTech;
+  private ContactResource contactResourceNotLinked;
 
   private static final String LINK_BASE = "http://myserver.example.com/";
   private static final String LINK_BASE_NO_TRAILING_SLASH = "http://myserver.example.com";
@@ -116,6 +118,12 @@ public class RdapJsonFormatterTest {
         "bog@cat.みんな",
         ImmutableList.of("Chamber Door", "upper level"),
         clock.nowUtc().minusYears(3));
+    contactResourceNotLinked = makeAndPersistContactResource(
+        "8372808-QRL",
+        "The Wizard",
+        "dog@cat.みんな",
+        ImmutableList.of("Somewhere", "Over the Rainbow"),
+        clock.nowUtc().minusYears(4));
     hostResourceIpv4 = makeAndPersistHostResource(
         "ns1.cat.みんな", "1.2.3.4", clock.nowUtc().minusYears(1));
     hostResourceIpv6 = makeAndPersistHostResource(
@@ -124,6 +132,8 @@ public class RdapJsonFormatterTest {
         "ns3.cat.みんな", "1.2.3.4", "bad:f00d:cafe:0:0:0:15:beef", clock.nowUtc().minusYears(3));
     hostResourceNoAddresses = makeAndPersistHostResource(
         "ns4.cat.みんな", null, clock.nowUtc().minusYears(4));
+    hostResourceNotLinked = makeAndPersistHostResource(
+        "ns5.cat.みんな", null, clock.nowUtc().minusYears(5));
     domainResourceFull = persistResource(
         makeDomainResource(
             "cat.みんな",
@@ -141,6 +151,18 @@ public class RdapJsonFormatterTest {
             contactResourceTech,
             null,
             null,
+            registrar));
+
+    // Create an unused domain that references hostResourceBoth and hostResourceNoAddresses so that
+    // they will have "associated" (ie, StatusValue.LINKED) status.
+    persistResource(
+        makeDomainResource(
+            "dog.みんな",
+            contactResourceRegistrant,
+            contactResourceAdmin,
+            contactResourceTech,
+            hostResourceBoth,
+            hostResourceNoAddresses,
             registrar));
 
     // history entries
@@ -223,21 +245,36 @@ public class RdapJsonFormatterTest {
   @Test
   public void testHost_ipv4() throws Exception {
     assertThat(rdapJsonFormatter.makeRdapJsonForHost(
-            hostResourceIpv4, false, LINK_BASE, WHOIS_SERVER, clock.nowUtc(), OutputDataType.FULL))
+            hostResourceIpv4,
+            false,
+            LINK_BASE,
+            WHOIS_SERVER,
+            clock.nowUtc(),
+            OutputDataType.FULL))
         .isEqualTo(loadJson("rdapjson_host_ipv4.json"));
   }
 
   @Test
   public void testHost_ipv6() throws Exception {
     assertThat(rdapJsonFormatter.makeRdapJsonForHost(
-            hostResourceIpv6, false, LINK_BASE, WHOIS_SERVER, clock.nowUtc(), OutputDataType.FULL))
+            hostResourceIpv6,
+            false,
+            LINK_BASE,
+            WHOIS_SERVER,
+            clock.nowUtc(),
+            OutputDataType.FULL))
         .isEqualTo(loadJson("rdapjson_host_ipv6.json"));
   }
 
   @Test
   public void testHost_both() throws Exception {
     assertThat(rdapJsonFormatter.makeRdapJsonForHost(
-            hostResourceBoth, false, LINK_BASE, WHOIS_SERVER, clock.nowUtc(), OutputDataType.FULL))
+            hostResourceBoth,
+            false,
+            LINK_BASE,
+            WHOIS_SERVER,
+            clock.nowUtc(),
+            OutputDataType.FULL))
         .isEqualTo(loadJson("rdapjson_host_both.json"));
   }
 
@@ -263,6 +300,18 @@ public class RdapJsonFormatterTest {
             clock.nowUtc(),
             OutputDataType.FULL))
         .isEqualTo(loadJson("rdapjson_host_no_addresses.json"));
+  }
+
+  @Test
+  public void testHost_notLinked() throws Exception {
+    assertThat(rdapJsonFormatter.makeRdapJsonForHost(
+            hostResourceNotLinked,
+            false,
+            LINK_BASE,
+            WHOIS_SERVER,
+            clock.nowUtc(),
+            OutputDataType.FULL))
+        .isEqualTo(loadJson("rdapjson_host_not_linked.json"));
   }
 
   @Test
@@ -361,6 +410,20 @@ public class RdapJsonFormatterTest {
                 clock.nowUtc(),
                 OutputDataType.FULL))
         .isEqualTo(loadJson("rdapjson_rolelesscontact.json"));
+  }
+
+  @Test
+  public void testUnlinkedContact() throws Exception {
+    assertThat(
+            rdapJsonFormatter.makeRdapJsonForContact(
+                contactResourceNotLinked,
+                false,
+                Optional.<DesignatedContact.Type>absent(),
+                LINK_BASE,
+                WHOIS_SERVER,
+                clock.nowUtc(),
+                OutputDataType.FULL))
+        .isEqualTo(loadJson("rdapjson_unlinkedcontact.json"));
   }
 
   @Test

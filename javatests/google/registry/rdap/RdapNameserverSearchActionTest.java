@@ -267,16 +267,20 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithName("ns1.cat.lol"))
         .isEqualTo(
             generateExpectedJsonForNameserver(
-                "ns1.cat.lol", null, "2-ROID", "v4", "1.2.3.4", "rdap_host.json"));
+                "ns1.cat.lol", null, "2-ROID", "v4", "1.2.3.4", "rdap_host_linked.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testNameMatch_ns2_cat_lol_found() throws Exception {
     assertThat(generateActualJsonWithName("ns2.cat.lol"))
-        .isEqualTo(
-            generateExpectedJsonForNameserver(
-                "ns2.cat.lol", null, "4-ROID", "v6", "bad:f00d:cafe::15:beef", "rdap_host.json"));
+        .isEqualTo(generateExpectedJsonForNameserver(
+                "ns2.cat.lol",
+                null,
+                "4-ROID",
+                "v6",
+                "bad:f00d:cafe::15:beef",
+                "rdap_host_linked.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -392,7 +396,7 @@ public class RdapNameserverSearchActionTest {
                 "4-ROID",
                 "v6",
                 "bad:f00d:cafe::15:beef",
-                "rdap_host.json"));
+                "rdap_host_linked.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -401,7 +405,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithIp("1.2.3.4"))
         .isEqualTo(
             generateExpectedJsonForNameserver(
-                "ns1.cat.lol", null, "2-ROID", "v4", "1.2.3.4", "rdap_host.json"));
+                "ns1.cat.lol", null, "2-ROID", "v4", "1.2.3.4", "rdap_host_linked.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

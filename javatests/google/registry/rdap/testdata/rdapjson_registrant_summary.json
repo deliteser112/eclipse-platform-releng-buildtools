@@ -1,7 +1,7 @@
 {
   "objectClassName" : "entity",
   "handle" : "2-ROID",
-  "status" : ["active"],
+  "status" : ["active", "associated"],
   "roles" : ["registrant"],
   "links" :
   [

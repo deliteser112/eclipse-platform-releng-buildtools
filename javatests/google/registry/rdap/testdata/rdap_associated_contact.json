@@ -1,14 +1,13 @@
 {
   "objectClassName" : "entity",
-  "handle" : "6-ROID",
+  "handle" : "%NAME%",
   "status" : ["active", "associated"],
-  "roles" : ["technical"],
   "links" :
   [
     {
-      "value" : "http://myserver.example.com/entity/6-ROID",
+      "value" : "https://example.com/rdap/entity/%NAME%",
       "rel" : "self",
-      "href" : "http://myserver.example.com/entity/6-ROID",
+      "href": "https://example.com/rdap/entity/%NAME%",
       "type" : "application/rdap+json"
     }
   ],
@@ -16,7 +15,7 @@
     {
       "eventAction": "registration",
       "eventActor": "foo",
-      "eventDate": "1997-01-01T00:00:00.000Z"
+      "eventDate": "2000-01-01T00:00:00.000Z"
     },
     {
       "eventAction": "last update of RDAP database",
@@ -28,22 +27,23 @@
     "vcard",
     [
       ["version", {}, "text", "4.0"],
-      ["fn", {}, "text", "The Raven"],
+      ["fn", {}, "text", "%FULLNAME%"],
       ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
-      ["adr", {}, "text", [
-        "",
-        "",
+      ["adr", {}, "text",
         [
-          "Chamber Door",
-          "upper level"
-        ],
-        "KOKOMO",
-        "BM",
-        "31337",
-        "United States"]],
+          "",
+          "",
+          [ %ADDRESS% ],
+          "KOKOMO",
+          "BM",
+          "31337",
+          "United States"
+        ]
+      ],
       ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
       ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
-      ["email", {}, "text", "bog@cat.みんな"]
+      ["email", {}, "text", "%EMAIL%"]
     ]
   ]
 }
+

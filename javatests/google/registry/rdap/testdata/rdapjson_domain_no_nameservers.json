@@ -1,6 +1,6 @@
 {
   "objectClassName" : "domain",
-  "handle" : "11-Q9JYB4C",
+  "handle" : "15-Q9JYB4C",
   "ldhName" : "fish.xn--q9jyb4c",
   "unicodeName" : "fish.みんな",
   "status" :
@@ -44,7 +44,7 @@
     {
       "objectClassName" : "entity",
       "handle" : "4-ROID",
-      "status" : ["active"],
+      "status" : ["active", "associated"],
       "roles" : ["administrative"],
       "links" :
       [
@@ -93,7 +93,7 @@
     {
       "objectClassName" : "entity",
       "handle" : "6-ROID",
-      "status" : ["active"],
+      "status" : ["active", "associated"],
       "roles" : ["technical"],
       "links" :
       [
@@ -142,7 +142,7 @@
     {
       "objectClassName" : "entity",
       "handle" : "2-ROID",
-      "status" : ["active"],
+      "status" : ["active", "associated"],
       "roles" : ["registrant"],
       "links" :
       [
