@@ -281,11 +281,6 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
       if (difference(getInstance().getStatusValues(), StatusValue.LINKED).isEmpty()) {
         addStatusValue(StatusValue.OK);
       }
-      return buildWithoutImplicitStatusValues();
-    }
-
-    /** Build the resource, nullifying empty strings and sets and setting defaults. */
-    public T buildWithoutImplicitStatusValues() {
       // If there is no deletion time, set it to END_OF_TIME.
       setDeletionTime(Optional.fromNullable(getInstance().deletionTime).or(END_OF_TIME));
       return ImmutableObject.cloneEmptyToNull(super.build());

@@ -57,12 +57,14 @@ public abstract class DomainInfoData implements ResponseData {
   abstract String getRepoId();
 
   @XmlElement(name = "status")
+  @Nullable
   abstract ImmutableSet<StatusValue> getStatusValues();
 
   @XmlElement(name = "registrant")
   abstract String getRegistrant();
 
   @XmlElement(name = "contact")
+  @Nullable
   abstract ImmutableSet<ForeignKeyedDesignatedContact> getContacts();
 
   @XmlElementWrapper(name = "ns")
@@ -110,9 +112,10 @@ public abstract class DomainInfoData implements ResponseData {
   public abstract static class Builder {
     public abstract Builder setFullyQualifiedDomainName(String fullyQualifiedDomainName);
     public abstract Builder setRepoId(String repoId);
-    public abstract Builder setStatusValues(ImmutableSet<StatusValue> statusValues);
+    public abstract Builder setStatusValues(@Nullable ImmutableSet<StatusValue> statusValues);
     public abstract Builder setRegistrant(String registrant);
-    public abstract Builder setContacts(ImmutableSet<ForeignKeyedDesignatedContact> contacts);
+    public abstract Builder setContacts(
+        @Nullable ImmutableSet<ForeignKeyedDesignatedContact> contacts);
     public abstract Builder setNameservers(@Nullable ImmutableSet<String> nameservers);
     public abstract Builder setSubordinateHosts(@Nullable ImmutableSet<String> subordinateHosts);
     public abstract Builder setCurrentSponsorClientId(String currentSponsorClientId);

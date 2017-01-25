@@ -40,7 +40,6 @@ import google.registry.model.domain.DomainCommand.Info;
 import google.registry.model.domain.DomainCommand.Info.HostsRequest;
 import google.registry.model.domain.DomainInfoData;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.DomainResource.Builder;
 import google.registry.model.domain.fee06.FeeInfoCommandExtensionV06;
 import google.registry.model.domain.fee06.FeeInfoResponseExtensionV06;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -98,59 +97,43 @@ public final class DomainInfoFlow implements Flow {
         customLogic.beforeResponse(
             BeforeResponseParameters.newBuilder()
                 .setDomain(domain)
-                .setResData(getResourceInfo(domain))
+                .setResData(domain)
                 .setResponseExtensions(getDomainResponseExtensions(domain, now))
                 .build());
     domain = responseData.resData();
     prefetchReferencedResources(domain);
-    return responseBuilder
-        .setResData(DomainInfoData.newBuilder()
-            .setFullyQualifiedDomainName(domain.getFullyQualifiedDomainName())
-            .setRepoId(domain.getRepoId())
-            .setStatusValues(domain.getStatusValues())
-            .setRegistrant(ofy().load().key(domain.getRegistrant()).now().getContactId())
-            .setContacts(loadForeignKeyedDesignatedContacts(domain.getContacts()))
-            .setNameservers(domain.loadNameserverFullyQualifiedHostNames())
-            .setSubordinateHosts(domain.getSubordinateHosts())
-            .setCurrentSponsorClientId(domain.getCurrentSponsorClientId())
-            .setCreationClientId(domain.getCreationClientId())
-            .setCreationTime(domain.getCreationTime())
-            .setLastEppUpdateClientId(domain.getLastEppUpdateClientId())
-            .setLastEppUpdateTime(domain.getLastEppUpdateTime())
-            .setRegistrationExpirationTime(domain.getRegistrationExpirationTime())
-            .setLastTransferTime(domain.getLastTransferTime())
-            .setAuthInfo(domain.getAuthInfo())
-            .build())
-        .setExtensions(responseData.responseExtensions())
-        .build();
-  }
-
-  private DomainResource getResourceInfo(DomainResource domain) {
+    // Registrars can only see a few fields on unauthorized domains.
+    // This is a policy decision that is left up to us by the rfcs.
+    DomainInfoData.Builder infoBuilder = DomainInfoData.newBuilder()
+        .setFullyQualifiedDomainName(domain.getFullyQualifiedDomainName())
+        .setRepoId(domain.getRepoId())
+        .setCurrentSponsorClientId(domain.getCurrentSponsorClientId())
+        .setRegistrant(ofy().load().key(domain.getRegistrant()).now().getContactId());
     // If authInfo is non-null, then the caller is authorized to see the full information since we
     // will have already verified the authInfo is valid.
-    if (!(clientId.equals(domain.getCurrentSponsorClientId()) || authInfo.isPresent())) {
-      // Registrars can only see a few fields on unauthorized domains.
-      // This is a policy decision that is left up to us by the rfcs.
-      return new DomainResource.Builder()
-          .setFullyQualifiedDomainName(domain.getFullyQualifiedDomainName())
-          .setRepoId(domain.getRepoId())
-          .setCurrentSponsorClientId(domain.getCurrentSponsorClientId())
-          .setRegistrant(domain.getRegistrant())
-          // If we didn't do this, we'd get implicit status values.
-          .buildWithoutImplicitStatusValues();
+    if (clientId.equals(domain.getCurrentSponsorClientId()) || authInfo.isPresent()) {
+      HostsRequest hostsRequest = ((Info) resourceCommand).getHostsRequest();
+      infoBuilder
+          .setStatusValues(domain.getStatusValues())
+          .setContacts(loadForeignKeyedDesignatedContacts(domain.getContacts()))
+          .setNameservers(hostsRequest.requestDelegated()
+              ? domain.loadNameserverFullyQualifiedHostNames()
+              : null)
+          .setSubordinateHosts(hostsRequest.requestSubordinate()
+              ? domain.getSubordinateHosts()
+              : null)
+          .setCreationClientId(domain.getCreationClientId())
+          .setCreationTime(domain.getCreationTime())
+          .setLastEppUpdateClientId(domain.getLastEppUpdateClientId())
+          .setLastEppUpdateTime(domain.getLastEppUpdateTime())
+          .setRegistrationExpirationTime(domain.getRegistrationExpirationTime())
+          .setLastTransferTime(domain.getLastTransferTime())
+          .setAuthInfo(domain.getAuthInfo());
     }
-    HostsRequest hostsRequest = ((Info) resourceCommand).getHostsRequest();
-    Builder info = domain.asBuilder();
-    if (!hostsRequest.requestSubordinate()) {
-      info.setSubordinateHosts(null);
-    }
-    if (!hostsRequest.requestDelegated()) {
-      // Delegated hosts are present by default, so clear them out if they aren't wanted.
-      // This requires overriding the implicit status values so that we don't get INACTIVE added due
-      // to the missing nameservers.
-      return info.setNameservers(null).buildWithoutImplicitStatusValues();
-    }
-    return info.build();
+    return responseBuilder
+        .setResData(infoBuilder.build())
+        .setExtensions(responseData.responseExtensions())
+        .build();
   }
 
   private ImmutableList<ResponseExtension> getDomainResponseExtensions(

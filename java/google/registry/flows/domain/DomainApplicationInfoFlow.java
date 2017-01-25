@@ -97,7 +97,7 @@ public final class DomainApplicationInfoFlow implements Flow {
     }
     // We don't support authInfo for applications, so if it's another registrar always fail.
     verifyResourceOwnership(clientId, application);
-    application = getResourceInfo(application);
+    boolean showDelegatedHosts = ((Info) resourceCommand).getHostsRequest().requestDelegated();
     prefetchReferencedResources(application);
     return responseBuilder
         .setResData(DomainInfoData.newBuilder()
@@ -106,7 +106,9 @@ public final class DomainApplicationInfoFlow implements Flow {
             .setStatusValues(application.getStatusValues())
             .setRegistrant(ofy().load().key(application.getRegistrant()).now().getContactId())
             .setContacts(loadForeignKeyedDesignatedContacts(application.getContacts()))
-            .setNameservers(application.loadNameserverFullyQualifiedHostNames())
+            .setNameservers(showDelegatedHosts
+                ? application.loadNameserverFullyQualifiedHostNames()
+                : null)
             .setCurrentSponsorClientId(application.getCurrentSponsorClientId())
             .setCreationClientId(application.getCreationClientId())
             .setCreationTime(application.getCreationTime())
@@ -116,18 +118,6 @@ public final class DomainApplicationInfoFlow implements Flow {
             .build())
         .setExtensions(getDomainResponseExtensions(application, launchInfo))
         .build();
-  }
-
-  DomainApplication getResourceInfo(DomainApplication application) {
-    if (!((Info) resourceCommand).getHostsRequest().requestDelegated()) {
-      // Delegated hosts are present by default, so clear them out if they aren't wanted.
-      // This requires overriding the implicit status values so that we don't get INACTIVE added due
-      // to the missing nameservers.
-      return application.asBuilder()
-          .setNameservers(null)
-          .buildWithoutImplicitStatusValues();
-    }
-    return application;
   }
 
   ImmutableList<ResponseExtension> getDomainResponseExtensions(
