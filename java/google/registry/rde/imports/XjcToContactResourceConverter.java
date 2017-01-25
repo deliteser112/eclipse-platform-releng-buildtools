@@ -14,10 +14,12 @@
 
 package google.registry.rde.imports;
 
+import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.base.Predicates.not;
+
 import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -56,21 +58,24 @@ final class XjcToContactResourceConverter {
         }
       };
 
-  private static final Function<XjcContactStatusType, StatusValue> STATUS_CONVERTER =
+  private static final Function<XjcContactStatusType, StatusValue> STATUS_VALUE_CONVERTER =
       new Function<XjcContactStatusType, StatusValue>() {
         @Override
         public StatusValue apply(XjcContactStatusType status) {
           return convertStatusValue(status);
         }
-
-  };
+      };
 
   /** Converts {@link XjcRdeContact} to {@link ContactResource}. */
   static ContactResource convertContact(XjcRdeContact contact) {
     return new ContactResource.Builder()
         .setRepoId(contact.getRoid())
         .setStatusValues(
-            ImmutableSet.copyOf(Iterables.transform(contact.getStatuses(), STATUS_CONVERTER)))
+            FluentIterable.from(contact.getStatuses())
+                .transform(STATUS_VALUE_CONVERTER)
+                // LINKED is implicit and should not be imported onto the new contact.
+                .filter(not(equalTo(StatusValue.LINKED)))
+                .toSet())
         .setLocalizedPostalInfo(
             getPostalInfoOfType(contact.getPostalInfos(), XjcContactPostalInfoEnumType.LOC))
         .setInternationalizedPostalInfo(

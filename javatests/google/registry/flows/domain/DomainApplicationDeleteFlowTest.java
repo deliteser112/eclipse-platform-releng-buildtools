@@ -15,7 +15,9 @@
 package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.EppResourceUtils.isLinked;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
@@ -23,8 +25,8 @@ import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -94,10 +96,10 @@ public class DomainApplicationDeleteFlowTest
                 loadByForeignKey(HostResource.class, "ns1.example.net", clock.nowUtc()))))
         .build());
     doSuccessfulTest();
-    for (EppResource resource : new EppResource[]{
-        loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc()),
-        loadByForeignKey(HostResource.class, "ns1.example.net", clock.nowUtc()) }) {
-      assertAboutEppResources().that(resource).doesNotHaveStatusValue(StatusValue.LINKED);
+    for (Key<? extends EppResource> key : ImmutableList.of(
+        loadAndGetKey(ContactResource.class, "sh8013", clock.nowUtc()),
+        loadAndGetKey(HostResource.class, "ns1.example.net", clock.nowUtc()))) {
+      assertThat(isLinked(key, clock.nowUtc())).isFalse();
     }
   }
 

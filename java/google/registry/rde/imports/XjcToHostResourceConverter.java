@@ -14,7 +14,11 @@
 
 package google.registry.rde.imports;
 
+import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.base.Predicates.not;
+
 import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.net.InetAddresses;
@@ -55,7 +59,11 @@ public class XjcToHostResourceConverter {
         .setCreationClientId(host.getCrRr().getValue())
         .setLastEppUpdateClientId(host.getUpRr() == null ? null : host.getUpRr().getValue())
         .setStatusValues(
-            ImmutableSet.copyOf(Lists.transform(host.getStatuses(), STATUS_VALUE_CONVERTER)))
+            FluentIterable.from(host.getStatuses())
+                .transform(STATUS_VALUE_CONVERTER)
+                // LINKED is implicit and should not be imported onto the new host.
+                .filter(not(equalTo(StatusValue.LINKED)))
+                .toSet())
         .setInetAddresses(ImmutableSet.copyOf(Lists.transform(host.getAddrs(), ADDR_CONVERTER)))
         .build();
   }

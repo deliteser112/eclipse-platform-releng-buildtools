@@ -14,10 +14,12 @@
 
 package google.registry.model;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static google.registry.util.CollectionUtils.difference;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
@@ -28,6 +30,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.OnLoad;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.transfer.TransferData;
@@ -240,6 +243,9 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
 
     /** Set this resource's status values. */
     public B setStatusValues(ImmutableSet<StatusValue> statusValues) {
+      checkArgument(
+          !nullToEmpty(statusValues).contains(StatusValue.LINKED),
+          "LINKED is a virtual status value that should never be set on an EppResource");
       getInstance().status = statusValues;
       return thisCastToDerived();
     }
@@ -275,15 +281,22 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
     /** Build the resource, nullifying empty strings and sets and setting defaults. */
     @Override
     public T build() {
-      // An EPP object has an implicit status of OK if no pending operations or prohibitions exist
-      // (i.e. no other status value besides LINKED is present).
+      // An EPP object has an implicit status of OK if no pending operations or prohibitions exist.
       removeStatusValue(StatusValue.OK);
-      if (difference(getInstance().getStatusValues(), StatusValue.LINKED).isEmpty()) {
+      if (getInstance().getStatusValues().isEmpty()) {
         addStatusValue(StatusValue.OK);
       }
       // If there is no deletion time, set it to END_OF_TIME.
       setDeletionTime(Optional.fromNullable(getInstance().deletionTime).or(END_OF_TIME));
       return ImmutableObject.cloneEmptyToNull(super.build());
+    }
+  }
+
+  // TODO(b/34664935): remove this once LINKED has been removed from all persisted resources.
+  @OnLoad
+  void onLoadRemoveLinked() {
+    if (status != null) {
+      status = difference(status, StatusValue.LINKED);
     }
   }
 }

@@ -44,7 +44,16 @@ public enum StatusValue implements EppEnum {
   CLIENT_TRANSFER_PROHIBITED,
   CLIENT_UPDATE_PROHIBITED,
   INACTIVE,
+
+  /**
+   * A status that means a resource has an incoming reference from an active domain.
+   *
+   * <p>LINKED is a "virtual" status value that should never be persisted to Datastore on any
+   * resource. It must be computed on the fly when we need it, as the set of domains using a
+   * resource can change at any time.
+   */
   LINKED,
+
   OK,
   PENDING_CREATE,
   PENDING_DELETE,

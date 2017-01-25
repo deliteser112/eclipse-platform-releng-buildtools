@@ -152,36 +152,21 @@ public class HostResourceTest extends EntityTestCase {
   @Test
   public void testImplicitStatusValues() {
     // OK is implicit if there's no other statuses.
-    StatusValue[] statuses = {StatusValue.OK};
     assertAboutHosts()
         .that(new HostResource.Builder().build())
-        .hasExactlyStatusValues(statuses);
-    StatusValue[] statuses1 = {StatusValue.OK, StatusValue.LINKED};
-    // OK is also implicit if the only other status is LINKED.
-    assertAboutHosts()
-        .that(new HostResource.Builder()
-            .setStatusValues(ImmutableSet.of(StatusValue.LINKED)).build())
-        .hasExactlyStatusValues(statuses1);
-    StatusValue[] statuses2 = {StatusValue.CLIENT_HOLD};
+        .hasExactlyStatusValues(StatusValue.OK);
     // If there are other status values, OK should be suppressed.
     assertAboutHosts()
         .that(new HostResource.Builder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_HOLD))
             .build())
-        .hasExactlyStatusValues(statuses2);
-    StatusValue[] statuses3 = {StatusValue.LINKED, StatusValue.CLIENT_HOLD};
-    assertAboutHosts()
-        .that(new HostResource.Builder()
-            .setStatusValues(ImmutableSet.of(StatusValue.LINKED, StatusValue.CLIENT_HOLD))
-            .build())
-        .hasExactlyStatusValues(statuses3);
-    StatusValue[] statuses4 = {StatusValue.CLIENT_HOLD};
+        .hasExactlyStatusValues(StatusValue.CLIENT_HOLD);
     // When OK is suppressed, it should be removed even if it was originally there.
     assertAboutHosts()
         .that(new HostResource.Builder()
             .setStatusValues(ImmutableSet.of(StatusValue.OK, StatusValue.CLIENT_HOLD))
             .build())
-        .hasExactlyStatusValues(statuses4);
+        .hasExactlyStatusValues(StatusValue.CLIENT_HOLD);
   }
 
   @Nullable

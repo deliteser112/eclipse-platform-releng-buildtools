@@ -64,6 +64,7 @@ public class XjcToContactResourceConverterTest {
     ContactResource resource = XjcToContactResourceConverter.convertContact(contact);
     assertThat(resource.getContactId()).isEqualTo("love-id");
     assertThat(resource.getRepoId()).isEqualTo("2-ROID");
+    // The imported XML also had LINKED status, but that should have been dropped on import.
     assertThat(resource.getStatusValues())
         .containsExactly(
             StatusValue.CLIENT_DELETE_PROHIBITED,
