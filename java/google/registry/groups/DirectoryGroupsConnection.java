@@ -63,7 +63,7 @@ public class DirectoryGroupsConnection implements GroupsConnection {
 
   @Inject Directory directory;
   @Inject Groupssettings groupsSettings;
-  @Inject @Config("googleAppsAdminEmailAddress") String googleAppsAdminEmailAddress;
+  @Inject @Config("gSuiteAdminAccountEmailAddress") String gSuiteAdminAccountEmailAddress;
   @Inject DirectoryGroupsConnection() {}
 
   @Override
@@ -152,7 +152,7 @@ public class DirectoryGroupsConnection implements GroupsConnection {
     group.setEmail(groupKey);
     try {
       Group createdGroup = directory.groups().insert(group).execute();
-      addMemberToGroup(groupKey, googleAppsAdminEmailAddress, Role.OWNER);
+      addMemberToGroup(groupKey, gSuiteAdminAccountEmailAddress, Role.OWNER);
       groupsSettings.groups().patch(groupKey, defaultGroupPermissions).execute();
       return createdGroup;
     } catch (GoogleJsonResponseException e) {

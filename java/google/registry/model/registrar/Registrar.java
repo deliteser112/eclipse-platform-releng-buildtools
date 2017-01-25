@@ -24,8 +24,8 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Sets.immutableEnumSet;
 import static com.google.common.io.BaseEncoding.base64;
-import static google.registry.config.RegistryConfig.getRegistrarDefaultReferralUrl;
-import static google.registry.config.RegistryConfig.getRegistrarDefaultWhoisServer;
+import static google.registry.config.RegistryConfig.getDefaultRegistrarReferralUrl;
+import static google.registry.config.RegistryConfig.getDefaultRegistrarWhoisServer;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
@@ -445,7 +445,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   }
 
   public String getWhoisServer() {
-    return firstNonNull(whoisServer, getRegistrarDefaultWhoisServer());
+    return firstNonNull(whoisServer, getDefaultRegistrarWhoisServer());
   }
 
   public boolean getBlockPremiumNames() {
@@ -461,7 +461,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   }
 
   public String getReferralUrl() {
-    return firstNonNull(referralUrl, getRegistrarDefaultReferralUrl().toString());
+    return firstNonNull(referralUrl, getDefaultRegistrarReferralUrl());
   }
 
   public String getIcannReferralEmail() {

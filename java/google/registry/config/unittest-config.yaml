@@ -1,6 +1,13 @@
 # This is the configuration file used by unit tests. These values ARE NOT
 # SUITABLE for use in a real deployed environment.
 
+registryPolicy:
+  registrarChangesNotificationEmailAddresses:
+    - notification@test.example
+    - notification2@test.example
+  defaultRegistrarWhoisServer: whois.nic.fakewhois.example
+  defaultRegistrarReferralUrl: http://www.referral.example/path
+
 datastore:
   commitLogBucketsNum: 3
   eppResourceIndexBucketsNum: 3

@@ -37,15 +37,15 @@ public class SendEmailUtils {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  private final String googleAppsSendFromEmailAddress;
-  private final String googleAppsAdminEmailDisplayName;
+  private final String gSuiteOutgoingEmailAddress;
+  private final String gSuiteOutoingEmailDisplayName;
 
   @Inject
   public SendEmailUtils(
-      @Config("googleAppsSendFromEmailAddress") String googleAppsSendFromEmailAddress,
-      @Config("googleAppsAdminEmailDisplayName") String googleAppsAdminEmailDisplayName) {
-    this.googleAppsSendFromEmailAddress = googleAppsSendFromEmailAddress;
-    this.googleAppsAdminEmailDisplayName = googleAppsAdminEmailDisplayName;
+      @Config("gSuiteOutgoingEmailAddress") String gSuiteOutgoingEmailAddress,
+      @Config("gSuiteOutoingEmailDisplayName") String gSuiteOutoingEmailDisplayName) {
+    this.gSuiteOutgoingEmailAddress = gSuiteOutgoingEmailAddress;
+    this.gSuiteOutoingEmailDisplayName = gSuiteOutoingEmailDisplayName;
   }
 
   @NonFinalForTesting
@@ -59,7 +59,7 @@ public class SendEmailUtils {
     try {
       Message msg = emailService.createMessage();
       msg.setFrom(
-          new InternetAddress(googleAppsSendFromEmailAddress, googleAppsAdminEmailDisplayName));
+          new InternetAddress(gSuiteOutgoingEmailAddress, gSuiteOutoingEmailDisplayName));
       List<InternetAddress> emails = FluentIterable
           .from(addresses)
           .transform(new Function<String, InternetAddress>() {

@@ -7,12 +7,34 @@ appEngine:
   # Globally unique App Engine project ID
   projectId: domain-registry
 
+gSuite:
+  # Publicly accessible domain name of the running G Suite instance.
+  domainName: domain-registry.example
+
+  # Display name and email address used on outgoing emails through G Suite.
+  outgoingEmailDisplayName: Example Registry
+  outgoingEmailAddress: noreply@project-id.appspotmail.com
+
+  # Email address of the admin account on the G Suite app. This is used for
+  # logging in to perform administrative actions, not sending emails.
+  adminAccountEmailAddress: admin@example.com
+
 registryPolicy:
   # Repository identifier (ROID) suffix for contacts and hosts.
   contactAndHostRoidSuffix: ROID
 
   # Product name of the registry. Used throughout the registrar console.
   productName: Nomulus
+
+  # List of email addresses that notifications of registrar and/or registrar
+  # contact updates should be sent to, or empty list for no notifications.
+  registrarChangesNotificationEmailAddresses: []
+
+  # Default WHOIS server used when not specified on a registrar.
+  defaultRegistrarWhoisServer: whois.domain-registry.example
+
+  # Default referral URL used when not changed by a registrar.
+  defaultRegistrarReferralUrl: https://www.domain-registry.example
 
 datastore:
   # Number of commit log buckets in Datastore. Don't change after initial
@@ -27,6 +49,21 @@ registrarConsole:
   # Filename of the logo to use in the header of the console. This filename is
   # relative to ui/assets/images/
   logoFilename: logo.png
+
+  # Contact phone number for support with the registry.
+  supportPhoneNumber: +1 (888) 555 0123
+
+  # Contact email address for support with the registry.
+  supportEmailAddress: support@example.com
+
+  # From: email address used to send announcements from the registry.
+  announcementsEmailAddress: announcements@example.com
+
+  # Contact email address for questions about integrating with the registry.
+  integrationEmailAddress: integration@example.com
+
+  # URL linking to directory of technical support docs on the registry.
+  technicalDocsUrl: http://example.com/your_support_docs/
 
 monitoring:
   # Max queries per second for the Google Cloud Monitoring V3 (aka Stackdriver)

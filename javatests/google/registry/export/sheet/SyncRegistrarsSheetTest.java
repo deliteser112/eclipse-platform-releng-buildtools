@@ -16,8 +16,8 @@ package google.registry.export.sheet;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.config.RegistryConfig.getRegistrarDefaultReferralUrl;
-import static google.registry.config.RegistryConfig.getRegistrarDefaultWhoisServer;
+import static google.registry.config.RegistryConfig.getDefaultRegistrarReferralUrl;
+import static google.registry.config.RegistryConfig.getDefaultRegistrarWhoisServer;
 import static google.registry.model.common.Cursor.CursorType.SYNC_REGISTRAR_SHEET;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -262,8 +262,8 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("ipAddressWhitelist", "");
     assertThat(row).containsEntry("url", "http://www.example.org/aaa_registrar");
     assertThat(row).containsEntry("icannReferralEmail", "");
-    assertThat(row).containsEntry("whoisServer", getRegistrarDefaultWhoisServer());
-    assertThat(row).containsEntry("referralUrl", getRegistrarDefaultReferralUrl().toString());
+    assertThat(row).containsEntry("whoisServer", getDefaultRegistrarWhoisServer());
+    assertThat(row).containsEntry("referralUrl", getDefaultRegistrarReferralUrl());
 
     row = rows.get(1);
     assertThat(row).containsEntry("clientIdentifier", "anotherregistrar");
@@ -295,7 +295,7 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("blockPremiumNames", "false");
     assertThat(row).containsEntry("ipAddressWhitelist", "");
     assertThat(row).containsEntry("url", "http://www.example.org/another_registrar");
-    assertThat(row).containsEntry("referralUrl", getRegistrarDefaultReferralUrl().toString());
+    assertThat(row).containsEntry("referralUrl", getDefaultRegistrarReferralUrl());
     assertThat(row).containsEntry("icannReferralEmail", "jim@example.net");
 
     Cursor cursor = ofy().load().key(Cursor.createGlobalKey(SYNC_REGISTRAR_SHEET)).now();
@@ -338,11 +338,11 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("phoneNumber", "");
     assertThat(row).containsEntry("faxNumber", "");
     assertThat(row).containsEntry("allowedTlds", "");
-    assertThat(row).containsEntry("whoisServer", getRegistrarDefaultWhoisServer());
+    assertThat(row).containsEntry("whoisServer", getDefaultRegistrarWhoisServer());
     assertThat(row).containsEntry("blockPremiumNames", "false");
     assertThat(row).containsEntry("ipAddressWhitelist", "");
     assertThat(row).containsEntry("url", "");
-    assertThat(row).containsEntry("referralUrl", getRegistrarDefaultReferralUrl().toString());
+    assertThat(row).containsEntry("referralUrl", getDefaultRegistrarReferralUrl());
     assertThat(row).containsEntry("icannReferralEmail", "");
   }
 }

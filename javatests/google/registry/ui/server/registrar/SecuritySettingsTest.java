@@ -15,8 +15,8 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.config.RegistryConfig.getRegistrarDefaultReferralUrl;
-import static google.registry.config.RegistryConfig.getRegistrarDefaultWhoisServer;
+import static google.registry.config.RegistryConfig.getDefaultRegistrarReferralUrl;
+import static google.registry.config.RegistryConfig.getDefaultRegistrarWhoisServer;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT2;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT2_HASH;
@@ -52,8 +52,8 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     modified =
         modified
             .asBuilder()
-            .setWhoisServer(getRegistrarDefaultWhoisServer())
-            .setReferralUrl(getRegistrarDefaultReferralUrl().toString())
+            .setWhoisServer(getDefaultRegistrarWhoisServer())
+            .setReferralUrl(getDefaultRegistrarReferralUrl())
             .build();
     assertThat(response).containsEntry("status", "SUCCESS");
     assertThat(response).containsEntry("results", asList(modified.toJsonMap()));

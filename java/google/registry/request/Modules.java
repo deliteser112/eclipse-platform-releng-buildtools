@@ -223,7 +223,7 @@ public final class Modules {
     static GoogleCredential provideDelegatedAdminGoogleCredential(
         GoogleCredential googleCredential,
         HttpTransport httpTransport,
-        @Config("googleAppsAdminEmailAddress") String googleAppsAdminEmailAddress) {
+        @Config("gSuiteAdminAccountEmailAddress") String gSuiteAdminAccountEmailAddress) {
       return new GoogleCredential.Builder()
           .setTransport(httpTransport)
           .setJsonFactory(googleCredential.getJsonFactory())
@@ -234,7 +234,7 @@ public final class Modules {
           // is thus the responsibility of every user of a delegated admin credential to call
           // createScoped() on it first to get the version with the correct scopes set.
           .setServiceAccountScopes(ImmutableSet.<String>of())
-          .setServiceAccountUser(googleAppsAdminEmailAddress)
+          .setServiceAccountUser(gSuiteAdminAccountEmailAddress)
           .build();
     }
   }

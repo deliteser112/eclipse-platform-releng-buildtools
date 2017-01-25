@@ -80,7 +80,7 @@ public class SyncGroupMembersActionTest {
   private void runAction() {
     SyncGroupMembersAction action = new SyncGroupMembersAction();
     action.groupsConnection = connection;
-    action.publicDomainName = "domain-registry.example";
+    action.gSuiteDomainName = "domain-registry.example";
     action.response = response;
     action.retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
     action.run();

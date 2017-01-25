@@ -63,7 +63,7 @@ public class CreateGroupsActionTest {
     CreateGroupsAction action = new CreateGroupsAction();
     action.response = response;
     action.groupsConnection = connection;
-    action.publicDomainName = "domain-registry.example";
+    action.gSuiteDomainName = "domain-registry.example";
     action.clientId = Optional.fromNullable(clientId);
     action.run();
   }

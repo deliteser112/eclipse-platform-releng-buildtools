@@ -57,7 +57,6 @@ public final class SyncGroupMembersAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-
   private enum Result {
     OK(SC_OK, "Group memberships successfully updated."),
     NOT_MODIFIED(SC_OK, "No registrar contacts have been updated since the last time servlet ran."),
@@ -82,7 +81,7 @@ public final class SyncGroupMembersAction implements Runnable {
   }
 
   @Inject GroupsConnection groupsConnection;
-  @Inject @Config("publicDomainName") String publicDomainName;
+  @Inject @Config("gSuiteDomainName") String gSuiteDomainName;
   @Inject Response response;
   @Inject Retrier retrier;
   @Inject SyncGroupMembersAction() {}
@@ -100,13 +99,12 @@ public final class SyncGroupMembersAction implements Runnable {
    * RegistrarContact.Type
    */
   public static String getGroupEmailAddressForContactType(
-      String clientId,
-      RegistrarContact.Type type,
-      String publicDomainName) {
+      String clientId, RegistrarContact.Type type, String gSuiteDomainName) {
     // Take the registrar's clientId, make it lowercase, and remove all characters that aren't
     // alphanumeric, hyphens, or underscores.
     return String.format(
-        "%s-%s-contacts@%s", normalizeClientId(clientId), type.getDisplayName(), publicDomainName);
+        "%s-%s-contacts@%s",
+        normalizeClientId(clientId), type.getDisplayName(), gSuiteDomainName);
   }
 
   /**
@@ -188,7 +186,7 @@ public final class SyncGroupMembersAction implements Runnable {
       long totalRemoved = 0;
       for (final RegistrarContact.Type type : RegistrarContact.Type.values()) {
         groupKey = getGroupEmailAddressForContactType(
-            registrar.getClientId(), type, publicDomainName);
+            registrar.getClientId(), type, gSuiteDomainName);
         Set<String> currentMembers = groupsConnection.getMembersOfGroup(groupKey);
         Set<String> desiredMembers = FluentIterable.from(registrarContacts)
             .filter(new Predicate<RegistrarContact>() {

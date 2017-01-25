@@ -20,7 +20,6 @@ import static google.registry.config.YamlUtils.getConfigSettings;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.joda.time.Duration.standardDays;
 
-import com.google.appengine.api.utils.SystemProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -132,9 +131,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("integrationEmail")
-    public static String provideIntegrationEmail(RegistryEnvironment environment) {
-      // Change this to your integration email address.
-      return "integration@example.com";
+    public static String provideIntegrationEmail(RegistryConfigSettings config) {
+      return config.registrarConsole.integrationEmailAddress;
     }
 
     /**
@@ -145,9 +143,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("supportEmail")
-    public static String provideSupportEmail(RegistryEnvironment environment) {
-      // Change this to your support email address.
-      return "support@example.com";
+    public static String provideSupportEmail(RegistryConfigSettings config) {
+      return config.registrarConsole.supportEmailAddress;
     }
 
     /**
@@ -158,9 +155,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("announcementsEmail")
-    public static String provideAnnouncementsEmail(RegistryEnvironment environment) {
-      // Change this to your announcements e-mail.
-      return "announcements@example.com";
+    public static String provideAnnouncementsEmail(RegistryConfigSettings config) {
+      return config.registrarConsole.announcementsEmailAddress;
     }
 
     /**
@@ -170,9 +166,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("supportPhoneNumber")
-    public static String provideSupportPhoneNumber(RegistryEnvironment environment) {
-      // Change this to your phone number.
-      return "+1 (888) 555 0123";
+    public static String provideSupportPhoneNumber(RegistryConfigSettings config) {
+      return config.registrarConsole.supportPhoneNumber;
     }
 
     /**
@@ -183,9 +178,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("technicalDocsUrl")
-    public static String provideTechnicalDocsUrl(RegistryEnvironment environment) {
-      // Change this to your support docs link.
-      return "http://example.com/your_support_docs/";
+    public static String provideTechnicalDocsUrl(RegistryConfigSettings config) {
+      return config.registrarConsole.technicalDocsUrl;
     }
 
     /**
@@ -372,15 +366,15 @@ public final class RegistryConfig {
     }
 
     /**
-     * Gets the email address of the admin account for the Google App.
+     * Returns the email address of the admin account on the G Suite app used to perform
+     * administrative actions.
      *
      * @see google.registry.groups.DirectoryGroupsConnection
      */
     @Provides
-    @Config("googleAppsAdminEmailAddress")
-    public static String provideGoogleAppsAdminEmailAddress(RegistryEnvironment environment) {
-      // Change this to your admin account.
-      return "admin@example.com";
+    @Config("gSuiteAdminAccountEmailAddress")
+    public static String provideGSuiteAdminAccountEmailAddress(RegistryConfigSettings config) {
+      return config.gSuite.adminAccountEmailAddress;
     }
 
     /**
@@ -392,29 +386,20 @@ public final class RegistryConfig {
     @Provides
     @Config("registrarChangesNotificationEmailAddresses")
     public static ImmutableList<String> provideRegistrarChangesNotificationEmailAddresses(
-        RegistryEnvironment environment) {
-      switch (environment) {
-        case PRODUCTION:
-          // Change this to an appropriate notification e-mail address.
-          return ImmutableList.of("notification@registry.example");
-        case UNITTEST:
-          return ImmutableList.of("notification@test.example", "notification2@test.example");
-        default:
-          return ImmutableList.<String>of();
-      }
+        RegistryConfigSettings config) {
+      return ImmutableList.copyOf(config.registryPolicy.registrarChangesNotificationEmailAddresses);
     }
 
     /**
-     * Returns the publicly accessible domain name for the running Google Apps instance.
+     * Returns the publicly accessible domain name for the running G Suite instance.
      *
      * @see google.registry.export.SyncGroupMembersAction
      * @see google.registry.tools.server.CreateGroupsAction
      */
     @Provides
-    @Config("publicDomainName")
-    public static String providePublicDomainName(RegistryEnvironment environment) {
-      // Change this to your domain name.
-      return "registry.example.com";
+    @Config("gSuiteDomainName")
+    public static String provideGSuiteDomainName(RegistryConfigSettings config) {
+      return config.gSuite.domainName;
     }
 
     /**
@@ -490,9 +475,9 @@ public final class RegistryConfig {
      * @see google.registry.ui.server.registrar.SendEmailUtils
      */
     @Provides
-    @Config("googleAppsSendFromEmailAddress")
-    public static String provideGoogleAppsSendFromEmailAddress() {
-      return String.format("noreply@%s.appspotmail.com", SystemProperty.applicationId.get());
+    @Config("gSuiteOutgoingEmailAddress")
+    public static String provideGSuiteOutgoingEmailAddress(RegistryConfigSettings config) {
+      return config.gSuite.outgoingEmailAddress;
     }
 
     /**
@@ -501,10 +486,9 @@ public final class RegistryConfig {
      * @see google.registry.ui.server.registrar.SendEmailUtils
      */
     @Provides
-    @Config("googleAppsAdminEmailDisplayName")
-    public static String provideGoogleAppsAdminEmailDisplayName() {
-      // Production example: "Example Registry"
-      return "Google Domain Registry";
+    @Config("gSuiteOutoingEmailDisplayName")
+    public static String provideGSuiteOutgoingEmailDisplayName(RegistryConfigSettings config) {
+      return config.gSuite.outgoingEmailDisplayName;
     }
 
     /**
@@ -1214,25 +1198,15 @@ public final class RegistryConfig {
    * @see "google.registry.whois.DomainWhoisResponse"
    * @see "google.registry.whois.RegistrarWhoisResponse"
    */
-  public static String getRegistrarDefaultWhoisServer() {
-    switch (RegistryEnvironment.get()) {
-      case UNITTEST:
-        return "whois.nic.fakewhois.example";
-      default:
-        return "whois.nic.registry.example";
-    }
+  public static String getDefaultRegistrarWhoisServer() {
+    return CONFIG_SETTINGS.get().registryPolicy.defaultRegistrarWhoisServer;
   }
 
   /**
    * Returns the default referral URL that is used unless registrars have specified otherwise.
    */
-  public static URL getRegistrarDefaultReferralUrl() {
-    switch (RegistryEnvironment.get()) {
-      case UNITTEST:
-        return makeUrl("http://www.referral.example/path");
-      default:
-        return makeUrl("https://www.registry.example");
-    }
+  public static String getDefaultRegistrarReferralUrl() {
+    return CONFIG_SETTINGS.get().registryPolicy.defaultRegistrarReferralUrl;
   }
 
   /**

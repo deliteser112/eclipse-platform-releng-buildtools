@@ -14,54 +14,60 @@
 
 package google.registry.config;
 
+import java.util.List;
+
 /** The POJO that YAML config files are deserialized into. */
 public class RegistryConfigSettings {
 
   public AppEngine appEngine;
-
+  public GSuite gSuite;
   public RegistryPolicy registryPolicy;
-
   public Datastore datastore;
-
   public RegistrarConsole registrarConsole;
-
   public Monitoring monitoring;
 
   /** Configuration options that apply to the entire App Engine project. */
   public static class AppEngine {
-
     public String projectId;
+  }
+
+  /** Configuration options for the G Suite account used by Nomulus. */
+  public static class GSuite {
+    public String domainName;
+    public String outgoingEmailAddress;
+    public String outgoingEmailDisplayName;
+    public String adminAccountEmailAddress;
   }
 
   /** Configuration options for registry policy. */
   public static class RegistryPolicy {
-
     public String contactAndHostRoidSuffix;
-
     public String productName;
+    public List<String> registrarChangesNotificationEmailAddresses;
+    public String defaultRegistrarWhoisServer;
+    public String defaultRegistrarReferralUrl;
   }
 
   /** Configuration for Cloud Datastore. */
   public static class Datastore {
-
     public int commitLogBucketsNum;
-
     public int eppResourceIndexBucketsNum;
   }
 
   /** Configuration for the web-based registrar console. */
   public static class RegistrarConsole {
-
     public String logoFilename;
+    public String supportPhoneNumber;
+    public String supportEmailAddress;
+    public String announcementsEmailAddress;
+    public String integrationEmailAddress;
+    public String technicalDocsUrl;
   }
 
   /** Configuration for monitoring. */
   public static class Monitoring {
-
     public int stackdriverMaxQps;
-
     public int stackdriverMaxPointsPerRequest;
-
     public int writeIntervalSeconds;
   }
 }

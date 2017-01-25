@@ -52,7 +52,7 @@ public class CreateGroupsAction implements Runnable {
 
   @Inject GroupsConnection groupsConnection;
   @Inject Response response;
-  @Inject @Config("publicDomainName") String publicDomainName;
+  @Inject @Config("gSuiteDomainName") String gSuiteDomainName;
   @Inject @Parameter("clientId") Optional<String> clientId;
   @Inject CreateGroupsAction() {}
 
@@ -73,9 +73,9 @@ public class CreateGroupsAction implements Runnable {
           public Optional<Exception> apply(Type type) {
             try {
               String groupKey = getGroupEmailAddressForContactType(
-                  registrar.getClientId(), type, publicDomainName);
+                  registrar.getClientId(), type, gSuiteDomainName);
               String parentGroup =
-                  getGroupEmailAddressForContactType("registrar", type, publicDomainName);
+                  getGroupEmailAddressForContactType("registrar", type, gSuiteDomainName);
               // Creates the group, then adds it as a member to the global registrar group for
               // that type.
               groupsConnection.createGroup(groupKey);

@@ -114,7 +114,7 @@ public class DirectoryGroupsConnectionTest {
     connection = new DirectoryGroupsConnection();
     connection.directory = directory;
     connection.groupsSettings = groupsSettings;
-    connection.googleAppsAdminEmailAddress = "admin@domain-registry.example";
+    connection.gSuiteAdminAccountEmailAddress = "admin@domain-registry.example";
     expectedOwner.setEmail("admin@domain-registry.example");
     expectedOwner.setRole("OWNER");
   }
