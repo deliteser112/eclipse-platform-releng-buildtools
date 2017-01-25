@@ -17,6 +17,7 @@ package google.registry.config;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.config.YamlUtils.mergeYaml;
 
+import com.google.common.base.Joiner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -48,7 +49,14 @@ public class YamlUtilsTest {
         .isEqualTo(join("non: ay", "list: [crackle, pop var]"));
   }
 
+  @Test
+  public void testSuccess_mergeEmptyMap_isNoop() {
+    String defaultYaml = join("one: ay", "two: bee", "three: sea");
+    assertThat(mergeYaml(defaultYaml, "# Just a comment\n"))
+      .isEqualTo("{one: ay, two: bee, three: sea}\n");
+  }
+
   private static String join(CharSequence... strings) {
-    return String.join("\n", strings) + "\n";
+    return Joiner.on('\n').join(strings) + "\n";
   }
 }

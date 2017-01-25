@@ -18,6 +18,7 @@ import static google.registry.config.RegistryEnvironment.UNITTEST;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
+import com.google.common.base.Optional;
 import com.google.common.io.CharStreams;
 import google.registry.util.FormattingLogger;
 import java.io.File;
@@ -84,19 +85,30 @@ public final class YamlUtils {
    * <p>Only maps are handled recursively; lists are simply overridden in place as-is.
    */
   static String mergeYaml(String defaultYaml, String customYaml) {
+    Yaml yaml = new Yaml();
+    Map<String, Object> yamlMap = loadAsMap(yaml, defaultYaml).get();
     try {
-      Yaml yaml = new Yaml();
-      Map<String, Object> defaultObj = loadAsMap(yaml, defaultYaml);
-      Map<String, Object> customObj = loadAsMap(yaml, customYaml);
-      Object mergedObj = mergeMaps(defaultObj, customObj);
-      logger.infofmt("Successfully loaded custom YAML configuration file.");
-      return yaml.dump(mergedObj);
+      Optional<Map<String, Object>> customMap = loadAsMap(yaml, customYaml);
+      if (customMap.isPresent()) {
+        yamlMap = mergeMaps(yamlMap, customMap.get());
+        logger.infofmt("Successfully loaded custom YAML configuration file.");
+      } else {
+        logger.infofmt("Ignoring empty custom YAML configuration file.");
+      }
+      return yaml.dump(yamlMap);
     } catch (Exception e) {
       throw new IllegalStateException("Fatal error: Custom YAML configuration file is invalid", e);
     }
   }
 
-  private static Object mergeMaps(Map<String, Object> defaultMap, Map<String, Object> customMap) {
+  /**
+   * Recursively merges a custom map into a default map, and returns the merged result.
+   *
+   * <p>All keys in the default map that are also specified in the custom map are overridden with
+   * the custom map's value. This runs recursively on all contained maps.
+   */
+  private static Map<String, Object> mergeMaps(
+      Map<String, Object> defaultMap, Map<String, Object> customMap) {
     for (String key : defaultMap.keySet()) {
       if (!customMap.containsKey(key)) {
         continue;
@@ -113,9 +125,15 @@ public final class YamlUtils {
     return defaultMap;
   }
 
+  /**
+   * Returns a structured map loaded from a YAML config string.
+   *
+   * <p>If the YAML string is empty or does not contain any data (e.g. it's only comments), then
+   * absent is returned.
+   */
   @SuppressWarnings("unchecked")
-  private static Map<String, Object> loadAsMap(Yaml yaml, String yamlString) {
-    return (Map<String, Object>) yaml.load(yamlString);
+  private static Optional<Map<String, Object>> loadAsMap(Yaml yaml, String yamlString) {
+    return Optional.fromNullable((Map<String, Object>) yaml.load(yamlString));
   }
 
   private YamlUtils() {}
