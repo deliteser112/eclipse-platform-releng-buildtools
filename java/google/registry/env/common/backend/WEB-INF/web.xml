@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns="http://java.sun.com/xml/ns/javaee" version="2.5"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
                              http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
   <!-- Servlets -->
 
@@ -113,25 +113,15 @@
     <url-pattern>/_dr/task/verifyEntityIntegrity</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <description>Exports a datastore backup snapshot to GCS.</description>
-    <display-name>Export snapshot to GCS</display-name>
-    <servlet-name>exportSnapshot</servlet-name>
-    <servlet-class>google.registry.export.ExportSnapshotServlet</servlet-class>
-  </servlet>
+  <!-- Exports a datastore backup snapshot to GCS. -->
   <servlet-mapping>
-    <servlet-name>exportSnapshot</servlet-name>
+    <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/exportSnapshot</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <description>Checks the completion of a datastore backup snapshot.</description>
-    <display-name>Check on snapshot status</display-name>
-    <servlet-name>checkSnapshot</servlet-name>
-    <servlet-class>google.registry.export.CheckSnapshotServlet</servlet-class>
-  </servlet>
+  <!-- Checks the completion of a datastore backup snapshot. -->
   <servlet-mapping>
-    <servlet-name>checkSnapshot</servlet-name>
+    <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/checkSnapshot</url-pattern>
   </servlet-mapping>
 
@@ -290,10 +280,10 @@
     <web-resource-collection>
       <web-resource-name>Internal</web-resource-name>
       <description>
-        Admin-only internal section.  Requests for paths covered by the URL patterns below will be
+        Admin-only internal section. Requests for paths covered by the URL patterns below will be
         checked for a logged-in user account that's allowed to access the AppEngine admin console
         (NOTE: this includes Editor/Viewer permissions in addition to Owner and the new IAM
-        App Engine Admin role.  See https://cloud.google.com/appengine/docs/java/access-control
+        App Engine Admin role. See https://cloud.google.com/appengine/docs/java/access-control
         specifically the "Access handlers that have a login:admin restriction" line.)
 
         TODO(b/28219927): lift some of these restrictions so that we can allow OAuth authentication

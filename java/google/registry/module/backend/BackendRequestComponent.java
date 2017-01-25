@@ -38,9 +38,11 @@ import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateConfigModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
 import google.registry.export.BigqueryPollJobAction;
+import google.registry.export.CheckSnapshotAction;
 import google.registry.export.ExportDomainListsAction;
 import google.registry.export.ExportRequestModule;
 import google.registry.export.ExportReservedTermsAction;
+import google.registry.export.ExportSnapshotAction;
 import google.registry.export.LoadSnapshotAction;
 import google.registry.export.SyncGroupMembersAction;
 import google.registry.export.UpdateSnapshotViewAction;
@@ -94,6 +96,7 @@ import google.registry.tmch.TmchSmdrlAction;
 interface BackendRequestComponent {
   BigqueryPollJobAction bigqueryPollJobAction();
   BrdaCopyAction brdaCopyAction();
+  CheckSnapshotAction checkSnapshotAction();
   CommitLogCheckpointAction commitLogCheckpointAction();
   CommitLogFanoutAction commitLogFanoutAction();
   DeleteContactsAndHostsAction deleteContactsAndHostsAction();
@@ -103,6 +106,7 @@ interface BackendRequestComponent {
   ExportCommitLogDiffAction exportCommitLogDiffAction();
   ExportDomainListsAction exportDomainListsAction();
   ExportReservedTermsAction exportReservedTermsAction();
+  ExportSnapshotAction exportSnapshotAction();
   LoadSnapshotAction loadSnapshotAction();
   MetricsExportAction metricsExportAction();
   NordnUploadAction nordnUploadAction();

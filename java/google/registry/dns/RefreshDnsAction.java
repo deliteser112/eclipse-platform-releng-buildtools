@@ -35,7 +35,7 @@ public final class RefreshDnsAction implements Runnable {
 
   @Inject Clock clock;
   @Inject DnsQueue dnsQueue;
-  @Inject @Parameter("name") String domainOrHostName;
+  @Inject @Parameter("domainOrHostName") String domainOrHostName;
   @Inject @Parameter("type") TargetType type;
   @Inject RefreshDnsAction() {}
 

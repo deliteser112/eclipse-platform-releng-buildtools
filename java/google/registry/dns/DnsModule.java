@@ -76,7 +76,7 @@ public abstract class DnsModule {
   }
 
   @Provides
-  @Parameter("name")
+  @Parameter("domainOrHostName")
   static String provideName(HttpServletRequest req) {
     return extractRequiredParameter(req, "name");
   }

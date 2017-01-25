@@ -17,6 +17,8 @@ package google.registry.export;
 import static google.registry.export.BigqueryPollJobAction.CHAINED_TASK_QUEUE_HEADER;
 import static google.registry.export.BigqueryPollJobAction.JOB_ID_HEADER;
 import static google.registry.export.BigqueryPollJobAction.PROJECT_ID_HEADER;
+import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_KINDS_TO_LOAD_PARAM;
+import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_NAME_PARAM;
 import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_FILE_PARAM;
 import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_ID_PARAM;
 import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARAM;
@@ -73,6 +75,18 @@ public final class ExportRequestModule {
   }
 
   @Provides
+  @Parameter(CHECK_SNAPSHOT_NAME_PARAM)
+  static String provideCheckSnapshotName(HttpServletRequest req) {
+    return extractRequiredParameter(req, CHECK_SNAPSHOT_NAME_PARAM);
+  }
+
+  @Provides
+  @Parameter(CHECK_SNAPSHOT_KINDS_TO_LOAD_PARAM)
+  static String provideCheckSnapshotKindsToLoad(HttpServletRequest req) {
+    return extractRequiredParameter(req, CHECK_SNAPSHOT_KINDS_TO_LOAD_PARAM);
+  }
+
+  @Provides
   @Header(CHAINED_TASK_QUEUE_HEADER)
   static String provideChainedTaskQueue(HttpServletRequest req) {
     return extractRequiredHeader(req, CHAINED_TASK_QUEUE_HEADER);
@@ -88,5 +102,10 @@ public final class ExportRequestModule {
   @Header(PROJECT_ID_HEADER)
   static String provideProjectId(HttpServletRequest req) {
     return extractRequiredHeader(req, PROJECT_ID_HEADER);
+  }
+
+  @Provides
+  static DatastoreBackupService provideDatastoreBackupService() {
+    return DatastoreBackupService.get();
   }
 }

@@ -110,9 +110,9 @@ Here are the task queues in use by the system. All are push queues unless
 explicitly marked as otherwise.
 
 *   `async-delete-pull` and `async-host-rename-pull` -- Pull queues for tasks to
-    asynchronously delete contacts/hosts and to asynchronously refresh DNS
-    for renamed hosts, respectively. Tasks are enqueued during EPP
-    flows and then handled in batches by the regularly running cron tasks
+    asynchronously delete contacts/hosts and to asynchronously refresh DNS for
+    renamed hosts, respectively. Tasks are enqueued during EPP flows and then
+    handled in batches by the regularly running cron tasks
     `DeleteContactsAndHostsAction` and `RefreshDnsOnHostRenameAction`.
 *   `bigquery-streaming-metrics` -- Queue for metrics that are asynchronously
     streamed to BigQuery in the `Metrics` class. Tasks are enqueued during EPP
@@ -140,14 +140,14 @@ explicitly marked as otherwise.
     cron) and executed by `ExportCommitLogDiffAction`.
 *   `export-snapshot` -- Cron and push queue for tasks to load a Datastore
     snapshot that was stored in Google Cloud Storage and export it to BigQuery.
-    Tasks are enqueued by both cron and `CheckSnapshotServlet` and are executed
-    by both `ExportSnapshotServlet` and `LoadSnapshotAction`.
+    Tasks are enqueued by both cron and `CheckSnapshotAction` and are executed
+    by both `ExportSnapshotAction` and `LoadSnapshotAction`.
 *   `export-snapshot-poll` -- Queue for tasks to check that a Datastore snapshot
     has been successfully uploaded to Google Cloud Storage (this is an
     asynchronous background operation that can take an indeterminate amount of
     time). Once the snapshot is successfully uploaded, it is imported into
-    BigQuery. Tasks are enqueued by `ExportSnapshotServlet` and executed by
-    `CheckSnapshotServlet`.
+    BigQuery. Tasks are enqueued by `ExportSnapshotAction` and executed by
+    `CheckSnapshotAction`.
 *   `export-snapshot-update-view` -- Queue for tasks to update the BigQuery
     views to point to the most recently uploaded snapshot. Tasks are enqueued by
     `LoadSnapshotAction` and executed by `UpdateSnapshotViewAction`.
