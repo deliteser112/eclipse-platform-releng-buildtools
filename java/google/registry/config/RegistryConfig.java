@@ -867,7 +867,7 @@ public final class RegistryConfig {
      * Maximum QPS for the Google Cloud Monitoring V3 (aka Stackdriver) API. The QPS limit can be
      * adjusted by contacting Cloud Support.
      *
-     * @see google.registry.monitoring.metrics.StackdriverWriter
+     * @see google.registry.monitoring.metrics.stackdriver.StackdriverWriter
      */
     @Provides
     @Config("stackdriverMaxQps")
@@ -879,7 +879,7 @@ public final class RegistryConfig {
      * Maximum number of points that can be sent to Stackdriver in a single TimeSeries.Create API
      * call.
      *
-     * @see google.registry.monitoring.metrics.StackdriverWriter
+     * @see google.registry.monitoring.metrics.stackdriver.StackdriverWriter
      */
     @Provides
     @Config("stackdriverMaxPointsPerRequest")

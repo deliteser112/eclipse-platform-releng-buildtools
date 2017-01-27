@@ -15,6 +15,7 @@
 package google.registry.monitoring.metrics;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.joda.time.Instant;
 import org.joda.time.Interval;
@@ -32,7 +33,8 @@ public abstract class MetricPoint<V> {
    * <p>Callers should insure that the count of {@code labelValues} matches the count of labels for
    * the given metric.
    */
-  static <V> MetricPoint<V> create(
+  @VisibleForTesting
+  public static <V> MetricPoint<V> create(
       Metric<V> metric, ImmutableList<String> labelValues, Instant timestamp, V value) {
     MetricsUtils.checkLabelValuesLength(metric, labelValues);
 
@@ -47,7 +49,8 @@ public abstract class MetricPoint<V> {
    * <p>Callers should insure that the count of {@code labelValues} matches the count of labels for
    * the given metric.
    */
-  static <V> MetricPoint<V> create(
+  @VisibleForTesting
+  public static <V> MetricPoint<V> create(
       Metric<V> metric,
       ImmutableList<String> labelValues,
       Instant startTime,

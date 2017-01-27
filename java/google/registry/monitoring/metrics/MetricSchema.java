@@ -17,6 +17,7 @@ package google.registry.monitoring.metrics;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 
 /** The description of a metric's schema. */
@@ -36,7 +37,8 @@ public abstract class MetricSchema {
    *     code as a label. If labels are set, corresponding label values must be provided when values
    *     are set. The set of labels may be empty.
    */
-  static MetricSchema create(
+  @VisibleForTesting
+  public static MetricSchema create(
       String name,
       String description,
       String valueDisplayName,

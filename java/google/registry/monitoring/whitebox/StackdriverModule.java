@@ -28,7 +28,7 @@ import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.monitoring.metrics.MetricWriter;
-import google.registry.monitoring.metrics.StackdriverWriter;
+import google.registry.monitoring.metrics.stackdriver.StackdriverWriter;
 import java.util.Set;
 import java.util.concurrent.ThreadFactory;
 import javax.inject.Named;

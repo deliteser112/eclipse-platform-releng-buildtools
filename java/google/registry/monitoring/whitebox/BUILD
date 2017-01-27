@@ -12,6 +12,7 @@ java_library(
         "//java/google/registry/config",
         "//java/google/registry/model",
         "//java/google/registry/monitoring/metrics",
+        "//java/google/registry/monitoring/metrics/stackdriver",
         "//java/google/registry/request",
         "//java/google/registry/util",
         "//third_party/java/objectify:objectify-v4_1",
