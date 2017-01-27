@@ -876,8 +876,8 @@ public final class RegistryConfig {
     }
 
     /**
-     * Maximum number of points that can be sent to Stackdriver in a single TimeSeries.Create API
-     * call.
+     * Maximum number of points that can be sent to Stackdriver in a single {@code
+     * TimeSeries.Create} API call.
      *
      * @see google.registry.monitoring.metrics.stackdriver.StackdriverWriter
      */
@@ -888,8 +888,8 @@ public final class RegistryConfig {
     }
 
     /**
-     * The reporting interval, for BigQueryMetricsEnqueuer to be sent to a {@link
-     * google.registry.monitoring.metrics.MetricWriter}.
+     * The reporting interval for {@link google.registry.monitoring.metrics.Metric} instances to be
+     * sent to a {@link google.registry.monitoring.metrics.MetricWriter}.
      *
      * @see google.registry.monitoring.metrics.MetricReporter
      */
