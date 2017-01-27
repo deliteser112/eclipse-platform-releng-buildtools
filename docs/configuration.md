@@ -56,15 +56,53 @@ queues, and thus edit those associated XML files.
 
 ## Global configuration
 
-Global configuration is managed through **`ConfigModule`**, which is a Dagger
-module that provides injectable configuration options. Some configuration
-options that can be changed in this class include timeout lengths and buffer
-sizes for various tasks, email addresses and URLs to use for various services,
-more Cloud Storage bucket names, and WHOIS disclaimer text. Currently, in order
-to configure custom configuration, you need to copy `ConfigModule`, make changes
-to it, and include your new version instead of the default one in all Dagger
-components. In the near future, configuration via YAML files will be supported,
-after which point changes to `ConfigModule` will not be required at all.
+Global configuration is managed through YAML files that are built with and
+deployed in the app. The full list of config options and their default values
+can be found in the `[default-config.yaml][default-config]` file. If you wish to
+change any of these values, do not change make changes to this file. Instead,
+write a custom configuration file named `nomulus-config.yaml` that overrides
+only the options you wish to change, and include it in the `WEB-INF` directory
+in each service.
+
+The existing environments that Nomulus ships with (alpha, sandbox, etc.) come
+with placeholder configuration files that are included in the default deployment
+build, so if you are using one of these environments, simply make your changes
+to that file. For example, to configure the alpha environment, edit
+`[env/alpha/common/WEB-INF/nomulus-config.yaml][nomulus-config-alpha]`.
+
+You will not need to change most of the default settings. Here is the subset of
+settings that you will need to change for all deployed environments, including
+development environments. See `[default-config.yaml][default-config]` for a full
+description of each option:
+
+```yaml
+appEngine:
+  projectId: # Your App Engine project ID
+
+gSuite:
+  domainName: # Your G Suite domain name
+  adminAccountEmailAddress: # An admin login for your G Suite account
+```
+
+For fully-featured production environments that need the full range of features
+(e.g. RDE, correct contact information on the registrar console, etc.) you will
+need to provide configuration for the settings in the following sections:
+
+* `appEngine:`
+* `gSuite:`
+* `registryPolicy:`
+* `registrarConsole:`
+
+From a code perspective, all configuration settings ultimately come through the
+`[RegistryConfig][registry-config]` class. This includes a Dagger module called
+`ConfigModule` that provides injectable configuration options. Some legacy
+configuration options that can be changed in this class include timeout lengths
+and buffer sizes for various tasks, email addresses and URLs to use for various
+services, more Cloud Storage bucket names, and WHOIS disclaimer text. Currently,
+in order to configure custom configuration, you need to copy `ConfigModule`,
+make changes to it, and include your new version instead of the default one in
+all Dagger components. All of these options will be replaced with YAML
+configuration settings in the near future.
 
 ## Sensitive global configuration
 
@@ -108,3 +146,6 @@ above, per-TLD configuration options are stored as data in the running system,
 and thus do not require code pushes to update.
 
 [app-engine-config]: https://cloud.google.com/appengine/docs/java/configuration-files
+[default-config]: https://github.com/google/nomulus/blob/master/java/google/registry/config/default-config.yaml
+[nomulus-config-alpha]: https://github.com/google/nomulus/blob/master/java/google/registry/env/alpha/common/WEB-INF/nomulus-config.yaml
+[registry-config]: https://github.com/google/nomulus/blob/master/java/google/registry/config/RegistryConfig.java
