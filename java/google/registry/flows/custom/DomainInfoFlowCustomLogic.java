@@ -21,6 +21,7 @@ import google.registry.flows.FlowMetadata;
 import google.registry.flows.SessionMetadata;
 import google.registry.flows.domain.DomainInfoFlow;
 import google.registry.model.ImmutableObject;
+import google.registry.model.domain.DomainInfoData;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
@@ -90,7 +91,7 @@ public class DomainInfoFlowCustomLogic extends BaseFlowCustomLogic {
 
     public abstract DomainResource domain();
 
-    public abstract DomainResource resData();
+    public abstract DomainInfoData resData();
 
     public abstract ImmutableList<? extends ResponseExtension> responseExtensions();
 
@@ -104,7 +105,7 @@ public class DomainInfoFlowCustomLogic extends BaseFlowCustomLogic {
 
       public abstract Builder setDomain(DomainResource domain);
 
-      public abstract Builder setResData(DomainResource resData);
+      public abstract Builder setResData(DomainInfoData resData);
 
       public abstract Builder setResponseExtensions(
           ImmutableList<? extends ResponseExtension> responseExtensions);
@@ -119,7 +120,7 @@ public class DomainInfoFlowCustomLogic extends BaseFlowCustomLogic {
   @AutoValue
   public abstract static class BeforeResponseReturnData extends ImmutableObject {
 
-    public abstract DomainResource resData();
+    public abstract DomainInfoData resData();
 
     public abstract ImmutableList<? extends ResponseExtension> responseExtensions();
 
@@ -131,7 +132,7 @@ public class DomainInfoFlowCustomLogic extends BaseFlowCustomLogic {
     @AutoValue.Builder
     public abstract static class Builder {
 
-      public abstract Builder setResData(DomainResource resData);
+      public abstract Builder setResData(DomainInfoData resData);
 
       public abstract Builder setResponseExtensions(
           ImmutableList<? extends ResponseExtension> responseExtensions);

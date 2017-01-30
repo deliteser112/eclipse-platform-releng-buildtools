@@ -93,14 +93,6 @@ public final class DomainInfoFlow implements Flow {
     DomainResource domain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyOptionalAuthInfo(authInfo, domain);
     customLogic.afterValidation(AfterValidationParameters.newBuilder().setDomain(domain).build());
-    BeforeResponseReturnData responseData =
-        customLogic.beforeResponse(
-            BeforeResponseParameters.newBuilder()
-                .setDomain(domain)
-                .setResData(domain)
-                .setResponseExtensions(getDomainResponseExtensions(domain, now))
-                .build());
-    domain = responseData.resData();
     prefetchReferencedResources(domain);
     // Registrars can only see a few fields on unauthorized domains.
     // This is a policy decision that is left up to us by the rfcs.
@@ -130,8 +122,15 @@ public final class DomainInfoFlow implements Flow {
           .setLastTransferTime(domain.getLastTransferTime())
           .setAuthInfo(domain.getAuthInfo());
     }
+    BeforeResponseReturnData responseData =
+        customLogic.beforeResponse(
+            BeforeResponseParameters.newBuilder()
+                .setDomain(domain)
+                .setResData(infoBuilder.build())
+                .setResponseExtensions(getDomainResponseExtensions(domain, now))
+                .build());
     return responseBuilder
-        .setResData(infoBuilder.build())
+        .setResData(responseData.resData())
         .setExtensions(responseData.responseExtensions())
         .build();
   }
