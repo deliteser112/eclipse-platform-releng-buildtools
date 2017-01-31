@@ -18,7 +18,6 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.model.EppResourceUtils.isLinked;
-import static google.registry.util.CollectionUtils.difference;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -63,8 +62,7 @@ public final class HostInfoFlow implements Flow {
     DateTime now = clock.nowUtc();
     HostResource host = loadAndVerifyExistence(HostResource.class, targetId, now);
     ImmutableSet.Builder<StatusValue> statusValues = new ImmutableSet.Builder<>();
-    // TODO(b/34664935): When LINKED is no longer persisted we won't need to filter it out.
-    statusValues.addAll(difference(host.getStatusValues(), StatusValue.LINKED));
+    statusValues.addAll(host.getStatusValues());
     if (isLinked(Key.create(host), now)) {
       statusValues.add(StatusValue.LINKED);
     }
