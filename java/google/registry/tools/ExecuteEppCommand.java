@@ -50,7 +50,7 @@ final class ExecuteEppCommand extends MutatingEppToolCommand {
           clientId, CharStreams.toString(new InputStreamReader(stdin, UTF_8)));
     } else {
       for (String command : mainParameters) {
-        addXmlCommand(clientId, Files.toString(new File(command), UTF_8));
+        addXmlCommand(clientId, Files.asCharSource(new File(command), UTF_8).read());
       }
     }
   }

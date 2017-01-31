@@ -46,6 +46,6 @@ final class GetClaimsListCommand implements RemoteApiCommand {
   public void run() throws Exception {
     ClaimsListShard cl = checkNotNull(ClaimsListShard.get(), "Couldn't load ClaimsList");
     String csv = Joiner.on('\n').withKeyValueSeparator(",").join(cl.getLabelsToKeys()) + "\n";
-    Files.write(csv, output.toFile(), UTF_8);
+    Files.asCharSink(output.toFile(), UTF_8).write(csv);
   }
 }
