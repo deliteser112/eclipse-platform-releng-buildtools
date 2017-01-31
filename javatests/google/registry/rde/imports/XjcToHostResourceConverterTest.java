@@ -17,10 +17,10 @@ package google.registry.rde.imports;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 
-import com.google.appengine.repackaged.com.google.common.net.InetAddresses;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
+import com.google.common.net.InetAddresses;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.testing.AppEngineRule;
