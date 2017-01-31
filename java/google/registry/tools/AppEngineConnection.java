@@ -51,7 +51,7 @@ class AppEngineConnection implements Connection {
   private static final Pattern HTML_TITLE_TAG_PATTERN = Pattern.compile("<title>(.*?)</title>");
 
   @Inject HttpRequestFactory requestFactory;
-  @Inject HostAndPort server;
+  @Inject AppEngineConnectionFlags flags;
 
   @Inject
   AppEngineConnection() {}
@@ -144,11 +144,11 @@ class AppEngineConnection implements Connection {
   }
 
   HostAndPort getServer() {
-    return server.withDefaultPort(443);  // Default to HTTPS port if unspecified.
+    return flags.getServer().withDefaultPort(443);  // Default to HTTPS port if unspecified.
   }
 
   boolean isLocalhost() {
-    return server.getHostText().equals("localhost");
+    return flags.getServer().getHostText().equals("localhost");
   }
 
   private String getUserId() {

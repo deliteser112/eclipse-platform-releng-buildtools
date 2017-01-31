@@ -118,19 +118,9 @@ final class RegistryCli {
     }
     loggingParams.configureLogging();  // Must be called after parameters are parsed.
 
-    // Decide which HTTP connection to use for App Engine
-    HttpRequestFactoryComponent requestFactoryComponent;
-    if (appEngineConnectionFlags.getServer().getHostText().equals("localhost")) {
-      requestFactoryComponent = new LocalhostRequestFactoryComponent();
-    } else {
-      requestFactoryComponent = new BasicHttpRequestFactoryComponent();
-    }
-
     // Create the main component and use it to inject the command class.
     RegistryToolComponent component = DaggerRegistryToolComponent.builder()
-        .httpRequestFactoryComponent(requestFactoryComponent)
-        .appEngineConnectionFlagsModule(
-            new AppEngineConnectionFlagsModule(appEngineConnectionFlags))
+        .flagsModule(new AppEngineConnectionFlags.FlagsModule(appEngineConnectionFlags))
         .build();
     injectReflectively(RegistryToolComponent.class, component, command);
 

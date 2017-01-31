@@ -38,10 +38,12 @@ import javax.inject.Singleton;
 @Singleton
 @Component(
   modules = {
-    AppEngineConnectionFlagsModule.class,
+    AppEngineConnectionFlags.FlagsModule.class,
     ConfigModule.class,
     DatastoreServiceModule.class,
     CloudDnsWriterModule.class,
+    DefaultRequestFactoryModule.class,
+    DefaultRequestFactoryModule.RequestFactoryModule.class,
     DnsUpdateWriterModule.class,
     DummyKeyringModule.class,
     Jackson2Module.class,
@@ -52,9 +54,6 @@ import javax.inject.Singleton;
     URLFetchServiceModule.class,
     VoidDnsWriterModule.class,
     WhoisModule.class,
-  },
-  dependencies = {
-    HttpRequestFactoryComponent.class,
   }
 )
 interface RegistryToolComponent {
