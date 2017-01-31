@@ -104,7 +104,7 @@
 <rdeHost:host>
     <rdeHost:name>bird.or.devil.xn--q9jyb4c</rdeHost:name>
     <rdeHost:roid>8-ROID</rdeHost:roid>
-    <rdeHost:status s="pendingUpdate"/>
+    <rdeHost:status s="ok"/>
     <rdeHost:addr ip="v4">1.2.3.4</rdeHost:addr>
     <rdeHost:clID>BusinessCat</rdeHost:clID>
     <rdeHost:crRr>LawyerCat</rdeHost:crRr>
@@ -117,7 +117,7 @@
 <rdeHost:host>
     <rdeHost:name>ns2.cat.xn--q9jyb4c</rdeHost:name>
     <rdeHost:roid>9-ROID</rdeHost:roid>
-    <rdeHost:status s="pendingUpdate"/>
+    <rdeHost:status s="ok"/>
     <rdeHost:addr ip="v6">bad:f00d:cafe::15:beef</rdeHost:addr>
     <rdeHost:clID>BusinessCat</rdeHost:clID>
     <rdeHost:crRr>LawyerCat</rdeHost:crRr>

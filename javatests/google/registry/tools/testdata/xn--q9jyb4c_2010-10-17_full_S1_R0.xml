@@ -40,7 +40,7 @@
 <rdeHost:host>
     <rdeHost:name>ns1.cat.lol</rdeHost:name>
     <rdeHost:roid>5-ROID</rdeHost:roid>
-    <rdeHost:status s="pendingUpdate"/>
+    <rdeHost:status s="ok"/>
     <rdeHost:addr ip="v6">feed::a:bee</rdeHost:addr>
     <rdeHost:clID>BusinessCat</rdeHost:clID>
     <rdeHost:crRr>LawyerCat</rdeHost:crRr>

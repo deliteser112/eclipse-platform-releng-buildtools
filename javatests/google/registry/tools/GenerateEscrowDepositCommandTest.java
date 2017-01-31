@@ -204,9 +204,7 @@ public class GenerateEscrowDepositCommandTest
         .setLastTransferTime(DateTime.parse("1910-01-01T00:00:00Z"))
         .setLastEppUpdateClientId("CeilingCat")
         .setLastEppUpdateTime(clock.nowUtc())
-        .setStatusValues(ImmutableSet.of(
-            StatusValue.OK,
-            StatusValue.PENDING_UPDATE))
+        .setStatusValues(ImmutableSet.of(StatusValue.OK))
         .build();
   }
 

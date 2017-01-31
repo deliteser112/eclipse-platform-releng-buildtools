@@ -243,9 +243,14 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
 
     /** Set this resource's status values. */
     public B setStatusValues(ImmutableSet<StatusValue> statusValues) {
-      checkArgument(
-          !nullToEmpty(statusValues).contains(StatusValue.LINKED),
-          "LINKED is a virtual status value that should never be set on an EppResource");
+      Class<? extends EppResource> resourceClass = getInstance().getClass();
+      for (StatusValue statusValue : nullToEmpty(statusValues)) {
+        checkArgument(
+            !statusValue.isForbiddenOn(resourceClass),
+            "The %s status cannot be set on %s",
+            statusValue,
+            resourceClass.getSimpleName());
+      }
       getInstance().status = statusValues;
       return thisCastToDerived();
     }

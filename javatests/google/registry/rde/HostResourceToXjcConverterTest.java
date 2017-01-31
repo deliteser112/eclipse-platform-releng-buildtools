@@ -71,7 +71,7 @@ public class HostResourceToXjcConverterTest {
             .setLastEppUpdateClientId("CeilingCat")
             .setLastEppUpdateTime(DateTime.parse("1920-01-01T00:00:00Z"))
             .setRepoId("2-roid")
-            .setStatusValues(ImmutableSet.of(StatusValue.PENDING_UPDATE))
+            .setStatusValues(ImmutableSet.of(StatusValue.OK))
             .build());
 
     assertThat(bean.getAddrs()).hasSize(1);
@@ -94,8 +94,8 @@ public class HostResourceToXjcConverterTest {
     assertThat(bean.getRoid()).isEqualTo("2-roid");
 
     assertThat(bean.getStatuses()).hasSize(1);
-    assertThat(bean.getStatuses().get(0).getS()).isEqualTo(XjcHostStatusValueType.PENDING_UPDATE);
-    assertThat(bean.getStatuses().get(0).getS().toString()).isEqualTo("PENDING_UPDATE");
+    assertThat(bean.getStatuses().get(0).getS()).isEqualTo(XjcHostStatusValueType.OK);
+    assertThat(bean.getStatuses().get(0).getS().toString()).isEqualTo("OK");
     assertThat(bean.getStatuses().get(0).getValue()).isNull();
     assertThat(bean.getStatuses().get(0).getLang()).isEqualTo("en");
 
@@ -120,7 +120,7 @@ public class HostResourceToXjcConverterTest {
             .setLastEppUpdateClientId("CeilingCat")
             .setLastEppUpdateTime(DateTime.parse("1920-01-01T00:00:00Z"))
             .setRepoId("2-LOL")
-            .setStatusValues(ImmutableSet.of(StatusValue.PENDING_UPDATE))
+            .setStatusValues(ImmutableSet.of(StatusValue.OK))
             .build());
     assertThat(bean.getAddrs()).hasSize(1);
     assertThat(bean.getAddrs().get(0).getIp().value()).isEqualTo("v6");

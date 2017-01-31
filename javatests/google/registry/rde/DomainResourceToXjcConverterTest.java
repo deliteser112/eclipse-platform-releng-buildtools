@@ -408,9 +408,7 @@ public class DomainResourceToXjcConverterTest {
             .setLastEppUpdateClientId("CeilingCat")
             .setLastEppUpdateTime(DateTime.parse("1920-01-01T00:00:00Z"))
             .setRepoId(repoId)
-            .setStatusValues(ImmutableSet.of(
-                StatusValue.OK,
-                StatusValue.PENDING_UPDATE))
+            .setStatusValues(ImmutableSet.of(StatusValue.OK))
             .build());
   }
 }
