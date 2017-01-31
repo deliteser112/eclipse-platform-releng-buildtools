@@ -154,7 +154,7 @@ public interface Keyring extends AutoCloseable {
    *
    * <p>This is a base32 value copied from the Braintree website.
    *
-   * @see google.registry.config.ConfigModule#provideBraintreePublicKey
+   * @see google.registry.config.RegistryConfig.ConfigModule#provideBraintreePublicKey
    */
   String getBraintreePrivateKey();
 
