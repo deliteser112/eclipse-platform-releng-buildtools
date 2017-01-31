@@ -29,7 +29,7 @@ a price, it has a reservation type. The valid values for reservation types are:
     specified.
 
 The reservation types are listed in order of increasing precedence, so if a
-label is included on the same list multiple lists, or on different lists that
+label is included on the same list multiple times, or on different lists that
 are applied to a single TLD, whichever reservation type is later in the list
 takes precedence. E.g. a label being fully blocked in one list always supersedes
 it being allowed in sunrise from another list. In general `FULLY_BLOCKED` is by

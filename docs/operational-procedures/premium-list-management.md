@@ -45,7 +45,7 @@ Successfully saved premium list exampletld
 
 `-n` is the name of the list to be created, and `-i` is the input filename. Note
 that the convention of naming premium lists after the TLD they are intended to
-be used for to is enforced unless the override parameter `-o` is passed, which
+be used for is enforced unless the override parameter `-o` is passed, which
 allows premium lists to be created with any name.
 
 ## Updating a premium list
