@@ -50,7 +50,7 @@ public class FeeTransformResponseExtension extends ImmutableObject implements Re
     return nullToEmptyImmutableCopy(credits);
   }
 
-  /** Abstract builder for {@link FeeTransformResponseExtensionImpl}. */
+  /** Abstract builder for {@link FeeTransformResponseExtension}. */
   public static class Builder extends Buildable.Builder<FeeTransformResponseExtension> {
 
     public Builder(FeeTransformResponseExtension instance) {

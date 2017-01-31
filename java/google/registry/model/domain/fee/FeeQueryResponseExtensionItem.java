@@ -79,7 +79,7 @@ public class FeeQueryResponseExtensionItem extends ImmutableObject {
     return feeClass;
   }
 
-  /** Abstract builder for {@link FeeQueryResponseExtensionItemImpl}. */
+  /** Abstract builder for {@link FeeQueryResponseExtensionItem}. */
   public abstract static class
       Builder<T extends FeeQueryResponseExtensionItem, B extends Builder<?, ?>>
           extends GenericBuilder<T, B> {
