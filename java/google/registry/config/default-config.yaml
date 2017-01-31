@@ -1,7 +1,9 @@
 # This is the default configuration file for Nomulus. Do not make changes to it
 # unless you are writing new features that requires you to. To customize an
 # individual deployment or environment, create a nomulus-config.yaml file in the
-# WEB-INF/ directory overriding only the values you wish to change.
+# WEB-INF/ directory overriding only the values you wish to change. You may need
+# to override some of these values to configure and enable some services used in
+# production environments.
 
 appEngine:
   # Globally unique App Engine project ID
@@ -36,6 +38,16 @@ registryPolicy:
   # Default referral URL used when not changed by a registrar.
   defaultRegistrarReferralUrl: https://www.domain-registry.example
 
+  # Mode TMCH should run in (PRODUCTION for production environments, PILOT for
+  # all others including sandbox).
+  tmchCaMode: PILOT
+
+  # URL for the ICANN TMCH Certificate Revocation List.
+  tmchCrlUrl: http://crl.icann.org/tmch_pilot.crl
+
+  # URL for the MarksDB registry interface.
+  tmchMarksDbUrl: https://test.ry.marksdb.org
+
 datastore:
   # Number of commit log buckets in Datastore. Don't change after initial
   # install.
@@ -44,6 +56,16 @@ datastore:
   # Number of EPP resource index buckets in Datastore. Don’t change after
   # initial install.
   eppResourceIndexBucketsNum: 997
+
+
+rde:
+  # URL prefix of ICANN's server to upload RDE reports to. Nomulus adds /TLD/ID
+  # to the end of this to construct the full URL.
+  reportUrlPrefix: https://test-ry-api.icann.org:8543/report/registry-escrow-report
+
+  # SFTP URL to which RDE deposits are uploaded. This should contain a username
+  # but not the password.
+  uploadUrl: sftp://username@rde-provider.example
 
 registrarConsole:
   # Filename of the logo to use in the header of the console. This filename is
@@ -76,3 +98,8 @@ monitoring:
 
   # How often metrics are exported to BigQuery.
   writeIntervalSeconds: 60
+
+misc:
+  # The ID of the Google Sheet (as found in the URL) to export registrar details
+  # to. Leave this null to disable syncing.
+  sheetExportId: null

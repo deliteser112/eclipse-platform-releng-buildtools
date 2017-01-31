@@ -285,20 +285,6 @@ public final class RegistryConfig {
     }
 
     /**
-     * Returns {@code true} if the target zone should be created in DNS if it does not exist.
-     */
-    @Provides
-    @Config("dnsCreateZone")
-    public static boolean provideDnsCreateZone(RegistryEnvironment environment) {
-      switch (environment) {
-        case PRODUCTION:
-          return false;
-        default:
-          return true;
-      }
-    }
-
-    /**
      * The maximum number of domain and host updates to batch together to send to
      * PublishDnsUpdatesAction, to avoid exceeding AppEngine's limits.
      *
@@ -409,13 +395,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("tmchCaMode")
-    public static TmchCaMode provideTmchCaMode() {
-      switch (RegistryEnvironment.get()) {
-        case PRODUCTION:
-          return TmchCaMode.PRODUCTION;
-        default:
-          return TmchCaMode.PILOT;
-      }
+    public static TmchCaMode provideTmchCaMode(RegistryConfigSettings config) {
+      return TmchCaMode.valueOf(config.registryPolicy.tmchCaMode);
     }
 
     /** The mode that the {@code TmchCertificateAuthority} operates in. */
@@ -440,13 +421,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("tmchCrlUrl")
-    public static URL provideTmchCrlUrl(RegistryEnvironment environment) {
-      switch (environment) {
-        case PRODUCTION:
-          return makeUrl("http://crl.icann.org/tmch.crl");
-        default:
-          return makeUrl("http://crl.icann.org/tmch_pilot.crl");
-      }
+    public static URL provideTmchCrlUrl(RegistryConfigSettings config) {
+      return makeUrl(config.registryPolicy.tmchCrlUrl);
     }
 
     /**
@@ -459,14 +435,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("tmchMarksdbUrl")
-    public static String provideTmchMarksdbUrl(RegistryEnvironment environment) {
-      switch (environment) {
-        case PRODUCTION:
-        case UNITTEST:
-          return "https://ry.marksdb.org";
-        default:
-          return "https://test.ry.marksdb.org";
-      }
+    public static String provideTmchMarksdbUrl(RegistryConfigSettings config) {
+      return config.registryPolicy.tmchMarksDbUrl;
     }
 
     /**
@@ -558,13 +528,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("rdeReportUrlPrefix")
-    public static String provideRdeReportUrlPrefix(RegistryEnvironment environment) {
-      switch (environment) {
-        case PRODUCTION:
-          return "https://ry-api.icann.org/report/registry-escrow-report";
-        default:
-          return "https://test-ry-api.icann.org:8543/report/registry-escrow-report";
-      }
+    public static String provideRdeReportUrlPrefix(RegistryConfigSettings config) {
+      return config.rde.reportUrlPrefix;
     }
 
     /**
@@ -638,13 +603,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("rdeUploadUrl")
-    public static URI provideRdeUploadUrl(RegistryEnvironment environment) {
-      switch (environment) {
-        case PRODUCTION:
-          return URI.create("sftp://GoogleTLD@sftpipm2.ironmountain.com/Outbox");
-        default:
-          return URI.create("sftp://google@ppftpipm.ironmountain.com/Outbox");
-      }
+    public static URI provideRdeUploadUrl(RegistryConfigSettings config) {
+      return URI.create(config.rde.uploadUrl);
     }
 
     /**
@@ -678,20 +638,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("sheetRegistrarId")
-    public static Optional<String> provideSheetRegistrarId(RegistryEnvironment environment) {
-      switch (environment) {
-        case PRODUCTION:
-          return Optional.of("1n2Gflqsgo9iDXcdt9VEskOVySZ8qIhQHJgjqsleCKdE");
-        case ALPHA:
-        case CRASH:
-          return Optional.of("16BwRt6v11Iw-HujCbAkmMxqw3sUG13B8lmXLo-uJTsE");
-        case SANDBOX:
-          return Optional.of("1TlR_UMCtfpkxT9oUEoF5JEbIvdWNkLRuURltFkJ_7_8");
-        case QA:
-          return Optional.of("1RoY1XZhLLwqBkrz0WbEtaT9CU6c8nUAXfId5BtM837o");
-        default:
-          return Optional.absent();
-      }
+    public static Optional<String> provideSheetRegistrarId(RegistryConfigSettings config) {
+      return Optional.fromNullable(config.misc.sheetExportId);
     }
 
     /**

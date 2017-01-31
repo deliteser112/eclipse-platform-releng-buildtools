@@ -86,12 +86,8 @@ gSuite:
 
 For fully-featured production environments that need the full range of features
 (e.g. RDE, correct contact information on the registrar console, etc.) you will
-need to provide configuration for the settings in the following sections:
-
-* `appEngine:`
-* `gSuite:`
-* `registryPolicy:`
-* `registrarConsole:`
+need to specify more settings. The `nomulus-config-production-sample.yaml` file
+contains an exhaustive list of all settings to override.
 
 From a code perspective, all configuration settings ultimately come through the
 `[RegistryConfig][registry-config]` class. This includes a Dagger module called

@@ -1,11 +1,11 @@
 // Copyright 2017 The Nomulus Authors. All Rights Reserved.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,8 +23,10 @@ public class RegistryConfigSettings {
   public GSuite gSuite;
   public RegistryPolicy registryPolicy;
   public Datastore datastore;
+  public Rde rde;
   public RegistrarConsole registrarConsole;
   public Monitoring monitoring;
+  public Misc misc;
 
   /** Configuration options that apply to the entire App Engine project. */
   public static class AppEngine {
@@ -46,12 +48,21 @@ public class RegistryConfigSettings {
     public List<String> registrarChangesNotificationEmailAddresses;
     public String defaultRegistrarWhoisServer;
     public String defaultRegistrarReferralUrl;
+    public String tmchCaMode;
+    public String tmchCrlUrl;
+    public String tmchMarksDbUrl;
   }
 
   /** Configuration for Cloud Datastore. */
   public static class Datastore {
     public int commitLogBucketsNum;
     public int eppResourceIndexBucketsNum;
+  }
+
+  /** Configuration for Registry Data Escrow (RDE). */
+  public static class Rde {
+    public String reportUrlPrefix;
+    public String uploadUrl;
   }
 
   /** Configuration for the web-based registrar console. */
@@ -69,5 +80,10 @@ public class RegistryConfigSettings {
     public int stackdriverMaxQps;
     public int stackdriverMaxPointsPerRequest;
     public int writeIntervalSeconds;
+  }
+
+  /** Miscellaneous configuration that doesn't quite fit in anywhere else. */
+  public static class Misc {
+    public String sheetExportId;
   }
 }
