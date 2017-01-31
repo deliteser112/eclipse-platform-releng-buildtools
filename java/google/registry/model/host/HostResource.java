@@ -193,10 +193,5 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
       getInstance().lastTransferTime = lastTransferTime;
       return this;
     }
-
-    @Override
-    public HostResource build() {
-      return super.build();
-    }
   }
 }
