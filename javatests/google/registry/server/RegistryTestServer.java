@@ -99,7 +99,7 @@ public final class RegistryTestServer {
 
   private final TestServer server;
 
-  /** @see TestServer#TestServer(HostAndPort, java.util.Map, Iterable, Iterable) */
+  /** @see TestServer#TestServer(HostAndPort, ImmutableMap, ImmutableList, ImmutableList) */
   public RegistryTestServer(HostAndPort address) {
     server = new TestServer(address, RUNFILES, ROUTES, FILTERS);
   }
