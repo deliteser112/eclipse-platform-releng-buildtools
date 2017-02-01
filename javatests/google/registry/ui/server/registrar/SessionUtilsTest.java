@@ -112,8 +112,10 @@ public class SessionUtilsTest {
   }
 
   @Test
-  public void testCheckRegistrarConsoleLogin_notLoggedIn_throwsIse() throws Exception {
+  public void testCheckRegistrarConsoleLogin_notLoggedIn_throwsIllegalStateException() 
+      throws Exception {
     thrown.expect(IllegalStateException.class);
+    @SuppressWarnings("unused")
     boolean unused = sessionUtils.checkRegistrarConsoleLogin(req);
   }
 
