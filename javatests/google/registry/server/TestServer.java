@@ -15,10 +15,10 @@
 package google.registry.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Throwables.throwIfUnchecked;
 import static com.google.common.util.concurrent.Runnables.doNothing;
 import static google.registry.util.NetworkUtils.getCanonicalHostName;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.SimpleTimeLimiter;
@@ -97,7 +97,8 @@ public final class TestServer {
     try {
       server.start();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throwIfUnchecked(e);
+      throw new RuntimeException(e);
     }
     UrlChecker.waitUntilAvailable(getUrl("/healthz"), STARTUP_TIMEOUT_MS);
   }
@@ -135,7 +136,8 @@ public final class TestServer {
         }
       }, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS, true);
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throwIfUnchecked(e);
+      throw new RuntimeException(e);
     }
   }
 

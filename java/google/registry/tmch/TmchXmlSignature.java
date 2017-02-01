@@ -17,7 +17,7 @@ package google.registry.tmch;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.getRootCause;
-import static com.google.common.base.Throwables.propagateIfInstanceOf;
+import static com.google.common.base.Throwables.throwIfInstanceOf;
 import static google.registry.xml.XmlTransformer.loadXmlSchemas;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -101,8 +101,7 @@ public final class TmchXmlSignature {
     try {
       isValid = signature.validate(context);
     } catch (XMLSignatureException e) {
-      Throwable cause = getRootCause(e);
-      propagateIfInstanceOf(cause, GeneralSecurityException.class);
+      throwIfInstanceOf(getRootCause(e), GeneralSecurityException.class);
       throw e;
     }
     if (!isValid) {

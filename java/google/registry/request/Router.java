@@ -14,9 +14,10 @@
 
 package google.registry.request;
 
+import static com.google.common.base.Throwables.throwIfUnchecked;
+
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
 import java.lang.reflect.InvocationTargetException;
@@ -100,7 +101,7 @@ final class Router {
         } catch (InvocationTargetException e) {
           // This means an exception was thrown during the injection process while instantiating
           // the @Action class; we should propagate that underlying exception.
-          Throwables.propagateIfPossible(e.getCause());
+          throwIfUnchecked(e.getCause());
           throw new AssertionError(
               "Component's @Action factory method somehow threw checked exception", e);
         }

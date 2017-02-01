@@ -14,7 +14,8 @@
 
 package google.registry.server;
 
-import com.google.common.base.Throwables;
+import static com.google.common.base.Throwables.throwIfUnchecked;
+
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -45,7 +46,8 @@ final class UrlChecker {
         }
       }, timeoutMs, TimeUnit.MILLISECONDS, true);
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throwIfUnchecked(e);
+      throw new RuntimeException(e);
     }
   }
 

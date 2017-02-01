@@ -15,6 +15,7 @@
 package google.registry.model.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Throwables.throwIfUnchecked;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.skip;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -24,7 +25,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import com.googlecode.objectify.VoidWork;
@@ -193,7 +193,8 @@ public class Lock extends ImmutableObject {
           TimeUnit.MILLISECONDS,
           true);
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throwIfUnchecked(e);
+      throw new RuntimeException(e);
     }
   }
 
