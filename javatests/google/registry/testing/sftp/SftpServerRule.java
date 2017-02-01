@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 import google.registry.util.NetworkUtils;
 import java.io.File;
-import java.io.IOException;
 import javax.annotation.Nullable;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -39,7 +38,7 @@ public final class SftpServerRule extends ExternalResource {
    *
    * @return the port on which the server is listening
    */
-  public int serve(String user, String pass, File home) throws IOException, FtpException {
+  public int serve(String user, String pass, File home) throws FtpException {
     checkState(server == null, "You already have an SFTP server!");
     int port = NetworkUtils.pickUnusedPort();
     server = createSftpServer(user, pass, home, port);
