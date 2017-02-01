@@ -41,8 +41,9 @@ public abstract class CreateOrUpdateReservedListCommandTestCase
     File invalidReservedTermsFile = tmpDir.newFile("reserved-terms-wontparse.csv");
     String reservedTermsCsv = readResourceUtf8(
         CreateOrUpdateReservedListCommandTestCase.class, "testdata/example_reserved_terms.csv");
-    Files.write(reservedTermsCsv, reservedTermsFile, UTF_8);
-    Files.write("sdfgagmsdgs,sdfgsd\nasdf234tafgs,asdfaw\n\n", invalidReservedTermsFile, UTF_8);
+    Files.asCharSink(reservedTermsFile, UTF_8).write(reservedTermsCsv);
+    Files.asCharSink(invalidReservedTermsFile, UTF_8)
+        .write("sdfgagmsdgs,sdfgsd\nasdf234tafgs,asdfaw\n\n");
     reservedTermsPath = reservedTermsFile.getPath();
     invalidReservedTermsPath = invalidReservedTermsFile.getPath();
   }

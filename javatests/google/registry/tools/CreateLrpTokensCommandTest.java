@@ -113,7 +113,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testSuccess_oneAssignee_byFile() throws Exception {
-    Files.write("domain.tld", assigneeFile, UTF_8);
+    Files.asCharSink(assigneeFile, UTF_8).write("domain.tld");
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
     assertLrpTokens(
         createToken("LRP_abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null, null));
@@ -122,7 +122,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testSuccess_oneAssignee_byFile_withMetadata() throws Exception {
-    Files.write("domain.tld,foo,bar", assigneeFile, UTF_8);
+    Files.asCharSink(assigneeFile, UTF_8).write("domain.tld,foo,bar");
     runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");
     assertLrpTokens(
         createToken(
@@ -136,7 +136,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testSuccess_oneAssignee_byFile_withMetadata_quotedString() throws Exception {
-    Files.write("domain.tld,\"foo,foo\",bar", assigneeFile, UTF_8);
+    Files.asCharSink(assigneeFile, UTF_8).write("domain.tld,\"foo,foo\",bar");
     runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");
     assertLrpTokens(
         createToken(
@@ -150,7 +150,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testSuccess_oneAssignee_byFile_withMetadata_twoQuotedStrings() throws Exception {
-    Files.write("domain.tld,\"foo,foo\",\"bar,bar\"", assigneeFile, UTF_8);
+    Files.asCharSink(assigneeFile, UTF_8).write("domain.tld,\"foo,foo\",\"bar,bar\"");
     runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");
     assertLrpTokens(
         createToken(
@@ -164,7 +164,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testSuccess_emptyFile() throws Exception {
-    Files.write("", assigneeFile, UTF_8);
+    Files.asCharSink(assigneeFile, UTF_8).write("");
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
     assertLrpTokens(); // no tokens exist
     assertThat(getStdoutAsString()).isEmpty();
@@ -172,7 +172,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testSuccess_multipleAssignees_byFile() throws Exception {
-    Files.write("domain1.tld\ndomain2.tld\ndomain3.tld", assigneeFile, UTF_8);
+    Files.asCharSink(assigneeFile, UTF_8).write("domain1.tld\ndomain2.tld\ndomain3.tld");
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
 
     assertLrpTokens(
@@ -187,7 +187,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testSuccess_multipleAssignees_byFile_ignoreBlankLine() throws Exception {
-    Files.write("domain1.tld\n\ndomain2.tld", assigneeFile, UTF_8);
+    Files.asCharSink(assigneeFile, UTF_8).write("domain1.tld\n\ndomain2.tld");
     runCommand("--input=" + assigneeFilePath, "--tlds=tld");
     assertLrpTokens(
         createToken("LRP_abcdefghijklmnop", "domain1.tld", ImmutableSet.of("tld"), null, null),
@@ -216,7 +216,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
               null,
               ImmutableMap.of("key", Integer.toString(i * 2), "key2", Integer.toString(i * 3)));
     }
-    Files.write(assigneeFileBuilder, assigneeFile, UTF_8);
+    Files.asCharSink(assigneeFile, UTF_8).write(assigneeFileBuilder);
     runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");
     assertLrpTokens(expectedTokens);
     for (int i = 0; i < numberOfTokens; i++) {
@@ -264,7 +264,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testFailure_oneAssignee_byFile_insufficientMetadata() throws Exception {
-    Files.write("domain.tld,foo", assigneeFile, UTF_8);
+    Files.asCharSink(assigneeFile, UTF_8).write("domain.tld,foo");
     thrown.expect(IllegalArgumentException.class,
         "Entry for domain.tld does not have a value for key2 (index 2)");
     runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");

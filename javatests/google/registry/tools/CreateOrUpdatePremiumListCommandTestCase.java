@@ -42,7 +42,7 @@ public abstract class CreateOrUpdatePremiumListCommandTestCase<
   ArgumentCaptor<byte[]> requestBodyCaptor;
 
   static String generateInputData(String premiumTermsPath) throws Exception {
-    return Files.toString(new File(premiumTermsPath), StandardCharsets.UTF_8);
+    return Files.asCharSource(new File(premiumTermsPath), StandardCharsets.UTF_8).read();
   }
 
   void verifySentParams(

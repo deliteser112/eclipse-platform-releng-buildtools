@@ -275,7 +275,7 @@ public final class AppEngineRule extends ExternalResource {
     }
     if (withTaskQueue) {
       File queueFile = temporaryFolder.newFile("queue.xml");
-      Files.write(taskQueueXml, queueFile, UTF_8);
+      Files.asCharSink(queueFile, UTF_8).write(taskQueueXml);
       configs.add(new LocalTaskQueueTestConfig()
           .setQueueXmlPath(queueFile.getAbsolutePath()));
     }
