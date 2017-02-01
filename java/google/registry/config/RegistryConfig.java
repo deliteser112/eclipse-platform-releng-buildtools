@@ -18,7 +18,6 @@ import static com.google.common.base.Suppliers.memoize;
 import static google.registry.config.ConfigUtils.makeUrl;
 import static google.registry.config.YamlUtils.getConfigSettings;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static org.joda.time.Duration.standardDays;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
@@ -27,6 +26,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.RegistryConfigSettings.AppEngine.ToolsServiceUrl;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
@@ -855,8 +855,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("contactAutomaticTransferLength")
-    public static Duration provideContactAutomaticTransferLength() {
-      return standardDays(5);
+    public static Duration provideContactAutomaticTransferLength(RegistryConfigSettings config) {
+      return Duration.standardDays(config.registryPolicy.contactAutomaticTransferDays);
     }
 
     /**
@@ -909,16 +909,14 @@ public final class RegistryConfig {
 
     @Provides
     @Config("customLogicFactoryClass")
-    public static String provideCustomLogicFactoryClass() {
-      // TODO(b/32875427): This will be converted to YAML configuration in a future refactor.
-      return "google.registry.flows.custom.CustomLogicFactory";
+    public static String provideCustomLogicFactoryClass(RegistryConfigSettings config) {
+      return config.registryPolicy.customLogicFactoryClass;
     }
 
     @Provides
     @Config("whoisCommandFactoryClass")
-    public static String provideWhoisCommandFactoryClass() {
-      // TODO(b/32875427): This will be converted to YAML configuration in a future refactor.
-      return "google.registry.whois.WhoisCommandFactory";
+    public static String provideWhoisCommandFactoryClass(RegistryConfigSettings config) {
+      return config.registryPolicy.whoisCommandFactoryClass;
     }
 
     private static final String RESERVED_TERMS_EXPORT_DISCLAIMER = ""
@@ -1092,27 +1090,13 @@ public final class RegistryConfig {
    * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
    */
   public static HostAndPort getServer() {
-    switch (RegistryEnvironment.get()) {
-      case LOCAL:
-        return HostAndPort.fromParts("localhost", 8080);
-      case UNITTEST:
-        throw new UnsupportedOperationException("Unit tests can't spin up a full server");
-      default:
-        return HostAndPort.fromParts(
-            String.format("tools-dot-%s.appspot.com", getProjectId()), 443);
-    }
+    ToolsServiceUrl url = CONFIG_SETTINGS.get().appEngine.toolsServiceUrl;
+    return HostAndPort.fromParts(url.hostName, url.port);
   }
 
   /** Returns the amount of time a singleton should be cached, before expiring. */
   public static Duration getSingletonCacheRefreshDuration() {
-    switch (RegistryEnvironment.get()) {
-      case UNITTEST:
-        // All cache durations are set to zero so that unit tests can update and then retrieve data
-        // immediately without failure.
-        return Duration.ZERO;
-      default:
-        return Duration.standardMinutes(10);
-    }
+    return Duration.standardSeconds(CONFIG_SETTINGS.get().caching.singletonCacheRefreshSeconds);
   }
 
   /**
@@ -1122,22 +1106,12 @@ public final class RegistryConfig {
    * @see google.registry.model.registry.label.PremiumList
    */
   public static Duration getDomainLabelListCacheDuration() {
-    switch (RegistryEnvironment.get()) {
-      case UNITTEST:
-        return Duration.ZERO;
-      default:
-        return Duration.standardHours(1);
-    }
+    return Duration.standardSeconds(CONFIG_SETTINGS.get().caching.domainLabelCachingSeconds);
   }
 
   /** Returns the amount of time a singleton should be cached in persist mode, before expiring. */
   public static Duration getSingletonCachePersistDuration() {
-    switch (RegistryEnvironment.get()) {
-      case UNITTEST:
-        return Duration.ZERO;
-      default:
-        return Duration.standardDays(365);
-    }
+    return Duration.standardSeconds(CONFIG_SETTINGS.get().caching.singletonCachePersistSeconds);
   }
 
   /**
@@ -1168,17 +1142,17 @@ public final class RegistryConfig {
    * Returns the base retry duration that gets doubled after each failure within {@code Ofy}.
    */
   public static Duration getBaseOfyRetryDuration() {
-    switch (RegistryEnvironment.get()) {
-      case UNITTEST:
-        return Duration.ZERO;
-      default:
-        return Duration.millis(100);
-    }
+    return Duration.millis(CONFIG_SETTINGS.get().datastore.baseOfyRetryMillis);
   }
 
   /** Returns the roid suffix to be used for the roids of all contacts and hosts. */
   public static String getContactAndHostRoidSuffix() {
     return CONFIG_SETTINGS.get().registryPolicy.contactAndHostRoidSuffix;
+  }
+
+  /** Returns the global automatic transfer length for contacts. */
+  public static Duration getContactAutomaticTransferLength() {
+    return Duration.standardDays(CONFIG_SETTINGS.get().registryPolicy.contactAutomaticTransferDays);
   }
 
   /**
@@ -1202,8 +1176,6 @@ public final class RegistryConfig {
     public static final String GOOGLE_APPS_SEND_FROM_EMAIL_ADDRESS = "noreply@testing.example";
 
     public static final String GOOGLE_APPS_ADMIN_EMAIL_DISPLAY_NAME = "Testing Nomulus";
-
-    public static final Duration CONTACT_AUTOMATIC_TRANSFER_LENGTH = standardDays(5);
   }
 
   private RegistryConfig() {}

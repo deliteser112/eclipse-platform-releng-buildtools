@@ -7,7 +7,12 @@
 
 appEngine:
   # Globally unique App Engine project ID
-  projectId: domain-registry
+  projectId: registry-project-id
+
+  # Hostname and port of the tools service for the project.
+  toolsServiceUrl:
+    hostName: localhost
+    port: 443
 
 gSuite:
   # Publicly accessible domain name of the running G Suite instance.
@@ -27,6 +32,17 @@ registryPolicy:
 
   # Product name of the registry. Used throughout the registrar console.
   productName: Nomulus
+
+  # Custom logic factory fully-qualified class name.
+  # See flows/custom/CustomLogicFactory.java
+  customLogicFactoryClass: google.registry.flows.custom.CustomLogicFactory
+
+  # WHOIS command factory fully-qualified class name.
+  # See whois/WhoisCommandFactory.java
+  whoisCommandFactoryClass: google.registry.whois.WhoisCommandFactory
+
+  # Length of time after which contact transfers automatically conclude.
+  contactAutomaticTransferDays: 5
 
   # List of email addresses that notifications of registrar and/or registrar
   # contact updates should be sent to, or empty list for no notifications.
@@ -57,6 +73,19 @@ datastore:
   # initial install.
   eppResourceIndexBucketsNum: 997
 
+  # Milliseconds that Objectify waits to retry a Datastore transaction (this
+  # doubles after each failure).
+  baseOfyRetryMillis: 100
+
+caching:
+  # Length of time that a singleton should be cached before expiring.
+  singletonCacheRefreshSeconds: 600
+
+  # Length of time that a reserved/premium list should be cached before expiring.
+  domainLabelCachingSeconds: 3600
+
+  # Length of time that a long-lived singleton in persist mode should be cached.
+  singletonCachePersistSeconds: 31557600 # This is one year.
 
 rde:
   # URL prefix of ICANN's server to upload RDE reports to. Nomulus adds /TLD/ID

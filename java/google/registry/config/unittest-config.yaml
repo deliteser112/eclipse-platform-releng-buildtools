@@ -1,6 +1,12 @@
 # This is the configuration file used by unit tests. These values ARE NOT
 # SUITABLE for use in a real deployed environment.
 
+appEngine:
+  # Tests can't fire up a full server, so make them error out if they try to.
+  toolsServiceUrl:
+    hostName: null
+    port: 0
+
 registryPolicy:
   registrarChangesNotificationEmailAddresses:
     - notification@test.example
@@ -11,3 +17,9 @@ registryPolicy:
 datastore:
   commitLogBucketsNum: 3
   eppResourceIndexBucketsNum: 3
+  baseOfyRetryMillis: 0
+
+caching:
+  singletonCacheRefreshSeconds: 0
+  domainLabelCachingSeconds: 0
+  singletonCachePersistSeconds: 0

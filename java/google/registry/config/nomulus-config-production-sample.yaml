@@ -4,6 +4,11 @@
 
 appEngine:
   projectId: placeholder
+  # The "tools-dot-" prefix is used on the project ID in this URL in order to
+  # get around an issue with double-wildcard SSL certs.
+  toolsServiceUrl:
+    hostName: tools-dot-placeholder.appspot.com
+    port: 443
 
 gSuite:
   domainName: placeholder

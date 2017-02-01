@@ -23,6 +23,7 @@ public class RegistryConfigSettings {
   public GSuite gSuite;
   public RegistryPolicy registryPolicy;
   public Datastore datastore;
+  public Caching caching;
   public Rde rde;
   public RegistrarConsole registrarConsole;
   public Monitoring monitoring;
@@ -31,6 +32,13 @@ public class RegistryConfigSettings {
   /** Configuration options that apply to the entire App Engine project. */
   public static class AppEngine {
     public String projectId;
+    public ToolsServiceUrl toolsServiceUrl;
+
+    /** Configuration options for the tools service URL. */
+    public static class ToolsServiceUrl {
+      public String hostName;
+      public int port;
+    }
   }
 
   /** Configuration options for the G Suite account used by Nomulus. */
@@ -45,6 +53,9 @@ public class RegistryConfigSettings {
   public static class RegistryPolicy {
     public String contactAndHostRoidSuffix;
     public String productName;
+    public String customLogicFactoryClass;
+    public String whoisCommandFactoryClass;
+    public int contactAutomaticTransferDays;
     public List<String> registrarChangesNotificationEmailAddresses;
     public String defaultRegistrarWhoisServer;
     public String defaultRegistrarReferralUrl;
@@ -57,6 +68,14 @@ public class RegistryConfigSettings {
   public static class Datastore {
     public int commitLogBucketsNum;
     public int eppResourceIndexBucketsNum;
+    public int baseOfyRetryMillis;
+  }
+
+  /** Configuration for caching. */
+  public static class Caching {
+    public int singletonCacheRefreshSeconds;
+    public int domainLabelCachingSeconds;
+    public int singletonCachePersistSeconds;
   }
 
   /** Configuration for Registry Data Escrow (RDE). */

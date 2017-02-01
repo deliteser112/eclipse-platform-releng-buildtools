@@ -20,8 +20,8 @@ import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static google.registry.config.RegistryConfig.LocalTestConfig.CONTACT_AUTOMATIC_TRANSFER_LENGTH;
 import static google.registry.config.RegistryConfig.getContactAndHostRoidSuffix;
+import static google.registry.config.RegistryConfig.getContactAutomaticTransferLength;
 import static google.registry.flows.ResourceFlowUtils.createTransferResponse;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.EppResourceUtils.createRepoId;
@@ -482,7 +482,7 @@ public class DatastoreHelper {
             .setCurrentSponsorClientId("TheRegistrar")
             .addStatusValue(StatusValue.PENDING_TRANSFER)
             .setTransferData(createTransferDataBuilder(requestTime, expirationTime)
-                    .setPendingTransferExpirationTime(now.plus(CONTACT_AUTOMATIC_TRANSFER_LENGTH))
+                    .setPendingTransferExpirationTime(now.plus(getContactAutomaticTransferLength()))
                 .setServerApproveEntities(
                     ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
                     // Pretend it's 3 days since the request

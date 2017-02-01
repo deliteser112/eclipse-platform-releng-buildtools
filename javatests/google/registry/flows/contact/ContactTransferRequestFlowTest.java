@@ -15,6 +15,7 @@
 package google.registry.flows.contact;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.config.RegistryConfig.getContactAutomaticTransferLength;
 import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.deleteResource;
@@ -22,7 +23,6 @@ import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
-import google.registry.config.RegistryConfig.LocalTestConfig;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
@@ -57,7 +57,7 @@ public class ContactTransferRequestFlowTest
   private void doSuccessfulTest(String commandFilename, String expectedXmlFilename)
       throws Exception {
     setEppInput(commandFilename);
-    DateTime afterTransfer = clock.nowUtc().plus(LocalTestConfig.CONTACT_AUTOMATIC_TRANSFER_LENGTH);
+    DateTime afterTransfer = clock.nowUtc().plus(getContactAutomaticTransferLength());
 
     // Setup done; run the test.
     assertTransactionalFlow(true);
