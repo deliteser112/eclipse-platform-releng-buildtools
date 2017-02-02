@@ -155,7 +155,7 @@ public final class HostUpdateFlow implements TransactionalFlow {
         // the lookupSuperordinateDomain(...) call above, so that it will never be stale.
         .setSuperordinateDomain(
             superordinateDomain.isPresent() ? Key.create(superordinateDomain.get()) : null)
-        .setLastSuperordinateChange(superordinateDomain == null ? null : now)
+        .setLastSuperordinateChange(superordinateDomain.isPresent() ? now : null)
         .build()
         // Rely on the host's cloneProjectedAtTime() method to handle setting of transfer data.
         .cloneProjectedAtTime(now);
