@@ -329,8 +329,8 @@ public final class AppEngineRule extends ExternalResource {
     helper = null;
     // Test that the datastore didn't need any indexes we don't have listed in our index file.
     try {
-      Set<String> autoIndexes = getIndexXmlStrings(Files.toString(
-          new File(temporaryFolder.getRoot(), "datastore-indexes-auto.xml"), UTF_8));
+      Set<String> autoIndexes = getIndexXmlStrings(Files.asCharSource(
+          new File(temporaryFolder.getRoot(), "datastore-indexes-auto.xml"), UTF_8).read());
       Set<String> missingIndexes = Sets.difference(autoIndexes, MANUAL_INDEXES);
       if (!missingIndexes.isEmpty()) {
         assert_().fail("Missing indexes:\n%s", Joiner.on('\n').join(missingIndexes));
