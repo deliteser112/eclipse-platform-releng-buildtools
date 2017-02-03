@@ -15,6 +15,8 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddress;
+import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -22,7 +24,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import google.registry.config.RegistryConfig.LocalTestConfig;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
 import google.registry.util.SendEmailService;
@@ -61,9 +62,8 @@ public class SendEmailUtilsTest {
     inject.setStaticField(SendEmailUtils.class, "emailService", emailService);
     message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
     when(emailService.createMessage()).thenReturn(message);
-    sendEmailUtils = new SendEmailUtils(
-        LocalTestConfig.GOOGLE_APPS_SEND_FROM_EMAIL_ADDRESS,
-        LocalTestConfig.GOOGLE_APPS_ADMIN_EMAIL_DISPLAY_NAME);
+    sendEmailUtils =
+        new SendEmailUtils(getGSuiteOutgoingEmailAddress(), getGSuiteOutgoingEmailDisplayName());
   }
 
   @Test

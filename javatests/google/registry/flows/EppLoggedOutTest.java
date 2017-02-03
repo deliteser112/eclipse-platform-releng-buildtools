@@ -40,7 +40,7 @@ public class EppLoggedOutTest extends EppTestCase {
     assertCommandAndResponse(
         "hello.xml",
         null,
-        "greeting_crr.xml",
+        "greeting.xml",
         ImmutableMap.of("DATE", now.toString(dateTimeNoMillis())),
         now);
   }

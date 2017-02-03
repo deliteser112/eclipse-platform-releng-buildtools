@@ -29,6 +29,7 @@ public class RegistryConfigSettings {
   public RegistrarConsole registrarConsole;
   public Monitoring monitoring;
   public Misc misc;
+  public Rdap rdap;
   public Braintree braintree;
 
   /** Configuration options that apply to the entire App Engine project. */
@@ -58,12 +59,16 @@ public class RegistryConfigSettings {
     public String customLogicFactoryClass;
     public String whoisCommandFactoryClass;
     public int contactAutomaticTransferDays;
+    public String greetingServerId;
     public List<String> registrarChangesNotificationEmailAddresses;
     public String defaultRegistrarWhoisServer;
     public String defaultRegistrarReferralUrl;
     public String tmchCaMode;
     public String tmchCrlUrl;
     public String tmchMarksDbUrl;
+    public String checkApiServletClientId;
+    public String reservedTermsExportDisclaimer;
+    public String whoisDisclaimer;
   }
 
   /** Configuration for Cloud Datastore. */
@@ -84,6 +89,7 @@ public class RegistryConfigSettings {
   public static class Rde {
     public String reportUrlPrefix;
     public String uploadUrl;
+    public String sshIdentityEmailAddress;
   }
 
   /** Configuration for the web-based registrar console. */
@@ -106,6 +112,11 @@ public class RegistryConfigSettings {
   /** Miscellaneous configuration that doesn't quite fit in anywhere else. */
   public static class Misc {
     public String sheetExportId;
+  }
+
+  /** Configuration for RDAP. */
+  public static class Rdap {
+    public String baseUrl;
   }
 
   /** Configuration for Braintree credit card payment processing. */

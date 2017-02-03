@@ -44,6 +44,9 @@ registryPolicy:
   # Length of time after which contact transfers automatically conclude.
   contactAutomaticTransferDays: 5
 
+  # Server ID used in the 'svID' element of an EPP 'greeting'.
+  greetingServerId: Nomulus Registry
+
   # List of email addresses that notifications of registrar and/or registrar
   # contact updates should be sent to, or empty list for no notifications.
   registrarChangesNotificationEmailAddresses: []
@@ -63,6 +66,31 @@ registryPolicy:
 
   # URL for the MarksDB registry interface.
   tmchMarksDbUrl: https://test.ry.marksdb.org
+
+  # Registry’s operations registrar, used for front-end availability/premium
+  # domain checks.
+  checkApiServletClientId: TheRegistrar
+
+  # Disclaimer at the top of the exported reserved terms list.
+  reservedTermsExportDisclaimer: |
+    This list contains reserved terms for the TLD. Other terms may be reserved
+    but not included in this list, including terms the registry chooses not
+    to publish, and terms that ICANN commonly mandates to be reserved. This
+    list is subject to change and the most up-to-date source is always to
+    check availability directly with the Registry server.
+
+  # Disclaimer at the top of WHOIS results.
+  whoisDisclaimer: |
+    WHOIS information is provided by the registry solely for query-based,
+    informational purposes. Any information provided is "as is" without any
+    guarantee of accuracy. You may not use such information to (a) allow,
+    enable, or otherwise support the transmission of mass unsolicited,
+    commercial advertising or solicitations; (b) enable high volume, automated,
+    electronic processes that access the registry's systems or any
+    ICANN-Accredited Registrar, except as reasonably necessary to register
+    domain names or modify existing registrations; or (c) engage in or support
+    unlawful behavior. We reserve the right to restrict or deny your access to
+    the WHOIS database, and may modify these terms at any time.
 
 datastore:
   # Number of commit log buckets in Datastore. Don't change after initial
@@ -95,6 +123,9 @@ rde:
   # SFTP URL to which RDE deposits are uploaded. This should contain a username
   # but not the password.
   uploadUrl: sftp://username@rde-provider.example
+
+  # Identity of the SSH keys (stored in the Keyring) used for RDE SFTP uploads.
+  sshIdentityEmailAddress: rde@example.com
 
 registrarConsole:
   # Filename of the logo to use in the header of the console. This filename is
@@ -132,6 +163,10 @@ misc:
   # The ID of the Google Sheet (as found in the URL) to export registrar details
   # to. Leave this null to disable syncing.
   sheetExportId: null
+
+rdap:
+  # Base URL (with trailing slash) for RDAP links.
+  baseUrl: http://domain-registry.example/rdap/
 
 # Braintree is a credit card payment processor that is used on the registrar
 # console to allow registrars to pay their invoices.

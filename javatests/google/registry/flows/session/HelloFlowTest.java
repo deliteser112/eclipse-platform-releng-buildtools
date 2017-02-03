@@ -31,7 +31,7 @@ public class HelloFlowTest extends FlowTestCase<HelloFlow> {
     runFlowAssertResponse(
         loadFileWithSubstitutions(
             getClass(),
-            "greeting_crr.xml",
+            "greeting.xml",
             ImmutableMap.of("DATE", clock.nowUtc().toString(dateTimeNoMillis()))));
   }
 }

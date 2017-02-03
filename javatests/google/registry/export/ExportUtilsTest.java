@@ -15,7 +15,6 @@
 package google.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.config.RegistryConfig.LocalTestConfig.RESERVED_TERMS_TEST_EXPORT_DISCLAIMER;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -57,9 +56,7 @@ public class ExportUtilsTest {
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1, rl2, rl3).build());
     // Should not contain jimmy, tine, or oval.
-    assertThat(
-            new ExportUtils(RESERVED_TERMS_TEST_EXPORT_DISCLAIMER)
-                .exportReservedTerms(Registry.get("tld")))
+    assertThat(new ExportUtils("This is a disclaimer.\n").exportReservedTerms(Registry.get("tld")))
         .isEqualTo("This is a disclaimer.\ncat\nlol\nsnow\n");
   }
 }

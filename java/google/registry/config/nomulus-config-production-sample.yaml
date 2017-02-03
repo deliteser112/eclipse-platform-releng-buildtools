@@ -19,6 +19,7 @@ gSuite:
 registryPolicy:
   contactAndHostRoidSuffix: placeholder
   productName: placeholder
+  greetingServerId: placeholder
   registrarChangesNotificationEmailAddresses:
     - placeholder
     - placeholder
@@ -27,10 +28,17 @@ registryPolicy:
   tmchCaMode: PRODUCTION
   tmchCrlUrl: http://crl.icann.org/tmch.crl
   tmchMarksDbUrl: https://ry.marksdb.org
+  checkApiServletClientId: |
+    multi-line
+    placeholder
+  whoisDisclaimer: |
+    multi-line
+    placeholder
 
 rde:
   reportUrlPrefix: https://ry-api.icann.org/report/registry-escrow-report
   uploadUrl: sftp://placeholder@sftpipm2.ironmountain.com/Outbox
+  sshIdentityEmailAddress: placeholder
 
 registrarConsole:
   logoFilename: placeholder
@@ -42,6 +50,9 @@ registrarConsole:
 
 misc:
   sheetExportId: placeholder
+
+rdap:
+  baseUrl: placeholder
 
 # You only need to specify this section if using Braintree.
 braintree:

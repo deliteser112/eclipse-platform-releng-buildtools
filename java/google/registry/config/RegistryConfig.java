@@ -591,9 +591,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("rdeSshIdentity")
-    public static String provideSshIdentity() {
-      // Change this to your RDE identity.
-      return "rde@example.com";
+    public static String provideSshIdentity(RegistryConfigSettings config) {
+      return config.rde.sshIdentityEmailAddress;
     }
 
     /**
@@ -711,8 +710,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("rdapLinkBase")
-    public static String provideRdapLinkBase() {
-      return "https://nic.google/rdap/";
+    public static String provideRdapLinkBase(RegistryConfigSettings config) {
+      return config.rdap.baseUrl;
     }
 
     /**
@@ -781,20 +780,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("whoisDisclaimer")
-    public static String provideWhoisDisclaimer() {
-      return "WHOIS information is provided by Charleston Road Registry Inc. (CRR) solely for\n"
-          + "query-based, informational purposes. By querying our WHOIS database, you are\n"
-          + "agreeing to comply with these terms\n"
-          + "(http://www.registry.google/about/whois-disclaimer.html) so please read them\n"
-          + "carefully.  Any information provided is \"as is\" without any guarantee of\n"
-          + "accuracy. You may not use such information to (a) allow, enable, or otherwise\n"
-          + "support the transmission of mass unsolicited, commercial advertising or\n"
-          + "solicitations; (b) enable high volume, automated, electronic processes that\n"
-          + "access the systems of CRR or any ICANN-Accredited Registrar, except as\n"
-          + "reasonably necessary to register domain names or modify existing registrations;\n"
-          + "or (c) engage in or support unlawful behavior. CRR reserves the right to\n"
-          + "restrict or deny your access to the Whois database, and may modify these terms\n"
-          + "at any time.\n";
+    public static String provideWhoisDisclaimer(RegistryConfigSettings config) {
+      return config.registryPolicy.whoisDisclaimer;
     }
 
     /**
@@ -889,8 +876,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("greetingServerId")
-    public static String provideGreetingServerId() {
-      return "Charleston Road Registry";
+    public static String provideGreetingServerId(RegistryConfigSettings config) {
+      return config.registryPolicy.greetingServerId;
     }
 
     @Provides
@@ -905,13 +892,6 @@ public final class RegistryConfig {
       return config.registryPolicy.whoisCommandFactoryClass;
     }
 
-    private static final String RESERVED_TERMS_EXPORT_DISCLAIMER = ""
-        + "# This list contains reserve terms for the TLD. Other terms may be reserved\n"
-        + "# but not included in this list, including terms EXAMPLE REGISTRY chooses not\n"
-        + "# to publish, and terms that ICANN commonly mandates to be reserved. This\n"
-        + "# list is subject to change and the most up-to-date source is always to\n"
-        + "# check availability directly with the Registry server.\n";
-
     /**
      * Returns the header text at the top of the reserved terms exported list.
      *
@@ -919,8 +899,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("reservedTermsExportDisclaimer")
-    public static String provideReservedTermsExportDisclaimer() {
-      return RESERVED_TERMS_EXPORT_DISCLAIMER;
+    public static String provideReservedTermsExportDisclaimer(RegistryConfigSettings config) {
+      return config.registryPolicy.reservedTermsExportDisclaimer;
     }
 
     /**
@@ -928,8 +908,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("checkApiServletRegistrarClientId")
-    public static String provideCheckApiServletRegistrarClientId() {
-      return "TheRegistrar";
+    public static String provideCheckApiServletRegistrarClientId(RegistryConfigSettings config) {
+      return config.registryPolicy.checkApiServletClientId;
     }
 
     @Singleton
@@ -1114,6 +1094,16 @@ public final class RegistryConfig {
     return Duration.standardSeconds(CONFIG_SETTINGS.get().caching.singletonCachePersistSeconds);
   }
 
+  /** Returns the email address that outgoing emails from the app are sent from. */
+  public static String getGSuiteOutgoingEmailAddress() {
+    return CONFIG_SETTINGS.get().gSuite.outgoingEmailAddress;
+  }
+
+  /** Returns the display name that outgoing emails from the app are sent from. */
+  public static String getGSuiteOutgoingEmailDisplayName() {
+    return CONFIG_SETTINGS.get().gSuite.outgoingEmailDisplayName;
+  }
+
   /**
    * Returns default WHOIS server to use when {@code Registrar#getWhoisServer()} is {@code null}.
    *
@@ -1167,16 +1157,6 @@ public final class RegistryConfig {
         public RegistryConfigSettings get() {
           return getConfigSettings();
         }});
-
-  /** Config values used for local and unit test environments. */
-  public static class LocalTestConfig {
-
-    public static final String RESERVED_TERMS_TEST_EXPORT_DISCLAIMER = "This is a disclaimer.\n";
-
-    public static final String GOOGLE_APPS_SEND_FROM_EMAIL_ADDRESS = "noreply@testing.example";
-
-    public static final String GOOGLE_APPS_ADMIN_EMAIL_DISPLAY_NAME = "Testing Nomulus";
-  }
 
   private RegistryConfig() {}
 }

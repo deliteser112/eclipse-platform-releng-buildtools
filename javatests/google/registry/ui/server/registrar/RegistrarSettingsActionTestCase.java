@@ -14,8 +14,8 @@
 
 package google.registry.ui.server.registrar;
 
-import static google.registry.config.RegistryConfig.LocalTestConfig.GOOGLE_APPS_ADMIN_EMAIL_DISPLAY_NAME;
-import static google.registry.config.RegistryConfig.LocalTestConfig.GOOGLE_APPS_SEND_FROM_EMAIL_ADDRESS;
+import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddress;
+import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.security.JsonHttpTestUtils.createJsonResponseSupplier;
 import static google.registry.security.XsrfTokenManager.generateToken;
@@ -102,8 +102,7 @@ public class RegistrarSettingsActionTestCase {
     action.registrarChangesNotificationEmailAddresses = ImmutableList.of(
         "notification@test.example", "notification2@test.example");
     action.sendEmailUtils =
-        new SendEmailUtils(
-            GOOGLE_APPS_SEND_FROM_EMAIL_ADDRESS, GOOGLE_APPS_ADMIN_EMAIL_DISPLAY_NAME);
+        new SendEmailUtils(getGSuiteOutgoingEmailAddress(), getGSuiteOutgoingEmailDisplayName());
     inject.setStaticField(Ofy.class, "clock", clock);
     inject.setStaticField(SendEmailUtils.class, "emailService", emailService);
     inject.setStaticField(SyncRegistrarsSheetAction.class, "modulesService", modulesService);
