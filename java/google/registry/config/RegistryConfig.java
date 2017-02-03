@@ -19,6 +19,7 @@ import static google.registry.config.ConfigUtils.makeUrl;
 import static google.registry.config.YamlUtils.getConfigSettings;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -26,7 +27,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.RegistryConfigSettings.AppEngine.ToolsServiceUrl;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
@@ -1076,8 +1076,22 @@ public final class RegistryConfig {
    * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
    */
   public static HostAndPort getServer() {
-    ToolsServiceUrl url = CONFIG_SETTINGS.get().appEngine.toolsServiceUrl;
-    return HostAndPort.fromParts(url.hostName, url.port);
+    // TODO(b/33386530): Make this configurable in a way that is accessible from the nomulus
+    // command-line tool.
+    switch (RegistryEnvironment.get()) {
+      case PRODUCTION:
+        return HostAndPort.fromParts("tools-dot-domain-registry.appspot.com", 443);
+      case LOCAL:
+        return HostAndPort.fromParts("localhost", 8080);
+      case UNITTEST:
+        throw new UnsupportedOperationException("Unit tests can't spin up a full server");
+      default:
+        return HostAndPort.fromParts(
+            String.format(
+                "tools-dot-domain-registry-%s.appspot.com",
+                Ascii.toLowerCase(RegistryEnvironment.get().name())),
+            443);
+    }
   }
 
   /** Returns the amount of time a singleton should be cached, before expiring. */
