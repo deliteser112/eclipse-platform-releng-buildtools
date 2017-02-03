@@ -132,3 +132,18 @@ misc:
   # The ID of the Google Sheet (as found in the URL) to export registrar details
   # to. Leave this null to disable syncing.
   sheetExportId: null
+
+# Braintree is a credit card payment processor that is used on the registrar
+# console to allow registrars to pay their invoices.
+braintree:
+  # Merchant ID of the Braintree account.
+  merchantId: example
+
+  # Public key used for accessing Braintree API (this is found on their site).
+  publicKey: example
+
+  # A map of JODA Money CurrencyUnits, specified in three letter ISO-4217
+  # format, to Braintree account IDs (each account is limited to a single
+  # currency). For example, one entry might be:
+  #   USD: accountIdUsingUSD
+  merchantAccountIdsMap: {}

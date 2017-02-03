@@ -15,6 +15,7 @@
 package google.registry.config;
 
 import java.util.List;
+import java.util.Map;
 
 /** The POJO that YAML config files are deserialized into. */
 public class RegistryConfigSettings {
@@ -28,6 +29,7 @@ public class RegistryConfigSettings {
   public RegistrarConsole registrarConsole;
   public Monitoring monitoring;
   public Misc misc;
+  public Braintree braintree;
 
   /** Configuration options that apply to the entire App Engine project. */
   public static class AppEngine {
@@ -104,5 +106,12 @@ public class RegistryConfigSettings {
   /** Miscellaneous configuration that doesn't quite fit in anywhere else. */
   public static class Misc {
     public String sheetExportId;
+  }
+
+  /** Configuration for Braintree credit card payment processing. */
+  public static class Braintree {
+    public String merchantId;
+    public String publicKey;
+    public Map<String, String> merchantAccountIdsMap;
   }
 }

@@ -31,6 +31,8 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
 import java.net.URL;
+import java.util.Map;
+import java.util.Map.Entry;
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.inject.Qualifier;
@@ -736,17 +738,13 @@ public final class RegistryConfig {
     @Provides
     @Config("braintreeMerchantAccountIds")
     public static ImmutableMap<CurrencyUnit, String> provideBraintreeMerchantAccountId(
-        RegistryEnvironment environment) {
-      switch (environment) {
-        case PRODUCTION:
-          return ImmutableMap.of(
-              CurrencyUnit.USD, "charlestonregistryUSD",
-              CurrencyUnit.JPY, "charlestonregistryJPY");
-        default:
-          return ImmutableMap.of(
-              CurrencyUnit.USD, "google",
-              CurrencyUnit.JPY, "google-jpy");
+        RegistryConfigSettings config) {
+      Map<String, String> merchantAccountIds = config.braintree.merchantAccountIdsMap;
+      ImmutableMap.Builder<CurrencyUnit, String> builder = new ImmutableMap.Builder<>();
+      for (Entry<String, String> entry : merchantAccountIds.entrySet()) {
+        builder.put(CurrencyUnit.of(entry.getKey()), entry.getValue());
       }
+      return builder.build();
     }
 
     /**
@@ -758,14 +756,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("braintreeMerchantId")
-    public static String provideBraintreeMerchantId(RegistryEnvironment environment) {
-      switch (environment) {
-        case PRODUCTION:
-          return "6gm2mm48k9ty4zmx";
-        default:
-          // Valentine: Nomulus Braintree Sandbox
-          return "vqgn8khkq2cs6y9s";
-      }
+    public static String provideBraintreeMerchantId(RegistryConfigSettings config) {
+      return config.braintree.merchantId;
     }
 
     /**
@@ -778,14 +770,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("braintreePublicKey")
-    public static String provideBraintreePublicKey(RegistryEnvironment environment) {
-      switch (environment) {
-        case PRODUCTION:
-          return "tzcfxggzgbh2jg5x";
-        default:
-          // Valentine: Nomulus Braintree Sandbox
-          return "tzcyzvm3mn7zkdnx";
-      }
+    public static String provideBraintreePublicKey(RegistryConfigSettings config) {
+      return config.braintree.publicKey;
     }
 
     /**

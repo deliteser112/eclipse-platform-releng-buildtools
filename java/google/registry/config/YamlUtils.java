@@ -1,11 +1,11 @@
 // Copyright 2017 The Nomulus Authors. All Rights Reserved.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -82,7 +82,9 @@ public final class YamlUtils {
    * override a field that has a Map value in the default YAML with a field of any other type in the
    * custom YAML.
    *
-   * <p>Only maps are handled recursively; lists are simply overridden in place as-is.
+   * <p>Only maps are handled recursively; lists are simply overridden in place as-is, as are maps
+   * whose name is suffixed with "Map" -- this allows entire maps to be overridden, rather than
+   * merged.
    */
   static String mergeYaml(String defaultYaml, String customYaml) {
     Yaml yaml = new Yaml();
@@ -107,19 +109,22 @@ public final class YamlUtils {
    * <p>All keys in the default map that are also specified in the custom map are overridden with
    * the custom map's value. This runs recursively on all contained maps.
    */
+  @SuppressWarnings("unchecked")
   private static Map<String, Object> mergeMaps(
       Map<String, Object> defaultMap, Map<String, Object> customMap) {
     for (String key : defaultMap.keySet()) {
       if (!customMap.containsKey(key)) {
         continue;
       }
-      Object defaultValue = defaultMap.get(key);
-      @SuppressWarnings("unchecked")
-      Object newValue =
-          (defaultValue instanceof Map)
-              ? mergeMaps(
-                  (Map<String, Object>) defaultValue, (Map<String, Object>) customMap.get(key))
-              : customMap.get(key);
+      Object newValue;
+      if (defaultMap.get(key) instanceof Map && !key.endsWith("Map")) {
+        newValue =
+            mergeMaps(
+                (Map<String, Object>) defaultMap.get(key),
+                (Map<String, Object>) customMap.get(key));
+      } else {
+        newValue = customMap.get(key);
+      }
       defaultMap.put(key, newValue);
     }
     return defaultMap;

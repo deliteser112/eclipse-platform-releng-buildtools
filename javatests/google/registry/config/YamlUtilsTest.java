@@ -53,7 +53,14 @@ public class YamlUtilsTest {
   public void testSuccess_mergeEmptyMap_isNoop() {
     String defaultYaml = join("one: ay", "two: bee", "three: sea");
     assertThat(mergeYaml(defaultYaml, "# Just a comment\n"))
-      .isEqualTo("{one: ay, two: bee, three: sea}\n");
+        .isEqualTo("{one: ay, two: bee, three: sea}\n");
+  }
+
+  @Test
+  public void testSuccess_mergeNamedMap_overwritesEntirelyWithNewKey() {
+    String defaultYaml = join("one: ay", "two: bee", "threeMap:", "  foo: bar", "  baz: gak");
+    assertThat(mergeYaml(defaultYaml, "threeMap: {time: money}"))
+        .isEqualTo(join("one: ay", "two: bee", "threeMap: {time: money}"));
   }
 
   private static String join(CharSequence... strings) {

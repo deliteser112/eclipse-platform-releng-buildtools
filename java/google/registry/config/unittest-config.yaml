@@ -23,3 +23,8 @@ caching:
   singletonCacheRefreshSeconds: 0
   domainLabelCachingSeconds: 0
   singletonCachePersistSeconds: 0
+
+braintree:
+  merchantAccountIdsMap:
+    USD: accountIdUsd
+    JPY: accountIdJpy
