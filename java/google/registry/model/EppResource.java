@@ -246,7 +246,7 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
       Class<? extends EppResource> resourceClass = getInstance().getClass();
       for (StatusValue statusValue : nullToEmpty(statusValues)) {
         checkArgument(
-            !statusValue.isForbiddenOn(resourceClass),
+            statusValue.isAllowedOn(resourceClass),
             "The %s status cannot be set on %s",
             statusValue,
             resourceClass.getSimpleName());

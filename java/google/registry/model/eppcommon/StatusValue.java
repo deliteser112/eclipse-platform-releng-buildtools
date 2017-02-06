@@ -44,18 +44,18 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @XmlJavaTypeAdapter(StatusValueAdapter.class)
 public enum StatusValue implements EppEnum {
 
-  CLIENT_DELETE_PROHIBITED,
-  CLIENT_HOLD,
-  CLIENT_RENEW_PROHIBITED,
-  CLIENT_TRANSFER_PROHIBITED,
-  CLIENT_UPDATE_PROHIBITED,
+  CLIENT_DELETE_PROHIBITED(AllowedOn.ALL),
+  CLIENT_HOLD(AllowedOn.ALL),
+  CLIENT_RENEW_PROHIBITED(AllowedOn.ALL),
+  CLIENT_TRANSFER_PROHIBITED(AllowedOn.ALL),
+  CLIENT_UPDATE_PROHIBITED(AllowedOn.ALL),
 
   /**
    * A status for a domain with no nameservers that has all the other requirements for {@link #OK}.
    *
    * <p>Only domains can have this status, and it supersedes OK.
    */
-  INACTIVE(ContactResource.class, HostResource.class, DomainApplication.class),
+  INACTIVE(AllowedOn.DOMAINS),
 
   /**
    * A status for a resource has an incoming reference from an active domain.
@@ -64,7 +64,7 @@ public enum StatusValue implements EppEnum {
    * resource. It must be computed on the fly when we need it, as the set of domains using a
    * resource can change at any time.
    */
-  LINKED(ContactResource.class, DomainApplication.class, DomainResource.class, HostResource.class),
+  LINKED(AllowedOn.NONE),
 
   /**
    * A status for a resource that has no other statuses.
@@ -74,14 +74,14 @@ public enum StatusValue implements EppEnum {
    * implement LINKED as a virtual status that gets appended to outputs (such as info commands) on
    * the fly, so we can ignore LINKED when dealing with persisted resources.
    */
-  OK,
+  OK(AllowedOn.ALL),
 
   /**
    * A status for a resource undergoing asynchronous creation.
    *
    * <p>We only use this for unallocated applications.
    */
-  PENDING_CREATE(ContactResource.class, DomainResource.class, HostResource.class),
+  PENDING_CREATE(AllowedOn.APPLICATIONS),
 
   /**
    * A status for a resource undergoing asynchronous deletion or for a recently deleted domain.
@@ -94,7 +94,7 @@ public enum StatusValue implements EppEnum {
    *
    * <p>Applications are deleted synchronously and can never have this status.
    */
-  PENDING_DELETE(DomainApplication.class),
+  PENDING_DELETE(AllowedOn.ALL_BUT_APPLICATIONS),
 
   /**
    * A status for a resource with an unresolved transfer request.
@@ -102,28 +102,42 @@ public enum StatusValue implements EppEnum {
    * <p>Applications can't be transferred. Hosts transfer indirectly via superordinate domain.
    */
   // TODO(b/34844887): Remove PENDING_TRANSFER from all host resources and forbid it here.
-  PENDING_TRANSFER(DomainApplication.class),
+  PENDING_TRANSFER(AllowedOn.ALL_BUT_APPLICATIONS),
 
   /**
    * A status for a resource undergoing an asynchronous update.
    *
    * <p>This status is here for completeness, but it is not used by our system.
    */
-  PENDING_UPDATE(
-      ContactResource.class, DomainApplication.class, DomainResource.class, HostResource.class),
+  PENDING_UPDATE(AllowedOn.NONE),
 
-  SERVER_DELETE_PROHIBITED,
-  SERVER_HOLD,
-  SERVER_RENEW_PROHIBITED,
-  SERVER_TRANSFER_PROHIBITED,
-  SERVER_UPDATE_PROHIBITED;
+  SERVER_DELETE_PROHIBITED(AllowedOn.ALL),
+  SERVER_HOLD(AllowedOn.ALL),
+  SERVER_RENEW_PROHIBITED(AllowedOn.ALL),
+  SERVER_TRANSFER_PROHIBITED(AllowedOn.ALL),
+  SERVER_UPDATE_PROHIBITED(AllowedOn.ALL);
 
   private final String xmlName = UPPER_UNDERSCORE.to(LOWER_CAMEL, name());
-  private final ImmutableSet<Class<? extends EppResource>> forbiddenOn;
+  private final AllowedOn allowedOn;
 
-  @SafeVarargs
-  private StatusValue(Class<? extends EppResource>... forbiddenOn) {
-    this.forbiddenOn = ImmutableSet.copyOf(forbiddenOn);
+  /** Enum to help clearly list which resource types a status value is allowed to be present on. */
+  private enum AllowedOn {
+    ALL(ContactResource.class, DomainApplication.class, DomainResource.class, HostResource.class),
+    NONE,
+    DOMAINS(DomainResource.class),
+    APPLICATIONS(DomainApplication.class),
+    ALL_BUT_APPLICATIONS(ContactResource.class, DomainResource.class, HostResource.class);
+
+    private final ImmutableSet<Class<? extends EppResource>> classes;
+
+    @SafeVarargs
+    private AllowedOn(Class<? extends EppResource>... classes) {
+      this.classes = ImmutableSet.copyOf(classes);
+    }
+  }
+
+  private StatusValue(AllowedOn allowedOn) {
+    this.allowedOn = allowedOn;
   }
 
   @Override
@@ -140,8 +154,8 @@ public enum StatusValue implements EppEnum {
     return xmlName.startsWith("server") && xmlName.endsWith("Prohibited");
   }
 
-  public boolean isForbiddenOn(Class<? extends EppResource> resource) {
-    return forbiddenOn.contains(resource);
+  public boolean isAllowedOn(Class<? extends EppResource> resource) {
+    return allowedOn.classes.contains(resource);
   }
 
   public static StatusValue fromXmlName(String xmlName) {
