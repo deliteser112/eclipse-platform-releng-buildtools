@@ -376,8 +376,11 @@ public class BigqueryConnection implements AutoCloseable {
       TableReference ref = table.getTableReference();
       try {
         if (checkTableExists(ref.getDatasetId(), ref.getTableId())) {
+          // Make sure to use patch() rather than update(). The former changes only those properties
+          // which are specified, while the latter would change everything, blanking out unspecified
+          // properties.
           bigquery.tables()
-              .update(ref.getProjectId(), ref.getDatasetId(), ref.getTableId(), table)
+              .patch(ref.getProjectId(), ref.getDatasetId(), ref.getTableId(), table)
               .execute();
         } else {
           bigquery.tables()
