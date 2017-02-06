@@ -23,20 +23,17 @@ import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
 import google.registry.util.FormattingLogger;
 import google.registry.xjc.JaxbFragment;
-import google.registry.xjc.rdecontact.XjcRdeContactElement;
+import google.registry.xjc.rdedomain.XjcRdeDomainElement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.NoSuchElementException;
-import javax.annotation.concurrent.NotThreadSafe;
 
-/** Mapreduce {@link InputReader} for reading contacts from escrow files */
-@NotThreadSafe
-public class RdeContactReader extends InputReader<JaxbFragment<XjcRdeContactElement>>
+/** Mapreduce {@link InputReader} for reading domains from escrow files */
+public class RdeDomainReader extends InputReader<JaxbFragment<XjcRdeDomainElement>>
     implements Serializable {
 
-  private static final long serialVersionUID = -3688793834175577691L;
-
+  private static final long serialVersionUID = -2175777052970160122L;
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
   private static final GcsService GCS_SERVICE =
       GcsServiceFactory.createGcsService(RetryParams.getDefaultInstance());
@@ -62,7 +59,7 @@ public class RdeContactReader extends InputReader<JaxbFragment<XjcRdeContactElem
       // skip the file offset and count
       // if count is greater than 0, the reader has been rehydrated after doing some work.
       // skip any already processed records.
-      parser.skipContacts(offset + count);
+      parser.skipDomains(offset + count);
       return parser;
     } catch (Exception e) {
       logger.severefmt(e, "Error opening rde file %s/%s", importBucketName, importFileName);
@@ -70,7 +67,7 @@ public class RdeContactReader extends InputReader<JaxbFragment<XjcRdeContactElem
     }
   }
 
-  public RdeContactReader(
+  public RdeDomainReader(
       String importBucketName,
       String importFileName,
       int offset,
@@ -82,24 +79,24 @@ public class RdeContactReader extends InputReader<JaxbFragment<XjcRdeContactElem
   }
 
   @Override
-  public JaxbFragment<XjcRdeContactElement> next() throws IOException {
+  public JaxbFragment<XjcRdeDomainElement> next() throws IOException {
     if (count < maxResults) {
       if (parser == null) {
         parser = newParser();
-        if (parser.isAtContact()) {
-          return readContact();
+        if (parser.isAtDomain()) {
+          return readDomain();
         }
       }
-      if (parser.nextContact()) {
-        return readContact();
+      if (parser.nextDomain()) {
+        return readDomain();
       }
     }
     throw new NoSuchElementException();
   }
 
-  private JaxbFragment<XjcRdeContactElement> readContact() {
+  private JaxbFragment<XjcRdeDomainElement> readDomain() {
     count++;
-    return JaxbFragment.create(new XjcRdeContactElement(parser.getContact()));
+    return JaxbFragment.create(new XjcRdeDomainElement(parser.getDomain()));
   }
 
   @Override

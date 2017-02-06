@@ -16,14 +16,17 @@ package google.registry.rde.imports;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
+import com.google.common.io.BaseEncoding;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
@@ -37,6 +40,7 @@ import google.registry.util.FormattingLogger;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
@@ -62,41 +66,29 @@ public class RdeImportUtils {
     this.escrowBucketName = escrowBucketName;
   }
 
-  private <T extends EppResource> boolean importEppResource(final T resource, final String type) {
+  private <T extends EppResource> void importEppResource(final T resource, final String type) {
     @SuppressWarnings("unchecked")
-    final Class<T> resourceClass = (Class<T>) resource.getClass();
-    return ofy.transact(
-        new Work<Boolean>() {
-          @Override
-          public Boolean run() {
-            EppResource existing = ofy.load().key(Key.create(resource)).now();
-            if (existing == null) {
-              ForeignKeyIndex<T> existingForeignKeyIndex =
-                  ForeignKeyIndex.load(
-                      resourceClass, resource.getForeignKey(), clock.nowUtc());
-              // foreign key index should not exist, since existing resource was not found.
-              checkState(
-                  existingForeignKeyIndex == null,
-                  "New %s resource has existing foreign key index; foreignKey=%s, repoId=%s",
-                  type,
-                  resource.getForeignKey(),
-                  resource.getRepoId());
-              ofy.save().entity(resource);
-              ofy.save().entity(ForeignKeyIndex.create(resource, resource.getDeletionTime()));
-              ofy.save().entity(EppResourceIndex.create(Key.create(resource)));
-              logger.infofmt(
-                  "Imported %s resource - ROID=%s, id=%s",
-                  type, resource.getRepoId(), resource.getForeignKey());
-              return true;
-            } else if (!existing.getRepoId().equals(resource.getRepoId())) {
-              logger.warningfmt(
-                  "Existing %s with same id but different ROID. "
-                      + "id=%s, existing ROID=%s, new ROID=%s",
-                  type, resource.getForeignKey(), existing.getRepoId(), resource.getRepoId());
-            }
-            return false;
-          }
-        });
+    Class<T> resourceClass = (Class<T>) resource.getClass();
+    EppResource existing = ofy.load().key(Key.create(resource)).now();
+    if (existing != null) {
+      // This will roll back the transaction and prevent duplicate history entries from being saved.
+      throw new ResourceExistsException();
+    }
+    ForeignKeyIndex<T> existingForeignKeyIndex =
+        ForeignKeyIndex.load(resourceClass, resource.getForeignKey(), START_OF_TIME);
+    // ForeignKeyIndex should never have existed, since existing resource was not found.
+    checkState(
+        existingForeignKeyIndex == null,
+        "New %s resource has existing foreign key index; foreignKey=%s, repoId=%s",
+        type,
+        resource.getForeignKey(),
+        resource.getRepoId());
+    ofy.save().entity(resource);
+    ofy.save().entity(ForeignKeyIndex.create(resource, resource.getDeletionTime()));
+    ofy.save().entity(EppResourceIndex.create(Key.create(resource)));
+    logger.infofmt(
+        "Imported %s resource - ROID=%s, id=%s",
+        type, resource.getRepoId(), resource.getForeignKey());
   }
 
   /**
@@ -106,11 +98,9 @@ public class RdeImportUtils {
    *
    * <p>If the host is imported, {@link ForeignKeyIndex} and {@link EppResourceIndex} are also
    * created.
-   *
-   * @return true if the host was created or updated, false otherwise.
    */
-  public boolean importHost(final HostResource resource) {
-    return importEppResource(resource, "host");
+  public void importHost(final HostResource resource) {
+    importEppResource(resource, "host");
   }
 
   /**
@@ -120,11 +110,21 @@ public class RdeImportUtils {
    *
    * <p>If the contact is imported, {@link ForeignKeyIndex} and {@link EppResourceIndex} are also
    * created.
-   *
-   * @return true if the contact was created or updated, false otherwise.
    */
-  public boolean importContact(final ContactResource resource) {
-    return importEppResource(resource, "contact");
+  public void importContact(final ContactResource resource) {
+    importEppResource(resource, "contact");
+  }
+
+  /**
+   * Imports a domain from an escrow file.
+   *
+   * <p>The domain will only be imported if it has not been previously imported.
+   *
+   * <p>If the domain is imported, {@link ForeignKeyIndex} and {@link EppResourceIndex} are also
+   * created.
+   */
+  public void importDomain(final DomainResource resource) {
+    importEppResource(resource, "domain");
   }
 
   /**
@@ -146,7 +146,7 @@ public class RdeImportUtils {
    * @throws IllegalArgumentException if the escrow file cannot be imported
    */
   public void validateEscrowFileForImport(String escrowFilePath) throws IOException {
-    // TODO (wolfgang): Add validation method for IDN tables
+    // TODO (wolfgang@donuts.co): Add validation method for IDN tables
     try (InputStream input =
         gcsUtils.openInputStream(new GcsFilename(escrowBucketName, escrowFilePath))) {
       try (RdeParser parser = new RdeParser(input)) {
@@ -175,5 +175,13 @@ public class RdeImportUtils {
             String.format("Invalid XML file: '%s'", escrowFilePath), e);
       }
     }
+  }
+
+  /** Generates a random {@link Trid} for rde import. */
+  public static Trid generateTridForImport() {
+    // Client trids must be a token between 3 and 64 characters long
+    // Base64 encoded UUID string meets this requirement
+    return Trid.create(
+        "Import_" + BaseEncoding.base64().encode(UUID.randomUUID().toString().getBytes()));
   }
 }

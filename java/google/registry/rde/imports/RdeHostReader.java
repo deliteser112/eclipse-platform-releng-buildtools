@@ -21,8 +21,9 @@ import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.InputReader;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
-import google.registry.model.host.HostResource;
 import google.registry.util.FormattingLogger;
+import google.registry.xjc.JaxbFragment;
+import google.registry.xjc.rdehost.XjcRdeHostElement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -31,7 +32,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /** Mapreduce {@link InputReader} for reading hosts from escrow files */
 @NotThreadSafe
-public class RdeHostReader extends InputReader<HostResource> implements Serializable {
+public class RdeHostReader extends InputReader<JaxbFragment<XjcRdeHostElement>>
+    implements Serializable {
 
   private static final long serialVersionUID = 3037264959150412846L;
 
@@ -80,21 +82,24 @@ public class RdeHostReader extends InputReader<HostResource> implements Serializ
   }
 
   @Override
-  public HostResource next() throws IOException {
+  public JaxbFragment<XjcRdeHostElement> next() throws IOException {
     if (count < maxResults) {
       if (parser == null) {
         parser = newParser();
         if (parser.isAtHost()) {
-          count++;
-          return XjcToHostResourceConverter.convert(parser.getHost());
+          return readHost();
         }
       }
       if (parser.nextHost()) {
-        count++;
-        return XjcToHostResourceConverter.convert(parser.getHost());
+        return readHost();
       }
     }
     throw new NoSuchElementException();
+  }
+
+  private JaxbFragment<XjcRdeHostElement> readHost() {
+    count++;
+    return JaxbFragment.create(new XjcRdeHostElement(parser.getHost()));
   }
 
   @Override
