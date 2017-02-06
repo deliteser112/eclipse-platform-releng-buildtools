@@ -19,7 +19,6 @@ import static google.registry.config.ConfigUtils.makeUrl;
 import static google.registry.config.YamlUtils.getConfigSettings;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -27,6 +26,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.RegistryConfigSettings.AppEngine.ToolsServiceUrl;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
@@ -43,6 +43,11 @@ import org.joda.time.Duration;
 
 /**
  * Central clearing-house for all configuration.
+ *
+ * <p>This class does not represent the total configuration of the Nomulus service. It's <b>only
+ * meant for settings that need to be configured <i>once</i></b>. Settings which may be subject to
+ * change in the future, should instead be retrieved from Datastore. The {@link
+ * google.registry.model.registry.Registry Registry} class is one such example of this.
  */
 public final class RegistryConfig {
 
@@ -54,26 +59,7 @@ public final class RegistryConfig {
     String value() default "";
   }
 
-  /**
-   * Configuration example for the Nomulus codebase.
-   *
-   * <p>The Nomulus codebase contains many classes that inject configurable settings. This is
-   * the centralized class that is used by default to configure them all, in hard-coded type-safe
-   * Java code.
-   *
-   * <p>This class does not represent the total configuration of the Nomulus service. It's
-   * <b>only meant for settings that need to be configured <i>once</i></b>. Settings which may
-   * be subject to change in the future, should instead be retrieved from Datastore. The
-   * {@link google.registry.model.registry.Registry Registry} class is one such example of this.
-   *
-   * <h3>Customization</h3>
-   *
-   * <p>It is recommended that users do not modify this file within a forked repository. It is
-   * preferable to modify these settings by swapping out this module with a separate copied version
-   * in the user's repository. For this to work, other files need to be copied too, such as the
-   * {@code @Component} instances under {@code google.registry.module}.  This allows modules to be
-   * substituted at the {@code @Component} level.
-   */
+  /** Dagger module for providing configuration settings. */
   @Module
   public static final class ConfigModule {
 
@@ -1056,22 +1042,8 @@ public final class RegistryConfig {
    * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
    */
   public static HostAndPort getServer() {
-    // TODO(b/33386530): Make this configurable in a way that is accessible from the nomulus
-    // command-line tool.
-    switch (RegistryEnvironment.get()) {
-      case PRODUCTION:
-        return HostAndPort.fromParts("tools-dot-domain-registry.appspot.com", 443);
-      case LOCAL:
-        return HostAndPort.fromParts("localhost", 8080);
-      case UNITTEST:
-        throw new UnsupportedOperationException("Unit tests can't spin up a full server");
-      default:
-        return HostAndPort.fromParts(
-            String.format(
-                "tools-dot-domain-registry-%s.appspot.com",
-                Ascii.toLowerCase(RegistryEnvironment.get().name())),
-            443);
-    }
+    ToolsServiceUrl url = CONFIG_SETTINGS.get().appEngine.toolsServiceUrl;
+    return HostAndPort.fromParts(url.hostName, url.port);
   }
 
   /** Returns the amount of time a singleton should be cached, before expiring. */

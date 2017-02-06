@@ -7,7 +7,7 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "config",
     srcs = glob(["*.java"]),
-    resources = glob(["*.yaml"]),
+    resources = glob(["files/*.yaml"]),
     deps = [
         "//java/google/registry/util",
         "@com_google_appengine_api_1_0_sdk",
