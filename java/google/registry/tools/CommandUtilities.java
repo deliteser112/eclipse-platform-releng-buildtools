@@ -14,6 +14,8 @@
 
 package google.registry.tools;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.base.Ascii;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -55,6 +57,10 @@ class CommandUtilities {
 
   /** Prompts for yes/no input using promptText, defaulting to no. */
   static boolean promptForYes(String promptText) {
-    return Ascii.toUpperCase(System.console().readLine(promptText + " (y/N): ")).startsWith("Y");
+    checkState(
+        System.console() != null, "Unable to access stdin (are you running with bazel run?)");
+    String input = System.console().readLine(promptText + " (y/N): ");
+    // Null represents end-of-file (e.g. ^-D) so interpret that as a negative response.
+    return input != null && Ascii.toUpperCase(input).startsWith("Y");
   }
 }
