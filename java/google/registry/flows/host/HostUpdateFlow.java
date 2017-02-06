@@ -202,10 +202,10 @@ public final class HostUpdateFlow implements TransactionalFlow {
 
   private void verifyHasIpsIffIsExternal(
       Update command, HostResource existingResource, HostResource newResource) throws EppException {
-    boolean wasExternal = existingResource.getSuperordinateDomain() == null;
-    boolean wasSubordinate = !wasExternal;
-    boolean willBeExternal = newResource.getSuperordinateDomain() == null;
-    boolean willBeSubordinate = !willBeExternal;
+    boolean wasSubordinate = existingResource.isSubordinate();
+    boolean wasExternal = !wasSubordinate;
+    boolean willBeSubordinate = newResource.isSubordinate();
+    boolean willBeExternal = !willBeSubordinate;
     boolean newResourceHasIps = !isNullOrEmpty(newResource.getInetAddresses());
     boolean commandAddsIps = !isNullOrEmpty(command.getInnerAdd().getInetAddresses());
     // These checks are order-dependent. For example a subordinate-to-external rename that adds new
@@ -228,14 +228,14 @@ public final class HostUpdateFlow implements TransactionalFlow {
   private void enqueueTasks(HostResource existingResource, HostResource newResource) {
     // Only update DNS for subordinate hosts. External hosts have no glue to write, so they
     // are only written as NS records from the referencing domain.
-    if (existingResource.getSuperordinateDomain() != null) {
+    if (existingResource.isSubordinate()) {
       dnsQueue.addHostRefreshTask(existingResource.getFullyQualifiedHostName());
     }
     // In case of a rename, there are many updates we need to queue up.
     if (((Update) resourceCommand).getInnerChange().getFullyQualifiedHostName() != null) {
       // If the renamed host is also subordinate, then we must enqueue an update to write the new
       // glue.
-      if (newResource.getSuperordinateDomain() != null) {
+      if (newResource.isSubordinate()) {
         dnsQueue.addHostRefreshTask(newResource.getFullyQualifiedHostName());
       }
       // We must also enqueue updates for all domains that use this host as their nameserver so
@@ -245,31 +245,31 @@ public final class HostUpdateFlow implements TransactionalFlow {
   }
 
   private void updateSuperordinateDomains(HostResource existingResource, HostResource newResource) {
-    Key<DomainResource> oldSuperordinateDomain = existingResource.getSuperordinateDomain();
-    Key<DomainResource> newSuperordinateDomain = newResource.getSuperordinateDomain();
-    if (oldSuperordinateDomain != null || newSuperordinateDomain != null) {
-      if (Objects.equals(oldSuperordinateDomain, newSuperordinateDomain)) {
-        ofy().save().entity(
-            ofy().load().key(oldSuperordinateDomain).now().asBuilder()
-                .removeSubordinateHost(existingResource.getFullyQualifiedHostName())
-                .addSubordinateHost(newResource.getFullyQualifiedHostName())
-                .build());
-      } else {
-        if (oldSuperordinateDomain != null) {
-          ofy().save().entity(
-              ofy().load().key(oldSuperordinateDomain).now()
-                  .asBuilder()
-                  .removeSubordinateHost(existingResource.getFullyQualifiedHostName())
-                  .build());
-        }
-        if (newSuperordinateDomain != null) {
-          ofy().save().entity(
-              ofy().load().key(newSuperordinateDomain).now()
-                  .asBuilder()
-                  .addSubordinateHost(newResource.getFullyQualifiedHostName())
-                  .build());
-        }
-      }
+    if (existingResource.isSubordinate()
+        && newResource.isSubordinate()
+        && Objects.equals(
+            existingResource.getSuperordinateDomain(),
+            newResource.getSuperordinateDomain())) {
+      ofy().save().entity(
+          ofy().load().key(existingResource.getSuperordinateDomain()).now().asBuilder()
+              .removeSubordinateHost(existingResource.getFullyQualifiedHostName())
+              .addSubordinateHost(newResource.getFullyQualifiedHostName())
+              .build());
+      return;
+    }
+    if (existingResource.isSubordinate()) {
+      ofy().save().entity(
+          ofy().load().key(existingResource.getSuperordinateDomain()).now()
+              .asBuilder()
+              .removeSubordinateHost(existingResource.getFullyQualifiedHostName())
+              .build());
+    }
+    if (newResource.isSubordinate()) {
+      ofy().save().entity(
+          ofy().load().key(newResource.getSuperordinateDomain()).now()
+              .asBuilder()
+              .addSubordinateHost(newResource.getFullyQualifiedHostName())
+              .build());
     }
   }
 

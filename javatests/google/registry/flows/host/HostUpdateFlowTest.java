@@ -139,7 +139,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testSuccess_rename_noOtherHostEverUsedTheOldName() throws Exception {
     persistActiveHost(oldHostName());
     HostResource renamedHost = doSuccessfulTest();
-    assertThat(renamedHost.getSuperordinateDomain()).isNull();
+    assertThat(renamedHost.isSubordinate()).isFalse();
     assertNoDnsTasksEnqueued();  // No tasks enqueued since it's a rename of an external host.
     // The old ForeignKeyIndex is invalidated at the time we did the rename.
     ForeignKeyIndex<HostResource> oldFkiBeforeRename =
@@ -162,7 +162,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setNameservers(ImmutableSet.of(Key.create(host)))
             .build());
     HostResource renamedHost = doSuccessfulTest();
-    assertThat(renamedHost.getSuperordinateDomain()).isNull();
+    assertThat(renamedHost.isSubordinate()).isFalse();
     // Task enqueued to change the NS record of the referencing domain via mapreduce.
     assertTasksEnqueued(
         QUEUE_ASYNC_HOST_RENAME,
@@ -267,7 +267,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             DomainResource.class, "example.foo", clock.nowUtc()).getSubordinateHosts())
             .containsExactly("ns1.example.foo");
     HostResource renamedHost = doSuccessfulTest();
-    assertThat(renamedHost.getSuperordinateDomain()).isNull();
+    assertThat(renamedHost.isSubordinate()).isFalse();
     // Ensure that the client id is set to the new registrar correctly (and that this necessarily
     // comes from the field on the host itself, because the superordinate domain is null).
     assertThat(renamedHost.getCurrentSponsorClientId()).isEqualTo("TheRegistrar");

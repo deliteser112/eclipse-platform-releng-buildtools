@@ -96,6 +96,10 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
     return superordinateDomain;
   }
 
+  public boolean isSubordinate() {
+    return superordinateDomain != null;
+  }
+
   public ImmutableSet<InetAddress> getInetAddresses() {
     return nullToEmptyImmutableCopy(inetAddresses);
   }
