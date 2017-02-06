@@ -40,6 +40,10 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *
  * @see <a href="https://www.icann.org/resources/pages/epp-status-codes-2014-06-16-en">EPP Status
  *     Codes</a>
+ * @see <a href="https://tools.ietf.org/html/rfc5731#section-2.3">RFC 5731 (Domain) Section 2.3</a>
+ * @see <a href="https://tools.ietf.org/html/rfc5732#section-2.3">RFC 5732 (Host) Section 2.3</a>
+ * @see <a href="https://tools.ietf.org/html/rfc5733#section-2.2">RFC 5733 (Contact) Section 2.2</a>
+
  */
 @XmlJavaTypeAdapter(StatusValueAdapter.class)
 public enum StatusValue implements EppEnum {
@@ -50,11 +54,7 @@ public enum StatusValue implements EppEnum {
   CLIENT_TRANSFER_PROHIBITED(AllowedOn.ALL),
   CLIENT_UPDATE_PROHIBITED(AllowedOn.ALL),
 
-  /**
-   * A status for a domain with no nameservers that has all the other requirements for {@link #OK}.
-   *
-   * <p>Only domains can have this status, and it supersedes OK.
-   */
+  /** A status for a domain with no nameservers. */
   INACTIVE(AllowedOn.DOMAINS),
 
   /**
@@ -69,8 +69,8 @@ public enum StatusValue implements EppEnum {
   /**
    * A status for a resource that has no other statuses.
    *
-   * <p>Domains that have no other statuses but also have no nameservers get {@link #INACTIVE}
-   * instead. The spec also allows a resource to have {@link #LINKED} along with OK, but we
+   * <p>For domains, OK is only present when absolutely no other statuses are present. For contacts
+   * and hosts, the spec also allows a resource to have {@link #LINKED} along with OK, but we
    * implement LINKED as a virtual status that gets appended to outputs (such as info commands) on
    * the fly, so we can ignore LINKED when dealing with persisted resources.
    */
@@ -84,15 +84,18 @@ public enum StatusValue implements EppEnum {
   PENDING_CREATE(AllowedOn.APPLICATIONS),
 
   /**
-   * A status for a resource undergoing asynchronous deletion or for a recently deleted domain.
+   * A status for a resource indicating that deletion has been requested but has not yet happened.
    *
    * <p>Contacts and hosts are deleted asynchronously because we need to check their incoming
-   * references with strong consistency, requiring a mapreduce.
+   * references with strong consistency, requiring a mapreduce, and during that asynchronous process
+   * they have the PENDING_DELETE status.
    *
-   * <p>Domains that are deleted after the add grace period ends go into a redemption grace period,
-   * and when that ends they go into pending delete for 5 days.
+   * <p>Domains in the add grace period are deleted synchronously and do not ever have this status.
+   * Otherwise, domains go through an extended deletion process, consisting of a 30-day redemption
+   * grace period followed by a 5-day "pending delete" period before they are actually 100% deleted.
+   * These domains have the PENDING_DELETE status throughout that 35-day window.
    *
-   * <p>Applications are deleted synchronously and can never have this status.
+   * <p>Applications are deleted synchronously and never have this status.
    */
   PENDING_DELETE(AllowedOn.ALL_BUT_APPLICATIONS),
 
