@@ -12,10 +12,6 @@
     <idle-timeout>5m</idle-timeout>
   </basic-scaling>
 
-  <resource-files>
-    <include path="/WEB-INF/*.yaml"/>
-  </resource-files>
-
   <system-properties>
     <property name="java.util.logging.config.file"
               value="WEB-INF/logging.properties"/>
