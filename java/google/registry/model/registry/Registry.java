@@ -79,11 +79,11 @@ public class Registry extends ImmutableObject implements Buildable {
   @Parent
   Key<EntityGroupRoot> parent = getCrossTldKey();
 
-  @Id
   /**
    * The canonical string representation of the TLD associated with this {@link Registry}, which
    * is the standard ASCII for regular TLDs and punycoded ASCII for IDN TLDs.
    */
+  @Id
   String tldStrId;
 
   /**
