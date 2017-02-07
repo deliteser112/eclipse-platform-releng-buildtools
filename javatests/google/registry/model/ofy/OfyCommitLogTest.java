@@ -20,6 +20,7 @@ import static com.googlecode.objectify.ObjectifyService.register;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.TestObject.TestVirtualObject;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -110,7 +111,7 @@ public class OfyCommitLogTest {
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
-        ofy().deleteWithoutBackup().entity(Key.create(Root.class, 1));
+        ofy().deleteWithoutBackup().key(Key.create(Root.class, 1));
       }});
     assertThat(ofy().load().key(Key.create(Root.class, 1)).now()).isNull();
     assertThat(ofy().load().type(CommitLogManifest.class)).isEmpty();
@@ -212,13 +213,48 @@ public class OfyCommitLogTest {
   public void testTransactNew_saveNotBackedUpKind_throws() throws Exception {
     final CommitLogManifest backupsArentAllowedOnMe =
         CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.<Key<?>>of());
-    ofy().saveWithoutBackup().entity(backupsArentAllowedOnMe).now();
     thrown.expect(IllegalArgumentException.class, "Can't save/delete a @NotBackedUp");
     ofy().transactNew(new VoidWork() {
       @Override
       public void vrun() {
         ofy().save().entity(backupsArentAllowedOnMe);
       }});
+  }
+
+  @Test
+  public void testTransactNew_deleteVirtualEntityKey_throws() throws Exception {
+    final Key<TestVirtualObject> virtualEntityKey = TestVirtualObject.createKey("virtual");
+    thrown.expect(IllegalArgumentException.class, "Can't save/delete a @VirtualEntity");
+    ofy().transactNew(new VoidWork() {
+      @Override
+      public void vrun() {
+        ofy().delete().key(virtualEntityKey);
+      }});
+  }
+
+  @Test
+  public void testTransactNew_saveVirtualEntity_throws() throws Exception {
+    final TestVirtualObject virtualEntity = TestVirtualObject.create("virtual");
+    thrown.expect(IllegalArgumentException.class, "Can't save/delete a @VirtualEntity");
+    ofy().transactNew(new VoidWork() {
+      @Override
+      public void vrun() {
+        ofy().save().entity(virtualEntity);
+      }});
+  }
+
+  @Test
+  public void test_deleteWithoutBackup_withVirtualEntityKey_throws() throws Exception {
+    final Key<TestVirtualObject> virtualEntityKey = TestVirtualObject.createKey("virtual");
+    thrown.expect(IllegalArgumentException.class, "Can't save/delete a @VirtualEntity");
+    ofy().deleteWithoutBackup().key(virtualEntityKey);
+  }
+
+  @Test
+  public void test_saveWithoutBackup_withVirtualEntity_throws() throws Exception {
+    final TestVirtualObject virtualEntity = TestVirtualObject.create("virtual");
+    thrown.expect(IllegalArgumentException.class, "Can't save/delete a @VirtualEntity");
+    ofy().saveWithoutBackup().entity(virtualEntity);
   }
 
   @Test

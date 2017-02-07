@@ -147,12 +147,17 @@ public class Ofy {
   }
 
   /**
-   * Delete, without any augmentations.
+   * Delete, without any augmentations except to check that we're not saving any virtual entities.
    *
    * <p>No backups get written.
    */
   public Deleter deleteWithoutBackup() {
-    return ofy().delete();
+    return new AugmentedDeleter() {
+      @Override
+      protected void handleDeletion(Iterable<Key<?>> keys) {
+        checkProhibitedAnnotations(keys, VirtualEntity.class);
+      }
+    };
   }
 
   /**

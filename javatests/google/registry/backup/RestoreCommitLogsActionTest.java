@@ -39,7 +39,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.ObjectifyService;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpoint;
@@ -81,7 +80,6 @@ public class RestoreCommitLogsActionTest {
 
   @Before
   public void init() {
-    ObjectifyService.register(TestObject.class);
     action.gcsService = gcsService;
     action.dryRun = false;
     action.datastoreService = DatastoreServiceFactory.getDatastoreService();

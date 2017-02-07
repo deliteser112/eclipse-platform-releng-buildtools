@@ -31,9 +31,7 @@ import com.google.appengine.tools.cloudstorage.ListItem;
 import com.google.appengine.tools.cloudstorage.ListResult;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
-import com.googlecode.objectify.ObjectifyService;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.TestObject;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -64,7 +62,6 @@ public class GcsDiffFileListerTest {
 
   @Before
   public void before() throws Exception {
-    ObjectifyService.register(TestObject.class);
     diffLister.gcsService = gcsService;
     diffLister.gcsBucket = GCS_BUCKET;
     diffLister.executor = newDirectExecutorService();

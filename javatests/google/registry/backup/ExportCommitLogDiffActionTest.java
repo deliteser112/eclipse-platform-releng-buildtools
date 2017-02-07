@@ -29,7 +29,6 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.ObjectifyService;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpoint;
@@ -65,7 +64,6 @@ public class ExportCommitLogDiffActionTest {
 
   @Before
   public void before() {
-    ObjectifyService.register(TestObject.class);
     task.gcsService = gcsService;
     task.gcsBucket = "gcs bucket";
     task.batchSize = 5;

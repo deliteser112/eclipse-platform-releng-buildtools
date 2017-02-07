@@ -186,7 +186,7 @@ public class RestoreCommitLogsAction implements Runnable {
     }
     return dryRun || keysToDelete.isEmpty()
         ? new ResultNow<Void>(null)
-        : ofy().deleteWithoutBackup().entities(keysToDelete);
+        : ofy().deleteWithoutBackup().keys(keysToDelete);
    }
 
   /** Retrier for saves and deletes, since we can't proceed with any failures. */
