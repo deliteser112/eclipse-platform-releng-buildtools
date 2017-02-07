@@ -22,6 +22,7 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -124,6 +125,14 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
     List<HistoryEntry> historyEntries = getHistoryEntries(domain);
     assertThat(historyEntries).hasSize(1);
     checkHistoryEntry(historyEntries.get(0), domain);
+  }
+
+  /** Ensures that DNS publishing is kicked off on domain import */
+  @Test
+  public void test_mapreducePublishesToDns() throws Exception {
+    pushToGcs(DEPOSIT_1_DOMAIN);
+    runMapreduce();
+    assertDnsTasksEnqueued("example1.test");
   }
 
   /** Verify history entry fields are correct */
