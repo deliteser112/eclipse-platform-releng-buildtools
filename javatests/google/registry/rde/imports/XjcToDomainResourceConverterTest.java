@@ -45,7 +45,10 @@ import google.registry.model.host.HostResource;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.DeterministicStringGenerator;
 import google.registry.testing.ExceptionRule;
+import google.registry.testing.InjectRule;
+import google.registry.util.StringGenerator;
 import google.registry.xjc.rdedomain.XjcRdeDomain;
 import google.registry.xjc.rdedomain.XjcRdeDomainElement;
 import java.io.ByteArrayInputStream;
@@ -86,12 +89,17 @@ public class XjcToDomainResourceConverterTest {
 
   @Rule public final ExceptionRule thrown = new ExceptionRule();
 
+  @Rule public final InjectRule inject = new InjectRule();
+
   private Unmarshaller unmarshaller;
+  private DeterministicStringGenerator stringGenerator;
 
   @Before
   public void before() throws Exception {
     createTld("example");
     unmarshaller = JAXBContext.newInstance(JAXB_CONTEXT_PACKAGES).createUnmarshaller();
+    stringGenerator = new DeterministicStringGenerator(StringGenerator.Alphabets.BASE_64);
+    inject.setStaticField(XjcToDomainResourceConverter.class, "stringGenerator", stringGenerator);
   }
 
   @Test
@@ -120,6 +128,8 @@ public class XjcToDomainResourceConverterTest {
     assertThat(domain.getLastEppUpdateTime()).isNull();
     assertThat(domain.getAutorenewBillingEvent()).isNotNull();
     assertThat(domain.getAutorenewPollMessage()).isNotNull();
+    assertThat(domain.getAuthInfo()).isNotNull();
+    assertThat(domain.getAuthInfo().getPw().getValue()).isEqualTo("0123456789abcdef");
   }
 
   @Test

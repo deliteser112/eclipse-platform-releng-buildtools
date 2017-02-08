@@ -22,7 +22,6 @@ java_library(
         "//java/google/registry/xjc",
         "//javatests/google/registry/testing",
         "//javatests/google/registry/testing/mapreduce",
-        "//javatests/google/registry/xml",
         "//third_party/java/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk//:testonly",
         "@com_google_appengine_tools_appengine_gcs_client",
