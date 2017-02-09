@@ -27,6 +27,8 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import com.google.appengine.api.users.UserService;
 import com.google.common.base.Optional;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.RequestAuthenticator;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import java.io.IOException;
@@ -77,6 +79,7 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
   private final Router router;
   private final Provider<B> requestComponentBuilderProvider;
   private final UserService userService;
+  private final RequestAuthenticator requestAuthenticator;
 
   /**
    * Constructor for subclasses to create a new request handler for a specific request component.
@@ -89,22 +92,33 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
    *     be used to construct new instances of the request component (with the required
    *     request-derived modules provided by this class)
    * @param userService an instance of the App Engine UserService API
+   * @param requestAuthenticator an instance of the RequestAuthenticator class
    */
-  protected RequestHandler(Provider<B> requestComponentBuilderProvider, UserService userService) {
-    this(null, requestComponentBuilderProvider, userService);
+  protected RequestHandler(
+      Provider<B> requestComponentBuilderProvider,
+      UserService userService,
+      RequestAuthenticator requestAuthenticator) {
+    this(null, requestComponentBuilderProvider, userService, requestAuthenticator);
   }
 
   /** Creates a new RequestHandler with an explicit component class for test purposes. */
   public static <C, B extends RequestComponentBuilder<C, B>> RequestHandler<C, B> createForTest(
-      Class<C> component, Provider<B> requestComponentBuilderProvider, UserService userService) {
+      Class<C> component,
+      Provider<B> requestComponentBuilderProvider,
+      UserService userService,
+      RequestAuthenticator requestAuthenticator) {
     return new RequestHandler<>(
-        checkNotNull(component), requestComponentBuilderProvider, userService);
+        checkNotNull(component),
+        requestComponentBuilderProvider,
+        userService,
+        requestAuthenticator);
   }
 
   private RequestHandler(
       @Nullable Class<C> component,
       Provider<B> requestComponentBuilderProvider,
-      UserService userService) {
+      UserService userService,
+      RequestAuthenticator requestAuthenticator) {
     // If the component class isn't explicitly provided, infer it from the class's own typing.
     // This is safe only for use by subclasses of RequestHandler where the generic parameter is
     // preserved at runtime, so only expose that option via the protected constructor.
@@ -112,6 +126,7 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
         component != null ? component : new TypeInstantiator<C>(getClass()){}.getExactType());
     this.requestComponentBuilderProvider = checkNotNull(requestComponentBuilderProvider);
     this.userService = checkNotNull(userService);
+    this.requestAuthenticator = checkNotNull(requestAuthenticator);
   }
 
   /** Runs the appropriate action for a servlet request. */
@@ -152,9 +167,16 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
       rsp.sendError(SC_FORBIDDEN, "Invalid " + X_CSRF_TOKEN);
       return;
     }
+    Optional<AuthResult> authResult =
+        requestAuthenticator.authorize(route.get().action().auth(), req);
+    if (!authResult.isPresent()) {
+      rsp.sendError(SC_FORBIDDEN);
+      return;
+    }
+
     // Build a new request component using any modules we've constructed by this point.
     C component = requestComponentBuilderProvider.get()
-        .requestModule(new RequestModule(req, rsp))
+        .requestModule(new RequestModule(req, rsp, authResult.get()))
         .build();
     // Apply the selected Route to the component to produce an Action instance, and run it.
     try {

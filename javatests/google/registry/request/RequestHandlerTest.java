@@ -23,15 +23,27 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.appengine.api.oauth.OAuthServiceFactory;
+import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.NullPointerTester;
 import google.registry.request.HttpException.ServiceUnavailableException;
+import google.registry.request.auth.AppEngineInternalAuthenticationMechanism;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.LegacyAuthenticationMechanism;
+import google.registry.request.auth.OAuthAuthenticationMechanism;
+import google.registry.request.auth.RequestAuthenticator;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.InjectRule;
 import google.registry.testing.Providers;
 import google.registry.testing.UserInfo;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.After;
@@ -57,31 +69,31 @@ public final class RequestHandlerTest {
   public final InjectRule inject = new InjectRule();
 
   @Action(path = "/bumblebee", method = {GET, POST}, isPrefix = true)
-  public class BumblebeeTask implements Runnable {
+  public static class BumblebeeTask implements Runnable {
     @Override
     public void run() {}
   }
 
   @Action(path = "/sloth", method = POST, automaticallyPrintOk = true)
-  public class SlothTask implements Runnable {
+  public static class SlothTask implements Runnable {
     @Override
     public void run() {}
   }
 
   @Action(path = "/safe-sloth", method = {GET, POST}, xsrfProtection = true, xsrfScope = "vampire")
-  public class SafeSlothTask implements Runnable {
+  public static class SafeSlothTask implements Runnable {
     @Override
     public void run() {}
   }
 
   @Action(path = "/users-only", method = GET, requireLogin = true)
-  public class UsersOnlyAction implements Runnable {
+  public static class UsersOnlyAction implements Runnable {
     @Override
     public void run() {}
   }
 
   @Action(path = "/fail")
-  public final class FailTask implements Runnable {
+  public static final class FailTask implements Runnable {
     @Override
     public void run() {
       throw new ServiceUnavailableException("Set sail for fail");
@@ -89,7 +101,7 @@ public final class RequestHandlerTest {
   }
 
   @Action(path = "/failAtConstruction")
-  public final class FailAtConstructionTask implements Runnable {
+  public static final class FailAtConstructionTask implements Runnable {
     public FailAtConstructionTask() {
       throw new ServiceUnavailableException("Fail at construction");
     }
@@ -100,7 +112,57 @@ public final class RequestHandlerTest {
     }
   }
 
+  class AuthBase implements Runnable {
+    private final AuthResult authResult;
+
+    AuthBase(AuthResult authResult) {
+      this.authResult = authResult;
+    }
+
+    @Override
+    public void run() {
+      injectedAuthResult = authResult;
+    }
+  }
+
+  @Action(
+      path = "/auth/none",
+      auth = @Auth(
+          methods = {Auth.AuthMethod.INTERNAL},
+          minimumLevel = AuthLevel.NONE,
+          userPolicy = Auth.UserPolicy.IGNORED),
+      method = Action.Method.GET)
+  public class AuthNoneAction extends AuthBase {
+    @Inject AuthNoneAction(AuthResult authResult) {
+      super(authResult);
+    }
+  }
+
+  @Action(
+      path = "/auth/adminUserAnyMethod",
+      auth = @Auth(
+          methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
+          minimumLevel = AuthLevel.USER,
+          userPolicy = Auth.UserPolicy.ADMIN),
+      method = Action.Method.GET)
+  public class AuthAdminUserAnyMethodAction extends AuthBase {
+    @Inject AuthAdminUserAnyMethodAction(AuthResult authResult) {
+      super(authResult);
+    }
+  }
+
   public class Component {
+
+    private RequestModule requestModule = null;
+
+    public RequestModule getRequestModule() {
+      return requestModule;
+    }
+
+    public void setRequestModule(RequestModule requestModule) {
+      this.requestModule = requestModule;
+    }
+
     public BumblebeeTask bumblebeeTask() {
       return bumblebeeTask;
     }
@@ -124,12 +186,22 @@ public final class RequestHandlerTest {
     public FailAtConstructionTask failAtConstructionTask() {
       return new FailAtConstructionTask();
     }
+
+    public AuthNoneAction authNoneAction() {
+      return new AuthNoneAction(component.getRequestModule().provideAuthResult());
+    }
+
+    public AuthAdminUserAnyMethodAction authAdminUserAnyMethodAction() {
+      return new AuthAdminUserAnyMethodAction(
+          component.getRequestModule().provideAuthResult());
+    }
   }
 
   /** Fake Builder for the fake component above to satisfy RequestHandler expectations. */
-  public abstract static class Builder implements RequestComponentBuilder<Component, Builder> {
+  public abstract class Builder implements RequestComponentBuilder<Component, Builder> {
     @Override
     public Builder requestModule(RequestModule requestModule) {
+      component.setRequestModule(requestModule);
       return this;
     }
   }
@@ -158,9 +230,22 @@ public final class RequestHandlerTest {
   private final Component component = new Component();
   private final StringWriter httpOutput = new StringWriter();
   private RequestHandler<Component, Builder> handler;
+  private AuthResult injectedAuthResult = null;
+  private final User testUser = new User("test@example.com", "test@example.com");
+  private RequestAuthenticator requestAuthenticator;
 
   @Before
   public void before() throws Exception {
+    requestAuthenticator = new RequestAuthenticator(
+        new AppEngineInternalAuthenticationMechanism(),
+        ImmutableList.of(
+            new OAuthAuthenticationMechanism(
+                OAuthServiceFactory.getOAuthService(),
+                ImmutableSet.of("https://www.googleapis.com/auth/userinfo.email"),
+                ImmutableSet.of("https://www.googleapis.com/auth/userinfo.email"),
+                ImmutableSet.of("proxy-client-id", "regtool-client-id"))),
+        new LegacyAuthenticationMechanism(userService));
+
     // Initialize here, not inline, so that we pick up the mocked UserService.
     handler = RequestHandler.<Component, Builder>createForTest(
         Component.class,
@@ -171,7 +256,8 @@ public final class RequestHandlerTest {
             return component;
           }
         }),
-        userService);
+        userService,
+        requestAuthenticator);
     when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
   }
 
@@ -279,6 +365,7 @@ public final class RequestHandlerTest {
   @Test
   public void testNullness() {
     NullPointerTester tester = new NullPointerTester();
+    tester.setDefault(RequestAuthenticator.class, requestAuthenticator);
     tester.testAllPublicStaticMethods(RequestHandler.class);
     tester.testAllPublicInstanceMethods(handler);
   }
@@ -331,9 +418,56 @@ public final class RequestHandlerTest {
   @Test
   public void testMustBeLoggedIn_loggedIn_runsAction() throws Exception {
     when(userService.isUserLoggedIn()).thenReturn(true);
+    when(userService.getCurrentUser()).thenReturn(testUser);
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/users-only");
     handler.handleRequest(req, rsp);
     verify(usersOnlyAction).run();
+  }
+
+  @Test
+  public void testNoAuthNeeded_success() throws Exception {
+    when(req.getMethod()).thenReturn("GET");
+    when(req.getRequestURI()).thenReturn("/auth/none");
+    handler.handleRequest(req, rsp);
+    assertThat(injectedAuthResult).isNotNull();
+    assertThat(injectedAuthResult.authLevel()).isEqualTo(AuthLevel.NONE);
+    assertThat(injectedAuthResult.userAuthInfo()).isAbsent();
+  }
+
+  @Test
+  public void testAuthNeeded_notLoggedIn() throws Exception {
+    when(req.getMethod()).thenReturn("GET");
+    when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
+    handler.handleRequest(req, rsp);
+    verify(rsp).sendError(403);
+    assertThat(injectedAuthResult).isNull();
+  }
+
+  @Test
+  public void testAuthNeeded_notAuthorized() throws Exception {
+    when(userService.isUserLoggedIn()).thenReturn(true);
+    when(userService.getCurrentUser()).thenReturn(testUser);
+    when(userService.isUserAdmin()).thenReturn(false);
+    when(req.getMethod()).thenReturn("GET");
+    when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
+    handler.handleRequest(req, rsp);
+    verify(rsp).sendError(403);
+    assertThat(injectedAuthResult).isNull();
+  }
+
+  @Test
+  public void testAuthNeeded_success() throws Exception {
+    when(userService.isUserLoggedIn()).thenReturn(true);
+    when(userService.getCurrentUser()).thenReturn(testUser);
+    when(userService.isUserAdmin()).thenReturn(true);
+    when(req.getMethod()).thenReturn("GET");
+    when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
+    handler.handleRequest(req, rsp);
+    assertThat(injectedAuthResult).isNotNull();
+    assertThat(injectedAuthResult.authLevel()).isEqualTo(AuthLevel.USER);
+    assertThat(injectedAuthResult.userAuthInfo()).isPresent();
+    assertThat(injectedAuthResult.userAuthInfo().get().user()).isEqualTo(testUser);
+    assertThat(injectedAuthResult.userAuthInfo().get().oauthTokenInfo()).isAbsent();
   }
 }

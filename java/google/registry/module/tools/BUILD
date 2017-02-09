@@ -20,6 +20,7 @@ java_library(
         "//java/google/registry/monitoring/whitebox",
         "//java/google/registry/request",
         "//java/google/registry/request:modules",
+        "//java/google/registry/request/auth",
         "//java/google/registry/tools/server",
         "//java/google/registry/tools/server/javascrap",
         "//java/google/registry/util",

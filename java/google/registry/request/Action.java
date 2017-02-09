@@ -14,6 +14,7 @@
 
 package google.registry.request;
 
+import google.registry.request.auth.Auth;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -61,4 +62,7 @@ public @interface Action {
    * {@code web.xml} with {@code <role-name>*</role-name>}.
    */
   boolean requireLogin() default false;
+
+  /** Authentication settings. */
+  Auth auth() default @Auth;
 }

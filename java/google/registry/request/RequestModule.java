@@ -26,6 +26,7 @@ import dagger.Module;
 import dagger.Provides;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.UnsupportedMediaTypeException;
+import google.registry.request.auth.AuthResult;
 import java.io.IOException;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -40,10 +41,18 @@ public final class RequestModule {
 
   private final HttpServletRequest req;
   private final HttpServletResponse rsp;
+  private final AuthResult authResult;
 
-  public RequestModule(HttpServletRequest req, HttpServletResponse rsp) {
+  public RequestModule(
+      HttpServletRequest req, HttpServletResponse rsp) {
+    this(req, rsp, AuthResult.NOT_AUTHENTICATED);
+  }
+
+  public RequestModule(
+      HttpServletRequest req, HttpServletResponse rsp, AuthResult authResult) {
     this.req = req;
     this.rsp = rsp;
+    this.authResult = authResult;
   }
 
   @Provides
@@ -64,6 +73,11 @@ public final class RequestModule {
   @Provides
   HttpServletResponse provideHttpServletResponse() {
     return rsp;
+  }
+
+  @Provides
+  AuthResult provideAuthResult() {
+    return authResult;
   }
 
   @Provides

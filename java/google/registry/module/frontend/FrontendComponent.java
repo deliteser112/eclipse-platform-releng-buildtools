@@ -29,6 +29,7 @@ import google.registry.request.Modules.ModulesServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
+import google.registry.request.auth.AuthModule;
 import google.registry.ui.ConsoleConfigModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
@@ -39,6 +40,7 @@ import javax.inject.Singleton;
 @Component(
     modules = {
         AppIdentityCredentialModule.class,
+        AuthModule.class,
         BraintreeModule.class,
         ConfigModule.class,
         ConsoleConfigModule.class,

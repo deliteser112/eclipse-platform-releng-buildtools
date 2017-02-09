@@ -11,6 +11,7 @@ java_library(
         exclude = ["Modules.java"],
     ),
     deps = [
+        "//java/google/registry/request/auth",
         "//java/google/registry/security",
         "//java/google/registry/util",
         "@com_google_appengine_api_1_0_sdk",

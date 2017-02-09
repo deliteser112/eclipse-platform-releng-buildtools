@@ -23,6 +23,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.net.HostAndPort;
 import dagger.Module;
 import dagger.Provides;
@@ -902,6 +903,44 @@ public final class RegistryConfig {
     @Provides
     static RegistryConfigSettings provideRegistryConfigSettings() {
       return CONFIG_SETTINGS.get();
+    }
+
+    /**
+     * Provides the OAuth scopes to check for on access tokens.
+     *
+     * <p>This list should be a superset of the required OAuth scope set provided below.
+     *
+     * <p>If we feel the need, we could define additional fixed scopes, similar to the Java remote
+     * API, which requires at least one of:
+     *
+     * <ul>
+     *   <li>https://www.googleapis.com/auth/appengine.apis</li>
+     *   <li>https://www.googleapis.com/auth/cloud-platform</li>
+     * </ul>
+     */
+    @Provides
+    @Config("availableOauthScopes")
+    public static ImmutableSet<String> provideAvailableOauthScopes() {
+      return ImmutableSet.of("https://www.googleapis.com/auth/userinfo.email");
+    }
+
+    /**
+     * Provides the required OAuth scopes for simply authenticating.
+     *
+     * <p>This set contains the scopes which must be present to authenticate a user. It should be a
+     * subset of the scopes we request from the OAuth interface, provided above.
+     */
+    @Provides
+    @Config("requiredOauthScopes")
+    public static ImmutableSet<String> provideRequiredOauthScopes() {
+      return ImmutableSet.of("https://www.googleapis.com/auth/userinfo.email");
+    }
+
+    /** Provides the allowed OAuth client IDs (could be multibinding). */
+    @Provides
+    @Config("allowedOauthClientIds")
+    public static ImmutableSet<String> provideAllowedOauthClientIds() {
+      return ImmutableSet.of("PUT.YOUR.PROXY.CLIENT.ID.HERE", "PUT.YOUR.REGTOOL.CLIENT.ID.HERE");
     }
 
     /**

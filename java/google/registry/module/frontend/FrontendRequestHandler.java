@@ -16,6 +16,7 @@ package google.registry.module.frontend;
 
 import com.google.appengine.api.users.UserService;
 import google.registry.request.RequestHandler;
+import google.registry.request.auth.RequestAuthenticator;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
@@ -25,7 +26,8 @@ public class FrontendRequestHandler
 
   @Inject FrontendRequestHandler(
       Provider<FrontendRequestComponent.Builder> componentBuilderProvider,
-      UserService userService) {
-    super(componentBuilderProvider, userService);
+      UserService userService,
+      RequestAuthenticator requestAuthenticator) {
+    super(componentBuilderProvider, userService, requestAuthenticator);
   }
 }
