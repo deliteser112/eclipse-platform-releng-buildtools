@@ -14,8 +14,7 @@
 
 -- Billing Data View SQL
 --
--- This query post-processes the OneTime billing events, combines them with
--- synthetic OneTime events generated from Recurring events, and then annotates
+-- This query post-processes the OneTime billing events and then annotates
 -- the resulting data with additional information from the Registrar,
 -- DomainBase, Currency, and Cancellation tables.
 SELECT
@@ -40,18 +39,15 @@ SELECT
   Cancellation.cancellationId IS NOT NULL AS cancelled,
   Cancellation.cancellationTime AS cancellationTime,
 FROM (
-  -- Subquery for common processing shared across OneTime and Recurring data,
-  -- which is parsing the string cost into currency and amountMinor.
   SELECT
-    id,
-    kind,  -- Needed for joining Cancellations correctly.
+    __key__.id AS id,
     billingTime,
     eventTime,
     clientId,
     tld,
     reason,
     targetId,
-    domainRepoId,
+    REGEXP_EXTRACT(__key__.path, '"DomainBase", "([^"]+)"') AS domainRepoId,
     periodYears,
     cost,
     -- TODO(b/19031545): Find cleaner way to parse out currency and amount.
@@ -61,62 +57,23 @@ FROM (
     -- (i.e. currency, space, and period) and then converting to integer.
     INTEGER(REGEXP_REPLACE(cost, r'\D+', '')) AS amountMinor,
     -- Convert repeated flags field into flat comma-delimited string field.
-    flags,
+    GROUP_CONCAT(flags) WITHIN RECORD AS flags,
+    -- Cancellations for recurring events will point to the recurring event's
+    -- key, which is stored in cancellationMatchingBillingEvent. The path
+    -- contains kind, id, and domainRepoId, all of which must match, so just
+    -- use the path.
+    COALESCE(cancellationMatchingBillingEvent.path, __key__.path)
+      AS cancellationMatchingPath,
   FROM (
-    -- Extract OneTime records from raw snapshot data.
     SELECT
-      __key__.id AS id,
-      __key__.kind AS kind,
-      billingTime,
-      eventTime,
-      clientId,
-      tld,
-      reason,
-      targetId,
-      -- TODO(b/20828509): see if this can be expressed more cleanly.
-      REGEXP_EXTRACT(__key__.path, '"DomainBase", "([^"]+)"') AS domainRepoId,
-      periodYears,
-      cost,
-      GROUP_CONCAT(flags) WITHIN RECORD AS flags,
-    FROM (
-      SELECT
-        *,
-        -- TODO(b/20828509): make this robust to multi-part TLDS.
-        LAST(SPLIT(targetId, '.')) AS tld
-      FROM
-        [%SOURCE_DATASET%.OneTime]
-      WHERE
-        -- Filter out Registry 1.0 data - TODO(b/20828509): remove this.
-        __key__.namespace = '')
-    WHERE
-      -- Filter out prober data.
-      tld IN
-        (SELECT tld FROM [%DEST_DATASET%.RegistryData] WHERE type = 'REAL')
-        -- TODO(b/27562876): Filter out synthetic OneTime events until we
-        -- verify that expanded OneTime events via MapReduce are correct and
-        -- complete.
-        AND syntheticCreationTime IS NULL
-    ), (
-    -- Extract synthetic recurring events from view of Recurring data.
-    --
-    -- TODO(b/27562876): Drop this section of the query once we verify
-    -- that expanded OneTime events via MapReduce are correct and complete.
-    SELECT
-      id,
-      kind,
-      billingTime,
-      eventTime,
-      clientId,
-      tld,
-      reason,
-      targetId,
-      domainRepoId,
-      periodYears,
-      cost,
-      flags,
-    FROM
-      [%DEST_DATASET%.RecurringEventData]
-    )
+      *,
+      -- TODO(b/20828509): make this robust to multi-part TLDS.
+      LAST(SPLIT(targetId, '.')) AS tld
+    FROM [%SOURCE_DATASET%.OneTime])
+  WHERE
+    -- Filter out prober data.
+    tld IN
+      (SELECT tld FROM [%DEST_DATASET%.RegistryData] WHERE type = 'REAL')
   ) AS BillingEvent
 
 -- Join to pick up billing ID from registrar table.
@@ -136,12 +93,7 @@ LEFT JOIN EACH (
     __key__.id AS cancellationId,
     -- Coalesce matching fields from refOneTime and refRecurring (only one or
     -- the other will ever be populated) for joining against referenced event.
-    COALESCE(refOneTime.kind, refRecurring.kind) AS cancelledEventKind,
-    COALESCE(refOneTime.id, refRecurring.id) AS cancelledEventId,
-    -- TODO(b/20828509): see if this can be expressed more cleanly.
-    REGEXP_EXTRACT(
-      COALESCE(refOneTime.path, refRecurring.path),
-      '"DomainBase", "([^"]+)"') AS cancelledEventDomainRepoId,
+    COALESCE(refOneTime.path, refRecurring.path) AS cancelledEventPath,
     eventTime AS cancellationTime,
     billingTime AS cancellationBillingTime,
   FROM (
@@ -160,11 +112,7 @@ LEFT JOIN EACH (
       (SELECT tld FROM [%DEST_DATASET%.RegistryData] WHERE type = 'REAL')
   ) AS Cancellation
 ON
-  BillingEvent.kind = Cancellation.cancelledEventKind
-  AND BillingEvent.id = Cancellation.cancelledEventId
-  -- Note: we need to include the repoId here to handle old pre-Registry-2.0
-  -- billing events that would have had ID collisions across TLDs.
-  AND BillingEvent.domainRepoId = Cancellation.cancelledEventDomainRepoId
+  BillingEvent.cancellationMatchingPath = Cancellation.cancelledEventPath
   -- Require billing times to match so that cancellations for Recurring events
   -- only apply to the specific recurrence being cancelled.
   AND BillingEvent.billingTime = Cancellation.cancellationBillingTime

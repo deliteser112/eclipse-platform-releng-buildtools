@@ -49,8 +49,6 @@ final class MakeBillingTablesCommand extends BigqueryCommand {
   private static final SqlTemplate REGISTRY_DATA_SQL = getSql("registry_data_view.sql");
   private static final SqlTemplate CREDIT_DATA_SQL = getSql("credit_data_view.sql");
   private static final SqlTemplate CREDIT_BALANCE_DATA_SQL = getSql("credit_balance_data_view.sql");
-  private static final SqlTemplate PREMIUM_LIST_DATA_SQL = getSql("premium_list_data_view.sql");
-  private static final SqlTemplate RECURRING_DATA_SQL = getSql("recurring_event_data_view.sql");
   private static final SqlTemplate BILLING_DATA_SQL = getSql("billing_data_view.sql");
 
   /** Runs the main billing table/view creation logic. */
@@ -66,8 +64,6 @@ final class MakeBillingTablesCommand extends BigqueryCommand {
       makeRegistryView();
       makeCreditView();
       makeCreditBalanceView();
-      makePremiumListView();
-      makeRecurringEventView();
       makeBillingView();
     } catch (TableCreationException e) {
       // Swallow since we already will have printed an error message.
@@ -157,36 +153,6 @@ final class MakeBillingTablesCommand extends BigqueryCommand {
                 .build(),
             bigquery().buildDestinationTable("CreditBalanceData")
                 .description("Synthetic view of registrar credit balance information.")
-                .type(TableType.VIEW)
-                .build()));
-  }
-
-  /** Generates a view of premium list data for each TLD. */
-  private void makePremiumListView() throws Exception {
-    handleTableCreation(
-        "premium list data view",
-        bigquery().query(
-            PREMIUM_LIST_DATA_SQL
-                .put("SOURCE_DATASET", sourceDatasetId)
-                .put("DEST_DATASET", bigquery().getDatasetId())
-                .build(),
-            bigquery().buildDestinationTable("PremiumListData")
-                .description("Synthetic view of premium list data.")
-                .type(TableType.VIEW)
-                .build()));
-  }
-
-  /** Generates a view of recurring billing events expanded into individual recurrences. */
-  private void makeRecurringEventView() throws Exception {
-    handleTableCreation(
-        "recurring event data view",
-        bigquery().query(
-            RECURRING_DATA_SQL
-                .put("SOURCE_DATASET", sourceDatasetId)
-                .put("DEST_DATASET", bigquery().getDatasetId())
-                .build(),
-            bigquery().buildDestinationTable("RecurringEventData")
-                .description("Synthetic view of recurring billing event recurrence data.")
                 .type(TableType.VIEW)
                 .build()));
   }
