@@ -18,6 +18,7 @@ import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.rde.imports.RdeImportUtils.generateTridForImport;
+import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -69,7 +70,7 @@ public class XjcToHostResourceConverter extends XjcToEppResourceConverter {
             .setParent(Key.create(null, HostResource.class, host.getRoid()))
             .build());
     return new HostResource.Builder()
-        .setFullyQualifiedHostName(host.getName())
+        .setFullyQualifiedHostName(canonicalizeDomainName(host.getName()))
         .setRepoId(host.getRoid())
         .setCurrentSponsorClientId(host.getClID())
         .setLastTransferTime(host.getTrDate())
