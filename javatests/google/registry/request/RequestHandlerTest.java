@@ -34,6 +34,7 @@ import google.registry.request.auth.AppEngineInternalAuthenticationMechanism;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.AuthenticationMechanism;
 import google.registry.request.auth.LegacyAuthenticationMechanism;
 import google.registry.request.auth.OAuthAuthenticationMechanism;
 import google.registry.request.auth.RequestAuthenticator;
@@ -238,7 +239,7 @@ public final class RequestHandlerTest {
   public void before() throws Exception {
     requestAuthenticator = new RequestAuthenticator(
         new AppEngineInternalAuthenticationMechanism(),
-        ImmutableList.of(
+        ImmutableList.<AuthenticationMechanism>of(
             new OAuthAuthenticationMechanism(
                 OAuthServiceFactory.getOAuthService(),
                 ImmutableSet.of("https://www.googleapis.com/auth/userinfo.email"),
