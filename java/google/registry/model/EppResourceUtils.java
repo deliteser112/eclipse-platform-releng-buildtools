@@ -242,14 +242,14 @@ public final class EppResourceUtils {
    * {@code timestamp} be set to midnight. Otherwise you must take into consideration that under
    * certain circumstances, a resource might be restored to a revision on the previous day, even if
    * there were revisions made earlier on the same date as {@code timestamp}; however, a resource
-   * will never be restored to a revision occuring after {@code timestamp}. This behavior is due to
+   * will never be restored to a revision occurring after {@code timestamp}. This behavior is due to
    * the way {@link google.registry.model.translators.CommitLogRevisionsTranslatorFactory
    * CommitLogRevisionsTranslatorFactory} manages the {@link EppResource#revisions} field. Please
    * note however that the creation and deletion times of a resource are granular to the
    * millisecond.
    *
    * @return an asynchronous operation returning resource at {@code timestamp} or {@code null} if
-   *     if resource is deleted or not yet created
+   *     resource is deleted or not yet created
    */
   public static <T extends EppResource>
       Result<T> loadAtPointInTime(final T resource, final DateTime timestamp) {

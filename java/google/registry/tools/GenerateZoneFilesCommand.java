@@ -33,7 +33,7 @@ import org.joda.time.DateTime;
 final class GenerateZoneFilesCommand implements ServerSideCommand {
 
   @Parameter(
-      description = "A comma-separated list of TLD to generate zone files for",
+      description = "A comma-separated list of TLDs to generate zone files for",
       required = true)
   private List<String> mainParameters;
 
