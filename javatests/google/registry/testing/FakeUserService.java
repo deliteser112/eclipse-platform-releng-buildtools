@@ -42,6 +42,7 @@ public class FakeUserService implements UserService {
     throw new UnsupportedOperationException();
   }
 
+  @Deprecated
   @Override
   public String createLoginURL(String destinationURL, String authDomain, String federatedIdentity,
       Set<String> attributesRequest) {
