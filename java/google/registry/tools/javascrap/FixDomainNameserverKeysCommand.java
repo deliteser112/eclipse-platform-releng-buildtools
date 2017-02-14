@@ -115,7 +115,10 @@ public class FixDomainNameserverKeysCommand extends ConfirmingCommand implements
         for (Entry<DomainResource, DomainResource> entry : domainUpdates.entrySet()) {
           DomainResource existingDomain = entry.getKey();
           checkState(
-              Objects.equals(existingDomain, ofy().load().entity(existingDomain).now()),
+              Objects.equals(
+                  existingDomain,
+                  ofy().load().entity(existingDomain).now()
+                      .cloneProjectedAtTime(ofy().getTransactionTime())),
               "Domain %s changed since init() was called.",
               existingDomain.getFullyQualifiedDomainName());
           HistoryEntry historyEntryWithModificationTime =
