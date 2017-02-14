@@ -59,7 +59,7 @@ public abstract class DomainBase extends EppResource {
    * Fully qualified domain name (puny-coded), which serves as the foreign key for this domain.
    *
    * <p>This is only unique in the sense that for any given lifetime specified as the time range
-   * from (creationTime, deletionTime) there can only be one domain in the datastore with this name.
+   * from (creationTime, deletionTime) there can only be one domain in Datastore with this name.
    * However, there can be many domains with the same name and non-overlapping lifetimes.
    *
    * @invariant fullyQualifiedDomainName == fullyQualifiedDomainName.toLowerCase()

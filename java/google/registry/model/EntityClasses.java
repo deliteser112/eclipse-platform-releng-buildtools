@@ -112,10 +112,10 @@ public final class EntityClasses {
           TmchCrl.class);
 
   /**
-   * Function that converts an Objectify-registered class to its datastore kind name.
+   * Function that converts an Objectify-registered class to its Datastore kind name.
    *
    * <p>Note that this mapping is not one-to-one, since polymorphic subclasses of an entity all
-   * have the same datastore kind.  (In theory, two distinct top-level entities could also map to
+   * have the same Datastore kind.  (In theory, two distinct top-level entities could also map to
    * the same kind since it's just {@code class.getSimpleName()}, but we test against that.)
    */
   public static final Function<Class<? extends ImmutableObject>, String> CLASS_TO_KIND_FUNCTION =

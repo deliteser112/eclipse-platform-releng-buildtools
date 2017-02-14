@@ -857,13 +857,13 @@ public class Registry extends ImmutableObject implements Buildable {
           "Cannot create registry for TLD that is not a valid, canonical domain name");
       // Check the validity of all TimedTransitionProperties to ensure that they have values for
       // START_OF_TIME.  The setters above have already checked this for new values, but also check
-      // here to catch cases where we loaded an invalid TimedTransitionProperty from datastore and
+      // here to catch cases where we loaded an invalid TimedTransitionProperty from Datastore and
       // cloned it into a new builder, to block re-building a Registry in an invalid state.
       instance.tldStateTransitions.checkValidity();
       instance.renewBillingCostTransitions.checkValidity();
       instance.eapFeeSchedule.checkValidity();
       // All costs must be in the expected currency.
-      // TODO(b/21854155): When we move PremiumList into datastore, verify its currency too.
+      // TODO(b/21854155): When we move PremiumList into Datastore, verify its currency too.
       checkArgument(
           instance.getStandardCreateCost().getCurrencyUnit().equals(instance.currency),
           "Create cost must be in the registry's currency");

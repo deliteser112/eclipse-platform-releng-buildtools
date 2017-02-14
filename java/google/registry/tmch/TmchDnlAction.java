@@ -39,7 +39,7 @@ public final class TmchDnlAction implements Runnable {
   @Inject @Key("marksdbDnlLogin") Optional<String> marksdbDnlLogin;
   @Inject TmchDnlAction() {}
 
-  /** Synchronously fetches latest domain name list and saves it to datastore. */
+  /** Synchronously fetches latest domain name list and saves it to Datastore. */
   @Override
   public void run() {
     List<String> lines;
@@ -50,7 +50,7 @@ public final class TmchDnlAction implements Runnable {
     }
     ClaimsListShard claims = ClaimsListParser.parse(lines);
     claims.save();
-    logger.infofmt("Inserted %,d claims into datastore, created at %s",
+    logger.infofmt("Inserted %,d claims into Datastore, created at %s",
         claims.size(), claims.getCreationTime());
   }
 }

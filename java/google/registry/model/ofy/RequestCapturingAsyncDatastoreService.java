@@ -39,9 +39,9 @@ public class RequestCapturingAsyncDatastoreService implements AsyncDatastoreServ
 
   private final AsyncDatastoreService delegate;
 
-  // Each outer lists represents datastore operations, with inner lists representing the keys or
+  // Each outer lists represents Datastore operations, with inner lists representing the keys or
   // entities involved in that operation. We use static lists because we care about overall calls to
-  // datastore, not calls via a specific instance of the service.
+  // Datastore, not calls via a specific instance of the service.
 
   private static List<List<Key>> reads = synchronizedList(new ArrayList<List<Key>>());
   private static List<List<Key>> deletes = synchronizedList(new ArrayList<List<Key>>());

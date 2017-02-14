@@ -89,7 +89,7 @@ public class SignedMarkRevocationList extends ImmutableObject {
   boolean isShard;
 
   /**
-   * A cached supplier that fetches the SMDRL shards from the datastore and recombines them into a
+   * A cached supplier that fetches the SMDRL shards from Datastore and recombines them into a
    * single {@link SignedMarkRevocationList} object.
    */
   private static final Supplier<SignedMarkRevocationList> CACHE =
@@ -119,7 +119,7 @@ public class SignedMarkRevocationList extends ImmutableObject {
             }});
         }});
 
-  /** Return a single logical instance that combines all the datastore shards. */
+  /** Return a single logical instance that combines all Datastore shards. */
   public static SignedMarkRevocationList get() {
     return CACHE.get();
   }
@@ -152,7 +152,7 @@ public class SignedMarkRevocationList extends ImmutableObject {
     return revokes.size();
   }
 
-  /** Save this list to the datastore in sharded form. Returns {@code this}. */
+  /** Save this list to Datastore in sharded form. Returns {@code this}. */
   public SignedMarkRevocationList save() {
     ofy().transact(new VoidWork() {
       @Override

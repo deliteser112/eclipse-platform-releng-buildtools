@@ -25,7 +25,7 @@ import google.registry.tools.Command.RemoteApiCommand;
 import java.util.List;
 
 /**
- * Command to get info on a datastore resource by websafe key.
+ * Command to get info on a Datastore resource by websafe key.
  */
 @Parameters(separators = " =")
 final class GetResourceByKeyCommand implements RemoteApiCommand {

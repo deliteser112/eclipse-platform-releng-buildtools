@@ -366,13 +366,13 @@ public class RdeImportUtilsTest extends ShardableTestCase {
       }});
   }
 
-  /** Confirms that a ForeignKeyIndex exists in the datastore for a given resource. */
+  /** Confirms that a ForeignKeyIndex exists in Datastore for a given resource. */
   private <T extends EppResource> void assertForeignKeyIndexFor(final T resource) {
     assertThat(ForeignKeyIndex.load(resource.getClass(), resource.getForeignKey(), clock.nowUtc()))
         .isNotNull();
   }
 
-  /** Confirms that an EppResourceIndex entity exists in datastore for a given resource. */
+  /** Confirms that an EppResourceIndex entity exists in Datastore for a given resource. */
   private static <T extends EppResource> void assertEppResourceIndexEntityFor(final T resource) {
     ImmutableList<EppResourceIndex> indices = FluentIterable
         .from(ofy().load()

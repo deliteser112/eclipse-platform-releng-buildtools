@@ -63,7 +63,7 @@ import org.mortbay.jetty.servlet.ServletHolder;
  * <p>The reason why this is necessary is because the App Engine local testing services (created by
  * {@code LocalServiceTestHelper}) only apply to a single thread (probably to allow multi-threaded
  * tests). So when Jetty creates random threads to handle requests, they won't have access to the
- * datastore and other stuff.
+ * Datastore and other stuff.
  */
 public final class TestServer {
 

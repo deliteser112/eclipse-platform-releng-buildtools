@@ -54,7 +54,7 @@ public class DatastoreBackupInfoTest {
 
   private DateTime startTime = DateTime.parse("2014-08-01T01:02:03Z");
 
-  private Entity backupEntity;  // Can't initialize until AppEngineRule has set up datastore.
+  private Entity backupEntity;  // Can't initialize until AppEngineRule has set up Datastore.
 
   @Before
   public void before() throws Exception {
@@ -65,7 +65,7 @@ public class DatastoreBackupInfoTest {
     backupEntity.setProperty("start_time", new Date(startTime.getMillis()));
   }
 
-  /** Force a roundtrip to datastore to ensure that we're simulating a freshly fetched entity. */
+  /** Force a roundtrip to Datastore to ensure that we're simulating a freshly fetched entity. */
   private static Entity persistEntity(Entity entity) throws EntityNotFoundException {
     return getDatastoreService().get(getDatastoreService().put(entity));
   }

@@ -16,9 +16,9 @@
 
       We want it to be close to midnight because that reduces the chance that the
       point-in-time code won't have to go to the extra trouble of fetching old
-      versions of objects from the datastore. However, we don't want it to run too
+      versions of objects from Datastore. However, we don't want it to run too
       close to midnight, because there's always a chance that a change which was
-      timestamped before midnight hasn't fully been committed to the datastore. So
+      timestamped before midnight hasn't fully been committed to Datastore. So
       we add a 4+ minute grace period to ensure the transactions cool down, since
       our queries are not transactional.
     -->
@@ -127,7 +127,7 @@
   <cron>
     <url><![CDATA[/_dr/cron/fanout?queue=export-snapshot&endpoint=/_dr/task/exportSnapshot&runInEmpty]]></url>
     <description>
-      This job fires off a datastore backup-as-a-service job that generates snapshot files in GCS.
+      This job fires off a Datastore backup-as-a-service job that generates snapshot files in GCS.
       It also enqueues a new task to wait on the completion of that job and then load the resulting
       snapshot into bigquery.
     </description>

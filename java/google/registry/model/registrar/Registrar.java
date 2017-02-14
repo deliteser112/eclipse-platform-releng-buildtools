@@ -197,13 +197,13 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    * on its length.
    *
    * <p>NB: We are assuming that this field is unique across all registrar entities. This is not
-   * formally enforced in our datastore, but should be enforced by ICANN in that no two registrars
-   * will be accredited with the same name.
+   * formally enforced in Datastore, but should be enforced by ICANN in that no two registrars will
+   * be accredited with the same name.
    *
-   * @see <a href="http://www.icann.org/registrar-reports/accredited-list.html">ICANN-Accredited Registrars</a>
+   * @see <a href="http://www.icann.org/registrar-reports/accredited-list.html">ICANN-Accredited
+   *     Registrars</a>
    */
-  @Index
-  String registrarName;
+  @Index String registrarName;
 
   /** The type of this registrar. */
   Type type;

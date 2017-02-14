@@ -18,10 +18,10 @@ import com.google.appengine.api.datastore.Key;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 
-/** Utility methods for working with the AppEngine datastore service. */
+/** Utility methods for working with the App Engine Datastore service. */
 public class DatastoreServiceUtils {
 
-  /** Helper function that extracts the kind from a regular datastore entity key. */
+  /** Helper function that extracts the kind from a regular Datastore entity key. */
   public static final Function<Key, String> KEY_TO_KIND_FUNCTION = new Function<Key, String>() {
       @Override
       public String apply(Key key) {

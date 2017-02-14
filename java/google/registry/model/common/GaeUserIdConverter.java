@@ -29,7 +29,7 @@ import google.registry.model.annotations.NotBackedUp.Reason;
 
 /**
  * A helper class to convert email addresses to GAE user ids. It does so by persisting a User
- * object with the email address to datastore, and then immediately reading it back.
+ * object with the email address to Datastore, and then immediately reading it back.
  */
 @Entity
 @NotBackedUp(reason = Reason.TRANSIENT)

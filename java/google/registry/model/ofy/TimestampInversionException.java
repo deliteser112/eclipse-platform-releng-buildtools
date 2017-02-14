@@ -24,8 +24,8 @@ import java.util.Map;
 import org.joda.time.DateTime;
 
 /**
- * Exception when trying to write to the datastore with a timestamp that is inconsistent with
- * a partial ordering on transactions that touch the same entities.
+ * Exception when trying to write to Datastore with a timestamp that is inconsistent with a partial
+ * ordering on transactions that touch the same entities.
  */
 class TimestampInversionException extends RuntimeException {
 

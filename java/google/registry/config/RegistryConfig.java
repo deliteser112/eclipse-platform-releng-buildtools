@@ -1063,9 +1063,9 @@ public final class RegistryConfig {
   }
 
   /**
-   * Returns the length of time before commit logs should be deleted from datastore.
+   * Returns the length of time before commit logs should be deleted from Datastore.
    *
-   * <p>The only reason you'll want to retain this commit logs in datastore is for performing
+   * <p>The only reason you'll want to retain this commit logs in Datastore is for performing
    * point-in-time restoration queries for subsystems like RDE.
    *
    * @see google.registry.backup.DeleteOldCommitLogsAction

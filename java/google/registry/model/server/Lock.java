@@ -156,7 +156,7 @@ public class Lock extends ImmutableObject {
       @Override
       public void vrun() {
         // To release a lock, check that no one else has already obtained it and if not delete it.
-        // If the lock in datastore was different then this lock is gone already; this can happen
+        // If the lock in Datastore was different then this lock is gone already; this can happen
         // if release() is called around the expiration time and the lock expires underneath us.
         Lock loadedLock = ofy().load().type(Lock.class).id(lockId).now();
         if (Lock.this.equals(loadedLock)) {

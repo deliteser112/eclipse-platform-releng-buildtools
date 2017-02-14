@@ -287,7 +287,7 @@ public class DomainResource extends DomainBase
           .setAutorenewBillingEvent(transferData.getServerApproveAutorenewEvent())
           .setAutorenewPollMessage(transferData.getServerApproveAutorenewPollMessage())
           // Set the grace period using a key to the prescheduled transfer billing event.  Not using
-          // GracePeriod.forBillingEvent() here in order to avoid the actual datastore fetch.
+          // GracePeriod.forBillingEvent() here in order to avoid the actual Datastore fetch.
           .setGracePeriods(ImmutableSet.of(GracePeriod.create(
               GracePeriodStatus.TRANSFER,
               transferExpirationTime.plus(Registry.get(getTld()).getTransferGracePeriodLength()),

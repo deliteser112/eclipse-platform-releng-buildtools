@@ -61,7 +61,7 @@ public class SignedMarkRevocationListTest {
 
   @Test
   public void testEmpty() throws Exception {
-    // When the datastore is empty, it should give us an empty thing.
+    // When Datastore is empty, it should give us an empty thing.
     assertThat(SignedMarkRevocationList.get())
         .isEqualTo(SignedMarkRevocationList.create(
             START_OF_TIME, ImmutableMap.<String, DateTime>of()));

@@ -69,7 +69,7 @@ public class Ofy {
    *
    * <p>This value should used as a cache expiration time for any entities annotated with an
    * Objectify {@code @Cache} annotation, to put an upper bound on unlikely-but-possible divergence
-   * between memcache and datastore when a memcache write fails.
+   * between memcache and Datastore when a memcache write fails.
    */
   public static final int RECOMMENDED_MEMCACHE_EXPIRATION = 3600;
 
@@ -230,7 +230,7 @@ public class Ofy {
           | DatastoreFailureException e) {
         // TransientFailureExceptions come from task queues and always mean nothing committed.
         // TimestampInversionExceptions are thrown by our code and are always retryable as well.
-        // However, datastore exceptions might get thrown even if the transaction succeeded.
+        // However, Datastore exceptions might get thrown even if the transaction succeeded.
         if ((e instanceof DatastoreTimeoutException || e instanceof DatastoreFailureException)
             && checkIfAlreadySucceeded(work)) {
           return work.getResult();
@@ -255,10 +255,10 @@ public class Ofy {
           CommitLogManifest manifest = work.getManifest();
           if (manifest == null) {
             // Work ran but no commit log was created. This might mean that the transaction did not
-            // write anything to datastore. We can safely retry because it only reads. (Although the
+            // write anything to Datastore. We can safely retry because it only reads. (Although the
             // transaction might have written a task to a queue, we consider that safe to retry too
             // since we generally assume that tasks might be doubly executed.) Alternatively it
-            // might mean that the transaction wrote to datastore but turned off commit logs by
+            // might mean that the transaction wrote to Datastore but turned off commit logs by
             // exclusively using save/deleteWithoutBackups() rather than save/delete(). Although we
             // have no hard proof that retrying is safe, we use these methods judiciously and it is
             // reasonable to assume that if the transaction really did succeed that the retry will
@@ -300,7 +300,7 @@ public class Ofy {
   /**
    * Execute some work with a fresh session cache.
    *
-   * <p>This is useful in cases where we want to load the latest possible data from datastore but
+   * <p>This is useful in cases where we want to load the latest possible data from Datastore but
    * don't need point-in-time consistency across loads and consequently don't need a transaction.
    * Note that unlike a transaction's fresh session cache, the contents of this cache will be
    * discarded once the work completes, rather than being propagated into the enclosing session.

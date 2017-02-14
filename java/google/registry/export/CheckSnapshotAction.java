@@ -93,7 +93,7 @@ public class CheckSnapshotAction implements Runnable {
       String message = String.format("Bad backup name %s: %s", snapshotName, e.getMessage());
       // TODO(b/19081569): Ideally this would return a 2XX error so the task would not be
       // retried but we might abandon backups that start late and haven't yet written to
-      // datastore. We could fix that by replacing this with a two-phase polling strategy.
+      // Datastore. We could fix that by replacing this with a two-phase polling strategy.
       throw new BadRequestException(message, e);
     }
   }

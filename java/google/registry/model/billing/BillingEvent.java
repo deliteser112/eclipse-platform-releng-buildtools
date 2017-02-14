@@ -218,7 +218,7 @@ public abstract class BillingEvent extends ImmutableObject
     Integer periodYears = null;
 
     /**
-     * For {@link Flag#SYNTHETIC} events, when this event was persisted to datastore (i.e. the
+     * For {@link Flag#SYNTHETIC} events, when this event was persisted to Datastore (i.e. the
      * cursor position at the time the recurrence expansion job was last run). In the event a job
      * needs to be undone, a query on this field will return the complete set of potentially bad
      * events.

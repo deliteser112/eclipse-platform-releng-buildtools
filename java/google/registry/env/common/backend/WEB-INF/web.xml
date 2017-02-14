@@ -113,19 +113,19 @@
     <url-pattern>/_dr/task/verifyEntityIntegrity</url-pattern>
   </servlet-mapping>
 
-  <!-- Exports a datastore backup snapshot to GCS. -->
+  <!-- Exports a Datastore backup snapshot to GCS. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/exportSnapshot</url-pattern>
   </servlet-mapping>
 
-  <!-- Checks the completion of a datastore backup snapshot. -->
+  <!-- Checks the completion of a Datastore backup snapshot. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/checkSnapshot</url-pattern>
   </servlet-mapping>
 
-  <!-- Loads a datastore backup snapshot into BigQuery. -->
+  <!-- Loads a Datastore backup snapshot into BigQuery. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/loadSnapshot</url-pattern>
@@ -157,7 +157,7 @@
     <url-pattern>/_dr/cron/commitLogFanout</url-pattern>
   </servlet-mapping>
 
-  <!-- Deletes old commit logs from datastore. -->
+  <!-- Deletes old commit logs from Datastore. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/deleteOldCommitLogs</url-pattern>

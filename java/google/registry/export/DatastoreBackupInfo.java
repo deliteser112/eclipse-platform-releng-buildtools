@@ -33,25 +33,25 @@ import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
-/** Container for information about a datastore backup. */
+/** Container for information about a Datastore backup. */
 public class DatastoreBackupInfo {
 
   @NonFinalForTesting
   private static Clock clock = new SystemClock();
 
-  /** The possible status values for a datastore backup. */
+  /** The possible status values for a Datastore backup. */
   public enum BackupStatus { PENDING, COMPLETE }
 
-  /** The name of the datastore backup. */
+  /** The name of the Datastore backup. */
   private final String backupName;
 
-  /** The entity kinds included in this datastore backup. */
+  /** The entity kinds included in this Datastore backup. */
   private final ImmutableSet<String> kinds;
 
-  /** The start time of the datastore backup. */
+  /** The start time of the Datastore backup. */
   private final DateTime startTime;
 
-  /** The completion time of the datastore backup, present if it has completed. */
+  /** The completion time of the Datastore backup, present if it has completed. */
   private final Optional<DateTime> completeTime;
 
   /**

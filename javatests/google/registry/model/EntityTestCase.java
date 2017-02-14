@@ -125,7 +125,7 @@ public class EntityTestCase {
             .that(indexed)
             .isEqualTo(results != 0);
       } catch (IllegalArgumentException e) {
-        // If the field's type was not indexable (because it's not a supported datastore type) then
+        // If the field's type was not indexable (because it's not a supported Datastore type) then
         // this error will be thrown. If we expected no indexing, that's fine. Otherwise, fail.
         if (indexed || !e.getMessage().endsWith(" is not a supported property type.")) {
           assert_().fail(String.format("%s was %sindexed", fieldPath, indexed ? "not " : ""));

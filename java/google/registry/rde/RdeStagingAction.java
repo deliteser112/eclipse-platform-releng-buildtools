@@ -49,7 +49,7 @@ import org.joda.time.Duration;
  * If there's nothing to deposit, we return 204 No Content; otherwise, we fire off a MapReduce job
  * and redirect to its status GUI.
  *
- * <p>The mapreduce job scans every {@link EppResource} in datastore. It maps a point-in-time
+ * <p>The mapreduce job scans every {@link EppResource} in Datastore. It maps a point-in-time
  * representation of each entity to the escrow XML files in which it should appear.
  *
  * <p>There is one map worker for each {@code EppResourceIndexBucket} entity group shard. There is
@@ -80,7 +80,7 @@ import org.joda.time.Duration;
  *
  * <p>Valid model objects might not be valid to the RDE XML schema. A single invalid object will
  * cause the whole deposit to fail. You need to check the logs, find out which entities are broken,
- * and perform datastore surgery.
+ * and perform Datastore surgery.
  *
  * <p>If a deposit fails, an error is emitted to the logs for each broken entity. It tells you the
  * key and shows you its representation in lenient XML.

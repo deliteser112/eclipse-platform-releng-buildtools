@@ -106,7 +106,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
         .build());
     // Set the superordinate domain of ns1.example.com to example.com. In reality, this would have
-    // happened in the flow that created it, but here we just overwrite it in the datastore.
+    // happened in the flow that created it, but here we just overwrite it in Datastore.
     host1 = persistResource(
         host1.asBuilder().setSuperordinateDomain(Key.create(domain)).build());
     // Create a subordinate host that is not delegated to by anyone.
@@ -629,7 +629,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   @Test
   public void testBatchLoadingOfReferences() throws Exception {
     persistTestEntities(false);
-    // Clear out memcache and session cache so that we count actual datastore calls.
+    // Clear out memcache and session cache so that we count actual Datastore calls.
     ofy().clearSessionCache();
     getLocalMemcacheService().flushAll(
         new LocalRpcService.Status(), MemcacheFlushRequest.newBuilder().build());

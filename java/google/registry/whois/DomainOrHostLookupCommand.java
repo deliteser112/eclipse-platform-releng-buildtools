@@ -49,7 +49,7 @@ public abstract class DomainOrHostLookupCommand implements WhoisCommand {
     throw new WhoisException(now, SC_NOT_FOUND, errorPrefix + " not found.");
   }
 
-  /** Renders a response record, provided its successfully retrieved datastore entity. */
+  /** Renders a response record, provided its successfully retrieved Datastore entity. */
   protected abstract Optional<WhoisResponse> getResponse(
       InternetDomainName domainName, DateTime now);
 }

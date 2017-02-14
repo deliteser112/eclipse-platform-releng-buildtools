@@ -18,7 +18,7 @@ import google.registry.model.translators.CreateAutoTimestampTranslatorFactory;
 import org.joda.time.DateTime;
 
 /**
- * A timestamp that auto-updates when first saved to datastore.
+ * A timestamp that auto-updates when first saved to Datastore.
  *
  * @see CreateAutoTimestampTranslatorFactory
  */

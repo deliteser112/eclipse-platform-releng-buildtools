@@ -276,7 +276,7 @@ public class CloudDnsWriterTest {
     return recordSetBuilder.build();
   }
 
-  /** Returns a domain to be persisted in the datastore. */
+  /** Returns a domain to be persisted in Datastore. */
   private static DomainResource fakeDomain(
       String domainName, ImmutableSet<HostResource> nameservers, int numDsRecords) {
     ImmutableSet.Builder<DelegationSignerData> dsDataBuilder = new ImmutableSet.Builder<>();

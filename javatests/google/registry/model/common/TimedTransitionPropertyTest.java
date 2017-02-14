@@ -119,7 +119,7 @@ public class TimedTransitionPropertyTest {
     // Just for testing, don't extract transitions from a TimedTransitionProperty in real code.
     Set<Map.Entry<DateTime, StringTimedTransition>> transitions = timedString.entrySet();
     timedString = forMapify("0", StringTimedTransition.class);
-    // Simulate a load from datastore by clearing and then re-inserting the original transitions.
+    // Simulate a load from Datastore by clearing and then re-inserting the original transitions.
     timedString.clear();
     for (Map.Entry<DateTime, StringTimedTransition> transition : transitions) {
       timedString.put(transition.getKey(), transition.getValue());
@@ -160,7 +160,7 @@ public class TimedTransitionPropertyTest {
   @Test
   public void testFailure_noValuesAfterSimulatedEmptyLoad() throws Exception {
     timedString = forMapify("0", StringTimedTransition.class);
-    // Simulate a load from datastore by clearing, but don't insert any transitions.
+    // Simulate a load from Datastore by clearing, but don't insert any transitions.
     timedString.clear();
     thrown.expect(IllegalStateException.class);
     timedString.checkValidity();
@@ -171,7 +171,7 @@ public class TimedTransitionPropertyTest {
     // Just for testing, don't extract transitions from a TimedTransitionProperty in real code.
     StringTimedTransition transition1 = timedString.get(DATE_1);
     timedString = forMapify("0", StringTimedTransition.class);
-    // Simulate a load from datastore by clearing and inserting transitions, but deliberately
+    // Simulate a load from Datastore by clearing and inserting transitions, but deliberately
     // omit a transition corresponding to START_OF_TIME.
     timedString.clear();
     timedString.put(DATE_1, transition1);

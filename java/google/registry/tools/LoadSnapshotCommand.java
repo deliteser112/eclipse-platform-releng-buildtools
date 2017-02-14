@@ -32,8 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** Command to load datastore snapshots into Bigquery. */
-@Parameters(separators = " =", commandDescription = "Load datastore snapshot into Bigquery")
+/** Command to load Datastore snapshots into Bigquery. */
+@Parameters(separators = " =", commandDescription = "Load Datastore snapshot into Bigquery")
 final class LoadSnapshotCommand extends BigqueryCommand {
 
   @Parameter(
@@ -43,12 +43,12 @@ final class LoadSnapshotCommand extends BigqueryCommand {
 
   @Parameter(
       names = "--gcs_bucket",
-      description = "Name of the GCS bucket from which to import datastore snapshots.")
+      description = "Name of the GCS bucket from which to import Datastore snapshots.")
   private String snapshotGcsBucket = "domain-registry/snapshots/testing";
 
   @Parameter(
       names = "--kinds",
-      description = "List of datastore kinds for which to import snapshot data.")
+      description = "List of Datastore kinds for which to import snapshot data.")
   private List<String> kindNames = new ArrayList<>(ExportConstants.getReportingKinds());
 
   /** Runs the main snapshot import logic. */

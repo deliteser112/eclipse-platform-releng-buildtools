@@ -23,7 +23,7 @@ use). This makes it clear what you're getting at the callsite.
 `@VirtualEntity`-annotated entities, and `@NotBackedUp`-annotated entities. An
 `@VirtualEntity` is a "virtual entity" that just serves to construct parent keys
 for other entities (e.g. `EppResourceIndexBucket`) and is never written to
-datastore itself. An `@NotBackedUp`-annotated entity is one that specifically
+Datastore itself. An `@NotBackedUp`-annotated entity is one that specifically
 shouldn't be backed up (like the commit log entities themselves).
 
 We don't actually prevent you from not-backing-up a regular entity, because

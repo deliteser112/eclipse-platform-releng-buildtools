@@ -33,7 +33,7 @@ public class DateTimeUtils {
    *
    * <p>This value is (2^63-1)/1000 rounded down. AppEngine stores dates as 64 bit microseconds, but
    * Java uses milliseconds, so this is the largest representable date that will survive a
-   * round-trip through the datastore.
+   * round-trip through Datastore.
    */
   public static final DateTime END_OF_TIME = new DateTime(Long.MAX_VALUE / 1000, DateTimeZone.UTC);
 

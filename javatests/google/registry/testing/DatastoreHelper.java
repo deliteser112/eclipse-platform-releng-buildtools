@@ -621,14 +621,14 @@ public class DatastoreHelper {
   }
 
 
-  /** Assert that the expected billing events are exactly the ones found in the fake datastore. */
+  /** Assert that the expected billing events are exactly the ones found in the fake Datastore. */
   public static void assertBillingEvents(BillingEvent... expected) throws Exception {
     assertThat(FluentIterable.from(getBillingEvents()).transform(BILLING_EVENT_ID_STRIPPER))
         .containsExactlyElementsIn(
             FluentIterable.from(expected).transform(BILLING_EVENT_ID_STRIPPER));
   }
 
-  /** Assert that the expected billing events set is exactly the one found in the fake datastore. */
+  /** Assert that the expected billing events set is exactly the one found in the fake Datastore. */
   public static void assertBillingEvents(ImmutableSet<BillingEvent> expected) throws Exception {
     assertThat(FluentIterable.from(getBillingEvents()).transform(BILLING_EVENT_ID_STRIPPER))
         .containsExactlyElementsIn(
@@ -755,7 +755,7 @@ public class DatastoreHelper {
    * <p>Tests should always use this method (or the shortcut persist methods in this class) to
    * persist test data, to avoid potentially subtle bugs related to race conditions and a stale
    * ofy() session cache. Specifically, this method calls .now() on the save to force the write to
-   * actually get sent to datastore (although it does not force it to be applied) and clears the
+   * actually get sent to Datastore (although it does not force it to be applied) and clears the
    * session cache. If necessary, this method also updates the relevant {@link EppResourceIndex},
    * {@link ForeignKeyIndex} and {@link DomainApplicationIndex}.
    *
@@ -804,7 +804,7 @@ public class DatastoreHelper {
       public void vrun() {
         saveResource(resource, wantBackup);
       }});
-    // Force the session to be cleared so that when we read it back, we read from the datastore
+    // Force the session to be cleared so that when we read it back, we read from Datastore
     // and not from the transaction cache or memcache.
     ofy().clearSessionCache();
     return ofy().load().entity(resource).now();
@@ -845,7 +845,7 @@ public class DatastoreHelper {
           }
         }});
     }
-    // Force the session to be cleared so that when we read it back, we read from the datastore
+    // Force the session to be cleared so that when we read it back, we read from Datastore
     // and not from the transaction cache or memcache.
     ofy().clearSessionCache();
     for (R resource : resources) {
@@ -957,7 +957,7 @@ public class DatastoreHelper {
       public void vrun() {
         ofy().saveWithoutBackup().entities(resources);
       }});
-    // Force the session to be cleared so that when we read it back, we read from the datastore
+    // Force the session to be cleared so that when we read it back, we read from Datastore
     // and not from the transaction cache or memcache.
     ofy().clearSessionCache();
     return ImmutableList.copyOf(ofy().load().entities(resources).values());
@@ -965,7 +965,7 @@ public class DatastoreHelper {
 
   public static void deleteResource(final Object resource) {
     ofy().deleteWithoutBackup().entity(resource).now();
-    // Force the session to be cleared so that when we read it back, we read from the datastore and
+    // Force the session to be cleared so that when we read it back, we read from Datastore and
     // not from the transaction cache or memcache.
     ofy().clearSessionCache();
   }

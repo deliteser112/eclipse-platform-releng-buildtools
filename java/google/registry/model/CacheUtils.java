@@ -29,7 +29,7 @@ public class CacheUtils {
    * Memoize a supplier, with a short expiration specified in the environment config.
    *
    * <p>Use this for things that might change while code is running. (For example, the various
-   * lists downloaded from the TMCH get updated in datastore and the caches need to be refreshed.)
+   * lists downloaded from the TMCH get updated in Datastore and the caches need to be refreshed.)
    */
   public static <T> Supplier<T> memoizeWithShortExpiration(Supplier<T> original) {
     Duration expiration = getSingletonCacheRefreshDuration();

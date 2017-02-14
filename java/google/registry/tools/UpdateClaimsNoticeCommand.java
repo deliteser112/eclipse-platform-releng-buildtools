@@ -111,7 +111,7 @@ final class UpdateClaimsNoticeCommand implements RemoteApiCommand {
         .setBySuperuser(true)
         .build();
 
-    // Save entities to datastore.
+    // Save entities to Datastore.
     ofy().save().<Object>entities(updatedApplication, newHistoryEntry);
   }
 }

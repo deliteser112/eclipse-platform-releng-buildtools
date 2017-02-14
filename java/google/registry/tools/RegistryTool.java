@@ -19,7 +19,7 @@ import google.registry.tools.javascrap.FixDomainNameserverKeysCommand;
 import google.registry.tools.javascrap.RemoveDomainTransferDataCommand;
 import google.registry.tools.javascrap.RemoveIpAddressCommand;
 
-/** Container class to create and run remote commands against a datastore instance. */
+/** Container class to create and run remote commands against a Datastore instance. */
 public final class RegistryTool {
 
   /**

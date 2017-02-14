@@ -47,7 +47,7 @@ import org.joda.time.DateTime;
  * transaction throughput, while maintaining the ability to perform strongly-consistent ancestor
  * queries.
  *
- * @see <a href="https://cloud.google.com/appengine/articles/scaling/contention">Avoiding datastore
+ * @see <a href="https://cloud.google.com/appengine/articles/scaling/contention">Avoiding Datastore
  *     contention</a>
  */
 @Entity

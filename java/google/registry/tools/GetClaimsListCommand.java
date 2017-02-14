@@ -31,7 +31,7 @@ import java.nio.file.Paths;
  * A command to download the current claims list.
  *
  * <p>This is not the original file we fetched from TMCH. It is just a representation of what we
- * are currently storing in datastore.
+ * are currently storing in Datastore.
  */
 @Parameters(separators = " =", commandDescription = "Download the current claims list")
 final class GetClaimsListCommand implements RemoteApiCommand {

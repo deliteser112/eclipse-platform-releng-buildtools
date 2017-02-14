@@ -36,7 +36,7 @@ import org.joda.time.DateTime;
 @Entity
 public class Cursor extends ImmutableObject {
 
-  /** The types of cursors, used as the string id field for each cursor in datastore. */
+  /** The types of cursors, used as the string id field for each cursor in Datastore. */
   public enum CursorType {
     /** Cursor for ensuring rolling transactional isolation of BRDA staging operation. */
     BRDA(Registry.class),

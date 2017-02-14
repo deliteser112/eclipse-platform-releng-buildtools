@@ -113,7 +113,7 @@ final class UpdateSmdCommand implements RemoteApiCommand {
         .setReason("UpdateSmdCommand" + (reason != null ? ": " + reason : ""))
         .build();
 
-    // Save entities to datastore.
+    // Save entities to Datastore.
     ofy().save().<Object>entities(updatedApplication, newHistoryEntry);
   }
 }

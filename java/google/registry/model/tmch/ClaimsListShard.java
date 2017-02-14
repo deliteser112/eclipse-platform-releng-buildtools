@@ -93,7 +93,7 @@ public class ClaimsListShard extends ImmutableObject {
   boolean isShard = false;
 
   /**
-   * A cached supplier that fetches the claims list shards from the datastore and recombines them
+   * A cached supplier that fetches the claims list shards from Datastore and recombines them
    * into a single {@link ClaimsListShard} object.
    */
   private static final Supplier<ClaimsListShard> CACHE =
@@ -203,7 +203,7 @@ public class ClaimsListShard extends ImmutableObject {
     return instance;
   }
 
-  /** Return a single logical instance that combines all the datastore shards. */
+  /** Return a single logical instance that combines all Datastore shards. */
   @Nullable
   public static ClaimsListShard get() {
     return CACHE.get();

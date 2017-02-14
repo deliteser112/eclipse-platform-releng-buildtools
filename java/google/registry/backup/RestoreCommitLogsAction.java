@@ -55,7 +55,7 @@ import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
-/** Restore Registry 2 commit logs from GCS to datastore. */
+/** Restore Registry 2 commit logs from GCS to Datastore. */
 @Action(
     path = RestoreCommitLogsAction.PATH,
     method = Action.Method.POST,
@@ -124,12 +124,12 @@ public class RestoreCommitLogsAction implements Runnable {
   }
 
   /**
-   * Restore the contents of one transaction to datastore.
+   * Restore the contents of one transaction to Datastore.
    *
    * <p>The objects to delete are listed in the {@link CommitLogManifest}, which will be the first
    * object in the iterable. The objects to save follow, each as a {@link CommitLogMutation}. We
    * restore by deleting the deletes and recreating the saves from their proto form. We also save
-   * the commit logs themselves back to datastore, so that the commit log system itself is
+   * the commit logs themselves back to Datastore, so that the commit log system itself is
    * transparently restored alongside the data.
    *
    * @return the manifest, for use in restoring the {@link CommitLogBucket}.

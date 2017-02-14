@@ -39,11 +39,11 @@ public class ServerSecret extends CrossTldSingleton {
   long leastSignificant;
 
   /**
-   * Get the server secret, creating it if the datastore doesn't have one already.
+   * Get the server secret, creating it if the Datastore doesn't have one already.
    *
    * <p>There's a tiny risk of a race here if two calls to this happen simultaneously and create
    * different keys, in which case one of the calls will end up with an incorrect key. However, this
-   * happens precisely once in the history of the system (after that it's always in datastore) so
+   * happens precisely once in the history of the system (after that it's always in Datastore) so
    * it's not worth worrying about.
    */
   public static UUID getServerSecret() {

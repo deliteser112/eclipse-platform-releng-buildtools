@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * A command to load and resave an entity by websafe key.
  *
- * <p>This triggers @OnSave changes. If the entity was directly edited in the datastore viewer, this
+ * <p>This triggers @OnSave changes. If the entity was directly edited in the Datastore viewer, this
  * can be used to make sure that the commit logs reflect the new state.
  */
 @Parameters(

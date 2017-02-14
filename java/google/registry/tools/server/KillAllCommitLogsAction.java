@@ -35,7 +35,7 @@ import google.registry.request.Response;
 import java.util.Arrays;
 import javax.inject.Inject;
 
-/** Deletes all commit logs in datastore. */
+/** Deletes all commit logs in Datastore. */
 @Action(path = "/_dr/task/killAllCommitLogs", method = POST)
 public class KillAllCommitLogsAction implements Runnable {
 

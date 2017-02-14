@@ -735,7 +735,7 @@ public class ExpandRecurringBillingEventsActionTest
     // Set target to a TLD that doesn't exist.
     recurring = persistResource(recurring.asBuilder().setTargetId("domain.junk").build());
     runMapreduce();
-    assertBillingEvents(recurring); // only the bogus one in datastore
+    assertBillingEvents(recurring); // only the bogus one in Datastore
     assertCursorAt(START_OF_TIME); // Cursor doesn't move on a failure.
   }
 }

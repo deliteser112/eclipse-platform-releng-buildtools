@@ -46,10 +46,10 @@ public final class TmchCrl extends CrossTldSingleton {
   }
 
   /**
-   * Change the datastore singleton to a new ASCII-armored X.509 CRL.
+   * Change the Datastore singleton to a new ASCII-armored X.509 CRL.
    *
    * <p>Please do not call this function unless your CRL is properly formatted, signed by the root,
-   * and actually newer than the one currently in the datastore.
+   * and actually newer than the one currently in Datastore.
    */
   public static void set(final String crl, final String url) {
     ofy().transactNew(new VoidWork() {

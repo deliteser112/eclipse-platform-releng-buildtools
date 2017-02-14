@@ -29,10 +29,10 @@ import google.registry.model.annotations.VirtualEntity;
 /** Constants related to export code. */
 public final class ExportConstants {
 
-  /** Returns the names of kinds to include in datastore backups. */
+  /** Returns the names of kinds to include in Datastore backups. */
   public static ImmutableSet<String> getBackupKinds() {
     // Back up all entity classes that aren't annotated with @VirtualEntity (never even persisted
-    // to datastore, so they can't be backed up) or @NotBackedUp (intentionally omitted).
+    // to Datastore, so they can't be backed up) or @NotBackedUp (intentionally omitted).
     return FluentIterable.from(EntityClasses.ALL_CLASSES)
         .filter(not(hasAnnotation(VirtualEntity.class)))
         .filter(not(hasAnnotation(NotBackedUp.class)))

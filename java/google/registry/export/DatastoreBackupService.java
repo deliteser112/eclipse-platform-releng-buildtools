@@ -33,10 +33,10 @@ import com.google.common.collect.Iterables;
 import google.registry.util.NonFinalForTesting;
 import java.util.NoSuchElementException;
 
-/** An object providing methods for starting and querying datastore backups. */
+/** An object providing methods for starting and querying Datastore backups. */
 public class DatastoreBackupService {
 
-  /** The internal kind name used for entities storing information about datastore backups. */
+  /** The internal kind name used for entities storing information about Datastore backups. */
   static final String BACKUP_INFO_KIND = "_AE_Backup_Information";
 
   /** The name of the app version used for hosting the Datastore Admin functionality. */
@@ -58,7 +58,7 @@ public class DatastoreBackupService {
   }
 
   /**
-   * Generates the TaskOptions needed to trigger an AppEngine datastore backup job.
+   * Generates the TaskOptions needed to trigger an AppEngine Datastore backup job.
    *
    * @see <a href="https://developers.google.com/appengine/articles/scheduled_backups">Scheduled Backups</a>
    */
@@ -79,7 +79,7 @@ public class DatastoreBackupService {
   }
 
   /**
-   * Launches a new datastore backup with the given name, GCS bucket, and set of kinds by
+   * Launches a new Datastore backup with the given name, GCS bucket, and set of kinds by
    * submitting a task to the given task queue, and returns a handle to that task.
    */
   public TaskHandle launchNewBackup(
@@ -87,10 +87,10 @@ public class DatastoreBackupService {
     return getQueue(queue).add(makeTaskOptions(queue, name, gcsBucket, kinds));
   }
 
-  /** Return an iterable of all datastore backups whose names have the given string prefix. */
+  /** Return an iterable of all Datastore backups whose names have the given string prefix. */
   public Iterable<DatastoreBackupInfo> findAllByNamePrefix(final String namePrefix) {
     // Need the raw DatastoreService to access the internal _AE_Backup_Information entities.
-    // TODO(b/19081037): make an Objectify entity class for these raw datastore entities instead.
+    // TODO(b/19081037): make an Objectify entity class for these raw Datastore entities instead.
     return FluentIterable
         .from(getDatastoreService().prepare(new Query(BACKUP_INFO_KIND)).asIterable())
         .filter(new Predicate<Entity>() {

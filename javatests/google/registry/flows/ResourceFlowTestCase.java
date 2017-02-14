@@ -52,7 +52,7 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
     extends FlowTestCase<F> {
 
   protected R reloadResourceByForeignKey(DateTime now) throws Exception {
-    // Force the session to be cleared so that when we read it back, we read from the datastore and
+    // Force the session to be cleared so that when we read it back, we read from Datastore and
     // not from the transaction cache or memcache.
     ofy().clearSessionCache();
     return loadByForeignKey(getResourceClass(), getUniqueIdFromCommand(), now);
@@ -119,7 +119,7 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
   }
 
   /**
-   * Confirms that an EppResourceIndex entity exists in datastore for a given resource.
+   * Confirms that an EppResourceIndex entity exists in Datastore for a given resource.
    */
   protected static <T extends EppResource> void assertEppResourceIndexEntityFor(final T resource) {
     ImmutableList<EppResourceIndex> indices = FluentIterable

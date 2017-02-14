@@ -74,7 +74,7 @@ final class GenerateEscrowDepositCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-w", "--watermark"},
-      description = "Point-in-time timestamp for snapshotting the datastore.",
+      description = "Point-in-time timestamp for snapshotting Datastore.",
       validateWith = DateTimeParameter.class)
   private DateTime watermark = DateTime.now(UTC);
 

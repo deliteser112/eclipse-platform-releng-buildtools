@@ -72,7 +72,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
 
-  /** Whether to actually write to the datastore or just simulate. */
+  /** Whether to actually write to Datastore or just simulate. */
   public enum CommitMode { LIVE, DRY_RUN }
 
   /** Whether to run in normal or superuser mode. */
@@ -256,7 +256,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     assertPollMessagesHelper(getPollMessages(), expected);
   }
 
-  /** Assert that the list matches all the poll messages in the fake datastore. */
+  /** Assert that the list matches all the poll messages in the fake Datastore. */
   public void assertPollMessagesHelper(Iterable<PollMessage> pollMessages, PollMessage... expected)
       throws Exception {
     // To facilitate comparison, remove the ids.

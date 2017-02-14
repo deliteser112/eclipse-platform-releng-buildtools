@@ -51,7 +51,7 @@ public final class RegistryTestServerMain {
 
   @Parameter(
       names = "--fixtures",
-      description = "Fixtures to load into the datastore.")
+      description = "Fixtures to load into Datastore.")
   private List<Fixture> fixtures = ImmutableList.of(Fixture.BASIC);
 
   @Parameter(
@@ -137,7 +137,7 @@ public final class RegistryTestServerMain {
     Statement runner = new Statement() {
       @Override
       public void evaluate() throws InterruptedException {
-        System.out.printf("%sLoading datastore fixtures...%s\n", BLUE, RESET);
+        System.out.printf("%sLoading Datastore fixtures...%s\n", BLUE, RESET);
         for (Fixture fixture : fixtures) {
           fixture.load();
         }

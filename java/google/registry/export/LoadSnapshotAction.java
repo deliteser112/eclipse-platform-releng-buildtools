@@ -108,7 +108,7 @@ public class LoadSnapshotAction implements Runnable {
     Bigquery bigquery = bigqueryFactory.create(projectId, SNAPSHOTS_DATASET);
     DateTime now = clock.nowUtc();
     String loadMessage =
-        String.format("Loading datastore snapshot %s from %s...", snapshotId, gcsFilename);
+        String.format("Loading Datastore snapshot %s from %s...", snapshotId, gcsFilename);
     logger.info(loadMessage);
     StringBuilder builder = new StringBuilder(loadMessage + "\n");
     builder.append("Load jobs:\n");

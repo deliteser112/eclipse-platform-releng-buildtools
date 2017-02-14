@@ -33,7 +33,7 @@ import javax.inject.Inject;
 import org.joda.time.DateTime;
 
 /**
- * Action that saves commit log checkpoints to datastore and kicks off a diff export task.
+ * Action that saves commit log checkpoints to Datastore and kicks off a diff export task.
  *
  * <p>We separate computing and saving the checkpoint from exporting it because the export to GCS
  * is retryable but should not require the computation of a new checkpoint. Saving the checkpoint

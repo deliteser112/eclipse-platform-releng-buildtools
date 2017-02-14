@@ -41,7 +41,7 @@ public class BackupUtils {
   }
 
   /**
-   * Converts the given {@link ImmutableObject} to a raw datastore entity and write it to an
+   * Converts the given {@link ImmutableObject} to a raw Datastore entity and write it to an
    * {@link OutputStream} in delimited protocol buffer format.
    */
   static void serializeEntity(ImmutableObject entity, OutputStream stream) throws IOException {
@@ -51,7 +51,7 @@ public class BackupUtils {
   /**
    * Return an iterator of {@link ImmutableObject} instances deserialized from the given stream.
    *
-   * <p>This parses out delimited protocol buffers for raw datastore entities and then Ofy-loads
+   * <p>This parses out delimited protocol buffers for raw Datastore entities and then Ofy-loads
    * those as {@link ImmutableObject}.
    *
    * <p>The iterator reads from the stream on demand, and as such will fail if the stream is closed.

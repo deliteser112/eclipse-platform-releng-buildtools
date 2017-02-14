@@ -62,7 +62,7 @@ public class MapreduceRunner {
   private final Optional<Integer> httpParamMapShards;
   private final Optional<Integer> httpParamReduceShards;
 
-  // Default to 3 minutes since many slices will contain datastore queries that time out at 4:30.
+  // Default to 3 minutes since many slices will contain Datastore queries that time out at 4:30.
   private Duration sliceDuration = Duration.standardMinutes(3);
   private String jobName;
   private String moduleName;

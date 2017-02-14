@@ -68,7 +68,7 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
       return;
     }
 
-    // Skip polymorphic entities that share datastore kind.
+    // Skip polymorphic entities that share Datastore kind.
     if (!(resource instanceof ContactResource
         || resource instanceof DomainResource
         || resource instanceof HostResource)) {

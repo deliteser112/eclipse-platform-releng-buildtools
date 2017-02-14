@@ -48,7 +48,7 @@
     <url-pattern>/_dr/loadtest</url-pattern>
   </servlet-mapping>
 
-  <!-- Command line tool uses this endpoint to modify the datastore. -->
+  <!-- The nomulus command line tool uses this endpoint to write to Datastore. -->
   <servlet>
     <display-name>Remote API Servlet</display-name>
     <servlet-name>RemoteApiServlet</servlet-name>

@@ -62,14 +62,14 @@ public class CommitLogMutation extends ImmutableObject {
    * Returns a new mutation entity created from an @Entity ImmutableObject instance.
    *
    * <p>The mutation key is generated deterministically from the {@code entity} key. The object is
-   * converted to a raw datastore Entity, serialized to bytes, and stored within the mutation.
+   * converted to a raw Datastore Entity, serialized to bytes, and stored within the mutation.
    */
   public static CommitLogMutation create(Key<CommitLogManifest> parent, Object entity) {
     return createFromRaw(parent, ofy().save().toEntity(entity));
   }
 
   /**
-   * Returns a new mutation entity created from a raw datastore Entity instance.
+   * Returns a new mutation entity created from a raw Datastore Entity instance.
    *
    * <p>The mutation key is generated deterministically from the {@code entity} key. The Entity
    * itself is serialized to bytes and stored within the returned mutation.

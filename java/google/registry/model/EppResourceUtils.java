@@ -72,14 +72,14 @@ public final class EppResourceUtils {
   }
 
   /**
-   * Loads the last created version of an {@link EppResource} from the datastore by foreign key.
+   * Loads the last created version of an {@link EppResource} from Datastore by foreign key.
    *
    * <p>Returns null if no resource with this foreign key was ever created, or if the most recently
    * created resource was deleted before time "now".
    *
    * <p>Loading an {@link EppResource} by itself is not sufficient to know its current state since
    * it may have various expirable conditions and status values that might implicitly change its
-   * state as time progresses even if it has not been updated in the datastore. Rather, the resource
+   * state as time progresses even if it has not been updated in Datastore. Rather, the resource
    * must be combined with a timestamp to view its current state. We use a global last updated
    * timestamp on the entire entity group (which is essentially free since all writes to the entity
    * group must be serialized anyways) to guarantee monotonically increasing write times, so
@@ -131,7 +131,7 @@ public final class EppResourceUtils {
   }
 
   /**
-   * Checks multiple {@link EppResource} objects from the datastore by unique ids.
+   * Checks multiple {@link EppResource} objects from Datastore by unique ids.
    *
    * <p>There are currently no resources that support checks and do not use foreign keys. If we need
    * to support that case in the future, we can loosen the type to allow any {@link EppResource} and
@@ -236,7 +236,7 @@ public final class EppResourceUtils {
    * perform a single asynchronous key fetch operation.
    *
    * <p><b>Warning:</b> A resource can only be rolled backwards in time, not forwards; therefore
-   * {@code resource} should be whatever's currently in datastore.
+   * {@code resource} should be whatever's currently in Datastore.
    *
    * <p><b>Warning:</b> Revisions are granular to 24-hour periods. It's recommended that
    * {@code timestamp} be set to midnight. Otherwise you must take into consideration that under
@@ -277,7 +277,7 @@ public final class EppResourceUtils {
   }
 
   /**
-   * Returns an asynchronous result holding the most recent datastore revision of a given
+   * Returns an asynchronous result holding the most recent Datastore revision of a given
    * EppResource before or at the provided timestamp using the EppResource revisions map, falling
    * back to using the earliest revision or the resource as-is if there are no revisions.
    *

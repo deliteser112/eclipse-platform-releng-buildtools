@@ -129,7 +129,7 @@ public class ModelUtils {
   static Set<Class<?>> getPersistedFieldTypes(Class<?> clazz) {
     ImmutableSet.Builder<Class<?>> builder = new ImmutableSet.Builder<>();
     for (Field field : getAllFields(clazz).values()) {
-      // Skip fields that aren't persisted to datastore.
+      // Skip fields that aren't persisted to Datastore.
       if (field.isAnnotationPresent(Ignore.class)) {
         continue;
       }

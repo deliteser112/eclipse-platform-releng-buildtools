@@ -33,7 +33,7 @@ class EppResourceEntityReader<R extends EppResource> extends EppResourceBaseRead
    * The resource classes to postfilter for.
    *
    * <p>This can be {@link EppResource} or any descendant classes, regardless of whether those
-   * classes map directly to a kind in datastore, with the restriction that none of the classes
+   * classes map directly to a kind in Datastore, with the restriction that none of the classes
    * is a supertype of any of the others.
    */
   private final ImmutableSet<Class<? extends R>> resourceClasses;

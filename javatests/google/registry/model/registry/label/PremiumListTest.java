@@ -186,7 +186,7 @@ public class PremiumListTest {
     Map<String, PremiumListEntry> entries = pl.getPremiumListEntries();
     assertThat(entries.keySet()).containsExactly("test");
     assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);
-    // Save again with no changes, and clear the cache to force a re-load from datastore.
+    // Save again with no changes, and clear the cache to force a re-load from Datastore.
     pl.saveAndUpdateEntries();
     ofy().clearSessionCache();
     assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);
@@ -203,7 +203,7 @@ public class PremiumListTest {
     Map<String, PremiumListEntry> entries = pl.getPremiumListEntries();
     assertThat(entries.keySet()).containsExactly("test");
     assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);
-    // Save again with description changed, and clear the cache to force a re-load from datastore.
+    // Save again with description changed, and clear the cache to force a re-load from Datastore.
     pl.asBuilder().setDescription("foobar").build().saveAndUpdateEntries();
     ofy().clearSessionCache();
     assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);

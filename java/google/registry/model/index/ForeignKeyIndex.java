@@ -124,7 +124,7 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   }
 
   /**
-   * Loads a {@link Key} to an {@link EppResource} from the datastore by foreign key.
+   * Loads a {@link Key} to an {@link EppResource} from Datastore by foreign key.
    *
    * <p>Returns null if no foreign key index with this foreign key was ever created, or if the
    * most recently created foreign key index was deleted before time "now". This method does not

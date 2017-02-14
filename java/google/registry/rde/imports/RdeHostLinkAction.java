@@ -47,10 +47,10 @@ import org.joda.time.DateTime;
  * A mapreduce that links hosts from an escrow file to their superordinate domains.
  *
  * <p>This mapreduce is run as the last step of the process of importing escrow files. For each host
- * in the escrow file, the corresponding {@link HostResource} record in the datastore is linked to
- * its superordinate {@link DomainResource} only if it is an in-zone host. This is necessary because
- * all hosts must exist before domains can be imported, due to references in host objects, and
- * domains must exist before hosts can be linked to their superordinate domains.
+ * in the escrow file, the corresponding {@link HostResource} record in Datastore is linked to its
+ * superordinate {@link DomainResource} only if it is an in-zone host. This is necessary because all
+ * hosts must exist before domains can be imported, due to references in host objects, and domains
+ * must exist before hosts can be linked to their superordinate domains.
  *
  * <p>Specify the escrow file to import with the "path" parameter.
  */

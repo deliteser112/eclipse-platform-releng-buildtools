@@ -153,7 +153,7 @@ final class UpdateApplicationStatusCommand extends MutatingCommand {
       applicationBuilder.addStatusValue(StatusValue.PENDING_CREATE);
     }
 
-    // Stage changes for all entities that need to be saved to datastore.
+    // Stage changes for all entities that need to be saved to Datastore.
     stageEntityChange(domainApplication, applicationBuilder.build());
     stageEntityChange(null, pollMessageBuilder.build());
     stageEntityChange(null, newHistoryEntry);

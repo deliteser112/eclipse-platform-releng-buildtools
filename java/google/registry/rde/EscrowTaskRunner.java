@@ -41,7 +41,7 @@ import org.joda.time.Duration;
  * <p>{@link Lock} is used to ensure only one task executes at a time for a given
  * {@code LockedCursorTask} subclass + TLD combination. This is necessary because App Engine tasks
  * might double-execute. Normally tasks solve this by being idempotent, but that's not possible for
- * RDE, which writes to a GCS filename with a deterministic name. So the datastore is used to to
+ * RDE, which writes to a GCS filename with a deterministic name. So Datastore is used to to
  * guarantee isolation. If we can't acquire the lock, it means the task is already running, so
  * {@link NoContentException} is thrown to cancel the task.
  *
@@ -62,7 +62,7 @@ class EscrowTaskRunner {
     /**
      * Performs task logic while the lock is held.
      *
-     * @param watermark the logical time for a point-in-time view of datastore
+     * @param watermark the logical time for a point-in-time view of Datastore
      */
     abstract void runWithLock(DateTime watermark) throws Exception;
   }

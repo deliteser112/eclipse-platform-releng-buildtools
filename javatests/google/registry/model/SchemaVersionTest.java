@@ -41,7 +41,7 @@ public class SchemaVersionTest {
   private static final String UPDATE_INSTRUCTIONS = Joiner.on('\n').join(
       "",
       "-------------------------------------------------------------------------------",
-      "Your changes affect the datastore schema. To update the checked-in schema, run:",
+      "Your changes affect the Datastore schema. To update the checked-in schema, run:",
       UPDATE_COMMAND,
       "");
 

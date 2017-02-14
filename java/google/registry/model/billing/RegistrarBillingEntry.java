@@ -42,7 +42,7 @@ import org.joda.time.DateTime;
  * <p>This is a one-off single-entry bookkeeping system. There is a separate account for each
  * (registrar, currency) pair.
  *
- * <p>You should never update these entities once they've been inserted into datastore. If you need
+ * <p>You should never update these entities once they've been inserted into Datastore. If you need
  * to change something, add a correction entry.
  */
 @Entity
@@ -79,7 +79,7 @@ public class RegistrarBillingEntry extends ImmutableObject implements Jsonifiabl
    * Currency of transaction.
    *
    * <p>This field is identical to {@code amount.getCurrencyUnit()} and is only here so it can be
-   * indexed in datastore.
+   * indexed in Datastore.
    */
   @Index
   CurrencyUnit currency;

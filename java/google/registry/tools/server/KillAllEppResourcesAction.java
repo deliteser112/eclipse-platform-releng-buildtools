@@ -35,7 +35,7 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import javax.inject.Inject;
 
-/** Deletes all {@link EppResource} objects in datastore, including indices and descendants. */
+/** Deletes all {@link EppResource} objects in Datastore, including indices and descendants. */
 @Action(path = "/_dr/task/killAllEppResources", method = POST)
 public class KillAllEppResourcesAction implements Runnable {
 

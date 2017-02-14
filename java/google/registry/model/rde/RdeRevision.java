@@ -62,10 +62,10 @@ public final class RdeRevision extends ImmutableObject {
    * Sets the revision ID for a given triplet.
    *
    * <p>This method verifies that the current revision is {@code revision - 1}, or that the object
-   * does not exist in datastore if {@code revision == 0}.
+   * does not exist in Datastore if {@code revision == 0}.
    *
    * @throws IllegalStateException if not in a transaction
-   * @throws VerifyException if datastore state doesn't meet the above criteria
+   * @throws VerifyException if Datastore state doesn't meet the above criteria
    */
   public static void saveRevision(String tld, DateTime date, RdeMode mode, int revision) {
     checkArgument(revision >= 0, "Negative revision: %s", revision);

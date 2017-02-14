@@ -31,7 +31,7 @@ import java.util.List;
 import org.joda.time.DateTime;
 
 /** Command to create a {@link ReservedList} on Datastore. */
-@Parameters(separators = " =", commandDescription = "Create a ReservedList in datastore.")
+@Parameters(separators = " =", commandDescription = "Create a ReservedList in Datastore.")
 final class CreateReservedListCommand extends CreateOrUpdateReservedListCommand {
 
   @VisibleForTesting

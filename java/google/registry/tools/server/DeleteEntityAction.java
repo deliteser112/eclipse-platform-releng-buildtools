@@ -78,7 +78,7 @@ public class DeleteEntityAction implements Runnable {
         rawDeletionsBuilder.add(rawEntity.get().getKey());
         continue;
       }
-      // The entity could not be found by either Objectify or the datastore service
+      // The entity could not be found by either Objectify or the Datastore service
       throw new BadRequestException("Could not find entity with key " + rawKeyString);
     }
     // Delete raw entities.
@@ -108,7 +108,7 @@ public class DeleteEntityAction implements Runnable {
     try {
       return Optional.fromNullable(getDatastoreService().get(rawKey));
     } catch (EntityNotFoundException e) {
-      logger.warningfmt(e, "Could not load entity from datastore service with key %s",
+      logger.warningfmt(e, "Could not load entity from Datastore service with key %s",
           rawKey.toString());
       return Optional.absent();
     }

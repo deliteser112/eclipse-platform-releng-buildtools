@@ -143,7 +143,7 @@ abstract class ImmutableSortedMapTranslatorFactory<K extends Comparable<? super 
           ImmutableSortedMap<K, V> mapToSave = transformBeforeSave(
               ImmutableSortedMap.copyOfSorted(nullToEmpty(mapFromPojo)));
           if (mapToSave.isEmpty()) {
-            throw new SkipException();  // the datastore doesn't store empty lists
+            throw new SkipException();  // Datastore doesn't store empty lists
           }
           Node node = new Node(path);
           for (Map.Entry<K, V> entry : mapToSave.entrySet()) {

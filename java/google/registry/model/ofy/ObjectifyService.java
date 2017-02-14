@@ -102,8 +102,8 @@ public class ObjectifyService {
 
       @Override
       protected AsyncDatastoreService createRawAsyncDatastoreService(DatastoreServiceConfig cfg) {
-        // In the unit test environment, wrap the datastore service in a proxy that can be used to
-        // examine the number of requests sent to datastore.
+        // In the unit test environment, wrap the Datastore service in a proxy that can be used to
+        // examine the number of requests sent to Datastore.
         AsyncDatastoreService service = super.createRawAsyncDatastoreService(cfg);
         return RegistryEnvironment.get().equals(RegistryEnvironment.UNITTEST)
             ? new RequestCapturingAsyncDatastoreService(service)
@@ -134,7 +134,7 @@ public class ObjectifyService {
     }
   }
 
-  /** Register classes that can be persisted via Objectify as datastore entities. */
+  /** Register classes that can be persisted via Objectify as Datastore entities. */
   private static void registerEntityClasses(
       Iterable<Class<? extends ImmutableObject>> entityClasses) {
     // Register all the @Entity classes before any @EntitySubclass classes so that we can check

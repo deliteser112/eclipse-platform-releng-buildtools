@@ -32,7 +32,7 @@ import google.registry.util.SqlTemplate;
 import java.io.IOException;
 import javax.inject.Inject;
 
-/** Update a well-known view to point at a certain datastore snapshot table in BigQuery. */
+/** Update a well-known view to point at a certain Datastore snapshot table in BigQuery. */
 @Action(path = UpdateSnapshotViewAction.PATH, method = POST)
 public class UpdateSnapshotViewAction implements Runnable {
 

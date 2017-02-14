@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-/** Container class to create and run remote commands against a datastore instance. */
+/** Container class to create and run remote commands against a Datastore instance. */
 @Parameters(separators = " =", commandDescription = "Command-line interface to the registry")
 final class RegistryCli {
 

@@ -27,7 +27,7 @@ import google.registry.util.SystemClock;
 import java.nio.file.Files;
 
 /** Command to safely update {@link ReservedList} on Datastore. */
-@Parameters(separators = " =", commandDescription = "Update a ReservedList in datastore.")
+@Parameters(separators = " =", commandDescription = "Update a ReservedList in Datastore.")
 final class UpdateReservedListCommand extends CreateOrUpdateReservedListCommand {
 
   @Override

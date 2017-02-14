@@ -29,7 +29,7 @@ package google.registry.dns.writer;
 public interface DnsWriter extends AutoCloseable {
 
   /**
-   * Loads {@code domainName} from datastore and publishes its NS/DS records to the DNS server.
+   * Loads {@code domainName} from Datastore and publishes its NS/DS records to the DNS server.
    * Replaces existing records for the exact name supplied with an NS record for each name server
    * and a DS record for each delegation signer stored in the registry for the supplied domain name.
    * If the domain is deleted or is in a "non-publish" state then any existing records are deleted.
@@ -39,7 +39,7 @@ public interface DnsWriter extends AutoCloseable {
   void publishDomain(String domainName);
 
   /**
-   * Loads {@code hostName} from datastore and publishes its A/AAAA glue records to the DNS server,
+   * Loads {@code hostName} from Datastore and publishes its A/AAAA glue records to the DNS server,
    * if it is used as an in-bailiwick nameserver. Orphaned glue records are prohibited. Replaces
    * existing records for the exact name supplied, with an A or AAAA record (as appropriate) for
    * each address stored in the registry, for the supplied host name. If the host is deleted then

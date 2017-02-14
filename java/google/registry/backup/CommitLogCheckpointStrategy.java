@@ -40,7 +40,7 @@ import org.joda.time.DateTime;
  *
  * <p>This algorithm examines the recently written commit log data and uses a dual-read approach
  * to determine a point-in-time consistent set of checkpoint times for the commit log buckets.  By
- * "consistent" we mean, generally speaking, that if the datastore were restored by replaying all
+ * "consistent" we mean, generally speaking, that if the Datastore were restored by replaying all
  * the commit logs up to the checkpoint times of the buckets, the result would be transactionally
  * correct; there must be no "holes" where restored state depends on non-restored state.
  *
@@ -116,7 +116,7 @@ class CommitLogCheckpointStrategy {
    */
   @VisibleForTesting
   ImmutableMap<Integer, DateTime> readBucketTimestamps() {
-    // Use a fresh session cache so that we get the latest data from datastore.
+    // Use a fresh session cache so that we get the latest data from Datastore.
     return ofy.doWithFreshSessionCache(new Work<ImmutableMap<Integer, DateTime>>() {
       @Override
       public ImmutableMap<Integer, DateTime> run() {

@@ -142,6 +142,6 @@ public enum Fixture {
     }
   };
 
-  /** Loads this fixture into the datastore. */
+  /** Loads this fixture into Datastore. */
   public abstract void load();
 }

@@ -42,7 +42,7 @@ import org.joda.time.Duration;
 /**
  * Task that garbage collects old {@link CommitLogManifest} entities.
  *
- * <p>Once commit logs have been written to GCS, we don't really need them in datastore anymore,
+ * <p>Once commit logs have been written to GCS, we don't really need them in Datastore anymore,
  * except to reconstruct point-in-time snapshots of the database. But that functionality is not
  * useful after a certain amount of time, e.g. thirty days. So this task runs periodically to delete
  * the old data.
@@ -72,7 +72,7 @@ import org.joda.time.Duration;
  * commitLogMaxDeletes} for further documentation on this matter.
  *
  * <p>Finally, we need to pick an appropriate cron interval time for this task. Since a bucket
- * represents a single datastore entity group, it's only guaranteed to have one transaction per
+ * represents a single Datastore entity group, it's only guaranteed to have one transaction per
  * second. So we just need to divide {@code maxDeletes} by sixty to get an appropriate minute
  * interval. Assuming {@code maxDeletes} is five hundred, this rounds up to ten minutes, which we'll
  * double, since this task can always catch up in off-peak hours.

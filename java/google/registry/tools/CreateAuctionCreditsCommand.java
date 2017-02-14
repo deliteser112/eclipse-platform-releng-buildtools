@@ -67,7 +67,7 @@ import org.joda.time.DateTime;
  * </pre>
  *
  * <p>We only care about three fields: 1) the "Affiliate" field which corresponds to the registrar
- * clientId stored in datastore, and which we use to determine which registrar gets the credit, 2)
+ * clientId stored in Datastore, and which we use to determine which registrar gets the credit, 2)
  * the "Commissions" field which contains the amount of the auction credit (as determined by logic
  * on the auction provider's side, see the Finance Requirements Doc for more information), and 3)
  * the "CurrencyCode" field, which we validate matches the TLD-wide currency for this TLD.

@@ -25,7 +25,7 @@ import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 
 /**
- * Action to trigger a datastore backup job that writes a snapshot to Google Cloud Storage.
+ * Action to trigger a Datastore backup job that writes a snapshot to Google Cloud Storage.
  *
  * <p>This is the first step of a four step workflow for exporting snapshots, with each step calling
  * the next upon successful completion:

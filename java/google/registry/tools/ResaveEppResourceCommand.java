@@ -28,7 +28,7 @@ import org.joda.time.DateTime;
 /**
  * A command to load and resave an {@link EppResource} by foreign key.
  *
- * <p>This triggers @OnSave changes. If the entity was directly edited in the datastore viewer, this
+ * <p>This triggers @OnSave changes. If the entity was directly edited in the Datastore viewer, this
  * can be used to make sure that the commit logs reflect the new state.
  */
 @Parameters(

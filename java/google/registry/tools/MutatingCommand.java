@@ -44,7 +44,7 @@ import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-/** A {@link ConfirmingCommand} that changes objects in the datastore. */
+/** A {@link ConfirmingCommand} that changes objects in Datastore. */
 public abstract class MutatingCommand extends ConfirmingCommand implements RemoteApiCommand {
 
   /**

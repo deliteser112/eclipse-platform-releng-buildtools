@@ -334,7 +334,7 @@ public class DomainApplicationInfoFlowTest
   @Test
   public void testBatchLoadingOfReferences() throws Exception {
     persistTestEntities(HostsState.HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
-    // Clear out memcache and session cache so that we count actual datastore calls.
+    // Clear out memcache and session cache so that we count actual Datastore calls.
     ofy().clearSessionCache();
     getLocalMemcacheService().flushAll(
         new LocalRpcService.Status(), MemcacheFlushRequest.newBuilder().build());

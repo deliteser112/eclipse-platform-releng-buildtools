@@ -35,7 +35,7 @@ public class UpdateAutoTimestampTranslatorFactory
 
       /**
        * Load an existing timestamp. It can be assumed to be non-null since if the field is null in
-       * datastore then Objectify will skip this translator and directly load a null.
+       * Datastore then Objectify will skip this translator and directly load a null.
        */
       @Override
       public UpdateAutoTimestamp loadValue(Date datastoreValue) {
