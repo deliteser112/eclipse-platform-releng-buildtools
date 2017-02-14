@@ -24,6 +24,7 @@ import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
@@ -35,6 +36,7 @@ import com.googlecode.objectify.impl.translate.opt.joda.MoneyStringTranslatorFac
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.EntityClasses;
 import google.registry.model.ImmutableObject;
+import google.registry.model.translators.BloomFilterOfStringTranslatorFactory;
 import google.registry.model.translators.CidrAddressBlockTranslatorFactory;
 import google.registry.model.translators.CommitLogRevisionsTranslatorFactory;
 import google.registry.model.translators.CreateAutoTimestampTranslatorFactory;
@@ -43,7 +45,6 @@ import google.registry.model.translators.DurationTranslatorFactory;
 import google.registry.model.translators.InetAddressTranslatorFactory;
 import google.registry.model.translators.ReadableInstantUtcTranslatorFactory;
 import google.registry.model.translators.UpdateAutoTimestampTranslatorFactory;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
@@ -120,7 +121,8 @@ public class ObjectifyService {
 
   /** Register translators that allow less common types to be stored directly in Datastore. */
   private static void registerTranslators() {
-    for (TranslatorFactory<?> translatorFactory : Arrays.asList(
+    for (TranslatorFactory<?> translatorFactory : ImmutableList.of(
+        new BloomFilterOfStringTranslatorFactory(),
         new CidrAddressBlockTranslatorFactory(),
         new CommitLogRevisionsTranslatorFactory(),
         new CreateAutoTimestampTranslatorFactory(),

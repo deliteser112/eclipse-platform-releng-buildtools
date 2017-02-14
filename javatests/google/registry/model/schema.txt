@@ -742,6 +742,7 @@ class google.registry.model.registry.label.PremiumList$PremiumListEntry {
 class google.registry.model.registry.label.PremiumList$PremiumListRevision {
   @Id long revisionId;
   @Parent com.googlecode.objectify.Key<google.registry.model.registry.label.PremiumList> parent;
+  com.google.common.hash.BloomFilter<java.lang.String> probablePremiumLabels;
 }
 enum google.registry.model.registry.label.ReservationType {
   ALLOWED_IN_SUNRISE;

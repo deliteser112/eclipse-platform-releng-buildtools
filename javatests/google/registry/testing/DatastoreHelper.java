@@ -357,7 +357,7 @@ public class DatastoreHelper {
     // that we can avoid writing commit logs. This would cause issues since many tests replace the
     // clock in Ofy with a non-advancing FakeClock, and commit logs currently require
     // monotonically increasing timestamps.
-    ofy().saveWithoutBackup().entity(premiumList).now();
+    ofy().saveWithoutBackup().entities(premiumList, premiumList.getRevision()).now();
     ofy().saveWithoutBackup().entities(premiumList.getPremiumListEntries().values()).now();
     return premiumList;
   }

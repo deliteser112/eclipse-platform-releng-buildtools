@@ -13,6 +13,7 @@ Modification
 OneTime
 PremiumList
 PremiumListEntry
+PremiumListRevision
 Recurring
 Registrar
 RegistrarContact

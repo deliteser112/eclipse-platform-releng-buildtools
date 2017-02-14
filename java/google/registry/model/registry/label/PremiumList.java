@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.partition;
+import static com.google.common.hash.Funnels.unencodedCharsFunnel;
 import static google.registry.config.RegistryConfig.getDomainLabelListCacheDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.allocateId;
@@ -29,6 +30,7 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
@@ -38,6 +40,7 @@ import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.hash.BloomFilter;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
@@ -52,11 +55,13 @@ import com.googlecode.objectify.cmd.Query;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ReportedOn;
-import google.registry.model.annotations.VirtualEntity;
 import google.registry.model.registry.Registry;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import org.joda.money.Money;
@@ -76,24 +81,65 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
   /** Stores the revision key for the set of currently used premium list entry entities. */
   Key<PremiumListRevision> revisionKey;
 
+  /** The revision to be saved along with this entity. */
+  @Ignore
+  PremiumListRevision revision;
+
   @Ignore
   Map<String, PremiumListEntry> premiumListMap;
 
   /** Virtual parent entity for premium list entry entities associated with a single revision. */
+  @ReportedOn
   @Entity
-  @VirtualEntity
+  @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   public static class PremiumListRevision extends ImmutableObject {
+
     @Parent
     Key<PremiumList> parent;
 
     @Id
     long revisionId;
 
-    static Key<PremiumListRevision> createKey(PremiumList parent) {
+    /**
+     * A bloom filter that is used to determine efficiently and quickly whether a label might be
+     * premium.
+     *
+     * <p>If the label might be premium, then the premium list entry must be loaded by key and
+     * checked for existence.  Otherwise, we know it's not premium, and no Datastore load is
+     * required.
+     */
+    BloomFilter<String> probablePremiumLabels;
+
+    /**
+     * The maximum size of the bloom filter.
+     *
+     * <p>Trying to set it any larger will throw an error, as we know it won't fit into a Datastore
+     * entity. We use 90% of the 1 MB Datastore limit to leave some wriggle room for the other
+     * fields and miscellaneous entity serialization overhead.
+     */
+    private static final int MAX_BLOOM_FILTER_BYTES = 900000;
+
+    /** Returns a new PremiumListRevision for the given key and premium list map. */
+    static PremiumListRevision create(PremiumList parent, Set<String> premiumLabels) {
       PremiumListRevision revision = new PremiumListRevision();
       revision.parent = Key.create(parent);
       revision.revisionId = allocateId();
-      return Key.create(revision);
+      // All premium list labels are already punycoded, so don't perform any further character
+      // encoding on them.
+      revision.probablePremiumLabels =
+          BloomFilter.create(unencodedCharsFunnel(), premiumLabels.size());
+      for (String label : premiumLabels) {
+        revision.probablePremiumLabels.put(label);
+      }
+      try {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        revision.probablePremiumLabels.writeTo(bos);
+        checkArgument(bos.size() <= MAX_BLOOM_FILTER_BYTES,
+            "Too many premium labels were specified; bloom filter exceeds max entity size");
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not serialize premium labels bloom filter", e);
+      }
+      return revision;
     }
   }
 
@@ -132,7 +178,12 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
   }
 
   @OnLoad
-  private void loadPremiumListMap() {
+  private void onLoad() {
+    if (revisionKey != null) {
+      revision = ofy().load().key(revisionKey).now();
+    }
+
+    // TODO(b/32383610): Don't load up the premium list entries.
     try {
       ImmutableMap.Builder<String, PremiumListEntry> entriesMap = new ImmutableMap.Builder<>();
       if (revisionKey != null) {
@@ -159,8 +210,14 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
     return nullToEmptyImmutableCopy(premiumListMap);
   }
 
+  @VisibleForTesting
   public Key<PremiumListRevision> getRevisionKey() {
     return revisionKey;
+  }
+
+  @VisibleForTesting
+  public PremiumListRevision getRevision() {
+    return revision;
   }
 
   /** Returns the PremiumList with the specified name. */
@@ -278,7 +335,8 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
           }});
       }
     }
-    // Save the new PremiumList itself.
+
+    // Save the new PremiumList and revision itself.
     PremiumList updated = ofy().transactNew(new Work<PremiumList>() {
         @Override
         public PremiumList run() {
@@ -294,14 +352,14 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
               .setCreationTime(
                   oldPremiumList.isPresent() ? oldPremiumList.get().creationTime : now)
               .build();
-          ofy().save().entity(newList);
+          ofy().save().entities(newList, revision);
           return newList;
         }});
     // Update the cache.
     PremiumList.cache.put(name, updated);
     // If needed and there are any, delete the entities under the old PremiumList.
     if (entriesToUpdate && oldPremiumList.isPresent()) {
-      oldPremiumList.get().deleteEntries();
+      oldPremiumList.get().deleteRevisionAndEntries();
     }
     return updated;
   }
@@ -318,11 +376,11 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
       public void vrun() {
         ofy().delete().entity(PremiumList.this);
       }});
-    deleteEntries();
+    deleteRevisionAndEntries();
     cache.invalidate(name);
   }
 
-  private void deleteEntries() {
+  private void deleteRevisionAndEntries() {
     if (revisionKey == null) {
       return;
     }
@@ -335,6 +393,11 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
           ofy().delete().keys(batch);
         }});
     }
+    ofy().transactNew(new VoidWork() {
+      @Override
+      public void vrun() {
+        ofy().delete().key(revisionKey);
+      }});
   }
 
   private Query<PremiumListEntry> loadEntriesForCurrentRevision() {
@@ -371,8 +434,9 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
     @Override
     public PremiumList build() {
       final PremiumList instance = getInstance();
-      if (getInstance().revisionKey == null || entriesWereUpdated) {
-        getInstance().revisionKey = PremiumListRevision.createKey(instance);
+      if (instance.revisionKey == null || entriesWereUpdated) {
+        instance.revision = PremiumListRevision.create(instance, instance.premiumListMap.keySet());
+        instance.revisionKey = Key.create(instance.revision);
       }
       // When we build an instance, make sure all entries are parented on its revisionKey.
       instance.premiumListMap = Maps.transformValues(

@@ -15,6 +15,7 @@
 package google.registry.model.registry.label;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.PremiumList.getPremiumPrice;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -54,13 +55,14 @@ public class PremiumListTest {
 
   @Before
   public void before() throws Exception {
+    // createTld() overwrites the premium list, so call it first.
+    createTld("tld");
     PremiumList pl = persistPremiumList(
         "tld",
         "lol,USD 999 # yup",
         "rich,USD 1999 #tada",
         "icann,JPY 100",
         "johnny-be-goode,USD 20.50");
-    createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setPremiumList(pl).build());
   }
 
@@ -258,6 +260,17 @@ public class PremiumListTest {
         .build()
         .getRevisionKey())
             .isNotEqualTo(pl.getRevisionKey());
+  }
+
+  @Test
+  public void testProbablePremiumLabels() throws Exception {
+    PremiumList pl = PremiumList.get("tld").get();
+    assertThat(pl.getRevision().probablePremiumLabels.mightContain("notpremium")).isFalse();
+    for (String label : ImmutableList.of("rich", "lol", "johnny-be-goode", "icann")) {
+      assertWithMessage(label + " should be a probable premium")
+          .that(pl.getRevision().probablePremiumLabels.mightContain(label))
+          .isTrue();
+    }
   }
 
   /** Persists a premium list with a specified number of nonsense entries. */
