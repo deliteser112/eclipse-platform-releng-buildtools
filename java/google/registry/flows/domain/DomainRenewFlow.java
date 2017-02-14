@@ -25,9 +25,8 @@ import static google.registry.flows.domain.DomainFlowUtils.newAutorenewBillingEv
 import static google.registry.flows.domain.DomainFlowUtils.newAutorenewPollMessage;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
+import static google.registry.flows.domain.DomainFlowUtils.validateRegistrationPeriod;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
-import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
-import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
@@ -95,12 +94,12 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}
+ * @error {@link DomainFlowUtils.ExceedsMaxRegistrationYearsException}
  * @error {@link DomainFlowUtils.FeesMismatchException}
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainRenewFlow.DomainHasPendingTransferException}
- * @error {@link DomainRenewFlow.ExceedsMaxRegistrationYearsException}
  * @error {@link DomainRenewFlow.IncorrectCurrentExpirationDateException}
  */
 public final class DomainRenewFlow implements TransactionalFlow {
@@ -154,9 +153,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
         .build();
     DateTime oldExpirationTime = existingDomain.getRegistrationExpirationTime();
     DateTime newExpirationTime = leapSafeAddYears(oldExpirationTime, years);  // Uncapped
-    if (extendRegistrationWithCap(now, oldExpirationTime, years).isBefore(newExpirationTime)) {
-      throw new ExceedsMaxRegistrationYearsException();
-    }
+    validateRegistrationPeriod(now, oldExpirationTime, years);
     String tld = existingDomain.getTld();
     // Bill for this explicit renew itself.
     BillingEvent.OneTime explicitRenewEvent =
@@ -269,15 +266,6 @@ public final class DomainRenewFlow implements TransactionalFlow {
   static class IncorrectCurrentExpirationDateException extends ParameterValueRangeErrorException {
     public IncorrectCurrentExpirationDateException() {
       super("The current expiration date is incorrect");
-    }
-  }
-
-  /** New registration period exceeds maximum number of years. */
-  static class ExceedsMaxRegistrationYearsException extends ParameterValueRangeErrorException {
-    public ExceedsMaxRegistrationYearsException() {
-      super(String.format(
-          "Registrations cannot extend for more than %d years into the future",
-          MAX_REGISTRATION_YEARS));
     }
   }
 }

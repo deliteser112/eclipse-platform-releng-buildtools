@@ -45,6 +45,7 @@ import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainAllocateFlow.HasFinalStatusException;
 import google.registry.flows.domain.DomainAllocateFlow.MissingApplicationException;
 import google.registry.flows.domain.DomainAllocateFlow.OnlySuperuserCanAllocateException;
+import google.registry.flows.domain.DomainFlowUtils.ExceedsMaxRegistrationYearsException;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -483,5 +484,13 @@ public class DomainAllocateFlowTest
     assertTransactionalFlow(true);
     thrown.expect(OnlySuperuserCanAllocateException.class);
     runFlow(CommitMode.LIVE, UserPrivileges.NORMAL);
+  }
+
+  @Test
+  public void testFailure_max10Years() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    setEppInput("domain_allocate_11_years.xml");
+    thrown.expect(ExceedsMaxRegistrationYearsException.class);
+    runFlowAsSuperuser();
   }
 }

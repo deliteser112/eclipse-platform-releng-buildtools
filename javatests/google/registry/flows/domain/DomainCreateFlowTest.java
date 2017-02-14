@@ -70,6 +70,7 @@ import google.registry.flows.domain.DomainFlowUtils.DomainLabelTooLongException;
 import google.registry.flows.domain.DomainFlowUtils.DomainReservedException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
 import google.registry.flows.domain.DomainFlowUtils.EmptyDomainNamePartException;
+import google.registry.flows.domain.DomainFlowUtils.ExceedsMaxRegistrationYearsException;
 import google.registry.flows.domain.DomainFlowUtils.ExpiredClaimException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameException;
@@ -1791,5 +1792,13 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             clock.nowUtc().minusDays(1), Money.of(USD, 0)))
         .build());
     doSuccessfulTest("tld", "domain_create_response.xml");
+  }
+
+  @Test
+  public void testFailure_max10Years() throws Exception {
+    setEppInput("domain_create_11_years.xml");
+    persistContactsAndHosts();
+    thrown.expect(ExceedsMaxRegistrationYearsException.class);
+    runFlow();
   }
 }

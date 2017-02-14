@@ -27,6 +27,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.validateLaunchCreateNotice;
+import static google.registry.flows.domain.DomainFlowUtils.validateRegistrationPeriod;
 import static google.registry.flows.domain.DomainFlowUtils.validateSecDnsExtension;
 import static google.registry.flows.domain.DomainFlowUtils.verifyClaimsNoticeIfAndOnlyIfNeeded;
 import static google.registry.flows.domain.DomainFlowUtils.verifyClaimsPeriodNotEnded;
@@ -116,6 +117,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.DomainReservedException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
  * @error {@link DomainFlowUtils.EmptyDomainNamePartException}
+ * @error {@link DomainFlowUtils.ExceedsMaxRegistrationYearsException}
  * @error {@link DomainFlowUtils.ExpiredClaimException}
  * @error {@link DomainFlowUtils.FeesMismatchException}
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
@@ -242,6 +244,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
+    validateRegistrationPeriod(years);
     HistoryEntry historyEntry = buildHistory(repoId, period, now);
     // Bill for the create.
     BillingEvent.OneTime createBillingEvent =

@@ -26,6 +26,7 @@ import static google.registry.flows.domain.DomainFlowUtils.prepareMarkedLrpToken
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
+import static google.registry.flows.domain.DomainFlowUtils.validateRegistrationPeriod;
 import static google.registry.flows.domain.DomainFlowUtils.validateSecDnsExtension;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
@@ -94,6 +95,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainAllocateFlow.HasFinalStatusException}
  * @error {@link DomainAllocateFlow.MissingApplicationException}
  * @error {@link DomainAllocateFlow.OnlySuperuserCanAllocateException}
+ * @error {@link DomainFlowUtils.ExceedsMaxRegistrationYearsException}
  */
 public class DomainAllocateFlow implements TransactionalFlow {
 
@@ -134,6 +136,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
     Period period = command.getPeriod();
     Integer years = period.getValue();
     verifyUnitIsYears(period);
+    validateRegistrationPeriod(years);
     validateCreateCommandContactsAndNameservers(command, registry.getTldStr());
     SecDnsCreateExtension secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));

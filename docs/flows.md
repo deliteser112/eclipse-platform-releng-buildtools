@@ -529,9 +529,9 @@ comes in at the exact millisecond that the domain would have expired.
     *   Fees must be explicitly acknowledged when performing any operations on a
         premium name.
 *   2004
+    *   New registration period exceeds maximum number of years.
     *   The fees passed in the transform command do not match the fees that will
         be charged.
-    *   New registration period exceeds maximum number of years.
     *   The current expiration date is incorrect.
 *   2005
     *   The requested fee is expressed in a scale that is invalid for the given
@@ -620,6 +620,7 @@ An EPP flow that creates a new domain resource.
 *   2004
     *   The acceptance time specified in the claim notice is more than 48 hours
         in the past.
+    *   New registration period exceeds maximum number of years.
     *   The expiration time specified in the claim notice has elapsed.
     *   The fees passed in the transform command do not match the fees that will
         be charged.
@@ -830,6 +831,7 @@ An EPP flow that creates a new application for a domain resource.
 *   2004
     *   The acceptance time specified in the claim notice is more than 48 hours
         in the past.
+    *   New registration period exceeds maximum number of years.
     *   The expiration time specified in the claim notice has elapsed.
     *   The fees passed in the transform command do not match the fees that will
         be charged.
@@ -907,6 +909,8 @@ An EPP flow that allocates a new domain resource from a domain application.
 
 ### Errors
 
+*   2004
+    *   New registration period exceeds maximum number of years.
 *   2201
     *   Only a superuser can allocate domains.
 *   2302

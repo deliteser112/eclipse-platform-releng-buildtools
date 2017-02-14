@@ -74,6 +74,7 @@ import google.registry.flows.domain.DomainFlowUtils.DomainLabelTooLongException;
 import google.registry.flows.domain.DomainFlowUtils.DomainReservedException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
 import google.registry.flows.domain.DomainFlowUtils.EmptyDomainNamePartException;
+import google.registry.flows.domain.DomainFlowUtils.ExceedsMaxRegistrationYearsException;
 import google.registry.flows.domain.DomainFlowUtils.ExpiredClaimException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameException;
@@ -1572,6 +1573,16 @@ public class DomainApplicationCreateFlowTest
     persistContactsAndHosts();
     clock.advanceOneMilli();
     thrown.expect(NameserversNotSpecifiedException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_max10Years() throws Exception {
+    createTld("tld", TldState.LANDRUSH);
+    setEppInput("domain_create_landrush_11_years.xml");
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    thrown.expect(ExceedsMaxRegistrationYearsException.class);
     runFlow();
   }
 

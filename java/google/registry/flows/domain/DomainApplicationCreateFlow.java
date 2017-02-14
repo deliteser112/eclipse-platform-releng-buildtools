@@ -28,6 +28,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.validateLaunchCreateNotice;
+import static google.registry.flows.domain.DomainFlowUtils.validateRegistrationPeriod;
 import static google.registry.flows.domain.DomainFlowUtils.validateSecDnsExtension;
 import static google.registry.flows.domain.DomainFlowUtils.verifyClaimsNoticeIfAndOnlyIfNeeded;
 import static google.registry.flows.domain.DomainFlowUtils.verifyClaimsPeriodNotEnded;
@@ -117,6 +118,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.DomainReservedException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
  * @error {@link DomainFlowUtils.EmptyDomainNamePartException}
+ * @error {@link DomainFlowUtils.ExceedsMaxRegistrationYearsException}
  * @error {@link DomainFlowUtils.ExpiredClaimException}
  * @error {@link DomainFlowUtils.FeesMismatchException}
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
@@ -203,6 +205,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     // notice without specifying a claims key, and override blocks on registering premium domains.
     verifyUnitIsYears(command.getPeriod());
     int years = command.getPeriod().getValue();
+    validateRegistrationPeriod(years);
     validateCreateCommandContactsAndNameservers(command, tld);
     LaunchCreateExtension launchCreate = eppInput.getSingleExtension(LaunchCreateExtension.class);
     if (launchCreate != null) {

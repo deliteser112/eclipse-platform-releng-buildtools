@@ -44,6 +44,7 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -334,11 +335,14 @@ public class DomainResource extends DomainBase
 
   /** Return what the expiration time would be if the given number of years were added to it. */
   public static DateTime extendRegistrationWithCap(
-      DateTime now, DateTime currentExpirationTime, Integer extendedRegistrationYears) {
+      DateTime now,
+      DateTime currentExpirationTime,
+      @Nullable Integer extendedRegistrationYears) {
     // We must cap registration at the max years (aka 10), even if that truncates the last year.
     return earliestOf(
         leapSafeAddYears(
-            currentExpirationTime, Optional.fromNullable(extendedRegistrationYears).or(0)),
+            currentExpirationTime,
+            Optional.fromNullable(extendedRegistrationYears).or(0)),
         leapSafeAddYears(now, MAX_REGISTRATION_YEARS));
   }
 

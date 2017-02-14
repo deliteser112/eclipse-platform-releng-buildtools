@@ -13,6 +13,7 @@
 // limitations under the License.
 
 package google.registry.flows.domain;
+
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWithPendingTransfer;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -40,12 +41,12 @@ import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
 import google.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.CurrencyValueScaleException;
+import google.registry.flows.domain.DomainFlowUtils.ExceedsMaxRegistrationYearsException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeException;
 import google.registry.flows.domain.DomainRenewFlow.DomainHasPendingTransferException;
-import google.registry.flows.domain.DomainRenewFlow.ExceedsMaxRegistrationYearsException;
 import google.registry.flows.domain.DomainRenewFlow.IncorrectCurrentExpirationDateException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.model.billing.BillingEvent;

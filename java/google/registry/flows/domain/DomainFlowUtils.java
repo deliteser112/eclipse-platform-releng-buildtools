@@ -22,6 +22,8 @@ import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static google.registry.flows.domain.DomainPricingLogic.getMatchingLrpToken;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
+import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.label.ReservedList.getReservation;
@@ -30,6 +32,7 @@ import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableF
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
+import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
 import com.google.common.base.CharMatcher;
@@ -262,7 +265,6 @@ public class DomainFlowUtils {
 
   private static void verifyNotInPendingDelete(
       Key<? extends EppResource> resourceKey) throws EppException {
-
     EppResource resource = ofy().load().key(resourceKey).now();
     if (resource.getStatusValues().contains(StatusValue.PENDING_DELETE)) {
       throw new LinkedResourceInPendingDeleteProhibitsOperationException(resource.getForeignKey());
@@ -622,6 +624,35 @@ public class DomainFlowUtils {
   }
 
   /**
+   * Check whether a new registration period (via a renew) does not extend beyond a maximum number
+   * of years (e.g. {@link DomainResource#MAX_REGISTRATION_YEARS}).
+   *
+   * @throws ExceedsMaxRegistrationYearsException if the new registration period is too long
+   */
+  public static void validateRegistrationPeriod(
+      DateTime now,
+      DateTime oldExpirationTime,
+      int years) throws EppException {
+    DateTime newExpirationTime = leapSafeAddYears(oldExpirationTime, years); // uncapped
+    if (extendRegistrationWithCap(now, oldExpirationTime, years).isBefore(newExpirationTime)) {
+      throw new ExceedsMaxRegistrationYearsException();
+    }
+  }
+
+  /**
+   * Check whether a new registration period (via a create, allocate, or application create) does
+   * not extend beyond a maximum number of years (e.g.
+   * {@link DomainResource#MAX_REGISTRATION_YEARS}).
+   *
+   * @throws ExceedsMaxRegistrationYearsException if the new registration period is too long
+   */
+  public static void validateRegistrationPeriod(int years) throws EppException {
+    if (years > MAX_REGISTRATION_YEARS) {
+      throw new ExceedsMaxRegistrationYearsException();
+    }
+  }
+
+  /**
    * Adds a secDns extension to a list if the given set of dsData is non-empty.
    *
    * <p>According to RFC 5910 section 2, we should only return this if the client specified the
@@ -830,7 +861,7 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Create a response extension listign the fees on a domain or application create. */
+  /** Create a response extension listing the fees on a domain or application create. */
   static FeeTransformResponseExtension createFeeCreateResponse(
       FeeTransformCommandExtension feeCreate, FeesAndCredits feesAndCredits) {
     return feeCreate
@@ -1258,6 +1289,15 @@ public class DomainFlowUtils {
   static class UnsupportedMarkTypeException extends ParameterValuePolicyErrorException {
     public UnsupportedMarkTypeException() {
       super("Only encoded signed marks are supported");
+    }
+  }
+
+  /** New registration period exceeds maximum number of years. */
+  static class ExceedsMaxRegistrationYearsException extends ParameterValueRangeErrorException {
+    public ExceedsMaxRegistrationYearsException() {
+      super(String.format(
+          "New registration period exceeds maximum number of years (%d)",
+          MAX_REGISTRATION_YEARS));
     }
   }
 }
