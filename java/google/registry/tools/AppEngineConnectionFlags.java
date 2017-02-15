@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.net.HostAndPort;
 import dagger.Module;
 import dagger.Provides;
@@ -31,7 +32,15 @@ import google.registry.config.RegistryConfig;
 class AppEngineConnectionFlags {
 
   @Parameter(names = "--server", description = "HOST[:PORT] to which remote commands are sent.")
-  private static HostAndPort server = RegistryConfig.getServer();
+  private HostAndPort server = RegistryConfig.getServer();
+
+  /** Provided for testing. */
+  @VisibleForTesting
+  AppEngineConnectionFlags(HostAndPort server) {
+    this.server = server;
+  }
+
+  AppEngineConnectionFlags() {}
 
   HostAndPort getServer() {
     return server;

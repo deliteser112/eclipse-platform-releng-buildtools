@@ -26,6 +26,11 @@ java_library(
     resources = glob([
         "*.properties",
         "sql/*.sql",
+
+        # These are example client secret files.  You'll need to obtain your
+        # own for every environment you use and install them in this
+        # directory.
+        "resources/client_secret*.json",
     ]),
     visibility = [":allowed-tools"],
     deps = [
@@ -65,6 +70,9 @@ java_library(
         "@com_google_guava",
         "@com_google_http_client",
         "@com_google_http_client_jackson2",
+        "@com_google_oauth_client",
+        "@com_google_oauth_client_java6",
+        "@com_google_oauth_client_jetty",
         "@com_google_re2j",
         "@com_googlecode_json_simple",
         "@io_bazel_rules_closure//closure/templates",

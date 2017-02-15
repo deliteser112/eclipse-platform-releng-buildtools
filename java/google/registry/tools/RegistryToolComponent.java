@@ -43,6 +43,8 @@ import javax.inject.Singleton;
     DatastoreServiceModule.class,
     CloudDnsWriterModule.class,
     DefaultRequestFactoryModule.class,
+    DefaultRequestFactoryModule.AuthorizerModule.class,
+    DefaultRequestFactoryModule.DataStoreFactoryModule.class,
     DefaultRequestFactoryModule.RequestFactoryModule.class,
     DnsUpdateWriterModule.class,
     DummyKeyringModule.class,
