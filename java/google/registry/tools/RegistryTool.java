@@ -51,7 +51,6 @@ public final class RegistryTool {
           .put("delete_credit", DeleteCreditCommand.class)
           .put("delete_domain", DeleteDomainCommand.class)
           .put("delete_entity", DeleteEntityCommand.class)
-          .put("delete_epp_resource", DeleteEppResourceCommand.class)
           .put("delete_premium_list", DeletePremiumListCommand.class)
           .put("delete_reserved_list", DeleteReservedListCommand.class)
           .put("domain_application_info", DomainApplicationInfoCommand.class)
