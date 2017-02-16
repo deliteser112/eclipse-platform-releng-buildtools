@@ -197,7 +197,7 @@ public class RdeDomainReaderTest {
     }
   }
 
-  /** Creates a deep copy of the {@link T} */
+  /** Creates a deep copy of the {@code T} */
   public <T> T cloneObject(
       T object) throws Exception {
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
