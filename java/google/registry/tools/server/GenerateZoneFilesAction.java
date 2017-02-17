@@ -195,7 +195,8 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
       // Domains never change their tld, so we can check if it's from the wrong tld right away.
       if (tlds.contains(domain.getTld())) {
         domain = loadAtPointInTime(domain, exportTime).now();
-        if (domain != null) {  // A null means the domain was deleted (or not created) at this time.
+        // A null means the domain was deleted (or not created) at this time.
+        if (domain != null && domain.shouldPublishToDns()) {
           String stanza = domainStanza(domain, exportTime);
           if (!stanza.isEmpty()) {
             emit(domain.getTld(), stanza);

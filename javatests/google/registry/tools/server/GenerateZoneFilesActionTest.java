@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.testing.FakeClock;
 import google.registry.testing.mapreduce.MapreduceTestCase;
@@ -77,12 +78,24 @@ public class GenerateZoneFilesActionTest extends MapreduceTestCase<GenerateZoneF
     persistResource(newDomainResource("ns-only.tld").asBuilder()
         .addNameservers(nameservers)
         .build());
+    persistResource(newDomainResource("ns-only-client-hold.tld").asBuilder()
+        .addNameservers(nameservers)
+        .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_HOLD))
+        .build());
+    persistResource(newDomainResource("ns-only-pending-delete.tld").asBuilder()
+        .addNameservers(nameservers)
+        .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
+        .build());
+    persistResource(newDomainResource("ns-only-server-hold.tld").asBuilder()
+        .addNameservers(nameservers)
+        .setStatusValues(ImmutableSet.of(StatusValue.SERVER_HOLD))
+        .build());
+    // These should be ignored; contact and applications aren't in DNS, hosts need to be from the
+    // same tld and have ip addresses, and domains need to be from the same tld and have hosts (even
+    // in the case where domains contain DS data).
     persistResource(newDomainResource("ds-only.tld").asBuilder()
         .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))
         .build());
-
-    // These should be ignored; contact and applications aren't in DNS, hosts need to be from the
-    // same tld and have ip addresses, and domains need to be from the same tld and have hosts.
     persistActiveContact("ignored_contact");
     persistActiveDomainApplication("ignored_application.tld");
     persistActiveHost("ignored.host.tld");  // No ips.

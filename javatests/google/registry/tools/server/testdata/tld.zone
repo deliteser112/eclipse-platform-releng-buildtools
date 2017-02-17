@@ -6,8 +6,6 @@ ns.bar.tld 3600 IN AAAA 0:0:0:0:0:0:0:1
 ns-only.tld 180 IN NS ns.foo.tld.
 ns-only.tld 180 IN NS ns.bar.tld.
 
-ds-only.tld 86400 IN DS 1 2 3 000102
-
 ns-and-ds.tld 180 IN NS ns.foo.tld.
 ns-and-ds.tld 180 IN NS ns.bar.tld.
 ns-and-ds.tld 86400 IN DS 1 2 3 000102
