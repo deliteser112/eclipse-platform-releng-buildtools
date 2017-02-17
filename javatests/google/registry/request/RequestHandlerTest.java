@@ -39,12 +39,10 @@ import google.registry.request.auth.LegacyAuthenticationMechanism;
 import google.registry.request.auth.OAuthAuthenticationMechanism;
 import google.registry.request.auth.RequestAuthenticator;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.InjectRule;
 import google.registry.testing.Providers;
 import google.registry.testing.UserInfo;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.After;
@@ -65,9 +63,6 @@ public final class RequestHandlerTest {
           .withDatastore()
           .withUserService(UserInfo.create("test@example.com", "test@example.com"))
           .build();
-
-  @Rule
-  public final InjectRule inject = new InjectRule();
 
   @Action(path = "/bumblebee", method = {GET, POST}, isPrefix = true)
   public static class BumblebeeTask implements Runnable {
@@ -122,7 +117,7 @@ public final class RequestHandlerTest {
 
     @Override
     public void run() {
-      injectedAuthResult = authResult;
+      providedAuthResult = authResult;
     }
   }
 
@@ -134,7 +129,7 @@ public final class RequestHandlerTest {
           userPolicy = Auth.UserPolicy.IGNORED),
       method = Action.Method.GET)
   public class AuthNoneAction extends AuthBase {
-    @Inject AuthNoneAction(AuthResult authResult) {
+    AuthNoneAction(AuthResult authResult) {
       super(authResult);
     }
   }
@@ -147,7 +142,7 @@ public final class RequestHandlerTest {
           userPolicy = Auth.UserPolicy.ADMIN),
       method = Action.Method.GET)
   public class AuthAdminUserAnyMethodAction extends AuthBase {
-    @Inject AuthAdminUserAnyMethodAction(AuthResult authResult) {
+    AuthAdminUserAnyMethodAction(AuthResult authResult) {
       super(authResult);
     }
   }
@@ -193,8 +188,7 @@ public final class RequestHandlerTest {
     }
 
     public AuthAdminUserAnyMethodAction authAdminUserAnyMethodAction() {
-      return new AuthAdminUserAnyMethodAction(
-          component.getRequestModule().provideAuthResult());
+      return new AuthAdminUserAnyMethodAction(component.getRequestModule().provideAuthResult());
     }
   }
 
@@ -231,7 +225,7 @@ public final class RequestHandlerTest {
   private final Component component = new Component();
   private final StringWriter httpOutput = new StringWriter();
   private RequestHandler<Component, Builder> handler;
-  private AuthResult injectedAuthResult = null;
+  private AuthResult providedAuthResult = null;
   private final User testUser = new User("test@example.com", "test@example.com");
   private RequestAuthenticator requestAuthenticator;
 
@@ -431,9 +425,9 @@ public final class RequestHandlerTest {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/auth/none");
     handler.handleRequest(req, rsp);
-    assertThat(injectedAuthResult).isNotNull();
-    assertThat(injectedAuthResult.authLevel()).isEqualTo(AuthLevel.NONE);
-    assertThat(injectedAuthResult.userAuthInfo()).isAbsent();
+    assertThat(providedAuthResult).isNotNull();
+    assertThat(providedAuthResult.authLevel()).isEqualTo(AuthLevel.NONE);
+    assertThat(providedAuthResult.userAuthInfo()).isAbsent();
   }
 
   @Test
@@ -442,7 +436,7 @@ public final class RequestHandlerTest {
     when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
     handler.handleRequest(req, rsp);
     verify(rsp).sendError(403);
-    assertThat(injectedAuthResult).isNull();
+    assertThat(providedAuthResult).isNull();
   }
 
   @Test
@@ -454,7 +448,7 @@ public final class RequestHandlerTest {
     when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
     handler.handleRequest(req, rsp);
     verify(rsp).sendError(403);
-    assertThat(injectedAuthResult).isNull();
+    assertThat(providedAuthResult).isNull();
   }
 
   @Test
@@ -465,10 +459,10 @@ public final class RequestHandlerTest {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
     handler.handleRequest(req, rsp);
-    assertThat(injectedAuthResult).isNotNull();
-    assertThat(injectedAuthResult.authLevel()).isEqualTo(AuthLevel.USER);
-    assertThat(injectedAuthResult.userAuthInfo()).isPresent();
-    assertThat(injectedAuthResult.userAuthInfo().get().user()).isEqualTo(testUser);
-    assertThat(injectedAuthResult.userAuthInfo().get().oauthTokenInfo()).isAbsent();
+    assertThat(providedAuthResult).isNotNull();
+    assertThat(providedAuthResult.authLevel()).isEqualTo(AuthLevel.USER);
+    assertThat(providedAuthResult.userAuthInfo()).isPresent();
+    assertThat(providedAuthResult.userAuthInfo().get().user()).isEqualTo(testUser);
+    assertThat(providedAuthResult.userAuthInfo().get().oauthTokenInfo()).isAbsent();
   }
 }
