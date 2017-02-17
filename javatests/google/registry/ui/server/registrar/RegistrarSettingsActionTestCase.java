@@ -18,7 +18,6 @@ import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddres
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.security.JsonHttpTestUtils.createJsonResponseSupplier;
-import static google.registry.security.XsrfTokenManager.generateToken;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -33,8 +32,10 @@ import google.registry.model.registrar.Registrar;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonResponse;
 import google.registry.request.ResponseImpl;
+import google.registry.security.XsrfTokenManager;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeUserService;
 import google.registry.testing.InjectRule;
 import google.registry.util.SendEmailService;
 import java.io.PrintWriter;
@@ -91,6 +92,7 @@ public class RegistrarSettingsActionTestCase {
   final StringWriter writer = new StringWriter();
   final Supplier<Map<String, Object>> json = createJsonResponseSupplier(writer);
   final FakeClock clock = new FakeClock(DateTime.parse("2014-01-01T00:00:00Z"));
+  final XsrfTokenManager xsrfTokenManager = new XsrfTokenManager(clock, new FakeUserService());
 
   @Before
   public void setUp() throws Exception {
@@ -111,7 +113,7 @@ public class RegistrarSettingsActionTestCase {
     when(req.getMethod()).thenReturn("POST");
     when(rsp.getWriter()).thenReturn(new PrintWriter(writer));
     when(req.getContentType()).thenReturn("application/json");
-    when(req.getHeader(eq("X-CSRF-Token"))).thenReturn(generateToken("console"));
+    when(req.getHeader(eq("X-CSRF-Token"))).thenReturn(xsrfTokenManager.generateToken("console"));
     when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of("op", "read")));
     when(sessionUtils.isLoggedIn()).thenReturn(true);
     when(sessionUtils.checkRegistrarConsoleLogin(req)).thenReturn(true);

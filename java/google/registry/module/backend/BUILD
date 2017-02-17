@@ -32,6 +32,7 @@ java_library(
         "//java/google/registry/request",
         "//java/google/registry/request:modules",
         "//java/google/registry/request/auth",
+        "//java/google/registry/security",
         "//java/google/registry/tmch",
         "//java/google/registry/util",
         "@com_google_appengine_api_1_0_sdk",

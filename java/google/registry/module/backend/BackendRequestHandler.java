@@ -17,6 +17,7 @@ package google.registry.module.backend;
 import com.google.appengine.api.users.UserService;
 import google.registry.request.RequestHandler;
 import google.registry.request.auth.RequestAuthenticator;
+import google.registry.security.XsrfTokenManager;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
@@ -27,7 +28,8 @@ public class BackendRequestHandler
   @Inject BackendRequestHandler(
       Provider<BackendRequestComponent.Builder> componentBuilderProvider,
       UserService userService,
-      RequestAuthenticator requestAuthenticator) {
-    super(componentBuilderProvider, userService, requestAuthenticator);
+      RequestAuthenticator requestAuthenticator,
+      XsrfTokenManager xsrfTokenManager) {
+    super(componentBuilderProvider, userService, requestAuthenticator, xsrfTokenManager);
   }
 }

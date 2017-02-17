@@ -34,12 +34,12 @@ public class FakeUserService implements UserService {
 
   @Override
   public String createLoginURL(String destinationURL) {
-    throw new UnsupportedOperationException();
+    return String.format("/login?dest=%s", destinationURL);
   }
 
   @Override
   public String createLoginURL(String destinationURL, String authDomain) {
-    throw new UnsupportedOperationException();
+    return createLoginURL(destinationURL);
   }
 
   @Deprecated
@@ -51,12 +51,12 @@ public class FakeUserService implements UserService {
 
   @Override
   public String createLogoutURL(String destinationURL) {
-    throw new UnsupportedOperationException();
+    return String.format("/logout?dest=%s", destinationURL);
   }
 
   @Override
   public String createLogoutURL(String destinationURL, String authDomain) {
-    throw new UnsupportedOperationException();
+    return createLogoutURL(destinationURL);
   }
 
   @Override

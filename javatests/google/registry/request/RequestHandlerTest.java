@@ -17,7 +17,6 @@ package google.registry.request;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
-import static google.registry.security.XsrfTokenManager.generateToken;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -25,7 +24,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.oauth.OAuthServiceFactory;
 import com.google.appengine.api.users.User;
-import com.google.appengine.api.users.UserService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.NullPointerTester;
@@ -38,7 +36,10 @@ import google.registry.request.auth.AuthenticationMechanism;
 import google.registry.request.auth.LegacyAuthenticationMechanism;
 import google.registry.request.auth.OAuthAuthenticationMechanism;
 import google.registry.request.auth.RequestAuthenticator;
+import google.registry.security.XsrfTokenManager;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeUserService;
 import google.registry.testing.Providers;
 import google.registry.testing.UserInfo;
 import java.io.PrintWriter;
@@ -208,9 +209,6 @@ public final class RequestHandlerTest {
   private HttpServletResponse rsp;
 
   @Mock
-  private UserService userService;
-
-  @Mock
   private BumblebeeTask bumblebeeTask;
 
   @Mock
@@ -228,9 +226,13 @@ public final class RequestHandlerTest {
   private AuthResult providedAuthResult = null;
   private final User testUser = new User("test@example.com", "test@example.com");
   private RequestAuthenticator requestAuthenticator;
+  private XsrfTokenManager xsrfTokenManager;
+  private FakeUserService userService;
 
   @Before
   public void before() throws Exception {
+    userService = new FakeUserService();
+    xsrfTokenManager = new XsrfTokenManager(new FakeClock(), userService);
     requestAuthenticator = new RequestAuthenticator(
         new AppEngineInternalAuthenticationMechanism(),
         ImmutableList.<AuthenticationMechanism>of(
@@ -252,7 +254,8 @@ public final class RequestHandlerTest {
           }
         }),
         userService,
-        requestAuthenticator);
+        requestAuthenticator,
+        xsrfTokenManager);
     when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
   }
 
@@ -361,6 +364,7 @@ public final class RequestHandlerTest {
   public void testNullness() {
     NullPointerTester tester = new NullPointerTester();
     tester.setDefault(RequestAuthenticator.class, requestAuthenticator);
+    tester.setDefault(XsrfTokenManager.class, xsrfTokenManager);
     tester.testAllPublicStaticMethods(RequestHandler.class);
     tester.testAllPublicInstanceMethods(handler);
   }
@@ -375,8 +379,9 @@ public final class RequestHandlerTest {
 
   @Test
   public void testXsrfProtection_validTokenProvided_runsAction() throws Exception {
+    userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("POST");
-    when(req.getHeader("X-CSRF-Token")).thenReturn(generateToken("vampire"));
+    when(req.getHeader("X-CSRF-Token")).thenReturn(xsrfTokenManager.generateToken("vampire"));
     when(req.getRequestURI()).thenReturn("/safe-sloth");
     handler.handleRequest(req, rsp);
     verify(safeSlothTask).run();
@@ -384,8 +389,9 @@ public final class RequestHandlerTest {
 
   @Test
   public void testXsrfProtection_tokenWithInvalidScopeProvided_returns403() throws Exception {
+    userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("POST");
-    when(req.getHeader("X-CSRF-Token")).thenReturn(generateToken("blood"));
+    when(req.getHeader("X-CSRF-Token")).thenReturn(xsrfTokenManager.generateToken("blood"));
     when(req.getRequestURI()).thenReturn("/safe-sloth");
     handler.handleRequest(req, rsp);
     verify(rsp).sendError(403, "Invalid X-CSRF-Token");
@@ -401,19 +407,16 @@ public final class RequestHandlerTest {
 
   @Test
   public void testMustBeLoggedIn_notLoggedIn_redirectsToLoginPage() throws Exception {
-    when(userService.isUserLoggedIn()).thenReturn(false);
-    when(userService.createLoginURL("/users-only")).thenReturn("/login");
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/users-only");
     handler.handleRequest(req, rsp);
     verify(rsp).setStatus(302);
-    verify(rsp).setHeader("Location", "/login");
+    verify(rsp).setHeader("Location", "/login?dest=/users-only");
   }
 
   @Test
   public void testMustBeLoggedIn_loggedIn_runsAction() throws Exception {
-    when(userService.isUserLoggedIn()).thenReturn(true);
-    when(userService.getCurrentUser()).thenReturn(testUser);
+    userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/users-only");
     handler.handleRequest(req, rsp);
@@ -441,9 +444,7 @@ public final class RequestHandlerTest {
 
   @Test
   public void testAuthNeeded_notAuthorized() throws Exception {
-    when(userService.isUserLoggedIn()).thenReturn(true);
-    when(userService.getCurrentUser()).thenReturn(testUser);
-    when(userService.isUserAdmin()).thenReturn(false);
+    userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
     handler.handleRequest(req, rsp);
@@ -453,9 +454,7 @@ public final class RequestHandlerTest {
 
   @Test
   public void testAuthNeeded_success() throws Exception {
-    when(userService.isUserLoggedIn()).thenReturn(true);
-    when(userService.getCurrentUser()).thenReturn(testUser);
-    when(userService.isUserAdmin()).thenReturn(true);
+    userService.setUser(testUser,  true);
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
     handler.handleRequest(req, rsp);

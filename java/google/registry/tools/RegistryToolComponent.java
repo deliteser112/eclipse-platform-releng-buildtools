@@ -24,6 +24,7 @@ import google.registry.keyring.api.KeyModule;
 import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.URLFetchServiceModule;
+import google.registry.request.Modules.UserServiceModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
 import google.registry.whois.WhoisModule;
@@ -54,6 +55,7 @@ import javax.inject.Singleton;
     SystemClockModule.class,
     SystemSleeperModule.class,
     URLFetchServiceModule.class,
+    UserServiceModule.class,
     VoidDnsWriterModule.class,
     WhoisModule.class,
   }

@@ -52,6 +52,7 @@ class AppEngineConnection implements Connection {
 
   @Inject HttpRequestFactory requestFactory;
   @Inject AppEngineConnectionFlags flags;
+  @Inject XsrfTokenManager xsrfTokenManager;
 
   @Inject
   AppEngineConnection() {}
@@ -65,7 +66,7 @@ class AppEngineConnection implements Connection {
       memoize(new Supplier<String>() {
         @Override
         public String get() {
-          return XsrfTokenManager.generateToken("admin", getUserId());
+          return xsrfTokenManager.generateToken("admin", getUserId());
         }});
 
   @Override

@@ -146,6 +146,8 @@ public class LoadTestAction implements Runnable {
   @Inject
   TaskEnqueuer taskEnqueuer;
 
+  @Inject XsrfTokenManager xsrfTokenManager;
+
   private final String xmlContactCreateTmpl;
   private final String xmlContactCreateFail;
   private final String xmlContactInfo;
@@ -163,7 +165,7 @@ public class LoadTestAction implements Runnable {
    * <p>Note that the email address is set to empty, because the logged-in user hitting this
    * endpoint will not be the same as when the tasks themselves fire and hit the epptool endpoint.
    */
-  private final String xsrfToken = XsrfTokenManager.generateToken("admin", "");
+  private final String xsrfToken;
 
   @Inject
   LoadTestAction(@Parameter("tld") String tld) {
@@ -183,6 +185,7 @@ public class LoadTestAction implements Runnable {
     xmlHostCreateTmpl = loadXml("host_create");
     xmlHostCreateFail = xmlHostCreateTmpl.replace("%host%", EXISTING_HOST);
     xmlHostInfo = loadXml("host_info").replace("%host%", EXISTING_HOST);
+    xsrfToken = xsrfTokenManager.generateToken("admin", "");
   }
 
   @Override

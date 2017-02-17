@@ -20,7 +20,9 @@ import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.net.MediaType;
+import google.registry.security.XsrfTokenManager;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.UserInfo;
 import javax.servlet.http.HttpServletRequest;
@@ -60,6 +62,7 @@ public class ConsoleUiActionTest {
     action.response = response;
     action.sessionUtils = sessionUtils;
     action.userService = UserServiceFactory.getUserService();
+    action.xsrfTokenManager = new XsrfTokenManager(new FakeClock(), action.userService);
     when(sessionUtils.checkRegistrarConsoleLogin(any(HttpServletRequest.class))).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(any(HttpServletRequest.class)))
         .thenReturn("TheRegistrar");

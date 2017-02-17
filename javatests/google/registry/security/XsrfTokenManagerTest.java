@@ -15,16 +15,14 @@
 package google.registry.security;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.security.XsrfTokenManager.generateToken;
-import static google.registry.security.XsrfTokenManager.validateToken;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Splitter;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeUserService;
 import google.registry.testing.InjectRule;
 import google.registry.testing.UserInfo;
-import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,9 +33,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class XsrfTokenManagerTest {
 
-  private static final Duration ONE_DAY = Duration.standardDays(1);
-
   FakeClock clock = new FakeClock(START_OF_TIME);
+  FakeUserService userService = new FakeUserService();
+
+  XsrfTokenManager xsrfTokenManager = new XsrfTokenManager(clock, userService);
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -50,46 +49,51 @@ public class XsrfTokenManagerTest {
 
   @Before
   public void init() {
-    inject.setStaticField(XsrfTokenManager.class, "clock", clock);
+    // inject.setStaticField(XsrfTokenManager.class, "clock", clock);
   }
 
   @Test
   public void testSuccess() {
-    assertThat(validateToken(generateToken("console"), "console", ONE_DAY)).isTrue();
+    assertThat(xsrfTokenManager.validateToken(xsrfTokenManager.generateToken("console"), "console"))
+        .isTrue();
   }
 
   @Test
   public void testNoTimestamp() {
-    assertThat(validateToken("foo", "console", ONE_DAY)).isFalse();
+    assertThat(xsrfTokenManager.validateToken("foo", "console")).isFalse();
   }
 
   @Test
   public void testBadNumberTimestamp() {
-    assertThat(validateToken("foo:bar", "console", ONE_DAY)).isFalse();
+    assertThat(xsrfTokenManager.validateToken("foo:bar", "console")).isFalse();
   }
 
   @Test
   public void testExpired() {
-    String token = generateToken("console");
+    String token = xsrfTokenManager.generateToken("console");
     clock.setTo(START_OF_TIME.plusDays(2));
-    assertThat(validateToken(token, "console", ONE_DAY)).isFalse();
+    assertThat(xsrfTokenManager.validateToken(token, "console")).isFalse();
   }
 
   @Test
   public void testTimestampTamperedWith() {
-    String encodedPart = Splitter.on(':').splitToList(generateToken("console")).get(0);
+    String encodedPart =
+        Splitter.on(':').splitToList(xsrfTokenManager.generateToken("console")).get(0);
     long tamperedTimestamp = clock.nowUtc().plusMillis(1).getMillis();
-    assertThat(validateToken(encodedPart + ":" + tamperedTimestamp, "console", ONE_DAY)).isFalse();
-  }
-
-  @Test
-  public void testDifferentUser() {
-    assertThat(validateToken(generateToken("console", "b@example.com"), "console", ONE_DAY))
+    assertThat(xsrfTokenManager.validateToken(encodedPart + ":" + tamperedTimestamp, "console"))
         .isFalse();
   }
 
   @Test
+  public void testDifferentUser() {
+    assertThat(xsrfTokenManager
+        .validateToken(xsrfTokenManager.generateToken("console", "b@example.com"), "console"))
+            .isFalse();
+  }
+
+  @Test
   public void testDifferentScope() {
-    assertThat(validateToken(generateToken("console"), "foobar", ONE_DAY)).isFalse();
+    assertThat(xsrfTokenManager.validateToken(xsrfTokenManager.generateToken("console"), "foobar"))
+        .isFalse();
   }
 }

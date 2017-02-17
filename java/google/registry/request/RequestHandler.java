@@ -19,7 +19,6 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
-import static google.registry.security.XsrfTokenManager.validateToken;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
@@ -29,6 +28,7 @@ import com.google.appengine.api.users.UserService;
 import com.google.common.base.Optional;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.RequestAuthenticator;
+import google.registry.security.XsrfTokenManager;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import java.io.IOException;
@@ -36,7 +36,6 @@ import javax.annotation.Nullable;
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.joda.time.Duration;
 
 /**
  * Dagger-based request processor.
@@ -74,12 +73,11 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  private static final Duration XSRF_VALIDITY = Duration.standardDays(1);
-
   private final Router router;
   private final Provider<B> requestComponentBuilderProvider;
   private final UserService userService;
   private final RequestAuthenticator requestAuthenticator;
+  private final XsrfTokenManager xsrfTokenManager;
 
   /**
    * Constructor for subclasses to create a new request handler for a specific request component.
@@ -92,13 +90,16 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
    *     be used to construct new instances of the request component (with the required
    *     request-derived modules provided by this class)
    * @param userService an instance of the App Engine UserService API
-   * @param requestAuthenticator an instance of the RequestAuthenticator class
+   * @param requestAuthenticator an instance of the {@link RequestAuthenticator} class
+   * @param xsrfTokenManager an instance of the {@link XsrfTokenManager} class
    */
   protected RequestHandler(
       Provider<B> requestComponentBuilderProvider,
       UserService userService,
-      RequestAuthenticator requestAuthenticator) {
-    this(null, requestComponentBuilderProvider, userService, requestAuthenticator);
+      RequestAuthenticator requestAuthenticator,
+      XsrfTokenManager xsrfTokenManager) {
+    this(null, requestComponentBuilderProvider, userService, requestAuthenticator,
+        xsrfTokenManager);
   }
 
   /** Creates a new RequestHandler with an explicit component class for test purposes. */
@@ -106,19 +107,22 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
       Class<C> component,
       Provider<B> requestComponentBuilderProvider,
       UserService userService,
-      RequestAuthenticator requestAuthenticator) {
+      RequestAuthenticator requestAuthenticator,
+      XsrfTokenManager xsrfTokenManager) {
     return new RequestHandler<>(
         checkNotNull(component),
         requestComponentBuilderProvider,
         userService,
-        requestAuthenticator);
+        requestAuthenticator,
+        xsrfTokenManager);
   }
 
   private RequestHandler(
       @Nullable Class<C> component,
       Provider<B> requestComponentBuilderProvider,
       UserService userService,
-      RequestAuthenticator requestAuthenticator) {
+      RequestAuthenticator requestAuthenticator,
+      XsrfTokenManager xsrfTokenManager) {
     // If the component class isn't explicitly provided, infer it from the class's own typing.
     // This is safe only for use by subclasses of RequestHandler where the generic parameter is
     // preserved at runtime, so only expose that option via the protected constructor.
@@ -127,6 +131,7 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
     this.requestComponentBuilderProvider = checkNotNull(requestComponentBuilderProvider);
     this.userService = checkNotNull(userService);
     this.requestAuthenticator = checkNotNull(requestAuthenticator);
+    this.xsrfTokenManager = checkNotNull(xsrfTokenManager);
   }
 
   /** Runs the appropriate action for a servlet request. */
@@ -160,10 +165,9 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
       return;
     }
     if (route.get().shouldXsrfProtect(method)
-        && !validateToken(
+        && !xsrfTokenManager.validateToken(
                 nullToEmpty(req.getHeader(X_CSRF_TOKEN)),
-                route.get().action().xsrfScope(),
-                XSRF_VALIDITY)) {
+                route.get().action().xsrfScope())) {
       rsp.sendError(SC_FORBIDDEN, "Invalid " + X_CSRF_TOKEN);
       return;
     }

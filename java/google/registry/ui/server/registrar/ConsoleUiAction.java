@@ -58,6 +58,7 @@ public final class ConsoleUiAction implements Runnable {
   @Inject Response response;
   @Inject SessionUtils sessionUtils;
   @Inject UserService userService;
+  @Inject XsrfTokenManager xsrfTokenManager;
   @Inject @Config("logoFilename") String logoFilename;
   @Inject @Config("productName") String productName;
   @Inject @Config("integrationEmail") String integrationEmail;
@@ -104,7 +105,7 @@ public final class ConsoleUiAction implements Runnable {
       return;
     }
     Registrar registrar = Registrar.loadByClientId(sessionUtils.getRegistrarClientId(req));
-    data.put("xsrfToken", XsrfTokenManager.generateToken(EppConsoleAction.XSRF_SCOPE));
+    data.put("xsrfToken", xsrfTokenManager.generateToken(EppConsoleAction.XSRF_SCOPE));
     data.put("clientId", registrar.getClientId());
     data.put("showPaymentLink", registrar.getBillingMethod() == Registrar.BillingMethod.BRAINTREE);
 

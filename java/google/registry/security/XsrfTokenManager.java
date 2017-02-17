@@ -14,7 +14,6 @@
 
 package google.registry.security;
 
-import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 import static com.google.common.io.BaseEncoding.base64Url;
 import static google.registry.model.server.ServerSecret.getServerSecret;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -25,9 +24,8 @@ import com.google.common.base.Splitter;
 import com.google.common.hash.Hashing;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-import google.registry.util.NonFinalForTesting;
-import google.registry.util.SystemClock;
 import java.util.List;
+import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
@@ -37,10 +35,18 @@ public final class XsrfTokenManager {
   /** HTTP header used for transmitting XSRF tokens. */
   public static final String X_CSRF_TOKEN = "X-CSRF-Token";
 
+  private static final Duration XSRF_VALIDITY = Duration.standardDays(1);
+
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @NonFinalForTesting
-  private static Clock clock = new SystemClock();
+  private final Clock clock;
+  private final UserService userService;
+
+  @Inject
+  public XsrfTokenManager(Clock clock, UserService userService) {
+    this.clock = clock;
+    this.userService = userService;
+  }
 
   private static String encodeToken(long creationTime, String scope, String userEmail) {
     String token = Joiner.on('\t').join(getServerSecret(), userEmail, scope, creationTime);
@@ -58,23 +64,22 @@ public final class XsrfTokenManager {
    * any callback that doesn't have a user shouldn't be able to access any per-user resources
    * anyways.
    */
-  public static String generateToken(String scope) {
+  public String generateToken(String scope) {
     return generateToken(scope, getLoggedInEmailOrEmpty());
   }
 
   /** Generate an xsrf token for a given scope and user. */
-  public static String generateToken(String scope, String email) {
+  public String generateToken(String scope, String email) {
     long now = clock.nowUtc().getMillis();
     return Joiner.on(':').join(encodeToken(now, scope, email), now);
   }
 
-  private static String getLoggedInEmailOrEmpty() {
-    UserService userService = getUserService();
+  private String getLoggedInEmailOrEmpty() {
     return userService.isUserLoggedIn() ? userService.getCurrentUser().getEmail() : "";
   }
 
-  /** Validate an xsrf token, given the scope it was used for and an expiration duration. */
-  public static boolean validateToken(String token, String scope, Duration validLifetime) {
+  /** Validate an xsrf token, given the scope it was used for. */
+  public boolean validateToken(String token, String scope) {
     List<String> tokenParts = Splitter.on(':').splitToList(token);
     if (tokenParts.size() != 2) {
       logger.warningfmt("Malformed XSRF token: %s", token);
@@ -89,7 +94,7 @@ public final class XsrfTokenManager {
       logger.warningfmt("Bad timestamp in XSRF token: %s", token);
       return false;
     }
-    if (new DateTime(creationTime).plus(validLifetime).isBefore(clock.nowUtc())) {
+    if (new DateTime(creationTime).plus(XSRF_VALIDITY).isBefore(clock.nowUtc())) {
       logger.infofmt("Expired timestamp in XSRF token: %s", token);
       return false;
     }
@@ -100,6 +105,4 @@ public final class XsrfTokenManager {
     }
     return true;
   }
-
-  private XsrfTokenManager() {}
 }
