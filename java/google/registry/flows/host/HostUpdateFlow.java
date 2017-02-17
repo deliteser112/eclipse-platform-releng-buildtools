@@ -128,9 +128,10 @@ public final class HostUpdateFlow implements TransactionalFlow {
     boolean isHostRename = suppliedNewHostName != null;
     String oldHostName = targetId;
     String newHostName = firstNonNull(suppliedNewHostName, oldHostName);
-    Optional<DomainResource> superordinateDomain =
+    // Note that lookupSuperordinateDomain calls cloneProjectedAtTime on the domain for us.
+    Optional<DomainResource> newSuperordinateDomain =
         Optional.fromNullable(lookupSuperordinateDomain(validateHostName(newHostName), now));
-    verifyUpdateAllowed(command, existingHost, superordinateDomain.orNull());
+    verifyUpdateAllowed(command, existingHost, newSuperordinateDomain.orNull());
     if (isHostRename && loadAndGetKey(HostResource.class, newHostName, now) != null) {
       throw new HostAlreadyExistsException(newHostName);
     }
@@ -138,6 +139,13 @@ public final class HostUpdateFlow implements TransactionalFlow {
     AddRemove remove = command.getInnerRemove();
     checkSameValuesNotAddedAndRemoved(add.getStatusValues(), remove.getStatusValues());
     checkSameValuesNotAddedAndRemoved(add.getInetAddresses(), remove.getInetAddresses());
+    Key<DomainResource> newSuperordinateDomainKey =
+        newSuperordinateDomain.isPresent() ? Key.create(newSuperordinateDomain.get()) : null;
+    // If the superordinateDomain field is changing, set the lastSuperordinateChange to now.
+    DateTime lastSuperordinateChange =
+        Objects.equals(newSuperordinateDomainKey, existingHost.getSuperordinateDomain())
+            ? existingHost.getLastSuperordinateChange()
+            : now;
     HostResource newHost = existingHost.asBuilder()
         .setFullyQualifiedHostName(newHostName)
         .addStatusValues(add.getStatusValues())
@@ -146,12 +154,8 @@ public final class HostUpdateFlow implements TransactionalFlow {
         .removeInetAddresses(remove.getInetAddresses())
         .setLastEppUpdateTime(now)
         .setLastEppUpdateClientId(clientId)
-        // The superordinateDomain can be missing if the new name is external.
-        // Note that the value of superordinateDomain is projected to the current time inside of
-        // the lookupSuperordinateDomain(...) call above, so that it will never be stale.
-        .setSuperordinateDomain(
-            superordinateDomain.isPresent() ? Key.create(superordinateDomain.get()) : null)
-        .setLastSuperordinateChange(superordinateDomain.isPresent() ? now : null)
+        .setSuperordinateDomain(newSuperordinateDomainKey)
+        .setLastSuperordinateChange(lastSuperordinateChange)
         .build()
         // Rely on the host's cloneProjectedAtTime() method to handle setting of transfer data.
         .cloneProjectedAtTime(now);

@@ -18,6 +18,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -174,78 +175,105 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     setEppInput("host_update_name_unchanged.xml");
     createTld("tld");
     DomainResource domain = persistActiveDomain("example.tld");
-    persistActiveSubordinateHost(oldHostName(), domain);
+    HostResource oldHost = persistActiveSubordinateHost(oldHostName(), domain);
 
     clock.advanceOneMilli();
     runFlowAssertResponse(readFile("host_update_response.xml"));
     // The example xml doesn't do a host rename, so reloading the host should work.
     assertAboutHosts().that(reloadResourceByForeignKey())
+        .hasLastSuperordinateChange(oldHost.getLastSuperordinateChange()).and()
+        .hasSuperordinateDomain(Key.create(domain)).and()
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.HOST_UPDATE);
     assertDnsTasksEnqueued("ns1.example.tld");
   }
 
   @Test
-  public void testSuccess_renameWithSameSuperordinateDomain() throws Exception {
+  public void testSuccess_internalToInternalOnSameDomain() throws Exception {
     setEppHostUpdateInput(
         "ns1.example.tld",
         "ns2.example.tld",
         "<host:addr ip=\"v4\">192.0.2.22</host:addr>",
         "<host:addr ip=\"v6\">1080:0:0:0:8:800:200C:417A</host:addr>");
     createTld("tld");
-    DomainResource domain = persistActiveDomain("example.tld");
-    persistActiveSubordinateHost(oldHostName(), domain);
-    persistResource(
-        domain.asBuilder()
+    DomainResource domain = persistResource(newDomainResource("example.tld")
+            .asBuilder()
             .setSubordinateHosts(ImmutableSet.of(oldHostName()))
             .build());
-    assertThat(
-        loadByForeignKey(
-            DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
-            .containsExactly("ns1.example.tld");
+    HostResource oldHost = persistActiveSubordinateHost(oldHostName(), domain);
+    assertThat(domain.getSubordinateHosts()).containsExactly("ns1.example.tld");
     HostResource renamedHost = doSuccessfulTest();
-    assertThat(renamedHost.getSuperordinateDomain()).isEqualTo(Key.create(domain));
-    assertThat(
-        loadByForeignKey(
-            DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
-            .containsExactly("ns2.example.tld");
+    assertAboutHosts().that(renamedHost)
+        .hasSuperordinateDomain(Key.create(domain)).and()
+        .hasLastSuperordinateChange(oldHost.getLastSuperordinateChange());
+    DomainResource reloadedDomain =
+        ofy().load().entity(domain).now().cloneProjectedAtTime(clock.nowUtc());
+    assertThat(reloadedDomain.getSubordinateHosts()).containsExactly("ns2.example.tld");
     assertDnsTasksEnqueued("ns1.example.tld", "ns2.example.tld");
   }
 
   @Test
-  public void testSuccess_internalToSameInternal() throws Exception {
+  public void testSuccess_internalToInternalOnSameTld() throws Exception {
     setEppHostUpdateInput(
         "ns2.foo.tld",
         "ns2.example.tld",
         "<host:addr ip=\"v4\">192.0.2.22</host:addr>",
         "<host:addr ip=\"v6\">1080:0:0:0:8:800:200C:417A</host:addr>");
     createTld("tld");
-    DomainResource foo = persistActiveDomain("foo.tld");
     DomainResource example = persistActiveDomain("example.tld");
+    DomainResource foo = persistResource(newDomainResource("foo.tld").asBuilder()
+        .setSubordinateHosts(ImmutableSet.of(oldHostName()))
+        .build());
     persistActiveSubordinateHost(oldHostName(), foo);
-    persistResource(
-        foo.asBuilder()
-            .setSubordinateHosts(ImmutableSet.of(oldHostName()))
-            .build());
-    assertThat(
-        loadByForeignKey(
-            DomainResource.class, "foo.tld", clock.nowUtc()).getSubordinateHosts())
-            .containsExactly("ns2.foo.tld");
-    assertThat(
-        loadByForeignKey(
-            DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
-            .isEmpty();
+    assertThat(foo.getSubordinateHosts()).containsExactly("ns2.foo.tld");
+    assertThat(example.getSubordinateHosts()).isEmpty();
     HostResource renamedHost = doSuccessfulTest();
-    assertThat(renamedHost.getSuperordinateDomain()).isEqualTo(Key.create(example));
-    assertThat(
-        loadByForeignKey(
-            DomainResource.class, "foo.tld", clock.nowUtc()).getSubordinateHosts())
-            .isEmpty();
-    assertThat(
-        loadByForeignKey(
-            DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
-            .containsExactly("ns2.example.tld");
+    DateTime now = clock.nowUtc();
+    assertAboutHosts().that(renamedHost)
+        .hasSuperordinateDomain(Key.create(example)).and()
+        .hasLastSuperordinateChange(now);
+    assertThat(ofy().load().entity(foo).now().cloneProjectedAtTime(now).getSubordinateHosts())
+        .isEmpty();
+    assertThat(ofy().load().entity(example).now().cloneProjectedAtTime(now).getSubordinateHosts())
+        .containsExactly("ns2.example.tld");
     assertDnsTasksEnqueued("ns2.foo.tld", "ns2.example.tld");
+  }
+
+  @Test
+  public void testSuccess_internalToInternalOnDifferentTld() throws Exception {
+    setEppHostUpdateInput(
+        "ns1.example.foo",
+        "ns2.example.tld",
+        "<host:addr ip=\"v4\">192.0.2.22</host:addr>",
+        "<host:addr ip=\"v6\">1080:0:0:0:8:800:200C:417A</host:addr>");
+    createTld("foo");
+    createTld("tld");
+    DomainResource fooDomain = persistResource(newDomainResource("example.foo").asBuilder()
+        .setSubordinateHosts(ImmutableSet.of(oldHostName()))
+        .build());
+    DomainResource tldDomain = persistActiveDomain("example.tld");
+    HostResource oldHost = persistActiveSubordinateHost(oldHostName(), fooDomain);
+    assertThat(oldHost.getCurrentSponsorClientId()).isEqualTo("TheRegistrar");
+    assertThat(fooDomain.getSubordinateHosts()).containsExactly("ns1.example.foo");
+    assertThat(tldDomain.getSubordinateHosts()).isEmpty();
+    HostResource renamedHost = doSuccessfulTest();
+    DateTime now = clock.nowUtc();
+    assertAboutHosts().that(renamedHost)
+        .hasSuperordinateDomain(Key.create(tldDomain)).and()
+        .hasLastSuperordinateChange(now);
+    DomainResource reloadedFooDomain =
+        ofy().load().entity(fooDomain).now().cloneProjectedAtTime(now);
+    assertThat(reloadedFooDomain.getSubordinateHosts()).isEmpty();
+    DomainResource reloadedTldDomain =
+        ofy().load().entity(tldDomain).now().cloneProjectedAtTime(now);
+    assertThat(reloadedTldDomain.getSubordinateHosts()).containsExactly("ns2.example.tld");
+    assertDnsTasksEnqueued("ns1.example.foo", "ns2.example.tld");
+    // Ensure that the client id is read off the domain because this is a subordinate host now.
+    persistResource(
+        tldDomain.asBuilder().setCurrentSponsorClientId("it_should_be_this").build());
+    assertThat(
+        renamedHost.cloneProjectedAtTime(clock.nowUtc().plusMinutes(1)).getCurrentSponsorClientId())
+            .isEqualTo("it_should_be_this");
   }
 
   @Test
@@ -256,60 +284,26 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
         null,
         "<host:addr ip=\"v6\">1080:0:0:0:8:800:200C:417A</host:addr>");
     createTld("foo");
-    DomainResource domain = persistActiveDomain("example.foo");
-    persistActiveSubordinateHost(oldHostName(), domain);
-    persistResource(
-        domain.asBuilder()
-            .setSubordinateHosts(ImmutableSet.of(oldHostName()))
+    DomainResource domain = persistResource(newDomainResource("example.foo").asBuilder()
+        .setSubordinateHosts(ImmutableSet.of(oldHostName()))
+        .build());
+    assertThat(domain.getCurrentSponsorClientId()).isEqualTo("TheRegistrar");
+    HostResource oldHost = persistResource(
+        persistActiveSubordinateHost(oldHostName(), domain).asBuilder()
+            .setCurrentSponsorClientId("ClientThatShouldBeSupersededByDomainClient")
             .build());
-    assertThat(
-        loadByForeignKey(
-            DomainResource.class, "example.foo", clock.nowUtc()).getSubordinateHosts())
-            .containsExactly("ns1.example.foo");
+    assertThat(oldHost.isSubordinate()).isTrue();
+    assertThat(domain.getSubordinateHosts()).containsExactly("ns1.example.foo");
     HostResource renamedHost = doSuccessfulTest();
-    assertThat(renamedHost.isSubordinate()).isFalse();
-    // Ensure that the client id is set to the new registrar correctly (and that this necessarily
-    // comes from the field on the host itself, because the superordinate domain is null).
-    assertThat(renamedHost.getCurrentSponsorClientId()).isEqualTo("TheRegistrar");
-    assertThat(
-        loadByForeignKey(
-            DomainResource.class, "example.foo", clock.nowUtc()).getSubordinateHosts())
-            .isEmpty();
+    assertAboutHosts().that(renamedHost)
+        // Ensure that the client id is copied off of the superordinate domain.
+        .hasCurrentSponsorClientId("TheRegistrar").and()
+        .hasSuperordinateDomain(null).and()
+        .hasLastSuperordinateChange(clock.nowUtc());
+    DomainResource reloadedDomain =
+        ofy().load().entity(domain).now().cloneProjectedAtTime(clock.nowUtc());
+    assertThat(reloadedDomain.getSubordinateHosts()).isEmpty();
     assertDnsTasksEnqueued("ns1.example.foo");
-  }
-
-  @Test
-  public void testSuccess_internalToDifferentInternal() throws Exception {
-    setEppHostUpdateInput(
-        "ns1.example.foo",
-        "ns2.example.tld",
-        "<host:addr ip=\"v4\">192.0.2.22</host:addr>",
-        "<host:addr ip=\"v6\">1080:0:0:0:8:800:200C:417A</host:addr>");
-    createTld("foo");
-    persistActiveDomain("example.foo");
-    createTld("tld");
-    DomainResource tldDomain = persistActiveDomain("example.tld");
-    persistActiveHost(oldHostName());
-
-    assertThat(loadByForeignKey(
-        HostResource.class, oldHostName(), clock.nowUtc()).getCurrentSponsorClientId())
-            .isEqualTo("TheRegistrar");
-    assertThat(
-        loadByForeignKey(
-            DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
-            .isEmpty();
-    HostResource renamedHost = doSuccessfulTest();
-    assertThat(renamedHost.getSuperordinateDomain()).isEqualTo(Key.create(tldDomain));
-    assertThat(loadByForeignKey(
-            DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
-            .containsExactly("ns2.example.tld");
-    assertDnsTasksEnqueued("ns2.example.tld");
-    // Ensure that the client id is read off the domain because this is a subordinate host now.
-    persistResource(
-        tldDomain.asBuilder().setCurrentSponsorClientId("it_should_be_this").build());
-    assertThat(
-        renamedHost.cloneProjectedAtTime(clock.nowUtc().plusMinutes(1)).getCurrentSponsorClientId())
-            .isEqualTo("it_should_be_this");
   }
 
   @Test
@@ -321,26 +315,39 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
         null);
     createTld("tld");
     DomainResource domain = persistActiveDomain("example.tld");
-    persistActiveHost(oldHostName());
-
-    assertThat(loadByForeignKey(
-        HostResource.class, oldHostName(), clock.nowUtc()).getCurrentSponsorClientId())
-            .isEqualTo("TheRegistrar");
-    assertThat(loadByForeignKey(
-            DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
-            .isEmpty();
+    HostResource oldHost = persistActiveHost(oldHostName());
+    assertThat(oldHost.getCurrentSponsorClientId()).isEqualTo("TheRegistrar");
+    assertThat(domain.getSubordinateHosts()).isEmpty();
     HostResource renamedHost = doSuccessfulTest();
-    assertThat(renamedHost.getSuperordinateDomain()).isEqualTo(Key.create(domain));
-    assertThat(loadByForeignKey(
-            DomainResource.class, "example.tld", clock.nowUtc()).getSubordinateHosts())
-            .containsExactly("ns2.example.tld");
+    DateTime now = clock.nowUtc();
+    assertAboutHosts().that(renamedHost)
+        .hasSuperordinateDomain(Key.create(domain)).and()
+        .hasLastSuperordinateChange(now);
+    assertThat(ofy().load().entity(domain).now().cloneProjectedAtTime(now).getSubordinateHosts())
+        .containsExactly("ns2.example.tld");
     assertDnsTasksEnqueued("ns2.example.tld");
     // Ensure that the client id is read off the domain because this is a subordinate host now.
     persistResource(
         domain.asBuilder().setCurrentSponsorClientId("it_should_be_this").build());
     assertThat(
-        renamedHost.cloneProjectedAtTime(clock.nowUtc().plusMinutes(1)).getCurrentSponsorClientId())
+        renamedHost.cloneProjectedAtTime(now.plusMinutes(1)).getCurrentSponsorClientId())
             .isEqualTo("it_should_be_this");
+  }
+
+  @Test
+  public void testSuccess_externalToExternal() throws Exception {
+    setEppHostUpdateInput(
+        "ns1.example.foo",
+        "ns2.example.tld",
+        null,
+        null);
+    HostResource oldHost = persistActiveHost(oldHostName());
+    assertThat(oldHost.getCurrentSponsorClientId()).isEqualTo("TheRegistrar");
+    HostResource renamedHost = doSuccessfulTest();
+    assertAboutHosts().that(renamedHost)
+        .hasSuperordinateDomain(null).and()
+        .hasLastSuperordinateChange(null);
+    assertNoDnsTasksEnqueued();
   }
 
   @Test
@@ -550,7 +557,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     // update, not what it is later changed to.
     assertThat(renamedHost.getLastTransferTime()).isEqualTo(lastTransferTime);
     // External hosts should always have null lastSuperordinateChange.
-    assertThat(renamedHost.getLastSuperordinateChange()).isNull();
+    assertThat(renamedHost.getLastSuperordinateChange()).isEqualTo(clock.nowUtc());
   }
 
   @Test

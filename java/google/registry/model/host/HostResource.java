@@ -85,8 +85,11 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
   DateTime lastTransferTime;
 
   /**
-   * The most recent time that the superordinate domain was changed, or null if this host is
-   * external.
+   * The most recent time that the {@link #superordinateDomain} field was changed.
+   *
+   * <p>This should be updated whenever the superordinate domain changes, including when it is set
+   * to null. This field will be null for new hosts that have never experienced a change of
+   * superordinate domain.
    */
   DateTime lastSuperordinateChange;
 

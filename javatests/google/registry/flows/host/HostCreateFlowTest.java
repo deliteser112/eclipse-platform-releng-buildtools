@@ -15,7 +15,7 @@
 package google.registry.flows.host;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -27,6 +27,7 @@ import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppXmlTransformer.IpAddressVersionMismatchException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
@@ -39,6 +40,7 @@ import google.registry.flows.host.HostFlowUtils.HostNameTooLongException;
 import google.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
 import google.registry.flows.host.HostFlowUtils.InvalidHostNameException;
 import google.registry.flows.host.HostFlowUtils.SuperordinateDomainDoesNotExistException;
+import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
 import org.joda.time.DateTime;
@@ -80,6 +82,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     runFlowAssertResponse(readFile("host_create_response.xml"));
     // Check that the host was created and persisted with a history entry.
     assertAboutHosts().that(reloadResourceByForeignKey())
+        .hasLastSuperordinateChange(null).and()
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.HOST_CREATE);
     assertNoBillingEvents();
@@ -101,17 +104,18 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   @Test
   public void testSuccess_externalNeverExisted() throws Exception {
     doSuccessfulTest();
+    assertAboutHosts().that(reloadResourceByForeignKey()).hasSuperordinateDomain(null);
     assertNoDnsTasksEnqueued();
   }
 
   @Test
   public void testSuccess_internalNeverExisted() throws Exception {
     doSuccessfulInternalTest("tld");
-    assertThat(ofy().load().key(reloadResourceByForeignKey().getSuperordinateDomain())
-        .now().getFullyQualifiedDomainName())
-            .isEqualTo("example.tld");
-    assertThat(ofy().load().key(reloadResourceByForeignKey().getSuperordinateDomain())
-        .now().getSubordinateHosts()).containsExactly("ns1.example.tld");
+    HostResource host = reloadResourceByForeignKey();
+    DomainResource superordinateDomain =
+        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc());
+    assertAboutHosts().that(host).hasSuperordinateDomain(Key.create(superordinateDomain));
+    assertThat(superordinateDomain.getSubordinateHosts()).containsExactly("ns1.example.tld");
     assertDnsTasksEnqueued("ns1.example.tld");
   }
 
@@ -119,6 +123,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   public void testSuccess_externalExistedButWasDeleted() throws Exception {
     persistDeletedHost(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     doSuccessfulTest();
+    assertAboutHosts().that(reloadResourceByForeignKey()).hasSuperordinateDomain(null);
     assertNoDnsTasksEnqueued();
   }
 
@@ -126,11 +131,11 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   public void testSuccess_internalExistedButWasDeleted() throws Exception {
     persistDeletedHost(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     doSuccessfulInternalTest("tld");
-    assertThat(ofy().load().key(reloadResourceByForeignKey().getSuperordinateDomain())
-        .now().getFullyQualifiedDomainName())
-            .isEqualTo("example.tld");
-    assertThat(ofy().load().key(reloadResourceByForeignKey().getSuperordinateDomain())
-        .now().getSubordinateHosts()).containsExactly("ns1.example.tld");
+    HostResource host = reloadResourceByForeignKey();
+    DomainResource superordinateDomain =
+        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc());
+    assertAboutHosts().that(host).hasSuperordinateDomain(Key.create(superordinateDomain));
+    assertThat(superordinateDomain.getSubordinateHosts()).containsExactly("ns1.example.tld");
     assertDnsTasksEnqueued("ns1.example.tld");
   }
 

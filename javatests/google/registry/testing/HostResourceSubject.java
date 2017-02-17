@@ -19,6 +19,8 @@ import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
+import com.googlecode.objectify.Key;
+import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.testing.TruthChainer.And;
 import org.joda.time.DateTime;
@@ -51,5 +53,19 @@ public final class HostResourceSubject
         lastTransferTime,
         actual().getLastTransferTime(),
         "lastTransferTime");
+  }
+
+  public And<HostResourceSubject> hasLastSuperordinateChange(DateTime lastSuperordinateChange) {
+    return hasValue(
+        lastSuperordinateChange,
+        actual().getLastSuperordinateChange(),
+        "has lastSuperordinateChange");
+  }
+
+  public And<HostResourceSubject> hasSuperordinateDomain(Key<DomainResource> superordinateDomain) {
+    return hasValue(
+        superordinateDomain,
+        actual().getSuperordinateDomain(),
+        "has superordinateDomain");
   }
 }
