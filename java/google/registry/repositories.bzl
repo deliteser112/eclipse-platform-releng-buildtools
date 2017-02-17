@@ -32,6 +32,7 @@ def domain_registry_repositories(
     omit_com_google_api_client_servlet=False,
     omit_com_google_apis_google_api_services_admin_directory=False,
     omit_com_google_apis_google_api_services_bigquery=False,
+    omit_com_google_apis_google_api_services_cloudkms=False,
     omit_com_google_apis_google_api_services_dns=False,
     omit_com_google_apis_google_api_services_drive=False,
     omit_com_google_apis_google_api_services_groupssettings=False,
@@ -129,6 +130,8 @@ def domain_registry_repositories(
     com_google_apis_google_api_services_admin_directory()
   if not omit_com_google_apis_google_api_services_bigquery:
     com_google_apis_google_api_services_bigquery()
+  if not omit_com_google_apis_google_api_services_cloudkms:
+    com_google_apis_google_api_services_cloudkms()
   if not omit_com_google_apis_google_api_services_dns:
     com_google_apis_google_api_services_dns()
   if not omit_com_google_apis_google_api_services_drive:
@@ -421,6 +424,18 @@ def com_google_apis_google_api_services_bigquery():
           "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-bigquery/v2-rev325-1.22.0/google-api-services-bigquery-v2-rev325-1.22.0.jar",
       ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
+      deps = ["@com_google_api_client"],
+  )
+
+def com_google_apis_google_api_services_cloudkms():
+  java_import_external(
+      name = "com_google_apis_google_api_services_cloudkms",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "82e5995e9dd248d24edfeace90261c1be0e905ecbae0b2c5ee19bb06a3e7dfdf",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-cloudkms/v1beta1-rev409-1.22.0/google-api-services-cloudkms-v1beta1-rev409-1.22.0.jar",
+          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-cloudkms/v1beta1-rev409-1.22.0/google-api-services-cloudkms-v1beta1-rev409-1.22.0.jar",
+      ],
       deps = ["@com_google_api_client"],
   )
 

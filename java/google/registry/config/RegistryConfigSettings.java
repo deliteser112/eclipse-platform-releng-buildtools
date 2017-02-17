@@ -31,6 +31,7 @@ public class RegistryConfigSettings {
   public Misc misc;
   public Rdap rdap;
   public Braintree braintree;
+  public Kms kms;
 
   /** Configuration options that apply to the entire App Engine project. */
   public static class AppEngine {
@@ -76,6 +77,12 @@ public class RegistryConfigSettings {
     public int commitLogBucketsNum;
     public int eppResourceIndexBucketsNum;
     public int baseOfyRetryMillis;
+  }
+
+  /** Configuration for Cloud KMS. */
+  public static class Kms {
+    public String keyringName;
+    public String projectId;
   }
 
   /** Configuration for caching. */

@@ -48,6 +48,8 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.server.KmsSecret;
+import google.registry.model.server.KmsSecretRevision;
 import google.registry.model.server.Lock;
 import google.registry.model.server.ServerSecret;
 import google.registry.model.smd.SignedMarkRevocationList;
@@ -90,6 +92,8 @@ public final class EntityClasses {
           GaeUserIdConverter.class,
           HistoryEntry.class,
           HostResource.class,
+          KmsSecret.class,
+          KmsSecretRevision.class,
           Lock.class,
           LogsExportCursor.class,
           LrpTokenEntity.class,

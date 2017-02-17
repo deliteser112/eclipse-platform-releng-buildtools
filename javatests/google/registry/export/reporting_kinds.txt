@@ -8,6 +8,8 @@ ForeignKeyDomainIndex
 ForeignKeyHostIndex
 HistoryEntry
 HostResource
+KmsSecret
+KmsSecretRevision
 LrpTokenEntity
 Modification
 OneTime
