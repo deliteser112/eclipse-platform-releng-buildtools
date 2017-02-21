@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.tools.DefaultRequestFactoryModule.createClientScopeQualifier;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -27,6 +28,7 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import google.registry.testing.Providers;
 import java.io.IOException;
@@ -105,5 +107,42 @@ public class DefaultRequestFactoryModuleTest {
                 HostAndPort.fromParts("example.com", 1000)),
             credentialProvider);
     assertThat(factory.getInitializer()).isSameAs(FAKE_CREDENTIAL);
+  }
+
+  @Test
+  public void test_createClientScopeQualifier() {
+    String simpleQualifier =
+        createClientScopeQualifier("client-id", ImmutableList.of("foo", "bar"));
+
+    // If we change the way we encode client id and scopes, this assertion will break.  That's
+    // probably ok and you can just change the text.  The things you have to be aware of are:
+    // - Names in the new encoding should have a low risk of collision with the old encoding.
+    // - Changing the encoding will force all OAuth users of the nomulus tool to do a new login
+    //   (existing credentials will not be used).
+    assertThat(simpleQualifier).isEqualTo("client-id bar foo");
+
+    // Verify order independence.
+    assertThat(simpleQualifier).isEqualTo(
+        createClientScopeQualifier("client-id", ImmutableList.of("bar", "foo")));
+
+    // Verify changing client id produces a different value.
+    assertThat(simpleQualifier).isNotEqualTo(
+        createClientScopeQualifier("new-client", ImmutableList.of("bar", "foo")));
+
+    // Verify that adding/deleting/modifying scopes produces a different value.
+    assertThat(simpleQualifier).isNotEqualTo(
+        createClientScopeQualifier("client id", ImmutableList.of("bar", "foo", "baz")));
+    assertThat(simpleQualifier).isNotEqualTo(
+        createClientScopeQualifier("client id", ImmutableList.of("barx", "foo")));
+    assertThat(simpleQualifier).isNotEqualTo(
+        createClientScopeQualifier("client id", ImmutableList.of("bar", "foox")));
+    assertThat(simpleQualifier).isNotEqualTo(
+        createClientScopeQualifier("client id", ImmutableList.of("bar")));
+
+    // Verify that delimiting works.
+    assertThat(simpleQualifier).isNotEqualTo(
+        createClientScopeQualifier("client-id", ImmutableList.of("barf", "oo")));
+    assertThat(simpleQualifier).isNotEqualTo(
+        createClientScopeQualifier("client-idb", ImmutableList.of("ar", "foo")));
   }
 }

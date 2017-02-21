@@ -29,15 +29,20 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Ordering;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.RegistryConfig.Config;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.annotation.Documented;
-import java.util.Collections;
+import java.util.Collection;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Qualifier;
@@ -59,10 +64,6 @@ import javax.inject.Singleton;
  */
 @Module
 class DefaultRequestFactoryModule {
-
-  // TODO(mmuller): Use @Config("requiredOauthScopes")
-  private static final String DEFAULT_SCOPE =
-      "https://www.googleapis.com/auth/userinfo.email";
 
   private static final File DATA_STORE_DIR =
       new File(System.getProperty("user.home"), ".config/nomulus/credentials");
@@ -124,8 +125,8 @@ class DefaultRequestFactoryModule {
    * Module for providing HttpRequestFactory.
    *
    * <p>Localhost connections go to the App Engine dev server. The dev server differs from most HTTP
-   * connections in that the types whose annotations affect the use of annotaty don't require
-   * OAuth2 credentials, but instead require a special cookie.
+   * connections in that it doesn't require OAuth2 credentials, but instead requires a special
+   * cookie.
    */
   @Module
   abstract static class RequestFactoryModule {
@@ -155,31 +156,38 @@ class DefaultRequestFactoryModule {
   static class AuthorizerModule {
     @Provides
     public Authorizer provideAuthorizer(
-        final JsonFactory jsonFactory, final AbstractDataStoreFactory dataStoreFactory) {
+        final JsonFactory jsonFactory,
+        final AbstractDataStoreFactory dataStoreFactory,
+        @Config("requiredOauthScopes") final ImmutableSet<String> requiredOauthScopes) {
       return new Authorizer() {
         @Override
         public Credential authorize(GoogleClientSecrets clientSecrets) {
           try {
             // Run a new auth flow.
             GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                    new NetHttpTransport(), jsonFactory, clientSecrets,
-                    Collections.singleton(DEFAULT_SCOPE))
+                    new NetHttpTransport(), jsonFactory, clientSecrets, requiredOauthScopes)
                 .setDataStoreFactory(dataStoreFactory)
                 .build();
 
-            // TODO(mmuller): "credentials" directory needs to be qualified with the scopes and
-            // client id.
 
-            // We pass client id to the authorize method so we can safely persist credentials for
-            // multiple client ids.
             return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver())
-                .authorize(clientSecrets.getDetails().getClientId());
+                .authorize(createClientScopeQualifier(
+                    clientSecrets.getDetails().getClientId(), requiredOauthScopes));
           } catch (Exception ex) {
             throw new RuntimeException(ex);
           }
         }
       };
     }
+  }
+
+  /**
+   * Create a unique identifier for a given client id and collection of scopes, to be used as an
+   * identifier for a credential.
+   */
+  @VisibleForTesting
+  static String createClientScopeQualifier(String clientId, Collection<String> scopes) {
+    return clientId + " " + Joiner.on(" ").join(Ordering.natural().sortedCopy(scopes));
   }
 
   /**
