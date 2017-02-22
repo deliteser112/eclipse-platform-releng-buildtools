@@ -19,6 +19,7 @@ import static google.registry.config.ConfigUtils.makeUrl;
 import static google.registry.config.YamlUtils.getConfigSettings;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -975,6 +976,17 @@ public final class RegistryConfig {
     }
 
     /**
+     * Returns the name of the OAuth2 client secrets file.
+     *
+     * <p>This is the name of a resource relative to the root of the class tree.
+     */
+    @Provides
+    @Config("clientSecretFilename")
+    public static String provideClientSecretFilename(RegistryConfigSettings config) {
+      return config.registryTool.clientSecretFilename;
+    }
+
+    /**
      * Returns the help text to be used by RDAP.
      *
      * <p>Make sure that the map entry for the terms of service use the same key as specified in
@@ -1172,6 +1184,12 @@ public final class RegistryConfig {
   /** Returns the global automatic transfer length for contacts. */
   public static Duration getContactAutomaticTransferLength() {
     return Duration.standardDays(CONFIG_SETTINGS.get().registryPolicy.contactAutomaticTransferDays);
+  }
+
+  /** Provided for testing. */
+  @VisibleForTesting
+  public static String getClientSecretFilename() {
+    return CONFIG_SETTINGS.get().registryTool.clientSecretFilename;
   }
 
   /**

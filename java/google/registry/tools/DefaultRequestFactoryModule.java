@@ -41,11 +41,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.annotation.Documented;
 import java.util.Collection;
 import javax.inject.Named;
 import javax.inject.Provider;
-import javax.inject.Qualifier;
 import javax.inject.Singleton;
 
 /**
@@ -68,22 +66,12 @@ class DefaultRequestFactoryModule {
   private static final File DATA_STORE_DIR =
       new File(System.getProperty("user.home"), ".config/nomulus/credentials");
 
-  // TODO(mmuller): replace with a config parameter.
-  private static final String CLIENT_SECRET_FILENAME =
-      "/google/registry/tools/resources/client_secret.json";
-
-  @Provides
-  @ClientSecretFilename
-  String provideClientSecretFilename() {
-    return CLIENT_SECRET_FILENAME;
-  }
-
   /** Returns the credential object for the user. */
   @Provides
   Credential provideCredential(
       AbstractDataStoreFactory dataStoreFactory,
       Authorizer authorizer,
-      @ClientSecretFilename String clientSecretFilename) {
+      @Config("clientSecretFilename") String clientSecretFilename) {
     try {
       // Load the client secrets file.
       JacksonFactory jsonFactory = new JacksonFactory();
@@ -197,12 +185,4 @@ class DefaultRequestFactoryModule {
   interface Authorizer {
     Credential authorize(GoogleClientSecrets clientSecrets);
   }
-
-  /** Dagger qualifier for the client secret filename.
-   *
-   * <p>TODO(mmuller): move this to config.
-   */
-  @Qualifier
-  @Documented
-  public @interface ClientSecretFilename {}
 }

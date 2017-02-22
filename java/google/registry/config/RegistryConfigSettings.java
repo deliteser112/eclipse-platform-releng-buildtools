@@ -32,6 +32,7 @@ public class RegistryConfigSettings {
   public Rdap rdap;
   public Braintree braintree;
   public Kms kms;
+  public RegistryTool registryTool;
 
   /** Configuration options that apply to the entire App Engine project. */
   public static class AppEngine {
@@ -131,5 +132,10 @@ public class RegistryConfigSettings {
     public String merchantId;
     public String publicKey;
     public Map<String, String> merchantAccountIdsMap;
+  }
+
+  /** Configuration options for the registry tool. */
+  public static class RegistryTool {
+    public String clientSecretFilename;
   }
 }

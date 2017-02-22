@@ -190,3 +190,8 @@ kms:
   # The name to use for the Cloud KMS KeyRing which will store encryption keys
   # for Nomulus secrets.
   keyringName: nomulus
+
+# Configuration options relevant to the "nomulus" registry tool.
+registryTool:
+  # Name of the client secret file used for authenticating with App Engine.
+  clientSecretFilename: /google/registry/tools/resources/client_secret.json
