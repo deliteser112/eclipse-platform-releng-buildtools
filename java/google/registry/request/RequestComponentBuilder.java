@@ -19,7 +19,7 @@ package google.registry.request;
  *
  * @see RequestHandler
  */
-public interface RequestComponentBuilder<C, B extends RequestComponentBuilder<C, B>> {
-  B requestModule(RequestModule requestModule);
+public interface RequestComponentBuilder<C> {
+  RequestComponentBuilder<C> requestModule(RequestModule requestModule);
   C build();
 }

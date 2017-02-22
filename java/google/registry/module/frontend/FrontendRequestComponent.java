@@ -81,7 +81,7 @@ interface FrontendRequestComponent {
   WhoisServer whoisServer();
 
   @Subcomponent.Builder
-  abstract class Builder implements RequestComponentBuilder<FrontendRequestComponent, Builder> {
+  abstract class Builder implements RequestComponentBuilder<FrontendRequestComponent> {
     @Override public abstract Builder requestModule(RequestModule requestModule);
     @Override public abstract FrontendRequestComponent build();
   }

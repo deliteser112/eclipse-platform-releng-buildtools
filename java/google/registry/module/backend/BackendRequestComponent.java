@@ -136,7 +136,7 @@ interface BackendRequestComponent {
   VerifyEntityIntegrityAction verifyEntityIntegrityAction();
 
   @Subcomponent.Builder
-  abstract class Builder implements RequestComponentBuilder<BackendRequestComponent, Builder> {
+  abstract class Builder implements RequestComponentBuilder<BackendRequestComponent> {
     @Override public abstract Builder requestModule(RequestModule requestModule);
     @Override public abstract BackendRequestComponent build();
   }

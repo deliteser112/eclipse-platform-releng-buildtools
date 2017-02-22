@@ -194,7 +194,7 @@ public final class RequestHandlerTest {
   }
 
   /** Fake Builder for the fake component above to satisfy RequestHandler expectations. */
-  public abstract class Builder implements RequestComponentBuilder<Component, Builder> {
+  public abstract class Builder implements RequestComponentBuilder<Component> {
     @Override
     public Builder requestModule(RequestModule requestModule) {
       component.setRequestModule(requestModule);
@@ -222,7 +222,7 @@ public final class RequestHandlerTest {
 
   private final Component component = new Component();
   private final StringWriter httpOutput = new StringWriter();
-  private RequestHandler<Component, Builder> handler;
+  private RequestHandler<Component> handler;
   private AuthResult providedAuthResult = null;
   private final User testUser = new User("test@example.com", "test@example.com");
   private RequestAuthenticator requestAuthenticator;
@@ -244,7 +244,7 @@ public final class RequestHandlerTest {
         new LegacyAuthenticationMechanism(userService));
 
     // Initialize here, not inline, so that we pick up the mocked UserService.
-    handler = RequestHandler.<Component, Builder>createForTest(
+    handler = RequestHandler.<Component>createForTest(
         Component.class,
         Providers.<Builder>of(new Builder() {
           @Override

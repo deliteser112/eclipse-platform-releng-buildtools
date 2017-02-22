@@ -22,8 +22,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 
 /** Request handler for the tools module. */
-public class ToolsRequestHandler
-    extends RequestHandler<ToolsRequestComponent, ToolsRequestComponent.Builder> {
+public class ToolsRequestHandler extends RequestHandler<ToolsRequestComponent> {
 
   @Inject ToolsRequestHandler(
       Provider<ToolsRequestComponent.Builder> componentBuilderProvider,

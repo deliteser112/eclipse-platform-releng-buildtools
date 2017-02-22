@@ -67,14 +67,13 @@ import javax.servlet.http.HttpServletResponse;
  * <p>This class also enforces the {@link Action#requireLogin() requireLogin} setting.
  *
  * @param <C> request component type
- * @param <B> builder for the request component
  */
-public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
+public class RequestHandler<C> {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private final Router router;
-  private final Provider<B> requestComponentBuilderProvider;
+  private final Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider;
   private final UserService userService;
   private final RequestAuthenticator requestAuthenticator;
   private final XsrfTokenManager xsrfTokenManager;
@@ -94,7 +93,7 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
    * @param xsrfTokenManager an instance of the {@link XsrfTokenManager} class
    */
   protected RequestHandler(
-      Provider<B> requestComponentBuilderProvider,
+      Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider,
       UserService userService,
       RequestAuthenticator requestAuthenticator,
       XsrfTokenManager xsrfTokenManager) {
@@ -103,9 +102,9 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
   }
 
   /** Creates a new RequestHandler with an explicit component class for test purposes. */
-  public static <C, B extends RequestComponentBuilder<C, B>> RequestHandler<C, B> createForTest(
+  public static <C> RequestHandler<C> createForTest(
       Class<C> component,
-      Provider<B> requestComponentBuilderProvider,
+      Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider,
       UserService userService,
       RequestAuthenticator requestAuthenticator,
       XsrfTokenManager xsrfTokenManager) {
@@ -119,7 +118,7 @@ public class RequestHandler<C, B extends RequestComponentBuilder<C, B>> {
 
   private RequestHandler(
       @Nullable Class<C> component,
-      Provider<B> requestComponentBuilderProvider,
+      Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider,
       UserService userService,
       RequestAuthenticator requestAuthenticator,
       XsrfTokenManager xsrfTokenManager) {

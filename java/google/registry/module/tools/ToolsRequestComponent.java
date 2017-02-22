@@ -81,7 +81,7 @@ interface ToolsRequestComponent {
   VerifyOteAction verifyOteAction();
 
   @Subcomponent.Builder
-  abstract class Builder implements RequestComponentBuilder<ToolsRequestComponent, Builder> {
+  abstract class Builder implements RequestComponentBuilder<ToolsRequestComponent> {
     @Override public abstract Builder requestModule(RequestModule requestModule);
     @Override public abstract ToolsRequestComponent build();
   }

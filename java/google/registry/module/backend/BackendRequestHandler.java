@@ -22,8 +22,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 
 /** Request handler for the backend module. */
-public class BackendRequestHandler
-    extends RequestHandler<BackendRequestComponent, BackendRequestComponent.Builder> {
+public class BackendRequestHandler extends RequestHandler<BackendRequestComponent> {
 
   @Inject BackendRequestHandler(
       Provider<BackendRequestComponent.Builder> componentBuilderProvider,
