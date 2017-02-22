@@ -15,7 +15,6 @@
 package google.registry.tools.server;
 
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.common.base.Optional;
 import google.registry.model.registry.label.PremiumList;
@@ -87,7 +86,6 @@ public class ListPremiumListsActionTest extends ListActionTestCase {
         Optional.of("badfield"),
         null,
         null,
-        "^Field 'badfield' not found - recognized fields are:",
-        SC_BAD_REQUEST);
+        "^Field 'badfield' not found - recognized fields are:");
   }
 }

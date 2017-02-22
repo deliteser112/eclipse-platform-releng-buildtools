@@ -45,6 +45,7 @@ public final class ListRegistrarsAction extends ListObjectsAction<Registrar> {
   @Override
   public ImmutableBiMap<String, String> getFieldAliases() {
     return ImmutableBiMap.of(
+        "billingId", "billingIdentifier",
         "clientId", "clientIdentifier",
         "premiumNames", "blockPremiumNames");
   }

@@ -78,11 +78,10 @@ public class ListActionTestCase {
       Optional<String> fields,
       Optional<Boolean> printHeaderRow,
       Optional<Boolean> fullFieldNames,
-      String expectedErrorPattern,
-      int expectedResponseStatus) {
+      String expectedErrorPattern) {
     assertThat(expectedErrorPattern).isNotNull();
     runAction(action, fields, printHeaderRow, fullFieldNames);
-    assertThat(response.getStatus()).isEqualTo(expectedResponseStatus);
+    assertThat(response.getStatus()).isEqualTo(SC_OK);
     assertThat(response.getResponseMap().get("status")).isEqualTo("error");
     Object obj = response.getResponseMap().get("error");
     assertThat(obj).isInstanceOf(String.class);

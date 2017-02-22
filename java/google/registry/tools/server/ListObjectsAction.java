@@ -14,9 +14,8 @@
 
 package google.registry.tools.server;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -36,6 +35,7 @@ import com.google.common.collect.Ordering;
 import google.registry.model.ImmutableObject;
 import google.registry.request.JsonResponse;
 import google.registry.request.Parameter;
+import google.registry.util.FormattingLogger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +52,8 @@ import javax.inject.Inject;
  * @param <T> type of object
  */
 public abstract class ListObjectsAction<T extends ImmutableObject> implements Runnable {
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   public static final String FIELDS_PARAM = "fields";
   public static final String PRINT_HEADER_ROW_PARAM = "printHeaderRow";
@@ -117,13 +119,11 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
       response.setPayload(ImmutableMap.of(
           "lines", lines,
           "status", "success"));
-    } catch (Exception e) {
-      String message = e.getMessage();
-      if (message == null) {
-        message = e.getClass().getName();
-      }
-      response.setStatus(
-          e instanceof IllegalArgumentException ? SC_BAD_REQUEST : SC_INTERNAL_SERVER_ERROR);
+    } catch (IllegalArgumentException e) {
+      String message = firstNonNull(e.getMessage(), e.getClass().getName());
+      logger.warning(e, message);
+      // Don't return a non-200 response, since that will cause RegistryTool to barf instead of
+      // letting ListObjectsCommand parse the JSON response and return a clean error.
       response.setPayload(ImmutableMap.of(
           "error", message,
           "status", "error"));
