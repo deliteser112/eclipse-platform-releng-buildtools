@@ -27,9 +27,10 @@ public class RegistryConfigTest {
 
   @Test
   public void test_clientSecretFilename() {
-    RegistryConfigSettings config = YamlUtils.getConfigSettings();
+    RegistryConfigSettings unused = YamlUtils.getConfigSettings();
     // Verify that we're pulling this from the default.
     assertThat(RegistryConfig.getClientSecretFilename()).isEqualTo(
         "/google/registry/tools/resources/client_secret.json");
   }
 }
+
