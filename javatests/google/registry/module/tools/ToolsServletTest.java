@@ -32,7 +32,7 @@ public class ToolsServletTest {
   private final HttpServletResponse rsp = mock(HttpServletResponse.class);
 
   @Test
-  public void testDoPost_notFound() throws Exception {
+  public void testService_unknownPath_returnsNotFound() throws Exception {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/lol");
     new ToolsServlet().service(req, rsp);

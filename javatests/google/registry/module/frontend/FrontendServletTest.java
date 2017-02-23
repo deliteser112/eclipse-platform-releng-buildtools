@@ -38,7 +38,7 @@ public class FrontendServletTest {
   private final HttpServletResponse rsp = mock(HttpServletResponse.class);
 
   @Test
-  public void testDoPost_notFound() throws Exception {
+  public void testService_unknownPath_returnNotFound() throws Exception {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/lol");
     new FrontendServlet().service(req, rsp);

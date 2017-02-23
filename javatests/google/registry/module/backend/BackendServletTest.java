@@ -38,7 +38,7 @@ public class BackendServletTest {
   private final HttpServletResponse rsp = mock(HttpServletResponse.class);
 
   @Test
-  public void testDoPost_notFound() throws Exception {
+  public void testService_unknownPath_returnsNotFound() throws Exception {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/lol");
     new BackendServlet().service(req, rsp);
