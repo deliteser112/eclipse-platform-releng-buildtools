@@ -37,15 +37,17 @@ public final class RouterTest {
   public interface Empty {}
 
   @Test
-  public void testRoute_noRoutes_returnsAbsent() throws Exception {
-    assertThat(Router.create(Empty.class).route("")).isAbsent();
-    assertThat(Router.create(Empty.class).route("/")).isAbsent();
+  public void testRoute_noRoutes_throws() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "No routes found for class: google.registry.request.RouterTest.Empty");
+    Router.create(Empty.class);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
   @Action(path = "/sloth")
-  public final class SlothTask implements Runnable {
+  public static final class SlothTask implements Runnable {
     @Override
     public void run() {}
   }
@@ -75,7 +77,7 @@ public final class RouterTest {
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
   @Action(path = "/prefix", isPrefix = true)
-  public final class PrefixTask implements Runnable {
+  public static final class PrefixTask implements Runnable {
     @Override
     public void run() {}
   }
@@ -101,7 +103,7 @@ public final class RouterTest {
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
   @Action(path = "/prefix/long", isPrefix = true)
-  public final class LongTask implements Runnable {
+  public static final class LongTask implements Runnable {
     @Override
     public void run() {}
   }
@@ -140,20 +142,23 @@ public final class RouterTest {
   }
 
   @Test
-  public void testRoute_methodsInComponentAreIgnored_noRoutes() throws Exception {
-    assertThat(Router.create(WeirdMethodsComponent.class).route("/sloth")).isAbsent();
+  public void testRoute_methodsInComponentAreIgnored_throws() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "No routes found for class: google.registry.request.RouterTest.WeirdMethodsComponent");
+    Router.create(WeirdMethodsComponent.class);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
   @Action(path = "/samePathAsOtherTask")
-  public final class DuplicateTask1 implements Runnable {
+  public static final class DuplicateTask1 implements Runnable {
     @Override
     public void run() {}
   }
 
   @Action(path = "/samePathAsOtherTask")
-  public final class DuplicateTask2 implements Runnable {
+  public static final class DuplicateTask2 implements Runnable {
     @Override
     public void run() {}
   }

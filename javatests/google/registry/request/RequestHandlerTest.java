@@ -363,6 +363,7 @@ public final class RequestHandlerTest {
   @Test
   public void testNullness() {
     NullPointerTester tester = new NullPointerTester();
+    tester.setDefault(Class.class, Component.class);
     tester.setDefault(RequestAuthenticator.class, requestAuthenticator);
     tester.setDefault(XsrfTokenManager.class, xsrfTokenManager);
     tester.testAllPublicStaticMethods(RequestHandler.class);

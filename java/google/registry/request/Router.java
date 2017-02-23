@@ -14,6 +14,7 @@
 
 package google.registry.request;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Throwables.throwIfUnchecked;
 
 import com.google.common.base.Function;
@@ -47,6 +48,8 @@ final class Router {
 
   private Router(Class<?> componentClass) {
     this.routes = extractRoutesFromComponent(componentClass);
+    checkArgument(
+        !this.routes.isEmpty(), "No routes found for class: %s", componentClass.getCanonicalName());
   }
 
   /** Returns the appropriate action route for a request. */
