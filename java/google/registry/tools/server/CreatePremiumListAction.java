@@ -16,6 +16,7 @@ package google.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.registry.label.PremiumList.saveWithEntries;
 import static google.registry.request.Action.Method.POST;
 
 import com.google.common.base.Splitter;
@@ -52,16 +53,14 @@ public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
     logger.infofmt("Got the following input data: %s", inputData);
     List<String> inputDataPreProcessed =
         Splitter.on('\n').omitEmptyStrings().splitToList(inputData);
-    PremiumList premiumList = new PremiumList.Builder()
-        .setName(name)
-        .setPremiumListMapFromLines(inputDataPreProcessed)
-        .build();
-    premiumList.saveAndUpdateEntries();
+    PremiumList premiumList = new PremiumList.Builder().setName(name).build();
+    saveWithEntries(premiumList, inputDataPreProcessed);
 
-    logger.infofmt("Saved premium list %s with entries %s",
-        premiumList.getName(),
-        premiumList.getPremiumListEntries());
-
-    response.setPayload(ImmutableMap.of("status", "success"));
+    String message =
+        String.format(
+            "Saved premium list %s with %d entries",
+            premiumList.getName(), inputDataPreProcessed.size());
+    logger.info(message);
+    response.setPayload(ImmutableMap.of("status", "success", "message", message));
   }
 }

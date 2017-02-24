@@ -32,7 +32,7 @@ public class DeletePremiumListCommandTest extends CommandTestCase<DeletePremiumL
   @Test
   public void testSuccess() throws Exception {
     PremiumList premiumList = persistPremiumList("xn--q9jyb4c", "blah,USD 100");
-    assertThat(premiumList.getPremiumListEntries()).hasSize(1);
+    assertThat(premiumList.loadPremiumListEntries()).hasSize(1);
     runCommand("--force", "--name=xn--q9jyb4c");
     assertThat(PremiumList.get("xn--q9jyb4c")).isAbsent();
 

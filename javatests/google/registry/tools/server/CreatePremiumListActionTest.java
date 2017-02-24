@@ -15,9 +15,11 @@
 package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.registry.label.PremiumList.getPremiumPrice;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
+import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
@@ -81,10 +83,7 @@ public class CreatePremiumListActionTest {
     action.override = true;
     action.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    PremiumList premiumList = PremiumList.get("zanzibar").get();
-    assertThat(premiumList.getPremiumListEntries()).hasSize(1);
-    assertThat(premiumList.getPremiumPrice("zanzibar")).hasValue(Money.parse("USD 100"));
-    assertThat(premiumList.getPremiumPrice("diamond")).isAbsent();
+    assertThat(PremiumList.get("zanzibar").get().loadPremiumListEntries()).hasSize(1);
   }
 
   @Test
@@ -93,9 +92,8 @@ public class CreatePremiumListActionTest {
     action.inputData = "rich,USD 25\nricher,USD 1000\n";
     action.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    PremiumList premiumList = PremiumList.get("foo").get();
-    assertThat(premiumList.getPremiumListEntries()).hasSize(2);
-    assertThat(premiumList.getPremiumPrice("rich")).hasValue(Money.parse("USD 25"));
-    assertThat(premiumList.getPremiumPrice("diamond")).isAbsent();
+    assertThat(PremiumList.get("foo").get().loadPremiumListEntries()).hasSize(2);
+    assertThat(getPremiumPrice("rich", Registry.get("foo"))).hasValue(Money.parse("USD 25"));
+    assertThat(getPremiumPrice("diamond", Registry.get("foo"))).isAbsent();
   }
 }

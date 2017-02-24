@@ -62,9 +62,6 @@ final class DeletePremiumListCommand extends ConfirmingCommand implements Remote
   @Override
   protected String execute() throws Exception {
     premiumList.delete();
-    return String.format(
-        "Deleted premium list %s with %d entries.\n",
-        premiumList.getName(),
-        premiumList.getPremiumListEntries().size());
+    return String.format("Deleted premium list '%s'.\n", premiumList.getName());
   }
 }

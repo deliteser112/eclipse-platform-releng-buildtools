@@ -484,6 +484,7 @@ public class Registry extends ImmutableObject implements Buildable {
     return anchorTenantAddGracePeriodLength;
   }
 
+  @Nullable
   public Key<PremiumList> getPremiumList() {
     return premiumList;
   }

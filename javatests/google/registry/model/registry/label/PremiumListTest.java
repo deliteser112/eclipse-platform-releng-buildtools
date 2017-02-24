@@ -17,7 +17,9 @@ package google.registry.model.registry.label;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.label.PremiumList.cachePremiumListEntries;
 import static google.registry.model.registry.label.PremiumList.getPremiumPrice;
+import static google.registry.model.registry.label.PremiumList.saveWithEntries;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
@@ -34,7 +36,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import java.util.Map;
 import org.joda.money.Money;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -75,54 +76,49 @@ public class PremiumListTest {
             .setPremiumPricingEngine(StaticPremiumListPricingEngine.NAME)
             .build());
     assertThat(Registry.get("ghost").getPremiumList()).isNull();
-    assertThat(getPremiumPrice("blah", "ghost")).isAbsent();
+    assertThat(getPremiumPrice("blah", Registry.get("ghost"))).isAbsent();
   }
 
   @Test
   public void testGetPremiumPrice_throwsExceptionWhenNonExistentPremiumListConfigured()
       throws Exception {
     PremiumList.get("tld").get().delete();
-    thrown.expect(IllegalStateException.class, "Could not load premium list named tld");
-    getPremiumPrice("blah", "tld");
+    thrown.expect(IllegalStateException.class, "Could not load premium list 'tld'");
+    getPremiumPrice("blah", Registry.get("tld"));
   }
 
   @Test
   public void testSave_largeNumberOfEntries_succeeds() throws Exception {
     PremiumList premiumList = persistHumongousPremiumList("tld", 2500);
-    assertThat(premiumList.getPremiumListEntries()).hasSize(2500);
-    assertThat(premiumList.getPremiumPrice("7")).hasValue(Money.parse("USD 100"));
+    assertThat(premiumList.loadPremiumListEntries()).hasSize(2500);
+    assertThat(getPremiumPrice("7", Registry.get("tld"))).hasValue(Money.parse("USD 100"));
   }
 
   @Test
   public void testSave_updateTime_isUpdatedOnEverySave() throws Exception {
-    PremiumList pl =  new PremiumList.Builder()
-        .setName("tld3")
-        .setPremiumListMapFromLines(ImmutableList.of("slime,USD 10"))
-        .build()
-        .saveAndUpdateEntries();
-    PremiumList newPl = new PremiumList.Builder()
-        .setName(pl.getName())
-        .setPremiumListMapFromLines(ImmutableList.of("mutants,USD 20"))
-        .build()
-        .saveAndUpdateEntries();
+    PremiumList pl =
+        saveWithEntries(
+            new PremiumList.Builder().setName("tld3").build(), ImmutableList.of("slime,USD 10"));
+    PremiumList newPl =
+        saveWithEntries(
+            new PremiumList.Builder().setName(pl.getName()).build(),
+            ImmutableList.of("mutants,USD 20"));
     assertThat(newPl.getLastUpdateTime()).isGreaterThan(pl.getLastUpdateTime());
   }
 
   @Test
   public void testSave_creationTime_onlyUpdatedOnFirstCreation() throws Exception {
     PremiumList pl = persistPremiumList("tld3", "sludge,JPY 1000");
-    DateTime creationTime = pl.creationTime;
-    pl = pl.asBuilder()
-        .setPremiumListMapFromLines(ImmutableList.of("sleighbells,CHF 2000"))
-        .build();
-    assertThat(pl.creationTime).isEqualTo(creationTime);
+    PremiumList newPl = saveWithEntries(pl, ImmutableList.of("sleighbells,CHF 2000"));
+    assertThat(newPl.creationTime).isEqualTo(pl.creationTime);
   }
 
   @Test
   public void testSave_removedPremiumListEntries_areNoLongerInDatastore() throws Exception {
+    Registry registry = Registry.get("tld");
     PremiumList pl = persistPremiumList("tld", "genius,USD 10", "dolt,JPY 1000");
-    assertThat(getPremiumPrice("genius", "tld")).hasValue(Money.parse("USD 10"));
-    assertThat(getPremiumPrice("dolt", "tld")).hasValue(Money.parse("JPY 1000"));
+    assertThat(getPremiumPrice("genius", registry)).hasValue(Money.parse("USD 10"));
+    assertThat(getPremiumPrice("dolt", registry)).hasValue(Money.parse("JPY 1000"));
     assertThat(ofy()
             .load()
             .type(PremiumListEntry.class)
@@ -131,13 +127,10 @@ public class PremiumListTest {
             .now()
             .price)
         .isEqualTo(Money.parse("JPY 1000"));
-    PremiumList pl2 = pl.asBuilder()
-        .setPremiumListMapFromLines(ImmutableList.of("genius,USD 10", "savant,USD 90"))
-        .build()
-        .saveAndUpdateEntries();
-    assertThat(getPremiumPrice("genius", "tld")).hasValue(Money.parse("USD 10"));
-    assertThat(getPremiumPrice("savant", "tld")).hasValue(Money.parse("USD 90"));
-    assertThat(getPremiumPrice("dolt", "tld")).isAbsent();
+    PremiumList pl2 = saveWithEntries(pl, ImmutableList.of("genius,USD 10", "savant,USD 90"));
+    assertThat(getPremiumPrice("genius", registry)).hasValue(Money.parse("USD 10"));
+    assertThat(getPremiumPrice("savant", registry)).hasValue(Money.parse("USD 90"));
+    assertThat(getPremiumPrice("dolt", registry)).isAbsent();
     assertThat(ofy()
             .load()
             .type(PremiumListEntry.class)
@@ -156,59 +149,46 @@ public class PremiumListTest {
 
   @Test
   public void testGetPremiumPrice_allLabelsAreNonPremium_whenNotInList() throws Exception {
-    assertThat(getPremiumPrice("blah", "tld")).isAbsent();
-    assertThat(getPremiumPrice("slinge", "tld")).isAbsent();
+    assertThat(getPremiumPrice("blah", Registry.get("tld"))).isAbsent();
+    assertThat(getPremiumPrice("slinge", Registry.get("tld"))).isAbsent();
   }
 
   @Test
   public void testSave_simple() throws Exception {
-    PremiumList pl = persistPremiumList("tld2", "lol , USD 999 # yupper rooni ");
+    PremiumList pl =
+        saveWithEntries(
+            new PremiumList.Builder().setName("tld2").build(),
+            ImmutableList.of("lol , USD 999 # yupper rooni "));
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setPremiumList(pl).build());
-    assertThat(pl.getPremiumPrice("lol")).hasValue(Money.parse("USD 999"));
-    assertThat(getPremiumPrice("lol", "tld")).hasValue(Money.parse("USD 999"));
-    assertThat(getPremiumPrice("lol ", "tld")).isAbsent();
-    Map<String, PremiumListEntry> entries = PremiumList.get("tld2").get().getPremiumListEntries();
+    assertThat(getPremiumPrice("lol", Registry.get("tld"))).hasValue(Money.parse("USD 999"));
+    assertThat(getPremiumPrice("lol ", Registry.get("tld"))).isAbsent();
+    Map<String, PremiumListEntry> entries =
+        PremiumList.get("tld2").get().loadPremiumListEntries();
     assertThat(entries.keySet()).containsExactly("lol");
     assertThat(entries).doesNotContainKey("lol ");
-    PremiumListEntry entry = entries.values().iterator().next();
+    PremiumListEntry entry = entries.get("lol");
     assertThat(entry.comment).isEqualTo("yupper rooni");
     assertThat(entry.price).isEqualTo(Money.parse("USD 999"));
     assertThat(entry.label).isEqualTo("lol");
   }
 
   @Test
-  public void test_saveAndUpdateEntries_twiceOnUnchangedList() throws Exception {
+  public void test_saveAndUpdateEntriesTwice() throws Exception {
     PremiumList pl =
-        new PremiumList.Builder()
-            .setName("pl")
-            .setPremiumListMapFromLines(ImmutableList.of("test,USD 1"))
-            .build()
-            .saveAndUpdateEntries();
-    Map<String, PremiumListEntry> entries = pl.getPremiumListEntries();
+        saveWithEntries(
+            new PremiumList.Builder().setName("pl").build(), ImmutableList.of("test,USD 1"));
+    Map<String, PremiumListEntry> entries = pl.loadPremiumListEntries();
     assertThat(entries.keySet()).containsExactly("test");
-    assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);
+    assertThat(PremiumList.get("pl").get().loadPremiumListEntries()).isEqualTo(entries);
     // Save again with no changes, and clear the cache to force a re-load from Datastore.
-    pl.saveAndUpdateEntries();
+    PremiumList resaved = saveWithEntries(pl, ImmutableList.of("test,USD 1"));
     ofy().clearSessionCache();
-    assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);
-  }
-
-  @Test
-  public void test_saveAndUpdateEntries_twiceOnListWithOnlyMetadataChanges() throws Exception {
-    PremiumList pl =
-        new PremiumList.Builder()
-            .setName("pl")
-            .setPremiumListMapFromLines(ImmutableList.of("test,USD 1"))
-            .build()
-            .saveAndUpdateEntries();
-    Map<String, PremiumListEntry> entries = pl.getPremiumListEntries();
-    assertThat(entries.keySet()).containsExactly("test");
-    assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);
-    // Save again with description changed, and clear the cache to force a re-load from Datastore.
-    pl.asBuilder().setDescription("foobar").build().saveAndUpdateEntries();
-    ofy().clearSessionCache();
-    assertThat(PremiumList.get("pl").get().getPremiumListEntries()).isEqualTo(entries);
+    Map<String, PremiumListEntry> entriesReloaded =
+        PremiumList.get("pl").get().loadPremiumListEntries();
+    assertThat(entriesReloaded).hasSize(1);
+    assertThat(entriesReloaded).containsKey("test");
+    assertThat(entriesReloaded.get("test").parent).isEqualTo(resaved.getRevisionKey());
   }
 
   @Test
@@ -253,22 +233,33 @@ public class PremiumListTest {
   }
 
   @Test
-  public void testAsBuilder_updatingEntitiesreplacesRevisionKey() throws Exception {
+  public void testGetPremiumPrice_comesFromBloomFilter() throws Exception {
     PremiumList pl = PremiumList.get("tld").get();
-    assertThat(pl.asBuilder()
-        .setPremiumListMapFromLines(ImmutableList.of("qux,USD 123"))
-        .build()
-        .getRevisionKey())
-            .isNotEqualTo(pl.getRevisionKey());
+    PremiumListEntry entry =
+        persistResource(
+            new PremiumListEntry.Builder()
+                .setParent(pl.getRevisionKey())
+                .setLabel("missingno")
+                .setPrice(Money.parse("USD 1000"))
+                .build());
+    // "missingno" shouldn't be in the bloom filter, thus it should return not premium without
+    // attempting to load the entity that is actually present.
+    assertThat(getPremiumPrice("missingno", Registry.get("tld"))).isAbsent();
+    // However, if we manually query the cache to force an entity load, it should be found.
+    assertThat(
+            cachePremiumListEntries.get(
+                Key.create(pl.getRevisionKey(), PremiumListEntry.class, "missingno")))
+        .hasValue(entry);
   }
 
   @Test
   public void testProbablePremiumLabels() throws Exception {
     PremiumList pl = PremiumList.get("tld").get();
-    assertThat(pl.getRevision().probablePremiumLabels.mightContain("notpremium")).isFalse();
+    PremiumListRevision revision = ofy().load().key(pl.getRevisionKey()).now();
+    assertThat(revision.probablePremiumLabels.mightContain("notpremium")).isFalse();
     for (String label : ImmutableList.of("rich", "lol", "johnny-be-goode", "icann")) {
       assertWithMessage(label + " should be a probable premium")
-          .that(pl.getRevision().probablePremiumLabels.mightContain(label))
+          .that(revision.probablePremiumLabels.mightContain(label))
           .isTrue();
     }
   }

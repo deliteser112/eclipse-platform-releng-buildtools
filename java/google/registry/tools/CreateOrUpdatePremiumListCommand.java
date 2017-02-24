@@ -75,11 +75,8 @@ abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
   protected void init() throws Exception {
     name = isNullOrEmpty(name) ? convertFilePathToName(inputFile) : name;
     List<String> lines = Files.readAllLines(inputFile, UTF_8);
-    // Try constructing the premium list locally to check up front for validation errors.
-    new PremiumList.Builder()
-        .setName(name)
-        .setPremiumListMapFromLines(lines)
-        .build();
+    // Try constructing and parsing the premium list locally to check up front for validation errors
+    new PremiumList.Builder().setName(name).build().parse(lines);
     inputLineCount = lines.size();
   }
 
@@ -108,7 +105,7 @@ abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
         getCommandPath(),
         params.build(),
         MediaType.FORM_DATA,
-        requestBody.getBytes());
+        requestBody.getBytes(UTF_8));
 
     return extractServerResponse(response);
   }

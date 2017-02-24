@@ -1135,6 +1135,13 @@ public final class RegistryConfig {
     return Duration.standardSeconds(CONFIG_SETTINGS.get().caching.singletonCachePersistSeconds);
   }
 
+  /**
+   * Returns the maximum number of premium list entries across all TLDs to keep in in-memory cache.
+   */
+  public static int getStaticPremiumListMaxCachedEntries() {
+    return CONFIG_SETTINGS.get().caching.staticPremiumListMaxCachedEntries;
+  }
+
   /** Returns the email address that outgoing emails from the app are sent from. */
   public static String getGSuiteOutgoingEmailAddress() {
     return CONFIG_SETTINGS.get().gSuite.outgoingEmailAddress;

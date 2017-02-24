@@ -115,6 +115,14 @@ caching:
   # Length of time that a long-lived singleton in persist mode should be cached.
   singletonCachePersistSeconds: 31557600 # This is one year.
 
+  # Maximum total number of static premium list entry entities to cache in
+  # memory, across all premium lists for all TLDs. Tuning this up will use more
+  # memory (and might require using larger App Engine instances). Note that
+  # premium list entries that are absent are cached in addition to ones that are
+  # present, so the total cache size is not bounded by the total number of
+  # premium price entries that exist.
+  staticPremiumListMaxCachedEntries: 200000
+
 rde:
   # URL prefix of ICANN's server to upload RDE reports to. Nomulus adds /TLD/ID
   # to the end of this to construct the full URL.

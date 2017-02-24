@@ -19,7 +19,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.registry.Registries.getTlds;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.cache.LoadingCache;
@@ -83,8 +82,7 @@ public abstract class BaseDomainLabelList<T extends Comparable<?>, R extends Dom
    *
    * @param lines the CSV file, line by line
    */
-  @VisibleForTesting
-  protected ImmutableMap<String, R> parse(Iterable<String> lines) {
+  public ImmutableMap<String, R> parse(Iterable<String> lines) {
     Map<String, R> labelsToEntries = new HashMap<>();
     Multiset<String> duplicateLabels = HashMultiset.create();
     for (String line : lines) {

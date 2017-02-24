@@ -91,6 +91,7 @@ public class RegistryConfigSettings {
     public int singletonCacheRefreshSeconds;
     public int domainLabelCachingSeconds;
     public int singletonCachePersistSeconds;
+    public int staticPremiumListMaxCachedEntries;
   }
 
   /** Configuration for Registry Data Escrow (RDE). */

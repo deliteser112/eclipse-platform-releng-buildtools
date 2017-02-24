@@ -15,9 +15,11 @@
 package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.registry.label.PremiumList.getPremiumPrice;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
+import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
@@ -79,11 +81,11 @@ public class UpdatePremiumListActionTest {
     action.inputData = "rich,USD 75\nricher,USD 5000\npoor, USD 0.99";
     action.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    PremiumList premiumList = PremiumList.get("foo").get();
-    assertThat(premiumList.getPremiumListEntries()).hasSize(3);
-    assertThat(premiumList.getPremiumPrice("rich")).hasValue(Money.parse("USD 75"));
-    assertThat(premiumList.getPremiumPrice("richer")).hasValue(Money.parse("USD 5000"));
-    assertThat(premiumList.getPremiumPrice("poor")).hasValue(Money.parse("USD 0.99"));
-    assertThat(premiumList.getPremiumPrice("diamond")).isAbsent();
+    Registry registry = Registry.get("foo");
+    assertThat(PremiumList.get("foo").get().loadPremiumListEntries()).hasSize(3);
+    assertThat(getPremiumPrice("rich", registry)).hasValue(Money.parse("USD 75"));
+    assertThat(getPremiumPrice("richer", registry)).hasValue(Money.parse("USD 5000"));
+    assertThat(getPremiumPrice("poor", registry)).hasValue(Money.parse("USD 0.99"));
+    assertThat(getPremiumPrice("diamond", registry)).isAbsent();
   }
 }

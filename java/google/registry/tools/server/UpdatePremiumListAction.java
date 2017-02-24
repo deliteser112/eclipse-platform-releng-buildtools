@@ -15,6 +15,7 @@
 package google.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static google.registry.model.registry.label.PremiumList.saveWithEntries;
 import static google.registry.request.Action.Method.POST;
 
 import com.google.common.base.Optional;
@@ -38,9 +39,9 @@ public class UpdatePremiumListAction extends CreateOrUpdatePremiumListAction {
 
   @Override
   protected void savePremiumList() {
-    Optional<PremiumList> existingName = PremiumList.get(name);
+    Optional<PremiumList> existingPremiumList = PremiumList.get(name);
     checkArgument(
-        existingName.isPresent(),
+        existingPremiumList.isPresent(),
         "Could not update premium list %s because it doesn't exist.",
         name);
 
@@ -48,21 +49,13 @@ public class UpdatePremiumListAction extends CreateOrUpdatePremiumListAction {
     logger.infofmt("Got the following input data: %s", inputData);
     List<String> inputDataPreProcessed =
         Splitter.on('\n').omitEmptyStrings().splitToList(inputData);
-    PremiumList premiumList = existingName.get().asBuilder()
-        .setPremiumListMapFromLines(inputDataPreProcessed)
-        .build();
-    premiumList.saveAndUpdateEntries();
+    PremiumList newPremiumList = saveWithEntries(existingPremiumList.get(), inputDataPreProcessed);
 
-    logger.infofmt("Updated premium list %s with entries %s",
-        premiumList.getName(),
-        premiumList.getPremiumListEntries());
-
-    String message = String.format(
-        "Saved premium list %s with %d entries.\n",
-        premiumList.getName(),
-        premiumList.getPremiumListEntries().size());
-    response.setPayload(ImmutableMap.of(
-        "status", "success",
-        "message", message));
+    String message =
+        String.format(
+            "Updated premium list %s with %d entries.",
+            newPremiumList.getName(), inputDataPreProcessed.size());
+    logger.info(message);
+    response.setPayload(ImmutableMap.of("status", "success", "message", message));
   }
 }

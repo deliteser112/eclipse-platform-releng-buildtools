@@ -17,6 +17,7 @@ caching:
   singletonCacheRefreshSeconds: 0
   domainLabelCachingSeconds: 0
   singletonCachePersistSeconds: 0
+  staticPremiumListMaxCachedEntries: 50
 
 braintree:
   merchantAccountIdsMap:

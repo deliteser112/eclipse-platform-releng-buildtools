@@ -27,6 +27,7 @@ import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.EppResourceUtils.createRepoId;
 import static google.registry.model.domain.launch.ApplicationStatus.VALIDATED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.label.PremiumList.parentEntriesOnRevision;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.difference;
 import static google.registry.util.CollectionUtils.union;
@@ -35,16 +36,17 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX_REGEX;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static java.util.Arrays.asList;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
@@ -83,6 +85,8 @@ import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.PremiumList;
+import google.registry.model.registry.label.PremiumList.PremiumListEntry;
+import google.registry.model.registry.label.PremiumList.PremiumListRevision;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
@@ -343,23 +347,27 @@ public class DatastoreHelper {
             .build());
   }
 
+  /**
+   * Persists a premium list and its child entities directly without writing commit logs.
+   *
+   * <p>Avoiding commit logs is important because a simple default premium list is persisted for
+   * each TLD that is created in tests, and clocks would need to be mocked using an auto-
+   * incrementing FakeClock for all tests in order to persist the commit logs properly because of
+   * the requirement to have monotonically increasing timestamps.
+   */
   public static PremiumList persistPremiumList(String listName, String... lines) {
-    Optional<PremiumList> existing = PremiumList.get(listName);
-    return persistPremiumList(
-        (existing.isPresent() ? existing.get().asBuilder() : new PremiumList.Builder())
-            .setName(listName)
-            .setPremiumListMapFromLines(ImmutableList.copyOf(lines))
-            .build());
-  }
-
-  private static PremiumList persistPremiumList(PremiumList premiumList) {
-    // Persist the list and its child entities directly, rather than using its helper method, so
-    // that we can avoid writing commit logs. This would cause issues since many tests replace the
-    // clock in Ofy with a non-advancing FakeClock, and commit logs currently require
-    // monotonically increasing timestamps.
-    ofy().saveWithoutBackup().entities(premiumList, premiumList.getRevision()).now();
-    ofy().saveWithoutBackup().entities(premiumList.getPremiumListEntries().values()).now();
-    return premiumList;
+    PremiumList premiumList = new PremiumList.Builder().setName(listName).build();
+    ImmutableMap<String, PremiumListEntry> entries = premiumList.parse(asList(lines));
+    PremiumListRevision revision = PremiumListRevision.create(premiumList, entries.keySet());
+    ofy()
+        .saveWithoutBackup()
+        .entities(premiumList.asBuilder().setRevision(Key.create(revision)).build(), revision)
+        .now();
+    ofy()
+        .saveWithoutBackup()
+        .entities(parentEntriesOnRevision(entries.values(), Key.create(revision)))
+        .now();
+    return ofy().load().entity(premiumList).now();
   }
 
   /** Creates and persists a tld. */
