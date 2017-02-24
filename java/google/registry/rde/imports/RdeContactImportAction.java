@@ -140,7 +140,7 @@ public class RdeContactImportAction implements Runnable {
           public void vrun() {
             ContactResource contact =
                 XjcToContactResourceConverter.convertContact(xjcContact);
-            getImportUtils().importContact(contact);
+            getImportUtils().importEppResource(contact);
           }
         });
         // Record number of contacts imported

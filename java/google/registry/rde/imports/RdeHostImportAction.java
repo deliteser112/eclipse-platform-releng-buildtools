@@ -125,7 +125,7 @@ public class RdeHostImportAction implements Runnable {
           @Override
           public void vrun() {
             HostResource host = XjcToHostResourceConverter.convert(xjcHost);
-            getImportUtils().importHost(host);
+            getImportUtils().importEppResource(host);
           }
         });
         // Record number of hosts imported

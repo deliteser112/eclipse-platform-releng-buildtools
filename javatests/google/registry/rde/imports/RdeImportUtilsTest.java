@@ -114,7 +114,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
-        rdeImportUtils.importContact(newContact);
+        rdeImportUtils.importEppResource(newContact);
       }});
     assertEppResourceIndexEntityFor(newContact);
     assertForeignKeyIndexFor(newContact);
@@ -141,7 +141,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
       ofy().transact(new VoidWork() {
         @Override
         public void vrun() {
-          rdeImportUtils.importContact(updatedContact);
+          rdeImportUtils.importEppResource(updatedContact);
         }});
       fail("Expected ResourceExistsException");
     } catch (ResourceExistsException expected) {
@@ -161,7 +161,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
-        rdeImportUtils.importHost(newHost);
+        rdeImportUtils.importEppResource(newHost);
       }});
 
     assertEppResourceIndexEntityFor(newHost);
@@ -189,7 +189,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
       ofy().transact(new VoidWork() {
         @Override
         public void vrun() {
-          rdeImportUtils.importHost(updatedHost);
+          rdeImportUtils.importEppResource(updatedHost);
         }});
       fail("Expected ResourceExistsException");
     } catch (ResourceExistsException expected) {
@@ -208,7 +208,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
-        rdeImportUtils.importDomain(newDomain);
+        rdeImportUtils.importEppResource(newDomain);
       }
     });
 
@@ -236,7 +236,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
       ofy().transact(new VoidWork() {
         @Override
         public void vrun() {
-          rdeImportUtils.importDomain(updatedDomain);
+          rdeImportUtils.importEppResource(updatedDomain);
         }});
       fail("Expected ResourceExistsException");
     } catch (ResourceExistsException expected) {
