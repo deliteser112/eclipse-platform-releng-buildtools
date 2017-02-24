@@ -32,23 +32,12 @@ import static google.registry.keyring.kms.KmsKeyring.RDE_SSH_CLIENT_PRIVATE_NAME
 import static google.registry.keyring.kms.KmsKeyring.RDE_SSH_CLIENT_PUBLIC_NAME;
 import static google.registry.keyring.kms.KmsKeyring.RDE_STAGING_PRIVATE_NAME;
 import static google.registry.keyring.kms.KmsKeyring.RDE_STAGING_PUBLIC_NAME;
-import static google.registry.keyring.kms.KmsKeyring.getCryptoKeyName;
-import static google.registry.keyring.kms.KmsKeyring.getCryptoKeyVersionName;
-import static google.registry.keyring.kms.KmsKeyring.getKeyRingName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.cloudkms.v1beta1.CloudKMS;
-import com.google.api.services.cloudkms.v1beta1.model.CryptoKey;
-import com.google.api.services.cloudkms.v1beta1.model.CryptoKeyVersion;
-import com.google.api.services.cloudkms.v1beta1.model.EncryptRequest;
-import com.google.api.services.cloudkms.v1beta1.model.EncryptResponse;
-import com.google.api.services.cloudkms.v1beta1.model.KeyRing;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.VoidWork;
-import google.registry.config.RegistryConfig.Config;
 import google.registry.model.server.KmsSecret;
 import google.registry.model.server.KmsSecretRevision;
 import java.io.IOException;
@@ -65,22 +54,12 @@ import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRing;
  */
 public final class KmsUpdater {
 
-  private static final int RESOURCE_NOT_FOUND = 404;
-
-  private final String projectId;
-  private final String kmsKeyRingName;
-  private final CloudKMS kms;
-
+  private final KmsConnection kmsConnection;
   private final HashMap<String, byte[]> secretValues;
 
   @Inject
-  public KmsUpdater(
-      @Config("cloudKmsProjectId") String projectId,
-      @Config("cloudKmsKeyRing") String kmsKeyRingName,
-      CloudKMS kms) {
-    this.projectId = projectId;
-    this.kmsKeyRingName = kmsKeyRingName;
-    this.kms = kms;
+  public KmsUpdater(KmsConnection kmsConnection) {
+    this.kmsConnection = kmsConnection;
 
     // Use LinkedHashMap to preserve insertion order on update() to simplify testing and debugging
     this.secretValues = new LinkedHashMap<>();
@@ -180,64 +159,10 @@ public final class KmsUpdater {
    */
   private ImmutableMap<String, EncryptResponse> encryptValues(Map<String, byte[]> keyValues)
       throws IOException {
-    String fullKeyRingName = getKeyRingName(projectId, kmsKeyRingName);
-    try {
-      kms.projects().locations().keyRings().get(fullKeyRingName).execute();
-    } catch (GoogleJsonResponseException jsonException) {
-      if (jsonException.getStatusCode() == RESOURCE_NOT_FOUND) {
-        // Create the KeyRing in the "global" namespace. Encryption keys will be accessible from all
-        // GCP regions.
-        kms.projects()
-            .locations()
-            .keyRings()
-            .create("global", new KeyRing().setName(fullKeyRingName))
-            .execute();
-      } else {
-        throw jsonException;
-      }
-    }
-
     ImmutableMap.Builder<String, EncryptResponse> encryptedValues = new ImmutableMap.Builder<>();
     for (Map.Entry<String, byte[]> entry : keyValues.entrySet()) {
-      String keyName = entry.getKey();
-      String fullKeyName = getCryptoKeyName(projectId, kmsKeyRingName, keyName);
-
-      try {
-        kms.projects().locations().keyRings().cryptoKeys().get(fullKeyName).execute();
-      } catch (GoogleJsonResponseException jsonException) {
-        if (jsonException.getStatusCode() == RESOURCE_NOT_FOUND) {
-          kms.projects()
-              .locations()
-              .keyRings()
-              .cryptoKeys()
-              .create(fullKeyName, new CryptoKey().setName(keyName).setPurpose("ENCRYPT_DECRYPT"))
-              .execute();
-        } else {
-          throw jsonException;
-        }
-      }
-
-      CryptoKeyVersion cryptoKeyVersion =
-          kms.projects()
-              .locations()
-              .keyRings()
-              .cryptoKeys()
-              .cryptoKeyVersions()
-              .create(
-                  getCryptoKeyVersionName(projectId, kmsKeyRingName, keyName),
-                  new CryptoKeyVersion())
-              .execute();
-
-      encryptedValues.put(
-          keyName,
-          kms.projects()
-              .locations()
-              .keyRings()
-              .cryptoKeys()
-              .encrypt(
-                  cryptoKeyVersion.getName(),
-                  new EncryptRequest().encodePlaintext(entry.getValue()))
-              .execute());
+      String secretName = entry.getKey();
+      encryptedValues.put(secretName, kmsConnection.encrypt(secretName, entry.getValue()));
     }
     return encryptedValues.build();
   }
@@ -262,8 +187,8 @@ public final class KmsUpdater {
 
                   KmsSecretRevision secretRevision =
                       new KmsSecretRevision.Builder()
-                          .setEncryptedValue(revisionData.getCiphertext())
-                          .setKmsCryptoKeyVersionName(revisionData.getName())
+                          .setEncryptedValue(revisionData.ciphertext())
+                          .setKmsCryptoKeyVersionName(revisionData.cryptoKeyVersionName())
                           .setParent(secretName)
                           .build();
                   ofy()

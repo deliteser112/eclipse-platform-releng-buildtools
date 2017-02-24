@@ -25,7 +25,6 @@ import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRing;
 /** Stores dummy values for test use in {@link KmsUpdaterTest} and {@link KmsKeyringTest}. */
 final class KmsTestHelper {
 
-  static final String DUMMY_KEY = "the quick brown fox";
   static final String DUMMY_CRYPTO_KEY_VERSION = "cheeseburger";
   static final String DUMMY_ENCRYPTED_VALUE = "meow";
 

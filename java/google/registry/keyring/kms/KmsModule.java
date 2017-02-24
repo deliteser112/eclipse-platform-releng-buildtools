@@ -39,4 +39,9 @@ public final class KmsModule {
         .setApplicationName(projectId)
         .build();
   }
+
+  @Provides
+  static KmsConnection provideKmsAdapter(KmsConnectionImpl kmsAdapter) {
+    return kmsAdapter;
+  }
 }

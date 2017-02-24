@@ -20,10 +20,7 @@ import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.api.services.cloudkms.v1beta1.CloudKMS;
-import com.google.api.services.cloudkms.v1beta1.model.DecryptRequest;
 import com.googlecode.objectify.Key;
-import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.Keyring;
 import google.registry.keyring.api.KeyringException;
 import google.registry.keyring.api.PgpHelper;
@@ -52,12 +49,6 @@ import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
  */
 public class KmsKeyring implements Keyring {
 
-  private static final String KMS_KEYRING_NAME_FORMAT = "projects/%s/locations/global/keyRings/%s";
-  private static final String KMS_CRYPTO_KEY_NAME_FORMAT =
-      "projects/%s/locations/global/keyRings/%s/cryptoKeys/%s";
-  private static final String KMS_CRYPTO_KEY_VERSION_NAME_FORMAT =
-      "projects/%s/locations/global/keyRings/%s/cryptoKeys/%s/cryptoKeyVersions";
-
   static final String BRAINTREE_PRIVATE_KEY_NAME = "braintree-private-key";
   static final String BRDA_RECEIVER_PUBLIC_NAME = "brda-receiver-public";
   static final String BRDA_SIGNING_PRIVATE_NAME = "brda-signing-private";
@@ -75,18 +66,11 @@ public class KmsKeyring implements Keyring {
   static final String RDE_STAGING_PRIVATE_NAME = "rde-staging-private";
   static final String RDE_STAGING_PUBLIC_NAME = "rde-staging-public";
 
-  private final CloudKMS kms;
-  private final String kmsKeyRingName;
-  private final String projectId;
+  private final KmsConnection kmsConnection;
 
   @Inject
-  KmsKeyring(
-      @Config("cloudKmsProjectId") String projectId,
-      @Config("cloudKmsKeyRing") String kmsKeyringName,
-      CloudKMS kms) {
-    this.projectId = projectId;
-    this.kmsKeyRingName = kmsKeyringName;
-    this.kms = kms;
+  KmsKeyring(KmsConnection kmsConnection) {
+    this.kmsConnection = kmsConnection;
   }
 
   @Override
@@ -212,32 +196,10 @@ public class KmsKeyring implements Keyring {
     String encryptedData = ofy().load().key(secret.getLatestRevision()).now().getEncryptedValue();
 
     try {
-      return kms.projects()
-          .locations()
-          .keyRings()
-          .cryptoKeys()
-          .decrypt(
-              getCryptoKeyName(projectId, kmsKeyRingName, secret.getName()),
-              new DecryptRequest().setCiphertext(encryptedData))
-          .execute()
-          .decodePlaintext();
+      return kmsConnection.decrypt(secret.getName(), encryptedData);
     } catch (IOException e) {
       throw new KeyringException(
           String.format("CloudKMS decrypt operation failed for secret %s", keyName), e);
     }
-  }
-
-  static String getKeyRingName(String projectId, String kmsKeyRingName) {
-    return String.format(KMS_KEYRING_NAME_FORMAT, projectId, kmsKeyRingName);
-  }
-
-  static String getCryptoKeyName(String projectId, String kmsKeyRingName, String cryptoKeyName) {
-    return String.format(KMS_CRYPTO_KEY_NAME_FORMAT, projectId, kmsKeyRingName, cryptoKeyName);
-  }
-
-  static String getCryptoKeyVersionName(
-      String projectId, String kmsKeyRingName, String cryptoKeyName) {
-    return String.format(
-        KMS_CRYPTO_KEY_VERSION_NAME_FORMAT, projectId, kmsKeyRingName, cryptoKeyName);
   }
 }
