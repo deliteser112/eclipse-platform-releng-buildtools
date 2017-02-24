@@ -16,7 +16,8 @@ package google.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.registry.Registries.assertTldExists;
-import static google.registry.model.registry.label.PremiumList.saveWithEntries;
+import static google.registry.model.registry.label.PremiumListUtils.doesPremiumListExist;
+import static google.registry.model.registry.label.PremiumListUtils.savePremiumListAndEntries;
 import static google.registry.request.Action.Method.POST;
 
 import com.google.common.base.Splitter;
@@ -43,8 +44,7 @@ public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
   @Override
   protected void savePremiumList() {
     checkArgument(
-        !PremiumList.exists(name),
-        "A premium list of this name already exists: %s.", name);
+        !doesPremiumListExist(name), "A premium list of this name already exists: %s.", name);
     if (!override) {
       assertTldExists(name);
     }
@@ -54,7 +54,7 @@ public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
     List<String> inputDataPreProcessed =
         Splitter.on('\n').omitEmptyStrings().splitToList(inputData);
     PremiumList premiumList = new PremiumList.Builder().setName(name).build();
-    saveWithEntries(premiumList, inputDataPreProcessed);
+    savePremiumListAndEntries(premiumList, inputDataPreProcessed);
 
     String message =
         String.format(

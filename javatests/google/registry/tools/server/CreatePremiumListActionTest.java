@@ -15,7 +15,9 @@
 package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.registry.label.PremiumList.getPremiumPrice;
+import static google.registry.model.registry.label.PremiumListUtils.deletePremiumList;
+import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
+import static google.registry.model.registry.label.PremiumListUtils.loadPremiumListEntries;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
@@ -37,13 +39,8 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class CreatePremiumListActionTest {
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
-
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+  @Rule public final ExceptionRule thrown = new ExceptionRule();
 
   CreatePremiumListAction action;
   FakeJsonResponse response;
@@ -51,7 +48,7 @@ public class CreatePremiumListActionTest {
   @Before
   public void init() throws Exception {
     createTlds("foo", "xn--q9jyb4c", "how");
-    PremiumList.get("foo").get().delete();
+    deletePremiumList(PremiumList.get("foo").get());
     action = new CreatePremiumListAction();
     response = new FakeJsonResponse();
     action.response = response;
@@ -83,7 +80,7 @@ public class CreatePremiumListActionTest {
     action.override = true;
     action.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(PremiumList.get("zanzibar").get().loadPremiumListEntries()).hasSize(1);
+    assertThat(loadPremiumListEntries(PremiumList.get("zanzibar").get())).hasSize(1);
   }
 
   @Test
@@ -92,7 +89,7 @@ public class CreatePremiumListActionTest {
     action.inputData = "rich,USD 25\nricher,USD 1000\n";
     action.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(PremiumList.get("foo").get().loadPremiumListEntries()).hasSize(2);
+    assertThat(loadPremiumListEntries(PremiumList.get("foo").get())).hasSize(2);
     assertThat(getPremiumPrice("rich", Registry.get("foo"))).hasValue(Money.parse("USD 25"));
     assertThat(getPremiumPrice("diamond", Registry.get("foo"))).isAbsent();
   }

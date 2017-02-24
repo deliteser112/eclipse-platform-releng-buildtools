@@ -15,7 +15,7 @@
 package google.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static google.registry.model.registry.label.PremiumList.saveWithEntries;
+import static google.registry.model.registry.label.PremiumListUtils.savePremiumListAndEntries;
 import static google.registry.request.Action.Method.POST;
 
 import com.google.common.base.Optional;
@@ -49,7 +49,8 @@ public class UpdatePremiumListAction extends CreateOrUpdatePremiumListAction {
     logger.infofmt("Got the following input data: %s", inputData);
     List<String> inputDataPreProcessed =
         Splitter.on('\n').omitEmptyStrings().splitToList(inputData);
-    PremiumList newPremiumList = saveWithEntries(existingPremiumList.get(), inputDataPreProcessed);
+    PremiumList newPremiumList =
+        savePremiumListAndEntries(existingPremiumList.get(), inputDataPreProcessed);
 
     String message =
         String.format(

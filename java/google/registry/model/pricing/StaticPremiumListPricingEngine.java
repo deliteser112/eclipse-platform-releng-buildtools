@@ -17,7 +17,7 @@ package google.registry.model.pricing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.emptyToNull;
 import static google.registry.model.registry.Registry.TldState.SUNRISE;
-import static google.registry.model.registry.label.PremiumList.getPremiumPrice;
+import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
 import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
 import static google.registry.model.registry.label.ReservedList.getReservation;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;

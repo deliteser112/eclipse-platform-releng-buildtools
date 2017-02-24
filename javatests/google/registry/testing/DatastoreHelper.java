@@ -27,7 +27,7 @@ import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.EppResourceUtils.createRepoId;
 import static google.registry.model.domain.launch.ApplicationStatus.VALIDATED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.registry.label.PremiumList.parentEntriesOnRevision;
+import static google.registry.model.registry.label.PremiumListUtils.parentPremiumListEntriesOnRevision;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.difference;
 import static google.registry.util.CollectionUtils.union;
@@ -365,7 +365,7 @@ public class DatastoreHelper {
         .now();
     ofy()
         .saveWithoutBackup()
-        .entities(parentEntriesOnRevision(entries.values(), Key.create(revision)))
+        .entities(parentPremiumListEntriesOnRevision(entries.values(), Key.create(revision)))
         .now();
     return ofy().load().entity(premiumList).now();
   }

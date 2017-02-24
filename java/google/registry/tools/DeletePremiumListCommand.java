@@ -15,6 +15,8 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static google.registry.model.registry.label.PremiumListUtils.deletePremiumList;
+import static google.registry.model.registry.label.PremiumListUtils.doesPremiumListExist;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -43,7 +45,7 @@ final class DeletePremiumListCommand extends ConfirmingCommand implements Remote
   @Override
   protected void init() throws Exception {
     checkArgument(
-        PremiumList.exists(name),
+        doesPremiumListExist(name),
         "Cannot delete the premium list %s because it doesn't exist.",
         name);
     premiumList = PremiumList.get(name).get();
@@ -61,7 +63,7 @@ final class DeletePremiumListCommand extends ConfirmingCommand implements Remote
 
   @Override
   protected String execute() throws Exception {
-    premiumList.delete();
+    deletePremiumList(premiumList);
     return String.format("Deleted premium list '%s'.\n", premiumList.getName());
   }
 }
