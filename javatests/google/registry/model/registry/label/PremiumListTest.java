@@ -273,6 +273,18 @@ public class PremiumListTest {
     }
   }
 
+  @Test
+  public void testParse_cannotIncludeDuplicateLabels() {
+    thrown.expect(
+        IllegalStateException.class,
+        "List 'tld' cannot contain duplicate labels. Dupes (with counts) were: [lol x 2]");
+    PremiumList.get("tld")
+        .get()
+        .parse(
+            ImmutableList.of(
+                "lol,USD 100", "rofl,USD 90", "paper,USD 80", "wood,USD 70", "lol,USD 200"));
+  }
+
   /** Persists a premium list with a specified number of nonsense entries. */
   private PremiumList persistHumongousPremiumList(String name, int size) {
     String[] entries = new String[size];

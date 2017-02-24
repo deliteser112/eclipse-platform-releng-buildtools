@@ -23,10 +23,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.Multiset;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
@@ -85,16 +86,26 @@ public abstract class BaseDomainLabelList<T extends Comparable<?>, R extends Dom
   @VisibleForTesting
   protected ImmutableMap<String, R> parse(Iterable<String> lines) {
     Map<String, R> labelsToEntries = new HashMap<>();
+    Multiset<String> duplicateLabels = HashMultiset.create();
     for (String line : lines) {
       R entry = createFromLine(line);
       if (entry == null) {
         continue;
       }
       String label = entry.getLabel();
-      // Adds the label to the list of all labels if it (a) doesn't already exist, or (b) already
-      // exists, but the new value has higher priority (as determined by sort order).
-      labelsToEntries.put(
-          label, Ordering.natural().nullsFirst().max(labelsToEntries.get(label), entry));
+      // Check if the label was already processed for this list (which is an error), and if so,
+      // accumulate it so that a list of all duplicates can be thrown.
+      if (labelsToEntries.containsKey(label)) {
+        duplicateLabels.add(label, duplicateLabels.contains(label) ? 1 : 2);
+      } else {
+        labelsToEntries.put(label, entry);
+      }
+    }
+    if (!duplicateLabels.isEmpty()) {
+      throw new IllegalStateException(
+          String.format(
+              "List '%s' cannot contain duplicate labels. Dupes (with counts) were: %s",
+              name, duplicateLabels));
     }
     return ImmutableMap.copyOf(labelsToEntries);
   }

@@ -291,6 +291,21 @@ public class ReservedListTest {
             .build());
   }
 
+  @Test
+  public void testParse_cannotIncludeDuplicateLabels() {
+    ReservedList rl = new ReservedList.Builder().setName("blah").build();
+    thrown.expect(
+        IllegalStateException.class,
+        "List 'blah' cannot contain duplicate labels. Dupes (with counts) were: [lol x 2]");
+    rl.parse(
+        ImmutableList.of(
+            "lol,FULLY_BLOCKED",
+            "rofl,FULLY_BLOCKED",
+            "paper,FULLY_BLOCKED",
+            "wood,FULLY_BLOCKED",
+            "lol,FULLY_BLOCKED"));
+  }
+
   /** Gets the name of a reserved list. */
   public static final Function<Key<ReservedList>, String> GET_NAME_FUNCTION =
       new Function<Key<ReservedList>, String>() {

@@ -6,7 +6,7 @@ for various reasons, usually because of potential abuse.
 ## Reserved list file format
 
 Reserved lists are handled in a similar way to [premium
-lists](./premium-list-management.md), except that rather than each label having
+lists](./premium-list-management.md), except that instead of each label having
 a price, it has a reservation type. The valid values for reservation types are:
 
 *   **`UNRESERVED`** - The default value for any label that isn't reserved.
@@ -29,11 +29,11 @@ a price, it has a reservation type. The valid values for reservation types are:
     specified.
 
 The reservation types are listed in order of increasing precedence, so if a
-label is included on the same list multiple times, or on different lists that
-are applied to a single TLD, whichever reservation type is later in the list
-takes precedence. E.g. a label being fully blocked in one list always supersedes
-it being allowed in sunrise from another list. In general `FULLY_BLOCKED` is by
-far the most widely used reservation type for typical TLD use cases.
+label is included on different lists that are applied to a single TLD, whichever
+reservation type is later in the list takes precedence. E.g. a label being fully
+blocked in one list always supersedes it being allowed in sunrise from another
+list. In general `FULLY_BLOCKED` is by far the most widely used reservation type
+for typical TLD use cases.
 
 Here's an example of a small reserved list. Note that
 `RESERVED_FOR_ANCHOR_TENANT` is the only reservation type that has a third entry
