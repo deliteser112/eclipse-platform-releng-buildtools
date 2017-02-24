@@ -154,7 +154,7 @@ public class RequestAuthenticator {
     checkArgument(
         Ordering.explicit(Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY)
             .isStrictlyOrdered(authMethods),
-        "Auth methods must be strictly in order - INTERNAL, API, LEGACY");
+        "Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
     checkArgument(
         authMethods.contains(Auth.AuthMethod.INTERNAL),
         "Auth method INTERNAL must always be specified, and as the first auth method");
