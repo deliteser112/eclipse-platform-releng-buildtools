@@ -1128,11 +1128,11 @@ def com_google_re2j():
 def com_google_truth():
   java_import_external(
       name = "com_google_truth",
-      jar_sha256 = "f4a4c5e69c4994b750ce3ee80adbb2b7150fe39f057d7dff89832c8ca3af512e",
+      jar_sha256 = "032eddc69652b0a1f8d458f999b4a9534965c646b8b5de0eba48ee69407051df",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/truth/truth/0.30/truth-0.30.jar",
-          "http://repo1.maven.org/maven2/com/google/truth/truth/0.30/truth-0.30.jar",
-          "http://maven.ibiblio.org/maven2/com/google/truth/truth/0.30/truth-0.30.jar",
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/truth/truth/0.32/truth-0.32.jar",
+          "http://repo1.maven.org/maven2/com/google/truth/truth/0.32/truth-0.32.jar",
+          "http://maven.ibiblio.org/maven2/com/google/truth/truth/0.32/truth-0.32.jar",
       ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
       testonly_ = True,

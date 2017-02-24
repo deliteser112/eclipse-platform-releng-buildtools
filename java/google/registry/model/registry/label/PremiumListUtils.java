@@ -108,7 +108,8 @@ public final class PremiumListUtils {
     final Key<PremiumListRevision> newRevisionKey = Key.create(newRevision);
     ImmutableSet<PremiumListEntry> parentedEntries =
         parentPremiumListEntriesOnRevision(
-            firstNonNull(premiumListEntries.values(), ImmutableSet.of()), newRevisionKey);
+            firstNonNull(premiumListEntries.values(), ImmutableSet.<PremiumListEntry>of()),
+            newRevisionKey);
 
     // Save the new child entities in a series of transactions.
     for (final List<PremiumListEntry> batch :
@@ -160,7 +161,7 @@ public final class PremiumListUtils {
   /** Re-parents the given {@link PremiumListEntry}s on the given {@link PremiumListRevision}. */
   public static ImmutableSet<PremiumListEntry> parentPremiumListEntriesOnRevision(
       Iterable<PremiumListEntry> entries, final Key<PremiumListRevision> revisionKey) {
-    return FluentIterable.from(firstNonNull(entries, ImmutableSet.of()))
+    return FluentIterable.from(entries)
         .transform(
             new Function<PremiumListEntry, PremiumListEntry>() {
               @Override
