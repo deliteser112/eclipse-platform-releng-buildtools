@@ -254,7 +254,7 @@ public class RdeUploadActionTest {
   @Test
   public void testSocketConnection() throws Exception {
     int port = sftpd.serve("user", "password", folder.getRoot());
-    try (Socket socket = new Socket("::1", port)) {
+    try (Socket socket = new Socket("localhost", port)) {
       assertThat(socket.isConnected()).isTrue();
     }
   }
@@ -278,7 +278,7 @@ public class RdeUploadActionTest {
     // XXX: For any port other than 22, JSch will reformat the hostname IPv6 style which causes
     //      known host matching to fail.
     int port = sftpd.serve("user", "password", folder.getRoot());
-    URI uploadUrl = URI.create(String.format("sftp://user:password@127.0.0.1:%d/", port));
+    URI uploadUrl = URI.create(String.format("sftp://user:password@localhost:%d/", port));
     DateTime stagingCursor = DateTime.parse("2010-10-18TZ");
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
@@ -299,7 +299,7 @@ public class RdeUploadActionTest {
   @Test
   public void testRunWithLock_failsAfterThreeAttempts() throws Exception {
     int port = sftpd.serve("user", "password", folder.getRoot());
-    URI uploadUrl = URI.create(String.format("sftp://user:password@127.0.0.1:%d/", port));
+    URI uploadUrl = URI.create(String.format("sftp://user:password@localhost:%d/", port));
     DateTime stagingCursor = DateTime.parse("2010-10-18TZ");
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
@@ -313,7 +313,7 @@ public class RdeUploadActionTest {
   @Test
   public void testRunWithLock_copiesOnGcs() throws Exception {
     int port = sftpd.serve("user", "password", folder.getRoot());
-    URI uploadUrl = URI.create(String.format("sftp://user:password@127.0.0.1:%d/", port));
+    URI uploadUrl = URI.create(String.format("sftp://user:password@localhost:%d/", port));
     DateTime stagingCursor = DateTime.parse("2010-10-18TZ");
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
@@ -341,7 +341,7 @@ public class RdeUploadActionTest {
         RdeRevision.saveRevision("tld", DateTime.parse("2010-10-17TZ"), FULL, 1);
       }});
     int port = sftpd.serve("user", "password", folder.getRoot());
-    URI uploadUrl = URI.create(String.format("sftp://user:password@127.0.0.1:%d/", port));
+    URI uploadUrl = URI.create(String.format("sftp://user:password@localhost:%d/", port));
     DateTime stagingCursor = DateTime.parse("2010-10-18TZ");
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistSimpleResource(
@@ -361,7 +361,7 @@ public class RdeUploadActionTest {
   public void testRunWithLock_producesValidSignature() throws Exception {
     assumeTrue(hasCommand("gpg --version"));
     int port = sftpd.serve("user", "password", folder.getRoot());
-    URI uploadUrl = URI.create(String.format("sftp://user:password@127.0.0.1:%d/", port));
+    URI uploadUrl = URI.create(String.format("sftp://user:password@localhost:%d/", port));
     DateTime stagingCursor = DateTime.parse("2010-10-18TZ");
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
