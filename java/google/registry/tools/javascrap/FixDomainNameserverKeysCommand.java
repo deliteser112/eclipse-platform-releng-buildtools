@@ -31,6 +31,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
+import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.ConfirmingCommand;
@@ -51,8 +52,13 @@ import org.joda.time.DateTime;
 @Parameters(separators = " =", commandDescription = "Fix bad host keys on domains.")
 public class FixDomainNameserverKeysCommand extends ConfirmingCommand implements RemoteApiCommand {
 
-  @Parameter(description = "Fully-qualified domain names", required = true)
+  @Parameter(description = "Fully-qualified domain names (or ROIDs, with -r)", required = true)
   private List<String> mainParameters;
+
+  @Parameter(
+      names = {"-r", "--roid"},
+      description = "Use domain ROID instead of fully qualified name (useful for deleted domains)")
+  boolean useRoid;
 
   private final LinkedHashMap<DomainResource, DomainResource> domainUpdates = new LinkedHashMap<>();
   private final LinkedHashMap<DomainResource, HistoryEntry> historyEntries = new LinkedHashMap<>();
@@ -60,8 +66,11 @@ public class FixDomainNameserverKeysCommand extends ConfirmingCommand implements
   @Override
   protected void init() throws Exception {
     DateTime now = DateTime.now(UTC);
-    for (String domainName : mainParameters) {
-      DomainResource domain = checkNotNull(loadByForeignKey(DomainResource.class, domainName, now));
+    for (String domainNameOrRoid : mainParameters) {
+      Key<DomainResource> domainKey = useRoid
+          ? Key.create(DomainResource.class, domainNameOrRoid)
+          : ForeignKeyIndex.load(DomainResource.class, domainNameOrRoid, now).getResourceKey();
+      DomainResource domain = checkNotNull(ofy().load().key(domainKey).now());
       ImmutableSet.Builder<Key<HostResource>> nameservers = new ImmutableSet.Builder<>();
       for (Key<HostResource> hostKey : domain.getNameservers()) {
         HostResource existingHost = ofy().load().key(hostKey).now();
@@ -117,8 +126,7 @@ public class FixDomainNameserverKeysCommand extends ConfirmingCommand implements
           checkState(
               Objects.equals(
                   existingDomain,
-                  ofy().load().entity(existingDomain).now()
-                      .cloneProjectedAtTime(ofy().getTransactionTime())),
+                  ofy().load().entity(existingDomain).now()),
               "Domain %s changed since init() was called.",
               existingDomain.getFullyQualifiedDomainName());
           HistoryEntry historyEntryWithModificationTime =
