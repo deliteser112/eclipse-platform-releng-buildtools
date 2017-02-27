@@ -56,8 +56,9 @@ FROM (
     -- Parse out the amount of minor units by stripping out non-digit chars
     -- (i.e. currency, space, and period) and then converting to integer.
     INTEGER(REGEXP_REPLACE(cost, r'\D+', '')) AS amountMinor,
-    -- Convert repeated flags field into flat comma-delimited string field.
-    GROUP_CONCAT(flags) WITHIN RECORD AS flags,
+    -- Convert repeated flags field into flat comma-delimited string field,
+    -- excluding the internal-only flag 'SYNTHETIC'.
+    GROUP_CONCAT(IF(flags != 'SYNTHETIC', flags, NULL)) WITHIN RECORD AS flags,
     -- Cancellations for recurring events will point to the recurring event's
     -- key, which is stored in cancellationMatchingBillingEvent. The path
     -- contains kind, id, and domainRepoId, all of which must match, so just
