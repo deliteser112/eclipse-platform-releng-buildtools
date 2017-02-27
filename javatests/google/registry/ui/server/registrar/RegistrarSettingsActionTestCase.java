@@ -113,7 +113,7 @@ public class RegistrarSettingsActionTestCase {
     when(req.getMethod()).thenReturn("POST");
     when(rsp.getWriter()).thenReturn(new PrintWriter(writer));
     when(req.getContentType()).thenReturn("application/json");
-    when(req.getHeader(eq("X-CSRF-Token"))).thenReturn(xsrfTokenManager.generateToken("console"));
+    when(req.getHeader(eq("X-CSRF-Token"))).thenReturn(xsrfTokenManager.generateTokenWithCurrentUser("console"));
     when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of("op", "read")));
     when(sessionUtils.isLoggedIn()).thenReturn(true);
     when(sessionUtils.checkRegistrarConsoleLogin(req)).thenReturn(true);

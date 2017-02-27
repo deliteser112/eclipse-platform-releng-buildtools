@@ -14,11 +14,15 @@
 
 package google.registry.request.auth;
 
+import static com.google.common.base.Strings.nullToEmpty;
 import static google.registry.request.auth.AuthLevel.NONE;
 import static google.registry.request.auth.AuthLevel.USER;
+import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 
 import com.google.appengine.api.users.UserService;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
+import google.registry.security.XsrfTokenManager;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -27,25 +31,36 @@ import javax.servlet.http.HttpServletRequest;
  *
  * <p>Just use the values returned by UserService.
  */
-// TODO(mountford) Add XSRF protection here or elsewhere, from RequestHandler
 public class LegacyAuthenticationMechanism implements AuthenticationMechanism {
 
   private final UserService userService;
+  private final XsrfTokenManager xsrfTokenManager;
+
+  /** HTTP methods which are considered safe, and do not require XSRF protection. */
+  private static final ImmutableSet<String> SAFE_METHODS = ImmutableSet.of("GET", "HEAD");
 
   @VisibleForTesting
   @Inject
-  public LegacyAuthenticationMechanism(UserService userService) {
+  public LegacyAuthenticationMechanism(UserService userService, XsrfTokenManager xsrfTokenManager) {
     this.userService = userService;
+    this.xsrfTokenManager = xsrfTokenManager;
   }
 
   @Override
   public AuthResult authenticate(HttpServletRequest request) {
     if (!userService.isUserLoggedIn()) {
       return AuthResult.create(NONE);
-    } else {
-      return AuthResult.create(
-          USER,
-          UserAuthInfo.create(userService.getCurrentUser(), userService.isUserAdmin()));
     }
+
+    if (!SAFE_METHODS.contains(request.getMethod())
+        && !xsrfTokenManager.validateToken(
+            nullToEmpty(request.getHeader(X_CSRF_TOKEN)),
+            "console")) { // hard-coded for now; in the long run, this will be removed
+      return AuthResult.create(NONE);
+    }
+
+    return AuthResult.create(
+        USER,
+        UserAuthInfo.create(userService.getCurrentUser(), userService.isUserAdmin()));
   }
 }

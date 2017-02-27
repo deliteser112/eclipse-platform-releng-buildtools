@@ -16,12 +16,9 @@ package google.registry.request.auth;
 
 import com.google.appengine.api.oauth.OAuthService;
 import com.google.appengine.api.oauth.OAuthServiceFactory;
-import com.google.appengine.api.users.UserService;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.RegistryConfig.Config;
 
 /**
  * Dagger module for authentication routines.
@@ -29,28 +26,12 @@ import google.registry.config.RegistryConfig.Config;
 @Module
 public class AuthModule {
 
-  /** Provides the internal authentication mechanism. */
-  @Provides
-  AppEngineInternalAuthenticationMechanism provideAppEngineInternalAuthenticationMechanism() {
-    return new AppEngineInternalAuthenticationMechanism();
-  }
-
   /** Provides the custom authentication mechanisms (including OAuth). */
   @Provides
   ImmutableList<AuthenticationMechanism> provideApiAuthenticationMechanisms(
-      OAuthService oauthService,
-      @Config("availableOauthScopes") ImmutableSet<String> availableOauthScopes,
-      @Config("requiredOauthScopes") ImmutableSet<String> requiredOauthScopes,
-      @Config("allowedOauthClientIds") ImmutableSet<String> allowedOauthClientIds) {
+      OAuthAuthenticationMechanism oauthAuthenticationMechanism) {
     return ImmutableList.<AuthenticationMechanism>of(
-        new OAuthAuthenticationMechanism(
-            oauthService, availableOauthScopes, requiredOauthScopes, allowedOauthClientIds));
-  }
-
-  /** Provides the legacy authentication mechanism. */
-  @Provides
-  LegacyAuthenticationMechanism provideLegacyAuthenticationMechanism(UserService userService) {
-    return new LegacyAuthenticationMechanism(userService);
+        oauthAuthenticationMechanism);
   }
 
   /** Provides the OAuthService instance. */

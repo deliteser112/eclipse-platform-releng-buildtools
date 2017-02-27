@@ -9,6 +9,7 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//java/google/registry/config",
+        "//java/google/registry/security",
         "//java/google/registry/util",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_auto_value",

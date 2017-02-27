@@ -54,7 +54,9 @@ public class XsrfTokenManagerTest {
 
   @Test
   public void testSuccess() {
-    assertThat(xsrfTokenManager.validateToken(xsrfTokenManager.generateToken("console"), "console"))
+    assertThat(
+            xsrfTokenManager.validateToken(
+                xsrfTokenManager.generateTokenWithCurrentUser("console"), "console"))
         .isTrue();
   }
 
@@ -70,7 +72,7 @@ public class XsrfTokenManagerTest {
 
   @Test
   public void testExpired() {
-    String token = xsrfTokenManager.generateToken("console");
+    String token = xsrfTokenManager.generateTokenWithCurrentUser("console");
     clock.setTo(START_OF_TIME.plusDays(2));
     assertThat(xsrfTokenManager.validateToken(token, "console")).isFalse();
   }
@@ -78,7 +80,9 @@ public class XsrfTokenManagerTest {
   @Test
   public void testTimestampTamperedWith() {
     String encodedPart =
-        Splitter.on(':').splitToList(xsrfTokenManager.generateToken("console")).get(0);
+        Splitter.on(':')
+            .splitToList(xsrfTokenManager.generateTokenWithCurrentUser("console"))
+            .get(0);
     long tamperedTimestamp = clock.nowUtc().plusMillis(1).getMillis();
     assertThat(xsrfTokenManager.validateToken(encodedPart + ":" + tamperedTimestamp, "console"))
         .isFalse();
@@ -93,7 +97,26 @@ public class XsrfTokenManagerTest {
 
   @Test
   public void testDifferentScope() {
-    assertThat(xsrfTokenManager.validateToken(xsrfTokenManager.generateToken("console"), "foobar"))
+    assertThat(
+            xsrfTokenManager.validateToken(
+                xsrfTokenManager.generateTokenWithCurrentUser("console"), "foobar"))
         .isFalse();
+  }
+
+  @Test
+  public void testNullScope() {
+    assertThat(
+            xsrfTokenManager.validateToken(
+                xsrfTokenManager.generateTokenWithCurrentUser(null), null))
+        .isTrue();
+  }
+
+  // This test checks that the server side will pass when we switch the client to use a null scope.
+  @Test
+  public void testNullScopePassesWhenTestedWithNonNullScope() {
+    assertThat(
+            xsrfTokenManager.validateToken(
+                xsrfTokenManager.generateTokenWithCurrentUser(null), "console"))
+        .isTrue();
   }
 }

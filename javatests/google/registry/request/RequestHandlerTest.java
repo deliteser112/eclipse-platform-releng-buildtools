@@ -241,7 +241,7 @@ public final class RequestHandlerTest {
                 ImmutableSet.of("https://www.googleapis.com/auth/userinfo.email"),
                 ImmutableSet.of("https://www.googleapis.com/auth/userinfo.email"),
                 ImmutableSet.of("proxy-client-id", "regtool-client-id"))),
-        new LegacyAuthenticationMechanism(userService));
+        new LegacyAuthenticationMechanism(userService, xsrfTokenManager));
 
     // Initialize here, not inline, so that we pick up the mocked UserService.
     handler = RequestHandler.<Component>createForTest(
@@ -382,7 +382,8 @@ public final class RequestHandlerTest {
   public void testXsrfProtection_validTokenProvided_runsAction() throws Exception {
     userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("POST");
-    when(req.getHeader("X-CSRF-Token")).thenReturn(xsrfTokenManager.generateToken("vampire"));
+    when(req.getHeader("X-CSRF-Token"))
+        .thenReturn(xsrfTokenManager.generateTokenWithCurrentUser("vampire"));
     when(req.getRequestURI()).thenReturn("/safe-sloth");
     handler.handleRequest(req, rsp);
     verify(safeSlothTask).run();
@@ -392,7 +393,8 @@ public final class RequestHandlerTest {
   public void testXsrfProtection_tokenWithInvalidScopeProvided_returns403() throws Exception {
     userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("POST");
-    when(req.getHeader("X-CSRF-Token")).thenReturn(xsrfTokenManager.generateToken("blood"));
+    when(req.getHeader("X-CSRF-Token"))
+        .thenReturn(xsrfTokenManager.generateTokenWithCurrentUser("blood"));
     when(req.getRequestURI()).thenReturn("/safe-sloth");
     handler.handleRequest(req, rsp);
     verify(rsp).sendError(403, "Invalid X-CSRF-Token");

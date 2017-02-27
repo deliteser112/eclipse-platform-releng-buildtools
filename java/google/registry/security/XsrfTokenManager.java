@@ -25,12 +25,15 @@ import com.google.common.hash.Hashing;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /** Helper class for generating and validate XSRF tokens. */
 public final class XsrfTokenManager {
+
+  // TODO(b/35388772): remove the scope parameter
 
   /** HTTP header used for transmitting XSRF tokens. */
   public static final String X_CSRF_TOKEN = "X-CSRF-Token";
@@ -48,8 +51,16 @@ public final class XsrfTokenManager {
     this.userService = userService;
   }
 
-  private static String encodeToken(long creationTime, String scope, String userEmail) {
-    String token = Joiner.on('\t').join(getServerSecret(), userEmail, scope, creationTime);
+  /**
+   * Encode a token.
+   *
+   * <p>The token is a Base64-encoded SHA-256 hash of a string containing the secret, email, scope
+   * and creation time, separated by tabs. If the scope is null, the string is secret, email,
+   * creation time. In the future, the scope option will be removed.
+   */
+  private static String encodeToken(long creationTime, @Nullable String scope, String userEmail) {
+    String token =
+        Joiner.on('\t').skipNulls().join(getServerSecret(), userEmail, scope, creationTime);
     return base64Url().encode(Hashing.sha256()
         .newHasher(token.length())
         .putString(token, UTF_8)
@@ -58,28 +69,69 @@ public final class XsrfTokenManager {
   }
 
   /**
-   * Generate an xsrf token for a given scope using the logged in user or else no user.
+   * Generate an xsrf token for a given scope using the email of the logged in user or else no user.
    *
    * <p>If there is no user, the entire xsrf check becomes basically a no-op, but that's ok because
    * any callback that doesn't have a user shouldn't be able to access any per-user resources
    * anyways.
+   *
+   * <p>The scope (or lack thereof) is passed to {@link #encodeToken}. Use of a scope in xsrf tokens
+   * is deprecated; instead, use the no-argument version.
    */
-  public String generateToken(String scope) {
-    return generateToken(scope, getLoggedInEmailOrEmpty());
+  @Deprecated
+  public String generateTokenWithCurrentUser(@Nullable String scope) {
+    return generateTokenSub(scope, getLoggedInEmailOrEmpty());
   }
 
-  /** Generate an xsrf token for a given scope and user. */
-  public String generateToken(String scope, String email) {
+  /**
+   * Generate an xsrf token for a given scope and user.
+   *
+   * <p>The scope (or lack thereof) is passed to {@link #encodeToken}. Use of a scope in xsrf tokens
+   * is deprecated; instead, use the no-argument version.
+   */
+  @Deprecated
+  public String generateToken(@Nullable String scope, String email) {
     long now = clock.nowUtc().getMillis();
     return Joiner.on(':').join(encodeToken(now, scope, email), now);
+  }
+
+  /** Generate an xsrf token for a given user. */
+  public String generateToken(String email) {
+    return generateTokenSub(null, email);
   }
 
   private String getLoggedInEmailOrEmpty() {
     return userService.isUserLoggedIn() ? userService.getCurrentUser().getEmail() : "";
   }
 
-  /** Validate an xsrf token, given the scope it was used for. */
-  public boolean validateToken(String token, String scope) {
+  private String generateTokenSub(@Nullable String scope, String email) {
+    long now = clock.nowUtc().getMillis();
+    return Joiner.on(':').join(encodeToken(now, scope, email), now);
+  }
+
+  /**
+   * Validate an xsrf token, given the scope it was used for.
+   *
+   * <p>We plan to remove the scope parameter. As a first step, the method first checks for the
+   * existence of a token with no scope. If that is not found, it then looks for the existence of a
+   * token with the specified scope. Our next step will be to have clients pass in a null scope.
+   * Finally, we will remove scopes from this code altogether.
+   */
+  @Deprecated
+  public boolean validateToken(String token, @Nullable String scope) {
+    return validateTokenSub(token, scope);
+  }
+
+  /**
+   * Validate an xsrf token.
+   *
+   * <p>This is the non-scoped version to which we will transition in the future.
+   */
+  public boolean validateToken(String token) {
+    return validateTokenSub(token, null);
+  }
+
+  private boolean validateTokenSub(String token, @Nullable String scope) {
     List<String> tokenParts = Splitter.on(':').splitToList(token);
     if (tokenParts.size() != 2) {
       logger.warningfmt("Malformed XSRF token: %s", token);
@@ -98,11 +150,21 @@ public final class XsrfTokenManager {
       logger.infofmt("Expired timestamp in XSRF token: %s", token);
       return false;
     }
-    String reconstructedToken = encodeToken(creationTime, scope, getLoggedInEmailOrEmpty());
-    if (!reconstructedToken.equals(encodedPart)) {
-      logger.warningfmt("Reconstructed XSRF mismatch: %s ≠ %s", encodedPart, reconstructedToken);
-      return false;
+    // First, check for a scopeless token, because that's the token of the future.
+    String reconstructedToken = encodeToken(creationTime, null, getLoggedInEmailOrEmpty());
+    if (reconstructedToken.equals(encodedPart)) {
+      return true;
     }
-    return true;
+
+    // If we don't find one, look for one with the specified scope.
+    if (scope != null) {
+      reconstructedToken = encodeToken(creationTime, scope, getLoggedInEmailOrEmpty());
+      if (reconstructedToken.equals(encodedPart)) {
+        return true;
+      }
+    }
+
+    logger.warningfmt("Reconstructed XSRF mismatch: %s ≠ %s", encodedPart, reconstructedToken);
+    return false;
   }
 }

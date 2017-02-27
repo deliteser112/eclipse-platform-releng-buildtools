@@ -17,6 +17,7 @@ package google.registry.request.auth;
 import static google.registry.request.auth.AuthLevel.APP;
 import static google.registry.request.auth.AuthLevel.NONE;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -55,6 +56,9 @@ public class AppEngineInternalAuthenticationMechanism implements AuthenticationM
 
   // As defined in the App Engine request header documentation.
   private static final String QUEUE_NAME_HEADER = "X-AppEngine-QueueName";
+
+  @Inject
+  public AppEngineInternalAuthenticationMechanism() {}
 
   @Override
   public AuthResult authenticate(HttpServletRequest request) {
