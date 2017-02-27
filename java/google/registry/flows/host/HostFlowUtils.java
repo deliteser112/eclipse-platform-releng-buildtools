@@ -86,12 +86,12 @@ public class HostFlowUtils {
   }
 
   /** Return the {@link DomainResource} this host is subordinate to, or null for external hosts. */
-  static DomainResource lookupSuperordinateDomain(
+  public static Optional<DomainResource> lookupSuperordinateDomain(
       InternetDomainName hostName, DateTime now) throws EppException {
     Optional<InternetDomainName> tld = findTldForName(hostName);
     if (!tld.isPresent()) {
       // This is an host on a TLD we don't run, therefore obviously external, so we are done.
-      return null;
+      return Optional.absent();
     }
     // This is a subordinate host
     String domainName = Joiner.on('.').join(Iterables.skip(
@@ -100,7 +100,7 @@ public class HostFlowUtils {
     if (superordinateDomain == null || !isActive(superordinateDomain, now)) {
       throw new SuperordinateDomainDoesNotExistException(domainName);
     }
-    return superordinateDomain;
+    return Optional.of(superordinateDomain);
   }
 
   /** Superordinate domain for this hostname does not exist. */

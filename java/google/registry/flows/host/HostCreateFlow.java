@@ -96,8 +96,8 @@ public final class HostCreateFlow implements TransactionalFlow {
     // The superordinate domain of the host object if creating an in-bailiwick host, or null if
     // creating an external host. This is looked up before we actually create the Host object so
     // we can detect error conditions earlier.
-    Optional<DomainResource> superordinateDomain = Optional.fromNullable(
-        lookupSuperordinateDomain(validateHostName(targetId), now));
+    Optional<DomainResource> superordinateDomain =
+        lookupSuperordinateDomain(validateHostName(targetId), now);
     verifyDomainIsSameRegistrar(superordinateDomain.orNull(), clientId);
     boolean willBeSubordinate = superordinateDomain.isPresent();
     boolean hasIpAddresses = !isNullOrEmpty(command.getInetAddresses());

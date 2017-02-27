@@ -14,18 +14,14 @@
 
 package google.registry.rde.imports;
 
-import static com.google.common.base.Preconditions.checkState;
+import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_MAP_SHARDS;
-import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
@@ -134,29 +130,6 @@ public class RdeHostLinkAction implements Runnable {
         getContext().incrementCounter("post-import host errors");
         throw new HostLinkException(xjcHost.getName(), xjcHost.toString(), e);
       }
-    }
-
-    /**
-     * Return the {@link DomainResource} this host is subordinate to, or absent for out of zone
-     * hosts.
-     *
-     * @throws IllegalStateException for hosts without superordinate domains
-     */
-    private static Optional<DomainResource> lookupSuperordinateDomain(
-        InternetDomainName hostName, DateTime now) {
-      Optional<InternetDomainName> tld = findTldForName(hostName);
-      // out of zone hosts cannot be linked
-      if (!tld.isPresent()) {
-        return Optional.absent();
-      }
-      // This is a subordinate host
-      String domainName = Joiner.on('.').join(Iterables.skip(
-          hostName.parts(), hostName.parts().size() - (tld.get().parts().size() + 1)));
-      DomainResource superordinateDomain = loadByForeignKey(DomainResource.class, domainName, now);
-      // Hosts can't be linked if domains import hasn't been run
-      checkState(
-          superordinateDomain != null, "Superordinate domain does not exist: %s", domainName);
-      return Optional.of(superordinateDomain);
     }
   }
 

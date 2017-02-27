@@ -130,7 +130,7 @@ public final class HostUpdateFlow implements TransactionalFlow {
     String newHostName = firstNonNull(suppliedNewHostName, oldHostName);
     // Note that lookupSuperordinateDomain calls cloneProjectedAtTime on the domain for us.
     Optional<DomainResource> newSuperordinateDomain =
-        Optional.fromNullable(lookupSuperordinateDomain(validateHostName(newHostName), now));
+        lookupSuperordinateDomain(validateHostName(newHostName), now);
     verifyUpdateAllowed(command, existingHost, newSuperordinateDomain.orNull());
     if (isHostRename && loadAndGetKey(HostResource.class, newHostName, now) != null) {
       throw new HostAlreadyExistsException(newHostName);
