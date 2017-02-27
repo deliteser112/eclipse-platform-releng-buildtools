@@ -20,13 +20,14 @@ import static google.registry.model.registry.label.PremiumList.cachePremiumListE
 import static google.registry.model.registry.label.PremiumListUtils.deletePremiumList;
 import static google.registry.model.registry.label.PremiumListUtils.doesPremiumListExist;
 import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
-import static google.registry.model.registry.label.PremiumListUtils.loadPremiumListEntries;
 import static google.registry.model.registry.label.PremiumListUtils.savePremiumListAndEntries;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadPremiumListEntries;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.Registry;
@@ -187,7 +188,8 @@ public class PremiumListUtilsTest {
     persistResource(Registry.get("tld").asBuilder().setPremiumList(pl).build());
     assertThat(getPremiumPrice("lol", Registry.get("tld"))).hasValue(Money.parse("USD 999"));
     assertThat(getPremiumPrice("lol ", Registry.get("tld"))).isAbsent();
-    Map<String, PremiumListEntry> entries = loadPremiumListEntries(PremiumList.get("tld2").get());
+    ImmutableMap<String, PremiumListEntry> entries =
+        loadPremiumListEntries(PremiumList.get("tld2").get());
     assertThat(entries.keySet()).containsExactly("lol");
     assertThat(entries).doesNotContainKey("lol ");
     PremiumListEntry entry = entries.get("lol");
@@ -201,7 +203,7 @@ public class PremiumListUtilsTest {
     PremiumList pl =
         savePremiumListAndEntries(
             new PremiumList.Builder().setName("pl").build(), ImmutableList.of("test,USD 1"));
-    Map<String, PremiumListEntry> entries = loadPremiumListEntries(pl);
+    ImmutableMap<String, PremiumListEntry> entries = loadPremiumListEntries(pl);
     assertThat(entries.keySet()).containsExactly("test");
     assertThat(loadPremiumListEntries(PremiumList.get("pl").get())).isEqualTo(entries);
     // Save again with no changes, and clear the cache to force a re-load from Datastore.

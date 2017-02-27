@@ -987,5 +987,23 @@ public class DatastoreHelper {
       }});
   }
 
+  /** Returns the entire map of {@link PremiumListEntry}s for the given {@link PremiumList}. */
+  public static ImmutableMap<String, PremiumListEntry> loadPremiumListEntries(
+      PremiumList premiumList) {
+    try {
+      ImmutableMap.Builder<String, PremiumListEntry> entriesMap = new ImmutableMap.Builder<>();
+      if (premiumList.getRevisionKey() != null) {
+        for (PremiumListEntry entry :
+            ofy().load().type(PremiumListEntry.class).ancestor(premiumList.getRevisionKey())) {
+          entriesMap.put(entry.getLabel(), entry);
+        }
+      }
+      return entriesMap.build();
+    } catch (Exception e) {
+      throw new RuntimeException(
+          "Could not retrieve entries for premium list " + premiumList.getName(), e);
+    }
+  }
+
   private DatastoreHelper() {}
 }

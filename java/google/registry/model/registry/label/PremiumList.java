@@ -39,7 +39,6 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.cmd.Query;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ReportedOn;
@@ -285,10 +284,6 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
   @Override
   public boolean refersToKey(Registry registry, Key<? extends BaseDomainLabelList<?, ?>> key) {
     return Objects.equals(registry.getPremiumList(), key);
-  }
-
-  Query<PremiumListEntry> queryEntriesForCurrentRevision() {
-    return ofy().load().type(PremiumListEntry.class).ancestor(revisionKey);
   }
 
   @Override

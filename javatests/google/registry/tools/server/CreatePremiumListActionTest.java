@@ -17,8 +17,8 @@ package google.registry.tools.server;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.registry.label.PremiumListUtils.deletePremiumList;
 import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
-import static google.registry.model.registry.label.PremiumListUtils.loadPremiumListEntries;
 import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.loadPremiumListEntries;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import google.registry.model.registry.Registry;

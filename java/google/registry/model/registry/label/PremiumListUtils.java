@@ -14,7 +14,6 @@
 
 package google.registry.model.registry.label;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.partition;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
@@ -37,7 +36,6 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList.PremiumListEntry;
 import google.registry.model.registry.label.PremiumList.PremiumListRevision;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import org.joda.money.Money;
@@ -107,9 +105,7 @@ public final class PremiumListUtils {
         PremiumListRevision.create(premiumList, premiumListEntries.keySet());
     final Key<PremiumListRevision> newRevisionKey = Key.create(newRevision);
     ImmutableSet<PremiumListEntry> parentedEntries =
-        parentPremiumListEntriesOnRevision(
-            firstNonNull(premiumListEntries.values(), ImmutableSet.<PremiumListEntry>of()),
-            newRevisionKey);
+        parentPremiumListEntriesOnRevision(premiumListEntries.values(), newRevisionKey);
 
     // Save the new child entities in a series of transactions.
     for (final List<PremiumListEntry> batch :
@@ -159,6 +155,7 @@ public final class PremiumListUtils {
   }
 
   /** Re-parents the given {@link PremiumListEntry}s on the given {@link PremiumListRevision}. */
+  @VisibleForTesting
   public static ImmutableSet<PremiumListEntry> parentPremiumListEntriesOnRevision(
       Iterable<PremiumListEntry> entries, final Key<PremiumListRevision> revisionKey) {
     return FluentIterable.from(entries)
@@ -188,7 +185,7 @@ public final class PremiumListUtils {
       return;
     }
     for (final List<Key<PremiumListEntry>> batch : partition(
-        premiumList.queryEntriesForCurrentRevision().keys(),
+        ofy().load().type(PremiumListEntry.class).ancestor(premiumList.revisionKey).keys(),
         TRANSACTION_BATCH_SIZE)) {
       ofy().transactNew(new VoidWork() {
         @Override
@@ -206,29 +203,6 @@ public final class PremiumListUtils {
   /** Returns whether a PremiumList of the given name exists, bypassing the cache. */
   public static boolean doesPremiumListExist(String name) {
     return ofy().load().key(Key.create(getCrossTldKey(), PremiumList.class, name)).now() != null;
-  }
-
-  /**
-   * Loads and returns the entire premium list map.
-   *
-   * <p>This load operation is quite expensive for large premium lists because each premium list
-   * entry is a separate Datastore entity, and loading them this way bypasses the in-memory caches.
-   * Do not use this method if all you need to do is check the price of a small number of labels!
-   */
-  @VisibleForTesting
-  public static Map<String, PremiumListEntry> loadPremiumListEntries(PremiumList premiumList) {
-    try {
-      ImmutableMap.Builder<String, PremiumListEntry> entriesMap = new ImmutableMap.Builder<>();
-      if (premiumList.getRevisionKey() != null) {
-        for (PremiumListEntry entry : premiumList.queryEntriesForCurrentRevision()) {
-          entriesMap.put(entry.getLabel(), entry);
-        }
-      }
-      return entriesMap.build();
-    } catch (Exception e) {
-      throw new RuntimeException(
-          "Could not retrieve entries for premium list " + premiumList.getName(), e);
-    }
   }
 
   private PremiumListUtils() {}
