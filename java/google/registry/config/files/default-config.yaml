@@ -195,6 +195,7 @@ kms:
   # GCP project containing the KMS keyring. Should only be used for KMS in
   # order to keep a simple locked down IAM configuration.
   projectId: registry-kms-project-id
+
   # The name to use for the Cloud KMS KeyRing which will store encryption keys
   # for Nomulus secrets.
   keyringName: nomulus
