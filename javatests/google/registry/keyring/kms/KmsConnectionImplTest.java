@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +33,7 @@ import com.google.api.services.cloudkms.v1beta1.model.DecryptResponse;
 import com.google.api.services.cloudkms.v1beta1.model.EncryptRequest;
 import com.google.api.services.cloudkms.v1beta1.model.EncryptResponse;
 import com.google.api.services.cloudkms.v1beta1.model.KeyRing;
+import com.google.api.services.cloudkms.v1beta1.model.UpdateCryptoKeyPrimaryVersionRequest;
 import java.io.ByteArrayInputStream;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,6 +57,9 @@ public class KmsConnectionImplTest {
   @Mock private CloudKMS.Projects.Locations.KeyRings.CryptoKeys.Create kmsCryptoKeysCreate;
 
   @Mock
+  private CloudKMS.Projects.Locations.KeyRings.CryptoKeys.UpdatePrimaryVersion updatePrimaryVersion;
+
+  @Mock
   private CloudKMS.Projects.Locations.KeyRings.CryptoKeys.CryptoKeyVersions kmsCryptoKeyVersions;
 
   @Mock
@@ -67,11 +72,14 @@ public class KmsConnectionImplTest {
   @Captor private ArgumentCaptor<KeyRing> keyRing;
   @Captor private ArgumentCaptor<CryptoKey> cryptoKey;
   @Captor private ArgumentCaptor<CryptoKeyVersion> cryptoKeyVersion;
+  @Captor private ArgumentCaptor<String> locationName;
   @Captor private ArgumentCaptor<String> keyRingName;
   @Captor private ArgumentCaptor<String> cryptoKeyName;
-  @Captor private ArgumentCaptor<String> cryptoKeyVersionName;
   @Captor private ArgumentCaptor<EncryptRequest> encryptRequest;
   @Captor private ArgumentCaptor<DecryptRequest> decryptRequest;
+
+  @Captor
+  private ArgumentCaptor<UpdateCryptoKeyPrimaryVersionRequest> updateCryptoKeyPrimaryVersionRequest;
 
   @Before
   public void setUp() throws Exception {
@@ -80,9 +88,11 @@ public class KmsConnectionImplTest {
     when(kmsLocations.keyRings()).thenReturn(kmsKeyRings);
     when(kmsKeyRings.get(anyString())).thenReturn(kmsKeyRingsGet);
     when(kmsKeyRings.create(anyString(), any(KeyRing.class))).thenReturn(kmsKeyRingsCreate);
+    when(kmsKeyRingsCreate.setKeyRingId(anyString())).thenReturn(kmsKeyRingsCreate);
     when(kmsKeyRings.cryptoKeys()).thenReturn(kmsCryptoKeys);
     when(kmsCryptoKeys.get(anyString())).thenReturn(kmsCryptoKeysGet);
     when(kmsCryptoKeys.create(anyString(), any(CryptoKey.class))).thenReturn(kmsCryptoKeysCreate);
+    when(kmsCryptoKeysCreate.setCryptoKeyId(anyString())).thenReturn(kmsCryptoKeysCreate);
     when(kmsCryptoKeys.cryptoKeyVersions()).thenReturn(kmsCryptoKeyVersions);
     when(kmsCryptoKeyVersions.create(anyString(), any(CryptoKeyVersion.class)))
         .thenReturn(kmsCryptoKeyVersionsCreate);
@@ -97,6 +107,9 @@ public class KmsConnectionImplTest {
                 .setCiphertext(KmsTestHelper.DUMMY_ENCRYPTED_VALUE));
     when(kmsCryptoKeys.decrypt(anyString(), any(DecryptRequest.class)))
         .thenReturn(kmsCryptoKeysDecrypt);
+    when(kmsCryptoKeys.updatePrimaryVersion(
+            anyString(), any(UpdateCryptoKeyPrimaryVersionRequest.class)))
+        .thenReturn(updatePrimaryVersion);
   }
 
   @Test
@@ -105,16 +118,17 @@ public class KmsConnectionImplTest {
 
     new KmsConnectionImpl("foo", "bar", kms).encrypt("key", "moo".getBytes(UTF_8));
 
-    verify(kmsKeyRings).create(keyRingName.capture(), keyRing.capture());
-    assertThat(keyRingName.getValue()).isEqualTo("global");
-    assertThat(keyRing.getValue())
-        .isEqualTo(new KeyRing().setName("projects/foo/locations/global/keyRings/bar"));
+    verify(kmsKeyRings).create(locationName.capture(), keyRing.capture());
+    assertThat(locationName.getValue()).isEqualTo("projects/foo/locations/global");
+    assertThat(keyRing.getValue()).isEqualTo(new KeyRing());
+    verify(kmsKeyRingsCreate).setKeyRingId(keyRingName.capture());
+    assertThat(keyRingName.getValue()).isEqualTo("bar");
+
     verify(kmsKeyRingsCreate).execute();
     verifyEncryptKmsApiCalls(
         "moo",
         "projects/foo/locations/global/keyRings/bar",
-        "projects/foo/locations/global/keyRings/bar/cryptoKeys/key",
-        "projects/foo/locations/global/keyRings/bar/cryptoKeys/key/cryptoKeyVersions");
+        "projects/foo/locations/global/keyRings/bar/cryptoKeys/key");
   }
 
   @Test
@@ -123,28 +137,44 @@ public class KmsConnectionImplTest {
 
     new KmsConnectionImpl("foo", "bar", kms).encrypt("key", "moo".getBytes(UTF_8));
 
-    verify(kmsCryptoKeys).create(cryptoKeyName.capture(), cryptoKey.capture());
-    assertThat(cryptoKeyName.getValue())
-        .isEqualTo("projects/foo/locations/global/keyRings/bar/cryptoKeys/key");
-    assertThat(cryptoKey.getValue())
-        .isEqualTo(new CryptoKey().setName("key").setPurpose("ENCRYPT_DECRYPT"));
+    verify(kmsCryptoKeys).create(keyRingName.capture(), cryptoKey.capture());
+    assertThat(keyRingName.getValue()).isEqualTo("projects/foo/locations/global/keyRings/bar");
+    assertThat(cryptoKey.getValue()).isEqualTo(new CryptoKey().setPurpose("ENCRYPT_DECRYPT"));
+    verify(kmsCryptoKeysCreate).setCryptoKeyId(cryptoKeyName.capture());
+    assertThat(cryptoKeyName.getValue()).isEqualTo("key");
     verify(kmsCryptoKeysCreate).execute();
+    verify(kmsCryptoKeyVersionsCreate, never()).execute();
+    verify(updatePrimaryVersion, never()).execute();
+
     verifyEncryptKmsApiCalls(
         "moo",
         "projects/foo/locations/global/keyRings/bar",
-        "projects/foo/locations/global/keyRings/bar/cryptoKeys/key",
-        "projects/foo/locations/global/keyRings/bar/cryptoKeys/key/cryptoKeyVersions");
+        "projects/foo/locations/global/keyRings/bar/cryptoKeys/key");
   }
 
   @Test
   public void test_encrypt() throws Exception {
     new KmsConnectionImpl("foo", "bar", kms).encrypt("key", "moo".getBytes(UTF_8));
 
+
+    verify(kmsCryptoKeyVersions).create(cryptoKeyName.capture(), cryptoKeyVersion.capture());
+    assertThat(cryptoKeyName.getValue())
+        .isEqualTo("projects/foo/locations/global/keyRings/bar/cryptoKeys/key");
+
+    verify(kmsCryptoKeys)
+        .updatePrimaryVersion(
+            cryptoKeyName.capture(), updateCryptoKeyPrimaryVersionRequest.capture());
+    assertThat(cryptoKeyName.getValue())
+        .isEqualTo("projects/foo/locations/global/keyRings/bar/cryptoKeys/key");
+    assertThat(updateCryptoKeyPrimaryVersionRequest.getValue())
+        .isEqualTo(
+            new UpdateCryptoKeyPrimaryVersionRequest()
+                .setCryptoKeyVersionId(KmsTestHelper.DUMMY_CRYPTO_KEY_VERSION));
+
     verifyEncryptKmsApiCalls(
         "moo",
         "projects/foo/locations/global/keyRings/bar",
-        "projects/foo/locations/global/keyRings/bar/cryptoKeys/key",
-        "projects/foo/locations/global/keyRings/bar/cryptoKeys/key/cryptoKeyVersions");
+        "projects/foo/locations/global/keyRings/bar/cryptoKeys/key");
   }
 
   @Test
@@ -162,10 +192,7 @@ public class KmsConnectionImplTest {
   }
 
   private void verifyEncryptKmsApiCalls(
-      String goldenValue,
-      String goldenCryptoKeyRingName,
-      String goldenCryptoKeyName,
-      String goldenCryptoKeyVersionName)
+      String goldenValue, String goldenCryptoKeyRingName, String goldenCryptoKeyName)
       throws Exception {
     verify(kmsKeyRings).get(keyRingName.capture());
     assertThat(keyRingName.getValue()).isEqualTo(goldenCryptoKeyRingName);
@@ -173,11 +200,8 @@ public class KmsConnectionImplTest {
     verify(kmsCryptoKeys).get(cryptoKeyName.capture());
     assertThat(cryptoKeyName.getValue()).isEqualTo(goldenCryptoKeyName);
 
-    verify(kmsCryptoKeyVersions).create(cryptoKeyVersionName.capture(), cryptoKeyVersion.capture());
-    assertThat(cryptoKeyVersionName.getValue()).isEqualTo(goldenCryptoKeyVersionName);
-
     verify(kmsCryptoKeys).encrypt(cryptoKeyName.capture(), encryptRequest.capture());
-    assertThat(cryptoKeyName.getValue()).isEqualTo(KmsTestHelper.DUMMY_CRYPTO_KEY_VERSION);
+    assertThat(cryptoKeyName.getValue()).isEqualTo(goldenCryptoKeyName);
     assertThat(encryptRequest.getValue())
         .isEqualTo(new EncryptRequest().encodePlaintext(goldenValue.getBytes(UTF_8)));
   }

@@ -24,6 +24,7 @@ import com.google.api.services.cloudkms.v1beta1.model.CryptoKeyVersion;
 import com.google.api.services.cloudkms.v1beta1.model.DecryptRequest;
 import com.google.api.services.cloudkms.v1beta1.model.EncryptRequest;
 import com.google.api.services.cloudkms.v1beta1.model.KeyRing;
+import com.google.api.services.cloudkms.v1beta1.model.UpdateCryptoKeyPrimaryVersionRequest;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyringException;
 import java.io.IOException;
@@ -32,11 +33,10 @@ import javax.inject.Inject;
 /** The {@link KmsConnection} which talks to Cloud KMS. */
 class KmsConnectionImpl implements KmsConnection {
 
+  private static final String KMS_LOCATION_FORMAT = "projects/%s/locations/global";
   private static final String KMS_KEYRING_NAME_FORMAT = "projects/%s/locations/global/keyRings/%s";
   private static final String KMS_CRYPTO_KEY_NAME_FORMAT =
       "projects/%s/locations/global/keyRings/%s/cryptoKeys/%s";
-  private static final String KMS_CRYPTO_KEY_VERSION_NAME_FORMAT =
-      "projects/%s/locations/global/keyRings/%s/cryptoKeys/%s/cryptoKeyVersions";
 
   private final CloudKMS kms;
   private final String kmsKeyRingName;
@@ -68,7 +68,8 @@ class KmsConnectionImpl implements KmsConnection {
         kms.projects()
             .locations()
             .keyRings()
-            .create("global", new KeyRing().setName(fullKeyRingName))
+            .create(getLocationName(projectId), new KeyRing())
+            .setKeyRingId(kmsKeyRingName)
             .execute();
       } else {
         throw jsonException;
@@ -77,39 +78,53 @@ class KmsConnectionImpl implements KmsConnection {
 
     String fullKeyName = getCryptoKeyName(projectId, kmsKeyRingName, cryptoKeyName);
 
+    boolean newCryptoKey = false;
     try {
       kms.projects().locations().keyRings().cryptoKeys().get(fullKeyName).execute();
     } catch (GoogleJsonResponseException jsonException) {
       if (jsonException.getStatusCode() == HttpStatusCodes.STATUS_CODE_NOT_FOUND) {
+        newCryptoKey = true;
         kms.projects()
             .locations()
             .keyRings()
             .cryptoKeys()
-            .create(
-                fullKeyName, new CryptoKey().setName(cryptoKeyName).setPurpose("ENCRYPT_DECRYPT"))
+            .create(fullKeyRingName, new CryptoKey().setPurpose("ENCRYPT_DECRYPT"))
+            .setCryptoKeyId(cryptoKeyName)
             .execute();
       } else {
         throw jsonException;
       }
     }
 
-    CryptoKeyVersion cryptoKeyVersion =
-        kms.projects()
-            .locations()
-            .keyRings()
-            .cryptoKeys()
-            .cryptoKeyVersions()
-            .create(
-                getCryptoKeyVersionName(projectId, kmsKeyRingName, cryptoKeyName),
-                new CryptoKeyVersion())
-            .execute();
+    // New CryptoKeys start with a CryptoKeyVersion, so we only create a new CryptoKeyVersion and
+    // rotate to it if we're dealing with an existing CryptoKey.
+    if (!newCryptoKey) {
+      CryptoKeyVersion cryptoKeyVersion =
+          kms.projects()
+              .locations()
+              .keyRings()
+              .cryptoKeys()
+              .cryptoKeyVersions()
+              .create(fullKeyName, new CryptoKeyVersion())
+              .execute();
+
+      kms.projects()
+          .locations()
+          .keyRings()
+          .cryptoKeys()
+          .updatePrimaryVersion(
+              fullKeyName,
+              new UpdateCryptoKeyPrimaryVersionRequest()
+                  .setCryptoKeyVersionId(getCryptoKeyVersionId(cryptoKeyVersion)))
+          .execute();
+    }
 
     return EncryptResponse.create(
         kms.projects()
             .locations()
             .keyRings()
             .cryptoKeys()
-            .encrypt(cryptoKeyVersion.getName(), new EncryptRequest().encodePlaintext(value))
+            .encrypt(fullKeyName, new EncryptRequest().encodePlaintext(value))
             .execute());
   }
 
@@ -131,17 +146,21 @@ class KmsConnectionImpl implements KmsConnection {
     }
   }
 
-  static String getKeyRingName(String projectId, String kmsKeyRingName) {
+  private static String getLocationName(String projectId) {
+    return String.format(KMS_LOCATION_FORMAT, projectId);
+  }
+
+  private static String getKeyRingName(String projectId, String kmsKeyRingName) {
     return String.format(KMS_KEYRING_NAME_FORMAT, projectId, kmsKeyRingName);
   }
 
-  static String getCryptoKeyName(String projectId, String kmsKeyRingName, String cryptoKeyName) {
+  private static String getCryptoKeyName(
+      String projectId, String kmsKeyRingName, String cryptoKeyName) {
     return String.format(KMS_CRYPTO_KEY_NAME_FORMAT, projectId, kmsKeyRingName, cryptoKeyName);
   }
 
-  static String getCryptoKeyVersionName(
-      String projectId, String kmsKeyRingName, String cryptoKeyName) {
-    return String.format(
-        KMS_CRYPTO_KEY_VERSION_NAME_FORMAT, projectId, kmsKeyRingName, cryptoKeyName);
+  private static String getCryptoKeyVersionId(CryptoKeyVersion cryptoKeyVersion) {
+    String cryptoKeyVersionName = cryptoKeyVersion.getName();
+    return cryptoKeyVersionName.substring(cryptoKeyVersionName.lastIndexOf('/') + 1);
   }
 }
