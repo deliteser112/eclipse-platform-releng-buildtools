@@ -383,7 +383,7 @@ public final class RequestHandlerTest {
     userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("POST");
     when(req.getHeader("X-CSRF-Token"))
-        .thenReturn(xsrfTokenManager.generateTokenWithCurrentUser("vampire"));
+        .thenReturn(xsrfTokenManager.generateToken("vampire", testUser.getEmail()));
     when(req.getRequestURI()).thenReturn("/safe-sloth");
     handler.handleRequest(req, rsp);
     verify(safeSlothTask).run();
@@ -394,7 +394,7 @@ public final class RequestHandlerTest {
     userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("POST");
     when(req.getHeader("X-CSRF-Token"))
-        .thenReturn(xsrfTokenManager.generateTokenWithCurrentUser("blood"));
+        .thenReturn(xsrfTokenManager.generateToken("blood", testUser.getEmail()));
     when(req.getRequestURI()).thenReturn("/safe-sloth");
     handler.handleRequest(req, rsp);
     verify(rsp).sendError(403, "Invalid X-CSRF-Token");

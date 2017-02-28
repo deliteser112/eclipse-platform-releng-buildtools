@@ -17,12 +17,12 @@ package google.registry.security;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
+import com.google.appengine.api.users.User;
 import com.google.common.base.Splitter;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeUserService;
 import google.registry.testing.InjectRule;
-import google.registry.testing.UserInfo;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,31 +33,30 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class XsrfTokenManagerTest {
 
-  FakeClock clock = new FakeClock(START_OF_TIME);
-  FakeUserService userService = new FakeUserService();
-
-  XsrfTokenManager xsrfTokenManager = new XsrfTokenManager(clock, userService);
-
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
-      .withUserService(UserInfo.createAdmin("a@example.com", "user1"))
       .build();
 
   @Rule
   public InjectRule inject = new InjectRule();
 
+  private final User testUser = new User("test@example.com", "test@example.com");
+  private final FakeClock clock = new FakeClock(START_OF_TIME);
+  private final FakeUserService userService = new FakeUserService();
+  private final XsrfTokenManager xsrfTokenManager = new XsrfTokenManager(clock, userService);
+
+  String realToken;
+
   @Before
   public void init() {
-    // inject.setStaticField(XsrfTokenManager.class, "clock", clock);
+    userService.setUser(testUser, false);
+    realToken = xsrfTokenManager.generateToken("console", testUser.getEmail());
   }
 
   @Test
   public void testSuccess() {
-    assertThat(
-            xsrfTokenManager.validateToken(
-                xsrfTokenManager.generateTokenWithCurrentUser("console"), "console"))
-        .isTrue();
+    assertThat(xsrfTokenManager.validateToken(realToken, "console")).isTrue();
   }
 
   @Test
@@ -72,17 +71,13 @@ public class XsrfTokenManagerTest {
 
   @Test
   public void testExpired() {
-    String token = xsrfTokenManager.generateTokenWithCurrentUser("console");
     clock.setTo(START_OF_TIME.plusDays(2));
-    assertThat(xsrfTokenManager.validateToken(token, "console")).isFalse();
+    assertThat(xsrfTokenManager.validateToken(realToken, "console")).isFalse();
   }
 
   @Test
   public void testTimestampTamperedWith() {
-    String encodedPart =
-        Splitter.on(':')
-            .splitToList(xsrfTokenManager.generateTokenWithCurrentUser("console"))
-            .get(0);
+    String encodedPart = Splitter.on(':').splitToList(realToken).get(0);
     long tamperedTimestamp = clock.nowUtc().plusMillis(1).getMillis();
     assertThat(xsrfTokenManager.validateToken(encodedPart + ":" + tamperedTimestamp, "console"))
         .isFalse();
@@ -91,32 +86,25 @@ public class XsrfTokenManagerTest {
   @Test
   public void testDifferentUser() {
     assertThat(xsrfTokenManager
-        .validateToken(xsrfTokenManager.generateToken("console", "b@example.com"), "console"))
+        .validateToken(xsrfTokenManager.generateToken("console", "eve@example.com"), "console"))
             .isFalse();
   }
 
   @Test
   public void testDifferentScope() {
-    assertThat(
-            xsrfTokenManager.validateToken(
-                xsrfTokenManager.generateTokenWithCurrentUser("console"), "foobar"))
-        .isFalse();
+    assertThat(xsrfTokenManager.validateToken(realToken, "foobar")).isFalse();
   }
 
   @Test
   public void testNullScope() {
-    assertThat(
-            xsrfTokenManager.validateToken(
-                xsrfTokenManager.generateTokenWithCurrentUser(null), null))
-        .isTrue();
+    String tokenWithNullScope = xsrfTokenManager.generateToken(null, testUser.getEmail());
+    assertThat(xsrfTokenManager.validateToken(tokenWithNullScope, null)).isTrue();
   }
 
   // This test checks that the server side will pass when we switch the client to use a null scope.
   @Test
   public void testNullScopePassesWhenTestedWithNonNullScope() {
-    assertThat(
-            xsrfTokenManager.validateToken(
-                xsrfTokenManager.generateTokenWithCurrentUser(null), "console"))
-        .isTrue();
+    String tokenWithNullScope = xsrfTokenManager.generateToken(null, testUser.getEmail());
+    assertThat(xsrfTokenManager.validateToken(tokenWithNullScope, "console")).isTrue();
   }
 }

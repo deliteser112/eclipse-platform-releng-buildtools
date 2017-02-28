@@ -220,7 +220,7 @@ public class RequestAuthenticatorTest {
   public void testAnyUserAnyMethod_success() throws Exception {
     fakeUserService.setUser(testUser, false /* isAdmin */);
     when(req.getHeader(XsrfTokenManager.X_CSRF_TOKEN))
-        .thenReturn(xsrfTokenManager.generateTokenWithCurrentUser("console"));
+        .thenReturn(xsrfTokenManager.generateToken("console", testUser.getEmail()));
 
     Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserAnyMethod.class);
 
@@ -275,7 +275,7 @@ public class RequestAuthenticatorTest {
   public void testAdminUserAnyMethod_success() throws Exception {
     fakeUserService.setUser(testUser, true /* isAdmin */);
     when(req.getHeader(XsrfTokenManager.X_CSRF_TOKEN))
-        .thenReturn(xsrfTokenManager.generateTokenWithCurrentUser("console"));
+        .thenReturn(xsrfTokenManager.generateToken("console", testUser.getEmail()));
 
     Optional<AuthResult> authResult = runTest(fakeUserService, AuthAdminUserAnyMethod.class);
 

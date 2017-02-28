@@ -69,22 +69,11 @@ public final class XsrfTokenManager {
   }
 
   /**
-   * Generate an xsrf token for a given scope using the email of the logged in user or else no user.
-   *
-   * <p>If there is no user, the entire xsrf check becomes basically a no-op, but that's ok because
-   * any callback that doesn't have a user shouldn't be able to access any per-user resources
-   * anyways.
-   *
-   * <p>The scope (or lack thereof) is passed to {@link #encodeToken}. Use of a scope in xsrf tokens
-   * is deprecated; instead, use the no-argument version.
-   */
-  @Deprecated
-  public String generateTokenWithCurrentUser(@Nullable String scope) {
-    return generateTokenSub(scope, getLoggedInEmailOrEmpty());
-  }
-
-  /**
    * Generate an xsrf token for a given scope and user.
+   *
+   * <p>If there is no user (email is an empty string), the entire xsrf check becomes basically a
+   * no-op, but that's ok because any callback that doesn't have a user shouldn't be able to access
+   * any per-user resources anyways.
    *
    * <p>The scope (or lack thereof) is passed to {@link #encodeToken}. Use of a scope in xsrf tokens
    * is deprecated; instead, use the no-argument version.
@@ -97,16 +86,11 @@ public final class XsrfTokenManager {
 
   /** Generate an xsrf token for a given user. */
   public String generateToken(String email) {
-    return generateTokenSub(null, email);
+    return generateToken(null, email);
   }
 
   private String getLoggedInEmailOrEmpty() {
     return userService.isUserLoggedIn() ? userService.getCurrentUser().getEmail() : "";
-  }
-
-  private String generateTokenSub(@Nullable String scope, String email) {
-    long now = clock.nowUtc().getMillis();
-    return Joiner.on(':').join(encodeToken(now, scope, email), now);
   }
 
   /**
