@@ -63,3 +63,6 @@ braintree:
     EUR: placeholder
     JPY: placeholder
     USD: placeholder
+
+kms:
+  projectId: placeholder
