@@ -213,35 +213,15 @@ public class DomainResource extends DomainBase
     return ImmutableSet.copyOf(gracePeriodStatuses);
   }
 
-  /**
-   * Returns the Registry Grace Period expiration date for the specified type of grace period for
-   * this domain, or null if there is no grace period of the specified type.
-   */
-  public Optional<DateTime> getGracePeriodExpirationTime(GracePeriodStatus gracePeriodType) {
+  /** Returns the subset of grace periods having the specified type. */
+  public ImmutableSet<GracePeriod> getGracePeriodsOfType(GracePeriodStatus gracePeriodType) {
+    ImmutableSet.Builder<GracePeriod> builder = new ImmutableSet.Builder<>();
     for (GracePeriod gracePeriod : getGracePeriods()) {
       if (gracePeriod.getType() == gracePeriodType) {
-        return Optional.of(gracePeriod.getExpirationTime());
+        builder.add(gracePeriod);
       }
     }
-    return Optional.absent();
-  }
-
-  /**
-   * Checks to see if the domain is in a particular type of grace period at the specified time. We
-   * only check the expiration time, because grace periods are always assumed to start at the
-   * beginning of time. This could be confusing if asOfDate is in the past. For instance, the Add
-   * Grace Period will appear to last from the beginning of time until 5 days after the domain is
-   * created.
-   */
-  public boolean doesAnyGracePeriodOfTypeExpireAfter(
-      GracePeriodStatus gracePeriodType, DateTime asOfDate) {
-    for (GracePeriod gracePeriod : getGracePeriods()) {
-      if ((gracePeriod.getType() == gracePeriodType)
-          && gracePeriod.getExpirationTime().isAfter(asOfDate)) {
-        return true;
-      }
-    }
-    return false;
+    return builder.build();
   }
 
   /**

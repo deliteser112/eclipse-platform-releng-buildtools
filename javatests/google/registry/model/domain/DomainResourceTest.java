@@ -26,6 +26,7 @@ import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
@@ -51,7 +52,6 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.ExceptionRule;
-import java.util.List;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -346,7 +346,7 @@ public class DomainResourceTest extends EntityTestCase {
 
   @Test
   public void testStackedGracePeriods() {
-    List<GracePeriod> gracePeriods = ImmutableList.of(
+    ImmutableList<GracePeriod> gracePeriods = ImmutableList.of(
         GracePeriod.create(GracePeriodStatus.ADD, clock.nowUtc().plusDays(3), "foo", null),
         GracePeriod.create(GracePeriodStatus.ADD, clock.nowUtc().plusDays(2), "bar", null),
         GracePeriod.create(GracePeriodStatus.ADD, clock.nowUtc().plusDays(1), "baz", null));
@@ -355,6 +355,22 @@ public class DomainResourceTest extends EntityTestCase {
       assertThat(domain.cloneProjectedAtTime(clock.nowUtc().plusDays(i)).getGracePeriods())
           .containsExactlyElementsIn(Iterables.limit(gracePeriods, 3 - i));
     }
+  }
+
+  @Test
+  public void testGracePeriodsByType() {
+    ImmutableSet<GracePeriod> addGracePeriods = ImmutableSet.of(
+        GracePeriod.create(GracePeriodStatus.ADD, clock.nowUtc().plusDays(3), "foo", null),
+        GracePeriod.create(GracePeriodStatus.ADD, clock.nowUtc().plusDays(1), "baz", null));
+    ImmutableSet<GracePeriod> renewGracePeriods = ImmutableSet.of(
+        GracePeriod.create(GracePeriodStatus.RENEW, clock.nowUtc().plusDays(3), "foo", null),
+        GracePeriod.create(GracePeriodStatus.RENEW, clock.nowUtc().plusDays(1), "baz", null));
+    domain = domain.asBuilder()
+        .setGracePeriods(FluentIterable.from(addGracePeriods).append(renewGracePeriods).toSet())
+        .build();
+    assertThat(domain.getGracePeriodsOfType(GracePeriodStatus.ADD)).isEqualTo(addGracePeriods);
+    assertThat(domain.getGracePeriodsOfType(GracePeriodStatus.RENEW)).isEqualTo(renewGracePeriods);
+    assertThat(domain.getGracePeriodsOfType(GracePeriodStatus.TRANSFER)).isEmpty();
   }
 
   @Test
