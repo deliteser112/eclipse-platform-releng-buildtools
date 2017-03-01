@@ -383,18 +383,18 @@ public final class RequestHandlerTest {
     userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("POST");
     when(req.getHeader("X-CSRF-Token"))
-        .thenReturn(xsrfTokenManager.generateToken("vampire", testUser.getEmail()));
+        .thenReturn(xsrfTokenManager.generateLegacyToken("admin", testUser.getEmail()));
     when(req.getRequestURI()).thenReturn("/safe-sloth");
     handler.handleRequest(req, rsp);
     verify(safeSlothTask).run();
   }
 
   @Test
-  public void testXsrfProtection_tokenWithInvalidScopeProvided_returns403() throws Exception {
+  public void testXsrfProtection_tokenWithInvalidUserProvided_returns403() throws Exception {
     userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("POST");
     when(req.getHeader("X-CSRF-Token"))
-        .thenReturn(xsrfTokenManager.generateToken("blood", testUser.getEmail()));
+        .thenReturn(xsrfTokenManager.generateLegacyToken("admin", "wrong@example.com"));
     when(req.getRequestURI()).thenReturn("/safe-sloth");
     handler.handleRequest(req, rsp);
     verify(rsp).sendError(403, "Invalid X-CSRF-Token");

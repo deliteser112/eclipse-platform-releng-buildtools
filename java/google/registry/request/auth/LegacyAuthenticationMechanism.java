@@ -53,9 +53,7 @@ public class LegacyAuthenticationMechanism implements AuthenticationMechanism {
     }
 
     if (!SAFE_METHODS.contains(request.getMethod())
-        && !xsrfTokenManager.validateToken(
-            nullToEmpty(request.getHeader(X_CSRF_TOKEN)),
-            "console")) { // hard-coded for now; in the long run, this will be removed
+        && !xsrfTokenManager.validateToken(nullToEmpty(request.getHeader(X_CSRF_TOKEN)))) {
       return AuthResult.create(NONE);
     }
 

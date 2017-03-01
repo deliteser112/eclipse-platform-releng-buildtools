@@ -107,7 +107,7 @@ public final class ConsoleUiAction implements Runnable {
     Registrar registrar = Registrar.loadByClientId(sessionUtils.getRegistrarClientId(req));
     data.put(
         "xsrfToken",
-        xsrfTokenManager.generateToken(
+        xsrfTokenManager.generateLegacyToken(
             EppConsoleAction.XSRF_SCOPE, userService.getCurrentUser().getEmail()));
     data.put("clientId", registrar.getClientId());
     data.put("showPaymentLink", registrar.getBillingMethod() == Registrar.BillingMethod.BRAINTREE);

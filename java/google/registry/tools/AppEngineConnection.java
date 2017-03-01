@@ -66,7 +66,7 @@ class AppEngineConnection implements Connection {
       memoize(new Supplier<String>() {
         @Override
         public String get() {
-          return xsrfTokenManager.generateToken("admin", getUserId());
+          return xsrfTokenManager.generateLegacyToken("admin", getUserId());
         }});
 
   @Override

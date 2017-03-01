@@ -164,9 +164,7 @@ public class RequestHandler<C> {
       return;
     }
     if (route.get().shouldXsrfProtect(method)
-        && !xsrfTokenManager.validateToken(
-                nullToEmpty(req.getHeader(X_CSRF_TOKEN)),
-                route.get().action().xsrfScope())) {
+        && !xsrfTokenManager.validateToken(nullToEmpty(req.getHeader(X_CSRF_TOKEN)))) {
       rsp.sendError(SC_FORBIDDEN, "Invalid " + X_CSRF_TOKEN);
       return;
     }

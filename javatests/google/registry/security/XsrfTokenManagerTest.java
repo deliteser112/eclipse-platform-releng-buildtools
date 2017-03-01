@@ -16,6 +16,7 @@ package google.registry.security;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static org.junit.Assert.fail;
 
 import com.google.appengine.api.users.User;
 import com.google.common.base.Splitter;
@@ -23,6 +24,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeUserService;
 import google.registry.testing.InjectRule;
+import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,65 +48,102 @@ public class XsrfTokenManagerTest {
   private final FakeUserService userService = new FakeUserService();
   private final XsrfTokenManager xsrfTokenManager = new XsrfTokenManager(clock, userService);
 
-  String realToken;
+  private String token;
+  private String legacyToken;
 
   @Before
   public void init() {
     userService.setUser(testUser, false);
-    realToken = xsrfTokenManager.generateToken("console", testUser.getEmail());
+    token = xsrfTokenManager.generateToken(testUser.getEmail());
+    legacyToken = xsrfTokenManager.generateLegacyToken("console", testUser.getEmail());
   }
 
   @Test
-  public void testSuccess() {
-    assertThat(xsrfTokenManager.validateToken(realToken, "console")).isTrue();
+  public void testGenerateLegacyToken_invalidScope() {
+    try {
+      xsrfTokenManager.generateLegacyToken("foo", testUser.getEmail());
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException e) {
+      assertThat(e).hasMessageThat().isEqualTo("Invalid scope value: foo");
+    }
   }
 
   @Test
-  public void testNoTimestamp() {
-    assertThat(xsrfTokenManager.validateToken("foo", "console")).isFalse();
+  public void testValidate_token() {
+    assertThat(xsrfTokenManager.validateToken(token)).isTrue();
   }
 
   @Test
-  public void testBadNumberTimestamp() {
-    assertThat(xsrfTokenManager.validateToken("foo:bar", "console")).isFalse();
+  public void testValidate_legacyToken() {
+    assertThat(xsrfTokenManager.validateToken(legacyToken)).isTrue();
   }
 
   @Test
-  public void testExpired() {
-    clock.setTo(START_OF_TIME.plusDays(2));
-    assertThat(xsrfTokenManager.validateToken(realToken, "console")).isFalse();
+  public void testValidate_token_missingParts() {
+    assertThat(xsrfTokenManager.validateToken("foo")).isFalse();
   }
 
   @Test
-  public void testTimestampTamperedWith() {
-    String encodedPart = Splitter.on(':').splitToList(realToken).get(0);
+  public void testValidate_token_badNumberTimestamp() {
+    assertThat(xsrfTokenManager.validateToken("1:notanumber:base64")).isFalse();
+  }
+
+  @Test
+  public void testValidate_legacyToken_badNumberTimestamp() {
+    assertThat(xsrfTokenManager.validateToken("base64:notanumber")).isFalse();
+  }
+
+  @Test
+  public void testValidate_token_expiresAfterOneDay() {
+    clock.advanceBy(Duration.standardDays(1));
+    assertThat(xsrfTokenManager.validateToken(token)).isTrue();
+    clock.advanceOneMilli();
+    assertThat(xsrfTokenManager.validateToken(token)).isFalse();
+  }
+
+  @Test
+  public void testValidate_legacyToken_expiresAfterOneDay() {
+    clock.advanceBy(Duration.standardDays(1));
+    assertThat(xsrfTokenManager.validateToken(legacyToken)).isTrue();
+    clock.advanceOneMilli();
+    assertThat(xsrfTokenManager.validateToken(legacyToken)).isFalse();
+  }
+
+  @Test
+  public void testValidate_token_timestampTamperedWith() {
+    String encodedPart = Splitter.on(':').splitToList(token).get(2);
+    long fakeTimestamp = clock.nowUtc().plusMillis(1).getMillis();
+    assertThat(xsrfTokenManager.validateToken("1:" + fakeTimestamp + ":" + encodedPart)).isFalse();
+  }
+
+  @Test
+  public void testValidate_legacyToken_timestampTamperedWith() {
+    String encodedPart = Splitter.on(':').splitToList(legacyToken).get(0);
     long tamperedTimestamp = clock.nowUtc().plusMillis(1).getMillis();
-    assertThat(xsrfTokenManager.validateToken(encodedPart + ":" + tamperedTimestamp, "console"))
-        .isFalse();
+    assertThat(xsrfTokenManager.validateToken(encodedPart + ":" + tamperedTimestamp)).isFalse();
   }
 
   @Test
-  public void testDifferentUser() {
-    assertThat(xsrfTokenManager
-        .validateToken(xsrfTokenManager.generateToken("console", "eve@example.com"), "console"))
-            .isFalse();
+  public void testValidate_token_differentUser() {
+    String otherToken = xsrfTokenManager.generateToken("eve@example.com");
+    assertThat(xsrfTokenManager.validateToken(otherToken)).isFalse();
   }
 
   @Test
-  public void testDifferentScope() {
-    assertThat(xsrfTokenManager.validateToken(realToken, "foobar")).isFalse();
+  public void testValidate_legacyToken_differentUser() {
+    String otherToken = xsrfTokenManager.generateLegacyToken("console", "eve@example.com");
+    assertThat(xsrfTokenManager.validateToken(otherToken)).isFalse();
   }
 
   @Test
-  public void testNullScope() {
-    String tokenWithNullScope = xsrfTokenManager.generateToken(null, testUser.getEmail());
-    assertThat(xsrfTokenManager.validateToken(tokenWithNullScope, null)).isTrue();
+  public void testValidate_legacyToken_adminScope() {
+    String adminToken = xsrfTokenManager.generateLegacyToken("admin", testUser.getEmail());
+    assertThat(xsrfTokenManager.validateToken(adminToken)).isTrue();
   }
 
-  // This test checks that the server side will pass when we switch the client to use a null scope.
   @Test
-  public void testNullScopePassesWhenTestedWithNonNullScope() {
-    String tokenWithNullScope = xsrfTokenManager.generateToken(null, testUser.getEmail());
-    assertThat(xsrfTokenManager.validateToken(tokenWithNullScope, "console")).isTrue();
+  public void testValidate_legacyToken_consoleScope() {
+    String consoleToken = xsrfTokenManager.generateLegacyToken("console", testUser.getEmail());
+    assertThat(xsrfTokenManager.validateToken(consoleToken)).isTrue();
   }
 }

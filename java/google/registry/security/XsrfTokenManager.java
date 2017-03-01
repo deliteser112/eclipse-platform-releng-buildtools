@@ -14,18 +14,21 @@
 
 package google.registry.security;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.io.BaseEncoding.base64Url;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.api.users.UserService;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.Hashing;
 import google.registry.model.server.ServerSecret;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import java.util.List;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -33,12 +36,17 @@ import org.joda.time.Duration;
 /** Helper class for generating and validate XSRF tokens. */
 public final class XsrfTokenManager {
 
-  // TODO(b/35388772): remove the scope parameter
-
   /** HTTP header used for transmitting XSRF tokens. */
   public static final String X_CSRF_TOKEN = "X-CSRF-Token";
 
+  /** Maximum age of an acceptable XSRF token. */
   private static final Duration XSRF_VALIDITY = Duration.standardDays(1);
+
+  /** Token version identifier for version 1. */
+  private static final String VERSION_1 = "1";
+
+  /** Legacy scope values that will be supported during the scope removal process. */
+  private static final ImmutableSet<String> LEGACY_SCOPES = ImmutableSet.of("admin", "console");
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -51,18 +59,39 @@ public final class XsrfTokenManager {
     this.userService = userService;
   }
 
+  /** Generates an XSRF token for a given user based on email address. */
+  public String generateToken(String email) {
+    checkArgumentNotNull(email);
+    long timestampMillis = clock.nowUtc().getMillis();
+    return encodeToken(ServerSecret.get().asBytes(), email, timestampMillis);
+  }
+
   /**
-   * Encode a token.
+   * Returns an XSRF token for the given server secret, user email, and timestamp.
    *
-   * <p>The token is a Base64-encoded SHA-256 hash of a string containing the secret, email, scope
-   * and creation time, separated by tabs. If the scope is null, the string is secret, email,
-   * creation time. In the future, the scope option will be removed.
+   * <p>The token format consists of three colon-delimited fields: the version number (currently 1),
+   * the timestamp in milliseconds since the epoch, and the Base64url-encoded SHA-256 HMAC (using
+   * the given secret key) of the user email and the timestamp millis separated by a tab character.
+   *
+   * <p>We use HMAC instead of a plain SHA-256 hash to avoid length-extension vulnerabilities.
    */
-  private static String encodeToken(long creationTime, @Nullable String scope, String userEmail) {
+  private static String encodeToken(byte[] secret, String email, long timestampMillis) {
+    String payload = Joiner.on('\t').skipNulls().join(email, timestampMillis);
+    String hmac =
+        base64Url().encode(Hashing.hmacSha256(secret).hashString(payload, UTF_8).asBytes());
+    return Joiner.on(':').join(VERSION_1, timestampMillis, hmac);
+  }
+
+  /**
+   * Computes the hash payload portion of a legacy-style XSRF token.
+   *
+   * <p>The result is a Base64-encoded SHA-256 hash of a string containing the secret, email, scope
+   * and creation time, separated by tabs.
+   */
+  private static String computeLegacyHash(long creationTime, String scope, String userEmail) {
+    checkArgument(LEGACY_SCOPES.contains(scope), "Invalid scope value: %s", scope);
     String token =
-        Joiner.on('\t')
-            .skipNulls()
-            .join(ServerSecret.get().asUuid(), userEmail, scope, creationTime);
+        Joiner.on('\t').join(ServerSecret.get().asUuid(), userEmail, scope, creationTime);
     return base64Url().encode(Hashing.sha256()
         .newHasher(token.length())
         .putString(token, UTF_8)
@@ -71,86 +100,77 @@ public final class XsrfTokenManager {
   }
 
   /**
-   * Generate an xsrf token for a given scope and user.
+   * Generates a legacy-style XSRF token for a given scope and user.
    *
    * <p>If there is no user (email is an empty string), the entire xsrf check becomes basically a
    * no-op, but that's ok because any callback that doesn't have a user shouldn't be able to access
    * any per-user resources anyways.
    *
-   * <p>The scope (or lack thereof) is passed to {@link #encodeToken}. Use of a scope in xsrf tokens
-   * is deprecated; instead, use the no-argument version.
+   * <p>The scope is passed to {@link #computeLegacyHash}. Use of a scope in xsrf tokens is
+   * deprecated; instead, use {@link #generateToken}.
    */
+  // TODO(b/35388772): remove this in favor of generateToken()
   @Deprecated
-  public String generateToken(@Nullable String scope, String email) {
+  public String generateLegacyToken(String scope, String email) {
+    checkArgumentNotNull(scope);
+    checkArgumentNotNull(email);
     long now = clock.nowUtc().getMillis();
-    return Joiner.on(':').join(encodeToken(now, scope, email), now);
-  }
-
-  /** Generate an xsrf token for a given user. */
-  public String generateToken(String email) {
-    return generateToken(null, email);
-  }
-
-  private String getLoggedInEmailOrEmpty() {
-    return userService.isUserLoggedIn() ? userService.getCurrentUser().getEmail() : "";
+    return Joiner.on(':').join(computeLegacyHash(now, scope, email), now);
   }
 
   /**
-   * Validate an xsrf token, given the scope it was used for.
+   * Validates an XSRF token against the current logged-in user.
    *
-   * <p>We plan to remove the scope parameter. As a first step, the method first checks for the
-   * existence of a token with no scope. If that is not found, it then looks for the existence of a
-   * token with the specified scope. Our next step will be to have clients pass in a null scope.
-   * Finally, we will remove scopes from this code altogether.
-   */
-  @Deprecated
-  public boolean validateToken(String token, @Nullable String scope) {
-    return validateTokenSub(token, scope);
-  }
-
-  /**
-   * Validate an xsrf token.
-   *
-   * <p>This is the non-scoped version to which we will transition in the future.
+   * This accepts both legacy-style and new-style XSRF tokens.  For legacy-style tokens, it will
+   * accept tokens generated with any scope from {@link #LEGACY_SCOPES}.
    */
   public boolean validateToken(String token) {
-    return validateTokenSub(token, null);
-  }
-
-  private boolean validateTokenSub(String token, @Nullable String scope) {
+    checkArgumentNotNull(token);
     List<String> tokenParts = Splitter.on(':').splitToList(token);
-    if (tokenParts.size() != 2) {
+    if (tokenParts.size() < 2) {
       logger.warningfmt("Malformed XSRF token: %s", token);
       return false;
     }
-    String encodedPart = tokenParts.get(0);
     String timePart = tokenParts.get(1);
-    long creationTime;
+    long timestampMillis;
     try {
-      creationTime = Long.parseLong(timePart);
+      timestampMillis = Long.parseLong(timePart);
     } catch (NumberFormatException e) {
       logger.warningfmt("Bad timestamp in XSRF token: %s", token);
       return false;
     }
-    if (new DateTime(creationTime).plus(XSRF_VALIDITY).isBefore(clock.nowUtc())) {
+    if (new DateTime(timestampMillis, UTC).plus(XSRF_VALIDITY).isBefore(clock.nowUtc())) {
       logger.infofmt("Expired timestamp in XSRF token: %s", token);
       return false;
     }
-    // First, check for a scopeless token, because that's the token of the future.
-    String reconstructedToken = encodeToken(creationTime, null, getLoggedInEmailOrEmpty());
-    if (reconstructedToken.equals(encodedPart)) {
-      return true;
-    }
+    String currentUserEmail =
+        userService.isUserLoggedIn() ? userService.getCurrentUser().getEmail() : "";
 
-    // If we don't find one, look for one with the specified scope.
-    if (scope != null) {
-      reconstructedToken = encodeToken(creationTime, scope, getLoggedInEmailOrEmpty());
-      if (reconstructedToken.equals(encodedPart)) {
-        return true;
+    // Reconstruct the token to verify validity, using version 1 format if detected.
+    if (tokenParts.get(0).equals(VERSION_1)) {
+      String reconstructedToken =
+          encodeToken(ServerSecret.get().asBytes(), currentUserEmail, timestampMillis);
+      if (!token.equals(reconstructedToken)) {
+        logger.warningfmt(
+            "Reconstructed XSRF mismatch (got != expected): %s != %s", token, reconstructedToken);
+        return false;
       }
+      return true;
+    } else {
+      // Fall back to the legacy format, and try the few possible scopes.
+      String hash = tokenParts.get(0);
+      ImmutableSet.Builder<String> reconstructedTokenCandidates = new ImmutableSet.Builder<>();
+      for (String scope : LEGACY_SCOPES) {
+        String reconstructedHash = computeLegacyHash(timestampMillis, scope, currentUserEmail);
+        reconstructedTokenCandidates.add(reconstructedHash);
+        if (hash.equals(reconstructedHash)) {
+          return true;
+        }
+      }
+      logger.warningfmt(
+          "Reconstructed XSRF mismatch: %s matches none of %s",
+          hash, reconstructedTokenCandidates.build());
+      return false;
     }
-
-    logger.warningfmt("Reconstructed XSRF mismatch: %s ≠ %s", encodedPart, reconstructedToken);
-    return false;
   }
 }
