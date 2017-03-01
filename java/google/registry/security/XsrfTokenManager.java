@@ -15,13 +15,13 @@
 package google.registry.security;
 
 import static com.google.common.io.BaseEncoding.base64Url;
-import static google.registry.model.server.ServerSecret.getServerSecret;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.api.users.UserService;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.hash.Hashing;
+import google.registry.model.server.ServerSecret;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import java.util.List;
@@ -60,7 +60,9 @@ public final class XsrfTokenManager {
    */
   private static String encodeToken(long creationTime, @Nullable String scope, String userEmail) {
     String token =
-        Joiner.on('\t').skipNulls().join(getServerSecret(), userEmail, scope, creationTime);
+        Joiner.on('\t')
+            .skipNulls()
+            .join(ServerSecret.get().asUuid(), userEmail, scope, creationTime);
     return base64Url().encode(Hashing.sha256()
         .newHasher(token.length())
         .putString(token, UTF_8)
