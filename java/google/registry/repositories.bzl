@@ -868,6 +868,7 @@ def com_google_dagger_compiler():
           # TODO(jart): https://github.com/bazelbuild/bazel/issues/2286
           # "    output_licenses = [\"unencumbered\"],",
           "    processor_class = \"dagger.internal.codegen.ComponentProcessor\",",
+          "    generates_api = 1,",
           "    tags = [",
           "        \"annotation=dagger.Component;genclass=${package}.Dagger${outerclasses}${classname}\",",
           "        \"annotation=dagger.producers.ProductionComponent;genclass=${package}.Dagger${outerclasses}${classname}\",",
