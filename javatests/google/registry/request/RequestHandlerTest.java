@@ -48,6 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -426,6 +427,8 @@ public final class RequestHandlerTest {
     verify(usersOnlyAction).run();
   }
 
+  // TODO(b/28219927): turn this on once we actually do authorization
+  @Ignore
   @Test
   public void testNoAuthNeeded_success() throws Exception {
     when(req.getMethod()).thenReturn("GET");
@@ -436,6 +439,8 @@ public final class RequestHandlerTest {
     assertThat(providedAuthResult.userAuthInfo()).isAbsent();
   }
 
+  // TODO(b/28219927): turn this on once we actually do authorization
+  @Ignore
   @Test
   public void testAuthNeeded_notLoggedIn() throws Exception {
     when(req.getMethod()).thenReturn("GET");
@@ -445,6 +450,8 @@ public final class RequestHandlerTest {
     assertThat(providedAuthResult).isNull();
   }
 
+  // TODO(b/28219927): turn this on once we actually do authorization
+  @Ignore
   @Test
   public void testAuthNeeded_notAuthorized() throws Exception {
     userService.setUser(testUser,  false);
@@ -455,6 +462,8 @@ public final class RequestHandlerTest {
     assertThat(providedAuthResult).isNull();
   }
 
+  // TODO(b/28219927): turn this on once we actually do authorization
+  @Ignore
   @Test
   public void testAuthNeeded_success() throws Exception {
     userService.setUser(testUser,  true);
