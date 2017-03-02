@@ -93,7 +93,6 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tmch.LordnTask;
-import java.util.Set;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -153,7 +152,7 @@ import org.joda.time.DateTime;
 
 public class DomainCreateFlow implements TransactionalFlow {
 
-  private static final Set<TldState> SUNRISE_STATES =
+  private static final ImmutableSet<TldState> SUNRISE_STATES =
       Sets.immutableEnumSet(TldState.SUNRISE, TldState.SUNRUSH);
 
   @Inject ExtensionManager extensionManager;

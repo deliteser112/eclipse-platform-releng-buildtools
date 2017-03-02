@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.InternetDomainName;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.logging.Level;
 import javax.annotation.Nullable;
 import org.joda.money.Money;
@@ -41,7 +40,7 @@ public final class ParameterFactory implements IStringConverterFactory {
     return (Class<? extends IStringConverter<T>>) CONVERTERS.get(type);
   }
 
-  private static final Map<Class<?>, Class<? extends IStringConverter<?>>> CONVERTERS =
+  private static final ImmutableMap<Class<?>, Class<? extends IStringConverter<?>>> CONVERTERS =
       new ImmutableMap.Builder<Class<?>, Class<? extends IStringConverter<?>>>()
           .put(DateTime.class, DateTimeParameter.class)
           .put(Duration.class, DurationParameter.class)
