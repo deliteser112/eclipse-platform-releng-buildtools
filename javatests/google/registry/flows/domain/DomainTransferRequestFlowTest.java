@@ -39,6 +39,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
@@ -55,7 +56,6 @@ import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Cancellation.Builder;
-import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
@@ -579,28 +579,97 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
-  public void testSuccess_autorenewBeforeAutomaticTransfer() throws Exception {
+  public void testSuccess_autorenewGraceActive_onlyAtTransferRequestTime() throws Exception {
     setupDomain("example", "tld");
-    DomainResource oldResource = persistResource(reloadResourceByForeignKey().asBuilder()
-        .setRegistrationExpirationTime(clock.nowUtc().plusDays(1).plus(1))
+    // Set the domain to have auto-renewed long enough ago that it is still in the autorenew grace
+    // period at the transfer request time, but will have exited it by the automatic transfer time.
+    DateTime autorenewTime =
+        clock.nowUtc().minus(Registry.get("tld").getAutoRenewGracePeriodLength()).plusDays(1);
+    DateTime expirationTime = autorenewTime.plusYears(1);
+    domain = persistResource(domain.asBuilder()
+        .setRegistrationExpirationTime(expirationTime)
+        .addGracePeriod(GracePeriod.createForRecurring(
+            GracePeriodStatus.AUTO_RENEW,
+            autorenewTime.plus(Registry.get("tld").getAutoRenewGracePeriodLength()),
+            "TheRegistrar",
+            domain.getAutorenewBillingEvent()))
         .build());
     clock.advanceOneMilli();
-    // The autorenew should be subsumed into the transfer resulting in 2 years of renewal in total.
+    // Since the autorenew grace period will have ended by the automatic transfer time, subsuming
+    // will not occur in the server-approve case, so the transfer will add 1 year to the current
+    // expiration time as usual, and no Cancellation will be issued.  Note however that if the
+    // transfer were to be manually approved before the autorenew grace period ends, then the
+    // DomainTransferApproveFlow will still issue a Cancellation.
     doSuccessfulTest(
-        "domain_transfer_request_2_years.xml",
-        "domain_transfer_request_response_2_years.xml",
-        clock.nowUtc().plusDays(1).plusYears(2),
+        "domain_transfer_request.xml",
+        "domain_transfer_request_response_autorenew_grace_at_request_only.xml",
+        expirationTime.plusYears(1));
+  }
+
+  @Test
+  public void testSuccess_autorenewGraceActive_throughoutTransferWindow() throws Exception {
+    setupDomain("example", "tld");
+    Key<BillingEvent.Recurring> existingAutorenewEvent =
+        domain.getAutorenewBillingEvent();
+    // Set domain to have auto-renewed just before the transfer request, so that it will have an
+    // active autorenew grace period spanning the entire transfer window.
+    DateTime autorenewTime = clock.nowUtc().minusDays(1);
+    DateTime expirationTime = autorenewTime.plusYears(1);
+    domain = persistResource(domain.asBuilder()
+        .setRegistrationExpirationTime(expirationTime)
+        .addGracePeriod(GracePeriod.createForRecurring(
+            GracePeriodStatus.AUTO_RENEW,
+            autorenewTime.plus(Registry.get("tld").getAutoRenewGracePeriodLength()),
+            "TheRegistrar",
+            existingAutorenewEvent))
+        .build());
+    clock.advanceOneMilli();
+    // The transfer will subsume the recent autorenew, so there will be no net change in expiration
+    // time caused by the transfer, but we must write a Cancellation.
+    doSuccessfulTest(
+        "domain_transfer_request.xml",
+        "domain_transfer_request_response_autorenew_grace_throughout_transfer_window.xml",
+        expirationTime,
         new BillingEvent.Cancellation.Builder()
             .setReason(Reason.RENEW)
-            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
             .setTargetId("example.tld")
             .setClientId("TheRegistrar")
             // The cancellation happens at the moment of transfer.
             .setEventTime(clock.nowUtc().plus(Registry.get("tld").getAutomaticTransferLength()))
-            .setBillingTime(oldResource.getRegistrationExpirationTime().plus(
+            .setBillingTime(autorenewTime.plus(
                 Registry.get("tld").getAutoRenewGracePeriodLength()))
             // The cancellation should refer to the old autorenew billing event.
-            .setRecurringEventKey(oldResource.getAutorenewBillingEvent()));
+            .setRecurringEventKey(existingAutorenewEvent));
+  }
+
+  @Test
+  public void testSuccess_autorenewGraceActive_onlyAtAutomaticTransferTime() throws Exception {
+    setupDomain("example", "tld");
+    Key<BillingEvent.Recurring> existingAutorenewEvent =
+        domain.getAutorenewBillingEvent();
+    // Set domain to expire in 1 day, so that it will be in the autorenew grace period by the
+    // automatic transfer time, even though it isn't yet.
+    DateTime expirationTime = clock.nowUtc().plusDays(1);
+    domain = persistResource(domain.asBuilder()
+        .setRegistrationExpirationTime(expirationTime)
+        .build());
+    clock.advanceOneMilli();
+    // The transfer will subsume the future autorenew, meaning that the expected server-approve
+    // expiration time will be 1 year beyond the current one, and we must write a Cancellation.
+    doSuccessfulTest(
+        "domain_transfer_request.xml",
+        "domain_transfer_request_response_autorenew_grace_at_transfer_only.xml",
+        expirationTime.plusYears(1),
+        new BillingEvent.Cancellation.Builder()
+            .setReason(Reason.RENEW)
+            .setTargetId("example.tld")
+            .setClientId("TheRegistrar")
+            // The cancellation happens at the moment of transfer.
+            .setEventTime(clock.nowUtc().plus(Registry.get("tld").getAutomaticTransferLength()))
+            .setBillingTime(
+                expirationTime.plus(Registry.get("tld").getAutoRenewGracePeriodLength()))
+            // The cancellation should refer to the old autorenew billing event.
+            .setRecurringEventKey(existingAutorenewEvent));
   }
 
   @Test

@@ -14,7 +14,6 @@
 
 package google.registry.flows.domain;
 
-import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.approvePendingTransfer;
@@ -32,7 +31,6 @@ import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
@@ -123,16 +121,9 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
         .setParent(historyEntry)
         .build();
     // If we are within an autorenew grace period, cancel the autorenew billing event and reduce
-    // the number of years to extend the registration by one.
-    GracePeriod autorenewGrace = getOnlyElement(
-        filter(
-            existingDomain.getGracePeriods(),
-            new Predicate<GracePeriod>() {
-              @Override
-              public boolean apply(GracePeriod gracePeriod) {
-                return GracePeriodStatus.AUTO_RENEW.equals(gracePeriod.getType());
-              }}),
-        null);
+    // the number of years to extend the registration by one to "subsume" the autorenew.
+    GracePeriod autorenewGrace =
+        getOnlyElement(existingDomain.getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW), null);
     if (autorenewGrace != null) {
       extraYears--;
       ofy().save().entity(

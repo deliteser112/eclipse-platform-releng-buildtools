@@ -26,6 +26,8 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
@@ -39,7 +41,6 @@ import google.registry.model.transfer.TransferStatus;
 import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 
 /**
  * Utility logic for facilitating domain transfers.
@@ -217,34 +218,33 @@ public final class DomainTransferUtils {
   /**
    * Creates an optional autorenew cancellation if one would apply to the server-approved transfer.
    *
-   * <p>If there will be an autorenew between now and the automatic transfer time, and if the
-   * autorenew grace period length is long enough that the domain will still be within it at the
-   * automatic transfer time, then the transfer will subsume the autorenew and we need to write out
-   * a cancellation for it.
+   * <p>If the domain will be in the auto-renew grace period at the automatic transfer time, then
+   * the transfer will subsume the autorenew. This means that we "cancel" the 1-year extension of
+   * the autorenew before applying the extra transfer years, which in effect means reducing the
+   * transfer extended registration years by one. Since the gaining registrar will still be billed
+   * for the full extended registration years, we must issue a cancellation for the autorenew, so
+   * that the losing registrar will not be charged (essentially, the gaining registrar takes on the
+   * cost of the year of registration that the autorenew just added).
+   *
+   * <p>For details on the policy justification, see b/19430703#comment17 and
+   * <a href="https://www.icann.org/news/advisory-2002-06-06-en">this ICANN advisory</a>.
    */
-  // TODO(b/19430703): the above logic is incomplete; it doesn't handle a grace period that started
-  //   before the transfer was requested and continues through the automatic transfer time.
   private static Optional<BillingEvent.Cancellation> createOptionalAutorenewCancellation(
       DateTime automaticTransferTime,
       HistoryEntry historyEntry,
       String targetId,
       DomainResource existingDomain) {
-    Registry registry = Registry.get(existingDomain.getTld());
-    DateTime oldExpirationTime = existingDomain.getRegistrationExpirationTime();
-    Duration autoRenewGracePeriodLength = registry.getAutoRenewGracePeriodLength();
-    if (automaticTransferTime.isAfter(oldExpirationTime)
-        && automaticTransferTime.isBefore(oldExpirationTime.plus(autoRenewGracePeriodLength))) {
-      return Optional.of(new BillingEvent.Cancellation.Builder()
-          .setReason(Reason.RENEW)
-          .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
-          .setTargetId(targetId)
-          .setClientId(existingDomain.getCurrentSponsorClientId())
-          .setEventTime(automaticTransferTime)
-          .setBillingTime(existingDomain.getRegistrationExpirationTime()
-              .plus(registry.getAutoRenewGracePeriodLength()))
-          .setRecurringEventKey(existingDomain.getAutorenewBillingEvent())
-          .setParent(historyEntry)
-          .build());
+    DomainResource domainAtTransferTime =
+        existingDomain.cloneProjectedAtTime(automaticTransferTime);
+    GracePeriod autorenewGracePeriod =
+        getOnlyElement(
+            domainAtTransferTime.getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW), null);
+    if (autorenewGracePeriod != null) {
+      return Optional.of(
+          BillingEvent.Cancellation.forGracePeriod(autorenewGracePeriod, historyEntry, targetId)
+              .asBuilder()
+              .setEventTime(automaticTransferTime)
+              .build());
     }
     return Optional.absent();
   }

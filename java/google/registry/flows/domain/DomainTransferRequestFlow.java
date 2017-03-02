@@ -50,6 +50,7 @@ import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.FeeTransferCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
@@ -138,9 +139,27 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     validateFeeChallenge(targetId, tld, now, feeTransfer, feesAndCredits);
     HistoryEntry historyEntry = buildHistory(period, existingDomain, now);
     DateTime automaticTransferTime = now.plus(registry.getAutomaticTransferLength());
+ 
+    // If the domain will be in the auto-renew grace period at the moment of transfer, the transfer
+    // will subsume the autorenew, so we reduce by 1 the number of years to extend the registration.
+    // Note that the regular "years" remains the same since it affects the transfer charge amount.
+    // The gaining registrar is still billed for the full years; the losing registrar will get a
+    // cancellation for the autorenew written out within createTransferServerApproveEntities().
+    //
+    // See b/19430703#comment17 and https://www.icann.org/news/advisory-2002-06-06-en for the
+    // policy documentation for transfers subsuming autorenews within the autorenew grace period.
+    int registrationExtensionYears = years;
+    DomainResource domainAtTransferTime =
+        existingDomain.cloneProjectedAtTime(automaticTransferTime);
+    if (!domainAtTransferTime.getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW).isEmpty()) {
+      registrationExtensionYears--;
+    }
     // The new expiration time if there is a server approval.
-    DateTime serverApproveNewExpirationTime = extendRegistrationWithCap(
-        automaticTransferTime, existingDomain.getRegistrationExpirationTime(), years);
+    DateTime serverApproveNewExpirationTime =
+        extendRegistrationWithCap(
+            automaticTransferTime,
+            domainAtTransferTime.getRegistrationExpirationTime(),
+            registrationExtensionYears);
     // Create speculative entities in anticipation of an automatic server approval.
     ImmutableSet<TransferServerApproveEntity> serverApproveEntities =
         createTransferServerApproveEntities(
