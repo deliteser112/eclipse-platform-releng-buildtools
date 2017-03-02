@@ -155,6 +155,10 @@ public final class DomainDeleteFlow implements TransactionalFlow {
               now.plus(registry.getRedemptionGracePeriodLength()),
               clientId)))
           .setDeletePollMessage(Key.create(deletePollMessage));
+      // Note: The expiration time is unchanged, so if it's before the new deletion time, there will
+      // be a "phantom autorenew" where the expiration time advances but no billing event or poll
+      // message are produced (since we are ending the autorenew recurrences at "now" below).  For
+      // now at least this is working as intended.
     }
     DomainResource newDomain = builder.build();
     updateForeignKeyIndexDeletionTime(newDomain);

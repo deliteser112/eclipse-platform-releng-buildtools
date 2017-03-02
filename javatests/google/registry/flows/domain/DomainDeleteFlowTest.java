@@ -311,6 +311,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
         GracePeriod.create(GracePeriodStatus.TRANSFER, TIME_BEFORE_FLOW.plusDays(1), "foo", null));
     // We should see exactly one poll message, which is for the autorenew 1 month in the future.
     assertPollMessages(createAutorenewPollMessage("TheRegistrar").build());
+    DateTime originalExpirationTime = domain.getRegistrationExpirationTime();
     clock.advanceOneMilli();
     runFlowAssertResponse(readFile(responseFilename, substitutions));
     DomainResource resource = reloadResourceByForeignKey();
@@ -324,6 +325,11 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
         .hasOneHistoryEntryEachOfTypes(
             HistoryEntry.Type.DOMAIN_CREATE,
             HistoryEntry.Type.DOMAIN_DELETE);
+    // We leave the original expiration time unchanged; if the expiration time is before the
+    // deletion time, that means once it passes the domain will experience a "phantom autorenew"
+    // where the expirationTime advances and the grace period appears, but since the delete flow
+    // closed the autorenew recurrences immediately, there are no other autorenew effects.
+    assertAboutDomains().that(resource).hasRegistrationExpirationTime(originalExpirationTime);
     // All existing grace periods that were for billable actions should cause cancellations.
     assertAutorenewClosedAndCancellationCreatedFor(
         renewBillingEvent,
