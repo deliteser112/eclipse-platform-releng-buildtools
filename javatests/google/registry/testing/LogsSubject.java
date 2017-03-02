@@ -16,11 +16,16 @@ package google.registry.testing;
 
 import static com.google.common.truth.Truth.assertAbout;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.testing.TestLogHandler;
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
+import com.google.common.truth.Correspondence;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
+
 import google.registry.testing.TruthChainer.And;
+
+import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -36,27 +41,43 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
     super(strategy, subject);
   }
 
-  public And<LogsSubject> hasNoLogsAtLevel(Level level) {
+  private static final Correspondence<String, String> CONTAINS_CORRESPONDENCE =
+      new Correspondence<String, String>() {
+        @Override
+        public boolean compare(String actual, String expected) {
+          return actual.contains(expected);
+        }
+
+        @Override
+        public String toString() {
+          return "contains";
+        }
+      };
+
+  private List<String> getMessagesAtLevel(Level level) {
+    ImmutableList.Builder<String> builder = ImmutableList.<String>builder();
     for (LogRecord log : actual().getStoredLogRecords()) {
       if (log.getLevel().equals(level)) {
-        failWithRawMessage(
-            "Not true that there are no logs at level %s. Found <%s>.", level, log.getMessage());
+        builder.add(log.getMessage());
       }
     }
+    return builder.build();
+  }
+
+  public And<LogsSubject> hasNoLogsAtLevel(Level level) {
+    check()
+        .withFailureMessage("Logs at level %s", level)
+        .that(getMessagesAtLevel(level))
+        .isEmpty();
     return new And<>(this);
   }
 
   public And<LogsSubject> hasLogAtLevelWithMessage(Level level, String message) {
-    boolean found = false;
-    for (LogRecord log : actual().getStoredLogRecords()) {
-      if (log.getLevel().equals(level) && log.getMessage().contains(message)) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      failWithRawMessage("Found no logs at level %s with message %s.", level, message);
-    }
+    check()
+        .withFailureMessage("Logs at level %s", level)
+        .that(getMessagesAtLevel(level))
+        .comparingElementsUsing(CONTAINS_CORRESPONDENCE)
+        .contains(message);
     return new And<>(this);
   }
 
