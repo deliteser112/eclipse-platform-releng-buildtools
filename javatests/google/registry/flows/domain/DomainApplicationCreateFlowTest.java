@@ -936,7 +936,7 @@ public class DomainApplicationCreateFlowTest
     persistResource(new LrpTokenEntity.Builder()
         .setToken("lrptokentest")
         // The below assignee doesn't really make sense here, but as of right now the validation
-        // in TldSpecificLogicProxy is just a match on the domain name, so this test ensures that
+        // in DomainPricingLogic is just a match on the domain name, so this test ensures that
         // the registration fails due to invalid TLDs even if everything else otherwise matches.
         .setAssignee("test-validate.tld")
         .setValidTlds(ImmutableSet.of("other"))
