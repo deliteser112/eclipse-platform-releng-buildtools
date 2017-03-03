@@ -25,7 +25,7 @@ import org.joda.time.Interval;
  * time {@link Interval}.
  */
 @AutoValue
-public abstract class MetricPoint<V> {
+public abstract class MetricPoint<V> implements Comparable<MetricPoint<V>> {
 
   /**
    * Returns a new {@link MetricPoint} representing a value at a specific {@link Instant}.
@@ -69,4 +69,17 @@ public abstract class MetricPoint<V> {
   public abstract Interval interval();
 
   public abstract V value();
+
+  @Override
+  public int compareTo(MetricPoint<V> other) {
+    int minLength = Math.min(this.labelValues().size(), other.labelValues().size());
+    for (int index = 0; index < minLength; index++) {
+      int comparisonResult =
+          this.labelValues().get(index).compareTo(other.labelValues().get(index));
+      if (comparisonResult != 0) {
+        return comparisonResult;
+      }
+    }
+    return Integer.compare(this.labelValues().size(), other.labelValues().size());
+  }
 }
