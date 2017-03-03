@@ -125,11 +125,23 @@ final class RegistryCli {
     injectReflectively(RegistryToolComponent.class, component, command);
 
     if (!(command instanceof RemoteApiCommand)) {
+      // TODO(mmuller): this should be in the try/catch LoginRequiredException in case future
+      // commands use our credential.
       command.run();
       return;
     }
 
-    AppEngineConnection connection = component.appEngineConnection();
+    // Get the App Engine connection, advise the user if they are not currently logged in..
+    AppEngineConnection connection;
+    try {
+      connection = component.appEngineConnection();
+    } catch (AuthModule.LoginRequiredException ex) {
+      System.err.println("===================================================================");
+      System.err.println("You must login using 'nomulus login' prior to running this command.");
+      System.err.println("===================================================================");
+      return;
+    }
+
     if (command instanceof ServerSideCommand) {
       ((ServerSideCommand) command).setConnection(connection);
     }

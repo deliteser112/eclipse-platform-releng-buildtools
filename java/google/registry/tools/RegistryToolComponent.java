@@ -40,12 +40,11 @@ import javax.inject.Singleton;
 @Component(
   modules = {
     AppEngineConnectionFlags.FlagsModule.class,
+    AuthModule.class,
     ConfigModule.class,
     DatastoreServiceModule.class,
     CloudDnsWriterModule.class,
     DefaultRequestFactoryModule.class,
-    DefaultRequestFactoryModule.AuthorizerModule.class,
-    DefaultRequestFactoryModule.DataStoreFactoryModule.class,
     DefaultRequestFactoryModule.RequestFactoryModule.class,
     DnsUpdateWriterModule.class,
     DummyKeyringModule.class,
@@ -72,6 +71,8 @@ interface RegistryToolComponent {
   void inject(GenerateEscrowDepositCommand command);
   void inject(GhostrydeCommand command);
   void inject(ListCursorsCommand command);
+  void inject(LoginCommand command);
+  void inject(LogoutCommand command);
   void inject(PendingEscrowCommand command);
   void inject(SendEscrowReportToIcannCommand command);
   void inject(SetupOteCommand command);
