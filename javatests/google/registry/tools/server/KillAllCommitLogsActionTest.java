@@ -39,7 +39,6 @@ import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
-import java.util.List;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,12 +48,13 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class KillAllCommitLogsActionTest extends MapreduceTestCase<KillAllCommitLogsAction> {
 
-  static final List<Class<? extends ImmutableObject>> AFFECTED_TYPES = ImmutableList.of(
-      CommitLogBucket.class,
-      CommitLogCheckpoint.class,
-      CommitLogCheckpointRoot.class,
-      CommitLogMutation.class,
-      CommitLogManifest.class);
+  static final ImmutableList<Class<? extends ImmutableObject>> AFFECTED_TYPES =
+      ImmutableList.of(
+          CommitLogBucket.class,
+          CommitLogCheckpoint.class,
+          CommitLogCheckpointRoot.class,
+          CommitLogMutation.class,
+          CommitLogManifest.class);
 
   private void runMapreduce() throws Exception {
     action = new KillAllCommitLogsAction();
