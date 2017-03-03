@@ -173,6 +173,7 @@ public class RequestHandler<C> {
     if (!authResult.isPresent()) {
       logger.warning("Request would not have been authorized");
       // TODO(b/28219927): Change this to call rsp.sendError(SC_FORBIDDEN) and return
+      authResult = Optional.of(AuthResult.NOT_AUTHENTICATED);
     }
 
     // Build a new request component using any modules we've constructed by this point.
