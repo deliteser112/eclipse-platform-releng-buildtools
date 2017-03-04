@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableMap;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -41,7 +40,8 @@ import javax.annotation.concurrent.Immutable;
 final class RdeUploadUrl implements Comparable<RdeUploadUrl> {
 
   public static final Protocol SFTP = new Protocol("sftp", 22);
-  private static final Map<String, Protocol> ALLOWED_PROTOCOLS = ImmutableMap.of("sftp", SFTP);
+  private static final ImmutableMap<String, Protocol> ALLOWED_PROTOCOLS =
+      ImmutableMap.of("sftp", SFTP);
 
   private final Protocol protocol;
   private final URI uri;

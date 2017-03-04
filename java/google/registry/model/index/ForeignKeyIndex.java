@@ -62,9 +62,9 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   @Entity
   public static class ForeignKeyHostIndex extends ForeignKeyIndex<HostResource> {}
 
-  private static final Map<
-      Class<? extends EppResource>,
-      Class<? extends ForeignKeyIndex<?>>> RESOURCE_CLASS_TO_FKI_CLASS =
+  private static final ImmutableMap<
+          Class<? extends EppResource>, Class<? extends ForeignKeyIndex<?>>>
+      RESOURCE_CLASS_TO_FKI_CLASS =
           ImmutableMap.<Class<? extends EppResource>, Class<? extends ForeignKeyIndex<?>>>of(
               ContactResource.class, ForeignKeyContactIndex.class,
               DomainResource.class, ForeignKeyDomainIndex.class,

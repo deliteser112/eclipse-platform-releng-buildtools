@@ -35,7 +35,6 @@ import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.eppinput.EppInput.CommandExtension;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import java.util.EnumSet;
-import java.util.Set;
 import javax.xml.bind.annotation.XmlSchema;
 
 /** Constants that define the EPP protocol version we support. */
@@ -44,10 +43,11 @@ public class ProtocolDefinition {
 
   public static final String LANGUAGE = "en";
 
-  public static final Set<String> SUPPORTED_OBJECT_SERVICES = ImmutableSet.of(
-      "urn:ietf:params:xml:ns:host-1.0",
-      "urn:ietf:params:xml:ns:domain-1.0",
-      "urn:ietf:params:xml:ns:contact-1.0");
+  public static final ImmutableSet<String> SUPPORTED_OBJECT_SERVICES =
+      ImmutableSet.of(
+          "urn:ietf:params:xml:ns:host-1.0",
+          "urn:ietf:params:xml:ns:domain-1.0",
+          "urn:ietf:params:xml:ns:contact-1.0");
 
   /** Enums repesenting valid service extensions that are recognized by the server. */
   public enum ServiceExtension {
