@@ -118,6 +118,17 @@ final class RegistryCli {
     }
     loggingParams.configureLogging();  // Must be called after parameters are parsed.
 
+    try {
+      runCommand(command);
+    } catch (AuthModule.LoginRequiredException ex) {
+      System.err.println("===================================================================");
+      System.err.println("You must login using 'nomulus login' prior to running this command.");
+      System.err.println("===================================================================");
+      return;
+    }
+  }
+
+  private void runCommand(Command command) throws Exception {
     // Create the main component and use it to inject the command class.
     RegistryToolComponent component = DaggerRegistryToolComponent.builder()
         .flagsModule(new AppEngineConnectionFlags.FlagsModule(appEngineConnectionFlags))
@@ -132,15 +143,7 @@ final class RegistryCli {
     }
 
     // Get the App Engine connection, advise the user if they are not currently logged in..
-    AppEngineConnection connection;
-    try {
-      connection = component.appEngineConnection();
-    } catch (AuthModule.LoginRequiredException ex) {
-      System.err.println("===================================================================");
-      System.err.println("You must login using 'nomulus login' prior to running this command.");
-      System.err.println("===================================================================");
-      return;
-    }
+    AppEngineConnection connection = component.appEngineConnection();
 
     if (command instanceof ServerSideCommand) {
       ((ServerSideCommand) command).setConnection(connection);
