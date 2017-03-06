@@ -98,7 +98,7 @@ public final class DomainCheckFlow implements Flow {
    * The TLD states during which we want to report a domain with pending applications as
    * unavailable.
    */
-  private static final Set<TldState> PENDING_ALLOCATION_TLD_STATES =
+  private static final ImmutableSet<TldState> PENDING_ALLOCATION_TLD_STATES =
       Sets.immutableEnumSet(TldState.GENERAL_AVAILABILITY, TldState.QUIET_PERIOD);
 
   @Inject ResourceCommand resourceCommand;

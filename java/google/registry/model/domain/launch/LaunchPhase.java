@@ -22,7 +22,6 @@ import static java.util.Objects.hash;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.ImmutableObject;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -64,7 +63,7 @@ public class LaunchPhase extends ImmutableObject {
   /** A custom server launch phase that is defined using the "name" attribute. */
   public static final LaunchPhase CUSTOM = create("custom", null);
 
-  private static final Map<String, LaunchPhase> LAUNCH_PHASES = initEnumMapping();
+  private static final ImmutableMap<String, LaunchPhase> LAUNCH_PHASES = initEnumMapping();
 
   /**
    * Returns a map of the static final fields to their values, case-converted.
