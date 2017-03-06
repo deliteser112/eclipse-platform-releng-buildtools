@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.re2j.Pattern;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -89,35 +88,37 @@ public final class LordnLog implements Iterable<Entry<String, LordnLog.Result>> 
     }
   }
 
-  private static final Map<Integer, Result> RESULTS = new ImmutableMap.Builder<Integer, Result>()
-      .put(2000, new Result(2000, "OK"))
-      .put(2001, new Result(2001, "OK but not processed"))
-      .put(3601, new Result(3601, "TCN Acceptance Date after Registration Date"))
-      .put(3602, new Result(3602, "Duplicate DN Line"))
-      .put(3603, new Result(3603, "DNROID Notified Earlier"))
-      .put(3604, new Result(3604, "TCN Checksum invalid"))
-      .put(3605, new Result(3605, "TCN Expired"))
-      .put(3606, new Result(3606, "Wrong TCNID used"))
-      .put(3609, new Result(3609, "Invalid SMD used"))
-      .put(3610, new Result(3610, "DN reported outside of the time window"))
-      .put(3611, new Result(3611, "DN does not match the labels in SMD"))
-      .put(3612, new Result(3612, "SMDID does not exist"))
-      .put(3613, new Result(3613, "SMD was revoked when used"))
-      .put(3614, new Result(3614, "TCNID does not exist"))
-      .put(3615, new Result(3615, "Recent-dnl-insertion outside of the time window"))
-      .put(3616, new Result(3616, "Registration Date of DN in claims before the end of Sunrise"))
-      .put(3617, new Result(3617, "Registrar has not been approved by the TMDB"))
-      .put(4501, new Result(4501, "Syntax Error in DN Line"))
-      .put(4601, new Result(4601, "Invalid TLD used"))
-      .put(4602, new Result(4602, "Registrar ID Invalid"))
-      .put(4603, new Result(4603, "Registration Date in the future"))
-      .put(4606, new Result(4606, "TLD not in Sunrise or Claims"))
-      .put(4607, new Result(4607, "Application Date in the future"))
-      .put(4608, new Result(4608, "Application Date is later than Registration Date"))
-      .put(4609, new Result(4609, "TCNID wrong syntax"))
-      .put(4610, new Result(4610, "TCN Acceptance Date is in the future"))
-      .put(4611, new Result(4611, "Label has never existed in the TMDB"))
-      .build();
+  private static final ImmutableMap<Integer, Result> RESULTS =
+      new ImmutableMap.Builder<Integer, Result>()
+          .put(2000, new Result(2000, "OK"))
+          .put(2001, new Result(2001, "OK but not processed"))
+          .put(3601, new Result(3601, "TCN Acceptance Date after Registration Date"))
+          .put(3602, new Result(3602, "Duplicate DN Line"))
+          .put(3603, new Result(3603, "DNROID Notified Earlier"))
+          .put(3604, new Result(3604, "TCN Checksum invalid"))
+          .put(3605, new Result(3605, "TCN Expired"))
+          .put(3606, new Result(3606, "Wrong TCNID used"))
+          .put(3609, new Result(3609, "Invalid SMD used"))
+          .put(3610, new Result(3610, "DN reported outside of the time window"))
+          .put(3611, new Result(3611, "DN does not match the labels in SMD"))
+          .put(3612, new Result(3612, "SMDID does not exist"))
+          .put(3613, new Result(3613, "SMD was revoked when used"))
+          .put(3614, new Result(3614, "TCNID does not exist"))
+          .put(3615, new Result(3615, "Recent-dnl-insertion outside of the time window"))
+          .put(
+              3616, new Result(3616, "Registration Date of DN in claims before the end of Sunrise"))
+          .put(3617, new Result(3617, "Registrar has not been approved by the TMDB"))
+          .put(4501, new Result(4501, "Syntax Error in DN Line"))
+          .put(4601, new Result(4601, "Invalid TLD used"))
+          .put(4602, new Result(4602, "Registrar ID Invalid"))
+          .put(4603, new Result(4603, "Registration Date in the future"))
+          .put(4606, new Result(4606, "TLD not in Sunrise or Claims"))
+          .put(4607, new Result(4607, "Application Date in the future"))
+          .put(4608, new Result(4608, "Application Date is later than Registration Date"))
+          .put(4609, new Result(4609, "TCNID wrong syntax"))
+          .put(4610, new Result(4610, "TCN Acceptance Date is in the future"))
+          .put(4611, new Result(4611, "Label has never existed in the TMDB"))
+          .build();
 
   /** Base64 matcher between one and sixty characters. */
   private static final Pattern LOG_ID_PATTERN = Pattern.compile("[-A-Za-z0-9+/=]{1,60}");
