@@ -10,11 +10,13 @@ java_library(
     deps = [
         "//java/google/registry/config",
         "//java/google/registry/model",
+        "//java/google/registry/monitoring/metrics",
         "//java/google/registry/request",
         "//java/google/registry/util",
         "//java/google/registry/xml",
         "//third_party/java/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk",
+        "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",

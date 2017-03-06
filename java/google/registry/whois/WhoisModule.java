@@ -20,6 +20,8 @@ import static google.registry.util.TypeUtils.instantiate;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.util.Clock;
+import google.registry.whois.WhoisMetrics.WhoisMetric;
 import java.io.IOException;
 import java.io.Reader;
 import javax.servlet.http.HttpServletRequest;
@@ -52,5 +54,14 @@ public final class WhoisModule {
   static WhoisCommandFactory provideWhoisCommandFactory(
       @Config("whoisCommandFactoryClass") String factoryClass) {
     return instantiate(getClassFromString(factoryClass, WhoisCommandFactory.class));
+  }
+
+  /**
+   * Provides a {@link WhoisMetrics.WhoisMetric.Builder} with the startTimestamp already
+   * initialized.
+   */
+  @Provides
+  static WhoisMetric.Builder provideEppMetricBuilder(Clock clock) {
+    return WhoisMetric.builderForRequest(clock);
   }
 }
