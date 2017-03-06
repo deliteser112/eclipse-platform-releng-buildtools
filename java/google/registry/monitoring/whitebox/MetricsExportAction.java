@@ -39,7 +39,6 @@ import google.registry.request.ParameterMap;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 import javax.inject.Inject;
 
 /** Action for exporting metrics to BigQuery. */
@@ -49,7 +48,7 @@ public class MetricsExportAction implements Runnable {
   public static final String PATH = "/_dr/task/metrics";
   private static final FormattingLogger logger = getLoggerForCallerClass();
   private static final String DATASET_ID = "metrics";
-  private static final Set<String> SPECIAL_PARAMS = ImmutableSet.of("tableId", "insertId");
+  private static final ImmutableSet<String> SPECIAL_PARAMS = ImmutableSet.of("tableId", "insertId");
 
   @Inject @Parameter("tableId") String tableId;
   @Inject @Parameter("insertId") String insertId;

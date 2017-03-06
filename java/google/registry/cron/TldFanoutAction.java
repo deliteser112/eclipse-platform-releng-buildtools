@@ -79,14 +79,15 @@ public final class TldFanoutAction implements Runnable {
   private static final String JITTER_SECONDS_PARAM = "jitterSeconds";
 
   /** A set of control params to TldFanoutAction that aren't passed down to the executing action. */
-  private static final Set<String> CONTROL_PARAMS = ImmutableSet.of(
-      ENDPOINT_PARAM,
-      QUEUE_PARAM,
-      FOR_EACH_REAL_TLD_PARAM,
-      FOR_EACH_TEST_TLD_PARAM,
-      RUN_IN_EMPTY_PARAM,
-      EXCLUDE_PARAM,
-      JITTER_SECONDS_PARAM);
+  private static final ImmutableSet<String> CONTROL_PARAMS =
+      ImmutableSet.of(
+          ENDPOINT_PARAM,
+          QUEUE_PARAM,
+          FOR_EACH_REAL_TLD_PARAM,
+          FOR_EACH_TEST_TLD_PARAM,
+          RUN_IN_EMPTY_PARAM,
+          EXCLUDE_PARAM,
+          JITTER_SECONDS_PARAM);
 
   private static final String TLD_PATHARG = ":tld";
   private static final Random random = new Random();
