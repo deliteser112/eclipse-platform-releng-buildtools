@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import google.registry.testing.ExceptionRule;
 import google.registry.tmch.LordnLog.Result;
-import java.util.List;
 import java.util.Map.Entry;
 import org.joda.time.DateTime;
 import org.junit.Rule;
@@ -34,19 +33,21 @@ public class LordnLogTest {
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
-  public static final List<String> EXAMPLE_FROM_RFC = ImmutableList.of(
-      "1,2012-08-16T02:15:00.0Z,2012-08-16T00:00:00.0Z,"
-      + "0000000000000478Nzs+3VMkR8ckuUynOLmyeqTmZQSbzDuf/R50n2n5QX4=,"
-      + "accepted,no-warnings,1",
-      "roid,result-code",
-      "SH8013-REP,2000");
+  public static final ImmutableList<String> EXAMPLE_FROM_RFC =
+      ImmutableList.of(
+          "1,2012-08-16T02:15:00.0Z,2012-08-16T00:00:00.0Z,"
+              + "0000000000000478Nzs+3VMkR8ckuUynOLmyeqTmZQSbzDuf/R50n2n5QX4=,"
+              + "accepted,no-warnings,1",
+          "roid,result-code",
+          "SH8013-REP,2000");
 
-  public static final List<String> EXAMPLE_WITH_WARNINGS = ImmutableList.of(
-      "1,2014-03-21T15:40:08.4Z,2014-03-21T15:35:28.0Z,"
-      + "0000000000000004799,accepted,warnings-present,2",
-      "roid,result-code",
-      "19dc9b4-roid,3610",
-      "1580e26-roid,3610");
+  public static final ImmutableList<String> EXAMPLE_WITH_WARNINGS =
+      ImmutableList.of(
+          "1,2014-03-21T15:40:08.4Z,2014-03-21T15:35:28.0Z,"
+              + "0000000000000004799,accepted,warnings-present,2",
+          "roid,result-code",
+          "19dc9b4-roid,3610",
+          "1580e26-roid,3610");
 
   @Test
   public void testSuccess_parseFirstLine() throws Exception {
