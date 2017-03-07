@@ -146,8 +146,6 @@ public class LoadTestAction implements Runnable {
   @Inject
   TaskEnqueuer taskEnqueuer;
 
-  @Inject XsrfTokenManager xsrfTokenManager;
-
   private final String xmlContactCreateTmpl;
   private final String xmlContactCreateFail;
   private final String xmlContactInfo;
@@ -168,7 +166,7 @@ public class LoadTestAction implements Runnable {
   private final String xsrfToken;
 
   @Inject
-  LoadTestAction(@Parameter("tld") String tld) {
+  LoadTestAction(@Parameter("tld") String tld, XsrfTokenManager xsrfTokenManager) {
     xmlContactCreateTmpl = loadXml("contact_create");
     xmlContactCreateFail = xmlContactCreateTmpl.replace("%contact%", EXISTING_CONTACT);
     xmlContactInfo = loadXml("contact_info").replace("%contact%", EXISTING_CONTACT);
