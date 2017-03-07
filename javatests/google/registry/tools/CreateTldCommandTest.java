@@ -388,7 +388,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   public void testFailure_setNonExistentReservedLists() throws Exception {
     runFailureReservedListsTest(
         "xn--q9jyb4c_asdf,common_asdsdgh",
-        IllegalStateException.class,
+        IllegalArgumentException.class,
         "Could not find reserved list xn--q9jyb4c_asdf to add to the tld");
   }
 

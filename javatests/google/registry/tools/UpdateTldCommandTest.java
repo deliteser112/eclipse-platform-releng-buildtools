@@ -606,7 +606,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_setNonExistentReservedLists() throws Exception {
     thrown.expect(
-        IllegalStateException.class,
+        IllegalArgumentException.class,
         "Could not find reserved list xn--q9jyb4c_ZZZ to add to the tld");
     runCommandForced("--reserved_lists", "xn--q9jyb4c_ZZZ", "xn--q9jyb4c");
   }

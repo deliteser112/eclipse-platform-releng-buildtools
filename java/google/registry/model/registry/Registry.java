@@ -35,9 +35,12 @@ import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Range;
 import com.google.common.net.InternetDomainName;
@@ -61,7 +64,10 @@ import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservedList;
+import google.registry.model.registry.label.ReservedList.ReservedListEntry;
 import google.registry.util.Idn;
+import java.util.Collection;
+import java.util.Map.Entry;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
@@ -723,18 +729,17 @@ public class Registry extends ImmutableObject implements Buildable {
 
     public Builder setReservedListsByName(Set<String> reservedListNames) {
       checkArgument(reservedListNames != null, "reservedListNames must not be null");
-      ImmutableSet.Builder<Key<ReservedList>> builder = new ImmutableSet.Builder<>();
+      ImmutableSet.Builder<ReservedList> builder = new ImmutableSet.Builder<>();
       for (String reservedListName : reservedListNames) {
         // Check for existence of the reserved list and throw an exception if it doesn't exist.
         Optional<ReservedList> reservedList = ReservedList.get(reservedListName);
-        if (!reservedList.isPresent()) {
-          throw new IllegalStateException(
-              "Could not find reserved list " + reservedListName + " to add to the tld");
-        }
-        builder.add(Key.create(reservedList.get()));
+        checkArgument(
+            reservedList.isPresent(),
+            "Could not find reserved list %s to add to the tld",
+            reservedListName);
+        builder.add(reservedList.get());
       }
-      getInstance().reservedLists = builder.build();
-      return this;
+      return setReservedLists(builder.build());
     }
 
     public Builder setReservedLists(ReservedList... reservedLists) {
@@ -743,12 +748,39 @@ public class Registry extends ImmutableObject implements Buildable {
 
     public Builder setReservedLists(Set<ReservedList> reservedLists) {
       checkArgumentNotNull(reservedLists, "reservedLists must not be null");
+      checkAuthCodeConflicts(reservedLists);
       ImmutableSet.Builder<Key<ReservedList>> builder = new ImmutableSet.Builder<>();
       for (ReservedList reservedList : reservedLists) {
         builder.add(Key.create(reservedList));
       }
       getInstance().reservedLists = builder.build();
       return this;
+    }
+
+    /**
+     * Checks that domain names don't have conflicting auth codes across different reserved lists.
+     */
+    private static void checkAuthCodeConflicts(Set<ReservedList> reservedLists) {
+      Multimap<String, String> allAuthCodes = HashMultimap.create();
+      for (ReservedList list : reservedLists) {
+        for (ReservedListEntry entry : list.getReservedListEntries().values()) {
+          if (entry.getAuthCode() != null) {
+            allAuthCodes.put(entry.getLabel(), entry.getAuthCode());
+          }
+        }
+      }
+      ImmutableSet<Entry<String, Collection<String>>> conflicts =
+          FluentIterable.from(allAuthCodes.asMap().entrySet())
+              .filter(new Predicate<Entry<String, Collection<String>>>() {
+                @Override
+                public boolean apply(Entry<String, Collection<String>> entry) {
+                  return entry.getValue().size() > 1;
+                }})
+              .toSet();
+      checkArgument(
+          conflicts.isEmpty(),
+          "Cannot set reserved lists because of auth code conflicts for labels: %s",
+          conflicts);
     }
 
     public Builder setPremiumList(PremiumList premiumList) {

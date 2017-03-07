@@ -48,8 +48,7 @@ import org.junit.Test;
 /** Unit tests for {@link Registry}. */
 public class RegistryTest extends EntityTestCase {
 
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExceptionRule thrown = new ExceptionRule();
 
   Registry registry;
 
@@ -171,6 +170,37 @@ public class RegistryTest extends EntityTestCase {
         .containsExactly("tld-reserved24", "tld-reserved25");
     r = Registry.get("tld").asBuilder().setReservedListsByName(ImmutableSet.<String> of()).build();
     assertThat(r.getReservedLists()).isEmpty();
+  }
+
+  @Test
+  public void testSetReservedLists_succeedsWithDuplicateIdenticalAuthCodes() {
+    ReservedList rl1 = persistReservedList(
+        "tld-reserved007",
+        "lol,RESERVED_FOR_ANCHOR_TENANT,identical",
+        "cat,FULLY_BLOCKED");
+    ReservedList rl2 = persistReservedList(
+        "tld-reserved008",
+        "lol,RESERVED_FOR_ANCHOR_TENANT,identical",
+        "tim,FULLY_BLOCKED");
+    Registry registry = Registry.get("tld").asBuilder().setReservedLists(rl1, rl2).build();
+    assertThat(registry.getReservedLists()).containsExactly(Key.create(rl1), Key.create(rl2));
+  }
+
+  @Test
+  public void testSetReservedLists_failsForConflictingAuthCodes() {
+    ReservedList rl1 = persistReservedList(
+        "tld-reserved055",
+        "lol,RESERVED_FOR_ANCHOR_TENANT,conflict1",
+        "cat,FULLY_BLOCKED");
+    ReservedList rl2 = persistReservedList(
+        "tld-reserved056",
+        "lol,RESERVED_FOR_ANCHOR_TENANT,conflict2",
+        "tim,FULLY_BLOCKED");
+    thrown.expect(
+        IllegalArgumentException.class,
+        "auth code conflicts for labels: [lol=[conflict1, conflict2]]");
+    @SuppressWarnings("unused")
+    Registry unused = Registry.get("tld").asBuilder().setReservedLists(rl1, rl2).build();
   }
 
   @Test
