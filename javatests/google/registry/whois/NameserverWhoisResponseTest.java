@@ -26,6 +26,7 @@ import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.whois.WhoisResponse.WhoisResponseResults;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -81,15 +82,16 @@ public class NameserverWhoisResponseTest {
   public void testGetTextOutput() {
     NameserverWhoisResponse nameserverWhoisResponse =
         new NameserverWhoisResponse(hostResource1, clock.nowUtc());
-    assertThat(nameserverWhoisResponse.getPlainTextOutput(false, "Doodle Disclaimer"))
-        .isEqualTo(loadWhoisTestFile("whois_nameserver.txt"));
+    assertThat(nameserverWhoisResponse.getResponse(false, "Doodle Disclaimer"))
+        .isEqualTo(WhoisResponseResults.create(loadWhoisTestFile("whois_nameserver.txt"), 1));
   }
 
   @Test
   public void testGetMultipleNameserversResponse() {
     NameserverWhoisResponse nameserverWhoisResponse =
         new NameserverWhoisResponse(ImmutableList.of(hostResource1, hostResource2), clock.nowUtc());
-    assertThat(nameserverWhoisResponse.getPlainTextOutput(false, "Doodle Disclaimer"))
-        .isEqualTo(loadWhoisTestFile("whois_multiple_nameservers.txt"));
+    assertThat(nameserverWhoisResponse.getResponse(false, "Doodle Disclaimer"))
+        .isEqualTo(
+            WhoisResponseResults.create(loadWhoisTestFile("whois_multiple_nameservers.txt"), 2));
   }
 }

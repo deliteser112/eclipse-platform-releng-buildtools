@@ -15,6 +15,7 @@
 package google.registry.whois;
 
 import static google.registry.request.Action.Method.POST;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.net.MediaType;
@@ -23,6 +24,8 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
+import google.registry.whois.WhoisMetrics.WhoisMetric;
+import google.registry.whois.WhoisResponse.WhoisResponseResults;
 import java.io.Reader;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -60,6 +63,8 @@ public class WhoisServer implements Runnable {
   @Inject Response response;
   @Inject WhoisReaderFactory whoisReaderFactory;
   @Inject @Config("whoisDisclaimer") String disclaimer;
+  @Inject WhoisMetric.Builder metricBuilder;
+  @Inject WhoisMetrics whoisMetrics;
   @Inject WhoisServer() {}
 
   @Override
@@ -67,17 +72,23 @@ public class WhoisServer implements Runnable {
     String responseText;
     DateTime now = clock.nowUtc();
     try {
-      responseText =
-          whoisReaderFactory
-              .create(now)
-              .readCommand(input)
-              .executeQuery(now)
-              .getPlainTextOutput(PREFER_UNICODE, disclaimer);
+      WhoisCommand command = whoisReaderFactory.create(now).readCommand(input);
+      metricBuilder.setCommand(command);
+      WhoisResponseResults results =
+          command.executeQuery(now).getResponse(PREFER_UNICODE, disclaimer);
+      responseText = results.plainTextOutput();
+      metricBuilder.setNumResults(results.numResults());
+      metricBuilder.setStatus(SC_OK);
     } catch (WhoisException e) {
-      responseText = e.getPlainTextOutput(PREFER_UNICODE, disclaimer);
+      WhoisResponseResults results = e.getResponse(PREFER_UNICODE, disclaimer);
+      responseText = results.plainTextOutput();
+      metricBuilder.setNumResults(0);
+      metricBuilder.setStatus(e.getStatus());
     } catch (Throwable t) {
       logger.severe(t, "WHOIS request crashed");
       responseText = "Internal Server Error";
+      metricBuilder.setNumResults(0);
+      metricBuilder.setStatus(SC_INTERNAL_SERVER_ERROR);
     }
     // Note that we always return 200 (OK) even if an error was hit. This is because returning an
     // non-OK HTTP status code will cause the proxy server to silently close the connection. Since
@@ -86,5 +97,6 @@ public class WhoisServer implements Runnable {
     response.setStatus(SC_OK);
     response.setContentType(CONTENT_TYPE);
     response.setPayload(responseText);
+    whoisMetrics.recordWhoisMetric(metricBuilder.build());
   }
 }

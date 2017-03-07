@@ -37,6 +37,7 @@ import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.whois.WhoisResponse.WhoisResponseResults;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -239,16 +240,16 @@ public class DomainWhoisResponseTest {
   public void getPlainTextOutputTest() {
     DomainWhoisResponse domainWhoisResponse =
         new DomainWhoisResponse(domainResource, clock.nowUtc());
-    assertThat(domainWhoisResponse.getPlainTextOutput(false, "Doodle Disclaimer"))
-        .isEqualTo(loadWhoisTestFile("whois_domain.txt"));
+    assertThat(domainWhoisResponse.getResponse(false, "Doodle Disclaimer"))
+        .isEqualTo(WhoisResponseResults.create(loadWhoisTestFile("whois_domain.txt"), 1));
   }
 
   @Test
   public void addImplicitOkStatusTest() {
-    DomainWhoisResponse domainWhoisResponse = new DomainWhoisResponse(
-        domainResource.asBuilder().setStatusValues(null).build(),
-        clock.nowUtc());
-    assertThat(domainWhoisResponse.getPlainTextOutput(false, "Doodle Disclaimer"))
+    DomainWhoisResponse domainWhoisResponse =
+        new DomainWhoisResponse(
+            domainResource.asBuilder().setStatusValues(null).build(), clock.nowUtc());
+    assertThat(domainWhoisResponse.getResponse(false, "Doodle Disclaimer").plainTextOutput())
         .contains("Domain Status: ok");
   }
 }

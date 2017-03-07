@@ -27,6 +27,14 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResourc
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
@@ -37,6 +45,9 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.testing.Providers;
+import google.registry.whois.WhoisMetrics.WhoisMetric;
+import java.io.IOException;
+import java.io.Reader;
 import java.io.StringReader;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -63,6 +74,8 @@ public class WhoisServerTest {
     whoisServer.response = response;
     whoisServer.whoisReaderFactory =
         new WhoisReaderFactory(Providers.of(new WhoisCommandFactory()));
+    whoisServer.whoisMetrics = new WhoisMetrics();
+    whoisServer.metricBuilder = WhoisMetric.builderForRequest(clock);
     whoisServer.disclaimer = "Doodle Disclaimer";
     return whoisServer;
   }
@@ -429,5 +442,59 @@ public class WhoisServerTest {
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).contains("ns1.cat.1.test");
     assertThat(response.getPayload()).contains("1.2.3.4");
+  }
+
+  @Test
+  public void testRun_metricsLoggedForSuccessfulCommand() throws Exception {
+    persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
+    persistResource(makeHostResource("ns2.cat.lol", "1.2.3.4"));
+    WhoisServer server = newWhoisServer("nameserver 1.2.3.4");
+    server.whoisMetrics = mock(WhoisMetrics.class);
+    server.run();
+    WhoisMetric expected =
+        WhoisMetric.builderForRequest(clock)
+            .setCommandName("NameserverLookupByIpCommand")
+            .setNumResults(2)
+            .setStatus(SC_OK)
+            .build();
+    verify(server.whoisMetrics).recordWhoisMetric(eq(expected));
+  }
+
+  @Test
+  public void testRun_metricsLoggedForUnsuccessfulCommand() throws Exception {
+    WhoisServer server = newWhoisServer("domain cat.lol\r\n");
+    server.whoisMetrics = mock(WhoisMetrics.class);
+    server.run();
+    WhoisMetric expected =
+        WhoisMetric.builderForRequest(clock)
+            .setCommandName("DomainLookupCommand")
+            .setNumResults(0)
+            .setStatus(SC_NOT_FOUND)
+            .build();
+    verify(server.whoisMetrics).recordWhoisMetric(eq(expected));
+  }
+
+  @Test
+  public void testRun_metricsLoggedForInternalServerError() throws Exception {
+    persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
+    WhoisServer server = newWhoisServer("ns1.cat.lol");
+    final WhoisReader reader = mock(WhoisReader.class);
+    when(reader.readCommand(any(Reader.class))).thenThrow(new IOException("missing cat interface"));
+
+    server.whoisReaderFactory = new WhoisReaderFactory(Providers.of(new WhoisCommandFactory())) {
+      @Override
+      WhoisReader create(DateTime now) {
+        return reader;
+      }};
+    server.whoisMetrics = mock(WhoisMetrics.class);
+
+    server.run();
+    WhoisMetric expected =
+        WhoisMetric.builderForRequest(clock)
+            .setNumResults(0)
+            .setStatus(SC_INTERNAL_SERVER_ERROR)
+            .build();
+    verify(server.whoisMetrics).recordWhoisMetric(eq(expected));
+    assertThat(response.getPayload()).isEqualTo("Internal Server Error");
   }
 }

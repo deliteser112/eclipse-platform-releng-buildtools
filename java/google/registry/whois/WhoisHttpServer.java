@@ -23,6 +23,7 @@ import static com.google.common.net.HttpHeaders.LAST_MODIFIED;
 import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.base.Joiner;
@@ -33,6 +34,8 @@ import google.registry.request.RequestPath;
 import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
+import google.registry.whois.WhoisMetrics.WhoisMetric;
+import google.registry.whois.WhoisResponse.WhoisResponseResults;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
@@ -133,6 +136,8 @@ public final class WhoisHttpServer implements Runnable {
   @Inject @Config("whoisHttpExpires") Duration expires;
   @Inject WhoisReaderFactory whoisReaderFactory;
   @Inject @RequestPath String requestPath;
+  @Inject WhoisMetric.Builder metricBuilder;
+  @Inject WhoisMetrics whoisMetrics;
   @Inject WhoisHttpServer() {}
 
   @Override
@@ -141,27 +146,38 @@ public final class WhoisHttpServer implements Runnable {
     String path = nullToEmpty(requestPath);
     try {
       // Extremely permissive parsing that turns stuff like "/hello/world/" into "hello world".
-      String command = decode(JOINER.join(SLASHER.split(path.substring(PATH.length())))) + "\r\n";
+      String commandText =
+          decode(JOINER.join(SLASHER.split(path.substring(PATH.length())))) + "\r\n";
       DateTime now = clock.nowUtc();
-      sendResponse(
-          SC_OK,
-          whoisReaderFactory.create(now).readCommand(new StringReader(command)).executeQuery(now));
+      WhoisCommand command =
+          whoisReaderFactory.create(now).readCommand(new StringReader(commandText));
+      metricBuilder.setCommand(command);
+      sendResponse(SC_OK, command.executeQuery(now));
     } catch (WhoisException e) {
+      metricBuilder.setStatus(e.getStatus());
+      metricBuilder.setNumResults(0);
       sendResponse(e.getStatus(), e);
     } catch (IOException e) {
+      metricBuilder.setStatus(SC_INTERNAL_SERVER_ERROR);
+      metricBuilder.setNumResults(0);
       throw new RuntimeException(e);
+    } finally {
+      whoisMetrics.recordWhoisMetric(metricBuilder.build());
     }
   }
 
   private void sendResponse(int status, WhoisResponse whoisResponse) {
     response.setStatus(status);
+    metricBuilder.setStatus(status);
     response.setDateHeader(LAST_MODIFIED, whoisResponse.getTimestamp());
     response.setDateHeader(EXPIRES, whoisResponse.getTimestamp().plus(expires));
     response.setHeader(CACHE_CONTROL, CACHE_CONTROL_VALUE);
     response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, CORS_ALLOW_ORIGIN);
     response.setHeader(X_CONTENT_TYPE_OPTIONS, X_CONTENT_NO_SNIFF);
     response.setContentType(PLAIN_TEXT_UTF_8);
-    response.setPayload(whoisResponse.getPlainTextOutput(true, disclaimer));
+    WhoisResponseResults results = whoisResponse.getResponse(true, disclaimer);
+    metricBuilder.setNumResults(results.numResults());
+    response.setPayload(results.plainTextOutput());
   }
 
   /** Removes {@code %xx} escape codes from request path components. */

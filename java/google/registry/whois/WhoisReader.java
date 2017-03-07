@@ -62,7 +62,7 @@ import org.joda.time.DateTime;
  * @see <a href="http://tools.ietf.org/html/rfc3912">RFC 3912</a>
  * @see <a href="http://www.iana.org/assignments/registrar-ids">IANA Registrar IDs</a>
  */
-@AutoFactory
+@AutoFactory(allowSubclasses = true)
 class WhoisReader {
 
   /**

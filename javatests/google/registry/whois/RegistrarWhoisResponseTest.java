@@ -26,6 +26,7 @@ import google.registry.model.registrar.RegistrarAddress;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.whois.WhoisResponse.WhoisResponseResults;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
@@ -113,8 +114,8 @@ public class RegistrarWhoisResponseTest {
 
     RegistrarWhoisResponse registrarWhoisResponse =
         new RegistrarWhoisResponse(registrar, clock.nowUtc());
-    assertThat(registrarWhoisResponse.getPlainTextOutput(false, "Doodle Disclaimer"))
-        .isEqualTo(loadWhoisTestFile("whois_registrar.txt"));
+    assertThat(registrarWhoisResponse.getResponse(false, "Doodle Disclaimer"))
+        .isEqualTo(WhoisResponseResults.create(loadWhoisTestFile("whois_registrar.txt"), 1));
   }
 
   @Test
@@ -129,6 +130,6 @@ public class RegistrarWhoisResponseTest {
     RegistrarWhoisResponse registrarWhoisResponse =
         new RegistrarWhoisResponse(registrar, clock.nowUtc());
     // Just make sure this doesn't NPE.
-    registrarWhoisResponse.getPlainTextOutput(false, "Doodle Disclaimer");
+    registrarWhoisResponse.getResponse(false, "Doodle Disclaimer");
   }
 }

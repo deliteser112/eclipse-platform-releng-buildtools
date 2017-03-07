@@ -14,13 +14,14 @@
 
 package google.registry.whois;
 
+import com.google.auto.value.AutoValue;
 import org.joda.time.DateTime;
 
 /** Representation of a WHOIS query response. */
 public interface WhoisResponse {
 
   /**
-   * Returns a plain text WHOIS response.
+   * Returns the WHOIS response.
    *
    * @param preferUnicode if {@code false} will cause the output to be converted to ASCII whenever
    *     possible; for example, converting IDN hostname labels to punycode. However certain things
@@ -29,10 +30,19 @@ public interface WhoisResponse {
    *     be set to {@code true}.
    * @param disclaimer text to show at bottom of output
    */
-  String getPlainTextOutput(boolean preferUnicode, String disclaimer);
+  WhoisResponseResults getResponse(boolean preferUnicode, String disclaimer);
 
-  /**
-   * Returns the time at which this response was created.
-   */
+  /** Returns the time at which this response was created. */
   DateTime getTimestamp();
+
+  /** A wraper class for the plaintext response of a WHOIS command and its number of results. */
+  @AutoValue
+  abstract static class WhoisResponseResults {
+    public abstract String plainTextOutput();
+    public abstract int numResults();
+
+    static WhoisResponseResults create(String plainTextOutput, int numResults) {
+      return new AutoValue_WhoisResponse_WhoisResponseResults(plainTextOutput, numResults);
+    }
+  }
 }

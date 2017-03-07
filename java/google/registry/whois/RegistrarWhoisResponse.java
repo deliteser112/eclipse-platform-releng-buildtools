@@ -43,9 +43,9 @@ class RegistrarWhoisResponse extends WhoisResponseImpl {
   }
 
   @Override
-  public String getPlainTextOutput(boolean preferUnicode, String disclaimer) {
+  public WhoisResponseResults getResponse(boolean preferUnicode, String disclaimer) {
     Set<RegistrarContact> contacts = registrar.getContacts();
-    return new RegistrarEmitter()
+    String plaintext = new RegistrarEmitter()
         .emitField("Registrar Name", registrar.getRegistrarName())
         .emitAddress(
             null,
@@ -62,6 +62,7 @@ class RegistrarWhoisResponse extends WhoisResponseImpl {
         .emitLastUpdated(getTimestamp())
         .emitFooter(disclaimer)
         .toString();
+    return WhoisResponseResults.create(plaintext, 1);
   }
 
   /** An emitter with logic for registrars. */

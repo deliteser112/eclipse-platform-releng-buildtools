@@ -46,9 +46,10 @@ public final class Whois {
           .create(now)
           .readCommand(new StringReader(query))
           .executeQuery(now)
-          .getPlainTextOutput(preferUnicode, disclaimer);
+          .getResponse(preferUnicode, disclaimer)
+          .plainTextOutput();
     } catch (WhoisException e) {
-      return e.getPlainTextOutput(preferUnicode, disclaimer);
+      return e.getResponse(preferUnicode, disclaimer).plainTextOutput();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

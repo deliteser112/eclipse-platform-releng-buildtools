@@ -42,7 +42,7 @@ final class NameserverWhoisResponse extends WhoisResponseImpl {
   }
 
   @Override
-  public String getPlainTextOutput(boolean preferUnicode, String disclaimer) {
+  public WhoisResponseResults getResponse(boolean preferUnicode, String disclaimer) {
     BasicEmitter emitter = new BasicEmitter();
     for (int i = 0; i < hosts.size(); i++) {
       HostResource host = hosts.get(i);
@@ -63,6 +63,7 @@ final class NameserverWhoisResponse extends WhoisResponseImpl {
         emitter.emitNewline();
       }
     }
-    return emitter.emitLastUpdated(getTimestamp()).emitFooter(disclaimer).toString();
+    String plaintext = emitter.emitLastUpdated(getTimestamp()).emitFooter(disclaimer).toString();
+    return WhoisResponseResults.create(plaintext, hosts.size());
   }
 }

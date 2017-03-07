@@ -62,9 +62,9 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
   }
 
   @Override
-  public String getPlainTextOutput(final boolean preferUnicode, String disclaimer) {
+  public WhoisResponseResults getResponse(final boolean preferUnicode, String disclaimer) {
     Registrar registrar = getRegistrar(domain.getCurrentSponsorClientId());
-    return new DomainEmitter()
+    String plaintext = new DomainEmitter()
         .emitField(
             "Domain Name", maybeFormatHostname(domain.getFullyQualifiedDomainName(), preferUnicode))
         .emitField("Domain ID", domain.getRepoId())
@@ -97,6 +97,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
         .emitAwipMessage()
         .emitFooter(disclaimer)
         .toString();
+    return WhoisResponseResults.create(plaintext, 1);
   }
 
   /** Returns the contact of the given type, or null if it does not exist. */

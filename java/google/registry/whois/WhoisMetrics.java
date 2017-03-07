@@ -14,15 +14,18 @@
 
 package google.registry.whois;
 
+import static com.google.common.base.Preconditions.checkState;
 import static google.registry.monitoring.metrics.EventMetric.DEFAULT_FITTER;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import google.registry.monitoring.metrics.EventMetric;
 import google.registry.monitoring.metrics.IncrementableMetric;
 import google.registry.monitoring.metrics.LabelDescriptor;
 import google.registry.monitoring.metrics.MetricRegistryImpl;
 import google.registry.util.Clock;
+import google.registry.whois.WhoisMetrics.WhoisMetric;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -57,36 +60,28 @@ public class WhoisMetrics {
   @Inject
   public WhoisMetrics() {}
 
-  /**
-   * Increment a counter which tracks WHOIS requests.
-   *
-   * @see WhoisServer
-   */
-  public void incrementWhoisRequests(WhoisMetric metric) {
+  /** Records the given {@link WhoisMetric} and its associated processing time. */
+  public void recordWhoisMetric(WhoisMetric metric) {
     whoisRequests.increment(
-        metric.commandName(),
-        metric.numResults().toString(),
-        metric.status());
-  }
-
-  /** Record the server-side processing time for a WHOIS request. */
-  public void recordProcessingTime(WhoisMetric metric) {
+        metric.commandName().or(""),
+        Integer.toString(metric.numResults()),
+        Integer.toString(metric.status()));
     processingTime.record(
         metric.endTimestamp().getMillis() - metric.startTimestamp().getMillis(),
-        metric.commandName(),
-        metric.numResults().toString(),
-        metric.status());
+        metric.commandName().or(""),
+        Integer.toString(metric.numResults()),
+        Integer.toString(metric.status()));
   }
 
   /** A value class for recording attributes of a WHOIS metric. */
   @AutoValue
   public abstract static class WhoisMetric {
 
-    public abstract String commandName();
+    public abstract Optional<String> commandName();
 
-    public abstract Integer numResults();
+    public abstract int numResults();
 
-    public abstract String status();
+    public abstract int status();
 
     public abstract DateTime startTimestamp();
 
@@ -111,14 +106,20 @@ public class WhoisMetrics {
     @AutoValue.Builder
     public abstract static class Builder {
 
+      boolean wasBuilt = false;
+
       /** Builder-only clock to support automatic recording of endTimestamp on {@link #build()}. */
       private Clock clock = null;
 
+      public Builder setCommand(WhoisCommand command) {
+        return setCommandName(command.getClass().getSimpleName());
+      }
+
       public abstract Builder setCommandName(String commandName);
 
-      public abstract Builder setNumResults(Integer numResults);
+      public abstract Builder setNumResults(int numResults);
 
-      public abstract Builder setStatus(String status);
+      public abstract Builder setStatus(int status);
 
       abstract Builder setStartTimestamp(DateTime startTimestamp);
 
@@ -136,9 +137,12 @@ public class WhoisMetrics {
        * current timestamp of the clock; otherwise end timestamp must have been previously set.
        */
       public WhoisMetric build() {
+        checkState(
+            !wasBuilt, "WhoisMetric was already built; building it again is most likely an error");
         if (clock != null) {
           setEndTimestamp(clock.nowUtc());
         }
+        wasBuilt = true;
         return autoBuild();
       }
 
