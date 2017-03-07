@@ -115,6 +115,19 @@ public final class RequestParameters {
   }
 
   /**
+   * Returns first GET or POST parameter associated with {@code name} as a boolean.
+   *
+   * @throws BadRequestException if request parameter is present but not a valid boolean
+   */
+  public static Optional<Boolean> extractOptionalBooleanParameter(
+      HttpServletRequest req, String name) {
+    String stringParam = req.getParameter(name);
+    return isNullOrEmpty(stringParam)
+        ? Optional.<Boolean>absent()
+        : Optional.of(Boolean.valueOf(stringParam));
+  }
+
+  /**
    * Returns {@code true} if parameter is present and not empty and not {@code "false"}.
    *
    * <p>This considers a parameter with a non-existent value true, for situations where the request

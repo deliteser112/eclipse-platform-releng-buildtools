@@ -14,12 +14,19 @@
 
 package google.registry.batch;
 
+import static google.registry.request.RequestParameters.extractOptionalBooleanParameter;
+import static google.registry.request.RequestParameters.extractOptionalIntParameter;
+import static google.registry.request.RequestParameters.extractOptionalParameter;
+
 import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
 import dagger.multibindings.StringKey;
+import google.registry.request.Parameter;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Dagger module for injecting common settings for batch actions.
@@ -32,5 +39,35 @@ public class BatchModule {
   @StringKey(EntityIntegrityAlertsSchema.TABLE_ID)
   static ImmutableList<TableFieldSchema> provideEntityIntegrityAlertsSchema() {
     return EntityIntegrityAlertsSchema.SCHEMA_FIELDS;
+  }
+
+  @Provides
+  @Parameter("jobName")
+  static Optional<String> provideJobName(HttpServletRequest req) {
+    return extractOptionalParameter(req, "jobName");
+  }
+
+  @Provides
+  @Parameter("jobId")
+  static Optional<String> provideJobId(HttpServletRequest req) {
+    return extractOptionalParameter(req, "jobId");
+  }
+
+  @Provides
+  @Parameter("numJobsToDelete")
+  static Optional<Integer> provideNumJobsToDelete(HttpServletRequest req) {
+    return extractOptionalIntParameter(req, "numJobsToDelete");
+  }
+
+  @Provides
+  @Parameter("daysOld")
+  static Optional<Integer> provideDaysOld(HttpServletRequest req) {
+    return extractOptionalIntParameter(req, "daysOld");
+  }
+
+  @Provides
+  @Parameter("force")
+  static Optional<Boolean> provideForce(HttpServletRequest req) {
+    return extractOptionalBooleanParameter(req, "force");
   }
 }

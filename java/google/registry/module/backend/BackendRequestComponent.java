@@ -25,6 +25,7 @@ import google.registry.batch.BatchModule;
 import google.registry.batch.DeleteContactsAndHostsAction;
 import google.registry.batch.DeleteProberDataAction;
 import google.registry.batch.ExpandRecurringBillingEventsAction;
+import google.registry.batch.MapreduceEntityCleanupAction;
 import google.registry.batch.RefreshDnsOnHostRenameAction;
 import google.registry.batch.VerifyEntityIntegrityAction;
 import google.registry.cron.CommitLogFanoutAction;
@@ -110,6 +111,7 @@ interface BackendRequestComponent {
   ExportReservedTermsAction exportReservedTermsAction();
   ExportSnapshotAction exportSnapshotAction();
   LoadSnapshotAction loadSnapshotAction();
+  MapreduceEntityCleanupAction mapreduceEntityCleanupAction();
   MetricsExportAction metricsExportAction();
   NordnUploadAction nordnUploadAction();
   NordnVerifyAction nordnVerifyAction();

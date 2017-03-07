@@ -115,6 +115,8 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
     String pathInfo = taskStateInfo.getUrl();
     if (pathInfo.startsWith("/_dr/mapreduce/")) {
       pathInfo = pathInfo.replace("/_dr/mapreduce", "");
+    } else if (pathInfo.startsWith("/mapreduce/")) {
+        pathInfo = pathInfo.replace("/mapreduce", "");
     } else if (pathInfo.startsWith("/")) {
       pathInfo = pathInfo.replace("/_ah/", "");
       pathInfo = pathInfo.substring(pathInfo.indexOf('/'));
@@ -176,7 +178,23 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
    */
   protected void executeTasksUntilEmpty(String queueName, @Nullable FakeClock clock)
       throws Exception {
-    while (true) {
+    executeTasks(queueName, clock, Optional.<Integer>absent());
+  }
+
+  /**
+   * Executes mapreduce tasks, increment the clock between each task.
+   *
+   * <p>Incrementing the clock between tasks is important if tasks have transactions inside the
+   * mapper or reducer, which don't have access to the fake clock.
+   *
+   * <p>The maxTasks parameter determines how many tasks (at most) will be run. If maxTasks is
+   * absent(), all tasks are run until the queue is empty. If maxTasks is zero, no tasks are run.
+   */
+  protected void executeTasks(
+      String queueName, @Nullable FakeClock clock, Optional<Integer> maxTasks) throws Exception {
+    for (int numTasksDeleted = 0;
+        !maxTasks.isPresent() || (numTasksDeleted < maxTasks.get());
+        numTasksDeleted++) {
       ofy().clearSessionCache();
       // We have to re-acquire task list every time, because local implementation returns a copy.
       List<QueueStateInfo.TaskStateInfo> taskInfo =

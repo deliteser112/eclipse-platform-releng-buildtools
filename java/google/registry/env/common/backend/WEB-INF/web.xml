@@ -143,6 +143,12 @@
     <url-pattern>/_dr/task/pollBigqueryJob</url-pattern>
   </servlet-mapping>
 
+  <!-- Cleans up old mapreduce entities. -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/mapreduceEntityCleanup</url-pattern>
+  </servlet-mapping>
+
   <!-- Fans out a cron task over an adjustable range of TLDs. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>

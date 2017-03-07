@@ -24,6 +24,8 @@ java_library(
         "@com_google_appengine_api_1_0_sdk//:testonly",
         "@com_google_appengine_api_stubs",
         "@com_google_appengine_tools_appengine_gcs_client",
+        "@com_google_appengine_tools_appengine_mapreduce",
+        "@com_google_appengine_tools_appengine_pipeline",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",
@@ -40,7 +42,7 @@ java_library(
 
 GenTestRules(
     name = "GeneratedTestRules",
-    default_test_size = "medium",
+    default_test_size = "large",
     test_files = glob(["*Test.java"]),
     deps = [":batch"],
 )
