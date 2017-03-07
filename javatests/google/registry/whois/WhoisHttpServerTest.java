@@ -34,6 +34,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
+import google.registry.testing.Providers;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.After;
@@ -53,26 +54,22 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class WhoisHttpServerTest {
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
-
-  @Rule
-  public final InjectRule inject = new InjectRule();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+  @Rule public final InjectRule inject = new InjectRule();
 
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2009-06-29T20:13:00Z"));
 
   private WhoisHttpServer newWhoisHttpServer(String pathInfo) {
-    WhoisHttpServer result = new WhoisHttpServer();
-    result.clock = clock;
-    result.expires = Duration.standardHours(1);
-    result.requestPath = WhoisHttpServer.PATH + pathInfo;
-    result.response = response;
-    result.disclaimer = "Doodle Disclaimer";
-    result.commandFactory = new WhoisCommandFactory();
-    return result;
+    WhoisHttpServer whoisServer = new WhoisHttpServer();
+    whoisServer.clock = clock;
+    whoisServer.expires = Duration.standardHours(1);
+    whoisServer.requestPath = WhoisHttpServer.PATH + pathInfo;
+    whoisServer.response = response;
+    whoisServer.whoisReaderFactory =
+        new WhoisReaderFactory(Providers.of(new WhoisCommandFactory()));
+    whoisServer.disclaimer = "Doodle Disclaimer";
+    return whoisServer;
   }
 
   @Before

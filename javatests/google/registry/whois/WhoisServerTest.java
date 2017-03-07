@@ -36,6 +36,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
+import google.registry.testing.Providers;
 import java.io.StringReader;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -49,25 +50,21 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class WhoisServerTest {
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
-
-  @Rule
-  public final InjectRule inject = new InjectRule();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+  @Rule public final InjectRule inject = new InjectRule();
 
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2009-06-29T20:13:00Z"));
 
   private WhoisServer newWhoisServer(String input) {
-    WhoisServer result = new WhoisServer();
-    result.clock = clock;
-    result.input = new StringReader(input);
-    result.response = response;
-    result.disclaimer = "Doodle Disclaimer";
-    result.commandFactory = new WhoisCommandFactory();
-    return result;
+    WhoisServer whoisServer = new WhoisServer();
+    whoisServer.clock = clock;
+    whoisServer.input = new StringReader(input);
+    whoisServer.response = response;
+    whoisServer.whoisReaderFactory =
+        new WhoisReaderFactory(Providers.of(new WhoisCommandFactory()));
+    whoisServer.disclaimer = "Doodle Disclaimer";
+    return whoisServer;
   }
 
   @Before

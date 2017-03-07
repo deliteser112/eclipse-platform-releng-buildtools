@@ -26,24 +26,25 @@ public final class Whois {
 
   private final Clock clock;
   private final String disclaimer;
-  private final WhoisCommandFactory commandFactory;
+  private final WhoisReaderFactory whoisReaderFactory;
 
   @Inject
   public Whois(
       Clock clock,
       @Config("whoisDisclaimer") String disclaimer,
-      @Config("whoisCommandFactory") WhoisCommandFactory commandFactory) {
+      WhoisReaderFactory whoisReader) {
     this.clock = clock;
     this.disclaimer = disclaimer;
-    this.commandFactory = commandFactory;
+    this.whoisReaderFactory = whoisReader;
   }
 
   /** Performs a WHOIS lookup on a plaintext query string. */
   public String lookup(String query, boolean preferUnicode) {
     DateTime now = clock.nowUtc();
     try {
-      return new WhoisReader(new StringReader(query), commandFactory, now)
-          .readCommand()
+      return whoisReaderFactory
+          .create(now)
+          .readCommand(new StringReader(query))
           .executeQuery(now)
           .getPlainTextOutput(preferUnicode, disclaimer);
     } catch (WhoisException e) {

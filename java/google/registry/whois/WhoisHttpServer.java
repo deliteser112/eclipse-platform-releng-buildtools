@@ -34,7 +34,6 @@ import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -132,7 +131,7 @@ public final class WhoisHttpServer implements Runnable {
   @Inject Response response;
   @Inject @Config("whoisDisclaimer") String disclaimer;
   @Inject @Config("whoisHttpExpires") Duration expires;
-  @Inject @Config("whoisCommandFactory") WhoisCommandFactory commandFactory;
+  @Inject WhoisReaderFactory whoisReaderFactory;
   @Inject @RequestPath String requestPath;
   @Inject WhoisHttpServer() {}
 
@@ -143,10 +142,10 @@ public final class WhoisHttpServer implements Runnable {
     try {
       // Extremely permissive parsing that turns stuff like "/hello/world/" into "hello world".
       String command = decode(JOINER.join(SLASHER.split(path.substring(PATH.length())))) + "\r\n";
-      Reader reader = new StringReader(command);
       DateTime now = clock.nowUtc();
       sendResponse(
-          SC_OK, new WhoisReader(reader, commandFactory, now).readCommand().executeQuery(now));
+          SC_OK,
+          whoisReaderFactory.create(now).readCommand(new StringReader(command)).executeQuery(now));
     } catch (WhoisException e) {
       sendResponse(e.getStatus(), e);
     } catch (IOException e) {

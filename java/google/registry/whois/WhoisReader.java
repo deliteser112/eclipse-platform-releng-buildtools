@@ -20,15 +20,19 @@ import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
+import com.google.auto.factory.AutoFactory;
+import com.google.auto.factory.Provided;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.io.CharStreams;
 import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;
+import google.registry.config.RegistryConfig.Config;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 import org.joda.time.DateTime;
 
 /**
@@ -58,6 +62,7 @@ import org.joda.time.DateTime;
  * @see <a href="http://tools.ietf.org/html/rfc3912">RFC 3912</a>
  * @see <a href="http://www.iana.org/assignments/registrar-ids">IANA Registrar IDs</a>
  */
+@AutoFactory
 class WhoisReader {
 
   /**
@@ -68,15 +73,15 @@ class WhoisReader {
   static final String NAMESERVER_LOOKUP_COMMAND = "nameserver";
   static final String REGISTRAR_LOOKUP_COMMAND = "registrar";
 
-  private final Reader reader;
   private final DateTime now;
   private final WhoisCommandFactory commandFactory;
 
   /** Creates a new WhoisReader that extracts its command from the specified Reader. */
-  WhoisReader(Reader reader, WhoisCommandFactory commandFactory, DateTime now) {
-    this.reader = checkNotNull(reader, "reader");
-    this.commandFactory = checkNotNull(commandFactory, "commandFactory");
-    this.now = checkNotNull(now, "now");
+  @Inject
+  WhoisReader(
+      @Provided @Config("whoisCommandFactory") WhoisCommandFactory commandFactory, DateTime now) {
+    this.commandFactory = commandFactory;
+    this.now = now;
   }
 
   /**
@@ -86,8 +91,8 @@ class WhoisReader {
    * @throws IOException If the command could not be read from the reader.
    * @throws WhoisException If the command could not be parsed as a WhoisCommand.
    */
-  WhoisCommand readCommand() throws IOException, WhoisException {
-    return parseCommand(CharStreams.toString(reader));
+  WhoisCommand readCommand(Reader reader) throws IOException, WhoisException {
+    return parseCommand(CharStreams.toString(checkNotNull(reader, "reader")));
   }
 
   /**
@@ -97,7 +102,6 @@ class WhoisReader {
   private WhoisCommand parseCommand(String command) throws WhoisException {
     // Split the string into tokens based on whitespace.
     List<String> tokens = filterEmptyStrings(command.split("\\s"));
-
     if (tokens.isEmpty()) {
       throw new WhoisException(now, SC_BAD_REQUEST, "No WHOIS command specified.");
     }

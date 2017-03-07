@@ -45,8 +45,8 @@ public class WhoisReaderTest {
   @SuppressWarnings("unchecked") // XXX: Generic abuse ftw.
   <T> T readCommand(String commandStr) throws Exception {
     return (T)
-        new WhoisReader(new StringReader(commandStr), new WhoisCommandFactory(), clock.nowUtc())
-            .readCommand();
+        new WhoisReader(new WhoisCommandFactory(), clock.nowUtc())
+            .readCommand(new StringReader(commandStr));
   }
 
   void assertLoadsExampleTld(String commandString) throws Exception {
