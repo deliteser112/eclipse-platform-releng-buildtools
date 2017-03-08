@@ -710,6 +710,7 @@ def com_google_auto_factory():
           # TODO(jart): https://github.com/bazelbuild/bazel/issues/2286
           # "    output_licenses = [\"unencumbered\"],",
           "    processor_class = \"com.google.auto.factory.processor.AutoFactoryProcessor\",",
+          "    generates_api = 1,",
           "    tags = [\"annotation=com.google.auto.factory.AutoFactory;genclass=${package}.${outerclasses}@{className|${classname}Factory}\"],",
           "    deps = [\":processor\"],",
           ")",
