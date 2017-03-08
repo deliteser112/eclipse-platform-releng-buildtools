@@ -19,6 +19,7 @@ import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.reflect.Reflection.getPackageName;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
@@ -73,6 +74,16 @@ public class RegistryToolTest {
       expect.that(commandEntry.getKey())
           // JCommander names should match the class name, up to "Command" and case formatting.
           .isEqualTo(UPPER_CAMEL.to(LOWER_UNDERSCORE, className.replaceFirst("Command$", "")));
+    }
+  }
+
+  @Test
+  public void test_commandMap_allCommandsHaveDescriptions() throws Exception {
+    for (Map.Entry<String, ? extends Class<? extends Command>> commandEntry :
+        RegistryTool.COMMAND_MAP.entrySet()) {
+      Parameters parameters = commandEntry.getValue().getAnnotation(Parameters.class);
+      assertThat(parameters).isNotNull();
+      assertThat(parameters.commandDescription()).isNotEmpty();
     }
   }
 
