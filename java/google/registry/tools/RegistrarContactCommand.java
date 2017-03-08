@@ -54,8 +54,6 @@ import javax.annotation.Nullable;
     commandDescription = "Create/read/update/delete the various contact lists for a Registrar.")
 final class RegistrarContactCommand extends MutatingCommand {
 
-  private enum Mode { LIST, CREATE, UPDATE, DELETE }
-
   @Parameter(
       description = "Client identifier of the registrar account.",
       required = true)
@@ -131,6 +129,11 @@ final class RegistrarContactCommand extends MutatingCommand {
       validateWith = PathParameter.OutputFile.class)
   private Path output = Paths.get("/dev/stdout");
 
+  private enum Mode { LIST, CREATE, UPDATE, DELETE }
+
+  private static final ImmutableSet<Mode> MODES_REQUIRING_CONTACT_SYNC =
+      ImmutableSet.of(Mode.CREATE, Mode.UPDATE, Mode.DELETE);
+
   @Nullable
   private Set<RegistrarContact.Type> contactTypes;
 
@@ -178,7 +181,7 @@ final class RegistrarContactCommand extends MutatingCommand {
       default:
         throw new AssertionError();
     }
-    if (mode == Mode.CREATE || mode == Mode.UPDATE || mode == Mode.DELETE) {
+    if (MODES_REQUIRING_CONTACT_SYNC.contains(mode)) {
       stageEntityChange(registrar, registrar.asBuilder().setContactsRequireSyncing(true).build());
     }
   }

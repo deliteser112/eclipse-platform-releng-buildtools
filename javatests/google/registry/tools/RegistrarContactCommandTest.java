@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.registrar.RegistrarContact.Type.ABUSE;
 import static google.registry.model.registrar.RegistrarContact.Type.ADMIN;
 import static google.registry.model.registrar.RegistrarContact.Type.WHOIS;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -44,21 +45,24 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
   @Test
   public void testList() throws Exception {
     Registrar registrar = Registrar.loadByClientId("NewRegistrar");
-    RegistrarContact.updateContacts(registrar, ImmutableSet.of(
-        new RegistrarContact.Builder()
-            .setParent(registrar)
-            .setName("John Doe")
-            .setEmailAddress("john.doe@example.com")
-            .setTypes(ImmutableSet.of(ADMIN))
-            .setVisibleInWhoisAsAdmin(true)
-            .build()));
-    runCommand("-f", "--mode=LIST", "--output=" + output, "NewRegistrar");
-    assertThat(Files.readAllLines(Paths.get(output), UTF_8)).containsExactly(
-        "John Doe",
-        "john.doe@example.com",
-        "Types: [ADMIN]",
-        "Visible in WHOIS as Admin contact: Yes",
-        "Visible in WHOIS as Technical contact: No");
+    RegistrarContact.updateContacts(
+        registrar,
+        ImmutableSet.of(
+            new RegistrarContact.Builder()
+                .setParent(registrar)
+                .setName("John Doe")
+                .setEmailAddress("john.doe@example.com")
+                .setTypes(ImmutableSet.of(ADMIN))
+                .setVisibleInWhoisAsAdmin(true)
+                .build()));
+    runCommandForced("--mode=LIST", "--output=" + output, "NewRegistrar");
+    assertThat(Files.readAllLines(Paths.get(output), UTF_8))
+        .containsExactly(
+            "John Doe",
+            "john.doe@example.com",
+            "Types: [ADMIN]",
+            "Visible in WHOIS as Admin contact: Yes",
+            "Visible in WHOIS as Technical contact: No");
   }
 
   @Test
@@ -74,8 +78,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
             .setVisibleInWhoisAsTech(true)
             .build());
     persistSimpleResources(contacts);
-    runCommand(
-        "--force",
+    runCommandForced(
         "--mode=UPDATE",
         "--name=Judith Registrar",
         "--email=judith.doe@example.com",
@@ -109,8 +112,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
             .setName("Jane Doe")
             .setEmailAddress("jane.doe@example.com")
             .build());
-    runCommand(
-        "--force",
+    runCommandForced(
         "--mode=UPDATE",
         "--email=jane.doe@example.com",
         "--allow_console_access=true",
@@ -130,8 +132,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
             .setEmailAddress("judith.doe@example.com")
             .setGaeUserId("11111")
             .build());
-    runCommand(
-        "--force",
+    runCommandForced(
         "--mode=UPDATE",
         "--email=judith.doe@example.com",
         "--allow_console_access=false",
@@ -144,8 +145,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
   @Test
   public void testCreate_withAdminType() throws Exception {
     Registrar registrar = Registrar.loadByClientId("NewRegistrar");
-    runCommand(
-        "--force",
+    runCommandForced(
         "--mode=CREATE",
         "--name=Jim Doe",
         "--email=jim.doe@example.com",
@@ -169,8 +169,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
 
   @Test
   public void testDelete() throws Exception {
-    runCommand(
-        "--force",
+    runCommandForced(
         "--mode=DELETE",
         "--email=janedoe@theregistrar.com",
         "NewRegistrar");
@@ -179,8 +178,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
 
   @Test
   public void testCreate_withConsoleAccessEnabled() throws Exception {
-    runCommand(
-        "--force",
+    runCommandForced(
         "--mode=CREATE",
         "--name=Jim Doe",
         "--email=jim.doe@example.com",
@@ -190,5 +188,22 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
     RegistrarContact registrarContact =
         Registrar.loadByClientId("NewRegistrar").getContacts().asList().get(1);
     assertThat(registrarContact.getGaeUserId()).matches("-?[0-9]+");
+  }
+
+  @Test
+  public void testCreate_syncingRequiredSetToTrue() throws Exception {
+    persistResource(
+        Registrar.loadByClientId("NewRegistrar")
+            .asBuilder()
+            .setContactsRequireSyncing(false)
+            .build());
+
+    assertThat(Registrar.loadByClientId("NewRegistrar").getContactsRequireSyncing()).isFalse();
+    runCommandForced(
+        "--mode=CREATE",
+        "--name=Jim Doe",
+        "--email=jim.doe@example.com",
+        "NewRegistrar");
+    assertThat(Registrar.loadByClientId("NewRegistrar").getContactsRequireSyncing()).isTrue();
   }
 }
