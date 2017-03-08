@@ -36,10 +36,10 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Range;
@@ -761,7 +761,7 @@ public class Registry extends ImmutableObject implements Buildable {
      * Checks that domain names don't have conflicting auth codes across different reserved lists.
      */
     private static void checkAuthCodeConflicts(Set<ReservedList> reservedLists) {
-      Multimap<String, String> allAuthCodes = HashMultimap.create();
+      Multimap<String, String> allAuthCodes = LinkedHashMultimap.create();
       for (ReservedList list : reservedLists) {
         for (ReservedListEntry entry : list.getReservedListEntries().values()) {
           if (entry.getAuthCode() != null) {

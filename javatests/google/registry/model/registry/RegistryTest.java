@@ -196,11 +196,14 @@ public class RegistryTest extends EntityTestCase {
         "tld-reserved056",
         "lol,RESERVED_FOR_ANCHOR_TENANT,conflict2",
         "tim,FULLY_BLOCKED");
+    ReservedList rl3 = persistReservedList(
+        "tld-reserved057",
+        "lol,RESERVED_FOR_ANCHOR_TENANT,another_conflict");
     thrown.expect(
         IllegalArgumentException.class,
-        "auth code conflicts for labels: [lol=[conflict1, conflict2]]");
+        "auth code conflicts for labels: [lol=[conflict1, conflict2, another_conflict]]");
     @SuppressWarnings("unused")
-    Registry unused = Registry.get("tld").asBuilder().setReservedLists(rl1, rl2).build();
+    Registry unused = Registry.get("tld").asBuilder().setReservedLists(rl1, rl2, rl3).build();
   }
 
   @Test
