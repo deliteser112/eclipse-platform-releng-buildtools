@@ -172,9 +172,12 @@ public class MapreduceEntityCleanupAction implements Runnable {
     DateTime cutoffDate = clock.nowUtc().minusDays(defaultedDaysOld);
     Optional<String> cursor = Optional.absent();
     do {
+      Optional<Integer> numJobsToRequest =
+          Optional.fromNullable(
+              numJobsToDelete.isPresent() ? numJobsToDelete.get() - numJobsProcessed : null);
       EligibleJobResults batch =
           mapreduceEntityCleanupUtil.findEligibleJobsByJobName(
-              jobName.orNull(), cutoffDate, numJobsToDelete, force.or(false), cursor);
+              jobName.orNull(), cutoffDate, numJobsToRequest, force.or(false), cursor);
       cursor = batch.cursor();
       // Individual batches can come back empty if none of the returned jobs meet the requirements
       // or if all jobs have been exhausted.
