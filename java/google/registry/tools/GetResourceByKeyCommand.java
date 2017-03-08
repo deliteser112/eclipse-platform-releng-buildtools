@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Command to get info on a Datastore resource by websafe key.
  */
-@Parameters(separators = " =")
+@Parameters(separators = " =", commandDescription = "Fetch a Datastore resource by websafe key")
 final class GetResourceByKeyCommand implements RemoteApiCommand {
 
   @Parameter(
