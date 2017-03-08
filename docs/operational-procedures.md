@@ -7,21 +7,25 @@ production registry system.
 
 [Stackdriver Monitoring](https://cloud.google.com/monitoring/docs/) is used to
 instrument internal state within the Nomulus internal environment. This is
-broadly called white-box monitoring. Currently, EPP and DNS are instrumented.
-The metrics monitored are as follows:
+broadly called white-box monitoring. EPP, DNS, and WHOIS are instrumented. The
+metrics monitored are as follows:
 
-*   `/custom/epp/requests` -- A count of EPP requests, described by command
-    name, client id, and return status code.
-*   `/custom/epp/processing_time` -- A
-    [Distribution](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/TypedValue#Distribution)
-    representing the processing time for EPP requests, described by command
-    name, client id, and retujrn status code.
 *   `/custom/dns/publish_domain_requests` -- A count of publish domain requests,
     described by the target TLD and the return status code from the underlying
     DNS implementation.
 *   `/custom/dns/publish_host_requests` -- A count of publish host requests,
     described by the target TLD and the return status code from the underlying
     DNS implementation.
+*   `/custom/epp/requests` -- A count of EPP requests, described by command
+    name, client id, and return status code.
+*   `/custom/epp/processing_time` -- A [Distribution][distribution] representing
+    the processing time for EPP requests, described by command name, client id,
+    and retujrn status code.
+*   `/custom/whois/requests` -- A count of WHOIS requests, described by command
+    name, number of returned results, and return status code.
+*   `/custom/whois/processing_time` -- A [Distribution][distribution]
+    representing the processing time for WHOIS requests, described by command
+    name, number of returned results, and return status code.
 
 Follow the guide to [set up a Stackdriver
 account](https://cloud.google.com/monitoring/accounts/guide) and associate it
@@ -141,5 +145,6 @@ anti-abuse efforts. This is covered in Specification 11 of the
 
 The Nomulus release does not generate these reports.
 
+[distribution]: https://cloud.google.com/monitoring/api/ref_v3/rest/v3/TypedValue#Distribution
 [registry-agreement]: https://newgtlds.icann.org/sites/default/files/agreements/agreement-approved-09jan14-en.pdf
 [spec-11]: https://newgtlds.icann.org/en/applicants/agb/base-agreement-specs-pic-faqs
