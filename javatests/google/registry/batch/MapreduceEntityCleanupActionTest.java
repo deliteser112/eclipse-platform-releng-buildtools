@@ -15,7 +15,9 @@
 package google.registry.batch;
 
 import static com.google.appengine.api.datastore.DatastoreServiceFactory.getDatastoreService;
+import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -45,7 +47,6 @@ import com.google.appengine.tools.pipeline.impl.model.ShardedValue;
 import com.google.appengine.tools.pipeline.impl.model.Slot;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.net.MediaType;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
@@ -61,8 +62,7 @@ import org.junit.runners.JUnit4;
 public class MapreduceEntityCleanupActionTest
     extends MapreduceTestCase<MapreduceEntityCleanupAction> {
 
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExceptionRule thrown = new ExceptionRule();
 
   private static final DatastoreService datastore = getDatastoreService();
   private static final FetchOptions FETCH_OPTIONS = FetchOptions.Builder.withChunkSize(200);
@@ -116,17 +116,6 @@ public class MapreduceEntityCleanupActionTest
             new MapReduceSettings.Builder().setWorkerQueueName(QUEUE_NAME).build());
     PipelineService pipelineService = PipelineServiceFactory.newPipelineService();
     return pipelineService.startNewPipeline(mapReduceJob, new JobSetting.OnQueue(QUEUE_NAME));
-  }
-
-  /*
-  private void setJobIdAndJobName(Optional<String> jobId, Optional<String> jobName) {
-    setJobIdJobNameAndDaysOld(jobId, jobName, Optional.<Integer>absent());
-  }
-  */
-
-  private void setAnyJob() {
-    setJobIdJobNameAndDaysOld(
-        Optional.<String>absent(), Optional.<String>absent(), Optional.<Integer>absent());
   }
 
   private void setAnyJobAndDaysOld(int daysOld) {
@@ -205,7 +194,7 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo(
         jobId
         + ": deletion requested\n"
@@ -240,8 +229,8 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
-    assertThat(response.getPayload()).isEqualTo("No eligible job.");
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
+    assertThat(response.getPayload()).isEqualTo("No eligible jobs found");
     assertThat(mapreduceEntityCleanupUtil.getNumSearchesPerformed()).isEqualTo(1);
   }
 
@@ -254,9 +243,9 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(mapreduceEntityCleanupUtil.getNumSearchesPerformed()).isEqualTo(1);
-    assertThat(response.getPayload()).isEqualTo("No eligible job.");
+    assertThat(response.getPayload()).isEqualTo("No eligible jobs found");
   }
 
   @Test
@@ -268,49 +257,25 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
-    assertThat(response.getPayload()).isEqualTo("done");
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
+    assertThat(response.getPayload()).isEqualTo("A total of 1 job(s) processed");
     executeTasksUntilEmpty(QUEUE_NAME, clock);
     assertNumMapreducesAndShardedJobs(0, 0);
     assertThat(mapreduceEntityCleanupUtil.getNumSearchesPerformed()).isEqualTo(1);
   }
 
   @Test
-  public void testDeleteZeroJobs_succeeds() throws Exception {
-    createMapreduce("jobname");
-    executeTasksUntilEmpty(QUEUE_NAME, clock);
-    action = new MapreduceEntityCleanupAction(
-        Optional.<String>absent(), // jobId
-        Optional.<String>absent(), // jobName
-        Optional.<Integer>of(0), // numJobsToDelete
-        Optional.<Integer>absent(), // daysOld
-        Optional.<Boolean>absent(), // force
-        mapreduceEntityCleanupUtil,
-        clock,
-        DatastoreServiceFactory.getDatastoreService(),
-        response);
-
-    action.run();
-
-    assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
-    assertThat(response.getPayload()).isEqualTo("A total of 0 job(s) processed\n");
-    executeTasksUntilEmpty(QUEUE_NAME, clock);
-    assertNumMapreducesAndShardedJobs(1, 3);
-    assertThat(mapreduceEntityCleanupUtil.getNumSearchesPerformed()).isEqualTo(0);
-  }
-
-  @Test
   public void testAnyJob_fails() throws Exception {
     createMapreduce("jobname");
     executeTasksUntilEmpty(QUEUE_NAME, clock);
-    setAnyJob();
+    setJobIdJobNameAndDaysOld(
+        Optional.<String>absent(), Optional.<String>absent(), Optional.<Integer>absent());
 
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
-    assertThat(response.getPayload()).isEqualTo("No eligible job.");
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
+    assertThat(response.getPayload()).isEqualTo("No eligible jobs found");
     assertThat(mapreduceEntityCleanupUtil.getNumSearchesPerformed()).isEqualTo(1);
   }
 
@@ -323,8 +288,8 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
-    assertThat(response.getPayload()).isEqualTo("done");
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
+    assertThat(response.getPayload()).isEqualTo("A total of 1 job(s) processed");
     executeTasksUntilEmpty(QUEUE_NAME, clock);
     assertNumMapreducesAndShardedJobs(0, 0);
     assertThat(mapreduceEntityCleanupUtil.getNumSearchesPerformed()).isEqualTo(1);
@@ -337,7 +302,7 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo(
         "nonexistent: deletion requested\n"
             + "successfully requested async deletion of 1 job(s); errors received on 0\n");
@@ -356,8 +321,8 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
-    assertThat(response.getPayload()).isEqualTo("done");
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
+    assertThat(response.getPayload()).isEqualTo("A total of 2 job(s) processed");
     executeTasksUntilEmpty(QUEUE_NAME, clock);
     assertNumMapreducesAndShardedJobs(0, 0);
     assertThat(mapreduceEntityCleanupUtil.getNumSearchesPerformed()).isEqualTo(1);
@@ -374,8 +339,8 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
-    assertThat(response.getPayload()).isEqualTo("done");
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
+    assertThat(response.getPayload()).isEqualTo("A total of 2 job(s) processed");
     executeTasksUntilEmpty(QUEUE_NAME, clock);
     assertNumMapreducesAndShardedJobs(0, 0);
     assertThat(mapreduceEntityCleanupUtil.getNumSearchesPerformed()).isEqualTo(2);
@@ -401,11 +366,11 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).endsWith(
         ": deletion requested\n"
         + "successfully requested async deletion of 1 job(s); errors received on 0\n"
-        + "A total of 1 job(s) processed\n");
+        + "A total of 1 job(s) processed");
     executeTasksUntilEmpty(QUEUE_NAME, clock);
     assertNumMapreducesAndShardedJobs(1, 3);
     assertThat(mapreduceEntityCleanupUtil.getNumSearchesPerformed()).isEqualTo(1);
@@ -421,8 +386,8 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
-    assertThat(response.getPayload()).isEqualTo("done");
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
+    assertThat(response.getPayload()).isEqualTo("A total of 1 job(s) processed");
     executeTasksUntilEmpty(QUEUE_NAME, clock);
     assertNumMapreducesAndShardedJobs(1, 3);
     assertThat(mapreduceEntityCleanupUtil.getNumSearchesPerformed()).isEqualTo(1);
@@ -438,7 +403,7 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).endsWith(
         ": deletion requested\n"
         + "successfully requested async deletion of 1 job(s); errors received on 0\n");
@@ -457,7 +422,7 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo(
         jobId1
         + ": deletion requested\n"
@@ -479,7 +444,7 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response2.getStatus()).isEqualTo(SC_OK);
-    assertThat(response2.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response2.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response2.getPayload()).isEqualTo(
         jobId2
         + ": deletion requested\n"
@@ -498,7 +463,7 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).endsWith(
         ": Job is not in FINALIZED or STOPPED state\n"
         + "successfully requested async deletion of 0 job(s); errors received on 1\n");
@@ -524,7 +489,7 @@ public class MapreduceEntityCleanupActionTest
     action.run();
 
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).endsWith(
         ": deletion requested\n"
         + "successfully requested async deletion of 1 job(s); errors received on 0\n");
@@ -540,8 +505,8 @@ public class MapreduceEntityCleanupActionTest
 
     action.run();
 
-    assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response.getStatus()).isEqualTo(SC_BAD_REQUEST);
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo("Do not specify both a job ID and a job name");
     assertNumMapreducesAndShardedJobs(0, 0);
   }
@@ -552,8 +517,8 @@ public class MapreduceEntityCleanupActionTest
 
     action.run();
 
-    assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response.getStatus()).isEqualTo(SC_BAD_REQUEST);
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload())
         .isEqualTo("Do not specify both a job ID and a days old threshold");
     assertNumMapreducesAndShardedJobs(0, 0);
@@ -561,7 +526,6 @@ public class MapreduceEntityCleanupActionTest
 
   @Test
   public void testJobIdAndNumJobs_fails() throws Exception {
-    clock.setTo(DateTime.now(UTC));
     action = new MapreduceEntityCleanupAction(
         Optional.of("jobid"),
         Optional.<String>absent(), // jobName
@@ -575,10 +539,29 @@ public class MapreduceEntityCleanupActionTest
 
     action.run();
 
-    assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
+    assertThat(response.getStatus()).isEqualTo(SC_BAD_REQUEST);
+    assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload())
         .isEqualTo("Do not specify both a job ID and a number of jobs to delete");
     assertNumMapreducesAndShardedJobs(0, 0);
   }
+
+  @Test
+  public void testDeleteZeroJobs_throwsUsageError() throws Exception {
+    new MapreduceEntityCleanupAction(
+            Optional.<String>absent(), // jobId
+            Optional.<String>absent(), // jobName
+            Optional.<Integer>of(0), // numJobsToDelete
+            Optional.<Integer>absent(), // daysOld
+            Optional.<Boolean>absent(), // force
+            mapreduceEntityCleanupUtil,
+            clock,
+            DatastoreServiceFactory.getDatastoreService(),
+            response)
+        .run();
+    assertThat(response.getStatus()).isEqualTo(SC_BAD_REQUEST);
+    assertThat(response.getPayload())
+        .isEqualTo("Do not specify a non-positive integer for the number of jobs to delete");
+  }
+
 }
