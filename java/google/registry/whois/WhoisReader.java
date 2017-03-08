@@ -20,8 +20,6 @@ import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
-import com.google.auto.factory.AutoFactory;
-import com.google.auto.factory.Provided;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.io.CharStreams;
@@ -62,7 +60,6 @@ import org.joda.time.DateTime;
  * @see <a href="http://tools.ietf.org/html/rfc3912">RFC 3912</a>
  * @see <a href="http://www.iana.org/assignments/registrar-ids">IANA Registrar IDs</a>
  */
-@AutoFactory(allowSubclasses = true)
 class WhoisReader {
 
   /**
@@ -73,15 +70,12 @@ class WhoisReader {
   static final String NAMESERVER_LOOKUP_COMMAND = "nameserver";
   static final String REGISTRAR_LOOKUP_COMMAND = "registrar";
 
-  private final DateTime now;
   private final WhoisCommandFactory commandFactory;
 
   /** Creates a new WhoisReader that extracts its command from the specified Reader. */
   @Inject
-  WhoisReader(
-      @Provided @Config("whoisCommandFactory") WhoisCommandFactory commandFactory, DateTime now) {
+  WhoisReader(@Config("whoisCommandFactory") WhoisCommandFactory commandFactory) {
     this.commandFactory = commandFactory;
-    this.now = now;
   }
 
   /**
@@ -91,15 +85,15 @@ class WhoisReader {
    * @throws IOException If the command could not be read from the reader.
    * @throws WhoisException If the command could not be parsed as a WhoisCommand.
    */
-  WhoisCommand readCommand(Reader reader) throws IOException, WhoisException {
-    return parseCommand(CharStreams.toString(checkNotNull(reader, "reader")));
+  WhoisCommand readCommand(Reader reader, DateTime now) throws IOException, WhoisException {
+    return parseCommand(CharStreams.toString(checkNotNull(reader, "reader")), now);
   }
 
   /**
    * Given a WHOIS command string, parse it into its command type and target string. See class level
    * comments for a full description of the command syntax accepted.
    */
-  private WhoisCommand parseCommand(String command) throws WhoisException {
+  private WhoisCommand parseCommand(String command, DateTime now) throws WhoisException {
     // Split the string into tokens based on whitespace.
     List<String> tokens = filterEmptyStrings(command.split("\\s"));
     if (tokens.isEmpty()) {

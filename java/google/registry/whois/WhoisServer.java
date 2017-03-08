@@ -61,7 +61,7 @@ public class WhoisServer implements Runnable {
   @Inject Clock clock;
   @Inject Reader input;
   @Inject Response response;
-  @Inject WhoisReaderFactory whoisReaderFactory;
+  @Inject WhoisReader whoisReader;
   @Inject @Config("whoisDisclaimer") String disclaimer;
   @Inject WhoisMetric.Builder metricBuilder;
   @Inject WhoisMetrics whoisMetrics;
@@ -72,7 +72,7 @@ public class WhoisServer implements Runnable {
     String responseText;
     DateTime now = clock.nowUtc();
     try {
-      WhoisCommand command = whoisReaderFactory.create(now).readCommand(input);
+      WhoisCommand command = whoisReader.readCommand(input, now);
       metricBuilder.setCommand(command);
       WhoisResponseResults results =
           command.executeQuery(now).getResponse(PREFER_UNICODE, disclaimer);

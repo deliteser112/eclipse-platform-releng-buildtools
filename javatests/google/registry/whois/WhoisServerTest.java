@@ -44,7 +44,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
-import google.registry.testing.Providers;
 import google.registry.whois.WhoisMetrics.WhoisMetric;
 import java.io.IOException;
 import java.io.Reader;
@@ -72,8 +71,7 @@ public class WhoisServerTest {
     whoisServer.clock = clock;
     whoisServer.input = new StringReader(input);
     whoisServer.response = response;
-    whoisServer.whoisReaderFactory =
-        new WhoisReaderFactory(Providers.of(new WhoisCommandFactory()));
+    whoisServer.whoisReader = new WhoisReader(new WhoisCommandFactory());
     whoisServer.whoisMetrics = new WhoisMetrics();
     whoisServer.metricBuilder = WhoisMetric.builderForRequest(clock);
     whoisServer.disclaimer = "Doodle Disclaimer";
@@ -478,14 +476,9 @@ public class WhoisServerTest {
   public void testRun_metricsLoggedForInternalServerError() throws Exception {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     WhoisServer server = newWhoisServer("ns1.cat.lol");
-    final WhoisReader reader = mock(WhoisReader.class);
-    when(reader.readCommand(any(Reader.class))).thenThrow(new IOException("missing cat interface"));
-
-    server.whoisReaderFactory = new WhoisReaderFactory(Providers.of(new WhoisCommandFactory())) {
-      @Override
-      WhoisReader create(DateTime now) {
-        return reader;
-      }};
+    server.whoisReader = mock(WhoisReader.class);
+    when(server.whoisReader.readCommand(any(Reader.class), any(DateTime.class)))
+        .thenThrow(new IOException("missing cat interface"));
     server.whoisMetrics = mock(WhoisMetrics.class);
 
     server.run();

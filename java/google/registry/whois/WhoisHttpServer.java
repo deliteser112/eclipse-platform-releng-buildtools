@@ -134,7 +134,7 @@ public final class WhoisHttpServer implements Runnable {
   @Inject Response response;
   @Inject @Config("whoisDisclaimer") String disclaimer;
   @Inject @Config("whoisHttpExpires") Duration expires;
-  @Inject WhoisReaderFactory whoisReaderFactory;
+  @Inject WhoisReader whoisReader;
   @Inject @RequestPath String requestPath;
   @Inject WhoisMetric.Builder metricBuilder;
   @Inject WhoisMetrics whoisMetrics;
@@ -149,8 +149,7 @@ public final class WhoisHttpServer implements Runnable {
       String commandText =
           decode(JOINER.join(SLASHER.split(path.substring(PATH.length())))) + "\r\n";
       DateTime now = clock.nowUtc();
-      WhoisCommand command =
-          whoisReaderFactory.create(now).readCommand(new StringReader(commandText));
+      WhoisCommand command = whoisReader.readCommand(new StringReader(commandText), now);
       metricBuilder.setCommand(command);
       sendResponse(SC_OK, command.executeQuery(now));
     } catch (WhoisException e) {
