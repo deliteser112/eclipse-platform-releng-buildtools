@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import com.beust.jcommander.Parameters;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
 import google.registry.util.FormattingLogger;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 /** Logout (invalidates OAuth credentials). */
+@Parameters(commandDescription = "Remove local OAuth credentials")
 class LogoutCommand implements Command {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

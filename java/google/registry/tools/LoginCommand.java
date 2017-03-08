@@ -14,12 +14,14 @@
 
 package google.registry.tools;
 
+import com.beust.jcommander.Parameters;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import javax.inject.Inject;
 
 /** Authorizes the nomulus tool for OAuth 2.0 access to remote resources. */
+@Parameters(commandDescription = "Create local OAuth credentials")
 final class LoginCommand implements Command {
 
   @Inject GoogleAuthorizationCodeFlow flow;
