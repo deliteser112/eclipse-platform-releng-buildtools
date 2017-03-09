@@ -178,8 +178,9 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
    * changed once created, so the cache need not ever expire.
    *
    * <p>A maximum size is set here on the cache because it can potentially grow too big to fit in
-   * memory if there are a very large number of premium list entries in the system. The least-
-   * accessed entries will be evicted first.
+   * memory if there are a large number of distinct premium list entries being queried (both those
+   * that exist, as well as those that might exist according to the bloom filter, must be cached).
+   * The entries judged least likely to be accessed again will be evicted first.
    */
   @VisibleForTesting
   static final LoadingCache<Key<PremiumListEntry>, Optional<PremiumListEntry>>
