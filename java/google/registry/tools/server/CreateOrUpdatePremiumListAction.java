@@ -38,11 +38,12 @@ public abstract class CreateOrUpdatePremiumListAction implements Runnable {
   public void run() {
     try {
       savePremiumList();
-    } catch (RuntimeException e) {
-      logger.severe(e, e.getMessage());
-      response.setPayload(ImmutableMap.of(
-          "error", e.toString(),
-          "status", "error"));
+    } catch (IllegalArgumentException iae) {
+      logger.info(iae, "Usage error in attempting to save premium list from nomulus tool command");
+      response.setPayload(ImmutableMap.of("error", iae.toString(), "status", "error"));
+    } catch (Exception e) {
+      logger.severe(e, "Unexpected error saving premium list from nomulus tool command");
+      response.setPayload(ImmutableMap.of("error", e.toString(), "status", "error"));
     }
   }
 
