@@ -116,6 +116,24 @@ public class DomainCheckFlowTest
   }
 
   @Test
+  public void testSuccess_domainWithMultipleReservationType_useMostSevereMessage()
+      throws Exception {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                createReservedList(),
+                persistReservedList("tld-collision", "allowedinsunrise,NAME_COLLISION"))
+            .build());
+    setEppInput("domain_check_one_tld_reserved.xml");
+    doCheckTest(
+        create(false, "reserved.tld", "Reserved"),
+        create(false, "allowedinsunrise.tld", "Cannot be delegated"),
+        create(true, "example2.tld", null),
+        create(true, "example3.tld", null));
+  }
+
+  @Test
   public void testSuccess_anchorTenantReserved() throws Exception {
     setEppInput("domain_check_anchor.xml");
     doCheckTest(create(false, "anchor.tld", "Reserved"));
@@ -393,6 +411,19 @@ public class DomainCheckFlowTest
   /** Test multiyear periods and explicitly correct currency and that the avail extension is ok. */
   @Test
   public void testFeeExtension_v06() throws Exception {
+    persistActiveDomain("example1.tld");
+    setEppInput("domain_check_fee_v06.xml");
+    runFlowAssertResponse(readFile("domain_check_fee_response_v06.xml"));
+  }
+
+  @Test
+  public void testFeeExtension_multipleReservations() throws Exception {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                persistReservedList("example-sunrise", "allowedinsunrise,ALLOWED_IN_SUNRISE"))
+            .build());
     persistActiveDomain("example1.tld");
     setEppInput("domain_check_fee_v06.xml");
     runFlowAssertResponse(readFile("domain_check_fee_response_v06.xml"));

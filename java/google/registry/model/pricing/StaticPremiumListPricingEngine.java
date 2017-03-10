@@ -19,7 +19,7 @@ import static com.google.common.base.Strings.emptyToNull;
 import static google.registry.model.registry.Registry.TldState.SUNRISE;
 import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
 import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
-import static google.registry.model.registry.label.ReservedList.getReservation;
+import static google.registry.model.registry.label.ReservedList.getReservationTypes;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
 import com.google.common.base.Joiner;
@@ -46,7 +46,7 @@ public final class StaticPremiumListPricingEngine implements PremiumPricingEngin
     Optional<Money> premiumPrice = getPremiumPrice(label, registry);
     boolean isNameCollisionInSunrise =
         registry.getTldState(priceTime).equals(SUNRISE)
-            && getReservation(label, tld) == NAME_COLLISION;
+            && getReservationTypes(label, tld).contains(NAME_COLLISION);
     String feeClass = emptyToNull(Joiner.on('-').skipNulls().join(
             premiumPrice.isPresent() ? "premium" : null,
             isNameCollisionInSunrise ? "collision" : null));

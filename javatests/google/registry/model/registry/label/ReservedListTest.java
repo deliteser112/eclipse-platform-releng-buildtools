@@ -18,9 +18,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.registry.label.ReservationType.ALLOWED_IN_SUNRISE;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
+import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
 import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
-import static google.registry.model.registry.label.ReservedList.getReservation;
+import static google.registry.model.registry.label.ReservedList.getReservationTypes;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
@@ -71,20 +72,20 @@ public class ReservedListTest {
   @Test
   public void testGetReservation_allLabelsAreUnreserved_withNoReservedLists() throws Exception {
     assertThat(Registry.get("tld").getReservedLists()).isEmpty();
-    assertThat(getReservation("doodle", "tld")).isEqualTo(UNRESERVED);
-    assertThat(getReservation("access", "tld")).isEqualTo(UNRESERVED);
-    assertThat(getReservation("rich", "tld")).isEqualTo(UNRESERVED);
+    assertThat(getReservationTypes("doodle", "tld")).containsExactly(UNRESERVED);
+    assertThat(getReservationTypes("access", "tld")).containsExactly(UNRESERVED);
+    assertThat(getReservationTypes("rich", "tld")).containsExactly(UNRESERVED);
   }
 
   @Test
   public void testZeroReservedLists_doesNotCauseError() throws Exception {
-    assertThat(getReservation("doodle", "tld")).isEqualTo(UNRESERVED);
+    assertThat(getReservationTypes("doodle", "tld")).containsExactly(UNRESERVED);
   }
 
   @Test
   public void testGetReservation_twoLetterCodesAreAvailable() {
     for (String sld : ImmutableList.of("aa", "az", "zz", "91", "1n", "j5")) {
-      assertThat(getReservation(sld, "tld")).isEqualTo(UNRESERVED);
+      assertThat(getReservationTypes(sld, "tld")).containsExactly(UNRESERVED);
     }
   }
 
@@ -92,7 +93,7 @@ public class ReservedListTest {
   public void testGetReservation_singleCharacterDomainsAreAllowed() {
     // This isn't quite exhaustive but it's close.
     for (char c = 'a'; c <= 'z'; c++) {
-      assertThat(getReservation("" + c, "tld")).isEqualTo(UNRESERVED);
+      assertThat(getReservationTypes("" + c, "tld")).containsExactly(UNRESERVED);
     }
   }
 
@@ -107,8 +108,8 @@ public class ReservedListTest {
                     "lol,RESERVED_FOR_ANCHOR_TENANT,foobar1",
                     "lol2,RESERVED_FOR_ANCHOR_TENANT,abcdefg # This is a comment")))
             .build());
-    assertThat(getReservation("lol", "tld")).isEqualTo(RESERVED_FOR_ANCHOR_TENANT);
-    assertThat(getReservation("lol2", "tld")).isEqualTo(RESERVED_FOR_ANCHOR_TENANT);
+    assertThat(getReservationTypes("lol", "tld")).containsExactly(RESERVED_FOR_ANCHOR_TENANT);
+    assertThat(getReservationTypes("lol2", "tld")).containsExactly(RESERVED_FOR_ANCHOR_TENANT);
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "foobar1"))
         .isTrue();
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "foobar"))
@@ -140,6 +141,21 @@ public class ReservedListTest {
   }
 
   @Test
+  public void testMatchesAnchorTenantReservation_duplicatingAuthCodes()
+      throws Exception {
+    ReservedList rl1 = persistReservedList("reserved1", "lol,RESERVED_FOR_ANCHOR_TENANT,foo");
+    ReservedList rl2 = persistReservedList("reserved2", "lol,RESERVED_FOR_ANCHOR_TENANT,foo");
+    createTld("tld");
+    persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1, rl2).build());
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "foo")).isTrue();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "bar")).isFalse();
+    persistReservedList("reserved2", "lol,RESERVED_FOR_ANCHOR_TENANT,bar");
+    thrown.expect(
+        IllegalStateException.class, "There are conflicting auth codes for domain: lol.tld");
+    matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "bar");
+  }
+
+  @Test
   public void testGetReservation_concatsMultipleListsCorrectly() throws Exception {
     ReservedList rl1 = persistReservedList(
         "reserved1",
@@ -152,12 +168,29 @@ public class ReservedListTest {
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1, rl2).build());
 
-    assertThat(getReservation("lol", "tld")).isEqualTo(FULLY_BLOCKED);
-    assertThat(getReservation("cat", "tld")).isEqualTo(FULLY_BLOCKED);
-    assertThat(getReservation("roflcopter", "tld")).isEqualTo(FULLY_BLOCKED);
-    assertThat(getReservation("snowcrash", "tld")).isEqualTo(FULLY_BLOCKED);
-    assertThat(getReservation("doge", "tld")).isEqualTo(UNRESERVED);
+    assertThat(getReservationTypes("lol", "tld")).containsExactly(FULLY_BLOCKED);
+    assertThat(getReservationTypes("cat", "tld")).containsExactly(FULLY_BLOCKED);
+    assertThat(getReservationTypes("roflcopter", "tld")).containsExactly(FULLY_BLOCKED);
+    assertThat(getReservationTypes("snowcrash", "tld")).containsExactly(FULLY_BLOCKED);
+    assertThat(getReservationTypes("doge", "tld")).containsExactly(UNRESERVED);
   }
+
+  @Test
+  public void testGetReservation_returnsAllReservationTypesFromMultipleListsForTheSameLabel()
+      throws Exception {
+    ReservedList rl1 =
+        persistReservedList("reserved1", "lol,NAME_COLLISION # yup", "cat,FULLY_BLOCKED");
+    ReservedList rl2 =
+        persistReservedList("reserved2", "lol,ALLOWED_IN_SUNRISE", "snowcrash,FULLY_BLOCKED");
+    createTld("tld");
+    persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1, rl2).build());
+
+    assertThat(getReservationTypes("lol", "tld"))
+        .containsExactly(NAME_COLLISION, ALLOWED_IN_SUNRISE);
+    assertThat(getReservationTypes("cat", "tld")).containsExactly(FULLY_BLOCKED);
+    assertThat(getReservationTypes("snowcrash", "tld")).containsExactly(FULLY_BLOCKED);
+  }
+
 
   @Test
   public void testGetReservation_worksAfterReservedListRemovedUsingSet() throws Exception {
@@ -167,23 +200,24 @@ public class ReservedListTest {
         "reserved2", "roflcopter,FULLY_BLOCKED", "snowcrash,FULLY_BLOCKED");
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1, rl2).build());
-    assertThat(getReservation("roflcopter", "tld")).isEqualTo(FULLY_BLOCKED);
+    assertThat(getReservationTypes("roflcopter", "tld")).containsExactly(FULLY_BLOCKED);
     persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1).build());
     assertWithMessage(
-        "roflcopter.tld should be unreserved after unsetting the registry's second reserved list")
-        .that(getReservation("roflcopter", "tld"))
-        .isEqualTo(UNRESERVED);
+            "roflcopter.tld should be unreserved"
+                + " after unsetting the registry's second reserved list")
+        .that(getReservationTypes("roflcopter", "tld"))
+        .containsExactly(UNRESERVED);
   }
 
   @Test
-  public void testGetReservation_combinesMultipleLists_handlesSeverityCorrectly() throws Exception {
+  public void testGetReservation_combinesMultipleLists() throws Exception {
     ReservedList rl1 = persistReservedList(
         "reserved1", "lol,NAME_COLLISION", "roflcopter,ALLOWED_IN_SUNRISE");
     ReservedList rl2 = persistReservedList("reserved2", "lol,FULLY_BLOCKED");
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1, rl2).build());
-    assertThat(getReservation("lol", "tld")).isEqualTo(FULLY_BLOCKED);
-    assertThat(getReservation("roflcopter", "tld")).isEqualTo(ALLOWED_IN_SUNRISE);
+    assertThat(getReservationTypes("lol", "tld")).containsExactly(FULLY_BLOCKED, NAME_COLLISION);
+    assertThat(getReservationTypes("roflcopter", "tld")).containsExactly(ALLOWED_IN_SUNRISE);
   }
 
   @Test
@@ -191,7 +225,7 @@ public class ReservedListTest {
     ReservedList rl = persistReservedList("tld-reserved", "lol,FULLY_BLOCKED # yup");
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setReservedLists(rl).build());
-    assertThat(getReservation("lol", "tld")).isEqualTo(FULLY_BLOCKED);
+    assertThat(getReservationTypes("lol", "tld")).containsExactly(FULLY_BLOCKED);
   }
 
   @Test

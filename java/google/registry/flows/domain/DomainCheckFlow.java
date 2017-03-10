@@ -17,7 +17,7 @@ package google.registry.flows.domain;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
-import static google.registry.flows.domain.DomainFlowUtils.getReservationType;
+import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
@@ -25,6 +25,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegat
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
+import static google.registry.model.registry.label.ReservationType.getTypeOfHighestSeverity;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 
 import com.google.common.base.Predicate;
@@ -179,14 +180,15 @@ public final class DomainCheckFlow implements Flow {
               }})) {
       return "Pending allocation";
     }
-    ReservationType reservationType = getReservationType(domainName);
-    if (reservationType == UNRESERVED
+    ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);
+    if (reservationTypes.equals(ImmutableSet.of(UNRESERVED))
         && isDomainPremium(domainName.toString(), now)
         && registry.getPremiumPriceAckRequired()
         && eppInput.getSingleExtension(FeeCheckCommandExtension.class) == null) {
       return "Premium names require EPP ext.";
     }
-    return reservationType.getMessageForCheck();
+
+    return getTypeOfHighestSeverity(reservationTypes).getMessageForCheck();
   }
 
   /** Handle the fee check extension. */

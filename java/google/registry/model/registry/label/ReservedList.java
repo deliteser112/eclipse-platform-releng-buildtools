@@ -16,6 +16,8 @@ package google.registry.model.registry.label;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.config.RegistryConfig.getDomainLabelListCacheDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -26,6 +28,7 @@ import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
@@ -33,6 +36,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
@@ -42,9 +46,10 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.mapper.Mapper;
 import google.registry.model.registry.Registry;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 
@@ -72,9 +77,8 @@ public final class ReservedList
     ReservationType reservationType;
 
     /**
-     * Contains the auth code necessary to register a domain with this label.
-     * Note that this field will only ever be populated for entries with type
-     * RESERVED_FOR_ANCHOR_TENANT.
+     * Contains the auth code necessary to register a domain with this label. Note that this field
+     * will only ever be populated for entries with type RESERVED_FOR_ANCHOR_TENANT.
      */
     String authCode;
 
@@ -141,10 +145,10 @@ public final class ReservedList
   /**
    * Gets a ReservedList by name using the caching layer.
    *
-   * @return An Optional<ReservedList> that has a value if a reserved list exists by the given
-   *         name, or absent if not.
+   * @return An Optional<ReservedList> that has a value if a reserved list exists by the given name,
+   *     or absent if not.
    * @throws UncheckedExecutionException if some other error occurs while trying to load the
-   *         ReservedList from the cache or Datastore.
+   *     ReservedList from the cache or Datastore.
    */
   public static Optional<ReservedList> get(String listName) {
     return getFromCache(listName, cache);
@@ -157,53 +161,69 @@ public final class ReservedList
 
   /**
    * Queries the set of all reserved lists associated with the specified tld and returns the
-   * reservation type of the first occurrence of label seen. If the label is in none of the lists,
-   * it returns UNRESERVED.
+   * reservation types of the label. If the label is in none of the lists, it returns a set that
+   * contains UNRESERVED.
    */
-  public static ReservationType getReservation(String label, String tld) {
+  public static ImmutableSet<ReservationType> getReservationTypes(String label, String tld) {
     checkNotNull(label, "label");
     if (label.length() == 0) {
-      return FULLY_BLOCKED;
+      return ImmutableSet.of(FULLY_BLOCKED);
     }
-    ReservedListEntry entry = getReservedListEntry(label, tld);
-    return (entry != null) ? entry.reservationType : UNRESERVED;
+    ImmutableSet<ReservedListEntry> entries = getReservedListEntries(label, tld);
+    return entries.isEmpty()
+        ? ImmutableSet.of(UNRESERVED)
+        : ImmutableSet.copyOf(
+            Iterables.transform(
+                entries,
+                new Function<ReservedListEntry, ReservationType>() {
+                  @Override
+                  public ReservationType apply(ReservedListEntry reservedListEntry) {
+                    return reservedListEntry.reservationType;
+                  }
+                }));
   }
 
   /**
-   * Returns true if the given label and TLD is reserved for an anchor tenant, and the given
-   * auth code matches the one set on the reservation.
+   * Returns true if the given label and TLD is reserved for an anchor tenant, and the given auth
+   * code matches the one set on the reservation. If there are multiple anchor tenant entries fo
+   * this label, all the auth codes need to be the same and match the given one, otherwise an
+   * exception is thrown.
    */
   public static boolean matchesAnchorTenantReservation(
       InternetDomainName domainName, String authCode) {
-    ReservedListEntry entry =
-        getReservedListEntry(domainName.parts().get(0), domainName.parent().toString());
-    return entry != null
-        && entry.reservationType == RESERVED_FOR_ANCHOR_TENANT
-        && Objects.equals(entry.getAuthCode(), authCode);
+    ImmutableSet<ReservedListEntry> entries =
+        getReservedListEntries(domainName.parts().get(0), domainName.parent().toString());
+
+    Set<String> domainAuthCodes = new HashSet<>();
+    for (ReservedListEntry entry : entries) {
+      if (entry.reservationType == RESERVED_FOR_ANCHOR_TENANT) {
+        domainAuthCodes.add(entry.getAuthCode());
+      }
+    }
+    checkState(
+        domainAuthCodes.size() <= 1, "There are conflicting auth codes for domain: %s", domainName);
+
+    return !domainAuthCodes.isEmpty() && getOnlyElement(domainAuthCodes).equals(authCode);
   }
 
   /**
-   * Helper function to retrieve the entry associated with this label and TLD, or null if no such
-   * entry exists.
+   * Helper function to retrieve the entries associated with this label and TLD, or an empty set if
+   * no such entry exists.
    */
-  @Nullable
-  private static ReservedListEntry getReservedListEntry(String label, String tld) {
+  private static ImmutableSet<ReservedListEntry> getReservedListEntries(String label, String tld) {
     Registry registry = Registry.get(checkNotNull(tld, "tld"));
     ImmutableSet<Key<ReservedList>> reservedLists = registry.getReservedLists();
     ImmutableSet<ReservedList> lists = loadReservedLists(reservedLists);
-    ReservedListEntry entry = null;
+    ImmutableSet.Builder<ReservedListEntry> entries = new ImmutableSet.Builder<>();
 
-    // Loop through all reservation lists and check each one for the inputted label, and return
-    // the most severe ReservationType found.
+    // Loop through all reservation lists and add each of them.
     for (ReservedList rl : lists) {
-      Map<String, ReservedListEntry> entries = rl.getReservedListEntries();
-      ReservedListEntry nextEntry = entries.get(label);
-      if (nextEntry != null
-          && (entry == null || nextEntry.reservationType.compareTo(entry.reservationType) > 0)) {
-        entry = nextEntry;
+      if (rl.getReservedListEntries().containsKey(label)) {
+        entries.add(rl.getReservedListEntries().get(label));
       }
     }
-    return entry;
+
+    return entries.build();
   }
 
   private static ImmutableSet<ReservedList> loadReservedLists(

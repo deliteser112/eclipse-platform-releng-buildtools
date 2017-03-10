@@ -21,7 +21,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
 import static google.registry.flows.domain.DomainFlowUtils.failfastForCreate;
-import static google.registry.flows.domain.DomainFlowUtils.getReservationType;
+import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
 import static google.registry.flows.domain.DomainFlowUtils.prepareMarkedLrpTokenEntity;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
@@ -85,6 +85,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservationType;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tmch.LordnTask;
+import java.util.Set;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -169,7 +170,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
         .addGracePeriod(createGracePeriod(
             isSunrushAddGracePeriod, getOnly(billsAndPolls, BillingEvent.OneTime.class)))
         // Names on the collision list will not be delegated. Set server hold.
-        .setStatusValues(ReservationType.NAME_COLLISION == getReservationType(domainName)
+        .setStatusValues(getReservationTypes(domainName).contains(ReservationType.NAME_COLLISION)
             ? ImmutableSet.of(StatusValue.SERVER_HOLD)
             : ImmutableSet.<StatusValue>of())
         .setRegistrant(command.getRegistrant())
@@ -241,7 +242,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
     BillingEvent.OneTime oneTimeBillingEvent = createOneTimeBillingEvent(
         application, historyEntry, isSunrushAddGracePeriod, registry, now, years);
     PollMessage.OneTime oneTimePollMessage =
-        createOneTimePollMessage(application, historyEntry, getReservationType(domainName), now);
+        createOneTimePollMessage(application, historyEntry, getReservationTypes(domainName), now);
     // Create a new autorenew billing event and poll message starting at the expiration time.
     BillingEvent.Recurring autorenewBillingEvent =
         createAutorenewBillingEvent(historyEntry, registrationExpirationTime);
@@ -336,23 +337,26 @@ public class DomainAllocateFlow implements TransactionalFlow {
   private PollMessage.OneTime createOneTimePollMessage(
       DomainApplication application,
       HistoryEntry historyEntry,
-      ReservationType reservationType,
+      Set<ReservationType> reservationTypes,
       DateTime now) {
     return new PollMessage.OneTime.Builder()
         .setClientId(historyEntry.getClientId())
         .setEventTime(now)
-        .setMsg(reservationType == ReservationType.NAME_COLLISION
-            ? COLLISION_MESSAGE  // Remind the registrar of the name collision policy.
-            : "Domain was allocated")
-        .setResponseData(ImmutableList.of(
-            DomainPendingActionNotificationResponse.create(
-                targetId, true, application.getCreationTrid(), now)))
-        .setResponseExtensions(ImmutableList.of(
-            new LaunchInfoResponseExtension.Builder()
-                .setApplicationId(application.getForeignKey())
-                .setPhase(application.getPhase())
-                .setApplicationStatus(ApplicationStatus.ALLOCATED)
-                .build()))
+        .setMsg(
+            reservationTypes.contains(ReservationType.NAME_COLLISION)
+                ? COLLISION_MESSAGE // Remind the registrar of the name collision policy.
+                : "Domain was allocated")
+        .setResponseData(
+            ImmutableList.of(
+                DomainPendingActionNotificationResponse.create(
+                    targetId, true, application.getCreationTrid(), now)))
+        .setResponseExtensions(
+            ImmutableList.of(
+                new LaunchInfoResponseExtension.Builder()
+                    .setApplicationId(application.getForeignKey())
+                    .setPhase(application.getPhase())
+                    .setApplicationStatus(ApplicationStatus.ALLOCATED)
+                    .build()))
         .setParent(historyEntry)
         .build();
   }

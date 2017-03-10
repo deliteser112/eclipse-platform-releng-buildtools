@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Sets.difference;
+import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.union;
 import static google.registry.flows.domain.DomainPricingLogic.getMatchingLrpToken;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
@@ -26,7 +27,6 @@ import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
-import static google.registry.model.registry.label.ReservedList.getReservation;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
 import static google.registry.util.CollectionUtils.nullToEmpty;
@@ -102,6 +102,7 @@ import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservationType;
+import google.registry.model.registry.label.ReservedList;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.util.Idn;
@@ -351,16 +352,17 @@ public class DomainFlowUtils {
   }
 
   private static boolean isReserved(InternetDomainName domainName, boolean isSunrise) {
-    ReservationType type = getReservationType(domainName);
-    return type == ReservationType.FULLY_BLOCKED
-        || type == ReservationType.RESERVED_FOR_ANCHOR_TENANT
-        || (TYPES_ALLOWED_FOR_CREATE_ONLY_IN_SUNRISE.contains(type) && !isSunrise);
+    ImmutableSet<ReservationType> types = getReservationTypes(domainName);
+    return types.contains(ReservationType.FULLY_BLOCKED)
+        || types.contains(ReservationType.RESERVED_FOR_ANCHOR_TENANT)
+        || !(isSunrise || intersection(TYPES_ALLOWED_FOR_CREATE_ONLY_IN_SUNRISE, types).isEmpty());
   }
 
-  /** Returns an enum that encodes how and when this name is reserved in the current tld. */
-  static ReservationType getReservationType(InternetDomainName domainName) {
+  /** Returns a set of {@link ReservationType}s for the given domain name. */
+  static ImmutableSet<ReservationType> getReservationTypes(InternetDomainName domainName) {
     // The TLD should always be the parent of the requested domain name.
-    return getReservation(domainName.parts().get(0), domainName.parent().toString());
+    return ReservedList.getReservationTypes(
+        domainName.parts().get(0), domainName.parent().toString());
   }
 
   /** Verifies that a launch extension's specified phase matches the specified registry's phase. */
