@@ -183,7 +183,7 @@ public class LoadTestAction implements Runnable {
     xmlHostCreateTmpl = loadXml("host_create");
     xmlHostCreateFail = xmlHostCreateTmpl.replace("%host%", EXISTING_HOST);
     xmlHostInfo = loadXml("host_info").replace("%host%", EXISTING_HOST);
-    xsrfToken = xsrfTokenManager.generateLegacyToken("admin", "");
+    xsrfToken = xsrfTokenManager.generateToken("");
   }
 
   @Override

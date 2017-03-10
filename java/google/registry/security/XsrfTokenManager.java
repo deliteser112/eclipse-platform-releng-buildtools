@@ -100,25 +100,6 @@ public final class XsrfTokenManager {
   }
 
   /**
-   * Generates a legacy-style XSRF token for a given scope and user.
-   *
-   * <p>If there is no user (email is an empty string), the entire xsrf check becomes basically a
-   * no-op, but that's ok because any callback that doesn't have a user shouldn't be able to access
-   * any per-user resources anyways.
-   *
-   * <p>The scope is passed to {@link #computeLegacyHash}. Use of a scope in xsrf tokens is
-   * deprecated; instead, use {@link #generateToken}.
-   */
-  // TODO(b/35388772): remove this in favor of generateToken()
-  @Deprecated
-  public String generateLegacyToken(String scope, String email) {
-    checkArgumentNotNull(scope);
-    checkArgumentNotNull(email);
-    long now = clock.nowUtc().getMillis();
-    return Joiner.on(':').join(computeLegacyHash(now, scope, email), now);
-  }
-
-  /**
    * Validates an XSRF token against the current logged-in user.
    *
    * This accepts both legacy-style and new-style XSRF tokens.  For legacy-style tokens, it will
@@ -157,6 +138,7 @@ public final class XsrfTokenManager {
       }
       return true;
     } else {
+      // TODO(b/35388772): remove this fallback once we no longer generate legacy tokens.
       // Fall back to the legacy format, and try the few possible scopes.
       String hash = tokenParts.get(0);
       ImmutableSet.Builder<String> reconstructedTokenCandidates = new ImmutableSet.Builder<>();

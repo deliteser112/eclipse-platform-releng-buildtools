@@ -27,7 +27,6 @@ import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.shared.SoyCssRenamingMap;
 import com.google.template.soy.tofu.SoyTofu;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.flows.EppConsoleAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import google.registry.request.Response;
@@ -119,8 +118,7 @@ public final class ConsoleUiAction implements Runnable {
     Registrar registrar = Registrar.loadByClientId(sessionUtils.getRegistrarClientId(req));
     data.put(
         "xsrfToken",
-        xsrfTokenManager.generateLegacyToken(
-            EppConsoleAction.XSRF_SCOPE, userService.getCurrentUser().getEmail()));
+        xsrfTokenManager.generateToken(userService.getCurrentUser().getEmail()));
     data.put("clientId", registrar.getClientId());
     data.put("showPaymentLink", registrar.getBillingMethod() == Registrar.BillingMethod.BRAINTREE);
 
