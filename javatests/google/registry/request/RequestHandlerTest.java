@@ -66,31 +66,52 @@ public final class RequestHandlerTest {
           .withUserService(UserInfo.create("test@example.com", "test@example.com"))
           .build();
 
-  @Action(path = "/bumblebee", method = {GET, POST}, isPrefix = true)
+  @Action(
+    path = "/bumblebee",
+    method = {GET, POST},
+    isPrefix = true,
+    auth = @Auth(minimumLevel = AuthLevel.NONE)
+  )
   public static class BumblebeeTask implements Runnable {
     @Override
     public void run() {}
   }
 
-  @Action(path = "/sloth", method = POST, automaticallyPrintOk = true)
+  @Action(
+    path = "/sloth",
+    method = POST,
+    automaticallyPrintOk = true,
+    auth = @Auth(minimumLevel = AuthLevel.NONE)
+  )
   public static class SlothTask implements Runnable {
     @Override
     public void run() {}
   }
 
-  @Action(path = "/safe-sloth", method = {GET, POST}, xsrfProtection = true, xsrfScope = "vampire")
+  @Action(
+    path = "/safe-sloth",
+    method = {GET, POST},
+    xsrfProtection = true,
+    xsrfScope = "vampire",
+    auth = @Auth(minimumLevel = AuthLevel.NONE)
+  )
   public static class SafeSlothTask implements Runnable {
     @Override
     public void run() {}
   }
 
-  @Action(path = "/users-only", method = GET, requireLogin = true)
+  @Action(
+    path = "/users-only",
+    method = GET,
+    requireLogin = true,
+    auth = @Auth(minimumLevel = AuthLevel.NONE)
+  )
   public static class UsersOnlyAction implements Runnable {
     @Override
     public void run() {}
   }
 
-  @Action(path = "/fail")
+  @Action(path = "/fail", auth = @Auth(minimumLevel = AuthLevel.NONE))
   public static final class FailTask implements Runnable {
     @Override
     public void run() {
@@ -98,7 +119,7 @@ public final class RequestHandlerTest {
     }
   }
 
-  @Action(path = "/failAtConstruction")
+  @Action(path = "/failAtConstruction", auth = @Auth(minimumLevel = AuthLevel.NONE))
   public static final class FailAtConstructionTask implements Runnable {
     public FailAtConstructionTask() {
       throw new ServiceUnavailableException("Fail at construction");
@@ -124,12 +145,10 @@ public final class RequestHandlerTest {
   }
 
   @Action(
-      path = "/auth/none",
-      auth = @Auth(
-          methods = {Auth.AuthMethod.INTERNAL},
-          minimumLevel = AuthLevel.NONE,
-          userPolicy = Auth.UserPolicy.IGNORED),
-      method = Action.Method.GET)
+    path = "/auth/none",
+    auth = @Auth(minimumLevel = AuthLevel.NONE),
+    method = Action.Method.GET
+  )
   public class AuthNoneAction extends AuthBase {
     AuthNoneAction(AuthResult authResult) {
       super(authResult);
@@ -427,13 +446,13 @@ public final class RequestHandlerTest {
     verify(usersOnlyAction).run();
   }
 
-  // TODO(b/28219927): turn this on once we actually do authorization
-  @Ignore
   @Test
   public void testNoAuthNeeded_success() throws Exception {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/auth/none");
+
     handler.handleRequest(req, rsp);
+
     assertThat(providedAuthResult).isNotNull();
     assertThat(providedAuthResult.authLevel()).isEqualTo(AuthLevel.NONE);
     assertThat(providedAuthResult.userAuthInfo()).isAbsent();
@@ -445,9 +464,25 @@ public final class RequestHandlerTest {
   public void testAuthNeeded_notLoggedIn() throws Exception {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
+
     handler.handleRequest(req, rsp);
+
     verify(rsp).sendError(403);
     assertThat(providedAuthResult).isNull();
+    assertThat(providedAuthResult).isNull();
+  }
+
+  // TODO(b/28219927): remove this once we actually do authorization
+  @Test
+  public void testAuthNeeded_notLoggedIn_interim() throws Exception {
+    when(req.getMethod()).thenReturn("GET");
+    when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
+
+    handler.handleRequest(req, rsp);
+
+    assertThat(providedAuthResult).isNotNull();
+    assertThat(providedAuthResult.authLevel()).isEqualTo(AuthLevel.NONE);
+    assertThat(providedAuthResult.userAuthInfo()).isAbsent();
   }
 
   // TODO(b/28219927): turn this on once we actually do authorization
@@ -457,19 +492,35 @@ public final class RequestHandlerTest {
     userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
+
     handler.handleRequest(req, rsp);
+
     verify(rsp).sendError(403);
     assertThat(providedAuthResult).isNull();
   }
 
-  // TODO(b/28219927): turn this on once we actually do authorization
-  @Ignore
+  // TODO(b/28219927): remove this once we actually do authorization
+  @Test
+  public void testAuthNeeded_notAuthorized_interim() throws Exception {
+    userService.setUser(testUser,  false);
+    when(req.getMethod()).thenReturn("GET");
+    when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
+
+    handler.handleRequest(req, rsp);
+
+    assertThat(providedAuthResult).isNotNull();
+    assertThat(providedAuthResult.authLevel()).isEqualTo(AuthLevel.NONE);
+    assertThat(providedAuthResult.userAuthInfo()).isAbsent();
+  }
+
   @Test
   public void testAuthNeeded_success() throws Exception {
     userService.setUser(testUser,  true);
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
+
     handler.handleRequest(req, rsp);
+
     assertThat(providedAuthResult).isNotNull();
     assertThat(providedAuthResult.authLevel()).isEqualTo(AuthLevel.USER);
     assertThat(providedAuthResult.userAuthInfo()).isPresent();

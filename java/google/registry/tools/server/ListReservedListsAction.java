@@ -22,10 +22,21 @@ import static google.registry.request.Action.Method.POST;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.request.Action;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import javax.inject.Inject;
 
 /** A that lists reserved lists, for use by the {@code nomulus list_reserved_lists} command. */
-@Action(path = ListReservedListsAction.PATH, method = {GET, POST})
+@Action(
+  path = ListReservedListsAction.PATH,
+  method = {GET, POST},
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public final class ListReservedListsAction extends ListObjectsAction<ReservedList> {
 
   public static final String PATH = "/_dr/admin/list/reservedLists";

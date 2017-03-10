@@ -18,15 +18,24 @@ import com.google.appengine.api.users.UserService;
 import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Payload;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 
 /** Runs EPP from the console and requires GAE user authentication. */
 @Action(
-    path = "/registrar-xhr",
-    xsrfProtection = true,
-    xsrfScope = EppConsoleAction.XSRF_SCOPE,
-    method = Method.POST)
+  path = "/registrar-xhr",
+  xsrfProtection = true,
+  xsrfScope = EppConsoleAction.XSRF_SCOPE,
+  method = Method.POST,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
+        minimumLevel = AuthLevel.USER,
+        userPolicy = Auth.UserPolicy.PUBLIC
+      )
+)
 public class EppConsoleAction implements Runnable {
 
   public static final String XSRF_SCOPE = "console";

@@ -31,6 +31,8 @@ import google.registry.flows.EppConsoleAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.security.XsrfTokenManager;
 import google.registry.ui.server.SoyTemplateUtils;
 import google.registry.ui.soy.registrar.ConsoleSoyInfo;
@@ -38,7 +40,17 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 /** Action that serves Registrar Console single HTML page (SPA). */
-@Action(path = ConsoleUiAction.PATH, requireLogin = true, xsrfProtection = false)
+@Action(
+  path = ConsoleUiAction.PATH,
+  requireLogin = true,
+  xsrfProtection = false,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
+        minimumLevel = AuthLevel.NONE,
+        userPolicy = Auth.UserPolicy.PUBLIC
+      )
+)
 public final class ConsoleUiAction implements Runnable {
 
   public static final String PATH = "/registrar";

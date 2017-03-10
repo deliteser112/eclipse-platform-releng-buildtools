@@ -23,6 +23,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.request.Action;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -30,7 +32,16 @@ import javax.inject.Inject;
  * An action that creates a premium list, for use by the {@code nomulus create_premium_list}
  * command.
  */
-@Action(path = UpdatePremiumListAction.PATH, method = POST)
+@Action(
+  path = UpdatePremiumListAction.PATH,
+  method = POST,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public class UpdatePremiumListAction extends CreateOrUpdatePremiumListAction {
 
   public static final String PATH = "/_dr/admin/updatePremiumList";

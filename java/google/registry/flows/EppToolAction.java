@@ -24,15 +24,24 @@ import google.registry.model.eppcommon.ProtocolDefinition;
 import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Parameter;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 /** Runs EPP commands directly without logging in, verifying an XSRF token from the tool. */
 @Action(
-    path = "/_dr/epptool",
-    xsrfProtection = true,
-    xsrfScope = "admin",
-    method = Method.POST)
+  path = "/_dr/epptool",
+  xsrfProtection = true,
+  xsrfScope = "admin",
+  method = Method.POST,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public class EppToolAction implements Runnable {
 
   @Inject @Parameter("clientId") String clientId;

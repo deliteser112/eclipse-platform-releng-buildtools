@@ -30,6 +30,8 @@ import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -44,7 +46,12 @@ import org.joda.time.DateTime;
  * response MUST contain a publicIDs member to identify the IANA Registrar ID from the IANA’s
  * Registrar ID registry. The type value of the publicID object MUST be equal to IANA Registrar ID.
  */
-@Action(path = RdapEntityAction.PATH, method = {GET, HEAD}, isPrefix = true)
+@Action(
+  path = RdapEntityAction.PATH,
+  method = {GET, HEAD},
+  isPrefix = true,
+  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+)
 public class RdapEntityAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/entity/";

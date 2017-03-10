@@ -32,6 +32,8 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.RequestPath;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.whois.WhoisMetrics.WhoisMetric;
@@ -47,11 +49,10 @@ import org.joda.time.Duration;
 /**
  * Human-Friendly HTTP WHOIS API
  *
- * <p>This API uses easy to understand paths rather than {@link WhoisServer} which
- * requires a POST request containing a WHOIS command. Because the typical WHOIS command is
- * along the lines of {@code "domain google.lol"} or the equivalent {@code "google.lol}, this
- * servlet is just going to replace the slashes with spaces and let {@link WhoisReader}
- * figure out what to do.
+ * <p>This API uses easy to understand paths rather than {@link WhoisServer} which requires a POST
+ * request containing a WHOIS command. Because the typical WHOIS command is along the lines of
+ * {@code "domain google.lol"} or the equivalent {@code "google.lol}, this servlet is just going to
+ * replace the slashes with spaces and let {@link WhoisReader} figure out what to do.
  *
  * <p>This servlet accepts requests from any origin.
  *
@@ -95,7 +96,11 @@ import org.joda.time.Duration;
  *
  * @see WhoisServer
  */
-@Action(path = WhoisHttpServer.PATH, isPrefix = true)
+@Action(
+  path = WhoisHttpServer.PATH,
+  isPrefix = true,
+  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+)
 public final class WhoisHttpServer implements Runnable {
 
   public static final String PATH = "/whois/";

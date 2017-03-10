@@ -45,6 +45,8 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.FormattingLogger;
 import java.util.Map;
 import javax.inject.Inject;
@@ -57,7 +59,10 @@ import javax.servlet.http.HttpServletRequest;
  * user controlled, lest it open an XSS vector. Do not modify this to return the domain name in the
  * response.
  */
-@Action(path = "/check")
+@Action(
+  path = "/check",
+  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+)
 public class CheckApiAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

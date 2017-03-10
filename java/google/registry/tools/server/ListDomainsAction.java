@@ -26,13 +26,24 @@ import com.google.common.collect.Lists;
 import google.registry.model.domain.DomainResource;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import java.util.Comparator;
 import java.util.List;
 import javax.inject.Inject;
 
 /** An action that lists domains, for use by the {@code nomulus list_domains} command. */
-@Action(path = ListDomainsAction.PATH, method = {GET, POST})
+@Action(
+  path = ListDomainsAction.PATH,
+  method = {GET, POST},
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
 
   /** An App Engine limitation on how many subqueries can be used in a single query. */

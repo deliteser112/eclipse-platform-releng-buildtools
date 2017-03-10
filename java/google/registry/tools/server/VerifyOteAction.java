@@ -67,6 +67,8 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.request.Action;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -79,10 +81,17 @@ import javax.inject.Inject;
  * OT&amp;E commands that have been run just previously to verification may not be picked up yet.
  */
 @Action(
-    path = VerifyOteAction.PATH,
-    method = Action.Method.POST,
-    xsrfProtection = true,
-    xsrfScope = "admin")
+  path = VerifyOteAction.PATH,
+  method = Action.Method.POST,
+  xsrfProtection = true,
+  xsrfScope = "admin",
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public class VerifyOteAction implements Runnable, JsonAction {
 
   public static final String PATH = "/_dr/admin/verifyOte";

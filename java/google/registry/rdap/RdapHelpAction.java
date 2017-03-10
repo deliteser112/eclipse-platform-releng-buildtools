@@ -21,13 +21,18 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.request.Action;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import javax.inject.Inject;
 
-/**
- * RDAP (new WHOIS) action for help requests.
- */
-@Action(path = RdapHelpAction.PATH, method = {GET, HEAD}, isPrefix = true)
+/** RDAP (new WHOIS) action for help requests. */
+@Action(
+  path = RdapHelpAction.PATH,
+  method = {GET, HEAD},
+  isPrefix = true,
+  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+)
 public class RdapHelpAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/help";

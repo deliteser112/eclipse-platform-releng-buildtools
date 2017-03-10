@@ -31,13 +31,15 @@ import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 
 /**
  * An action to delete entities in Datastore specified by raw key ids, which can be found in
- * Datastore Viewer in the AppEngine console - it's the really long alphanumeric key that is
- * labeled "Entity key" on the page for an individual entity.
+ * Datastore Viewer in the AppEngine console - it's the really long alphanumeric key that is labeled
+ * "Entity key" on the page for an individual entity.
  *
  * <p>rawKeys is the only required parameter. It is a comma-delimited list of Strings.
  *
@@ -47,7 +49,15 @@ import javax.inject.Inject;
  * malformed data that cannot be properly deleted using existing tools. Generally, if there already
  * exists an entity-specific deletion command, then use that one instead.
  */
-@Action(path = DeleteEntityAction.PATH)
+@Action(
+  path = DeleteEntityAction.PATH,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public class DeleteEntityAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

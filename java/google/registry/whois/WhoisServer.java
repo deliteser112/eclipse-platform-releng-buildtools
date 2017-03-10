@@ -22,6 +22,8 @@ import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.whois.WhoisMetrics.WhoisMetric;
@@ -33,18 +35,27 @@ import org.joda.time.DateTime;
 /**
  * HTTP request handler for WHOIS protocol requests sent to us by a proxy.
  *
- * <p>All commands and responses conform to the WHOIS spec as defined in RFC 3912. Commands must
- * be sent via an HTTP POST in the request body.
+ * <p>All commands and responses conform to the WHOIS spec as defined in RFC 3912. Commands must be
+ * sent via an HTTP POST in the request body.
  *
  * <p>This servlet is meant to serve as a low level interface for the proxy app which forwards us
- * requests received on port 43. However this interface is technically higher level because it
- * sends back proper HTTP error codes such as 200, 400, 500, etc. These are discarded by the proxy
- * because WHOIS specifies no manner for differentiating successful and erroneous requests.
+ * requests received on port 43. However this interface is technically higher level because it sends
+ * back proper HTTP error codes such as 200, 400, 500, etc. These are discarded by the proxy because
+ * WHOIS specifies no manner for differentiating successful and erroneous requests.
  *
  * @see WhoisHttpServer
  * @see <a href="http://www.ietf.org/rfc/rfc3912.txt">RFC 3912: WHOIS Protocol Specification</a>
  */
-@Action(path = "/_dr/whois", method = POST)
+@Action(
+  path = "/_dr/whois",
+  method = POST,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public class WhoisServer implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

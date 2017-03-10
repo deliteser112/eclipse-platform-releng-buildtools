@@ -28,6 +28,8 @@ import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.security.JsonResponseHelper;
 import java.util.Map;
 import javax.inject.Inject;
@@ -46,29 +48,38 @@ import org.joda.money.CurrencyUnit;
  * containing a single result object with the following fields:
  *
  * <dl>
- * <dt>brainframe
- * <dd>URL for iframe that loads Braintree payment method selector.
- * <dt>token
- * <dd>Nonce string obtained from the Braintree API which is needed by the Braintree JS SDK.
- * <dt>currencies
- * <dd>Array of strings, each containing a three letter currency code, which should be displayed to
- *     the customer in a drop-down field. This will be all currencies for which a Braintree merchant
- *     account exists. A currency will even be displayed if no TLD is enabled on the customer
- *     account that bills in that currency.
+ *   <dt>brainframe
+ *   <dd>URL for iframe that loads Braintree payment method selector.
+ *   <dt>token
+ *   <dd>Nonce string obtained from the Braintree API which is needed by the Braintree JS SDK.
+ *   <dt>currencies
+ *   <dd>Array of strings, each containing a three letter currency code, which should be displayed
+ *       to the customer in a drop-down field. This will be all currencies for which a Braintree
+ *       merchant account exists. A currency will even be displayed if no TLD is enabled on the
+ *       customer account that bills in that currency.
  * </dl>
  *
- * <p><b>Note:</b> These definitions corresponds to Closure Compiler extern
- * {@code registry.rpc.PaymentSetup} which must be updated should these definitions change.
+ * <p><b>Note:</b> These definitions corresponds to Closure Compiler extern {@code
+ * registry.rpc.PaymentSetup} which must be updated should these definitions change.
  *
  * @see RegistrarPaymentAction
- * @see <a href="https://developers.braintreepayments.com/start/hello-server/java#generate-a-client-token">Generate a client token</a>
+ * @see <a
+ *     href="https://developers.braintreepayments.com/start/hello-server/java#generate-a-client-token">Generate
+ *     a client token</a>
  */
 @Action(
-    path = "/registrar-payment-setup",
-    method = Action.Method.POST,
-    xsrfProtection = true,
-    xsrfScope = "console",
-    requireLogin = true)
+  path = "/registrar-payment-setup",
+  method = Action.Method.POST,
+  xsrfProtection = true,
+  xsrfScope = "console",
+  requireLogin = true,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
+        minimumLevel = AuthLevel.USER,
+        userPolicy = Auth.UserPolicy.PUBLIC
+      )
+)
 public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
 
   @Inject BraintreeGateway braintreeGateway;

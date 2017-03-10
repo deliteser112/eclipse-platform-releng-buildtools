@@ -20,6 +20,8 @@ import static google.registry.request.Action.Method.HEAD;
 import com.google.common.collect.ImmutableMap;
 import google.registry.request.Action;
 import google.registry.request.HttpException.NotImplementedException;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import javax.inject.Inject;
 
 /**
@@ -28,7 +30,12 @@ import javax.inject.Inject;
  * <p>This feature is not implemented because it's only necessary for <i>address</i> registries like
  * ARIN, not domain registries.
  */
-@Action(path = RdapAutnumAction.PATH, method = {GET, HEAD}, isPrefix = true)
+@Action(
+  path = RdapAutnumAction.PATH,
+  method = {GET, HEAD},
+  isPrefix = true,
+  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+)
 public class RdapAutnumAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/autnum";

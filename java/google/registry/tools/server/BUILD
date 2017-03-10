@@ -17,6 +17,7 @@ java_library(
         "//java/google/registry/mapreduce/inputs",
         "//java/google/registry/model",
         "//java/google/registry/request",
+        "//java/google/registry/request/auth",
         "//java/google/registry/util",
         "//third_party/java/objectify:objectify-v4_1",
         "@com_beust_jcommander",

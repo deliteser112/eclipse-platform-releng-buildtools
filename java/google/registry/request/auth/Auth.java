@@ -59,8 +59,7 @@ public @interface Auth {
   AuthMethod[] methods() default { AuthMethod.INTERNAL };
 
   /** Required minimum level of authentication for this action. */
-  // TODO(mountford) This should probably default to APP eventually.
-  AuthLevel minimumLevel() default AuthLevel.NONE;
+  AuthLevel minimumLevel() default AuthLevel.APP;
 
   /** Required user authorization policy for this action. */
   UserPolicy userPolicy() default UserPolicy.IGNORED;

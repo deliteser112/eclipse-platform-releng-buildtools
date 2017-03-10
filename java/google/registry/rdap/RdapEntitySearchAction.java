@@ -36,6 +36,8 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,12 +49,17 @@ import org.joda.time.DateTime;
  *
  * <p>All commands and responses conform to the RDAP spec as defined in RFCs 7480 through 7485.
  *
- * @see <a href="http://tools.ietf.org/html/rfc7482">
- *        RFC 7482: Registration Data Access Protocol (RDAP) Query Format</a>
- * @see <a href="http://tools.ietf.org/html/rfc7483">
- *        RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
+ * @see <a href="http://tools.ietf.org/html/rfc7482">RFC 7482: Registration Data Access Protocol
+ *     (RDAP) Query Format</a>
+ * @see <a href="http://tools.ietf.org/html/rfc7483">RFC 7483: JSON Responses for the Registration
+ *     Data Access Protocol (RDAP)</a>
  */
-@Action(path = RdapEntitySearchAction.PATH, method = {GET, HEAD}, isPrefix = true)
+@Action(
+  path = RdapEntitySearchAction.PATH,
+  method = {GET, HEAD},
+  isPrefix = true,
+  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+)
 public class RdapEntitySearchAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/entities";

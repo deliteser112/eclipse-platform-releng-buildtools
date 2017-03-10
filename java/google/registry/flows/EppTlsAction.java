@@ -17,6 +17,8 @@ package google.registry.flows;
 import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Payload;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
@@ -26,8 +28,15 @@ import javax.servlet.http.HttpSession;
  * to RFC 5730. Commands must be requested via POST.
  */
 @Action(
-    path = "/_dr/epp",
-    method = Method.POST)
+  path = "/_dr/epp",
+  method = Method.POST,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public class EppTlsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

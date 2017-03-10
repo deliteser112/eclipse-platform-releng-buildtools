@@ -32,6 +32,8 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.Concurrent;
 import google.registry.util.FormattingLogger;
 import java.io.PrintWriter;
@@ -41,7 +43,16 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /** Action that creates Google Groups for a registrar's mailing lists. */
-@Action(path = CreateGroupsAction.PATH, method = POST)
+@Action(
+  path = CreateGroupsAction.PATH,
+  method = POST,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public class CreateGroupsAction implements Runnable {
 
   public static final String PATH = "/_dr/admin/createGroups";

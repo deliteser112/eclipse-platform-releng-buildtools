@@ -70,6 +70,7 @@ public class RequestAuthenticator {
       case USER:
         if (authResult.authLevel() != AuthLevel.USER) {
           logger.info("Not authorized; no authenticated user");
+          // TODO(mountford): change this so that the caller knows to return a more helpful error
           return Optional.absent();
         }
         break;

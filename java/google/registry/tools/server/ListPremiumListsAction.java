@@ -22,6 +22,8 @@ import static google.registry.request.Action.Method.POST;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.request.Action;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import javax.inject.Inject;
 
 /**
@@ -29,7 +31,13 @@ import javax.inject.Inject;
  */
 @Action(
   path = ListPremiumListsAction.PATH,
-  method = {GET, POST}
+  method = {GET, POST},
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
 )
 public final class ListPremiumListsAction extends ListObjectsAction<PremiumList> {
 

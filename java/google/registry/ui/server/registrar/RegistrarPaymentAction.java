@@ -35,6 +35,8 @@ import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormField;
 import google.registry.ui.forms.FormFieldException;
@@ -56,15 +58,16 @@ import org.joda.money.Money;
  * <p>The request payload is a JSON object with the following fields:
  *
  * <dl>
- * <dt>amount
- * <dd>String containing a fixed point value representing the amount of money the registrar
- *     customer wishes to send the registry. This amount is arbitrary and entered manually by the
- *     customer in the payment form, as there is currently no integration with the billing system.
- * <dt>currency
- * <dd>String containing a three letter ISO currency code, which is used to look up the Braintree
- *     merchant account ID to which payment should be posted.
- * <dt>paymentMethodNonce
- * <dd>UUID nonce string supplied by the Braintree JS SDK representing the selected payment method.
+ *   <dt>amount
+ *   <dd>String containing a fixed point value representing the amount of money the registrar
+ *       customer wishes to send the registry. This amount is arbitrary and entered manually by the
+ *       customer in the payment form, as there is currently no integration with the billing system.
+ *   <dt>currency
+ *   <dd>String containing a three letter ISO currency code, which is used to look up the Braintree
+ *       merchant account ID to which payment should be posted.
+ *   <dt>paymentMethodNonce
+ *   <dd>UUID nonce string supplied by the Braintree JS SDK representing the selected payment
+ *       method.
  * </dl>
  *
  * <h3>Response Object</h3>
@@ -73,28 +76,35 @@ import org.joda.money.Money;
  * which, if successful, will contain a single result object with the following fields:
  *
  * <dl>
- * <dt>id
- * <dd>String containing transaction ID returned by Braintree gateway.
- * <dt>formattedAmount
- * <dd>String containing amount paid, which can be displayed to the customer on a success page.
+ *   <dt>id
+ *   <dd>String containing transaction ID returned by Braintree gateway.
+ *   <dt>formattedAmount
+ *   <dd>String containing amount paid, which can be displayed to the customer on a success page.
  * </dl>
  *
- * <p><b>Note:</b> These definitions corresponds to Closure Compiler extern
- * {@code registry.rpc.Payment} which must be updated should these definitions change.
+ * <p><b>Note:</b> These definitions corresponds to Closure Compiler extern {@code
+ * registry.rpc.Payment} which must be updated should these definitions change.
  *
  * <h3>PCI Compliance</h3>
  *
- * <p>The request object will not contain credit card information, but rather a
- * {@code payment_method_nonce} field that's populated by the Braintree JS SDK iframe.
+ * <p>The request object will not contain credit card information, but rather a {@code
+ * payment_method_nonce} field that's populated by the Braintree JS SDK iframe.
  *
  * @see RegistrarPaymentSetupAction
  */
 @Action(
-    path = "/registrar-payment",
-    method = Action.Method.POST,
-    xsrfProtection = true,
-    xsrfScope = "console",
-    requireLogin = true)
+  path = "/registrar-payment",
+  method = Action.Method.POST,
+  xsrfProtection = true,
+  xsrfScope = "console",
+  requireLogin = true,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
+        minimumLevel = AuthLevel.USER,
+        userPolicy = Auth.UserPolicy.PUBLIC
+      )
+)
 public final class RegistrarPaymentAction implements Runnable, JsonAction {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

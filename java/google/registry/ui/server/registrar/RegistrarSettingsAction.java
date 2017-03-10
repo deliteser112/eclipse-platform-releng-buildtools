@@ -38,6 +38,8 @@ import google.registry.model.registrar.RegistrarContact;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.JsonActionRunner;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
 import google.registry.ui.forms.FormFieldException;
@@ -57,11 +59,18 @@ import javax.servlet.http.HttpServletRequest;
  * preserve history.
  */
 @Action(
-    path = RegistrarSettingsAction.PATH,
-    requireLogin = true,
-    xsrfProtection = true,
-    xsrfScope = "console",
-    method = Action.Method.POST)
+  path = RegistrarSettingsAction.PATH,
+  requireLogin = true,
+  xsrfProtection = true,
+  xsrfScope = "console",
+  method = Action.Method.POST,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
+        minimumLevel = AuthLevel.USER,
+        userPolicy = Auth.UserPolicy.PUBLIC
+      )
+)
 public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonAction {
 
   public static final String PATH = "/registrar-settings";
