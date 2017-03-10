@@ -15,7 +15,6 @@
 package google.registry.util;
 
 import com.google.common.reflect.Reflection;
-import com.google.errorprone.annotations.ForOverride;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -72,7 +71,6 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * @param method the method where the difference was found
    * @param message human readable description of the difference found
    */
-  @ForOverride
   protected abstract void log(Method method, String message);
 
   /**
@@ -85,7 +83,6 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * @param method the method whose return value is given
    * @param object the object returned by a call to method
    */
-  @ForOverride
   protected String toString(
       @SuppressWarnings("unused") Method method,
       @Nullable Object object) {
@@ -103,7 +100,6 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * @param actual the object returned by a call to method for the "actual" implementation
    * @param second the object returned by a call to method for the "second" implementation
    */
-  @ForOverride
   protected boolean equals(
       @SuppressWarnings("unused") Method method,
       @Nullable Object actual,
@@ -121,7 +117,6 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * @param actual the exception thrown by a call to method for the "actual" implementation
    * @param second the exception thrown by a call to method for the "second" implementation
    */
-  @ForOverride
   protected boolean exceptionEquals(
       @SuppressWarnings("unused") Method method,
       Throwable actual,
@@ -138,7 +133,6 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * @param method the method whose return value is given
    * @param exception the exception thrown by a call to method
    */
-  @ForOverride
   protected String exceptionToString(
       @SuppressWarnings("unused") Method method,
       Throwable exception) {
