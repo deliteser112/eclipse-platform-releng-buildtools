@@ -90,7 +90,7 @@ final class RdeFixtures {
                 makeContactResource(clock, "5372808-TRL",
                     "bird or fiend!? i shrieked upstarting", "bog@cat.みんな")))))
         .setCreationClientId("TheRegistrar")
-        .setCurrentSponsorClientId("TheRegistrar")
+        .setPersistedCurrentSponsorClientId("TheRegistrar")
         .setCreationTimeForTest(clock.nowUtc())
         .setDsData(ImmutableSet.of(DelegationSignerData.create(
               123, 200, 230, base16().decode("1234567890"))))
@@ -194,7 +194,7 @@ final class RdeFixtures {
             .setRepoId(generateNewContactHostRoid())
             .setEmailAddress(email)
             .setStatusValues(ImmutableSet.of(StatusValue.OK))
-            .setCurrentSponsorClientId("GetTheeBack")
+            .setPersistedCurrentSponsorClientId("GetTheeBack")
             .setCreationClientId("GetTheeBack")
             .setCreationTimeForTest(clock.nowUtc())
             .setInternationalizedPostalInfo(new PostalInfo.Builder()
@@ -227,7 +227,7 @@ final class RdeFixtures {
             .setRepoId(generateNewContactHostRoid())
             .setCreationClientId("LawyerCat")
             .setCreationTimeForTest(clock.nowUtc())
-            .setCurrentSponsorClientId("BusinessCat")
+            .setPersistedCurrentSponsorClientId("BusinessCat")
             .setFullyQualifiedHostName(Idn.toASCII(fqhn))
             .setInetAddresses(ImmutableSet.of(InetAddresses.forString(ip)))
             .setLastTransferTime(DateTime.parse("1910-01-01T00:00:00Z"))

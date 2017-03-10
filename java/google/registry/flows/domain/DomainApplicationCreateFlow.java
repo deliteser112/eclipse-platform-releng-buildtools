@@ -234,7 +234,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     DomainApplication newApplication = new DomainApplication.Builder()
         .setCreationTrid(trid)
         .setCreationClientId(clientId)
-        .setCurrentSponsorClientId(clientId)
+        .setPersistedCurrentSponsorClientId(clientId)
         .setRepoId(createDomainRepoId(ObjectifyService.allocateId(), tld))
         .setLaunchNotice(launchCreate == null ? null : launchCreate.getNotice())
         .setIdnTableName(idnTableName)

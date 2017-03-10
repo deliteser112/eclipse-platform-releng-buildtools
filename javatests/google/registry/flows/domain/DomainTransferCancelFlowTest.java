@@ -113,7 +113,6 @@ public class DomainTransferCancelFlowTest
     assertAboutDomains().that(domain)
         .hasRegistrationExpirationTime(originalExpirationTime).and()
         .hasLastTransferTimeNotEqualTo(clock.nowUtc());
-    assertTransferFailed(reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc()));
     assertAboutDomains().that(domain).hasOneHistoryEntryEachOfTypes(
         HistoryEntry.Type.DOMAIN_CREATE,
         HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST,

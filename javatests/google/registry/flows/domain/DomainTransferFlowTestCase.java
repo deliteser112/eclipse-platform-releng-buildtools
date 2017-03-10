@@ -24,7 +24,6 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDomainWithPendingTransfer;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
-import static google.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Ascii;
@@ -113,7 +112,7 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
     domain = new DomainResource.Builder()
         .setRepoId("1-".concat(Ascii.toUpperCase(tld)))
         .setFullyQualifiedDomainName(label + "." + tld)
-        .setCurrentSponsorClientId("TheRegistrar")
+        .setPersistedCurrentSponsorClientId("TheRegistrar")
         .setCreationClientId("TheRegistrar")
         .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
         .setRegistrationExpirationTime(REGISTRATION_EXPIRATION_TIME)
@@ -158,7 +157,7 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
         new HostResource.Builder()
             .setRepoId("2-".concat(Ascii.toUpperCase(tld)))
             .setFullyQualifiedHostName("ns1." + label + "." + tld)
-            .setCurrentSponsorClientId("TheRegistrar")
+            .setPersistedCurrentSponsorClientId("TheRegistrar")
             .setCreationClientId("TheRegistrar")
             .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
             .setSuperordinateDomain(Key.create(domain))
@@ -218,12 +217,6 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
     assertThat(transferData.getServerApproveAutorenewEvent()).isNull();
     assertThat(transferData.getServerApproveAutorenewPollMessage()).isNull();
     assertThat(transferData.getServerApproveEntities()).isEmpty();
-  }
-
-  protected void assertTransferFailed(HostResource resource) {
-    assertAboutEppResources().that(resource)
-        .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER).and()
-        .hasCurrentSponsorClientId("TheRegistrar");
   }
 
   /** Adds a domain that has a pending transfer on it from TheRegistrar to NewRegistrar. */

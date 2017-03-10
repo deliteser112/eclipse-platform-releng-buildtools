@@ -167,7 +167,7 @@ public class GenerateAuctionDataCommandTest extends CommandTestCase<GenerateAuct
     persistResource(newDomainApplication("label.xn--q9jyb4c", contact1));
     persistResource(newDomainApplication("label.xn--q9jyb4c", contact2)
         .asBuilder()
-        .setCurrentSponsorClientId("NewRegistrar")
+        .setPersistedCurrentSponsorClientId("NewRegistrar")
         .build());
     runCommand("--output=" + output, "xn--q9jyb4c");
     assertThat(getOutput()).isEqualTo(Joiner.on('\n').join(ImmutableList.of(

@@ -53,14 +53,14 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
         new HostResource.Builder()
             .setFullyQualifiedHostName(getUniqueIdFromCommand())
             .setRepoId("1FF-FOOBAR")
-            .setCurrentSponsorClientId("my sponsor")
+            .setPersistedCurrentSponsorClientId("my sponsor")
             .setStatusValues(
                 ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .setInetAddresses(ImmutableSet.of(
                 InetAddresses.forString("192.0.2.2"),
                 InetAddresses.forString("1080:0:0:0:8:800:200C:417A"),
                 InetAddresses.forString("192.0.2.29")))
-            .setCurrentSponsorClientId("TheRegistrar")
+            .setPersistedCurrentSponsorClientId("TheRegistrar")
             .setCreationClientId("NewRegistrar")
             .setLastEppUpdateClientId("NewRegistrar")
             .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
@@ -105,7 +105,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
         newDomainResource("parent.foobar").asBuilder()
             .setRepoId("BEEF-FOOBAR")
             .setLastTransferTime(domainTransferTime)
-            .setCurrentSponsorClientId("superclientid")
+            .setPersistedCurrentSponsorClientId("superclientid")
             .build());
     persistResource(
         persistHostResource().asBuilder()

@@ -189,7 +189,7 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
             .setFullyQualifiedDomainName(canonicalizeDomainName(domain.getName()))
             .setRepoId(domain.getRoid())
             .setIdnTableName(domain.getIdnTableId())
-            .setCurrentSponsorClientId(domain.getClID())
+            .setPersistedCurrentSponsorClientId(domain.getClID())
             .setCreationClientId(domain.getCrRr().getValue())
             .setCreationTime(domain.getCrDate())
             .setAutorenewPollMessage(Key.create(autoRenewPollMessage))

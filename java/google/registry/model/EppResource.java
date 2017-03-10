@@ -130,7 +130,13 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
     return lastEppUpdateClientId;
   }
 
-  public final String getCurrentSponsorClientId() {
+  /**
+   * Get the stored value of {@link #currentSponsorClientId}.
+   *
+   * <p>For subordinate hosts, this value may not represent the actual current client id, which is
+   * the client id of the superordinate host. For all other resources this is the true client id.
+   */
+  public final String getPersistedCurrentSponsorClientId() {
     return currentSponsorClientId;
   }
 
@@ -218,7 +224,7 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
     }
 
     /** Set the current sponsoring registrar. */
-    public B setCurrentSponsorClientId(String currentSponsorClientId) {
+    public B setPersistedCurrentSponsorClientId(String currentSponsorClientId) {
       getInstance().currentSponsorClientId = currentSponsorClientId;
       return thisCastToDerived();
     }

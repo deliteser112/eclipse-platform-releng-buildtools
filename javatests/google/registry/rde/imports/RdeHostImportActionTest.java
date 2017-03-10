@@ -16,7 +16,6 @@ package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -67,7 +66,6 @@ public class RdeHostImportActionTest extends MapreduceTestCase<RdeHostImportActi
 
   @Before
   public void before() throws Exception {
-    createTld("test");
     response = new FakeResponse();
     mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
     action = new RdeHostImportAction(
@@ -106,12 +104,12 @@ public class RdeHostImportActionTest extends MapreduceTestCase<RdeHostImportActi
     // Create host and history entry first
     HostResource existingHost = persistResource(
         newHostResource("ns1.example1.test")
-        .asBuilder()
-        .setRepoId("Hns1_example1_test-TEST")
-        .build());
+            .asBuilder()
+            .setRepoId("Hns1_example1_test-TEST")
+            .build());
     persistSimpleResource(createHistoryEntry(
         existingHost.getRepoId(),
-        existingHost.getCurrentSponsorClientId(),
+        existingHost.getPersistedCurrentSponsorClientId(),
         loadHostXml(DEPOSIT_1_HOST)));
     // Simulate running a second import and verify that the resources
     // aren't imported twice (only one host, and one history entry)
@@ -128,7 +126,7 @@ public class RdeHostImportActionTest extends MapreduceTestCase<RdeHostImportActi
   /** Verify history entry fields are correct */
   private void checkHistoryEntry(HistoryEntry entry, HostResource parent) {
     assertThat(entry.getType()).isEqualTo(HistoryEntry.Type.RDE_IMPORT);
-    assertThat(entry.getClientId()).isEqualTo(parent.getCurrentSponsorClientId());
+    assertThat(entry.getClientId()).isEqualTo(parent.getPersistedCurrentSponsorClientId());
     assertThat(entry.getXmlBytes().length).isGreaterThan(0);
     assertThat(entry.getBySuperuser()).isTrue();
     assertThat(entry.getReason()).isEqualTo("RDE Import");

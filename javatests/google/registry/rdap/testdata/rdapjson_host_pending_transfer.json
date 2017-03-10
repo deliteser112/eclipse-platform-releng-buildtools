@@ -1,0 +1,27 @@
+{
+  "objectClassName" : "nameserver",
+  "handle" : "14-ROID",
+  "ldhName" : "ns1.dog.xn--q9jyb4c",
+  "unicodeName" : "ns1.dog.みんな",
+  "status" : ["active", "pending transfer"],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.example.com/nameserver/ns1.dog.xn--q9jyb4c",
+      "rel" : "self",
+      "href" : "http://myserver.example.com/nameserver/ns1.dog.xn--q9jyb4c",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventActor": "foo",
+      "eventDate": "1994-01-01T00:00:00.000Z"
+    },
+    {
+      "eventAction": "last update of RDAP database",
+      "eventDate": "2000-01-01T00:00:00.000Z"
+    }
+  ]
+}

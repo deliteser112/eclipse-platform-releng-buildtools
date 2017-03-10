@@ -276,9 +276,18 @@ public class DeleteContactsAndHostsAction implements Runnable {
       if (!doesResourceStateAllowDeletion(resource, now)) {
         return DeletionResult.create(Type.ERRORED, "");
       }
-
+      // Contacts and external hosts have a direct client id. For subordinate hosts it needs to be
+      // read off of the superordinate domain.
+      String resourceClientId = resource.getPersistedCurrentSponsorClientId();
+      if (resource instanceof HostResource && ((HostResource) resource).isSubordinate()) {
+        resourceClientId =
+            ofy().load().key(((HostResource) resource).getSuperordinateDomain()).now()
+                .cloneProjectedAtTime(now)
+                .getCurrentSponsorClientId();
+      }
       boolean requestedByCurrentOwner =
-          resource.getCurrentSponsorClientId().equals(deletionRequest.requestingClientId());
+          resourceClientId.equals(deletionRequest.requestingClientId());
+
       boolean deleteAllowed =
           hasNoActiveReferences && (requestedByCurrentOwner || deletionRequest.isSuperuser());
 

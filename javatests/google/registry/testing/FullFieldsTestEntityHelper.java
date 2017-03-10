@@ -225,7 +225,7 @@ public final class FullFieldsTestEntityHelper {
         .setLastEppUpdateTime(DateTime.parse("2009-05-29T20:13:00Z"))
         .setCreationTimeForTest(DateTime.parse("2000-10-08T00:45:00Z"))
         .setRegistrationExpirationTime(DateTime.parse("2110-10-08T00:44:59Z"))
-        .setCurrentSponsorClientId(registrar.getClientId())
+        .setPersistedCurrentSponsorClientId(registrar.getClientId())
         .setStatusValues(ImmutableSet.of(
             StatusValue.CLIENT_DELETE_PROHIBITED,
             StatusValue.CLIENT_RENEW_PROHIBITED,

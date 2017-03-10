@@ -116,7 +116,7 @@ public class DatastoreHelper {
     return new HostResource.Builder()
         .setFullyQualifiedHostName(hostName)
         .setCreationClientId("TheRegistrar")
-        .setCurrentSponsorClientId("TheRegistrar")
+        .setPersistedCurrentSponsorClientId("TheRegistrar")
         .setCreationTimeForTest(START_OF_TIME)
         .setRepoId(generateNewContactHostRoid())
         .build();
@@ -146,7 +146,7 @@ public class DatastoreHelper {
         .setRepoId(repoId)
         .setFullyQualifiedDomainName(domainName)
         .setCreationClientId("TheRegistrar")
-        .setCurrentSponsorClientId("TheRegistrar")
+        .setPersistedCurrentSponsorClientId("TheRegistrar")
         .setCreationTimeForTest(START_OF_TIME)
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
         .setRegistrant(contactKey)
@@ -186,7 +186,7 @@ public class DatastoreHelper {
     return new DomainApplication.Builder()
         .setRepoId(repoId)
         .setFullyQualifiedDomainName(domainName)
-        .setCurrentSponsorClientId("TheRegistrar")
+        .setPersistedCurrentSponsorClientId("TheRegistrar")
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
         .setRegistrant(contactKey)
         .setContacts(ImmutableSet.of(
@@ -223,7 +223,7 @@ public class DatastoreHelper {
         .setRepoId(repoId)
         .setContactId(contactId)
         .setCreationClientId("TheRegistrar")
-        .setCurrentSponsorClientId("TheRegistrar")
+        .setPersistedCurrentSponsorClientId("TheRegistrar")
         .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("2fooBAR")))
         .setCreationTimeForTest(START_OF_TIME)
         .build();
@@ -486,7 +486,7 @@ public class DatastoreHelper {
             .build());
     return persistResource(
         contact.asBuilder()
-            .setCurrentSponsorClientId("TheRegistrar")
+            .setPersistedCurrentSponsorClientId("TheRegistrar")
             .addStatusValue(StatusValue.PENDING_TRANSFER)
             .setTransferData(createTransferDataBuilder(requestTime, expirationTime)
                     .setPendingTransferExpirationTime(now.plus(getContactAutomaticTransferLength()))
@@ -571,7 +571,7 @@ public class DatastoreHelper {
     Builder transferDataBuilder = createTransferDataBuilder(
         requestTime, expirationTime, extendedRegistrationYears);
     return persistResource(domain.asBuilder()
-        .setCurrentSponsorClientId("TheRegistrar")
+        .setPersistedCurrentSponsorClientId("TheRegistrar")
         .addStatusValue(StatusValue.PENDING_TRANSFER)
         .setTransferData(transferDataBuilder
             .setPendingTransferExpirationTime(expirationTime)

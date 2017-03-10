@@ -175,6 +175,14 @@ public final class ContactResourceSubject
         actual().getLastTransferTime(),
         "lastTransferTime");
   }
+
+  public And<ContactResourceSubject> hasCurrentSponsorClientId(String clientId) {
+    return hasValue(
+        clientId,
+        actual().getCurrentSponsorClientId(),
+        "has currentSponsorClientId");
+  }
+
   public static DelegatedVerb<ContactResourceSubject, ContactResource> assertAboutContacts() {
     return assertAbout(new SubjectFactory());
   }

@@ -16,7 +16,6 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEventsForResource;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -27,7 +26,6 @@ import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
-import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -55,7 +53,6 @@ import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
-import google.registry.model.host.HostResource;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
@@ -107,13 +104,6 @@ public class DomainTransferApproveFlowTest
         .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
   }
 
-  private void assertTransferApproved(HostResource host) {
-    assertAboutHosts().that(host)
-        .hasCurrentSponsorClientId("NewRegistrar").and()
-        .hasLastTransferTime(clock.nowUtc()).and()
-        .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
-  }
-
   private void setEppLoader(String commandFilename) {
     setEppInput(commandFilename);
     // Replace the ROID in the xml file with the one generated in our test.
@@ -161,7 +151,6 @@ public class DomainTransferApproveFlowTest
     assertAboutDomains().that(domain).hasRegistrationExpirationTime(expectedExpirationTime);
     assertThat(ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime())
         .isEqualTo(expectedExpirationTime);
-    assertTransferApproved(reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc()));
     // We expect three billing events: one for the transfer, a closed autorenew for the losing
     // client and an open autorenew for the gaining client that begins at the new expiration time.
     BillingEvent.OneTime transferBillingEvent = new BillingEvent.OneTime.Builder()
@@ -285,60 +274,6 @@ public class DomainTransferApproveFlowTest
         "net",
         "domain_transfer_approve_net.xml",
         "domain_transfer_approve_response_net.xml");
-  }
-
-  @Test
-  public void testSuccess_lastTransferTime_reflectedOnSubordinateHost() throws Exception {
-    domain = reloadResourceByForeignKey();
-    // Set an older last transfer time on the subordinate host.
-    subordinateHost = persistResource(
-        subordinateHost.asBuilder()
-            .setLastTransferTime(DateTime.parse("2000-02-03T22:00:00.0Z"))
-            .build());
-
-    doSuccessfulTest("tld", "domain_transfer_approve.xml", "domain_transfer_approve_response.xml");
-    subordinateHost = loadByForeignKey(
-        HostResource.class, subordinateHost.getFullyQualifiedHostName(), clock.nowUtc());
-    // Verify that the host's last transfer time is now that of when the superordinate domain was
-    // transferred.
-    assertThat(subordinateHost.getLastTransferTime()).isEqualTo(clock.nowUtc());
-  }
-
-  @Test
-  public void testSuccess_lastTransferTime_overridesExistingOnSubordinateHost() throws Exception {
-    domain = reloadResourceByForeignKey();
-    // Set an older last transfer time on the subordinate host.
-    subordinateHost = persistResource(
-        subordinateHost.asBuilder()
-            .setLastTransferTime(DateTime.parse("2000-02-03T22:00:00.0Z"))
-            .setLastSuperordinateChange(DateTime.parse("2000-03-03T22:00:00.0Z"))
-            .build());
-
-    doSuccessfulTest("tld", "domain_transfer_approve.xml", "domain_transfer_approve_response.xml");
-    subordinateHost = loadByForeignKey(
-        HostResource.class, subordinateHost.getFullyQualifiedHostName(), clock.nowUtc());
-    // Verify that the host's last transfer time is now that of when the superordinate domain was
-    // transferred.
-    assertThat(subordinateHost.getLastTransferTime()).isEqualTo(clock.nowUtc());
-  }
-
-  @Test
-  public void testSuccess_lastTransferTime_overridesExistingOnSubordinateHostWithNullTransferTime()
-      throws Exception {
-    domain = reloadResourceByForeignKey();
-    // Set an older last transfer time on the subordinate host.
-    subordinateHost = persistResource(
-        subordinateHost.asBuilder()
-            .setLastTransferTime(null)
-            .setLastSuperordinateChange(DateTime.parse("2000-03-03T22:00:00.0Z"))
-            .build());
-
-    doSuccessfulTest("tld", "domain_transfer_approve.xml", "domain_transfer_approve_response.xml");
-    subordinateHost = loadByForeignKey(
-        HostResource.class, subordinateHost.getFullyQualifiedHostName(), clock.nowUtc());
-    // Verify that the host's last transfer time is now that of when the superordinate domain was
-    // transferred.
-    assertThat(subordinateHost.getLastTransferTime()).isEqualTo(clock.nowUtc());
   }
 
   @Test

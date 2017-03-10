@@ -300,7 +300,7 @@ public class ContactResourceToXjcConverterTest {
         .setContactId("love-id")
         .setRepoId("2-ROID")
         .setCreationClientId("NewRegistrar")
-        .setCurrentSponsorClientId("TheRegistrar")
+        .setPersistedCurrentSponsorClientId("TheRegistrar")
         .setLastEppUpdateClientId("TheRegistrar")
         .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("2fooBAR")))
         .setCreationTimeForTest(DateTime.parse("1900-01-01TZ"))

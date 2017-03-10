@@ -24,7 +24,6 @@ import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
-import static google.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -64,7 +63,6 @@ import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.host.HostResource;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
@@ -126,12 +124,6 @@ public class DomainTransferRequestFlowTest
         .hasStatusValue(StatusValue.PENDING_TRANSFER);
   }
 
-  private void assertTransferRequested(HostResource host) throws Exception {
-    assertAboutEppResources().that(host)
-        .hasCurrentSponsorClientId("TheRegistrar").and()
-        .hasStatusValue(StatusValue.PENDING_TRANSFER);
-  }
-
   private void assertTransferApproved(DomainResource domain) {
     DateTime afterAutoAck =
         clock.nowUtc().plus(Registry.get(domain.getTld()).getAutomaticTransferLength());
@@ -140,15 +132,6 @@ public class DomainTransferRequestFlowTest
         .hasCurrentSponsorClientId("NewRegistrar").and()
         .hasLastTransferTime(afterAutoAck).and()
         .hasPendingTransferExpirationTime(afterAutoAck).and()
-        .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
-  }
-
-  private void assertTransferApproved(HostResource host) {
-    DateTime afterAutoAck =
-        clock.nowUtc().plus(Registry.get(domain.getTld()).getAutomaticTransferLength());
-    assertAboutHosts().that(host)
-        .hasCurrentSponsorClientId("NewRegistrar").and()
-        .hasLastTransferTime(afterAutoAck).and()
         .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
   }
 
@@ -183,7 +166,6 @@ public class DomainTransferRequestFlowTest
     int registrationYears = domain.getTransferData().getExtendedRegistrationYears();
     subordinateHost = reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc());
     assertTransferRequested(domain);
-    assertTransferRequested(subordinateHost);
     assertAboutDomains().that(domain)
         .hasPendingTransferExpirationTime(implicitTransferTime).and()
         .hasOneHistoryEntryEachOfTypes(
@@ -252,8 +234,6 @@ public class DomainTransferRequestFlowTest
                 null),
             transferBillingEvent));
     assertTransferApproved(domainAfterAutomaticTransfer);
-    assertTransferApproved(
-        subordinateHost.cloneProjectedAtTime(implicitTransferTime));
 
     // Two poll messages on the gaining registrar's side at the expected expiration time: a
     // (OneTime) transfer approved message, and an Autorenew poll message.

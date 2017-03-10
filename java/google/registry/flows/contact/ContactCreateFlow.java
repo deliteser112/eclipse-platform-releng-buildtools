@@ -72,7 +72,7 @@ public final class ContactCreateFlow implements TransactionalFlow {
         .setContactId(targetId)
         .setAuthInfo(command.getAuthInfo())
         .setCreationClientId(clientId)
-        .setCurrentSponsorClientId(clientId)
+        .setPersistedCurrentSponsorClientId(clientId)
         .setRepoId(createRepoId(ObjectifyService.allocateId(), roidSuffix))
         .setFaxNumber(command.getFax())
         .setVoiceNumber(command.getVoice())

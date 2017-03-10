@@ -155,7 +155,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
     DomainResource newDomain = new DomainResource.Builder()
         .setCreationClientId(clientId)
-        .setCurrentSponsorClientId(clientId)
+        .setPersistedCurrentSponsorClientId(clientId)
         .setRepoId(repoId)
         .setIdnTableName(validateDomainNameWithIdnTables(domainName))
         .setRegistrationExpirationTime(registrationExpirationTime)

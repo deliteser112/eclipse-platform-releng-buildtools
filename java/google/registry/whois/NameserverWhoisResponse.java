@@ -15,6 +15,7 @@
 package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -46,7 +47,13 @@ final class NameserverWhoisResponse extends WhoisResponseImpl {
     BasicEmitter emitter = new BasicEmitter();
     for (int i = 0; i < hosts.size(); i++) {
       HostResource host = hosts.get(i);
-      Registrar registrar = getRegistrar(host.getCurrentSponsorClientId());
+      String clientId =
+          host.isSubordinate()
+              ? ofy().load().key(host.getSuperordinateDomain()).now()
+                  .cloneProjectedAtTime(getTimestamp())
+                  .getCurrentSponsorClientId()
+              : host.getPersistedCurrentSponsorClientId();
+      Registrar registrar = getRegistrar(clientId);
       emitter
           .emitField("Server Name", maybeFormatHostname(
               host.getFullyQualifiedHostName(), preferUnicode))

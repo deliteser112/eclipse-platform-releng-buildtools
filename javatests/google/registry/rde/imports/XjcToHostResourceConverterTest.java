@@ -97,7 +97,7 @@ public class XjcToHostResourceConverterTest extends ShardableTestCase {
             InetAddresses.forString("192.0.2.2"),
             InetAddresses.forString("192.0.2.29"),
             InetAddresses.forString("1080:0:0:0:8:800:200C:417A"));
-    assertThat(host.getCurrentSponsorClientId()).isEqualTo("RegistrarX");
+    assertThat(host.getPersistedCurrentSponsorClientId()).isEqualTo("RegistrarX");
     assertThat(host.getCreationClientId()).isEqualTo("RegistrarX");
     assertThat(host.getCreationTime()).isEqualTo(DateTime.parse("1999-05-08T12:10:00.0Z"));
     assertThat(host.getLastEppUpdateClientId()).isEqualTo("RegistrarX");

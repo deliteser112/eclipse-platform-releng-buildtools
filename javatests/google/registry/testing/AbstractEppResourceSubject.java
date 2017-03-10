@@ -172,11 +172,12 @@ abstract class AbstractEppResourceSubject
         "has lastEppUpdateClientId");
   }
 
-  public And<S> hasCurrentSponsorClientId(String clientId) {
+
+  public And<S> hasPersistedCurrentSponsorClientId(String clientId) {
     return hasValue(
         clientId,
-        actual().getCurrentSponsorClientId(),
-        "has currentSponsorClientId");
+        actual().getPersistedCurrentSponsorClientId(),
+        "has persisted currentSponsorClientId");
   }
 
   public And<S> isActiveAt(DateTime time) {

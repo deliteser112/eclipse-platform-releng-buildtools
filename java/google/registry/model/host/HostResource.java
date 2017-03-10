@@ -17,7 +17,6 @@ package google.registry.model.host;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
-import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -36,11 +35,10 @@ import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.transfer.TransferData;
-import google.registry.model.transfer.TransferStatus;
 import java.net.InetAddress;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /**
@@ -122,37 +120,41 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
     return fullyQualifiedHostName;
   }
 
+  @Deprecated
   @Override
   public HostResource cloneProjectedAtTime(DateTime now) {
-    Builder builder = this.asBuilder();
+    return this;
+  }
 
-    if (superordinateDomain == null) {
-      // If this was a subordinate host to a domain that was being transferred, there might be a
-      // pending transfer still extant, so remove it.
-      builder.removeStatusValue(StatusValue.PENDING_TRANSFER);
-    } else {
-      // For hosts with superordinate domains, the client id, last transfer time, and transfer
-      // status value need to be read off the domain projected to the correct time.
-      DomainResource domainAtTime = ofy().load().key(superordinateDomain).now()
-          .cloneProjectedAtTime(now);
-      builder.setCurrentSponsorClientId(domainAtTime.getCurrentSponsorClientId());
-      // If the superordinate domain's last transfer time is what is relevant, because the host's
-      // superordinate domain was last changed less recently than the domain's last transfer, then
-      // use the last transfer time on the domain.
-      if (Optional.fromNullable(lastSuperordinateChange).or(START_OF_TIME)
-          .isBefore(Optional.fromNullable(domainAtTime.getLastTransferTime()).or(START_OF_TIME))) {
-        builder.setLastTransferTime(domainAtTime.getLastTransferTime());
-      }
-      // Copy the transfer status from the superordinate domain onto the host, because the host's
-      // doesn't matter and the superordinate domain always has the canonical data.
-      TransferStatus domainTransferStatus = domainAtTime.getTransferData().getTransferStatus();
-      if (TransferStatus.PENDING.equals(domainTransferStatus)) {
-        builder.addStatusValue(StatusValue.PENDING_TRANSFER);
-      } else {
-        builder.removeStatusValue(StatusValue.PENDING_TRANSFER);
-      }
+  /**
+   * Compute the correct last transfer time for this host given its loaded superordinate domain.
+   *
+   * <p>Hosts can move between superordinate domains, so to know which lastTransferTime is correct
+   * we need to know if the host was attached to this superordinate the last time that the
+   * superordinate was transferred. If the last superordinate change was before this time, then the
+   * host was attached to this superordinate domain during that transfer.
+   *
+   * <p>If the host is not subordinate the domain can be null and we just return last transfer time.
+   *
+   * @param superordinateDomain the loaded superordinate domain, which must match the key in
+   *     the {@link #superordinateDomain} field. Passing it as a parameter allows the caller to
+   *     control the degree of consistency used to load it.
+   */
+   public DateTime computeLastTransferTime(@Nullable DomainResource superordinateDomain) {
+    if (!isSubordinate()) {
+      checkArgument(superordinateDomain == null);
+      return getLastTransferTime();
     }
-    return builder.build();
+    checkArgument(
+        superordinateDomain != null
+            && Key.create(superordinateDomain).equals(getSuperordinateDomain()));
+    DateTime lastSuperordinateChange =
+        Optional.fromNullable(getLastSuperordinateChange()).or(getCreationTime());
+    DateTime lastTransferOfCurrentSuperordinate =
+        Optional.fromNullable(superordinateDomain.getLastTransferTime()).or(START_OF_TIME);
+    return (lastSuperordinateChange.isBefore(lastTransferOfCurrentSuperordinate))
+        ? superordinateDomain.getLastTransferTime()
+        : getLastTransferTime();
   }
 
   @Override

@@ -207,7 +207,7 @@ public final class EppResourceUtils {
             .setServerApproveAutorenewPollMessage(null)
             .build())
         .setLastTransferTime(transferData.getPendingTransferExpirationTime())
-        .setCurrentSponsorClientId(transferData.getGainingClientId());
+        .setPersistedCurrentSponsorClientId(transferData.getGainingClientId());
   }
 
   /**

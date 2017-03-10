@@ -266,7 +266,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
     DomainResource newDomain = new DomainResource.Builder()
         .setCreationClientId(clientId)
-        .setCurrentSponsorClientId(clientId)
+        .setPersistedCurrentSponsorClientId(clientId)
         .setRepoId(repoId)
         .setIdnTableName(validateDomainNameWithIdnTables(domainName))
         .setRegistrationExpirationTime(registrationExpirationTime)

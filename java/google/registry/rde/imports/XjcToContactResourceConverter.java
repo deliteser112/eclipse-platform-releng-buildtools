@@ -98,7 +98,7 @@ final class XjcToContactResourceConverter extends XjcToEppResourceConverter {
         .setInternationalizedPostalInfo(
             getPostalInfoOfType(contact.getPostalInfos(), XjcContactPostalInfoEnumType.INT))
         .setContactId(contact.getId())
-        .setCurrentSponsorClientId(contact.getClID())
+        .setPersistedCurrentSponsorClientId(contact.getClID())
         .setCreationClientId(contact.getCrRr() == null ? null : contact.getCrRr().getValue())
         .setLastEppUpdateClientId(contact.getUpRr() == null ? null : contact.getUpRr().getValue())
         .setCreationTime(contact.getCrDate())

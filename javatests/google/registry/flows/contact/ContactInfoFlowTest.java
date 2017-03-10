@@ -74,7 +74,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
                 .setPhoneNumber("+1.7035555556")
                 .build())
             .setEmailAddress("jdoe@example.com")
-            .setCurrentSponsorClientId("TheRegistrar")
+            .setPersistedCurrentSponsorClientId("TheRegistrar")
             .setCreationClientId("NewRegistrar")
             .setLastEppUpdateClientId("NewRegistrar")
             .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))

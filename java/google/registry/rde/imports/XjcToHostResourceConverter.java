@@ -14,7 +14,7 @@
 
 package google.registry.rde.imports;
 
-import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.rde.imports.RdeImportUtils.generateTridForImport;
@@ -56,6 +56,9 @@ public class XjcToHostResourceConverter extends XjcToEppResourceConverter {
       };
 
   static HostResource convert(XjcRdeHost host) {
+    // TODO(b/35384052): Handle subordinate hosts correctly by setting superordinateDomaina and
+    // lastSuperordinateChange fields.
+
     // First create and save history entry
     ofy().save().entity(
         new HistoryEntry.Builder()
@@ -72,7 +75,7 @@ public class XjcToHostResourceConverter extends XjcToEppResourceConverter {
     return new HostResource.Builder()
         .setFullyQualifiedHostName(canonicalizeDomainName(host.getName()))
         .setRepoId(host.getRoid())
-        .setCurrentSponsorClientId(host.getClID())
+        .setPersistedCurrentSponsorClientId(host.getClID())
         .setLastTransferTime(host.getTrDate())
         .setCreationTime(host.getCrDate())
         .setLastEppUpdateTime(host.getUpDate())
@@ -82,7 +85,8 @@ public class XjcToHostResourceConverter extends XjcToEppResourceConverter {
             FluentIterable.from(host.getStatuses())
                 .transform(STATUS_VALUE_CONVERTER)
                 // LINKED is implicit and should not be imported onto the new host.
-                .filter(not(equalTo(StatusValue.LINKED)))
+                // PENDING_TRANSFER is a property of the superordinate host.
+                .filter(not(in(ImmutableSet.of(StatusValue.LINKED, StatusValue.PENDING_TRANSFER))))
                 .toSet())
         .setInetAddresses(ImmutableSet.copyOf(Lists.transform(host.getAddrs(), ADDR_CONVERTER)))
         .build();

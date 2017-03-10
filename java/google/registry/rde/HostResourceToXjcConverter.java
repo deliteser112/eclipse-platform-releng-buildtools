@@ -14,7 +14,11 @@
 
 package google.registry.rde;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.net.InetAddresses;
+import com.googlecode.objectify.Key;
+import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.xjc.host.XjcHostAddrType;
@@ -25,28 +29,62 @@ import google.registry.xjc.rdehost.XjcRdeHost;
 import google.registry.xjc.rdehost.XjcRdeHostElement;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import org.joda.time.DateTime;
 
 /** Utility class that turns {@link HostResource} as {@link XjcRdeHostElement}. */
 final class HostResourceToXjcConverter {
 
-  /** Converts {@link HostResource} to {@link XjcRdeHostElement}. */
-  static XjcRdeHostElement convert(HostResource host) {
-    return new XjcRdeHostElement(convertHost(host));
+  /** Converts a subordinate {@link HostResource} to {@link XjcRdeHostElement}. */
+  static XjcRdeHostElement convertSubordinate(
+      HostResource host, DomainResource superordinateDomain) {
+    checkArgument(Key.create(superordinateDomain).equals(host.getSuperordinateDomain()));
+    return new XjcRdeHostElement(convertSubordinateHost(host, superordinateDomain));
+  }
+
+  /** Converts an external {@link HostResource} to {@link XjcRdeHostElement}. */
+  static XjcRdeHostElement convertExternal(HostResource host) {
+    checkArgument(!host.isSubordinate());
+    return new XjcRdeHostElement(convertExternalHost(host));
   }
 
   /** Converts {@link HostResource} to {@link XjcRdeHost}. */
-  static XjcRdeHost convertHost(HostResource model) {
+  static XjcRdeHost convertSubordinateHost(HostResource model, DomainResource superordinateDomain) {
+    XjcRdeHost bean = convertHostCommon(
+        model,
+        superordinateDomain.getCurrentSponsorClientId(),
+        model.computeLastTransferTime(superordinateDomain));
+    if (superordinateDomain.getStatusValues().contains(StatusValue.PENDING_TRANSFER)) {
+      bean.getStatuses().add(convertStatusValue(StatusValue.PENDING_TRANSFER));
+    }
+    return bean;
+  }
+
+  /** Converts {@link HostResource} to {@link XjcRdeHost}. */
+  static XjcRdeHost convertExternalHost(HostResource model) {
+    return convertHostCommon(
+        model,
+        model.getPersistedCurrentSponsorClientId(),
+        model.getLastTransferTime());
+  }
+
+  private static XjcRdeHost convertHostCommon(
+      HostResource model, String clientId, DateTime lastTransferTime) {
     XjcRdeHost bean = new XjcRdeHost();
     bean.setName(model.getFullyQualifiedHostName());
     bean.setRoid(model.getRepoId());
-    bean.setClID(model.getCurrentSponsorClientId());
-    bean.setTrDate(model.getLastTransferTime());
     bean.setCrDate(model.getCreationTime());
     bean.setUpDate(model.getLastEppUpdateTime());
     bean.setCrRr(RdeAdapter.convertRr(model.getCreationClientId(), null));
     bean.setUpRr(RdeAdapter.convertRr(model.getLastEppUpdateClientId(), null));
     bean.setCrRr(RdeAdapter.convertRr(model.getCreationClientId(), null));
+    bean.setClID(clientId);
+    bean.setTrDate(lastTransferTime);
     for (StatusValue status : model.getStatusValues()) {
+      // TODO(b/34844887): Remove when PENDING_TRANSFER is not persisted on host resources.
+      if (status.equals(StatusValue.PENDING_TRANSFER)) {
+        continue;
+      }
+      // TODO(cgoldfeder): Add in LINKED status if applicable.
       bean.getStatuses().add(convertStatusValue(status));
     }
     for (InetAddress addr : model.getInetAddresses()) {

@@ -198,7 +198,7 @@ public class GenerateEscrowDepositCommandTest
         .setRepoId(generateNewContactHostRoid())
         .setCreationClientId("LawyerCat")
         .setCreationTimeForTest(clock.nowUtc())
-        .setCurrentSponsorClientId("BusinessCat")
+        .setPersistedCurrentSponsorClientId("BusinessCat")
         .setFullyQualifiedHostName(Idn.toASCII(fqdn))
         .setInetAddresses(ImmutableSet.of(InetAddresses.forString(ip)))
         .setLastTransferTime(DateTime.parse("1910-01-01T00:00:00Z"))

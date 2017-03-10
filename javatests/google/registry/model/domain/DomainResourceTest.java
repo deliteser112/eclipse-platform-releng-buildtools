@@ -116,7 +116,7 @@ public class DomainResourceTest extends EntityTestCase {
             .setContacts(ImmutableSet.of(DesignatedContact.create(Type.ADMIN, contact2Key)))
             .setNameservers(ImmutableSet.of(hostKey))
             .setSubordinateHosts(ImmutableSet.of("ns1.example.com"))
-            .setCurrentSponsorClientId("ThirdRegistrar")
+            .setPersistedCurrentSponsorClientId("ThirdRegistrar")
             .setRegistrationExpirationTime(clock.nowUtc().plusYears(1))
             .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("password")))
             .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))
@@ -172,17 +172,17 @@ public class DomainResourceTest extends EntityTestCase {
   @Test
   public void testEmptyStringsBecomeNull() {
     assertThat(newDomainResource("example.com").asBuilder()
-        .setCurrentSponsorClientId(null)
+        .setPersistedCurrentSponsorClientId(null)
         .build()
             .getCurrentSponsorClientId())
                 .isNull();
     assertThat(newDomainResource("example.com").asBuilder()
-            .setCurrentSponsorClientId("")
+            .setPersistedCurrentSponsorClientId("")
             .build()
                 .getCurrentSponsorClientId())
                     .isNull();
     assertThat(newDomainResource("example.com").asBuilder()
-        .setCurrentSponsorClientId(" ")
+        .setPersistedCurrentSponsorClientId(" ")
         .build()
             .getCurrentSponsorClientId())
                 .isNotNull();

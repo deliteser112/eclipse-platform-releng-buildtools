@@ -18,7 +18,7 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
-import static google.registry.flows.host.HostFlowUtils.verifyDomainIsSameRegistrar;
+import static google.registry.flows.host.HostFlowUtils.verifySuperordinateDomainOwnership;
 import static google.registry.model.EppResourceUtils.createRepoId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
@@ -98,7 +98,7 @@ public final class HostCreateFlow implements TransactionalFlow {
     // we can detect error conditions earlier.
     Optional<DomainResource> superordinateDomain =
         lookupSuperordinateDomain(validateHostName(targetId), now);
-    verifyDomainIsSameRegistrar(superordinateDomain.orNull(), clientId);
+    verifySuperordinateDomainOwnership(clientId, superordinateDomain.orNull());
     boolean willBeSubordinate = superordinateDomain.isPresent();
     boolean hasIpAddresses = !isNullOrEmpty(command.getInetAddresses());
     if (willBeSubordinate != hasIpAddresses) {
@@ -109,7 +109,7 @@ public final class HostCreateFlow implements TransactionalFlow {
     }
     HostResource newHost = new Builder()
         .setCreationClientId(clientId)
-        .setCurrentSponsorClientId(clientId)
+        .setPersistedCurrentSponsorClientId(clientId)
         .setFullyQualifiedHostName(targetId)
         .setInetAddresses(command.getInetAddresses())
         .setRepoId(createRepoId(ObjectifyService.allocateId(), roidSuffix))

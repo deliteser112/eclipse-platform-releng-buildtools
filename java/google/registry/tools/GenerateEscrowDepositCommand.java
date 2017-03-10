@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static google.registry.model.EppResourceUtils.loadAtPointInTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.assertTldExists;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -132,7 +133,14 @@ final class GenerateEscrowDepositCommand implements RemoteApiCommand {
             }
             frag = marshaller.marshalDomain(domain, mode);
           } else if (resource instanceof HostResource) {
-            frag = marshaller.marshalHost((HostResource) resource);
+            HostResource host = (HostResource) resource;
+            frag = host.isSubordinate()
+                ? marshaller.marshalSubordinateHost(
+                    host,
+                    // Note that loadAtPointInTime() does cloneProjectedAtTime(watermark) for us.
+                    loadAtPointInTime(
+                        ofy().load().key(host.getSuperordinateDomain()).now(), watermark).now())
+                : marshaller.marshalExternalHost(host);
           } else {
             continue;  // Surprise polymorphic entities, e.g. DomainApplication.
           }

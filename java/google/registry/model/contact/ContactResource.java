@@ -47,8 +47,8 @@ import org.joda.time.DateTime;
 @ReportedOn
 @Entity
 @ExternalMessagingName("contact")
-public class ContactResource extends EppResource
-    implements ForeignKeyedEppResource, ResourceWithTransferData {
+public class ContactResource extends EppResource implements
+    ForeignKeyedEppResource, ResourceWithTransferData {
 
   /**
    * Unique identifier for this contact.
@@ -142,6 +142,10 @@ public class ContactResource extends EppResource
 
   public Disclose getDisclose() {
     return disclose;
+  }
+
+  public final String getCurrentSponsorClientId() {
+    return getPersistedCurrentSponsorClientId();
   }
 
   @Override

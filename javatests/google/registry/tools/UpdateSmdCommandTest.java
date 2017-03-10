@@ -66,7 +66,7 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
     createTld("xn--q9jyb4c");
     domainApplication = persistResource(newDomainApplication("test-validate.xn--q9jyb4c")
         .asBuilder()
-        .setCurrentSponsorClientId("TheRegistrar")
+        .setPersistedCurrentSponsorClientId("TheRegistrar")
         .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "garbage")))
         .build());
     command.tmchUtils =

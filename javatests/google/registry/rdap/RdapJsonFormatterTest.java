@@ -30,17 +30,21 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.googlecode.objectify.Key;
 import google.registry.config.RdapNoticeDescriptor;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
+import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -75,6 +79,7 @@ public class RdapJsonFormatterTest {
   private HostResource hostResourceBoth;
   private HostResource hostResourceNoAddresses;
   private HostResource hostResourceNotLinked;
+  private HostResource hostResourceSuperordinatePendingTransfer;
   private ContactResource contactResourceRegistrant;
   private ContactResource contactResourceAdmin;
   private ContactResource contactResourceTech;
@@ -134,6 +139,31 @@ public class RdapJsonFormatterTest {
         "ns4.cat.みんな", null, clock.nowUtc().minusYears(4));
     hostResourceNotLinked = makeAndPersistHostResource(
         "ns5.cat.みんな", null, clock.nowUtc().minusYears(5));
+    hostResourceSuperordinatePendingTransfer = persistResource(
+        makeAndPersistHostResource("ns1.dog.みんな",  null, clock.nowUtc().minusYears(6))
+            .asBuilder()
+            .setSuperordinateDomain(Key.create(
+                persistResource(
+                    makeDomainResource(
+                        "dog.みんな",
+                        contactResourceRegistrant,
+                        contactResourceAdmin,
+                        contactResourceTech,
+                        null,
+                        null,
+                        registrar)
+                           .asBuilder()
+                           .addStatusValue(StatusValue.PENDING_TRANSFER)
+                           .setTransferData(new TransferData.Builder()
+                               .setTransferStatus(TransferStatus.PENDING)
+                               .setGainingClientId("NewRegistrar")
+                               .setTransferRequestTime(clock.nowUtc().minusDays(1))
+                               .setLosingClientId("TheRegistrar")
+                               .setPendingTransferExpirationTime(clock.nowUtc().plusYears(100))
+                               .setExtendedRegistrationYears(1)
+                               .build())
+                           .build())))
+            .build());
     domainResourceFull = persistResource(
         makeDomainResource(
             "cat.みんな",
@@ -312,6 +342,18 @@ public class RdapJsonFormatterTest {
             clock.nowUtc(),
             OutputDataType.FULL))
         .isEqualTo(loadJson("rdapjson_host_not_linked.json"));
+  }
+
+  @Test
+  public void testHost_superordinateHasPendingTransfer() throws Exception {
+    assertThat(rdapJsonFormatter.makeRdapJsonForHost(
+        hostResourceSuperordinatePendingTransfer,
+        false,
+        LINK_BASE,
+        WHOIS_SERVER,
+        clock.nowUtc(),
+        OutputDataType.FULL))
+    .isEqualTo(loadJson("rdapjson_host_pending_transfer.json"));
   }
 
   @Test

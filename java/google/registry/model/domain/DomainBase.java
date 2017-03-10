@@ -128,6 +128,10 @@ public abstract class DomainBase extends EppResource {
     return nullToEmptyImmutableCopy(nsHosts);
   }
 
+  public final String getCurrentSponsorClientId() {
+    return getPersistedCurrentSponsorClientId();
+  }
+
   /** Loads and returns the fully qualified host names of all linked nameservers. */
   public ImmutableSortedSet<String> loadNameserverFullyQualifiedHostNames() {
     return FluentIterable.from(ofy().load().keys(getNameservers()).values())

@@ -43,7 +43,7 @@ public class UpdateClaimsNoticeCommandTest extends CommandTestCase<UpdateClaimsN
     createTld("xn--q9jyb4c");
     domainApplication = persistResource(newDomainApplication("example-one.xn--q9jyb4c")
         .asBuilder()
-        .setCurrentSponsorClientId("TheRegistrar")
+        .setPersistedCurrentSponsorClientId("TheRegistrar")
         .build());
   }
 

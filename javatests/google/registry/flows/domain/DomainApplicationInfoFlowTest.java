@@ -93,7 +93,7 @@ public class DomainApplicationInfoFlowTest
         .setRepoId("123-TLD")
         .setFullyQualifiedDomainName("example.tld")
         .setPhase(LaunchPhase.SUNRUSH)
-        .setCurrentSponsorClientId("NewRegistrar")
+        .setPersistedCurrentSponsorClientId("NewRegistrar")
         .setCreationClientId("TheRegistrar")
         .setLastEppUpdateClientId("NewRegistrar")
         .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))

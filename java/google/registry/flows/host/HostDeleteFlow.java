@@ -33,6 +33,7 @@ import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.async.AsyncFlowEnqueuer;
+import google.registry.model.EppResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.StatusValue;
@@ -93,7 +94,14 @@ public final class HostDeleteFlow implements TransactionalFlow {
     HostResource existingHost = loadAndVerifyExistence(HostResource.class, targetId, now);
     verifyNoDisallowedStatuses(existingHost, DISALLOWED_STATUSES);
     if (!isSuperuser) {
-      verifyResourceOwnership(clientId, existingHost);
+      // Hosts transfer with their superordinate domains, so for hosts with a superordinate domain,
+      // the client id, needs to be read off of it.
+      EppResource owningResource =
+          existingHost.isSubordinate()
+              ? ofy().load().key(existingHost.getSuperordinateDomain()).now()
+                  .cloneProjectedAtTime(now)
+              : existingHost;
+      verifyResourceOwnership(clientId, owningResource);
     }
     asyncFlowEnqueuer.enqueueAsyncDelete(existingHost, clientId, isSuperuser);
     HostResource newHost =

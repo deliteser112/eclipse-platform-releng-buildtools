@@ -18,6 +18,7 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.model.EppResourceUtils.isLinked;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -26,9 +27,11 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
+import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostInfoData;
+import google.registry.model.host.HostInfoData.Builder;
 import google.registry.model.host.HostResource;
 import google.registry.util.Clock;
 import javax.inject.Inject;
@@ -66,18 +69,34 @@ public final class HostInfoFlow implements Flow {
     if (isLinked(Key.create(host), now)) {
       statusValues.add(StatusValue.LINKED);
     }
+    Builder hostInfoDataBuilder = HostInfoData.newBuilder();
+    // Hosts transfer with their superordinate domains, so for hosts with a superordinate domain,
+    // the client id, last transfer time, and pending transfer status need to be read off of it. If
+    // there is no superordinate domain, the host's own values for these fields will be correct.
+    if (host.isSubordinate()) {
+      DomainResource superordinateDomain =
+          ofy().load().key(host.getSuperordinateDomain()).now().cloneProjectedAtTime(now);
+      hostInfoDataBuilder
+          .setCurrentSponsorClientId(superordinateDomain.getCurrentSponsorClientId())
+          .setLastTransferTime(host.computeLastTransferTime(superordinateDomain));
+      if (superordinateDomain.getStatusValues().contains(StatusValue.PENDING_TRANSFER)) {
+        statusValues.add(StatusValue.PENDING_TRANSFER);
+      }
+    } else {
+      hostInfoDataBuilder
+          .setCurrentSponsorClientId(host.getPersistedCurrentSponsorClientId())
+          .setLastTransferTime(host.getLastTransferTime());
+    }
     return responseBuilder
-        .setResData(HostInfoData.newBuilder()
+        .setResData(hostInfoDataBuilder
             .setFullyQualifiedHostName(host.getFullyQualifiedHostName())
             .setRepoId(host.getRepoId())
             .setStatusValues(statusValues.build())
             .setInetAddresses(host.getInetAddresses())
-            .setCurrentSponsorClientId(host.getCurrentSponsorClientId())
             .setCreationClientId(host.getCreationClientId())
             .setCreationTime(host.getCreationTime())
             .setLastEppUpdateClientId(host.getLastEppUpdateClientId())
             .setLastEppUpdateTime(host.getLastEppUpdateTime())
-            .setLastTransferTime(host.getLastTransferTime())
             .build())
         .build();
   }

@@ -139,7 +139,7 @@ public final class ResourceFlowUtils {
   /** Check that the given clientId corresponds to the owner of given resource. */
   public static void verifyResourceOwnership(String myClientId, EppResource resource)
       throws EppException {
-    if (!myClientId.equals(resource.getCurrentSponsorClientId())) {
+    if (!myClientId.equals(resource.getPersistedCurrentSponsorClientId())) {
       throw new ResourceNotOwnedException();
     }
   }
@@ -264,7 +264,7 @@ public final class ResourceFlowUtils {
     B builder = ResourceFlowUtils.<R, B>resolvePendingTransfer(resource, transferStatus, now);
     return builder
         .setLastTransferTime(now)
-        .setCurrentSponsorClientId(resource.getTransferData().getGainingClientId())
+        .setPersistedCurrentSponsorClientId(resource.getTransferData().getGainingClientId())
         .build();
   }
 

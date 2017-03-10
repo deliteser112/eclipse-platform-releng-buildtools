@@ -91,7 +91,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     domain = persistResource(new DomainResource.Builder()
         .setFullyQualifiedDomainName(domainName)
         .setRepoId("2FF-TLD")
-        .setCurrentSponsorClientId("NewRegistrar")
+        .setPersistedCurrentSponsorClientId("NewRegistrar")
         .setCreationClientId("TheRegistrar")
         .setLastEppUpdateClientId("NewRegistrar")
         .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))

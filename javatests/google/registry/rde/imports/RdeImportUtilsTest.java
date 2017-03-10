@@ -288,7 +288,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
         .setContacts(ImmutableSet.of(
             DesignatedContact.create(Type.ADMIN, Key.create(admin)),
             DesignatedContact.create(Type.TECH, Key.create(admin))))
-        .setCurrentSponsorClientId("RegistrarX")
+        .setPersistedCurrentSponsorClientId("RegistrarX")
         .setCreationClientId("RegistrarX")
         .setCreationTime(DateTime.parse("1999-04-03T22:00:00.0Z"))
         .setRegistrationExpirationTime(DateTime.parse("2015-04-03T22:00:00.0Z"))

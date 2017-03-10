@@ -61,7 +61,7 @@ public class ContactResourceTest extends EntityTestCase {
             .setLastEppUpdateTime(clock.nowUtc())
             .setLastEppUpdateClientId("another registrar")
             .setLastTransferTime(clock.nowUtc())
-            .setCurrentSponsorClientId("a third registrar")
+            .setPersistedCurrentSponsorClientId("a third registrar")
             .setLocalizedPostalInfo(new PostalInfo.Builder()
                 .setType(Type.LOCALIZED)
                 .setAddress(new ContactAddress.Builder()

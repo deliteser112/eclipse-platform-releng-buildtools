@@ -61,7 +61,7 @@ public class UpdateApplicationStatusCommandTest
     domainApplication = persistResource(newDomainApplication(
         "label.xn--q9jyb4c", persistResource(newContactResourceWithRoid("contact1", "C1-ROID")))
             .asBuilder()
-            .setCurrentSponsorClientId("TheRegistrar")
+            .setPersistedCurrentSponsorClientId("TheRegistrar")
             .build());
 
     this.creationTime = domainApplication.getCreationTime();

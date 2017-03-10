@@ -60,4 +60,11 @@ public abstract class AbstractDomainBaseSubject
     AuthInfo authInfo = actual().getAuthInfo();
     return hasValue(pw, authInfo == null ? null : authInfo.getPw().getValue(), "has auth info pw");
   }
+
+  public And<S> hasCurrentSponsorClientId(String clientId) {
+    return hasValue(
+        clientId,
+        actual().getCurrentSponsorClientId(),
+        "has currentSponsorClientId");
+  }
 }

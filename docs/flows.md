@@ -965,16 +965,18 @@ are enqueued to update DNS accordingly.
     *   Host rename from external to subordinate must also add an IP addresses.
 *   2004
     *   The specified status value cannot be set by clients.
+    *   Host names are limited to 253 characters.
     *   Cannot add IP addresses to an external host.
     *   Host rename from subordinate to external must also remove all IP
         addresses.
 *   2005
-    *   Invalid host name.
     *   Host names must be in lower-case.
     *   Host names must be in normalized format.
     *   Host names must be puny-coded.
+    *   Invalid host name.
 *   2201
     *   The specified resource belongs to another client.
+    *   Domain for host is sponsored by another registrar.
 *   2302
     *   Host with specified name already exists.
 *   2303

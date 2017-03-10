@@ -117,9 +117,16 @@ public final class RdeMarshaller implements Serializable {
   }
 
   /** Turns {@link HostResource} object into an XML fragment. */
-  public DepositFragment marshalHost(HostResource host) {
+  public DepositFragment marshalSubordinateHost(
+      HostResource host, DomainResource superordinateDomain) {
     return marshalResource(RdeResourceType.HOST, host,
-        HostResourceToXjcConverter.convert(host));
+        HostResourceToXjcConverter.convertSubordinate(host, superordinateDomain));
+  }
+
+  /** Turns {@link HostResource} object into an XML fragment. */
+  public DepositFragment marshalExternalHost(HostResource host) {
+    return marshalResource(RdeResourceType.HOST, host,
+        HostResourceToXjcConverter.convertExternal(host));
   }
 
   /** Turns {@link Registrar} object into an XML fragment. */

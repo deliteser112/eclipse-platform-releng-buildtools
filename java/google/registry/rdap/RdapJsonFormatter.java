@@ -553,10 +553,19 @@ public class RdapJsonFormatter {
     if (hasUnicodeComponents(hostResource.getFullyQualifiedHostName())) {
       jsonBuilder.put("unicodeName", Idn.toUnicode(hostResource.getFullyQualifiedHostName()));
     }
-    jsonBuilder.put("status", makeStatusValueList(
-        isLinked(Key.create(hostResource), now)
-            ? union(hostResource.getStatusValues(), StatusValue.LINKED)
-            : hostResource.getStatusValues()));
+
+    ImmutableSet.Builder<StatusValue> statuses = new ImmutableSet.Builder<>();
+    statuses.addAll(hostResource.getStatusValues());
+    if (isLinked(Key.create(hostResource), now)) {
+      statuses.add(StatusValue.LINKED);
+    }
+    if (hostResource.isSubordinate()
+        && ofy().load().key(hostResource.getSuperordinateDomain()).now().cloneProjectedAtTime(now)
+            .getStatusValues()
+                .contains(StatusValue.PENDING_TRANSFER)) {
+      statuses.add(StatusValue.PENDING_TRANSFER);
+    }
+    jsonBuilder.put("status", makeStatusValueList(statuses.build()));
     jsonBuilder.put("links", ImmutableList.of(
         makeLink("nameserver", hostResource.getFullyQualifiedHostName(), linkBase)));
     List<ImmutableMap<String, Object>> remarks;

@@ -85,7 +85,7 @@ public class DomainApplicationTest extends EntityTestCase {
                 Key.create(persistActiveContact("contact_id2")))))
             .setNameservers(
                 ImmutableSet.of(Key.create(persistActiveHost("ns1.example.com"))))
-            .setCurrentSponsorClientId("a third registrar")
+            .setPersistedCurrentSponsorClientId("a third registrar")
             .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("password")))
             .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))
             .setLaunchNotice(
@@ -125,11 +125,11 @@ public class DomainApplicationTest extends EntityTestCase {
 
   @Test
   public void testEmptyStringsBecomeNull() {
-    assertThat(emptyBuilder().setCurrentSponsorClientId(null).build()
+    assertThat(emptyBuilder().setPersistedCurrentSponsorClientId(null).build()
         .getCurrentSponsorClientId()).isNull();
-    assertThat(emptyBuilder().setCurrentSponsorClientId("").build()
+    assertThat(emptyBuilder().setPersistedCurrentSponsorClientId("").build()
         .getCurrentSponsorClientId()).isNull();
-    assertThat(emptyBuilder().setCurrentSponsorClientId(" ").build()
+    assertThat(emptyBuilder().setPersistedCurrentSponsorClientId(" ").build()
         .getCurrentSponsorClientId()).isNotNull();
   }
 

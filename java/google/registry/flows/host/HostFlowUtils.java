@@ -111,9 +111,9 @@ public class HostFlowUtils {
   }
 
   /** Ensure that the superordinate domain is sponsored by the provided clientId. */
-  static void verifyDomainIsSameRegistrar(
-      DomainResource superordinateDomain,
-      String clientId) throws EppException {
+  static void verifySuperordinateDomainOwnership(
+      String clientId,
+      DomainResource superordinateDomain) throws EppException {
     if (superordinateDomain != null
         && !clientId.equals(superordinateDomain.getCurrentSponsorClientId())) {
       throw new HostDomainNotOwnedException();

@@ -15,6 +15,7 @@
 package google.registry.rde;
 
 import static com.google.common.base.Strings.nullToEmpty;
+import static google.registry.model.EppResourceUtils.loadAtPointInTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.tools.mapreduce.Mapper;
@@ -28,7 +29,6 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
 import com.googlecode.objectify.Result;
 import google.registry.model.EppResource;
-import google.registry.model.EppResourceUtils;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
@@ -77,7 +77,7 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
 
     // Skip prober data.
     if (nullToEmpty(resource.getCreationClientId()).startsWith("prober-")
-        || nullToEmpty(resource.getCurrentSponsorClientId()).startsWith("prober-")
+        || nullToEmpty(resource.getPersistedCurrentSponsorClientId()).startsWith("prober-")
         || nullToEmpty(resource.getLastEppUpdateClientId()).startsWith("prober-")) {
       return;
     }
@@ -110,7 +110,7 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
             new Function<DateTime, Result<EppResource>>() {
               @Override
               public Result<EppResource> apply(DateTime input) {
-                return EppResourceUtils.loadAtPointInTime(resource, input);
+                return loadAtPointInTime(resource, input);
               }}));
 
     // Convert resource to an XML fragment for each watermark/mode pair lazily and cache the result.
@@ -167,7 +167,14 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
         cache.put(WatermarkModePair.create(watermark, RdeMode.THIN), result);
         return result;
       } else if (resource instanceof HostResource) {
-        result = Optional.of(marshaller.marshalHost((HostResource) resource));
+        HostResource host = (HostResource) resource;
+        result = Optional.of(host.isSubordinate()
+            ? marshaller.marshalSubordinateHost(
+                host,
+                // Note that loadAtPointInTime() does cloneProjectedAtTime(watermark) for us.
+                loadAtPointInTime(
+                    ofy().load().key(host.getSuperordinateDomain()).now(), watermark).now())
+            : marshaller.marshalExternalHost(host));
         cache.put(WatermarkModePair.create(watermark, RdeMode.FULL), result);
         cache.put(WatermarkModePair.create(watermark, RdeMode.THIN), result);
         return result;
