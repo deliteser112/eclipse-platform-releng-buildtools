@@ -22,6 +22,7 @@ java_library(
         "//java/google/registry/config",
         "//java/google/registry/flows",
         "//java/google/registry/model",
+        "//java/google/registry/monitoring/metrics/contrib",
         "//java/google/registry/util",
         "//java/google/registry/xml",
         "//javatests/google/registry/testing",

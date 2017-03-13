@@ -14,6 +14,7 @@ java_library(
     visibility = ["//visibility:public"],
     deps = [
         "//java/google/registry/config",
+        "//java/google/registry/monitoring/metrics",
         "//java/google/registry/util",
         "//java/google/registry/xml",
         "//third_party/java/objectify:objectify-v4_1",

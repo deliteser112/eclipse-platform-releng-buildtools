@@ -16,13 +16,19 @@ package google.registry.model.registry.label;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static google.registry.model.registry.label.DomainLabelMetrics.reservedListChecks;
+import static google.registry.model.registry.label.DomainLabelMetrics.reservedListHits;
+import static google.registry.model.registry.label.DomainLabelMetrics.reservedListProcessingTimes;
 import static google.registry.model.registry.label.ReservationType.ALLOWED_IN_SUNRISE;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
+import static google.registry.model.registry.label.ReservationType.MISTAKEN_PREMIUM;
 import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
 import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.model.registry.label.ReservedList.getReservationTypes;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
+import static google.registry.monitoring.metrics.contrib.EventMetricSubject.assertThat;
+import static google.registry.monitoring.metrics.contrib.IncrementableMetricSubject.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -67,6 +73,21 @@ public class ReservedListTest {
   public void before() throws Exception {
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("tld");
+    reservedListChecks.reset();
+    reservedListProcessingTimes.reset();
+    reservedListHits.reset();
+  }
+
+  private static void verifyUnreservedCheckCount(int unreservedCount) {
+    assertThat(reservedListChecks)
+        .hasValueForLabels(unreservedCount, "tld", "0", "(none)", UNRESERVED.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListProcessingTimes)
+        .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListHits).hasNoOtherValues();
   }
 
   @Test
@@ -75,11 +96,13 @@ public class ReservedListTest {
     assertThat(getReservationTypes("doodle", "tld")).containsExactly(UNRESERVED);
     assertThat(getReservationTypes("access", "tld")).containsExactly(UNRESERVED);
     assertThat(getReservationTypes("rich", "tld")).containsExactly(UNRESERVED);
+    verifyUnreservedCheckCount(3);
   }
 
   @Test
   public void testZeroReservedLists_doesNotCauseError() throws Exception {
     assertThat(getReservationTypes("doodle", "tld")).containsExactly(UNRESERVED);
+    verifyUnreservedCheckCount(1);
   }
 
   @Test
@@ -87,6 +110,7 @@ public class ReservedListTest {
     for (String sld : ImmutableList.of("aa", "az", "zz", "91", "1n", "j5")) {
       assertThat(getReservationTypes(sld, "tld")).containsExactly(UNRESERVED);
     }
+    verifyUnreservedCheckCount(6);
   }
 
   @Test
@@ -95,6 +119,7 @@ public class ReservedListTest {
     for (char c = 'a'; c <= 'z'; c++) {
       assertThat(getReservationTypes("" + c, "tld")).containsExactly(UNRESERVED);
     }
+    verifyUnreservedCheckCount(26);
   }
 
   @Test
@@ -120,6 +145,22 @@ public class ReservedListTest {
         .isFalse();
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("random.tld"), "abcdefg"))
         .isFalse();
+    assertThat(reservedListChecks)
+        .hasValueForLabels(1, "tld", "0", "(none)", UNRESERVED.toString())
+        .and()
+        .hasValueForLabels(6, "tld", "1", "reserved1", RESERVED_FOR_ANCHOR_TENANT.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListProcessingTimes)
+        .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "1", "reserved1", RESERVED_FOR_ANCHOR_TENANT.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListHits)
+        .hasValueForLabels(6, "tld", "reserved1", RESERVED_FOR_ANCHOR_TENANT.toString())
+        .and()
+        .hasNoOtherValues();
   }
 
   @Test
@@ -138,6 +179,40 @@ public class ReservedListTest {
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol3.tld"), "")).isFalse();
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol4.tld"), "")).isFalse();
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol5.tld"), "")).isFalse();
+    assertThat(reservedListChecks)
+        .hasValueForLabels(1, "tld", "1", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "1", "reserved2", NAME_COLLISION.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "1", "reserved2", MISTAKEN_PREMIUM.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "1", "reserved2", ALLOWED_IN_SUNRISE.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "0", "(none)", UNRESERVED.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListProcessingTimes)
+        .hasAnyValueForLabels("tld", "1", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "1", "reserved2", NAME_COLLISION.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "1", "reserved2", MISTAKEN_PREMIUM.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "1", "reserved2", ALLOWED_IN_SUNRISE.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListHits)
+        .hasValueForLabels(1, "tld", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "reserved2", NAME_COLLISION.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "reserved2", MISTAKEN_PREMIUM.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "reserved2", ALLOWED_IN_SUNRISE.toString())
+        .and()
+        .hasNoOtherValues();
   }
 
   @Test
@@ -173,6 +248,28 @@ public class ReservedListTest {
     assertThat(getReservationTypes("roflcopter", "tld")).containsExactly(FULLY_BLOCKED);
     assertThat(getReservationTypes("snowcrash", "tld")).containsExactly(FULLY_BLOCKED);
     assertThat(getReservationTypes("doge", "tld")).containsExactly(UNRESERVED);
+    assertThat(reservedListChecks)
+        .hasValueForLabels(1, "tld", "0", "(none)", UNRESERVED.toString())
+        .and()
+        .hasValueForLabels(2, "tld", "1", "reserved1", FULLY_BLOCKED.toString())
+        .and()
+        .hasValueForLabels(2, "tld", "1", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListProcessingTimes)
+        .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "1", "reserved1", FULLY_BLOCKED.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "1", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListHits)
+        .hasValueForLabels(2, "tld", "reserved1", FULLY_BLOCKED.toString())
+        .and()
+        .hasValueForLabels(2, "tld", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasNoOtherValues();
   }
 
   @Test
@@ -207,6 +304,22 @@ public class ReservedListTest {
                 + " after unsetting the registry's second reserved list")
         .that(getReservationTypes("roflcopter", "tld"))
         .containsExactly(UNRESERVED);
+    assertThat(reservedListChecks)
+        .hasValueForLabels(1, "tld", "1", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "0", "(none)", UNRESERVED.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListProcessingTimes)
+        .hasAnyValueForLabels("tld", "1", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListHits)
+        .hasValueForLabels(1, "tld", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasNoOtherValues();
   }
 
   @Test
@@ -218,6 +331,26 @@ public class ReservedListTest {
     persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1, rl2).build());
     assertThat(getReservationTypes("lol", "tld")).containsExactly(FULLY_BLOCKED, NAME_COLLISION);
     assertThat(getReservationTypes("roflcopter", "tld")).containsExactly(ALLOWED_IN_SUNRISE);
+    assertThat(reservedListChecks)
+        .hasValueForLabels(1, "tld", "1", "reserved1", ALLOWED_IN_SUNRISE.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "2", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListProcessingTimes)
+        .hasAnyValueForLabels("tld", "1", "reserved1", ALLOWED_IN_SUNRISE.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "2", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(reservedListHits)
+        .hasValueForLabels(1, "tld", "reserved1", NAME_COLLISION.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "reserved1", ALLOWED_IN_SUNRISE.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "reserved2", FULLY_BLOCKED.toString())
+        .and()
+        .hasNoOtherValues();
   }
 
   @Test

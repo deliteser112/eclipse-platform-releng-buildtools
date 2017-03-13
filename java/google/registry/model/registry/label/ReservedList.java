@@ -27,6 +27,7 @@ import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -46,12 +47,14 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.mapper.Mapper;
 import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.DomainLabelMetrics.MetricsReservedListMatch;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /**
  * A reserved list entity, persisted to Datastore, that is used to check domain label reservations.
@@ -211,19 +214,27 @@ public final class ReservedList
    * no such entry exists.
    */
   private static ImmutableSet<ReservedListEntry> getReservedListEntries(String label, String tld) {
+    DateTime startTime = DateTime.now(UTC);
     Registry registry = Registry.get(checkNotNull(tld, "tld"));
     ImmutableSet<Key<ReservedList>> reservedLists = registry.getReservedLists();
     ImmutableSet<ReservedList> lists = loadReservedLists(reservedLists);
-    ImmutableSet.Builder<ReservedListEntry> entries = new ImmutableSet.Builder<>();
+    ImmutableSet.Builder<ReservedListEntry> entriesBuilder = new ImmutableSet.Builder<>();
+    ImmutableSet.Builder<MetricsReservedListMatch> metricMatchesBuilder =
+        new ImmutableSet.Builder<>();
 
     // Loop through all reservation lists and add each of them.
     for (ReservedList rl : lists) {
       if (rl.getReservedListEntries().containsKey(label)) {
-        entries.add(rl.getReservedListEntries().get(label));
+        ReservedListEntry entry = rl.getReservedListEntries().get(label);
+        entriesBuilder.add(entry);
+        metricMatchesBuilder.add(
+            MetricsReservedListMatch.create(rl.getName(), entry.reservationType));
       }
     }
-
-    return entries.build();
+    ImmutableSet<ReservedListEntry> entries = entriesBuilder.build();
+    DomainLabelMetrics.recordReservedListCheckOutcome(
+        tld, metricMatchesBuilder.build(), DateTime.now(UTC).getMillis() - startTime.getMillis());
+    return entries;
   }
 
   private static ImmutableSet<ReservedList> loadReservedLists(
