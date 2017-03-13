@@ -748,6 +748,7 @@ enum google.registry.model.registry.label.ReservationType {
   ALLOWED_IN_SUNRISE;
   FULLY_BLOCKED;
   MISTAKEN_PREMIUM;
+  NAMESERVER_RESTRICTED;
   NAME_COLLISION;
   RESERVED_FOR_ANCHOR_TENANT;
   UNRESERVED;
@@ -764,6 +765,7 @@ class google.registry.model.registry.label.ReservedList {
 class google.registry.model.registry.label.ReservedList$ReservedListEntry {
   @Id java.lang.String label;
   google.registry.model.registry.label.ReservationType reservationType;
+  java.lang.String allowedNameservers;
   java.lang.String authCode;
   java.lang.String comment;
 }

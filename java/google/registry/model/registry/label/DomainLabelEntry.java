@@ -22,7 +22,7 @@ import google.registry.model.Buildable.GenericBuilder;
 import google.registry.model.ImmutableObject;
 
 /**
- * Represents a label entry parsed from a line in a Reserved List txt file.
+ * Represents a label entry parsed from a line in a reserved/premium list txt file.
  *
  * @param <T> The type of the value stored for the domain label, e.g. {@link ReservationType}.
  */

@@ -242,9 +242,7 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
       return new Builder(clone(this));
     }
 
-    /**
-     * A builder for constructing {@link PremiumList} objects, since they are immutable.
-     */
+    /** A builder for constructing {@link PremiumListEntry} objects, since they are immutable. */
     public static class Builder extends DomainLabelEntry.Builder<PremiumListEntry, Builder> {
       public Builder() {}
 

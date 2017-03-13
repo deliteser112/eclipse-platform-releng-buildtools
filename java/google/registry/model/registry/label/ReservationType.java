@@ -28,11 +28,12 @@ public enum ReservationType {
   // severity.
 
   UNRESERVED(null, 0),
-  ALLOWED_IN_SUNRISE("Reserved for non-sunrise", 1),
-  MISTAKEN_PREMIUM("Reserved", 2),
-  RESERVED_FOR_ANCHOR_TENANT("Reserved", 3),
-  NAME_COLLISION("Cannot be delegated", 4),
-  FULLY_BLOCKED("Reserved", 5);
+  NAMESERVER_RESTRICTED("Nameserver restricted", 1),
+  ALLOWED_IN_SUNRISE("Reserved for non-sunrise", 2),
+  MISTAKEN_PREMIUM("Reserved", 3),
+  RESERVED_FOR_ANCHOR_TENANT("Reserved", 4),
+  NAME_COLLISION("Cannot be delegated", 5),
+  FULLY_BLOCKED("Reserved", 6);
 
   @Nullable
   private final String messageForCheck;

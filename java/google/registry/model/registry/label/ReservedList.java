@@ -23,6 +23,7 @@ import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
+import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
 import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.util.CollectionUtils.nullToEmpty;
@@ -30,6 +31,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
@@ -85,6 +87,18 @@ public final class ReservedList
      */
     String authCode;
 
+    /**
+     * Contains a comma-delimited list of the fully qualified hostnames of the nameservers that can
+     * be set on a domain with this label (only applicable to NAMESERVER_RESTRICTED).
+     *
+     * <p>A String field is persisted because Objectify 4 does not allow multi-dimensional
+     * collections in embedded entities.
+     *
+     * @see <a
+     *     href="https://github.com/objectify/objectify-legacy-wiki/blob/v4/Entities.wiki#embedding.">Embedding</a>
+     */
+    String allowedNameservers;
+
     /** Mapper for use with @Mapify */
     static class LabelMapper implements Mapper<String, ReservedListEntry> {
       @Override
@@ -93,24 +107,54 @@ public final class ReservedList
       }
     }
 
+    /**
+     * Creates a {@link ReservedListEntry} from label, reservation type, and optionally additional
+     * restrictions
+     *
+     * <p>The additional restricitno can be the authCode for anchor tenant or the allowed
+     * nameservers (in a colon-separated string) for nameserver-restricted domains.
+     */
     public static ReservedListEntry create(
         String label,
         ReservationType reservationType,
-        @Nullable String authCode,
+        @Nullable String restrictions,
         String comment) {
-      if (authCode != null) {
-        checkArgument(reservationType == RESERVED_FOR_ANCHOR_TENANT,
-            "Only anchor tenant reservations should have an auth code configured");
+      ReservedListEntry entry = new ReservedListEntry();
+      if (restrictions != null) {
+        checkArgument(
+            reservationType == RESERVED_FOR_ANCHOR_TENANT
+                || reservationType == NAMESERVER_RESTRICTED,
+            "Only anchor tenant and nameserver restricted reservations "
+                + "should have restrictions imposed");
+        if (reservationType == RESERVED_FOR_ANCHOR_TENANT) {
+          entry.authCode = restrictions;
+        } else if (reservationType == NAMESERVER_RESTRICTED) {
+          Set<String> allowedNameservers =
+              ImmutableSet.copyOf(Splitter.on(':').trimResults().split(restrictions));
+          checkNameserversAreValid(allowedNameservers);
+          entry.allowedNameservers = Joiner.on(',').join(allowedNameservers);
+        }
       } else {
         checkArgument(reservationType != RESERVED_FOR_ANCHOR_TENANT,
             "Anchor tenant reservations must have an auth code configured");
+        checkArgument(
+            reservationType != NAMESERVER_RESTRICTED,
+            "Nameserver restricted reservations must have at least one nameserver configured");
       }
-      ReservedListEntry entry = new ReservedListEntry();
       entry.label = label;
-      entry.reservationType = reservationType;
-      entry.authCode = authCode;
       entry.comment = comment;
+      entry.reservationType = reservationType;
       return entry;
+    }
+
+    private static void checkNameserversAreValid(Set<String> nameservers) {
+      for (String nameserver : nameservers) {
+        // A domain name with fewer than two parts cannot be a hostname, as a nameserver should be.
+        checkArgument(
+            InternetDomainName.from(nameserver).parts().size() >= 3,
+            "%s is not a valid nameserver hostname",
+            nameserver);
+      }
     }
 
     @Override
@@ -120,6 +164,10 @@ public final class ReservedList
 
     public String getAuthCode() {
       return authCode;
+    }
+
+    public ImmutableSet<String> getAllowedNameservers() {
+      return ImmutableSet.copyOf(Splitter.on(',').splitToList(allowedNameservers));
     }
   }
 
@@ -210,6 +258,31 @@ public final class ReservedList
   }
 
   /**
+   * Returns the set of nameservers that can be set on the given domain.
+   *
+   * <p>The allowed nameservers are the intersection of all allowed nameservers for the given domain
+   * across all reserved lists. Returns an empty set if not applicable, i. e. the label for the
+   * domain is not set with {@code NAMESERVER_RESTRICTED} reservation type.
+   */
+  public static ImmutableSet<String> getAllowedNameservers(InternetDomainName domainName) {
+    HashSet<String> allowedNameservers = new HashSet<>();
+    boolean foundFirstNameserverRestricted = false;
+    for (ReservedListEntry entry :
+        getReservedListEntries(domainName.parts().get(0), domainName.parent().toString())) {
+      if (entry.reservationType == NAMESERVER_RESTRICTED) {
+        if (foundFirstNameserverRestricted) {
+          allowedNameservers.retainAll(entry.getAllowedNameservers());
+        } else {
+          allowedNameservers = new HashSet<String>(entry.getAllowedNameservers());
+          foundFirstNameserverRestricted = true;
+        }
+      }
+    }
+    return ImmutableSet.copyOf(allowedNameservers);
+  }
+
+
+  /**
    * Helper function to retrieve the entries associated with this label and TLD, or an empty set if
    * no such entry exists.
    */
@@ -271,8 +344,9 @@ public final class ReservedList
    * Gets the {@link ReservationType} of a label in a single ReservedList, or returns an absent
    * Optional if none exists in the list.
    *
-   * <p>Note that this logic is significantly less complicated than the getReservation() methods,
-   * which are applicable to an entire Registry, and need to check across multiple reserved lists.
+   * <p>Note that this logic is significantly less complicated than the {@link #getReservationTypes}
+   * methods, which are applicable to an entire Registry, and need to check across multiple reserved
+   * lists.
    */
   public Optional<ReservationType> getReservationInList(String label) {
     ReservedListEntry entry = getReservedListEntries().get(label);
@@ -293,8 +367,8 @@ public final class ReservedList
         "Could not parse line in reserved list: %s", originalLine);
     String label = parts.get(0);
     ReservationType reservationType = ReservationType.valueOf(parts.get(1));
-    String authCode = (parts.size() > 2) ? parts.get(2) : null;
-    return ReservedListEntry.create(label, reservationType, authCode, comment);
+    String restrictions = (parts.size() > 2) ? parts.get(2) : null;
+    return ReservedListEntry.create(label, reservationType, restrictions, comment);
   }
 
   @Override

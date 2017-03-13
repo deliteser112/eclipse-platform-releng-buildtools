@@ -22,9 +22,11 @@ import static google.registry.model.registry.label.DomainLabelMetrics.reservedLi
 import static google.registry.model.registry.label.ReservationType.ALLOWED_IN_SUNRISE;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.model.registry.label.ReservationType.MISTAKEN_PREMIUM;
+import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
 import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
 import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
 import static google.registry.model.registry.label.ReservationType.UNRESERVED;
+import static google.registry.model.registry.label.ReservedList.getAllowedNameservers;
 import static google.registry.model.registry.label.ReservedList.getReservationTypes;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 import static google.registry.monitoring.metrics.contrib.EventMetricSubject.assertThat;
@@ -164,21 +166,58 @@ public class ReservedListTest {
   }
 
   @Test
+  public void testGetAllowedNameservers() throws Exception {
+    ReservedList rl1 =
+        persistReservedList(
+            "reserved1",
+            "lol,NAMESERVER_RESTRICTED,ns1.nameserver.com",
+            "lol1,NAMESERVER_RESTRICTED,ns1.nameserver.com:ns2.domain.tld:ns3.domain.tld",
+            "lol2,NAMESERVER_RESTRICTED,ns.name.tld # This is a comment");
+    ReservedList rl2 =
+        persistReservedList(
+            "reserved2",
+            "lol1,NAMESERVER_RESTRICTED,ns3.nameserver.com:ns2.domain.tld:ns3.domain.tld",
+            "lol2,NAMESERVER_RESTRICTED,ns3.nameserver.com:ns4.domain.tld",
+            "lol3,NAMESERVER_RESTRICTED,ns3.nameserver.com");
+    ReservedList rl3 =
+        persistReservedList(
+            "reserved3", "lol1,NAMESERVER_RESTRICTED,ns3.domain.tld", "lol4,ALLOWED_IN_SUNRISE");
+    persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1, rl2, rl3).build());
+    assertThat(getReservationTypes("lol", "tld")).containsExactly(NAMESERVER_RESTRICTED);
+    assertThat(getReservationTypes("lol1", "tld")).containsExactly(NAMESERVER_RESTRICTED);
+    assertThat(getReservationTypes("lol2", "tld")).containsExactly(NAMESERVER_RESTRICTED);
+    assertThat(getReservationTypes("lol3", "tld")).containsExactly(NAMESERVER_RESTRICTED);
+    assertThat(getAllowedNameservers(InternetDomainName.from("lol.tld")))
+        .containsExactly("ns1.nameserver.com");
+    assertThat(getAllowedNameservers(InternetDomainName.from("lol1.tld")))
+        .containsExactly("ns3.domain.tld");
+    assertThat(getAllowedNameservers(InternetDomainName.from("lol2.tld"))).isEmpty();
+    assertThat(getAllowedNameservers(InternetDomainName.from("lol3.tld")))
+        .containsExactly("ns3.nameserver.com");
+    assertThat(getAllowedNameservers(InternetDomainName.from("lol4.tld"))).isEmpty();
+  }
+
+  @Test
   public void testMatchesAnchorTenantReservation_falseOnOtherReservationTypes() throws Exception {
-    persistResource(Registry.get("tld").asBuilder()
-        .setReservedLists(ImmutableSet.of(
-            persistReservedList(
-                "reserved2",
-                "lol,FULLY_BLOCKED",
-                "lol2,NAME_COLLISION",
-                "lol3,MISTAKEN_PREMIUM",
-                "lol4,ALLOWED_IN_SUNRISE")))
-        .build());
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                ImmutableSet.of(
+                    persistReservedList(
+                        "reserved2",
+                        "lol,FULLY_BLOCKED",
+                        "lol2,NAME_COLLISION",
+                        "lol3,MISTAKEN_PREMIUM",
+                        "lol4,ALLOWED_IN_SUNRISE",
+                        "lol5,NAMESERVER_RESTRICTED,na1.domain.tld")))
+            .build());
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "")).isFalse();
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol2.tld"), "")).isFalse();
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol3.tld"), "")).isFalse();
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol4.tld"), "")).isFalse();
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol5.tld"), "")).isFalse();
+    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol6.tld"), "")).isFalse();
     assertThat(reservedListChecks)
         .hasValueForLabels(1, "tld", "1", "reserved2", FULLY_BLOCKED.toString())
         .and()
@@ -187,6 +226,8 @@ public class ReservedListTest {
         .hasValueForLabels(1, "tld", "1", "reserved2", MISTAKEN_PREMIUM.toString())
         .and()
         .hasValueForLabels(1, "tld", "1", "reserved2", ALLOWED_IN_SUNRISE.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "1", "reserved2", NAMESERVER_RESTRICTED.toString())
         .and()
         .hasValueForLabels(1, "tld", "0", "(none)", UNRESERVED.toString())
         .and()
@@ -200,6 +241,8 @@ public class ReservedListTest {
         .and()
         .hasAnyValueForLabels("tld", "1", "reserved2", ALLOWED_IN_SUNRISE.toString())
         .and()
+        .hasAnyValueForLabels("tld", "1", "reserved2", NAMESERVER_RESTRICTED.toString())
+        .and()
         .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
         .and()
         .hasNoOtherValues();
@@ -211,6 +254,8 @@ public class ReservedListTest {
         .hasValueForLabels(1, "tld", "reserved2", MISTAKEN_PREMIUM.toString())
         .and()
         .hasValueForLabels(1, "tld", "reserved2", ALLOWED_IN_SUNRISE.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "reserved2", NAMESERVER_RESTRICTED.toString())
         .and()
         .hasNoOtherValues();
   }
@@ -435,15 +480,35 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testSave_passwordWithNonAnchorTenantReservation() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
-        "Only anchor tenant reservations should have an auth code configured");
+  public void testSave_additionalRestrictionWithIncompatibleReservationType() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Only anchor tenant and nameserver restricted reservations "
+            + "should have restrictions imposed");
     persistResource(
         Registry.get("tld")
             .asBuilder()
             .setReservedLists(
                 ImmutableSet.of(persistReservedList("reserved1", "lol,FULLY_BLOCKED,foobar1")))
             .build());
+  }
+
+  @Test
+  public void testSave_badNameservers_invalidSyntax() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "Not a valid domain name: 'ns@.domain.tld'");
+    persistReservedList(
+        "reserved1",
+        "lol,NAMESERVER_RESTRICTED,ns1.domain.tld:ns2.domain.tld",
+        "lol1,NAMESERVER_RESTRICTED,ns1.domain.tld:ns@.domain.tld");
+  }
+
+  @Test
+  public void testSave_badNameservers_tooFewPartsForHostname() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "domain.tld is not a valid nameserver hostname");
+    persistReservedList(
+        "reserved1",
+        "lol,NAMESERVER_RESTRICTED,ns1.domain.tld:ns2.domain.tld",
+        "lol1,NAMESERVER_RESTRICTED,ns1.domain.tld:domain.tld");
   }
 
   @Test
@@ -455,6 +520,19 @@ public class ReservedListTest {
             .asBuilder()
             .setReservedLists(
                 ImmutableSet.of(persistReservedList("reserved1", "lol,RESERVED_FOR_ANCHOR_TENANT")))
+            .build());
+  }
+
+  @Test
+  public void testSave_noNameserversWithNameserverRestrictedReservation() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Nameserver restricted reservations must have at least one nameserver configured");
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                ImmutableSet.of(persistReservedList("reserved1", "lol,NAMESERVER_RESTRICTED")))
             .build());
   }
 

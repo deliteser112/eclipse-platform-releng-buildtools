@@ -12,6 +12,11 @@ a price, it has a reservation type. The valid values for reservation types are:
 *   **`UNRESERVED`** - The default value for any label that isn't reserved.
     Labels that aren't explictly under any other status implictly have this
     value.
+*   **`NAMESERVER_RESTRICTED`** - Only nameservers included here can be set on a
+    domain with this label. If the a label in this type exists on multiple
+    reserved lists that are applied to the same TLD. The set of allowed
+    nameservers for that label in that TLD is the intersection of all applicable
+    nameservers.
 *   **`ALLOWED_IN_SUNRISE`** - The label can be registered during the sunrise
     period by a registrant with a valid claim but it is reserved thereafter.
 *   **`MISTAKEN_PREMIUM`** - The label is reserved because it was mistakenly put
@@ -19,7 +24,9 @@ a price, it has a reservation type. The valid values for reservation types are:
     a valid claim but is reserved thereafter.
 *   **`RESERVED_FOR_ANCHOR_TENANT`** - The label is reserved for the use of an
     anchor tenant, and can only be registered by someone sending along the EPP
-    passcode specified here at time of registration.
+    passcode specified here at time of registration. If a label has different
+    passcodes in different lists that are applied to the same TLD, an error will
+    occur.
 *   **`NAME_COLLISION`** - The label is reserved because it is on an [ICANN
     collision
     list](https://www.icann.org/resources/pages/name-collision-2013-12-06-en).
@@ -28,23 +35,29 @@ a price, it has a reservation type. The valid values for reservation types are:
 *   **`FULLY_BLOCKED`** - The label is fully reserved, no further reason
     specified.
 
-The reservation types are listed in order of increasing precedence, so if a
-label is included on different lists that are applied to a single TLD, whichever
-reservation type is later in the list takes precedence. E.g. a label being fully
-blocked in one list always supersedes it being allowed in sunrise from another
-list. In general `FULLY_BLOCKED` is by far the most widely used reservation type
-for typical TLD use cases.
+The reservation types are listed in order of increasing precedence, but if a
+label is included in different lists that are applied to a single TLD, all
+reservation types of the label are returned when queried. The order of the
+reservation types only affects the message a domain check EPP request receives,
+which is the one with the highest precedence. E.g. a label with name collision
+reservation type in one list and allowed in sunrise reservation type in another
+list will have both reservation types, but domain check will report that the
+label is reserved due to name collision (with message "Cannot be delegated"). In
+general `FULLY_BLOCKED` is by far the most widely used reservation type for
+typical TLD use cases.
 
 Here's an example of a small reserved list. Note that
-`RESERVED_FOR_ANCHOR_TENANT` is the only reservation type that has a third entry
-on the line, that entry being the EPP passcode required to register the domain
-(`hunter2` in this case):
+`RESERVED_FOR_ANCHOR_TENANT` has a third entry on the line, being the EPP
+passcode required to register the domain (`hunter2` in this case); and that
+`NAMESERVER_RESERVED` also has a third entry, a colon separated list of
+nameservers that the label can be delegated to:
 
 ```
 reserveddomain,FULLY_BLOCKED
 availableinga,ALLOWED_IN_SUNRISE
 fourletterword,FULLY_BLOCKED
 acmecorp,RESERVED_FOR_ANCHOR_TENANT,hunter2
+internaldomain,NAMESERVER_RESTRICTED,ns1.internal.tld:ns1.internal.tld
 ```
 
 There are two types of reserved lists: Those that are intended to apply to a
