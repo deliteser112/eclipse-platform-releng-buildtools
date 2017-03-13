@@ -32,6 +32,7 @@ import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.Keyring;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.GcsTestingUtils;
 import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.Providers;
@@ -87,7 +88,7 @@ public class BrdaCopyActionTest extends ShardableTestCase {
 
   @BeforeClass
   public static void beforeClass() {
-    try (Keyring keyring = new RdeKeyringModule().get()) {
+    try (Keyring keyring = new FakeKeyringModule().get()) {
       encryptKey = keyring.getRdeStagingEncryptionKey();
       decryptKey = keyring.getRdeStagingDecryptionKey();
       receiverKey = keyring.getRdeReceiverKey();

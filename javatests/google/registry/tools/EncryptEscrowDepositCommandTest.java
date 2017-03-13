@@ -19,7 +19,6 @@ import static google.registry.util.ResourceUtils.readResourceBytes;
 
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-import google.registry.rde.RdeKeyringModule;
 import google.registry.rde.RdeTestData;
 import google.registry.rde.RydePgpCompressionOutputStreamFactory;
 import google.registry.rde.RydePgpEncryptionOutputStreamFactory;
@@ -27,6 +26,7 @@ import google.registry.rde.RydePgpFileOutputStreamFactory;
 import google.registry.rde.RydePgpSigningOutputStreamFactory;
 import google.registry.rde.RydeTarOutputStreamFactory;
 import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.Providers;
 import java.io.File;
 import org.junit.Before;
@@ -50,8 +50,8 @@ public class EncryptEscrowDepositCommandTest
     res.pgpFileFactory = new RydePgpFileOutputStreamFactory(Providers.of(1024));
     res.pgpSigningFactory = new RydePgpSigningOutputStreamFactory();
     res.tarFactory = new RydeTarOutputStreamFactory();
-    res.rdeReceiverKey = new RdeKeyringModule().get().getRdeReceiverKey();
-    res.rdeSigningKey = new RdeKeyringModule().get().getRdeSigningKey();
+    res.rdeReceiverKey = new FakeKeyringModule().get().getRdeReceiverKey();
+    res.rdeSigningKey = new FakeKeyringModule().get().getRdeSigningKey();
     return res;
   }
 

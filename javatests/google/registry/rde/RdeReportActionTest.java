@@ -51,6 +51,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.util.Retrier;
@@ -113,14 +114,14 @@ public class RdeReportActionTest {
     action.interval = standardDays(1);
     action.reporter = reporter;
     action.timeout = standardSeconds(30);
-    action.stagingDecryptionKey = new RdeKeyringModule().get().getRdeStagingDecryptionKey();
+    action.stagingDecryptionKey = new FakeKeyringModule().get().getRdeStagingDecryptionKey();
     action.runner = runner;
     return action;
   }
 
   @Before
   public void before() throws Exception {
-    PGPPublicKey encryptKey = new RdeKeyringModule().get().getRdeStagingEncryptionKey();
+    PGPPublicKey encryptKey = new FakeKeyringModule().get().getRdeStagingEncryptionKey();
     createTld("test");
     persistResource(
         Cursor.create(CursorType.RDE_REPORT, DateTime.parse("2006-06-06TZ"), Registry.get("test")));

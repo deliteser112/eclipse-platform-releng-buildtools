@@ -24,6 +24,7 @@ import static org.junit.Assume.assumeTrue;
 import com.google.common.io.CharStreams;
 import google.registry.keyring.api.Keyring;
 import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.Providers;
 import google.registry.testing.ShardableTestCase;
@@ -60,7 +61,7 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
       RdeTestData.get("pgp-public-keyring.asc"),
       RdeTestData.get("pgp-private-keyring-escrow.asc"));
 
-  private final RdeKeyringModule keyringFactory = new RdeKeyringModule();
+  private final FakeKeyringModule keyringFactory = new FakeKeyringModule();
 
   @DataPoints
   public static GpgCommand[] commands = new GpgCommand[] {

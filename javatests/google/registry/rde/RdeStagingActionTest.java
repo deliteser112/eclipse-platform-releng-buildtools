@@ -49,6 +49,7 @@ import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
 import google.registry.request.RequestParameters;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
@@ -110,7 +111,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
 
   @BeforeClass
   public static void beforeClass() {
-    try (Keyring keyring = new RdeKeyringModule().get()) {
+    try (Keyring keyring = new FakeKeyringModule().get()) {
       encryptKey = keyring.getRdeStagingEncryptionKey();
       decryptKey = keyring.getRdeStagingDecryptionKey();
     }

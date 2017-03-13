@@ -24,6 +24,7 @@ import static org.junit.Assume.assumeTrue;
 import com.google.common.io.CharStreams;
 import google.registry.keyring.api.Keyring;
 import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.ShardableTestCase;
 import java.io.File;
@@ -50,9 +51,10 @@ public class GhostrydeGpgIntegrationTest extends ShardableTestCase {
   public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
 
   @Rule
-  public final GpgSystemCommandRule gpg = new GpgSystemCommandRule(
-      RdeTestData.get("pgp-public-keyring.asc"),
-      RdeTestData.get("pgp-private-keyring-registry.asc"));
+  public final GpgSystemCommandRule gpg =
+      new GpgSystemCommandRule(
+          RdeTestData.get("pgp-public-keyring.asc"),
+          RdeTestData.get("pgp-private-keyring-registry.asc"));
 
   @DataPoints
   public static GpgCommand[] commands = new GpgCommand[] {
@@ -84,7 +86,7 @@ public class GhostrydeGpgIntegrationTest extends ShardableTestCase {
   public void test(GpgCommand cmd, BufferSize bufferSize, Filename filename, Content content)
       throws Exception {
     assumeTrue(hasCommand(cmd.get() + " --version"));
-    Keyring keyring = new RdeKeyringModule().get();
+    Keyring keyring = new FakeKeyringModule().get();
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
     File file = new File(gpg.getCwd(), "love.gpg");
     byte[] data = content.get().getBytes(UTF_8);

@@ -28,6 +28,7 @@ import google.registry.keyring.api.Keyring;
 import google.registry.rde.Ghostryde.DecodeResult;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.ExceptionRule;
+import google.registry.testing.FakeKeyringModule;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -78,7 +79,7 @@ public class GhostrydeTest {
 
   @Theory
   public void testSimpleApi(Filename filename, Content content) throws Exception {
-    Keyring keyring = new RdeKeyringModule().get();
+    Keyring keyring = new FakeKeyringModule().get();
     byte[] data = content.get().getBytes(UTF_8);
     DateTime mtime = DateTime.parse("1984-12-18T00:30:00Z");
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
@@ -95,7 +96,7 @@ public class GhostrydeTest {
   @Theory
   public void testStreamingApi(BufferSize bufferSize, Filename filename, Content content)
       throws Exception {
-    Keyring keyring = new RdeKeyringModule().get();
+    Keyring keyring = new FakeKeyringModule().get();
     byte[] data = content.get().getBytes(UTF_8);
     DateTime mtime = DateTime.parse("1984-12-18T00:30:00Z");
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
@@ -125,7 +126,7 @@ public class GhostrydeTest {
 
   @Theory
   public void testEncryptOnly(Content content) throws Exception {
-    Keyring keyring = new RdeKeyringModule().get();
+    Keyring keyring = new FakeKeyringModule().get();
     byte[] data = content.get().getBytes(UTF_8);
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
     PGPPrivateKey privateKey = keyring.getRdeStagingDecryptionKey();
@@ -147,7 +148,7 @@ public class GhostrydeTest {
 
   @Theory
   public void testEncryptCompressOnly(Content content) throws Exception {
-    Keyring keyring = new RdeKeyringModule().get();
+    Keyring keyring = new FakeKeyringModule().get();
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
     PGPPrivateKey privateKey = keyring.getRdeStagingDecryptionKey();
     byte[] data = content.get().getBytes(UTF_8);
@@ -175,7 +176,7 @@ public class GhostrydeTest {
   public void testFailure_tampering(Content content) throws Exception {
     assumeThat(content.get().length(), is(greaterThan(100)));
 
-    Keyring keyring = new RdeKeyringModule().get();
+    Keyring keyring = new FakeKeyringModule().get();
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
     PGPPrivateKey privateKey = keyring.getRdeStagingDecryptionKey();
     byte[] data = content.get().getBytes(UTF_8);
@@ -203,7 +204,7 @@ public class GhostrydeTest {
   public void testFailure_corruption(Content content) throws Exception {
     assumeThat(content.get().length(), is(lessThan(100)));
 
-    Keyring keyring = new RdeKeyringModule().get();
+    Keyring keyring = new FakeKeyringModule().get();
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
     PGPPrivateKey privateKey = keyring.getRdeStagingDecryptionKey();
     byte[] data = content.get().getBytes(UTF_8);
@@ -229,7 +230,7 @@ public class GhostrydeTest {
 
   @Test
   public void testFailure_keyMismatch() throws Exception {
-    RdeKeyringModule keyringModule = new RdeKeyringModule();
+    FakeKeyringModule keyringModule = new FakeKeyringModule();
     byte[] data = "Fanatics have their dreams, wherewith they weave.".getBytes(UTF_8);
     DateTime mtime = DateTime.parse("1984-12-18T00:30:00Z");
     PGPKeyPair dsa1 = keyringModule.get("rde-unittest@registry.test", ENCRYPT);
@@ -257,7 +258,7 @@ public class GhostrydeTest {
   @Test
   @Ignore("Intentionally corrupting a PGP key is easier said than done >_>")
   public void testFailure_keyCorruption() throws Exception {
-    RdeKeyringModule keyringModule = new RdeKeyringModule();
+    FakeKeyringModule keyringModule = new FakeKeyringModule();
     byte[] data = "Fanatics have their dreams, wherewith they weave.".getBytes(UTF_8);
     DateTime mtime = DateTime.parse("1984-12-18T00:30:00Z");
     PGPKeyPair rsa = keyringModule.get("rde-unittest@registry.test", ENCRYPT);

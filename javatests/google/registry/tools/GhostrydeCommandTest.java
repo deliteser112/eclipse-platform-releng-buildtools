@@ -20,8 +20,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import google.registry.keyring.api.Keyring;
 import google.registry.rde.Ghostryde;
 import google.registry.rde.Ghostryde.DecodeResult;
-import google.registry.rde.RdeKeyringModule;
 import google.registry.testing.BouncyCastleProviderRule;
+import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.InjectRule;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -65,7 +65,7 @@ public class GhostrydeCommandTest extends CommandTestCase<GhostrydeCommand> {
 
   @Before
   public void before() throws Exception {
-    keyring = new RdeKeyringModule().get();
+    keyring = new FakeKeyringModule().get();
     command.ghostryde = new Ghostryde(1024);
     command.rdeStagingDecryptionKey = keyring.getRdeStagingDecryptionKey();
     command.rdeStagingEncryptionKey = keyring.getRdeStagingEncryptionKey();

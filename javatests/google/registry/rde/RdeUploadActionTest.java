@@ -63,6 +63,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.GpgSystemCommandRule;
@@ -183,7 +184,7 @@ public class RdeUploadActionTest {
         }};
 
   private RdeUploadAction createAction(URI uploadUrl) {
-    try (Keyring keyring = new RdeKeyringModule().get()) {
+    try (Keyring keyring = new FakeKeyringModule().get()) {
       RdeUploadAction action = new RdeUploadAction();
       action.clock = clock;
       action.gcsUtils = new GcsUtils(gcsService, BUFFER_SIZE);
@@ -230,7 +231,7 @@ public class RdeUploadActionTest {
   @Before
   public void before() throws Exception {
     createTld("tld");
-    PGPPublicKey encryptKey = new RdeKeyringModule().get().getRdeStagingEncryptionKey();
+    PGPPublicKey encryptKey = new FakeKeyringModule().get().getRdeStagingEncryptionKey();
     writeGcsFile(gcsService, GHOSTRYDE_FILE,
         Ghostryde.encode(DEPOSIT_XML.read(), encryptKey, "lobster.xml", clock.nowUtc()));
     writeGcsFile(gcsService, GHOSTRYDE_R1_FILE,

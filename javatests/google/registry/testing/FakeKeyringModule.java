@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.rde;
+package google.registry.testing;
 
 import static google.registry.keyring.api.PgpHelper.KeyRequirement.ENCRYPT;
 import static google.registry.keyring.api.PgpHelper.KeyRequirement.SIGN;
+import static google.registry.util.ResourceUtils.readResourceBytes;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.google.common.io.ByteSource;
 import dagger.Module;
@@ -36,20 +38,24 @@ import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.bc.BcPGPPublicKeyRingCollection;
 import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
 
-/** Keyring factory that loads keys {@code javatests/.../rde/testdata} */
+/** Keyring factory that loads keys from {@code javatests/.../testing/testdata} */
 @Module
 @Immutable
-public final class RdeKeyringModule {
+public final class FakeKeyringModule {
 
-  static final String STAGING_KEY_EMAIL = "rde-unittest@registry.test";
-  static final String SIGNING_KEY_EMAIL = "rde-unittest@registry.test";
-  static final String RECEIVER_KEY_EMAIL = "rde-unittest@escrow.test";
-  static final ByteSource PGP_PUBLIC_KEYRING = RdeTestData.get("pgp-public-keyring.asc");
-  static final ByteSource PGP_PRIVATE_KEYRING = RdeTestData.get("pgp-private-keyring-registry.asc");
-  static final String ICANN_REPORTING_PASSWORD = "yolo";
-  static final String MARKSDB_DNL_LOGIN = "dnl:yolo";
-  static final String MARKSDB_LORDN_PASSWORD = "yolo";
-  static final String MARKSDB_SMDRL_LOGIN = "smdrl:yolo";
+  private static final String STAGING_KEY_EMAIL = "rde-unittest@registry.test";
+  private static final String SIGNING_KEY_EMAIL = "rde-unittest@registry.test";
+  private static final String RECEIVER_KEY_EMAIL = "rde-unittest@escrow.test";
+  private static final ByteSource PGP_PUBLIC_KEYRING =
+      readResourceBytes(FakeKeyringModule.class, "testdata/pgp-public-keyring.asc");
+  private static final ByteSource PGP_PRIVATE_KEYRING =
+      readResourceBytes(FakeKeyringModule.class, "testdata/pgp-private-keyring-registry.asc");
+  private static final String ICANN_REPORTING_PASSWORD = "yolo";
+  private static final String MARKSDB_DNL_LOGIN = "dnl:yolo";
+  private static final String MARKSDB_LORDN_PASSWORD = "yolo";
+  private static final String MARKSDB_SMDRL_LOGIN = "smdrl:yolo";
+  private static final String BRAINTREE_PRIVATE_KEY = "braintree123";
+  private static final String JSON_CREDENTIAL = "json123";
 
   @Provides
   public Keyring get() {
@@ -72,14 +78,11 @@ public final class RdeKeyringModule {
         PgpHelper.lookupPublicKey(publics, RECEIVER_KEY_EMAIL, ENCRYPT);
     final PGPKeyPair brdaSigningKey = rdeSigningKey;
     final PGPPublicKey brdaReceiverKey = rdeReceiverKey;
-    final String sshPublic;
-    final String sshPrivate;
-    try {
-      sshPublic = RdeTestData.loadUtf8("registry-unittest.id_rsa.pub");
-      sshPrivate = RdeTestData.loadUtf8("registry-unittest.id_rsa");
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to load SSH keys from jar", e);
-    }
+    final String sshPublic =
+        readResourceUtf8(FakeKeyringModule.class, "testdata/registry-unittest.id_rsa.pub");
+    final String sshPrivate =
+        readResourceUtf8(FakeKeyringModule.class, "testdata/registry-unittest.id_rsa");
+
     return new Keyring() {
       @Override
       public PGPPublicKey getRdeStagingEncryptionKey() {
@@ -128,7 +131,7 @@ public final class RdeKeyringModule {
 
       @Override
       public String getJsonCredential() {
-        throw new UnsupportedOperationException();
+        return JSON_CREDENTIAL;
       }
 
       @Override
@@ -148,7 +151,7 @@ public final class RdeKeyringModule {
 
       @Override
       public String getBraintreePrivateKey() {
-        throw new UnsupportedOperationException();
+        return BRAINTREE_PRIVATE_KEY;
       }
 
       @Override
