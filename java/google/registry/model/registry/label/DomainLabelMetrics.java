@@ -38,7 +38,7 @@ class DomainLabelMetrics {
   }
 
   /**
-   * Labels attached to {@link #reservedListChecks} and {@link #reservedListProcessingTimes}
+   * Labels attached to {@link #reservedListChecks} and {@link #reservedListProcessingTime}
    * metrics.
    *
    * <p>A domain name can be matched by multiple reserved lists. To keep the metrics useful by
@@ -74,7 +74,7 @@ class DomainLabelMetrics {
 
   /** Metric recording the amount of time required to check a label against all reserved lists. */
   @VisibleForTesting
-  static final EventMetric reservedListProcessingTimes =
+  static final EventMetric reservedListProcessingTime =
       MetricRegistryImpl.getDefault()
           .newEventMetric(
               "/domain_label/reserved/processing_time",
@@ -121,7 +121,7 @@ class DomainLabelMetrics {
             .toString();
     reservedListChecks.increment(
         tld, matchCount, mostSevereReservedList, mostSevereReservationType);
-    reservedListProcessingTimes.record(
+    reservedListProcessingTime.record(
         elapsedMillis, tld, matchCount, mostSevereReservedList, mostSevereReservationType);
   }
 }

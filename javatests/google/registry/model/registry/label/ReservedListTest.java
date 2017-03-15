@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.registry.label.DomainLabelMetrics.reservedListChecks;
 import static google.registry.model.registry.label.DomainLabelMetrics.reservedListHits;
-import static google.registry.model.registry.label.DomainLabelMetrics.reservedListProcessingTimes;
+import static google.registry.model.registry.label.DomainLabelMetrics.reservedListProcessingTime;
 import static google.registry.model.registry.label.ReservationType.ALLOWED_IN_SUNRISE;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.model.registry.label.ReservationType.MISTAKEN_PREMIUM;
@@ -76,7 +76,7 @@ public class ReservedListTest {
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("tld");
     reservedListChecks.reset();
-    reservedListProcessingTimes.reset();
+    reservedListProcessingTime.reset();
     reservedListHits.reset();
   }
 
@@ -85,7 +85,7 @@ public class ReservedListTest {
         .hasValueForLabels(unreservedCount, "tld", "0", "(none)", UNRESERVED.toString())
         .and()
         .hasNoOtherValues();
-    assertThat(reservedListProcessingTimes)
+    assertThat(reservedListProcessingTime)
         .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
         .and()
         .hasNoOtherValues();
@@ -153,7 +153,7 @@ public class ReservedListTest {
         .hasValueForLabels(6, "tld", "1", "reserved1", RESERVED_FOR_ANCHOR_TENANT.toString())
         .and()
         .hasNoOtherValues();
-    assertThat(reservedListProcessingTimes)
+    assertThat(reservedListProcessingTime)
         .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
         .and()
         .hasAnyValueForLabels("tld", "1", "reserved1", RESERVED_FOR_ANCHOR_TENANT.toString())
@@ -232,7 +232,7 @@ public class ReservedListTest {
         .hasValueForLabels(1, "tld", "0", "(none)", UNRESERVED.toString())
         .and()
         .hasNoOtherValues();
-    assertThat(reservedListProcessingTimes)
+    assertThat(reservedListProcessingTime)
         .hasAnyValueForLabels("tld", "1", "reserved2", FULLY_BLOCKED.toString())
         .and()
         .hasAnyValueForLabels("tld", "1", "reserved2", NAME_COLLISION.toString())
@@ -301,7 +301,7 @@ public class ReservedListTest {
         .hasValueForLabels(2, "tld", "1", "reserved2", FULLY_BLOCKED.toString())
         .and()
         .hasNoOtherValues();
-    assertThat(reservedListProcessingTimes)
+    assertThat(reservedListProcessingTime)
         .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
         .and()
         .hasAnyValueForLabels("tld", "1", "reserved1", FULLY_BLOCKED.toString())
@@ -355,7 +355,7 @@ public class ReservedListTest {
         .hasValueForLabels(1, "tld", "0", "(none)", UNRESERVED.toString())
         .and()
         .hasNoOtherValues();
-    assertThat(reservedListProcessingTimes)
+    assertThat(reservedListProcessingTime)
         .hasAnyValueForLabels("tld", "1", "reserved2", FULLY_BLOCKED.toString())
         .and()
         .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
@@ -382,7 +382,7 @@ public class ReservedListTest {
         .hasValueForLabels(1, "tld", "2", "reserved2", FULLY_BLOCKED.toString())
         .and()
         .hasNoOtherValues();
-    assertThat(reservedListProcessingTimes)
+    assertThat(reservedListProcessingTime)
         .hasAnyValueForLabels("tld", "1", "reserved1", ALLOWED_IN_SUNRISE.toString())
         .and()
         .hasAnyValueForLabels("tld", "2", "reserved2", FULLY_BLOCKED.toString())
