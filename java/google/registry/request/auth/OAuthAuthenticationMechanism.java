@@ -25,6 +25,7 @@ import com.google.appengine.api.users.User;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -36,6 +37,8 @@ import javax.servlet.http.HttpServletRequest;
 public class OAuthAuthenticationMechanism implements AuthenticationMechanism {
 
   private static final String BEARER_PREFIX = "Bearer ";
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private final OAuthService oauthService;
 
@@ -72,6 +75,7 @@ public class OAuthAuthenticationMechanism implements AuthenticationMechanism {
     // OAuthService itself only looks at the first one anyway.
     String header = request.getHeader(AUTHORIZATION);
     if ((header == null) || !header.startsWith(BEARER_PREFIX)) {
+      logger.infofmt("missing or invalid authorization header");
       return AuthResult.create(NONE);
     }
     // Assume that, if a bearer token is found, it's what OAuthService will use to attempt
@@ -90,10 +94,14 @@ public class OAuthAuthenticationMechanism implements AuthenticationMechanism {
     try {
       currentUser = oauthService.getCurrentUser(availableOauthScopes.toArray(new String[0]));
       isUserAdmin = oauthService.isUserAdmin(availableOauthScopes.toArray(new String[0]));
+      logger.infofmt("current user: %s (%s)", currentUser, isUserAdmin ? "admin" : "not admin");
       clientId = oauthService.getClientId(availableOauthScopes.toArray(new String[0]));
+      logger.infofmt("client ID: %s", clientId);
       authorizedScopes = ImmutableSet
           .copyOf(oauthService.getAuthorizedScopes(availableOauthScopes.toArray(new String[0])));
+      logger.infofmt("authorized scope(s): %s", authorizedScopes);
     } catch (OAuthRequestException | OAuthServiceFailureException e) {
+      logger.infofmt(e, "unable to get OAuth information");
       return AuthResult.create(NONE);
     }
     if ((currentUser == null) || (clientId == null) || (authorizedScopes == null)) {
@@ -103,11 +111,13 @@ public class OAuthAuthenticationMechanism implements AuthenticationMechanism {
     // Make sure that the client ID matches, to avoid a confused deputy attack; see:
     // http://stackoverflow.com/a/17439317/1179226
     if (!allowedOauthClientIds.contains(clientId)) {
+      logger.info("client ID is not allowed");
       return AuthResult.create(NONE);
     }
 
     // Make sure that all required scopes are present.
     if (!authorizedScopes.containsAll(requiredOauthScopes)) {
+      logger.info("required scope(s) missing");
       return AuthResult.create(NONE);
     }
 
