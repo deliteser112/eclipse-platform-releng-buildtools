@@ -690,7 +690,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .addStatusValue(StatusValue.CLIENT_DELETE_PROHIBITED)
         .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "clientDeleteProhibited");
     runFlow();
   }
 
@@ -699,7 +699,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .addStatusValue(StatusValue.SERVER_DELETE_PROHIBITED)
         .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverDeleteProhibited");
     runFlow();
   }
 
@@ -708,7 +708,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .addStatusValue(StatusValue.PENDING_DELETE)
         .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
     runFlow();
   }
 

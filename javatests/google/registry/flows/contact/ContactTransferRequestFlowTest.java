@@ -28,9 +28,11 @@ import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
+import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
+import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferStatus;
 import org.joda.time.DateTime;
@@ -185,6 +187,30 @@ public class ContactTransferRequestFlowTest
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
+    doFailingTest("contact_transfer_request.xml");
+  }
+
+  @Test
+  public void testFailure_clientTransferProhibited() throws Exception {
+    contact = persistResource(
+        contact.asBuilder().addStatusValue(StatusValue.CLIENT_TRANSFER_PROHIBITED).build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "clientTransferProhibited");
+    doFailingTest("contact_transfer_request.xml");
+  }
+
+  @Test
+  public void testFailure_serverTransferProhibited() throws Exception {
+    contact = persistResource(
+        contact.asBuilder().addStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED).build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverTransferProhibited");
+    doFailingTest("contact_transfer_request.xml");
+  }
+
+  @Test
+  public void testFailure_pendingDelete() throws Exception {
+    contact = persistResource(
+        contact.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
     doFailingTest("contact_transfer_request.xml");
   }
 }

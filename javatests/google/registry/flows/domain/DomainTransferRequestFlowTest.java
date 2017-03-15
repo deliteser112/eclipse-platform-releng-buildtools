@@ -925,11 +925,29 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
+  public void testFailure_clientTransferProhibited() throws Exception {
+    setupDomain("example", "tld");
+    domain = persistResource(
+        domain.asBuilder().addStatusValue(StatusValue.CLIENT_TRANSFER_PROHIBITED).build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "clientTransferProhibited");
+    doFailingTest("domain_transfer_request.xml");
+  }
+
+  @Test
+  public void testFailure_serverTransferProhibited() throws Exception {
+    setupDomain("example", "tld");
+    domain = persistResource(
+        domain.asBuilder().addStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED).build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverTransferProhibited");
+    doFailingTest("domain_transfer_request.xml");
+  }
+
+  @Test
   public void testFailure_pendingDelete() throws Exception {
     setupDomain("example", "tld");
     domain = persistResource(
         domain.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
     doFailingTest("domain_transfer_request.xml");
   }
 }

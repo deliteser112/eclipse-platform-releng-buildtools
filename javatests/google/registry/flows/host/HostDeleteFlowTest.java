@@ -54,16 +54,6 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld"));
   }
 
-  private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
-      throws Exception {
-    persistResource(
-        newHostResource("ns1.example.tld").asBuilder()
-            .setStatusValues(ImmutableSet.of(statusValue))
-            .build());
-    thrown.expect(exception);
-    runFlow();
-  }
-
   @Test
   public void testDryRun() throws Exception {
     persistActiveHost("ns1.example.tld");
@@ -96,6 +86,16 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedHost("ns1.example.tld", clock.nowUtc().minusDays(1));
     thrown.expect(ResourceDoesNotExistException.class, "(ns1.example.tld)");
+    runFlow();
+  }
+
+  private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
+      throws Exception {
+    persistResource(
+        newHostResource("ns1.example.tld").asBuilder()
+            .setStatusValues(ImmutableSet.of(statusValue))
+            .build());
+    thrown.expect(exception, statusValue.getXmlName());
     runFlow();
   }
 

@@ -153,20 +153,6 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testSuccess_removeClientUpdateProhibited() throws Exception {
-    setEppInput("host_update_remove_client_update_prohibited.xml");
-    persistActiveHost(oldHostName());
-    persistResource(
-        newHostResource(oldHostName()).asBuilder()
-            .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
-            .build());
-    clock.advanceOneMilli();
-    runFlow();
-    assertAboutEppResources().that(reloadResourceByForeignKey())
-        .doesNotHaveStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED);
-  }
-
-  @Test
   public void testSuccess_rename_noOtherHostEverUsedTheOldName() throws Exception {
     persistActiveHost(oldHostName());
     HostResource renamedHost = doSuccessfulTest();
@@ -829,26 +815,6 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testFailure_clientUpdateProhibited() throws Exception {
-    persistResource(
-        newHostResource(oldHostName()).asBuilder()
-            .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
-            .build());
-    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testFailure_serverUpdateProhibited() throws Exception {
-    persistResource(
-        newHostResource(oldHostName()).asBuilder()
-            .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
-            .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
-    runFlow();
-  }
-
-  @Test
   public void testFailure_subordinateNeedsIps() throws Exception {
     setEppHostUpdateInput(
         "ns1.example.tld",
@@ -952,7 +918,51 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testFailure_clientProhibitedStatusValue() throws Exception {
+  public void testSuccess_clientUpdateProhibited_removed() throws Exception {
+    setEppInput("host_update_remove_client_update_prohibited.xml");
+    persistActiveHost(oldHostName());
+    persistResource(
+        newHostResource(oldHostName()).asBuilder()
+            .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
+            .build());
+    clock.advanceOneMilli();
+    runFlow();
+    assertAboutEppResources().that(reloadResourceByForeignKey())
+        .doesNotHaveStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED);
+  }
+
+  @Test
+  public void testFailure_clientUpdateProhibited() throws Exception {
+    persistResource(
+        newHostResource(oldHostName()).asBuilder()
+            .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
+            .build());
+    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_serverUpdateProhibited() throws Exception {
+    persistResource(
+        newHostResource(oldHostName()).asBuilder()
+            .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
+            .build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverUpdateProhibited");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_pendingDelete() throws Exception {
+    persistResource(
+        newHostResource(oldHostName()).asBuilder()
+            .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
+            .build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_statusValueNotClientSettable() throws Exception {
     createTld("tld");
     persistActiveDomain("example.tld");
     setEppInput("host_update_prohibited_status.xml");
@@ -962,7 +972,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testSuccess_superuserClientProhibitedStatusValue() throws Exception {
+  public void testSuccess_superuserStatusValueNotClientSettable() throws Exception {
     setEppInput("host_update_prohibited_status.xml");
     createTld("tld");
     persistActiveDomain("example.tld");

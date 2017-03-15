@@ -64,6 +64,7 @@ import org.joda.time.Duration;
  * @error {@link google.registry.flows.exceptions.AlreadyPendingTransferException}
  * @error {@link google.registry.flows.exceptions.MissingTransferRequestAuthInfoException}
  * @error {@link google.registry.flows.exceptions.ObjectAlreadySponsoredException}
+ * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
  */
 public final class ContactTransferRequestFlow implements TransactionalFlow {
 

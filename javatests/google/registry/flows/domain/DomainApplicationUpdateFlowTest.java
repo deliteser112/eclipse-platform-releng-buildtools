@@ -444,7 +444,7 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setStatusValues(
         ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED)).build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverUpdateProhibited");
     runFlow();
   }
 

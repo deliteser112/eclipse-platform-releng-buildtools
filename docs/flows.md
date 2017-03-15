@@ -50,6 +50,8 @@ or rejected, and the gaining registrar can also cancel the transfer request.
     *   The resource is already pending transfer.
 *   2303
     *   Resource with this id does not exist.
+*   2304
+    *   Resource status prohibits this operation.
 
 ## ContactTransferRejectFlow
 

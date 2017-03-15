@@ -72,18 +72,6 @@ public class ContactUpdateFlowTest
   }
 
   @Test
-  public void testSuccess_removeClientUpdateProhibited() throws Exception {
-    setEppInput("contact_update_remove_client_update_prohibited.xml");
-    persistResource(
-        newContactResource(getUniqueIdFromCommand()).asBuilder()
-            .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
-            .build());
-    doSuccessfulTest();
-    assertAboutContacts().that(reloadResourceByForeignKey())
-        .doesNotHaveStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED);
-  }
-
-  @Test
   public void testSuccess_updatingInternationalizedPostalInfoDeletesLocalized() throws Exception {
     ContactResource contact =
         persistResource(
@@ -281,7 +269,7 @@ public class ContactUpdateFlowTest
   }
 
   @Test
-  public void testFailure_clientProhibitedStatusValue() throws Exception {
+  public void testFailure_statusValueNotClientSettable() throws Exception {
     setEppInput("contact_update_prohibited_status.xml");
     persistActiveContact(getUniqueIdFromCommand());
     thrown.expect(StatusNotClientSettableException.class);
@@ -289,7 +277,7 @@ public class ContactUpdateFlowTest
   }
 
   @Test
-  public void testSuccess_superuserClientProhibitedStatusValue() throws Exception {
+  public void testSuccess_superuserStatusValueNotClientSettable() throws Exception {
     setEppInput("contact_update_prohibited_status.xml");
     persistActiveContact(getUniqueIdFromCommand());
     clock.advanceOneMilli();
@@ -317,7 +305,19 @@ public class ContactUpdateFlowTest
   }
 
   @Test
-  public void testSuccess_superuserClientUpdateProhibited() throws Exception {
+  public void testSuccess_clientUpdateProhibited_removed() throws Exception {
+    setEppInput("contact_update_remove_client_update_prohibited.xml");
+    persistResource(
+        newContactResource(getUniqueIdFromCommand()).asBuilder()
+            .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
+            .build());
+    doSuccessfulTest();
+    assertAboutContacts().that(reloadResourceByForeignKey())
+        .doesNotHaveStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED);
+  }
+
+  @Test
+  public void testSuccess_superuserClientUpdateProhibited_notRemoved() throws Exception {
     setEppInput("contact_update_prohibited_status.xml");
     persistResource(
         newContactResource(getUniqueIdFromCommand()).asBuilder()
@@ -334,7 +334,7 @@ public class ContactUpdateFlowTest
   }
 
   @Test
-  public void testFailure_clientUpdateProhibited() throws Exception {
+  public void testFailure_clientUpdateProhibited_notRemoved() throws Exception {
     persistResource(
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
@@ -349,7 +349,17 @@ public class ContactUpdateFlowTest
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
             .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverUpdateProhibited");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_pendingDeleteProhibited() throws Exception {
+    persistResource(
+        newContactResource(getUniqueIdFromCommand()).asBuilder()
+            .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
+            .build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
     runFlow();
   }
 

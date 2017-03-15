@@ -44,16 +44,6 @@ public class ContactDeleteFlowTest
     setEppInput("contact_delete.xml");
   }
 
-  private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
-      throws Exception {
-    persistResource(
-        newContactResource(getUniqueIdFromCommand()).asBuilder()
-            .setStatusValues(ImmutableSet.of(statusValue))
-            .build());
-    thrown.expect(exception);
-    runFlow();
-  }
-
   @Test
   public void testDryRun() throws Exception {
     persistActiveContact(getUniqueIdFromCommand());
@@ -89,6 +79,16 @@ public class ContactDeleteFlowTest
     thrown.expect(
         ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
+    runFlow();
+  }
+
+  private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
+      throws Exception {
+    persistResource(
+        newContactResource(getUniqueIdFromCommand()).asBuilder()
+            .setStatusValues(ImmutableSet.of(statusValue))
+            .build());
+    thrown.expect(exception, statusValue.getXmlName());
     runFlow();
   }
 

@@ -427,14 +427,25 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   @Test
   public void testFailure_clientRenewProhibited() throws Exception {
     persistDomain(StatusValue.CLIENT_RENEW_PROHIBITED);
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "clientRenewProhibited");
     runFlow();
   }
 
   @Test
   public void testFailure_serverRenewProhibited() throws Exception {
     persistDomain(StatusValue.SERVER_RENEW_PROHIBITED);
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverRenewProhibited");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_pendingDelete() throws Exception {
+    persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
+        .setRegistrationExpirationTime(expirationTime)
+        .setDeletionTime(clock.nowUtc().plusDays(1))
+        .addStatusValue(StatusValue.PENDING_DELETE)
+        .build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
     runFlow();
   }
 
@@ -579,17 +590,6 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     setEppInput("domain_renew_11_years.xml");
     persistDomain();
     thrown.expect(ExceedsMaxRegistrationYearsException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testFailure_pendingDelete() throws Exception {
-    persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
-        .setRegistrationExpirationTime(expirationTime)
-        .setDeletionTime(clock.nowUtc().plusDays(1))
-        .addStatusValue(StatusValue.PENDING_DELETE)
-        .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
     runFlow();
   }
 

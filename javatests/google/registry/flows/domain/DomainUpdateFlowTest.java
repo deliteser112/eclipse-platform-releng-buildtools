@@ -833,30 +833,6 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   @Test
-  public void testFailure_clientUpdateProhibited() throws Exception {
-    createTld("com");
-    setEppInput("domain_update_authinfo.xml");
-    persistReferencedEntities();
-    persistResource(
-        newDomainResource(getUniqueIdFromCommand()).asBuilder()
-            .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
-            .build());
-    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testFailure_serverUpdateProhibited() throws Exception {
-    persistReferencedEntities();
-    persistResource(
-        newDomainResource(getUniqueIdFromCommand()).asBuilder()
-            .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
-            .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
-    runFlow();
-  }
-
-  @Test
   public void testFailure_missingHost() throws Exception {
     persistActiveHost("ns1.example.foo");
     persistActiveContact("sh8013");
@@ -898,7 +874,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   @Test
-  public void testFailure_clientProhibitedStatusValue() throws Exception {
+  public void testFailure_statusValueNotClientSettable() throws Exception {
     setEppInput("domain_update_prohibited_status.xml");
     persistReferencedEntities();
     persistDomain();
@@ -907,7 +883,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   @Test
-  public void testSuccess_superuserClientProhibitedStatusValue() throws Exception {
+  public void testSuccess_superuserStatusValueNotClientSettable() throws Exception {
     setEppInput("domain_update_prohibited_status.xml");
     persistReferencedEntities();
     persistDomain();
@@ -918,6 +894,30 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   @Test
+  public void testFailure_clientUpdateProhibited() throws Exception {
+    createTld("com");
+    setEppInput("domain_update_authinfo.xml");
+    persistReferencedEntities();
+    persistResource(
+        newDomainResource(getUniqueIdFromCommand()).asBuilder()
+            .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
+            .build());
+    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_serverUpdateProhibited() throws Exception {
+    persistReferencedEntities();
+    persistResource(
+        newDomainResource(getUniqueIdFromCommand()).asBuilder()
+            .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
+            .build());
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverUpdateProhibited");
+    runFlow();
+  }
+
+  @Test
   public void testFailure_pendingDelete() throws Exception {
     persistReferencedEntities();
     persistResource(
@@ -925,7 +925,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setDeletionTime(clock.nowUtc().plusDays(1))
             .addStatusValue(StatusValue.PENDING_DELETE)
             .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
     runFlow();
   }
 
