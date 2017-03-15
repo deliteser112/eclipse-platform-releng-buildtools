@@ -83,14 +83,14 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * @param method the method whose return value is given
    * @param object the object returned by a call to method
    */
-  protected String toString(
+  protected String stringifyResult(
       @SuppressWarnings("unused") Method method,
       @Nullable Object object) {
     return String.valueOf(object);
   }
 
   /**
-   * Implements equals for specific types.
+   * Checks whether the method results are as similar as we expect.
    *
    * <p>By default objects are compared using their .equals. If .equals isn't implemented for some
    * relevant classes (or if we want change what is considered "not equal"), override this method
@@ -100,7 +100,7 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * @param actual the object returned by a call to method for the "actual" implementation
    * @param second the object returned by a call to method for the "second" implementation
    */
-  protected boolean equals(
+  protected boolean compareResults(
       @SuppressWarnings("unused") Method method,
       @Nullable Object actual,
       @Nullable Object second) {
@@ -108,7 +108,7 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
   }
 
   /**
-   * Implements equals for thrown exceptions.
+   * Checks whether the thrown exceptions are as similar as we expect.
    *
    * <p>By default this returns 'true' for any input: all we check by default is that both
    * implementations threw something. Override if you need to actually compare both throwables.
@@ -117,7 +117,7 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * @param actual the exception thrown by a call to method for the "actual" implementation
    * @param second the exception thrown by a call to method for the "second" implementation
    */
-  protected boolean exceptionEquals(
+  protected boolean compareException(
       @SuppressWarnings("unused") Method method,
       Throwable actual,
       Throwable second) {
@@ -133,7 +133,7 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * @param method the method whose return value is given
    * @param exception the exception thrown by a call to method
    */
-  protected String exceptionToString(
+  protected String stringifyException(
       @SuppressWarnings("unused") Method method,
       Throwable exception) {
     return exception.toString();
@@ -159,35 +159,35 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
 
     // First compare the two implementations' result, and log any differences:
     if (actualException != null && secondException != null) {
-      if (!exceptionEquals(method, actualException, secondException)) {
+      if (!compareException(method, actualException, secondException)) {
         log(
             method,
             String.format(
                 "Both implementations threw, but got different exceptions! '%s' vs '%s'",
-                exceptionToString(method, actualException),
-                exceptionToString(method, secondException)));
+                stringifyException(method, actualException),
+                stringifyException(method, secondException)));
       }
     } else if (actualException != null) {
       log(
           method,
           String.format(
               "Only actual implementation threw exception: %s",
-              exceptionToString(method, actualException)));
+              stringifyException(method, actualException)));
     } else if (secondException != null) {
       log(
           method,
           String.format(
               "Only second implementation threw exception: %s",
-              exceptionToString(method, secondException)));
+              stringifyException(method, secondException)));
     } else {
       // Neither threw exceptions - we compare the results
-      if (!equals(method, actualResult, secondResult)) {
+      if (!compareResults(method, actualResult, secondResult)) {
         log(
             method,
             String.format(
                 "Got different results! '%s' vs '%s'",
-                toString(method, actualResult),
-                toString(method, secondResult)));
+                stringifyResult(method, actualResult),
+                stringifyResult(method, secondResult)));
       }
     }
 

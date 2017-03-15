@@ -79,26 +79,27 @@ public class ComparingInvocationHandlerTest {
       log.add(String.format("%s: %s", method.getName(), message));
     }
 
-    @Override protected boolean equals(Method method, @Nullable Object a, @Nullable Object b) {
+    @Override protected boolean compareResults(
+        Method method, @Nullable Object a, @Nullable Object b) {
       if (method.getReturnType().equals(Dummy.class)) {
         return dummyEqualsResult;
       }
-      return super.equals(method, a, b);
+      return super.compareResults(method, a, b);
     }
 
-    @Override protected String toString(Method method, @Nullable Object a) {
+    @Override protected String stringifyResult(Method method, @Nullable Object a) {
       if (method.getReturnType().equals(Dummy.class)) {
         return "dummy";
       }
-      return super.toString(method, a);
+      return super.stringifyResult(method, a);
     }
 
-    @Override protected boolean exceptionEquals(Method method, Throwable a, Throwable b) {
-      return exceptionEqualsResult && super.exceptionEquals(method, a, b);
+    @Override protected boolean compareException(Method method, Throwable a, Throwable b) {
+      return exceptionEqualsResult && super.compareException(method, a, b);
     }
 
-    @Override protected String exceptionToString(Method method, Throwable a) {
-      return String.format("testException(%s)", super.exceptionToString(method, a));
+    @Override protected String stringifyException(Method method, Throwable a) {
+      return String.format("testException(%s)", super.stringifyException(method, a));
     }
   }
 
