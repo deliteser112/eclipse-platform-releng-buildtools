@@ -332,6 +332,7 @@ new ones with the correct approval time).
     *   The requested domain name is on the premium price list, and this
         registrar has blocked premium registrations.
 *   2306
+    *   Domain transfer period must be one year.
     *   Periods for domain registrations must be specified in years.
     *   The requested fees cannot be provided in the requested currency.
 

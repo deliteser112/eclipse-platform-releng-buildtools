@@ -44,6 +44,7 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
+import google.registry.flows.exceptions.TransferPeriodMustBeOneYearException;
 import google.registry.model.domain.DomainCommand.Transfer;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
@@ -89,6 +90,7 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.MissingTransferRequestAuthInfoException}
  * @error {@link google.registry.flows.exceptions.ObjectAlreadySponsoredException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
+ * @error {@link google.registry.flows.exceptions.TransferPeriodMustBeOneYearException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}
@@ -216,9 +218,36 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
       throw new ObjectAlreadySponsoredException();
     }
     checkAllowedAccessToTld(gainingClientId, existingDomain.getTld());
-    verifyUnitIsYears(period);
+    verifyTransferPeriodIsOneYear(period);
     if (!isSuperuser) {
       verifyPremiumNameIsNotBlocked(targetId, now, gainingClientId);
+    }
+  }
+
+  /**
+   * Verify that the transfer period is one year.
+   *
+   * <p>Restricting transfers to one year is seemingly required by ICANN's <a
+   * href="https://www.icann.org/resources/pages/policy-2012-03-07-en">Policy on Transfer of
+   * Registrations between Registrars</a>, section A.8. It states that "the completion by Registry
+   * Operator of a holder-authorized transfer under this Part A shall result in a one-year extension
+   * of the existing registration, provided that in no event shall the total unexpired term of a
+   * registration exceed ten (10) years."
+   *
+   * <p>Even if not required, this policy is desirable because it dramatically simplifies the logic
+   * in transfer flows. Registrars appear to never request 2+ year transfers in practice, and they
+   * can always decompose an multi-year transfer into a 1-year transfer followed by a manual renewal
+   * afterwards. The <a href="https://tools.ietf.org/html/rfc5731#section-3.2.4">EPP Domain RFC,
+   * section 3.2.4</a> says about EPP transfer periods that "the number of units available MAY be
+   * subject to limits imposed by the server" so we're just limiting the units to one.
+   *
+   * <p>Note that clients can omit the period element from the transfer EPP entirely, but then it
+   * will simply default to one year.
+   */
+  private static void verifyTransferPeriodIsOneYear(Period period) throws EppException {
+    verifyUnitIsYears(period);
+    if (period.getValue() != 1) {
+      throw new TransferPeriodMustBeOneYearException();
     }
   }
 

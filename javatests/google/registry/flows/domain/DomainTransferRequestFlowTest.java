@@ -53,6 +53,7 @@ import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
+import google.registry.flows.exceptions.TransferPeriodMustBeOneYearException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Cancellation.Builder;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -500,22 +501,35 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
-  public void testSuccess_missingPeriod() throws Exception {
+  public void testSuccess_missingPeriod_defaultsToOneYear() throws Exception {
     setupDomain("example", "tld");
-    doSuccessfulTest("domain_transfer_request_missing_period.xml",
+    doSuccessfulTest(
+        "domain_transfer_request_missing_period.xml",
         "domain_transfer_request_response.xml");
+  }
+
+  @Test
+  public void testFailure_multiYearPeriod() throws Exception {
+    setupDomain("example", "tld");
+    clock.advanceOneMilli();
+    thrown.expect(TransferPeriodMustBeOneYearException.class);
+    doFailingTest("domain_transfer_request_2_years.xml");
   }
 
   @Test
   public void testSuccess_cappedExpiration() throws Exception {
     setupDomain("example", "tld");
-    // The current expiration is in 15 months, so requesting 10 years would give 11 years 3 months,
-    // were it not that we cap at 10 years. (MAX_REGISTRATION_YEARS == 10 and is unlikely to ever
-    // change; we just use a constant for readability.)
+    // Set the domain to expire 10 years from now (as if it were just created with a 10-year term).
+    domain = persistResource(domain.asBuilder()
+        .setRegistrationExpirationTime(clock.nowUtc().plusYears(10))
+        .build());
+    // New expiration time should be capped at exactly 10 years from the transfer server-approve
+    // time, so the domain only ends up gaining the 5-day transfer window's worth of extra
+    // registration time.
     clock.advanceOneMilli();
     doSuccessfulTest(
-        "domain_transfer_request_10_years.xml",
-        "domain_transfer_request_response_10_years.xml",
+        "domain_transfer_request.xml",
+        "domain_transfer_request_response_10_year_cap.xml",
         clock.nowUtc().plus(Registry.get("tld").getAutomaticTransferLength()).plusYears(10));
   }
 
@@ -534,16 +548,16 @@ public class DomainTransferRequestFlowTest
     doSuccessfulTest(
         "domain_transfer_request_fee.xml",
         "domain_transfer_request_response_fees.xml",
-        domain.getRegistrationExpirationTime().plusYears(3),
+        domain.getRegistrationExpirationTime().plusYears(1),
         new ImmutableMap.Builder<String, String>()
             .put("DOMAIN", "expensive-domain.foo")
-            .put("YEARS", "3")
-            .put("AMOUNT", "133.00")
-            .put("EXDATE", "2004-09-08T22:00:00.0Z")
+            .put("YEARS", "1")
+            .put("AMOUNT", "111.00")
+            .put("EXDATE", "2002-09-08T22:00:00.0Z")
             .put("FEE_VERSION", "0.6")
             .put("FEE_NS", "fee")
             .build(),
-        Optional.of(Money.of(USD, 133)));
+        Optional.of(Money.of(USD, 111)));
   }
 
   @Test

@@ -373,7 +373,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
   }
 
   @Test
-  public void testIgnoredTransferDuringAutoRenewPeriod_succeeds() throws Exception {
+  public void testTransfer_autoRenewGraceActive_onlyAtAutomaticTransferTime_getsSubsumed()
+      throws Exception {
     // Register the domain as the first registrar.
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     createFakesite();
@@ -382,8 +383,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
     // Request a transfer of the domain to the second registrar.
     assertCommandAndResponse("login2_valid.xml", "login_response.xml");
     assertCommandAndResponse(
-        "domain_transfer_request_2_years.xml",
-        "domain_transfer_response_2_years.xml",
+        "domain_transfer_request.xml",
+        "domain_transfer_response.xml",
         DateTime.parse("2002-05-30T00:00:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
 
@@ -402,7 +403,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     // Log back in as the second registrar and verify transfer details.
     assertCommandAndResponse("login2_valid.xml", "login_response.xml");
-    // Verify that domain is in the transfer period now with expiration date two years out.
+    // Verify that domain is in the transfer period now with expiration date still one year out,
+    // since the transfer should subsume the autorenew that happened during the transfer window.
     assertCommandAndResponse(
         "domain_info_fakesite.xml",
         "domain_info_response_fakesite_transfer_period.xml",
@@ -425,8 +427,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
     // Request a transfer of the domain to the second registrar.
     assertCommandAndResponse("login2_valid.xml", "login_response.xml");
     assertCommandAndResponse(
-        "domain_transfer_request_2_years.xml",
-        "domain_transfer_response_2_years.xml",
+        "domain_transfer_request.xml",
+        "domain_transfer_response.xml",
         DateTime.parse("2002-05-30T00:00:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
 
@@ -464,8 +466,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
     // Request a transfer of the domain to the second registrar.
     assertCommandAndResponse("login2_valid.xml", "login_response.xml");
     assertCommandAndResponse(
-        "domain_transfer_request_2_years.xml",
-        "domain_transfer_response_2_years.xml",
+        "domain_transfer_request.xml",
+        "domain_transfer_response.xml",
         DateTime.parse("2002-05-30T00:00:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
 
