@@ -61,7 +61,6 @@ public class HostResourceTest extends EntityTestCase {
         newDomainResource("example.com").asBuilder()
             .setRepoId("1-COM")
             .setTransferData(new TransferData.Builder()
-                .setExtendedRegistrationYears(0)
                 .setGainingClientId("gaining")
                 .setLosingClientId("losing")
                 .setPendingTransferExpirationTime(clock.nowUtc())

@@ -193,7 +193,6 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
             .setTransferRequestTime(requestTime)
             .setLosingClientId("TheRegistrar")
             .setPendingTransferExpirationTime(transferExpirationTime)
-            .setExtendedRegistrationYears(1)
             .build())
         .build());
     persistResource(
@@ -222,7 +221,6 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
             .setTransferRequestTime(requestTime)
             .setLosingClientId("NewRegistrar")
             .setPendingTransferExpirationTime(transferExpirationTime)
-            .setExtendedRegistrationYears(1)
             .build())
         .build());
     persistResource(

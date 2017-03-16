@@ -298,18 +298,15 @@ public class DomainTransferApproveFlowTest
     DateTime oldExpirationTime = clock.nowUtc().minusDays(1);
     persistResource(domain.asBuilder()
         .setRegistrationExpirationTime(oldExpirationTime)
-        .setTransferData(domain.getTransferData().asBuilder()
-            .setExtendedRegistrationYears(2)
-            .build())
         .build());
-    // The autorenew should be subsumed into the transfer resulting in 2 years of renewal in total.
+    // The autorenew should be subsumed into the transfer resulting in 1 year of renewal in total.
     clock.advanceOneMilli();
     doSuccessfulTest(
         "tld",
         "domain_transfer_approve_domain_authinfo.xml",
         "domain_transfer_approve_response_autorenew.xml",
-        oldExpirationTime.plusYears(2),
-        2,
+        oldExpirationTime.plusYears(1),
+        1,
         // Expect the grace period for autorenew to be cancelled.
         new BillingEvent.Cancellation.Builder()
             .setReason(Reason.RENEW)

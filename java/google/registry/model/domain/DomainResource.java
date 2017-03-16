@@ -247,9 +247,8 @@ public class DomainResource extends DomainBase
           cloneProjectedAtTime(transferExpirationTime.minusMillis(1));
       // If we are within an autorenew grace period, the transfer will subsume the autorenew. There
       // will already be a cancellation written in advance by the transfer request flow, so we don't
-      // need to worry about billing, but we do need to reduce the number of years added to the
-      // expiration time by one to account for the year added by the autorenew.
-      int extraYears = transferData.getExtendedRegistrationYears();
+      // need to worry about billing, but we do need to cancel out the expiration time increase.
+      int extraYears = 1;  // All transfers are one year.
       if (domainAtTransferTime.getGracePeriodStatuses().contains(GracePeriodStatus.AUTO_RENEW)) {
         extraYears--;
       }

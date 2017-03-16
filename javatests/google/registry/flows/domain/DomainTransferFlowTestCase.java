@@ -101,7 +101,6 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
         TRANSFER_REQUEST_TIME,
         TRANSFER_EXPIRATION_TIME,
         EXTENDED_REGISTRATION_EXPIRATION_TIME,
-        EXTENDED_REGISTRATION_YEARS,
         TRANSFER_REQUEST_TIME);
   }
 
@@ -176,8 +175,7 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
         domain,
         historyEntry,
         TRANSFER_REQUEST_TIME,
-        TRANSFER_EXPIRATION_TIME,
-        EXTENDED_REGISTRATION_YEARS);
+        TRANSFER_EXPIRATION_TIME);
   }
 
   /** Get the autorenew event that the losing client will have after a SERVER_APPROVED transfer. */

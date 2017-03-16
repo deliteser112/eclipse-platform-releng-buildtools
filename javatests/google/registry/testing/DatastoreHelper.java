@@ -431,12 +431,6 @@ public class DatastoreHelper {
         .setPendingTransferExpirationTime(expirationTime);
   }
 
-  private static Builder createTransferDataBuilder(
-      DateTime requestTime, DateTime expirationTime, Integer extendedRegistrationYears) {
-    return createTransferDataBuilder(requestTime, expirationTime)
-        .setExtendedRegistrationYears(extendedRegistrationYears);
-  }
-
   public static PollMessage.OneTime createPollMessageForImplicitTransfer(
       EppResource contact,
       HistoryEntry historyEntry,
@@ -460,8 +454,7 @@ public class DatastoreHelper {
       DomainResource domain,
       HistoryEntry historyEntry,
       DateTime costLookupTime,
-      DateTime eventTime,
-      Integer extendedRegistrationYears) {
+      DateTime eventTime) {
     return new BillingEvent.OneTime.Builder()
         .setReason(Reason.TRANSFER)
         .setTargetId(domain.getFullyQualifiedDomainName())
@@ -469,10 +462,8 @@ public class DatastoreHelper {
         .setBillingTime(
             eventTime.plus(Registry.get(domain.getTld()).getTransferGracePeriodLength()))
         .setClientId("NewRegistrar")
-        .setPeriodYears(extendedRegistrationYears)
-        .setCost(
-            getDomainRenewCost(
-                domain.getFullyQualifiedDomainName(), costLookupTime, extendedRegistrationYears))
+        .setPeriodYears(1)
+        .setCost(getDomainRenewCost(domain.getFullyQualifiedDomainName(), costLookupTime, 1))
         .setParent(historyEntry)
         .build();
   }
@@ -522,7 +513,6 @@ public class DatastoreHelper {
       DateTime requestTime,
       DateTime expirationTime,
       DateTime extendedRegistrationExpirationTime,
-      int extendedRegistrationYears,
       DateTime now) {
     HistoryEntry historyEntryDomainTransfer = persistResource(
         new HistoryEntry.Builder()
@@ -533,8 +523,7 @@ public class DatastoreHelper {
             domain,
             historyEntryDomainTransfer,
             requestTime,
-            expirationTime,
-            extendedRegistrationYears));
+            expirationTime));
     BillingEvent.Recurring gainingClientAutorenewEvent = persistResource(
         new BillingEvent.Recurring.Builder()
             .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
@@ -571,8 +560,7 @@ public class DatastoreHelper {
     } else {
       deleteResource(autorenewPollMessage);
     }
-    Builder transferDataBuilder = createTransferDataBuilder(
-        requestTime, expirationTime, extendedRegistrationYears);
+    Builder transferDataBuilder = createTransferDataBuilder(requestTime, expirationTime);
     return persistResource(domain.asBuilder()
         .setPersistedCurrentSponsorClientId("TheRegistrar")
         .addStatusValue(StatusValue.PENDING_TRANSFER)
@@ -602,7 +590,6 @@ public class DatastoreHelper {
                         expirationTime,
                         now)))))
             .setTransferRequestTrid(Trid.create("transferClient-trid", "transferServer-trid"))
-            .setExtendedRegistrationYears(extendedRegistrationYears)
             .build())
         .build());
   }

@@ -148,10 +148,10 @@ public class DomainTransferQueryFlowTest
 
   @Test
   public void testSuccess_tenYears() throws Exception {
+    // Extend registration by 9 years here; with the extra 1 year from the transfer, we should
+    // hit the 10-year capping.
     domain = persistResource(domain.asBuilder()
-        .setTransferData(domain.getTransferData().asBuilder()
-            .setExtendedRegistrationYears(10)
-            .build())
+        .setRegistrationExpirationTime(domain.getRegistrationExpirationTime().plusYears(9))
         .build());
     doSuccessfulTest(
         "domain_transfer_query.xml",

@@ -92,13 +92,12 @@ public final class DomainTransferUtils {
       Trid trid,
       String gainingClientId,
       Money transferCost,
-      int years,
       DateTime now) {
     String targetId = existingDomain.getFullyQualifiedDomainName();
     // Create a TransferData for the server-approve case to use for the speculative poll messages.
     TransferData serverApproveTransferData =
         createTransferDataBuilder(
-                existingDomain, trid, gainingClientId, automaticTransferTime, years, now)
+                existingDomain, trid, gainingClientId, automaticTransferTime, now)
             .setTransferStatus(TransferStatus.SERVER_APPROVED)
             .build();
     Registry registry = Registry.get(existingDomain.getTld());
@@ -110,8 +109,7 @@ public final class DomainTransferUtils {
                 targetId,
                 gainingClientId,
                 registry,
-                transferCost,
-                years))
+                transferCost))
         .addAll(
             createOptionalAutorenewCancellation(
                     automaticTransferTime, historyEntry, targetId, existingDomain)
@@ -255,14 +253,13 @@ public final class DomainTransferUtils {
       String targetId,
       String gainingClientId,
       Registry registry,
-      Money transferCost,
-      int years) {
+      Money transferCost) {
     return new BillingEvent.OneTime.Builder()
         .setReason(Reason.TRANSFER)
         .setTargetId(targetId)
         .setClientId(gainingClientId)
         .setCost(transferCost)
-        .setPeriodYears(years)
+        .setPeriodYears(1)
         .setEventTime(automaticTransferTime)
         .setBillingTime(automaticTransferTime.plus(registry.getTransferGracePeriodLength()))
         .setParent(historyEntry)
@@ -274,15 +271,13 @@ public final class DomainTransferUtils {
       Trid trid,
       String gainingClientId,
       DateTime automaticTransferTime,
-      int years,
       DateTime now) {
     return new TransferData.Builder()
         .setTransferRequestTrid(trid)
         .setTransferRequestTime(now)
         .setGainingClientId(gainingClientId)
         .setLosingClientId(existingDomain.getCurrentSponsorClientId())
-        .setPendingTransferExpirationTime(automaticTransferTime)
-        .setExtendedRegistrationYears(years);
+        .setPendingTransferExpirationTime(automaticTransferTime);
   }
 
   private DomainTransferUtils() {}

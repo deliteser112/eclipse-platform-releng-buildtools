@@ -17,7 +17,6 @@ package google.registry.rde;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -257,9 +256,9 @@ final class DomainResourceToXjcConverter {
     bean.setAcRr(RdeUtil.makeXjcRdeRrType(model.getLosingClientId()));
     bean.setReDate(model.getTransferRequestTime());
     bean.setAcDate(model.getPendingTransferExpirationTime());
+    // TODO(b/25084229): fix exDate computation logic.
     if (model.getTransferStatus() == TransferStatus.PENDING) {
-      int years = Optional.fromNullable(model.getExtendedRegistrationYears()).or(0);
-      bean.setExDate(domainExpires.plusYears(years));
+      bean.setExDate(domainExpires.plusYears(1));
     } else {
       bean.setExDate(domainExpires);
     }

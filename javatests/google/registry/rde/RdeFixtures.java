@@ -149,7 +149,6 @@ final class RdeFixtures {
                     .setParent(historyEntry)
                     .build())))
         .setTransferData(new TransferData.Builder()
-            .setExtendedRegistrationYears(1)
             .setGainingClientId("gaining")
             .setLosingClientId("losing")
             .setPendingTransferExpirationTime(DateTime.parse("1925-04-20T00:00:00Z"))

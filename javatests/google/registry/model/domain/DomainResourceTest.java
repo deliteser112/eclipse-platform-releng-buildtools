@@ -124,7 +124,6 @@ public class DomainResourceTest extends EntityTestCase {
                 LaunchNotice.create("tcnid", "validatorId", START_OF_TIME, START_OF_TIME))
             .setTransferData(
                 new TransferData.Builder()
-                    .setExtendedRegistrationYears(1)
                     .setGainingClientId("gaining")
                     .setLosingClientId("losing")
                     .setPendingTransferExpirationTime(clock.nowUtc())
@@ -306,7 +305,6 @@ public class DomainResourceTest extends EntityTestCase {
            .setServerApproveBillingEvent(Key.create(transferBillingEvent))
            .setServerApproveEntities(ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
                Key.create(transferBillingEvent)))
-           .setExtendedRegistrationYears(1)
            .build())
         .addGracePeriod(
             // Okay for billing event to be null since the point of this grace period is just

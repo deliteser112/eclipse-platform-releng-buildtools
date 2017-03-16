@@ -189,19 +189,17 @@ public class RdeDomainImportAction implements Runnable {
               Money transferCost = getDomainRenewCost(
                   domain.getFullyQualifiedDomainName(),
                   transferData.getPendingTransferExpirationTime(),
-                  transferData.getExtendedRegistrationYears());
+                  1);
               // Create speculative entities in anticipation of an automatic server approval.
               ImmutableSet<TransferServerApproveEntity> serverApproveEntities =
                   createTransferServerApproveEntities(
                       transferData.getPendingTransferExpirationTime(),
-                      domain.getRegistrationExpirationTime()
-                          .plusYears(transferData.getExtendedRegistrationYears()),
+                      domain.getRegistrationExpirationTime().plusYears(1),
                       historyEntry,
                       domain,
                       historyEntry.getTrid(),
                       transferData.getGainingClientId(),
                       transferCost,
-                      transferData.getExtendedRegistrationYears(),
                       transferData.getTransferRequestTime());
               transferData =
                   createPendingTransferData(transferData.asBuilder(), serverApproveEntities);

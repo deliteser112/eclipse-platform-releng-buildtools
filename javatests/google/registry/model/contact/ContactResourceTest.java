@@ -102,7 +102,6 @@ public class ContactResourceTest extends EntityTestCase {
                 .build())
             .setStatusValues(ImmutableSet.of(StatusValue.OK))
             .setTransferData(new TransferData.Builder()
-                .setExtendedRegistrationYears(0)
                 .setGainingClientId("gaining")
                 .setLosingClientId("losing")
                 .setPendingTransferExpirationTime(clock.nowUtc())

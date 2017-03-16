@@ -85,11 +85,8 @@ public final class DomainTransferQueryFlow implements Flow {
     DateTime newExpirationTime = null;
     if (transferData.getTransferStatus().isApproved()
         || transferData.getTransferStatus().equals(TransferStatus.PENDING)) {
-      // TODO(b/25084229): This is not quite right.
-      newExpirationTime = extendRegistrationWithCap(
-          now,
-          domain.getRegistrationExpirationTime(),
-          transferData.getExtendedRegistrationYears());
+      // TODO(b/25084229): fix exDate computation logic.
+      newExpirationTime = extendRegistrationWithCap(now, domain.getRegistrationExpirationTime(), 1);
     }
     return responseBuilder
         .setResData(createTransferResponse(targetId, transferData, newExpirationTime))

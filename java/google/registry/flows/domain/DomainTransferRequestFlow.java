@@ -128,7 +128,6 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     extensionManager.validate();
     validateClientIsLoggedIn(gainingClientId);
     Period period = ((Transfer) resourceCommand).getPeriod();
-    int years = period.getValue();
     DateTime now = ofy().getTransactionTime();
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyTransferAllowed(existingDomain, period, now);
@@ -143,25 +142,24 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     DateTime automaticTransferTime = now.plus(registry.getAutomaticTransferLength());
  
     // If the domain will be in the auto-renew grace period at the moment of transfer, the transfer
-    // will subsume the autorenew, so we reduce by 1 the number of years to extend the registration.
-    // Note that the regular "years" remains the same since it affects the transfer charge amount.
-    // The gaining registrar is still billed for the full years; the losing registrar will get a
+    // will subsume the autorenew, so we don't add the normal extra year from the transfer.
+    // The gaining registrar is still billed for the extra year; the losing registrar will get a
     // cancellation for the autorenew written out within createTransferServerApproveEntities().
     //
     // See b/19430703#comment17 and https://www.icann.org/news/advisory-2002-06-06-en for the
     // policy documentation for transfers subsuming autorenews within the autorenew grace period.
-    int registrationExtensionYears = years;
+    int extraYears = 1;
     DomainResource domainAtTransferTime =
         existingDomain.cloneProjectedAtTime(automaticTransferTime);
     if (!domainAtTransferTime.getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW).isEmpty()) {
-      registrationExtensionYears--;
+      extraYears--;
     }
     // The new expiration time if there is a server approval.
     DateTime serverApproveNewExpirationTime =
         extendRegistrationWithCap(
             automaticTransferTime,
             domainAtTransferTime.getRegistrationExpirationTime(),
-            registrationExtensionYears);
+            extraYears);
     // Create speculative entities in anticipation of an automatic server approval.
     ImmutableSet<TransferServerApproveEntity> serverApproveEntities =
         createTransferServerApproveEntities(
@@ -172,11 +170,10 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
             trid,
             gainingClientId,
             feesAndCredits.getTotalCost(),
-            years,
             now);
     // Create the transfer data that represents the pending transfer.
     TransferData pendingTransferData = createPendingTransferData(
-        createTransferDataBuilder(existingDomain, automaticTransferTime, years, now),
+        createTransferDataBuilder(existingDomain, automaticTransferTime, now),
         serverApproveEntities);
     // Create a poll message to notify the losing registrar that a transfer was requested.
     PollMessage requestPollMessage = createLosingTransferPollMessage(
@@ -262,14 +259,13 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   }
 
   private Builder createTransferDataBuilder(
-      DomainResource existingDomain, DateTime automaticTransferTime, int years, DateTime now) {
+      DomainResource existingDomain, DateTime automaticTransferTime, DateTime now) {
     return new TransferData.Builder()
         .setTransferRequestTrid(trid)
         .setTransferRequestTime(now)
         .setGainingClientId(gainingClientId)
         .setLosingClientId(existingDomain.getCurrentSponsorClientId())
-        .setPendingTransferExpirationTime(automaticTransferTime)
-        .setExtendedRegistrationYears(years);
+        .setPendingTransferExpirationTime(automaticTransferTime);
   }
 
   private DomainTransferResponse createResponse(

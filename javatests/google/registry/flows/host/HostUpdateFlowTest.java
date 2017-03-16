@@ -113,7 +113,6 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setTransferRequestTime(requestTime)
             .setLosingClientId("TheRegistrar")
             .setPendingTransferExpirationTime(transferExpirationTime)
-            .setExtendedRegistrationYears(1)
             .build())
         .build();
   }

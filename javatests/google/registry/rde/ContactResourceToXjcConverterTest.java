@@ -332,7 +332,6 @@ public class ContactResourceToXjcConverterTest {
                 .setPhoneNumber("+1.2126660001")
                 .build())
         .setTransferData(new TransferData.Builder()
-            .setExtendedRegistrationYears(1)
             .setGainingClientId("TheRegistrar")
             .setLosingClientId("NewRegistrar")
             .setTransferRequestTime(DateTime.parse("1925-04-19TZ"))

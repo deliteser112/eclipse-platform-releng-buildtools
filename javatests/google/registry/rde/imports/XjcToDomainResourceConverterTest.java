@@ -388,36 +388,6 @@ public class XjcToDomainResourceConverterTest {
         .isEqualTo(DateTime.parse("2015-01-08T22:00:00.0Z"));
   }
 
-  @Test
-  public void testConvertDomainResourcePendingTransferDefaultExtendedYears() throws Exception {
-    persistActiveContact("jd1234");
-    persistActiveContact("sh8013");
-    final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_pending_transfer.xml");
-    DomainResource domain = persistResource(convertDomainInTransaction(xjcDomain));
-    assertThat(domain.getTransferData()).isNotNull();
-    assertThat(domain.getTransferData().getExtendedRegistrationYears()).isEqualTo(1);
-  }
-
-  @Test
-  public void testConvertDomainResourcePendingTransferExtendOneYear() throws Exception {
-    persistActiveContact("jd1234");
-    persistActiveContact("sh8013");
-    final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_pending_transfer_1yr.xml");
-    DomainResource domain = persistResource(convertDomainInTransaction(xjcDomain));
-    assertThat(domain.getTransferData()).isNotNull();
-    assertThat(domain.getTransferData().getExtendedRegistrationYears()).isEqualTo(1);
-  }
-
-  @Test
-  public void testConvertDomainResourcePendingTransferExtendTwoYears() throws Exception {
-    persistActiveContact("jd1234");
-    persistActiveContact("sh8013");
-    final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_pending_transfer_2yr.xml");
-    DomainResource domain = persistResource(convertDomainInTransaction(xjcDomain));
-    assertThat(domain.getTransferData()).isNotNull();
-    assertThat(domain.getTransferData().getExtendedRegistrationYears()).isEqualTo(2);
-  }
-
   private static DomainResource convertDomainInTransaction(final XjcRdeDomain xjcDomain) {
     final HistoryEntry historyEntry = createHistoryEntryForDomainImport(xjcDomain);
     final BillingEvent.Recurring autorenewBillingEvent =

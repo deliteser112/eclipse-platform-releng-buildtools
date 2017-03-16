@@ -876,7 +876,6 @@ class google.registry.model.transfer.TransferData {
   com.googlecode.objectify.Key<google.registry.model.poll.PollMessage$Autorenew> serverApproveAutorenewPollMessage;
   google.registry.model.eppcommon.Trid transferRequestTrid;
   google.registry.model.transfer.TransferStatus transferStatus;
-  java.lang.Integer extendedRegistrationYears;
   java.lang.String gainingClientId;
   java.lang.String losingClientId;
   java.util.Set<com.googlecode.objectify.Key<? extends google.registry.model.transfer.TransferData$TransferServerApproveEntity>> serverApproveEntities;

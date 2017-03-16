@@ -60,7 +60,6 @@ import java.security.ProviderException;
 import java.security.SecureRandom;
 import java.util.Random;
 import org.joda.time.DateTime;
-import org.joda.time.Years;
 
 /** Utility class that converts an {@link XjcRdeDomainElement} into a {@link DomainResource}. */
 final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
@@ -208,7 +207,7 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
                     ? ImmutableSet.<DelegationSignerData>of()
                     : ImmutableSet.copyOf(
                         transform(domain.getSecDNS().getDsDatas(), SECDNS_CONVERTER)))
-            .setTransferData(convertDomainTransferData(domain.getTrnData(), domain.getExDate()))
+            .setTransferData(convertDomainTransferData(domain.getTrnData()))
             // authInfo pw must be a token between 6 and 16 characters in length
             // generate a token of 16 characters as the default authInfo pw
             .setAuthInfo(DomainAuthInfo
@@ -241,34 +240,17 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
   }
 
   /** Converts {@link XjcRdeDomainTransferDataType} to {@link TransferData}. */
-  private static TransferData convertDomainTransferData(XjcRdeDomainTransferDataType data,
-      DateTime domainExpiration) {
+  private static TransferData convertDomainTransferData(XjcRdeDomainTransferDataType data) {
     if (data == null) {
       return TransferData.EMPTY;
     }
-    // If the transfer is pending, calculate the number of years to add to the domain expiration
-    // on approval of the transfer.
-    TransferStatus transferStatus = TRANSFER_STATUS_MAPPER.xmlToEnum(data.getTrStatus().value());
-    // Get new expiration date
-    DateTime newExpirationTime = domainExpiration;
-    if (transferStatus == TransferStatus.PENDING) {
-      // Default to domain expiration time plus one year if no expiration is specified
-      if (data.getExDate() == null) {
-        newExpirationTime = newExpirationTime.plusYears(1);
-      } else {
-        newExpirationTime = data.getExDate();
-      }
-    }
+    // TODO(b/25084229): read in the exDate and store it somewhere.
     return new TransferData.Builder()
-        .setTransferStatus(transferStatus)
+        .setTransferStatus(TRANSFER_STATUS_MAPPER.xmlToEnum(data.getTrStatus().value()))
         .setGainingClientId(data.getReRr().getValue())
         .setLosingClientId(data.getAcRr().getValue())
         .setTransferRequestTime(data.getReDate())
         .setPendingTransferExpirationTime(data.getAcDate())
-        // This will be wrong for domains that are not in pending transfer,
-        // but there isn't a reliable way to calculate it.
-        .setExtendedRegistrationYears(
-            Years.yearsBetween(domainExpiration, newExpirationTime).getYears())
         .build();
   }
 

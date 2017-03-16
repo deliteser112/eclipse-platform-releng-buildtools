@@ -96,15 +96,14 @@ public final class ResourceFlowUtils {
       builder = new ContactTransferResponse.Builder().setContactId(eppResource.getForeignKey());
     } else {
       DomainResource domain = (DomainResource) eppResource;
-      builder = new DomainTransferResponse.Builder()
-          .setFullyQualifiedDomainNameName(eppResource.getForeignKey())
-          .setExtendedRegistrationExpirationTime(
-              ADD_EXDATE_STATUSES.contains(transferData.getTransferStatus())
-                  ? extendRegistrationWithCap(
-                      now,
-                      domain.getRegistrationExpirationTime(),
-                      transferData.getExtendedRegistrationYears())
-                  : null);
+      builder =
+          new DomainTransferResponse.Builder()
+              .setFullyQualifiedDomainNameName(eppResource.getForeignKey())
+              // TODO(b/25084229): fix exDate computation logic.
+              .setExtendedRegistrationExpirationTime(
+                  ADD_EXDATE_STATUSES.contains(transferData.getTransferStatus())
+                      ? extendRegistrationWithCap(now, domain.getRegistrationExpirationTime(), 1)
+                      : null);
     }
     builder.setGainingClientId(transferData.getGainingClientId())
         .setLosingClientId(transferData.getLosingClientId())
@@ -218,7 +217,6 @@ public final class ResourceFlowUtils {
       TransferData oldTransferData, TransferStatus transferStatus, DateTime now) {
     checkArgument(!oldTransferData.equals(TransferData.EMPTY), "No old transfer to resolve.");
     return oldTransferData.asBuilder()
-        .setExtendedRegistrationYears(null)
         .setServerApproveEntities(null)
         .setServerApproveBillingEvent(null)
         .setServerApproveAutorenewEvent(null)

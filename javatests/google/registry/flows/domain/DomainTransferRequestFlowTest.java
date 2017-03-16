@@ -164,7 +164,6 @@ public class DomainTransferRequestFlowTest
     domain = reloadResourceByForeignKey();
     final HistoryEntry historyEntryTransferRequest =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST);
-    int registrationYears = domain.getTransferData().getExtendedRegistrationYears();
     subordinateHost = reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc());
     assertTransferRequested(domain);
     assertAboutDomains().that(domain)
@@ -174,7 +173,7 @@ public class DomainTransferRequestFlowTest
             HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST);
     assertAboutHistoryEntries()
         .that(historyEntryTransferRequest)
-        .hasPeriodYears(registrationYears)
+        .hasPeriodYears(1)
         .and()
         .hasOtherClientId("TheRegistrar");
     assertAboutHosts().that(subordinateHost).hasNoHistoryEntries();
@@ -190,8 +189,8 @@ public class DomainTransferRequestFlowTest
         .setEventTime(implicitTransferTime)
         .setBillingTime(implicitTransferTime.plus(registry.getTransferGracePeriodLength()))
         .setClientId("NewRegistrar")
-        .setCost(transferCost.or(Money.of(USD, 11).multipliedBy(registrationYears)))
-        .setPeriodYears(registrationYears)
+        .setCost(transferCost.or(Money.of(USD, 11)))
+        .setPeriodYears(1)
         .setParent(historyEntryTransferRequest)
         .build();
     assertBillingEvents(FluentIterable.from(extraExpectedBillingEvents)

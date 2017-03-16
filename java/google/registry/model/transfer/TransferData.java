@@ -81,12 +81,6 @@ public class TransferData extends BaseTransferObject implements Buildable {
   /** The transaction id of the most recent transfer request (or null if there never was one). */
   Trid transferRequestTrid;
 
-  /**
-   * The number of years to add to the registration expiration time if this transfer is approved.
-   * Can be null if never transferred, or for resource types where it's not applicable.
-   */
-  Integer extendedRegistrationYears;
-
   public ImmutableSet<Key<? extends TransferServerApproveEntity>> getServerApproveEntities() {
     return nullToEmptyImmutableCopy(serverApproveEntities);
   }
@@ -105,10 +99,6 @@ public class TransferData extends BaseTransferObject implements Buildable {
 
   public Trid getTransferRequestTrid() {
     return transferRequestTrid;
-  }
-
-  public Integer getExtendedRegistrationYears() {
-    return extendedRegistrationYears;
   }
 
   @Override
@@ -154,12 +144,6 @@ public class TransferData extends BaseTransferObject implements Buildable {
     public Builder setTransferRequestTrid(Trid transferRequestTrid) {
       getInstance().transferRequestTrid = transferRequestTrid;
       return this;
-    }
-
-    /** Set the years to add to the registration if this transfer completes. */
-    public Builder setExtendedRegistrationYears(Integer extendedRegistrationYears) {
-      getInstance().extendedRegistrationYears = extendedRegistrationYears;
-      return thisCastToDerived();
     }
   }
 
