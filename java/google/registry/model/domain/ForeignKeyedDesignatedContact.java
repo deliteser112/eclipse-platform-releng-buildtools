@@ -19,8 +19,11 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlValue;
 
 /**
- * EPP-compatible version of XML type for contact identifiers associated with a domain, which can
- * be converted to a storable {@link DesignatedContact}.
+ * EPP-XML-serializable equivalent of {@link DesignatedContact}.
+ *
+ * <p>This type is used on the wire for EPP XML, where only the contact ID (foreign key) is exposed.
+ * This is converted to and from the persisted type, {@link DesignatedContact}, which stores the
+ * Datastore key instead of the foreign key.
  *
  * @see <a href="http://tools.ietf.org/html/rfc5731#section-2.2">
  *     RFC 5731 - EPP Domain Name Mapping - Contact and Client Identifiers</a>
