@@ -26,6 +26,7 @@ java_binary(
         "//java/google/registry/module/frontend",
         "//java/google/registry/module/tools",
         "//java/google/registry/tools",
+        "@com_google_apis_google_api_services_cloudkms",
         "@com_google_appengine_api_1_0_sdk//:link",
         "@com_google_appengine_api_stubs",
         "@com_google_appengine_remote_api//:link",
