@@ -9,6 +9,7 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["*.asc"]),
     deps = [
+        "//java/google/registry/util",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",
