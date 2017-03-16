@@ -185,12 +185,20 @@ public class PremiumListUtilsTest {
   @Test
   public void testGetPremiumPrice_bloomFilterFalsePositive() throws Exception {
     // Remove one of the premium list entries from behind the Bloom filter's back.
-    PremiumList pl = PremiumList.get("tld").get();
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().keys(Key.create(pl.getRevisionKey(), PremiumListEntry.class, "rich"));
-      }});
+    ofy()
+        .transactNew(
+            new VoidWork() {
+              @Override
+              public void vrun() {
+                ofy()
+                    .delete()
+                    .keys(
+                        Key.create(
+                            PremiumList.get("tld").get().getRevisionKey(),
+                            PremiumListEntry.class,
+                            "rich"));
+              }
+            });
     ofy().clearSessionCache();
 
     assertThat(getPremiumPrice("rich", Registry.get("tld"))).isAbsent();
