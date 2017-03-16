@@ -15,7 +15,6 @@
 package google.registry.model.poll;
 
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
-import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
@@ -32,11 +31,8 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import google.registry.model.Buildable;
-import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ExternalMessagingName;
-import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainRenewData;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
 import google.registry.model.eppoutput.EppResponse.ResponseData;
@@ -216,24 +212,6 @@ public abstract class PollMessage extends ImmutableObject
           .addAll(nullToEmpty(domainPendingActionNotificationResponses))
           .addAll(nullToEmpty(domainTransferResponses))
           .build();
-    }
-
-    /**
-     * Returns the class of the parent EppResource that this poll message is associated with,
-     * either DomainBase or ContactResource.
-     */
-    public Class<? extends EppResource> getParentResourceClass() {
-      if (!isNullOrEmpty(domainPendingActionNotificationResponses)
-          || !isNullOrEmpty(domainTransferResponses)) {
-        return DomainBase.class;
-      } else if (!isNullOrEmpty(contactPendingActionNotificationResponses)
-          || !isNullOrEmpty(contactTransferResponses)) {
-        return ContactResource.class;
-      } else {
-        throw new IllegalStateException(String.format(
-            "PollMessage.OneTime %s does not correspond with an EppResource of a known type",
-            Key.create(this)));
-      }
     }
 
     @Override
