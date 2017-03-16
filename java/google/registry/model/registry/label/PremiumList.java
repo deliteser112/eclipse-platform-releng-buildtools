@@ -77,7 +77,7 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
     long revisionId;
 
     /**
-     * A bloom filter that is used to determine efficiently and quickly whether a label might be
+     * A Bloom filter that is used to determine efficiently and quickly whether a label might be
      * premium.
      *
      * <p>If the label might be premium, then the premium list entry must be loaded by key and
@@ -87,7 +87,7 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
     private BloomFilter<String> probablePremiumLabels;
 
     /**
-     * Get the bloom filter.
+     * Get the Bloom filter.
      *
      * <p>Note that this is not a copy, but the mutable object itself, because copying would be
      * expensive. You probably should not modify the filter unless you know what you're doing.
@@ -97,7 +97,7 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
     }
 
     /**
-     * The maximum size of the bloom filter.
+     * The maximum size of the Bloom filter.
      *
      * <p>Trying to set it any larger will throw an error, as we know it won't fit into a Datastore
      * entity. We use 90% of the 1 MB Datastore limit to leave some wriggle room for the other
@@ -122,9 +122,9 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         revision.probablePremiumLabels.writeTo(bos);
         checkArgument(bos.size() <= MAX_BLOOM_FILTER_BYTES,
-            "Too many premium labels were specified; bloom filter exceeds max entity size");
+            "Too many premium labels were specified; Bloom filter exceeds max entity size");
       } catch (IOException e) {
-        throw new IllegalStateException("Could not serialize premium labels bloom filter", e);
+        throw new IllegalStateException("Could not serialize premium labels Bloom filter", e);
       }
       return revision;
     }
@@ -154,7 +154,7 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
             }});
 
   /**
-   * In-memory cache for {@link PremiumListRevision}s, used for retrieving bloom filters quickly.
+   * In-memory cache for {@link PremiumListRevision}s, used for retrieving Bloom filters quickly.
    *
    * <p>This is cached for a long duration (essentially indefinitely) because a given
    * {@link PremiumListRevision} is immutable and cannot ever be changed once created, so its cache
@@ -190,7 +190,7 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
    *
    * <p>A maximum size is set here on the cache because it can potentially grow too big to fit in
    * memory if there are a large number of distinct premium list entries being queried (both those
-   * that exist, as well as those that might exist according to the bloom filter, must be cached).
+   * that exist, as well as those that might exist according to the Bloom filter, must be cached).
    * The entries judged least likely to be accessed again will be evicted first.
    */
   @NonFinalForTesting

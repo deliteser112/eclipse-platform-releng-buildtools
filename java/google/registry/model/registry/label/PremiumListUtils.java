@@ -89,7 +89,7 @@ public final class PremiumListUtils {
     }
     checkState(
         revision.getProbablePremiumLabels() != null,
-        "Probable premium labels bloom filter is null on revision '%s'",
+        "Probable premium labels Bloom filter is null on revision '%s'",
         premiumList.getRevisionKey());
 
     CheckResults checkResults = checkStatus(revision, label);
@@ -144,7 +144,7 @@ public final class PremiumListUtils {
       ImmutableMap<String, PremiumListEntry> premiumListEntries) {
     final Optional<PremiumList> oldPremiumList = PremiumList.get(premiumList.getName());
 
-    // Create the new revision (with its bloom filter) and parent the entries on it.
+    // Create the new revision (with its Bloom filter) and parent the entries on it.
     final PremiumListRevision newRevision =
         PremiumListRevision.create(premiumList, premiumListEntries.keySet());
     final Key<PremiumListRevision> newRevisionKey = Key.create(newRevision);

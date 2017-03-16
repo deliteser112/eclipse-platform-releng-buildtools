@@ -67,7 +67,7 @@ public class BloomFilterOfStringTranslatorFactory
           Funnel<String> castedFunnel = (Funnel<String>) (Funnel<?>) unencodedCharsFunnel();
           return BloomFilter.readFrom(new ByteArrayInputStream(value.getBytes()), castedFunnel);
         } catch (IOException e) {
-          throw new IllegalStateException("Error loading bloom filter data", e);
+          throw new IllegalStateException("Error loading Bloom filter data", e);
         }
       }
 
@@ -81,7 +81,7 @@ public class BloomFilterOfStringTranslatorFactory
         try {
           value.writeTo(bos);
         } catch (IOException e) {
-          throw new IllegalStateException("Error saving bloom filter data", e);
+          throw new IllegalStateException("Error saving Bloom filter data", e);
         }
         return new Blob(bos.toByteArray());
       }

@@ -153,7 +153,7 @@ public class PremiumListUtilsTest {
                 .setLabel("missingno")
                 .setPrice(Money.parse("USD 1000"))
                 .build());
-    // "missingno" shouldn't be in the bloom filter, thus it should return not premium without
+    // "missingno" shouldn't be in the Bloom filter, thus it should return not premium without
     // attempting to load the entity that is actually present.
     assertThat(getPremiumPrice("missingno", Registry.get("tld"))).isAbsent();
     // However, if we manually query the cache to force an entity load, it should be found.
