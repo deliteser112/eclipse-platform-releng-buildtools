@@ -18,10 +18,17 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.partition;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.BLOOM_FILTER_NEGATIVE;
+import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.CACHED_NEGATIVE;
+import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.CACHED_POSITIVE;
+import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.UNCACHED_NEGATIVE;
+import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.UNCACHED_POSITIVE;
 import static google.registry.model.registry.label.PremiumList.cachePremiumListEntries;
 import static google.registry.model.registry.label.PremiumList.cachePremiumListRevisions;
 import static google.registry.model.registry.label.PremiumList.cachePremiumLists;
+import static org.joda.time.DateTimeZone.UTC;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -33,6 +40,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome;
 import google.registry.model.registry.label.PremiumList.PremiumListEntry;
 import google.registry.model.registry.label.PremiumList.PremiumListRevision;
 import java.util.List;
@@ -47,6 +55,17 @@ public final class PremiumListUtils {
   /** The number of premium list entry entities that are created and deleted per batch. */
   static final int TRANSACTION_BATCH_SIZE = 200;
 
+  /** Value type class used by {@link #checkStatus} to return the results of a premiumness check. */
+  @AutoValue
+  abstract static class CheckResults {
+    static CheckResults create(PremiumListCheckOutcome checkOutcome, Optional<Money> premiumPrice) {
+      return new AutoValue_PremiumListUtils_CheckResults(checkOutcome, premiumPrice);
+    }
+
+    abstract PremiumListCheckOutcome checkOutcome();
+    abstract Optional<Money> premiumPrice();
+  }
+
   /**
    * Returns the premium price for the specified label and registry, or absent if the label is not
    * premium.
@@ -54,8 +73,9 @@ public final class PremiumListUtils {
   public static Optional<Money> getPremiumPrice(String label, Registry registry) {
     // If the registry has no configured premium list, then no labels are premium.
     if (registry.getPremiumList() == null) {
-      return Optional.<Money> absent();
+      return Optional.<Money>absent();
     }
+    DateTime startTime = DateTime.now(UTC);
     String listName = registry.getPremiumList().getName();
     Optional<PremiumList> optionalPremiumList = PremiumList.get(listName);
     checkState(optionalPremiumList.isPresent(), "Could not load premium list '%s'", listName);
@@ -68,21 +88,45 @@ public final class PremiumListUtils {
           "Could not load premium list revision " + premiumList.getRevisionKey(), e);
     }
     checkState(
-        revision.probablePremiumLabels != null,
+        revision.getProbablePremiumLabels() != null,
         "Probable premium labels bloom filter is null on revision '%s'",
         premiumList.getRevisionKey());
 
-    if (revision.probablePremiumLabels.mightContain(label)) {
-      Key<PremiumListEntry> entryKey =
-          Key.create(premiumList.getRevisionKey(), PremiumListEntry.class, label);
-      try {
-        Optional<PremiumListEntry> entry = cachePremiumListEntries.get(entryKey);
-        return (entry.isPresent()) ? Optional.of(entry.get().getValue()) : Optional.<Money>absent();
-      } catch (InvalidCacheLoadException | ExecutionException e) {
-        throw new RuntimeException("Could not load premium list entry " + entryKey, e);
+    CheckResults checkResults = checkStatus(revision, label);
+    DomainLabelMetrics.recordPremiumListCheckOutcome(
+        registry.getTldStr(),
+        listName,
+        checkResults.checkOutcome(),
+        DateTime.now(UTC).getMillis() - startTime.getMillis());
+    return checkResults.premiumPrice();
+  }
+
+  private static CheckResults checkStatus(PremiumListRevision premiumListRevision, String label) {
+    if (!premiumListRevision.getProbablePremiumLabels().mightContain(label)) {
+      return CheckResults.create(BLOOM_FILTER_NEGATIVE, Optional.<Money>absent());
+    }
+
+    Key<PremiumListEntry> entryKey =
+        Key.create(Key.create(premiumListRevision), PremiumListEntry.class, label);
+    try {
+      // getIfPresent() returns null if the key is not in the cache
+      Optional<PremiumListEntry> entry = cachePremiumListEntries.getIfPresent(entryKey);
+      if (entry != null) {
+        if (entry.isPresent()) {
+          return CheckResults.create(CACHED_POSITIVE, Optional.of(entry.get().getValue()));
+        } else {
+          return CheckResults.create(CACHED_NEGATIVE, Optional.<Money>absent());
+        }
       }
-    } else {
-      return Optional.<Money>absent();
+
+      entry = cachePremiumListEntries.get(entryKey);
+      if (entry.isPresent()) {
+        return CheckResults.create(UNCACHED_POSITIVE, Optional.of(entry.get().getValue()));
+      } else {
+        return CheckResults.create(UNCACHED_NEGATIVE, Optional.<Money>absent());
+      }
+    } catch (InvalidCacheLoadException | ExecutionException e) {
+      throw new RuntimeException("Could not load premium list entry " + entryKey, e);
     }
   }
 

@@ -25,6 +25,24 @@ import google.registry.monitoring.metrics.MetricRegistryImpl;
 /** Instrumentation for reserved lists. */
 class DomainLabelMetrics {
 
+  /** Possible premium list check outcomes. */
+  enum PremiumListCheckOutcome {
+    /** Bloom filter knows it is not premium */
+    BLOOM_FILTER_NEGATIVE,
+
+    /** Bloom filter thinks it might be premium, but it was already negatively cached */
+    CACHED_NEGATIVE,
+
+    /** Bloom filter thinks it might be premium, and it is, and was already in the cache */
+    CACHED_POSITIVE,
+
+    /** Bloom filter thinks it might be premium, but it is not (though wasn't in the cache) */
+    UNCACHED_NEGATIVE,
+
+    /** Bloom filter thinks it might be premium, and it is, but wasn't in the cache */
+    UNCACHED_POSITIVE
+  }
+
   @AutoValue
   abstract static class MetricsReservedListMatch {
     static MetricsReservedListMatch create(
@@ -61,6 +79,15 @@ class DomainLabelMetrics {
           LabelDescriptor.create("tld", "TLD"),
           LabelDescriptor.create("reserved_list", "Reserved list name."),
           LabelDescriptor.create("reservation_type", "Type of reservation found."));
+
+  /**
+   * Labels attached to {@link #premiumListChecks} and {@link #premiumListProcessingTime} metrics.
+   */
+  private static final ImmutableSet<LabelDescriptor> PREMIUM_LIST_LABEL_DESCRIPTORS =
+      ImmutableSet.of(
+          LabelDescriptor.create("tld", "TLD"),
+          LabelDescriptor.create("premium_list", "Premium list name."),
+          LabelDescriptor.create("outcome", "Outcome of the premium list check."));
 
   /** Metric counting the number of times a label was checked against all reserved lists. */
   @VisibleForTesting
@@ -102,6 +129,28 @@ class DomainLabelMetrics {
               "count",
               RESERVED_LIST_HIT_LABEL_DESCRIPTORS);
 
+
+  /** Metric recording the result of each premium list check. */
+  @VisibleForTesting
+  static final IncrementableMetric premiumListChecks =
+      MetricRegistryImpl.getDefault()
+          .newIncrementableMetric(
+              "/domain_label/premium/checks",
+              "Count of premium list checks",
+              "count",
+              PREMIUM_LIST_LABEL_DESCRIPTORS);
+
+  /** Metric recording the time required to process each premium list check. */
+  @VisibleForTesting
+  static final EventMetric premiumListProcessingTime =
+      MetricRegistryImpl.getDefault()
+          .newEventMetric(
+              "/domain_label/premium/processing_time",
+              "Premium list check processing time",
+              "milliseconds",
+              PREMIUM_LIST_LABEL_DESCRIPTORS,
+              EventMetric.DEFAULT_FITTER);
+
   /** Update all three reserved list metrics. */
   static void recordReservedListCheckOutcome(
       String tld, ImmutableSet<MetricsReservedListMatch> matches, double elapsedMillis) {
@@ -123,5 +172,12 @@ class DomainLabelMetrics {
         tld, matchCount, mostSevereReservedList, mostSevereReservationType);
     reservedListProcessingTime.record(
         elapsedMillis, tld, matchCount, mostSevereReservedList, mostSevereReservationType);
+  }
+
+  /** Update both premium list metrics. */
+  static void recordPremiumListCheckOutcome(
+      String tld, String premiumList, PremiumListCheckOutcome outcome, double elapsedMillis) {
+    premiumListChecks.increment(tld, premiumList, outcome.name());
+    premiumListProcessingTime.record(elapsedMillis, tld, premiumList, outcome.name());
   }
 }

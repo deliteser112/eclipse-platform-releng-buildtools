@@ -43,6 +43,7 @@ import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.registry.Registry;
+import google.registry.util.NonFinalForTesting;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -83,7 +84,17 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
      * checked for existence.  Otherwise, we know it's not premium, and no Datastore load is
      * required.
      */
-    BloomFilter<String> probablePremiumLabels;
+    private BloomFilter<String> probablePremiumLabels;
+
+    /**
+     * Get the bloom filter.
+     *
+     * <p>Note that this is not a copy, but the mutable object itself, because copying would be
+     * expensive. You probably should not modify the filter unless you know what you're doing.
+     */
+    public BloomFilter<String> getProbablePremiumLabels() {
+      return probablePremiumLabels;
+    }
 
     /**
      * The maximum size of the bloom filter.
@@ -182,24 +193,32 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
    * that exist, as well as those that might exist according to the bloom filter, must be cached).
    * The entries judged least likely to be accessed again will be evicted first.
    */
+  @NonFinalForTesting
   @VisibleForTesting
-  static final LoadingCache<Key<PremiumListEntry>, Optional<PremiumListEntry>>
-      cachePremiumListEntries =
-          CacheBuilder.newBuilder()
-              .expireAfterWrite(getSingletonCachePersistDuration().getMillis(), MILLISECONDS)
-              .maximumSize(getStaticPremiumListMaxCachedEntries())
-              .build(
-                  new CacheLoader<Key<PremiumListEntry>, Optional<PremiumListEntry>>() {
-                    @Override
-                    public Optional<PremiumListEntry> load(final Key<PremiumListEntry> entryKey) {
-                      return ofy()
-                          .doTransactionless(
-                              new Work<Optional<PremiumListEntry>>() {
-                                @Override
-                                public Optional<PremiumListEntry> run() {
-                                  return Optional.fromNullable(ofy().load().key(entryKey).now());
-                                }});
-                    }});
+  static LoadingCache<Key<PremiumListEntry>, Optional<PremiumListEntry>> cachePremiumListEntries =
+      createCachePremiumListEntries(getSingletonCachePersistDuration().getMillis());
+
+  @VisibleForTesting
+  static LoadingCache<Key<PremiumListEntry>, Optional<PremiumListEntry>>
+      createCachePremiumListEntries(long cachePersistDurationMillis) {
+    return CacheBuilder.newBuilder()
+        .expireAfterWrite(cachePersistDurationMillis, MILLISECONDS)
+        .maximumSize(getStaticPremiumListMaxCachedEntries())
+        .build(
+            new CacheLoader<Key<PremiumListEntry>, Optional<PremiumListEntry>>() {
+              @Override
+              public Optional<PremiumListEntry> load(final Key<PremiumListEntry> entryKey) {
+                return ofy()
+                    .doTransactionless(
+                        new Work<Optional<PremiumListEntry>>() {
+                          @Override
+                          public Optional<PremiumListEntry> run() {
+                            return Optional.fromNullable(ofy().load().key(entryKey).now());
+                          }
+                        });
+              }
+            });
+  }
 
   @VisibleForTesting
   public Key<PremiumListRevision> getRevisionKey() {

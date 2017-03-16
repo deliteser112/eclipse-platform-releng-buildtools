@@ -16,11 +16,19 @@ package google.registry.model.registry.label;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.registry.label.PremiumList.cachePremiumListEntries;
+import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.BLOOM_FILTER_NEGATIVE;
+import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.CACHED_NEGATIVE;
+import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.CACHED_POSITIVE;
+import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.UNCACHED_NEGATIVE;
+import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.UNCACHED_POSITIVE;
+import static google.registry.model.registry.label.DomainLabelMetrics.premiumListChecks;
+import static google.registry.model.registry.label.DomainLabelMetrics.premiumListProcessingTime;
 import static google.registry.model.registry.label.PremiumListUtils.deletePremiumList;
 import static google.registry.model.registry.label.PremiumListUtils.doesPremiumListExist;
 import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
 import static google.registry.model.registry.label.PremiumListUtils.savePremiumListAndEntries;
+import static google.registry.monitoring.metrics.contrib.EventMetricSubject.assertThat;
+import static google.registry.monitoring.metrics.contrib.IncrementableMetricSubject.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadPremiumListEntries;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
@@ -29,6 +37,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.VoidWork;
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList.PremiumListEntry;
@@ -53,6 +62,7 @@ public class PremiumListUtilsTest {
   @Before
   public void before() throws Exception {
     // createTld() overwrites the premium list, so call it first.
+    PremiumList.cachePremiumListEntries = PremiumList.createCachePremiumListEntries(60);
     createTld("tld");
     PremiumList pl =
         persistPremiumList(
@@ -62,6 +72,20 @@ public class PremiumListUtilsTest {
             "icann,JPY 100",
             "johnny-be-goode,USD 20.50");
     persistResource(Registry.get("tld").asBuilder().setPremiumList(pl).build());
+    premiumListChecks.reset();
+    premiumListProcessingTime.reset();
+  }
+
+  void assertMetricOutcomeCount(int checkCount, DomainLabelMetrics.PremiumListCheckOutcome outcome)
+      throws Exception {
+    assertThat(premiumListChecks)
+        .hasValueForLabels(checkCount, "tld", "tld", outcome.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(premiumListProcessingTime)
+        .hasAnyValueForLabels("tld", "tld", outcome.toString())
+        .and()
+        .hasNoOtherValues();
   }
 
   @Test
@@ -74,6 +98,8 @@ public class PremiumListUtilsTest {
             .build());
     assertThat(Registry.get("ghost").getPremiumList()).isNull();
     assertThat(getPremiumPrice("blah", Registry.get("ghost"))).isAbsent();
+    assertThat(premiumListChecks).hasNoOtherValues();
+    assertThat(premiumListProcessingTime).hasNoOtherValues();
   }
 
   @Test
@@ -89,6 +115,7 @@ public class PremiumListUtilsTest {
     PremiumList premiumList = persistHumongousPremiumList("tld", 2500);
     assertThat(loadPremiumListEntries(premiumList)).hasSize(2500);
     assertThat(getPremiumPrice("7", Registry.get("tld"))).hasValue(Money.parse("USD 100"));
+    assertMetricOutcomeCount(1, UNCACHED_POSITIVE);
   }
 
   @Test
@@ -131,11 +158,57 @@ public class PremiumListUtilsTest {
     assertThat(getPremiumPrice("missingno", Registry.get("tld"))).isAbsent();
     // However, if we manually query the cache to force an entity load, it should be found.
     assertThat(
-            cachePremiumListEntries.get(
+            PremiumList.cachePremiumListEntries.get(
                 Key.create(pl.getRevisionKey(), PremiumListEntry.class, "missingno")))
         .hasValue(entry);
+    assertMetricOutcomeCount(1, BLOOM_FILTER_NEGATIVE);
   }
 
+  @Test
+  public void testGetPremiumPrice_cachedSecondTime() throws Exception {
+    assertThat(getPremiumPrice("rich", Registry.get("tld"))).hasValue(Money.parse("USD 1999"));
+    assertThat(getPremiumPrice("rich", Registry.get("tld"))).hasValue(Money.parse("USD 1999"));
+    assertThat(premiumListChecks)
+        .hasValueForLabels(1, "tld", "tld", UNCACHED_POSITIVE.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "tld", CACHED_POSITIVE.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(premiumListProcessingTime)
+        .hasAnyValueForLabels("tld", "tld", UNCACHED_POSITIVE.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "tld", CACHED_POSITIVE.toString())
+        .and()
+        .hasNoOtherValues();
+  }
+
+  @Test
+  public void testGetPremiumPrice_bloomFilterFalsePositive() throws Exception {
+    // Remove one of the premium list entries from behind the Bloom filter's back.
+    PremiumList pl = PremiumList.get("tld").get();
+    ofy().transactNew(new VoidWork() {
+      @Override
+      public void vrun() {
+        ofy().delete().keys(Key.create(pl.getRevisionKey(), PremiumListEntry.class, "rich"));
+      }});
+    ofy().clearSessionCache();
+
+    assertThat(getPremiumPrice("rich", Registry.get("tld"))).isAbsent();
+    assertThat(getPremiumPrice("rich", Registry.get("tld"))).isAbsent();
+
+    assertThat(premiumListChecks)
+        .hasValueForLabels(1, "tld", "tld", UNCACHED_NEGATIVE.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "tld", CACHED_NEGATIVE.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(premiumListProcessingTime)
+        .hasAnyValueForLabels("tld", "tld", UNCACHED_NEGATIVE.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "tld", CACHED_NEGATIVE.toString())
+        .and()
+        .hasNoOtherValues();
+  }
 
   @Test
   public void testSave_removedPremiumListEntries_areNoLongerInDatastore() throws Exception {
@@ -170,12 +243,25 @@ public class PremiumListUtilsTest {
             .id("dolt")
             .now())
         .isNull();
+    assertThat(premiumListChecks)
+        .hasValueForLabels(4, "tld", "tld", UNCACHED_POSITIVE.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "tld", BLOOM_FILTER_NEGATIVE.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(premiumListProcessingTime)
+        .hasAnyValueForLabels("tld", "tld", UNCACHED_POSITIVE.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "tld", BLOOM_FILTER_NEGATIVE.toString())
+        .and()
+        .hasNoOtherValues();
   }
 
   @Test
   public void testGetPremiumPrice_allLabelsAreNonPremium_whenNotInList() throws Exception {
     assertThat(getPremiumPrice("blah", Registry.get("tld"))).isAbsent();
     assertThat(getPremiumPrice("slinge", Registry.get("tld"))).isAbsent();
+    assertMetricOutcomeCount(2, BLOOM_FILTER_NEGATIVE);
   }
 
   @Test
@@ -196,6 +282,18 @@ public class PremiumListUtilsTest {
     assertThat(entry.comment).isEqualTo("yupper rooni");
     assertThat(entry.price).isEqualTo(Money.parse("USD 999"));
     assertThat(entry.label).isEqualTo("lol");
+    assertThat(premiumListChecks)
+        .hasValueForLabels(1, "tld", "tld2", UNCACHED_POSITIVE.toString())
+        .and()
+        .hasValueForLabels(1, "tld", "tld2", BLOOM_FILTER_NEGATIVE.toString())
+        .and()
+        .hasNoOtherValues();
+    assertThat(premiumListProcessingTime)
+        .hasAnyValueForLabels("tld", "tld2", UNCACHED_POSITIVE.toString())
+        .and()
+        .hasAnyValueForLabels("tld", "tld2", BLOOM_FILTER_NEGATIVE.toString())
+        .and()
+        .hasNoOtherValues();
   }
 
   @Test

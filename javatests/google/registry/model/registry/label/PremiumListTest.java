@@ -73,10 +73,10 @@ public class PremiumListTest {
   public void testProbablePremiumLabels() throws Exception {
     PremiumList pl = PremiumList.get("tld").get();
     PremiumListRevision revision = ofy().load().key(pl.getRevisionKey()).now();
-    assertThat(revision.probablePremiumLabels.mightContain("notpremium")).isFalse();
+    assertThat(revision.getProbablePremiumLabels().mightContain("notpremium")).isFalse();
     for (String label : ImmutableList.of("rich", "lol", "johnny-be-goode", "icann")) {
       assertWithMessage(label + " should be a probable premium")
-          .that(revision.probablePremiumLabels.mightContain(label))
+          .that(revision.getProbablePremiumLabels().mightContain(label))
           .isTrue();
     }
   }
