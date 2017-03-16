@@ -66,6 +66,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.FeeChecksDontSupportPhasesException}
  * @error {@link DomainFlowUtils.RestoresAreAlwaysForOneYearException}
+ * @error {@link DomainFlowUtils.TransfersAreAlwaysForOneYearException}
  */
 public final class DomainInfoFlow implements Flow {
 

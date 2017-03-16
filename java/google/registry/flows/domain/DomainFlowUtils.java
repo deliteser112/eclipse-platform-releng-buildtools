@@ -540,8 +540,11 @@ public class DomainFlowUtils {
         fees = pricingLogic.getRestorePrice(registry, domainNameString, now).getFees();
         break;
       case TRANSFER:
+        if (years != 1) {
+          throw new TransfersAreAlwaysForOneYearException();
+        }
         builder.setAvailIfSupported(true);
-        fees = pricingLogic.getTransferPrice(registry, domainNameString, now, years).getFees();
+        fees = pricingLogic.getTransferPrice(registry, domainNameString, now).getFees();
         break;
       case UPDATE:
         builder.setAvailIfSupported(true);
@@ -1110,6 +1113,13 @@ public class DomainFlowUtils {
   static class RestoresAreAlwaysForOneYearException extends ParameterValuePolicyErrorException {
     RestoresAreAlwaysForOneYearException() {
       super("Restores always renew a domain for one year");
+    }
+  }
+
+  /** Transfers always renew a domain for one year. */
+  static class TransfersAreAlwaysForOneYearException extends ParameterValuePolicyErrorException {
+    TransfersAreAlwaysForOneYearException() {
+      super("Transfers always renew a domain for one year");
     }
   }
 

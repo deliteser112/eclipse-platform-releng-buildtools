@@ -90,6 +90,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.RestoresAreAlwaysForOneYearException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
  * @error {@link DomainFlowUtils.TrailingDashException}
+ * @error {@link DomainFlowUtils.TransfersAreAlwaysForOneYearException}
  * @error {@link DomainFlowUtils.UnknownFeeCommandException}
  * @error {@link OnlyCheckedNamesCanBeFeeCheckedException}
  */

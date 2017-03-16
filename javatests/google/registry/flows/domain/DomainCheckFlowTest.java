@@ -47,6 +47,7 @@ import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException
 import google.registry.flows.domain.DomainFlowUtils.RestoresAreAlwaysForOneYearException;
 import google.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.TrailingDashException;
+import google.registry.flows.domain.DomainFlowUtils.TransfersAreAlwaysForOneYearException;
 import google.registry.flows.domain.DomainFlowUtils.UnknownFeeCommandException;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.domain.DomainResource;
@@ -764,6 +765,27 @@ public class DomainCheckFlowTest
   public void testFeeExtension_multiyearRestore_v12() throws Exception {
     setEppInput("domain_check_fee_multiyear_restore_v12.xml");
     thrown.expect(RestoresAreAlwaysForOneYearException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFeeExtension_multiyearTransfer_v06() throws Exception {
+    setEppInput("domain_check_fee_multiyear_transfer_v06.xml");
+    thrown.expect(TransfersAreAlwaysForOneYearException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFeeExtension_multiyearTransfer_v11() throws Exception {
+    setEppInput("domain_check_fee_multiyear_transfer_v11.xml");
+    thrown.expect(TransfersAreAlwaysForOneYearException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFeeExtension_multiyearTransfer_v12() throws Exception {
+    setEppInput("domain_check_fee_multiyear_transfer_v12.xml");
+    thrown.expect(TransfersAreAlwaysForOneYearException.class);
     runFlow();
   }
 

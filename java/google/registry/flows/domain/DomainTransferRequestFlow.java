@@ -137,7 +137,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     // An optional extension from the client specifying what they think the transfer should cost.
     FeeTransferCommandExtension feeTransfer =
         eppInput.getSingleExtension(FeeTransferCommandExtension.class);
-    FeesAndCredits feesAndCredits = pricingLogic.getTransferPrice(registry, targetId, now, years);
+    FeesAndCredits feesAndCredits = pricingLogic.getTransferPrice(registry, targetId, now);
     validateFeeChallenge(targetId, tld, now, feeTransfer, feesAndCredits);
     HistoryEntry historyEntry = buildHistory(period, existingDomain, now);
     DateTime automaticTransferTime = now.plus(registry.getAutomaticTransferLength());

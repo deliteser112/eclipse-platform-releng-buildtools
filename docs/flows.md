@@ -576,6 +576,7 @@ information about the domain.
     *   The requested fees cannot be provided in the requested currency.
     *   Fee checks for command phases and subphases are not supported.
     *   Restores always renew a domain for one year.
+    *   Transfers always renew a domain for one year.
 
 ## DomainDeleteFlow
 
@@ -712,6 +713,7 @@ information.
     *   Domain labels cannot begin with a dash.
     *   Restores always renew a domain for one year.
     *   Domain labels cannot end with a dash.
+    *   Transfers always renew a domain for one year.
     *   Unknown fee command name.
     *   By server policy, fee check names must be listed in the availability
         check.

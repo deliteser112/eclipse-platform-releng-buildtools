@@ -229,8 +229,6 @@ public class DomainPricingCustomLogic extends BaseFlowCustomLogic {
 
     public abstract DateTime asOfDate();
 
-    public abstract int years();
-
     public static Builder newBuilder() {
       return new AutoValue_DomainPricingCustomLogic_TransferPriceParameters.Builder();
     }
@@ -246,8 +244,6 @@ public class DomainPricingCustomLogic extends BaseFlowCustomLogic {
       public abstract Builder setDomainName(InternetDomainName domainName);
 
       public abstract Builder setAsOfDate(DateTime asOfDate);
-
-      public abstract Builder setYears(int years);
 
       public abstract TransferPriceParameters build();
     }

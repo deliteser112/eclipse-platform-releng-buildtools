@@ -43,6 +43,7 @@ import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
 import google.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeeChecksDontSupportPhasesException;
 import google.registry.flows.domain.DomainFlowUtils.RestoresAreAlwaysForOneYearException;
+import google.registry.flows.domain.DomainFlowUtils.TransfersAreAlwaysForOneYearException;
 import google.registry.model.billing.BillingEvent.Recurring;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.contact.ContactResource;
@@ -622,6 +623,15 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_fee_multiyear_restore.xml");
     persistTestEntities(false);
     thrown.expect(RestoresAreAlwaysForOneYearException.class);
+    runFlow();
+  }
+
+  /** Test a transfer for more than one year. */
+  @Test
+  public void testFeeExtension_multiyearTransfer() throws Exception {
+    setEppInput("domain_info_fee_multiyear_transfer.xml");
+    persistTestEntities(false);
+    thrown.expect(TransfersAreAlwaysForOneYearException.class);
     runFlow();
   }
 

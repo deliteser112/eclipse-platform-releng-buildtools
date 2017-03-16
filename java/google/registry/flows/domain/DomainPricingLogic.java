@@ -110,7 +110,6 @@ public final class DomainPricingLogic {
   }
 
   /** Returns a new restore price for the pricer. */
-  @SuppressWarnings("unused")
   public FeesAndCredits getRestorePrice(Registry registry, String domainName, DateTime date)
       throws EppException {
     FeesAndCredits feesAndCredits =
@@ -131,13 +130,9 @@ public final class DomainPricingLogic {
   }
 
   /** Returns a new transfer price for the pricer. */
-  public FeesAndCredits getTransferPrice(
-      Registry registry,
-      String domainName,
-      DateTime transferDate,
-      int years)
+  public FeesAndCredits getTransferPrice(Registry registry, String domainName, DateTime date)
       throws EppException {
-    Money renewCost = getDomainRenewCost(domainName, transferDate, years);
+    Money renewCost = getDomainRenewCost(domainName, date, 1);
     return customLogic.customizeTransferPrice(
         TransferPriceParameters.newBuilder()
             .setFeesAndCredits(
@@ -147,8 +142,7 @@ public final class DomainPricingLogic {
                     .build())
             .setRegistry(registry)
             .setDomainName(InternetDomainName.from(domainName))
-            .setAsOfDate(transferDate)
-            .setYears(years)
+            .setAsOfDate(date)
             .build());
   }
 
