@@ -17,6 +17,7 @@ package google.registry.flows.contact;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.denyPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
+import static google.registry.flows.ResourceFlowUtils.verifyHasPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.contact.ContactFlowUtils.createGainingTransferPollMessage;
@@ -30,14 +31,12 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.exceptions.NotPendingTransferException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -73,10 +72,7 @@ public final class ContactTransferRejectFlow implements TransactionalFlow {
     DateTime now = ofy().getTransactionTime();
     ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyOptionalAuthInfo(authInfo, existingContact);
-    TransferData transferData = existingContact.getTransferData();
-    if (transferData.getTransferStatus() != TransferStatus.PENDING) {
-      throw new NotPendingTransferException(targetId);
-    }
+    verifyHasPendingTransfer(existingContact);
     verifyResourceOwnership(clientId, existingContact);
     ContactResource newContact =
         denyPendingTransfer(existingContact, TransferStatus.CLIENT_REJECTED, now);
@@ -90,7 +86,7 @@ public final class ContactTransferRejectFlow implements TransactionalFlow {
     ofy().save().<Object>entities(newContact, historyEntry, gainingPollMessage);
     // Delete the billing event and poll messages that were written in case the transfer would have
     // been implicitly server approved.
-    ofy().delete().keys(transferData.getServerApproveEntities());
+    ofy().delete().keys(existingContact.getTransferData().getServerApproveEntities());
     return responseBuilder
         .setResData(createTransferResponse(targetId, newContact.getTransferData()))
         .build();

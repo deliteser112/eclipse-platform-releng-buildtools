@@ -19,6 +19,7 @@ import static google.registry.flows.ResourceFlowUtils.denyPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyHasPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
+import static google.registry.flows.ResourceFlowUtils.verifyTransferInitiator;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.flows.domain.DomainTransferUtils.createLosingTransferPollMessage;
@@ -33,7 +34,6 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
-import google.registry.flows.exceptions.NotTransferInitiatorException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -81,9 +81,7 @@ public final class DomainTransferCancelFlow implements TransactionalFlow {
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyOptionalAuthInfo(authInfo, existingDomain);
     verifyHasPendingTransfer(existingDomain);
-    if (!clientId.equals(existingDomain.getTransferData().getGainingClientId())) {
-      throw new NotTransferInitiatorException();
-    }
+    verifyTransferInitiator(clientId, existingDomain);
     checkAllowedAccessToTld(clientId, existingDomain.getTld());
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_TRANSFER_CANCEL)

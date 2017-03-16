@@ -41,6 +41,7 @@ import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.NotPendingTransferException;
+import google.registry.flows.exceptions.NotTransferInitiatorException;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
@@ -285,6 +286,13 @@ public final class ResourceFlowUtils {
       R resource) throws NotPendingTransferException {
     if (resource.getTransferData().getTransferStatus() != TransferStatus.PENDING) {
       throw new NotPendingTransferException(resource.getForeignKey());
+    }
+  }
+
+  public static <R extends EppResource & ResourceWithTransferData> void verifyTransferInitiator(
+      String clientId, R resource) throws NotTransferInitiatorException {
+    if (!resource.getTransferData().getGainingClientId().equals(clientId)) {
+      throw new NotTransferInitiatorException();
     }
   }
 
