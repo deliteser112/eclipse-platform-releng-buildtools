@@ -933,6 +933,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
         .doesNotHaveStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED);
   }
 
+  @Test
   public void testFailure_clientUpdateProhibited() throws Exception {
     createTld("tld");
     persistResource(
