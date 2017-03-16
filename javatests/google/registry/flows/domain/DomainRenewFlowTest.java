@@ -46,7 +46,6 @@ import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeException;
-import google.registry.flows.domain.DomainRenewFlow.DomainHasPendingTransferException;
 import google.registry.flows.domain.DomainRenewFlow.IncorrectCurrentExpirationDateException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.model.billing.BillingEvent;
@@ -573,7 +572,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
         .asBuilder()
         .setRegistrationExpirationTime(DateTime.parse("2001-09-08T22:00:00.0Z"))
         .build());
-    thrown.expect(DomainHasPendingTransferException.class);
+    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingTransfer");
     runFlow();
   }
 

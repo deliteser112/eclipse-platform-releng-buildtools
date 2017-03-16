@@ -35,7 +35,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
-import google.registry.flows.EppException.ObjectPendingTransferException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
@@ -70,7 +69,6 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -99,7 +97,6 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
- * @error {@link DomainRenewFlow.DomainHasPendingTransferException}
  * @error {@link DomainRenewFlow.IncorrectCurrentExpirationDateException}
  */
 public final class DomainRenewFlow implements TransactionalFlow {
@@ -107,6 +104,8 @@ public final class DomainRenewFlow implements TransactionalFlow {
   private static final ImmutableSet<StatusValue> RENEW_DISALLOWED_STATUSES = ImmutableSet.of(
       StatusValue.CLIENT_RENEW_PROHIBITED,
       StatusValue.PENDING_DELETE,
+      // Disallow renews during pendingTransfer; it needlessly complicates server-approve transfers.
+      StatusValue.PENDING_TRANSFER,
       StatusValue.SERVER_RENEW_PROHIBITED);
 
   @Inject ResourceCommand resourceCommand;
@@ -219,10 +218,6 @@ public final class DomainRenewFlow implements TransactionalFlow {
       verifyResourceOwnership(clientId, existingDomain);
     }
     checkAllowedAccessToTld(clientId, existingDomain.getTld());
-    // Verify that the resource does not have a pending transfer on it.
-    if (existingDomain.getTransferData().getTransferStatus() == TransferStatus.PENDING) {
-      throw new DomainHasPendingTransferException(targetId);
-    }
     verifyUnitIsYears(command.getPeriod());
     // If the date they specify doesn't match the expiration, fail. (This is an idempotence check).
     if (!command.getCurrentExpirationDate().equals(
@@ -253,13 +248,6 @@ public final class DomainRenewFlow implements TransactionalFlow {
             .setCurrency(renewCost.getCurrencyUnit())
             .setFees(ImmutableList.of(Fee.create(renewCost.getAmount(), FeeType.RENEW)))
             .build());
-  }
-
-  /** The domain has a pending transfer on it and so can't be explicitly renewed. */
-  public static class DomainHasPendingTransferException extends ObjectPendingTransferException {
-    public DomainHasPendingTransferException(String targetId) {
-      super(targetId);
-    }
   }
 
   /** The current expiration date is incorrect. */

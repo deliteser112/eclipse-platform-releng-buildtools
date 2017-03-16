@@ -545,9 +545,6 @@ comes in at the exact millisecond that the domain would have expired.
 *   2201
     *   The specified resource belongs to another client.
     *   Registrar is not authorized to access this TLD.
-*   2300
-    *   The domain has a pending transfer on it and so can't be explicitly
-        renewed.
 *   2303
     *   Resource with this id does not exist.
 *   2304
