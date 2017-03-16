@@ -102,7 +102,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     // Verify that nameserver's data was set correctly.
     assertCommandAndResponse(
         "host_info_fakesite.xml",
-        "host_info_response_fakesite.xml",
+        "host_info_response_fakesite_linked.xml",
         DateTime.parse("2000-06-08T00:02:00Z"));
   }
 
@@ -219,6 +219,19 @@ public class EppLifecycleDomainTest extends EppTestCase {
   public void testDeletionOfDomain_afterUpdateThatCreatesSubordinateHost_fails() throws Exception {
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     createFakesite();
+
+    // Create domain example.tld.
+    assertCommandAndResponse(
+        "domain_create_no_hosts_or_dsdata.xml",
+        "domain_create_response_superordinate.xml",
+        DateTime.parse("2000-06-02T00:00:00Z"));
+
+    // Create nameserver ns1.example.tld
+    assertCommandAndResponse(
+        "host_create_example.xml",
+        "host_create_response_example.xml",
+        DateTime.parse("2000-06-02T00:01:00Z"));
+
     // Update the ns1 host to be on the fakesite.example domain.
     assertCommandAndResponse(
         "host_update_ns1_to_fakesite.xml",
@@ -240,32 +253,6 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "domain_info_fakesite.xml",
         "domain_info_response_fakesite_ok_post_host_update.xml",
         DateTime.parse("2002-05-30T01:00:00Z"));
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
-  }
-
-  @Test
-  public void testRenamingHostToExistingHost_fails() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    // Create the two hosts.
-    assertCommandAndResponse(
-        "host_create.xml", "host_create_response.xml", DateTime.parse("2000-06-01T00:02:00Z"));
-    assertCommandAndResponse(
-        "host_create2.xml", "host_create2_response.xml", DateTime.parse("2000-06-01T00:03:00Z"));
-    // Verify that host1 and host2 were created as we expect them.
-    assertCommandAndResponse(
-        "host_info_ns1.xml", "host_info_response_ns1.xml", DateTime.parse("2000-06-01T00:04:00Z"));
-    assertCommandAndResponse(
-        "host_info_ns2.xml", "host_info_response_ns2.xml", DateTime.parse("2000-06-01T00:05:00Z"));
-    // Attempt overwriting of host1 on top of host2 (and verify that it fails).
-    assertCommandAndResponse(
-        "host_update_ns1_to_ns2.xml",
-        "host_update_failed_response.xml",
-        DateTime.parse("2000-06-01T00:06:00Z"));
-    // Verify that host1 and host2 still exist in their unmodified states.
-    assertCommandAndResponse(
-        "host_info_ns1.xml", "host_info_response_ns1.xml", DateTime.parse("2000-06-01T00:07:00Z"));
-    assertCommandAndResponse(
-        "host_info_ns2.xml", "host_info_response_ns2.xml", DateTime.parse("2000-06-01T00:08:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
 

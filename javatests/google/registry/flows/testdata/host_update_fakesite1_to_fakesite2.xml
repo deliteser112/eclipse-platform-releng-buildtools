@@ -2,10 +2,12 @@
   <command>
     <update>
       <host:update xmlns:host="urn:ietf:params:xml:ns:host-1.0">
-        <host:name>ns1.example.tld</host:name>
-        <host:rem/>
+        <host:name>ns3.fakesite.example</host:name>
+        <host:add>
+          <host:status s="clientUpdateProhibited"/>
+        </host:add>
         <host:chg>
-          <host:name>ns3.fakesite.example</host:name>
+          <host:name>ns4.fakesite.example</host:name>
         </host:chg>
       </host:update>
     </update>

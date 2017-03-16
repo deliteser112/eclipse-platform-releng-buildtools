@@ -50,6 +50,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
@@ -274,6 +275,8 @@ public class DatastoreHelper {
         newHostResource(hostName)
             .asBuilder()
             .setSuperordinateDomain(Key.create(superordinateDomain))
+            .setInetAddresses(
+                ImmutableSet.of(InetAddresses.forString("1080:0:0:0:8:800:200C:417A")))
             .build());
   }
 

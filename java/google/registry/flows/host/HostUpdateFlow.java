@@ -36,7 +36,6 @@ import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ObjectAlreadyExistsException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
-import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
@@ -91,9 +90,9 @@ import org.joda.time.DateTime;
  * @error {@link HostFlowUtils.SuperordinateDomainDoesNotExistException}
  * @error {@link CannotAddIpToExternalHostException}
  * @error {@link CannotRemoveSubordinateHostLastIpException}
+ * @error {@link CannotRenameExternalHostException}
  * @error {@link HostAlreadyExistsException}
  * @error {@link RenameHostToExternalRemoveIpException}
- * @error {@link RenameHostToSubordinateRequiresIpException}
  */
 public final class HostUpdateFlow implements TransactionalFlow {
 
@@ -138,7 +137,8 @@ public final class HostUpdateFlow implements TransactionalFlow {
     Optional<DomainResource> newSuperordinateDomain =
         lookupSuperordinateDomain(validateHostName(newHostName), now);
     EppResource owningResource = firstNonNull(oldSuperordinateDomain, existingHost);
-    verifyUpdateAllowed(command, existingHost, newSuperordinateDomain.orNull(), owningResource);
+    verifyUpdateAllowed(
+        command, existingHost, newSuperordinateDomain.orNull(), owningResource, isHostRename);
     if (isHostRename && loadAndGetKey(HostResource.class, newHostName, now) != null) {
       throw new HostAlreadyExistsException(newHostName);
     }
@@ -205,12 +205,16 @@ public final class HostUpdateFlow implements TransactionalFlow {
       Update command,
       HostResource existingHost,
       DomainResource newSuperordinateDomain,
-      EppResource owningResource)
+      EppResource owningResource,
+      boolean isHostRename)
           throws EppException {
     if (!isSuperuser) {
       // Verify that the host belongs to this registrar, either directly or because it is currently
       // subordinate to a domain owned by this registrar.
       verifyResourceOwnership(clientId, owningResource);
+      if (isHostRename && !existingHost.isSubordinate()) {
+        throw new CannotRenameExternalHostException();
+      }
       // Verify that the new superordinate domain belongs to this registrar.
       verifySuperordinateDomainOwnership(clientId, newSuperordinateDomain);
       ImmutableSet<StatusValue> statusesToAdd = command.getInnerAdd().getStatusValues();
@@ -229,7 +233,6 @@ public final class HostUpdateFlow implements TransactionalFlow {
   private void verifyHasIpsIffIsExternal(
       Update command, HostResource existingHost, HostResource newHost) throws EppException {
     boolean wasSubordinate = existingHost.isSubordinate();
-    boolean wasExternal = !wasSubordinate;
     boolean willBeSubordinate = newHost.isSubordinate();
     boolean willBeExternal = !willBeSubordinate;
     boolean newHostHasIps = !isNullOrEmpty(newHost.getInetAddresses());
@@ -242,9 +245,6 @@ public final class HostUpdateFlow implements TransactionalFlow {
     }
     if (wasSubordinate && willBeExternal && newHostHasIps) {
       throw new RenameHostToExternalRemoveIpException();
-    }
-    if (wasExternal && willBeSubordinate && !commandAddsIps) {
-      throw new RenameHostToSubordinateRequiresIpException();
     }
     if (willBeSubordinate && !newHostHasIps) {
       throw new CannotRemoveSubordinateHostLastIpException();
@@ -321,11 +321,10 @@ public final class HostUpdateFlow implements TransactionalFlow {
     }
   }
 
-  /** Host rename from external to subordinate must also add an IP addresses. */
-  static class RenameHostToSubordinateRequiresIpException
-      extends RequiredParameterMissingException {
-    public RenameHostToSubordinateRequiresIpException() {
-      super("Host rename from external to subordinate must also add an IP address");
+  /** Cannot rename an external host. */
+  static class CannotRenameExternalHostException extends StatusProhibitsOperationException {
+    public CannotRenameExternalHostException() {
+      super("Cannot rename an external host");
     }
   }
 

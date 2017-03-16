@@ -6,17 +6,15 @@
     <resData>
       <host:infData
        xmlns:host="urn:ietf:params:xml:ns:host-1.0">
-        <host:name>ns3.fakesite.example</host:name>
+        <host:name>ns4.fakesite.example</host:name>
         <host:roid>NS1_EXAMPLE1-REP</host:roid>
         <host:status s="ok"/>
-        <host:addr ip="v4">192.0.2.29</host:addr>
-        <host:addr ip="v4">192.0.2.2</host:addr>
-        <host:addr ip="v6">1080::8:800:200c:417a</host:addr>
+        <host:addr ip="v4">192.0.2.30</host:addr>
+        <host:addr ip="v4">192.0.2.3</host:addr>
+        <host:addr ip="v6">1080::8:800:200c:417b</host:addr>
         <host:clID>NewRegistrar</host:clID>
         <host:crID>NewRegistrar</host:crID>
-        <host:crDate>2000-06-02T00:01:00Z</host:crDate>
-        <host:upID>NewRegistrar</host:upID>
-        <host:upDate>2002-05-30T01:01:00Z</host:upDate>
+        <host:crDate>2000-06-09T00:01:00Z</host:crDate>
       </host:infData>
     </resData>
     <trID>

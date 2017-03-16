@@ -1,0 +1,17 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <response>
+    <result code="1000">
+      <msg>Command completed successfully</msg>
+    </result>
+    <resData>
+      <host:creData xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+        <host:name>ns4.fakesite.example</host:name>
+        <host:crDate>2000-06-09T00:01:00Z</host:crDate>
+      </host:creData>
+    </resData>
+    <trID>
+      <clTRID>ABC-12345</clTRID>
+      <svTRID>server-trid</svTRID>
+    </trID>
+  </response>
+</epp>

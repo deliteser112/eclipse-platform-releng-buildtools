@@ -1,7 +1,7 @@
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <response>
     <result code="2302">
-      <msg>Object with given ID (ns2.example.external) already exists</msg>
+      <msg>Object with given ID (ns4.fakesite.example) already exists</msg>
     </result>
     <trID>
       <clTRID>ABC-12345</clTRID>

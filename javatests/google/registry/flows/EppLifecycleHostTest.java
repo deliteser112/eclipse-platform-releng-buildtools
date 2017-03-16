@@ -14,6 +14,9 @@
 
 package google.registry.flows;
 
+import static google.registry.testing.DatastoreHelper.createTld;
+
+import com.google.common.collect.ImmutableMap;
 import google.registry.testing.AppEngineRule;
 import org.joda.time.DateTime;
 import org.junit.Rule;
@@ -28,43 +31,56 @@ public class EppLifecycleHostTest extends EppTestCase {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
+      .withTaskQueue()
       .build();
 
   @Test
   public void testRenamingHostToExistingHost_fails() throws Exception {
+    createTld("example");
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    // Create the two hosts.
+    // Create the fakesite domain.
     assertCommandAndResponse(
-        "host_create.xml",
-        "host_create_response.xml",
-        DateTime.parse("2000-06-01T00:02:00Z"));
+        "contact_create_sh8013.xml",
+        ImmutableMap.<String, String>of(),
+        "contact_create_response_sh8013.xml",
+        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
+        DateTime.parse("2000-06-01T00:00:00Z"));
     assertCommandAndResponse(
-        "host_create2.xml",
-        "host_create2_response.xml",
-        DateTime.parse("2000-06-01T00:03:00Z"));
-    // Verify that host1 and host2 were created as we expect them.
+        "contact_create_jd1234.xml",
+        "contact_create_response_jd1234.xml",
+        DateTime.parse("2000-06-01T00:01:00Z"));
     assertCommandAndResponse(
-        "host_info_ns1.xml",
-        "host_info_response_ns1.xml",
+        "domain_create_fakesite_no_nameservers.xml",
+        "domain_create_response_fakesite.xml",
         DateTime.parse("2000-06-01T00:04:00Z"));
     assertCommandAndResponse(
-        "host_info_ns2.xml",
-        "host_info_response_ns2.xml",
-        DateTime.parse("2000-06-01T00:05:00Z"));
-    // Attempt overwriting of host1 on top of host2 (and verify that it fails).
+        "domain_info_fakesite.xml",
+        "domain_info_response_fakesite_inactive.xml",
+        DateTime.parse("2000-06-05T00:02:00Z"));
+    // Add the fakesite subordinate host (requires that domain is already created).
     assertCommandAndResponse(
-        "host_update_ns1_to_ns2.xml",
+        "host_create_fakesite.xml",
+        "host_create_response_fakesite.xml",
+        DateTime.parse("2000-06-06T00:01:00Z"));
+    // Add the 2nd fakesite subordinate host.
+    assertCommandAndResponse(
+        "host_create_fakesite2.xml",
+        "host_create_response_fakesite2.xml",
+        DateTime.parse("2000-06-09T00:01:00Z"));
+    // Attempt overwriting of 2nd fakesite subordinate host with the 1st.
+    assertCommandAndResponse(
+        "host_update_fakesite1_to_fakesite2.xml",
         "host_update_failed_response.xml",
-        DateTime.parse("2000-06-01T00:06:00Z"));
-    // Verify that host1 and host2 still exist in their unmodified states.
+        DateTime.parse("2000-06-10T00:01:00Z"));
+    // Verify that fakesite hosts still exist in their unmodified states.
     assertCommandAndResponse(
-        "host_info_ns1.xml",
-        "host_info_response_ns1.xml",
-        DateTime.parse("2000-06-01T00:07:00Z"));
+        "host_info_fakesite.xml",
+        "host_info_response_fakesite_ok.xml",
+        DateTime.parse("2000-06-11T00:07:00Z"));
     assertCommandAndResponse(
-        "host_info_ns2.xml",
-        "host_info_response_ns2.xml",
-        DateTime.parse("2000-06-01T00:08:00Z"));
+        "host_info_fakesite2.xml",
+        "host_info_response_fakesite2.xml",
+        DateTime.parse("2000-06-11T00:08:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
 }

@@ -961,8 +961,6 @@ are enqueued to update DNS accordingly.
 
 ### Errors
 
-*   2003
-    *   Host rename from external to subordinate must also add an IP addresses.
 *   2004
     *   The specified status value cannot be set by clients.
     *   Host names are limited to 253 characters.
@@ -987,6 +985,7 @@ are enqueued to update DNS accordingly.
         clear that status.
     *   Resource status prohibits this operation.
     *   Cannot remove all IP addresses from a subordinate host.
+    *   Cannot rename an external host.
 *   2306
     *   Cannot add and remove the same value.
     *   Host names must be at least two levels below the public suffix.

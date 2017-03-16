@@ -14,9 +14,7 @@
         <host:addr ip="v6">1080::8:800:200c:417a</host:addr>
         <host:clID>NewRegistrar</host:clID>
         <host:crID>NewRegistrar</host:crID>
-        <host:crDate>2000-06-02T00:01:00Z</host:crDate>
-        <host:upID>NewRegistrar</host:upID>
-        <host:upDate>2002-05-30T01:01:00Z</host:upDate>
+        <host:crDate>2000-06-06T00:01:00Z</host:crDate>
       </host:infData>
     </resData>
     <trID>
