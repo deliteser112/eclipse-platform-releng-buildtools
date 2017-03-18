@@ -62,7 +62,12 @@ public class XsrfTokenManagerTest {
 
   @Test
   public void testValidate_tokenWithMissingParts() {
-    assertThat(xsrfTokenManager.validateToken("foo")).isFalse();
+    assertThat(xsrfTokenManager.validateToken("1:123")).isFalse();
+  }
+
+  @Test
+  public void testValidate_tokenWithBadVersion() {
+    assertThat(xsrfTokenManager.validateToken("2:123:base64")).isFalse();
   }
 
   @Test

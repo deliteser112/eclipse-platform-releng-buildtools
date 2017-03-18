@@ -14,7 +14,6 @@
 
 package google.registry.security;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.io.BaseEncoding.base64Url;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -23,7 +22,6 @@ import static org.joda.time.DateTimeZone.UTC;
 import com.google.appengine.api.users.UserService;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.Hashing;
 import google.registry.model.server.ServerSecret;
 import google.registry.util.Clock;
@@ -44,9 +42,6 @@ public final class XsrfTokenManager {
 
   /** Token version identifier for version 1. */
   private static final String VERSION_1 = "1";
-
-  /** Legacy scope values that will be supported during the scope removal process. */
-  private static final ImmutableSet<String> LEGACY_SCOPES = ImmutableSet.of("admin", "console");
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -82,34 +77,16 @@ public final class XsrfTokenManager {
     return Joiner.on(':').join(VERSION_1, timestampMillis, hmac);
   }
 
-  /**
-   * Computes the hash payload portion of a legacy-style XSRF token.
-   *
-   * <p>The result is a Base64-encoded SHA-256 hash of a string containing the secret, email, scope
-   * and creation time, separated by tabs.
-   */
-  private static String computeLegacyHash(long creationTime, String scope, String userEmail) {
-    checkArgument(LEGACY_SCOPES.contains(scope), "Invalid scope value: %s", scope);
-    String token =
-        Joiner.on('\t').join(ServerSecret.get().asUuid(), userEmail, scope, creationTime);
-    return base64Url().encode(Hashing.sha256()
-        .newHasher(token.length())
-        .putString(token, UTF_8)
-        .hash()
-        .asBytes());
-  }
-
-  /**
-   * Validates an XSRF token against the current logged-in user.
-   *
-   * This accepts both legacy-style and new-style XSRF tokens.  For legacy-style tokens, it will
-   * accept tokens generated with any scope from {@link #LEGACY_SCOPES}.
-   */
+  /** Validates an XSRF token against the current logged-in user. */
   public boolean validateToken(String token) {
     checkArgumentNotNull(token);
     List<String> tokenParts = Splitter.on(':').splitToList(token);
-    if (tokenParts.size() < 2) {
+    if (tokenParts.size() != 3) {
       logger.warningfmt("Malformed XSRF token: %s", token);
+      return false;
+    }
+    if (!tokenParts.get(0).equals(VERSION_1)) {
+      logger.warningfmt("Unrecognized version in XSRF token: %s", token);
       return false;
     }
     String timePart = tokenParts.get(1);
@@ -127,32 +104,14 @@ public final class XsrfTokenManager {
     String currentUserEmail =
         userService.isUserLoggedIn() ? userService.getCurrentUser().getEmail() : "";
 
-    // Reconstruct the token to verify validity, using version 1 format if detected.
-    if (tokenParts.get(0).equals(VERSION_1)) {
-      String reconstructedToken =
-          encodeToken(ServerSecret.get().asBytes(), currentUserEmail, timestampMillis);
-      if (!token.equals(reconstructedToken)) {
-        logger.warningfmt(
-            "Reconstructed XSRF mismatch (got != expected): %s != %s", token, reconstructedToken);
-        return false;
-      }
-      return true;
-    } else {
-      // TODO(b/35388772): remove this fallback once we no longer generate legacy tokens.
-      // Fall back to the legacy format, and try the few possible scopes.
-      String hash = tokenParts.get(0);
-      ImmutableSet.Builder<String> reconstructedTokenCandidates = new ImmutableSet.Builder<>();
-      for (String scope : LEGACY_SCOPES) {
-        String reconstructedHash = computeLegacyHash(timestampMillis, scope, currentUserEmail);
-        reconstructedTokenCandidates.add(reconstructedHash);
-        if (hash.equals(reconstructedHash)) {
-          return true;
-        }
-      }
+    // Reconstruct the token to verify validity.
+    String reconstructedToken =
+        encodeToken(ServerSecret.get().asBytes(), currentUserEmail, timestampMillis);
+    if (!token.equals(reconstructedToken)) {
       logger.warningfmt(
-          "Reconstructed XSRF mismatch: %s matches none of %s",
-          hash, reconstructedTokenCandidates.build());
+          "Reconstructed XSRF mismatch (got != expected): %s != %s", token, reconstructedToken);
       return false;
     }
+    return true;
   }
 }
