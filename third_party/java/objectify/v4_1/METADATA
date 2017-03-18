@@ -1,0 +1,46 @@
+# Format: domain_registry/devtools/metadata/metadata.proto (go/domain_registrymetadata)
+
+# Maintainer Notes:
+#
+#   git clone https://github.com/objectify/objectify.git
+#   git checkout -b v4 remotes/origin/v4
+#   mvn package
+#   # wait like literally an hour
+#   cp target/objectify-4.1.3.jar $g3/third_party/java/objectify/v4_1
+#   cp target/objectify-4.1.3-sources.jar $g3/third_party/java/objectify/v4_1/target/objectify-4.1.3-src.jar
+#
+# MIT License file downloaded from license links at
+# https://code.google.com/p/objectify-appengine/
+# https://code.google.com/p/objectify-gwt/
+
+name: "Objectify-Appengine"
+description:
+    "Objectify-Appengine is a thin Java wrapper around Google App Engine's "
+    "low-level datastore API that allows you to persist type-safe POJO "
+    "objects.  It provides a human-friendly query interface, generified key, "
+    "query, and prepared query classes, GWT-able entity objects, and "
+    "transactions in one lightweight jar file with no dependencies."
+
+third_party {
+  url {
+    type: GIT
+    value: "https://github.com/objectify/objectify/"
+  }
+  url {
+    type: ARCHIVE
+    value: "http://central.maven.org/maven2/com/googlecode/objectify/objectify-gwt/1.0/objectify-gwt-1.0-sources.jar"
+  }
+  version: "d6df0e3f291440c620c72be6650bf7fdafc8c1b2"
+  last_upgrade_date { year: 2015 month: 2 day: 9 }
+  local_modifications:
+"This library includes custom serializers for AppEngine classes in "
+"com.google.appengine.api.* packages.  This is necessary because serializers are "
+"discovered by AppEngine using a naming pattern that requires that the data and "
+"serializer classes be in the same package (similar to how the Java Beans "
+"introspector finds BeanInfo classes). "
+""
+"In Objectify versions 4.1 and later, the GWT emulation classes were broken "
+"out into a separate versioned jar. Since we are jarjar repackaging the "
+"core Objectify library to include a version number in the package, we need "
+"to include the GWT files in this folder and apply the same changes to them."
+}
