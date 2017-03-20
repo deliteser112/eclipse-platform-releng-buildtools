@@ -19,7 +19,7 @@ load("@io_bazel_rules_closure//closure/private:java_import_external.bzl", "java_
 
 def domain_registry_bazel_check():
   """Checks Bazel version for Nomulus."""
-  _check_bazel_version("Nomulus", "0.4.2")
+  _check_bazel_version("Nomulus", "0.4.4")
 
 def domain_registry_repositories(
     omit_com_beust_jcommander=False,
@@ -707,8 +707,7 @@ def com_google_auto_factory():
           "",
           "java_plugin(",
           "    name = \"AutoFactoryProcessor\",",
-          # TODO(jart): https://github.com/bazelbuild/bazel/issues/2286
-          # "    output_licenses = [\"unencumbered\"],",
+          "    output_licenses = [\"unencumbered\"],",
           "    processor_class = \"com.google.auto.factory.processor.AutoFactoryProcessor\",",
           "    generates_api = 1,",
           "    tags = [\"annotation=com.google.auto.factory.AutoFactory;genclass=${package}.${outerclasses}@{className|${classname}Factory}\"],",
@@ -747,8 +746,7 @@ def com_google_auto_service():
       extra_build_file_content = "\n".join([
           "java_plugin(",
           "    name = \"AutoServiceProcessor\",",
-          # TODO(jart): https://github.com/bazelbuild/bazel/issues/2286
-          # "    output_licenses = [\"unencumbered\"],",
+          "    output_licenses = [\"unencumbered\"],",
           "    processor_class = \"com.google.auto.service.processor.AutoServiceProcessor\",",
           "    deps = [\":processor\"],",
           ")",
@@ -781,8 +779,7 @@ def com_google_auto_value():
       extra_build_file_content = "\n".join([
           "java_plugin(",
           "    name = \"AutoAnnotationProcessor\",",
-          # TODO(jart): https://github.com/bazelbuild/bazel/issues/2286
-          # "    output_licenses = [\"unencumbered\"],",
+          "    output_licenses = [\"unencumbered\"],",
           "    processor_class = \"com.google.auto.value.processor.AutoAnnotationProcessor\",",
           "    tags = [\"annotation=com.google.auto.value.AutoAnnotation;genclass=${package}.AutoAnnotation_${outerclasses}${classname}_${methodname}\"],",
           "    deps = [\":processor\"],",
@@ -790,8 +787,7 @@ def com_google_auto_value():
           "",
           "java_plugin(",
           "    name = \"AutoValueProcessor\",",
-          # TODO(jart): https://github.com/bazelbuild/bazel/issues/2286
-          # "    output_licenses = [\"unencumbered\"],",
+          "    output_licenses = [\"unencumbered\"],",
           "    processor_class = \"com.google.auto.value.processor.AutoValueProcessor\",",
           "    tags = [\"annotation=com.google.auto.value.AutoValue;genclass=${package}.AutoValue_${outerclasses}${classname}\"],",
           "    deps = [\":processor\"],",
@@ -866,8 +862,7 @@ def com_google_dagger_compiler():
       extra_build_file_content = "\n".join([
           "java_plugin(",
           "    name = \"ComponentProcessor\",",
-          # TODO(jart): https://github.com/bazelbuild/bazel/issues/2286
-          # "    output_licenses = [\"unencumbered\"],",
+          "    output_licenses = [\"unencumbered\"],",
           "    processor_class = \"dagger.internal.codegen.ComponentProcessor\",",
           "    generates_api = 1,",
           "    tags = [",
