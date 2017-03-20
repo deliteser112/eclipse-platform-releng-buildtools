@@ -67,6 +67,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         .isEqualTo(Registry.DEFAULT_REDEMPTION_GRACE_PERIOD);
     assertThat(registry.getPendingDeleteLength()).isEqualTo(Registry.DEFAULT_PENDING_DELETE_LENGTH);
     assertThat(registry.getCreationTime()).isIn(Range.closed(before, after));
+    assertThat(registry.getDomainCreateRestricted()).isFalse();
   }
 
   @Test
@@ -322,6 +323,12 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getAllowedFullyQualifiedHostNames())
         .containsExactly("ns1.example.com", "ns2.example.com");
+  }
+
+  @Test
+  public void testSuccess_setDomainCreateRestricted() throws Exception {
+    runCommandForced("--domain_create_restricted=true", "--roid_suffix=Q9JYB4C", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getDomainCreateRestricted()).isTrue();
   }
 
   @Test
