@@ -16,7 +16,12 @@ a price, it has a reservation type. The valid values for reservation types are:
     domain with this label. If the a label in this type exists on multiple
     reserved lists that are applied to the same TLD. The set of allowed
     nameservers for that label in that TLD is the intersection of all applicable
-    nameservers.
+    nameservers. Note that this restriction is orthogonal to the TLD-wide
+    nameserver restrictions that may be otherwise imposed. The ultimate set of
+    allowed nameservers for a certain domain is the intersection of per-domain
+    and TLD-wide allowed nameservers set. Furthermore, a TLD can be set in a
+    domain create restricted mode, in which case **only** domains that are
+    reserved with this type can be registered.
 *   **`ALLOWED_IN_SUNRISE`** - The label can be registered during the sunrise
     period by a registrant with a valid claim but it is reserved thereafter.
 *   **`MISTAKEN_PREMIUM`** - The label is reserved because it was mistakenly put

@@ -45,6 +45,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
@@ -55,6 +56,7 @@ import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeOperationException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForTldException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Update;
@@ -97,7 +99,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.MissingAdminContactException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.MissingTechnicalContactException}
- * @error {@link DomainFlowUtils.NameserversNotAllowedException}
+ * @error {@link NameserversNotAllowedForTldException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
  * @error {@link DomainFlowUtils.SecDnsAllUsageException}
@@ -240,7 +242,10 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
     validateNoDuplicateContacts(newApplication.getContacts());
     validateRequiredContactsPresent(newApplication.getRegistrant(), newApplication.getContacts());
     validateDsData(newApplication.getDsData());
-    validateNameserversCountForTld(newApplication.getTld(), newApplication.getNameservers().size());
+    validateNameserversCountForTld(
+        newApplication.getTld(),
+        InternetDomainName.from(newApplication.getFullyQualifiedDomainName()),
+        newApplication.getNameservers().size());
   }
 
   /** Application status prohibits this domain update. */

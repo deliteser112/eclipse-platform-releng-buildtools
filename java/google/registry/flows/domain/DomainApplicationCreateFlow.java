@@ -63,6 +63,9 @@ import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.After
 import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.EntityChanges;
+import google.registry.flows.domain.DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Create;
@@ -103,7 +106,8 @@ import org.joda.time.DateTime;
  * @error {@link DomainApplicationCreateFlow.LandrushApplicationDisallowedDuringSunriseException}
  * @error {@link DomainApplicationCreateFlow.NoticeCannotBeUsedWithSignedMarkException}
  * @error {@link DomainApplicationCreateFlow.SunriseApplicationDisallowedDuringLandrushException}
- * @error {@link DomainApplicationCreateFlow.UncontestedSunriseApplicationBlockedInLandrushException}
+ * @error {@link
+ *     DomainApplicationCreateFlow.UncontestedSunriseApplicationBlockedInLandrushException}
  * @error {@link DomainFlowUtils.AcceptedTooLongAgoException}
  * @error {@link DomainFlowUtils.BadCommandForRegistryPhaseException}
  * @error {@link DomainFlowUtils.BadDomainNameCharacterException}
@@ -115,6 +119,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}
  * @error {@link DomainFlowUtils.DashesInThirdAndFourthException}
  * @error {@link DomainFlowUtils.DomainLabelTooLongException}
+ * @error {@link DomainNotAllowedForTldWithCreateRestrictionException}
  * @error {@link DomainFlowUtils.DomainReservedException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
  * @error {@link DomainFlowUtils.EmptyDomainNamePartException}
@@ -134,8 +139,10 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.MaxSigLifeNotSupportedException}
  * @error {@link DomainFlowUtils.MissingClaimsNoticeException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}
- * @error {@link DomainFlowUtils.NameserversNotAllowedException}
- * @error {@link DomainFlowUtils.NameserversNotSpecifiedException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedForDomainException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedForTldException}
+ * @error {@link NameserversNotSpecifiedForNameserverRestrictedDomainException}
+ * @error {@link NameserversNotSpecifiedForTldWithNameserverWhitelistException}
  * @error {@link DomainFlowTmchUtils.NoMarksFoundMatchingDomainException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
@@ -206,7 +213,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     verifyUnitIsYears(command.getPeriod());
     int years = command.getPeriod().getValue();
     validateRegistrationPeriod(years);
-    validateCreateCommandContactsAndNameservers(command, tld);
+    validateCreateCommandContactsAndNameservers(command, registry, domainName);
     LaunchCreateExtension launchCreate = eppInput.getSingleExtension(LaunchCreateExtension.class);
     if (launchCreate != null) {
       validateLaunchCreateExtension(launchCreate, registry, domainName, now);

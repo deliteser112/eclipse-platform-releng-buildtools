@@ -62,6 +62,9 @@ import google.registry.flows.custom.DomainCreateFlowCustomLogic;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.EntityChanges;
+import google.registry.flows.domain.DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -113,6 +116,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}
  * @error {@link DomainFlowUtils.DashesInThirdAndFourthException}
  * @error {@link DomainFlowUtils.DomainLabelTooLongException}
+ * @error {@link DomainNotAllowedForTldWithCreateRestrictionException}
  * @error {@link DomainFlowUtils.DomainReservedException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
  * @error {@link DomainFlowUtils.EmptyDomainNamePartException}
@@ -135,8 +139,10 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.MissingRegistrantException}
  * @error {@link DomainFlowUtils.MissingTechnicalContactException}
- * @error {@link DomainFlowUtils.NameserversNotAllowedException}
- * @error {@link DomainFlowUtils.NameserversNotSpecifiedException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedForDomainException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedForTldException}
+ * @error {@link NameserversNotSpecifiedForNameserverRestrictedDomainException}
+ * @error {@link NameserversNotSpecifiedForTldWithNameserverWhitelistException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
@@ -149,7 +155,6 @@ import org.joda.time.DateTime;
  * @error {@link DomainCreateFlow.DomainHasOpenApplicationsException}
  * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
  */
-
 public class DomainCreateFlow implements TransactionalFlow {
 
   private static final ImmutableSet<TldState> SUNRISE_STATES =
@@ -191,7 +196,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     InternetDomainName domainName = validateDomainName(command.getFullyQualifiedDomainName());
     String domainLabel = domainName.parts().get(0);
     Registry registry = Registry.get(domainName.parent().toString());
-    validateCreateCommandContactsAndNameservers(command, registry.getTldStr());
+    validateCreateCommandContactsAndNameservers(command, registry, domainName);
     TldState tldState = registry.getTldState(now);
     boolean isAnchorTenant = isAnchorTenant(domainName);
     LaunchCreateExtension launchCreate = eppInput.getSingleExtension(LaunchCreateExtension.class);

@@ -47,7 +47,7 @@ import google.registry.flows.domain.DomainFlowUtils.MaxSigLifeChangeNotSupported
 import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
-import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
 import google.registry.flows.domain.DomainFlowUtils.SecDnsAllUsageException;
@@ -655,7 +655,7 @@ public class DomainApplicationUpdateFlowTest
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedException.class);
+    thrown.expect(NameserversNotAllowedForTldException.class);
     runFlow();
   }
 

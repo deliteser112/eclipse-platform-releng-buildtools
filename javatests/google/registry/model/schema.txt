@@ -669,6 +669,7 @@ class google.registry.model.registry.Registry {
   @Id java.lang.String tldStrId;
   @Parent com.googlecode.objectify.Key<google.registry.model.common.EntityGroupRoot> parent;
   boolean dnsPaused;
+  boolean domainCreateRestricted;
   boolean escrowEnabled;
   boolean premiumPriceAckRequired;
   com.googlecode.objectify.Key<google.registry.model.registry.label.PremiumList> premiumList;

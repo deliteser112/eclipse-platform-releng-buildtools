@@ -63,6 +63,7 @@ import google.registry.model.common.TimedTransitionProperty.TimedTransition;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.registry.label.PremiumList;
+import google.registry.model.registry.label.ReservationType;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.registry.label.ReservedList.ReservedListEntry;
 import google.registry.util.Idn;
@@ -318,6 +319,12 @@ public class Registry extends ImmutableObject implements Buildable {
   /** Whether the price must be acknowledged to register premiun names on this TLD. */
   boolean premiumPriceAckRequired = true;
 
+  /**
+   * Whether only domains with {@link ReservationType#NAMESERVER_RESTRICTED} reservation type in a
+   * reserved list can be registered on this TLD.
+   */
+  boolean domainCreateRestricted;
+
   /** The length of the add grace period for this TLD. */
   Duration addGracePeriodLength = DEFAULT_ADD_GRACE_PERIOD;
 
@@ -452,6 +459,13 @@ public class Registry extends ImmutableObject implements Buildable {
 
   public boolean getPremiumPriceAckRequired() {
     return premiumPriceAckRequired;
+  }
+
+  /**
+   * Returns true if only domains with nameserver restricted reservation on this TLD can be created.
+   */
+  public boolean getDomainCreateRestricted() {
+    return domainCreateRestricted;
   }
 
   public Duration getAddGracePeriodLength() {
@@ -644,6 +658,11 @@ public class Registry extends ImmutableObject implements Buildable {
 
     public Builder setPremiumPriceAckRequired(boolean premiumPriceAckRequired) {
       getInstance().premiumPriceAckRequired = premiumPriceAckRequired;
+      return this;
+    }
+
+    public Builder setDomainCreateRestricted(boolean domainCreateRestricted) {
+      getInstance().domainCreateRestricted = domainCreateRestricted;
       return this;
     }
 

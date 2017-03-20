@@ -53,6 +53,9 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.domain.DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -97,6 +100,12 @@ import org.joda.time.DateTime;
  * @error {@link DomainAllocateFlow.MissingApplicationException}
  * @error {@link DomainAllocateFlow.OnlySuperuserCanAllocateException}
  * @error {@link DomainFlowUtils.ExceedsMaxRegistrationYearsException}
+ * @error {@link DomainNotAllowedForTldWithCreateRestrictionException}
+ * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedForDomainException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedForTldException}
+ * @error {@link NameserversNotSpecifiedForNameserverRestrictedDomainException}
+ * @error {@link NameserversNotSpecifiedForTldWithNameserverWhitelistException}
  */
 public class DomainAllocateFlow implements TransactionalFlow {
 
@@ -138,7 +147,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
     Integer years = period.getValue();
     verifyUnitIsYears(period);
     validateRegistrationPeriod(years);
-    validateCreateCommandContactsAndNameservers(command, registry.getTldStr());
+    validateCreateCommandContactsAndNameservers(command, registry, domainName);
     SecDnsCreateExtension secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     boolean isSunrushAddGracePeriod = isNullOrEmpty(command.getNameservers());

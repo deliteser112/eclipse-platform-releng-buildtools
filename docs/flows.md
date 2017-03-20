@@ -274,7 +274,7 @@ the domain to convert to a normal create and be billed for accordingly.
     *   Resource status prohibits this operation.
     *   Linked resource in pending delete prohibits operation.
     *   Nameservers are not whitelisted for this TLD.
-    *   Nameservers not specified for this TLD with whitelist.
+    *   Nameservers not specified for domain on TLD with nameserver whitelist.
     *   Registrant is not whitelisted for this TLD.
 *   2306
     *   Cannot add and remove the same value.
@@ -650,11 +650,16 @@ An EPP flow that creates a new domain resource.
     *   Resource linked to this domain does not exist.
 *   2304
     *   The claims period for this TLD has ended.
+    *   Requested domain does not have nameserver-restricted reservation for a
+        TLD that requires such a reservation to create domains.
     *   Requested domain is reserved.
     *   Linked resource in pending delete prohibits operation.
     *   Requested domain requires a claims notice.
+    *   Nameservers are not whitelisted for this domain.
     *   Nameservers are not whitelisted for this TLD.
-    *   Nameservers not specified for this TLD with whitelist.
+    *   Nameservers not specified for domain with nameserver-restricted
+        reservation.
+    *   Nameservers not specified for domain on TLD with nameserver whitelist.
     *   The requested domain name is on the premium price list, and this
         registrar has blocked premium registrations.
     *   Registrant is not whitelisted for this TLD.
@@ -864,10 +869,15 @@ An EPP flow that creates a new application for a domain resource.
     *   Resource linked to this domain does not exist.
 *   2304
     *   The claims period for this TLD has ended.
+    *   Requested domain does not have nameserver-restricted reservation for a
+        TLD that requires such a reservation to create domains.
     *   Requested domain is reserved.
     *   Requested domain requires a claims notice.
+    *   Nameservers are not whitelisted for this domain.
     *   Nameservers are not whitelisted for this TLD.
-    *   Nameservers not specified for this TLD with whitelist.
+    *   Nameservers not specified for domain with nameserver-restricted
+        reservation.
+    *   Nameservers not specified for domain on TLD with nameserver whitelist.
     *   The requested domain name is on the premium price list, and this
         registrar has blocked premium registrations.
     *   Registrant is not whitelisted for this TLD.
@@ -921,6 +931,14 @@ An EPP flow that allocates a new domain resource from a domain application.
     *   Domain application with specific ROID does not exist.
 *   2304
     *   Domain application already has a final status.
+    *   Requested domain does not have nameserver-restricted reservation for a
+        TLD that requires such a reservation to create domains.
+    *   Registrant is not whitelisted for this TLD.
+    *   Nameservers are not whitelisted for this domain.
+    *   Nameservers are not whitelisted for this TLD.
+    *   Nameservers not specified for domain with nameserver-restricted
+        reservation.
+    *   Nameservers not specified for domain on TLD with nameserver whitelist.
 
 ## ClaimsCheckFlow
 

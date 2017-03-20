@@ -45,7 +45,13 @@ import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainAllocateFlow.HasFinalStatusException;
 import google.registry.flows.domain.DomainAllocateFlow.MissingApplicationException;
 import google.registry.flows.domain.DomainAllocateFlow.OnlySuperuserCanAllocateException;
+import google.registry.flows.domain.DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException;
 import google.registry.flows.domain.DomainFlowUtils.ExceedsMaxRegistrationYearsException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForDomainException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForTldException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException;
+import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -218,6 +224,208 @@ public class DomainAllocateFlowTest
   public void testSuccess() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     doSuccessfulTest(2);
+  }
+
+  @Test
+  public void testSuccess_nameserverAndRegistrantWhitelisted() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("jd1234"))
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.net", "ns2.example.net"))
+            .build());
+    doSuccessfulTest(2);
+  }
+
+  @Test
+  public void testFailure_nameserverNotWhitelisted() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("jd1234"))
+            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.net"))
+            .build());
+    thrown.expect(NameserversNotAllowedForTldException.class, "ns1.example.net");
+    runFlowAsSuperuser();
+  }
+
+  @Test
+  public void testFailure_registrantNotWhitelisted() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("someone"))
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.net", "ns2.example.net"))
+            .build());
+    thrown.expect(RegistrantNotAllowedException.class, "jd1234");
+    runFlowAsSuperuser();
+  }
+
+  @Test
+  public void testFailure_emptyNameserverFailsWhitelist() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    setEppInput("domain_allocate_no_nameservers.xml");
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setAllowedRegistrantContactIds(ImmutableSet.of("jd1234"))
+            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.net, ns2.example.net"))
+            .build());
+    thrown.expect(NameserversNotSpecifiedForTldWithNameserverWhitelistException.class);
+    runFlowAsSuperuser();
+  }
+
+  @Test
+  public void testSuccess_domainNameserverRestricted_allNameserversAllowed() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                persistReservedList(
+                    "reserved",
+                    "example-one,NAMESERVER_RESTRICTED,"
+                        + "ns1.example.net:ns2.example.net:ns3.example.net"))
+            .build());
+    doSuccessfulTest(2);
+  }
+
+  @Test
+  public void testFailure_domainNameserverRestricted_someNameserversDisallowed() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                persistReservedList(
+                    "reserved",
+                    "example-one,NAMESERVER_RESTRICTED," + "ns2.example.net:ns3.example.net"))
+            .build());
+    thrown.expect(NameserversNotAllowedForDomainException.class, "ns1.example.net");
+    runFlowAsSuperuser();
+  }
+
+  @Test
+  public void testFailure_domainNameserverRestricted_noNameservers() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    setEppInput("domain_allocate_no_nameservers.xml");
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                persistReservedList(
+                    "reserved",
+                    "example-one,NAMESERVER_RESTRICTED," + "ns2.example.net:ns3.example.net"))
+            .build());
+    thrown.expect(NameserversNotSpecifiedForNameserverRestrictedDomainException.class);
+    runFlowAsSuperuser();
+  }
+
+  @Test
+  public void testFailure_domainCreateRestricted_domainNotReserved() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setDomainCreateRestricted(true)
+            .setReservedLists(
+                persistReservedList(
+                    "reserved", "lol,NAMESERVER_RESTRICTED," + "ns2.example.net:ns3.example.net"))
+            .build());
+    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class, "example-one.tld");
+    runFlowAsSuperuser();
+  }
+
+  @Test
+  public void testSuccess_domainCreateNotRestricted_domainNotReserved() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                persistReservedList(
+                    "reserved", "lol,NAMESERVER_RESTRICTED," + "ns2.example.net:ns3.example.net"))
+            .build());
+    doSuccessfulTest(2);
+  }
+
+  @Test
+  public void testSuccess_tldAndDomainNameserversWhitelistBothSatistfied() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setDomainCreateRestricted(true)
+            .setReservedLists(
+                persistReservedList(
+                    "reserved",
+                    "example-one,NAMESERVER_RESTRICTED,"
+                        + "ns1.example.net:ns2.example.net:ns3.example.net"))
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.net", "ns2.example.net", "ns4.example.net"))
+            .build());
+    doSuccessfulTest(2);
+  }
+
+  @Test
+  public void testFailure_domainNameserversDisallowed_tldNameserversAllowed() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                persistReservedList(
+                    "reserved",
+                    "example-one,NAMESERVER_RESTRICTED,"
+                        + "ns2.example.net:ns3.example.net:ns4.example.net"))
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.net", "ns2.example.net", "ns3.example.net"))
+            .build());
+    thrown.expect(NameserversNotAllowedForDomainException.class, "ns1.example.net");
+    runFlowAsSuperuser();
+  }
+
+  @Test
+  public void testFailure_domainNameserversAllowed_tldNameserversDisallowed() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                persistReservedList(
+                    "reserved",
+                    "example-one,NAMESERVER_RESTRICTED,"
+                        + "ns2.example.net:ns3.example.net:ns1.example.net"))
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns4.example.net", "ns2.example.net", "ns3.example.net"))
+            .build());
+    thrown.expect(NameserversNotAllowedForTldException.class, "ns1.example.net");
+    runFlowAsSuperuser();
+  }
+
+  @Test
+  public void testFailure_tldNameserversAllowed_domainCreateRestricted_domainNotReserved()
+      throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setDomainCreateRestricted(true)
+            .setReservedLists(
+                persistReservedList(
+                    "reserved",
+                    "lol,NAMESERVER_RESTRICTED,"
+                        + "ns2.example.net:ns3.example.net:ns1.example.net"))
+            .setAllowedFullyQualifiedHostNames(
+                ImmutableSet.of("ns1.example.net", "ns2.example.net", "ns3.example.net"))
+            .build());
+    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class, "example-one.tld");
+    runFlowAsSuperuser();
   }
 
   @Test

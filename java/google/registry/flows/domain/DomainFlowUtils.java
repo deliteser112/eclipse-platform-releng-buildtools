@@ -27,6 +27,8 @@ import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
+import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
+import static google.registry.model.registry.label.ReservedList.getAllowedNameservers;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
 import static google.registry.util.CollectionUtils.nullToEmpty;
@@ -281,11 +283,20 @@ public class DomainFlowUtils {
     }
   }
 
-  static void validateNameserversCountForTld(String tld, int count) throws EppException {
-    ImmutableSet<String> whitelist = Registry.get(tld).getAllowedFullyQualifiedHostNames();
+  static void validateNameserversCountForTld(String tld, InternetDomainName domainName, int count)
+      throws EppException {
     // For TLDs with a nameserver whitelist, all domains must have at least 1 nameserver.
-    if (!whitelist.isEmpty() && count == 0) {
-      throw new NameserversNotSpecifiedException();
+    ImmutableSet<String> tldNameserversWhitelist =
+        Registry.get(tld).getAllowedFullyQualifiedHostNames();
+    if (!tldNameserversWhitelist.isEmpty() && count == 0) {
+      throw new NameserversNotSpecifiedForTldWithNameserverWhitelistException(
+          domainName.toString());
+    }
+    // For domains with a nameserver restricted reservation, they must have at least 1 nameserver.
+    ImmutableSet<String> domainNameserversWhitelist = getAllowedNameservers(domainName);
+    if (!domainNameserversWhitelist.isEmpty() && count == 0) {
+      throw new NameserversNotSpecifiedForNameserverRestrictedDomainException(
+          domainName.toString());
     }
     if (count > MAX_NAMESERVERS_PER_DOMAIN) {
       throw new TooManyNameserversException(String.format(
@@ -339,8 +350,35 @@ public class DomainFlowUtils {
     if (!whitelist.isEmpty()) { // Empty whitelist is ignored.
       Set<String> disallowedNameservers = difference(hostnames, whitelist);
       if (!disallowedNameservers.isEmpty()) {
-        throw new NameserversNotAllowedException(disallowedNameservers);
+        throw new NameserversNotAllowedForTldException(disallowedNameservers);
       }
+    }
+  }
+
+  /**
+   * Validates if the requested nameservers can be set on the requested domain.
+   *
+   * @param domainName the domain to be created.
+   * @param fullyQualifiedHostNames the set of nameservers to be set on the domain.
+   * @throws EppException
+   */
+  static void validateNameserversAllowedOnDomain(
+      InternetDomainName domainName, Set<String> fullyQualifiedHostNames) throws EppException {
+    ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);
+    if (reservationTypes.contains(NAMESERVER_RESTRICTED)) {
+      ImmutableSet<String> allowedNameservers = getAllowedNameservers(domainName);
+      Set<String> disallowedNameservers = difference(fullyQualifiedHostNames, allowedNameservers);
+      if (!disallowedNameservers.isEmpty()) {
+        throw new NameserversNotAllowedForDomainException(disallowedNameservers);
+      }
+    }
+  }
+
+  /** Validates if the requested domain can be reated on a domain create restricted TLD. */
+  static void validateDomainCreateAllowed(InternetDomainName domainName) throws EppException {
+    ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);
+    if (!reservationTypes.contains(NAMESERVER_RESTRICTED)) {
+      throw new DomainNotAllowedForTldWithCreateRestrictionException(domainName.toString());
     }
   }
 
@@ -730,20 +768,23 @@ public class DomainFlowUtils {
   }
 
   /** Validate the contacts and nameservers specified in a domain or application create command. */
-  static void validateCreateCommandContactsAndNameservers(Create command, String tld)
-      throws EppException {
+  static void validateCreateCommandContactsAndNameservers(
+      Create command, Registry registry, InternetDomainName domainName) throws EppException {
     verifyNotInPendingDelete(
-        command.getContacts(),
-        command.getRegistrant(),
-        command.getNameservers());
+        command.getContacts(), command.getRegistrant(), command.getNameservers());
     validateContactsHaveTypes(command.getContacts());
+    String tld = registry.getTldStr();
     validateRegistrantAllowedOnTld(tld, command.getRegistrantContactId());
     validateNoDuplicateContacts(command.getContacts());
     validateRequiredContactsPresent(command.getRegistrant(), command.getContacts());
     Set<String> fullyQualifiedHostNames =
         nullToEmpty(command.getNameserverFullyQualifiedHostNames());
-    validateNameserversCountForTld(tld, fullyQualifiedHostNames.size());
+    validateNameserversCountForTld(tld, domainName, fullyQualifiedHostNames.size());
     validateNameserversAllowedOnTld(tld, fullyQualifiedHostNames);
+    if (registry.getDomainCreateRestricted()) {
+      validateDomainCreateAllowed(domainName);
+    }
+    validateNameserversAllowedOnDomain(domainName, fullyQualifiedHostNames);
   }
 
   /**
@@ -1131,6 +1172,21 @@ public class DomainFlowUtils {
   }
 
   /**
+   * Requested domain does not have nameserver-restricted reservation for a TLD that requires such a
+   * reservation to create domains.
+   */
+  static class DomainNotAllowedForTldWithCreateRestrictionException
+      extends StatusProhibitsOperationException {
+    public DomainNotAllowedForTldWithCreateRestrictionException(String domainName) {
+      super(
+          String.format(
+              "%s is not allowed without a nameserver-restricted reservation"
+                  + " for a TLD that requires such reservation",
+              domainName));
+    }
+  }
+
+  /**
    * The requested domain name is on the premium price list, and this registrar has blocked premium
    * registrations.
    */
@@ -1169,18 +1225,47 @@ public class DomainFlowUtils {
   }
 
   /** Nameservers are not whitelisted for this TLD. */
-  public static class NameserversNotAllowedException extends StatusProhibitsOperationException {
-    public NameserversNotAllowedException(Set<String> fullyQualifiedHostNames) {
+  public static class NameserversNotAllowedForTldException
+      extends StatusProhibitsOperationException {
+    public NameserversNotAllowedForTldException(Set<String> fullyQualifiedHostNames) {
       super(String.format(
           "Nameservers '%s' are not whitelisted for this TLD",
           Joiner.on(',').join(fullyQualifiedHostNames)));
     }
   }
 
-  /** Nameservers not specified for this TLD with whitelist. */
-  public static class NameserversNotSpecifiedException extends StatusProhibitsOperationException {
-    public NameserversNotSpecifiedException() {
-      super("At least one nameserver must be specified for this TLD");
+  /** Nameservers are not whitelisted for this domain. */
+  public static class NameserversNotAllowedForDomainException
+      extends StatusProhibitsOperationException {
+    public NameserversNotAllowedForDomainException(Set<String> fullyQualifiedHostNames) {
+      super(
+          String.format(
+              "Nameservers '%s' are not whitelisted for this domain",
+              Joiner.on(',').join(fullyQualifiedHostNames)));
+    }
+  }
+
+  /** Nameservers not specified for domain on TLD with nameserver whitelist. */
+  public static class NameserversNotSpecifiedForTldWithNameserverWhitelistException
+      extends StatusProhibitsOperationException {
+    public NameserversNotSpecifiedForTldWithNameserverWhitelistException(String domain) {
+      super(
+          String.format(
+              "At least one nameserver must be specified for domain %s"
+                  + " on a TLD with nameserver whitelist",
+              domain));
+    }
+  }
+
+  /** Nameservers not specified for domain with nameserver-restricted reservation. */
+  public static class NameserversNotSpecifiedForNameserverRestrictedDomainException
+      extends StatusProhibitsOperationException {
+    public NameserversNotSpecifiedForNameserverRestrictedDomainException(String domain) {
+      super(
+          String.format(
+              "At least one nameserver must be specified for domain %s"
+                  + " on a TLD with nameserver restriction",
+              domain));
     }
   }
 

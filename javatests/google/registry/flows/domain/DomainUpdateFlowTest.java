@@ -56,8 +56,8 @@ import google.registry.flows.domain.DomainFlowUtils.MaxSigLifeChangeNotSupported
 import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
-import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedException;
-import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForTldException;
+import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
 import google.registry.flows.domain.DomainFlowUtils.SecDnsAllUsageException;
@@ -1093,7 +1093,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedException.class);
+    thrown.expect(NameserversNotAllowedForTldException.class);
     runFlow();
   }
 
@@ -1176,7 +1176,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         Registry.get("tld").asBuilder()
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
-    thrown.expect(NameserversNotSpecifiedException.class);
+    thrown.expect(NameserversNotSpecifiedForTldWithNameserverWhitelistException.class);
     runFlow();
   }
 

@@ -43,6 +43,7 @@ import static google.registry.util.DateTimeUtils.earliestOf;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
@@ -113,8 +114,8 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.MissingAdminContactException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.MissingTechnicalContactException}
- * @error {@link DomainFlowUtils.NameserversNotAllowedException}
- * @error {@link DomainFlowUtils.NameserversNotSpecifiedException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedForTldException}
+ * @error {@link DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
  * @error {@link DomainFlowUtils.SecDnsAllUsageException}
@@ -315,7 +316,10 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     validateNoDuplicateContacts(newDomain.getContacts());
     validateRequiredContactsPresent(newDomain.getRegistrant(), newDomain.getContacts());
     validateDsData(newDomain.getDsData());
-    validateNameserversCountForTld(newDomain.getTld(), newDomain.getNameservers().size());
+    validateNameserversCountForTld(
+        newDomain.getTld(),
+        InternetDomainName.from(newDomain.getFullyQualifiedDomainName()),
+        newDomain.getNameservers().size());
   }
 
   /** Some status updates cost money. Bill only once no matter how many of them are changed. */
