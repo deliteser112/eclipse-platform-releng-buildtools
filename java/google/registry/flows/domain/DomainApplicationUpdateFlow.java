@@ -29,8 +29,10 @@ import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToT
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.updateDsData;
 import static google.registry.flows.domain.DomainFlowUtils.validateContactsHaveTypes;
+import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDsData;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
+import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnDomain;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversCountForTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
@@ -41,6 +43,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyClientUpdateNot
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -56,7 +59,6 @@ import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeOperationException;
-import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForTldException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Update;
@@ -99,7 +101,11 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.MissingAdminContactException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.MissingTechnicalContactException}
- * @error {@link NameserversNotAllowedForTldException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedForTldException}
+ * @error {@link DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedForDomainException}
+ * @error {@link DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException}
+ * @error {@link DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
  * @error {@link DomainFlowUtils.SecDnsAllUsageException}
@@ -179,8 +185,9 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
       throw new ApplicationStatusProhibitsUpdateException(
           existingApplication.getApplicationStatus());
     }
+    Registry registry = Registry.get(tld);
     FeesAndCredits feesAndCredits =
-        pricingLogic.getApplicationUpdatePrice(Registry.get(tld), existingApplication, now);
+        pricingLogic.getApplicationUpdatePrice(registry, existingApplication, now);
     FeeUpdateCommandExtension feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
     // If the fee extension is present, validate it (even if the cost is zero, to check for price
@@ -201,6 +208,13 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
     validateRegistrantAllowedOnTld(tld, command.getInnerChange().getRegistrantContactId());
     validateNameserversAllowedOnTld(
         tld, add.getNameserverFullyQualifiedHostNames());
+    InternetDomainName domainName =
+        InternetDomainName.from(existingApplication.getFullyQualifiedDomainName());
+    if (registry.getDomainCreateRestricted()) {
+      validateDomainAllowedOnCreateRestrictedTld(domainName);
+    }
+    validateNameserversAllowedOnDomain(
+        domainName, nullToEmpty(add.getNameserverFullyQualifiedHostNames()));
   }
 
   private HistoryEntry buildHistory(DomainApplication existingApplication, DateTime now) {

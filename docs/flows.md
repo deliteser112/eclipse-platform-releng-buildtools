@@ -275,6 +275,11 @@ the domain to convert to a normal create and be billed for accordingly.
     *   Linked resource in pending delete prohibits operation.
     *   Nameservers are not whitelisted for this TLD.
     *   Nameservers not specified for domain on TLD with nameserver whitelist.
+    *   Nameservers are not whitelisted for this domain.
+    *   Nameservers not specified for domain with nameserver-restricted
+        reservation.
+    *   Requested domain does not have nameserver-restricted reservation for a
+        TLD that requires such a reservation to create domains.
     *   Registrant is not whitelisted for this TLD.
 *   2306
     *   Cannot add and remove the same value.
@@ -759,6 +764,12 @@ application. Updates cannot change the domain name that is being applied for.
         clear that status.
     *   Resource status prohibits this operation.
     *   Nameservers are not whitelisted for this TLD.
+    *   Nameservers not specified for domain on TLD with nameserver whitelist.
+    *   Nameservers are not whitelisted for this domain.
+    *   Nameservers not specified for domain with nameserver-restricted
+        reservation.
+    *   Requested domain does not have nameserver-restricted reservation for a
+        TLD that requires such a reservation to create domains.
     *   Registrant is not whitelisted for this TLD.
     *   Application status prohibits this domain update.
 *   2306

@@ -29,8 +29,10 @@ import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToT
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.updateDsData;
 import static google.registry.flows.domain.DomainFlowUtils.validateContactsHaveTypes;
+import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDsData;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
+import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnDomain;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversCountForTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
@@ -39,6 +41,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateRequiredConta
 import static google.registry.flows.domain.DomainFlowUtils.verifyClientUpdateNotProhibited;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.earliestOf;
 
 import com.google.common.base.Optional;
@@ -116,6 +119,9 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.MissingTechnicalContactException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedForTldException}
  * @error {@link DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException}
+ * @error {@link DomainFlowUtils.NameserversNotAllowedForDomainException}
+ * @error {@link DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException}
+ * @error {@link DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
  * @error {@link DomainFlowUtils.SecDnsAllUsageException}
@@ -209,13 +215,14 @@ public final class DomainUpdateFlow implements TransactionalFlow {
       verifyAllStatusesAreClientSettable(union(add.getStatusValues(), remove.getStatusValues()));
     }
     String tld = existingDomain.getTld();
+    Registry registry = Registry.get(tld);
     checkAllowedAccessToTld(clientId, tld);
     FeeTransformCommandExtension feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
     // If the fee extension is present, validate it (even if the cost is zero, to check for price
     // mismatches). Don't rely on the the validateFeeChallenge check for feeUpdate nullness, because
     // it throws an error if the name is premium, and we don't want to do that here.
-    FeesAndCredits feesAndCredits = pricingLogic.getUpdatePrice(Registry.get(tld), targetId, now);
+    FeesAndCredits feesAndCredits = pricingLogic.getUpdatePrice(registry, targetId, now);
     if (feeUpdate != null) {
       validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, feesAndCredits);
     } else if (!feesAndCredits.getTotalCost().isZero()) {
@@ -231,6 +238,13 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     validateRegistrantAllowedOnTld(tld, command.getInnerChange().getRegistrantContactId());
     validateNameserversAllowedOnTld(
         tld, add.getNameserverFullyQualifiedHostNames());
+    InternetDomainName domainName =
+        InternetDomainName.from(existingDomain.getFullyQualifiedDomainName());
+    if (registry.getDomainCreateRestricted()) {
+      validateDomainAllowedOnCreateRestrictedTld(domainName);
+    }
+    validateNameserversAllowedOnDomain(
+        domainName, nullToEmpty(add.getNameserverFullyQualifiedHostNames()));
   }
 
   private HistoryEntry buildHistoryEntry(DomainResource existingDomain, DateTime now) {

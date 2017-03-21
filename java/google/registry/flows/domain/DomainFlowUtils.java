@@ -375,7 +375,8 @@ public class DomainFlowUtils {
   }
 
   /** Validates if the requested domain can be reated on a domain create restricted TLD. */
-  static void validateDomainCreateAllowed(InternetDomainName domainName) throws EppException {
+  static void validateDomainAllowedOnCreateRestrictedTld(InternetDomainName domainName)
+      throws EppException {
     ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);
     if (!reservationTypes.contains(NAMESERVER_RESTRICTED)) {
       throw new DomainNotAllowedForTldWithCreateRestrictionException(domainName.toString());
@@ -782,7 +783,7 @@ public class DomainFlowUtils {
     validateNameserversCountForTld(tld, domainName, fullyQualifiedHostNames.size());
     validateNameserversAllowedOnTld(tld, fullyQualifiedHostNames);
     if (registry.getDomainCreateRestricted()) {
-      validateDomainCreateAllowed(domainName);
+      validateDomainAllowedOnCreateRestrictedTld(domainName);
     }
     validateNameserversAllowedOnDomain(domainName, fullyQualifiedHostNames);
   }
