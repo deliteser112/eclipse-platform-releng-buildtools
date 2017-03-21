@@ -218,14 +218,14 @@ public final class DomainTransferUtils {
    *
    * <p>If the domain will be in the auto-renew grace period at the automatic transfer time, then
    * the transfer will subsume the autorenew. This means that we "cancel" the 1-year extension of
-   * the autorenew before applying the extra transfer years, which in effect means reducing the
-   * transfer extended registration years by one. Since the gaining registrar will still be billed
-   * for the full extended registration years, we must issue a cancellation for the autorenew, so
-   * that the losing registrar will not be charged (essentially, the gaining registrar takes on the
-   * cost of the year of registration that the autorenew just added).
+   * the autorenew before adding the extra transfer year, which results in zero net change in the
+   * expiration time. Since the gaining registrar will still be billed for the transfer's 1-year
+   * renewal, we must issue a cancellation for the autorenew, so that the losing registrar will not
+   * be charged (essentially, the gaining registrar takes on the cost of the year of registration
+   * that the autorenew just added).
    *
-   * <p>For details on the policy justification, see b/19430703#comment17 and
-   * <a href="https://www.icann.org/news/advisory-2002-06-06-en">this ICANN advisory</a>.
+   * <p>For details on the policy justification, see b/19430703#comment17 and <a
+   * href="https://www.icann.org/news/advisory-2002-06-06-en">this ICANN advisory</a>.
    */
   private static Optional<BillingEvent.Cancellation> createOptionalAutorenewCancellation(
       DateTime automaticTransferTime,

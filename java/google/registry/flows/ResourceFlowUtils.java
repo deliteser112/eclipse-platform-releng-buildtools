@@ -209,9 +209,8 @@ public final class ResourceFlowUtils {
   /**
    * Create a {@link TransferData} object representing a resolved transfer.
    *
-   * <p>This clears all the server-approve fields on the {@link TransferData} including the extended
-   * registration years field, sets the status field, and sets the expiration time of the last
-   * pending transfer to now.
+   * <p>This clears all the server-approve fields on the {@link TransferData}, sets the status
+   * field, and sets the expiration time of the last pending transfer to now.
    */
   public static TransferData createResolvedTransferData(
       TransferData oldTransferData, TransferStatus transferStatus, DateTime now) {
@@ -229,16 +228,15 @@ public final class ResourceFlowUtils {
   /**
    * Turn a resource into a builder with its pending transfer resolved.
    *
-   * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, sets the
-   * {@link TransferStatus}, clears all the server-approve fields on the {@link TransferData}
-   * including the extended registration years field, and sets the expiration time of the last
-   * pending transfer to now.
+   * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, sets the {@link
+   * TransferStatus}, clears all the server-approve fields on the {@link TransferData}, and sets the
+   * expiration time of the last pending transfer to now.
    */
   @SuppressWarnings("unchecked")
   public static <
-      R extends EppResource & ResourceWithTransferData,
-      B extends EppResource.Builder<R, B> & BuilderWithTransferData<B>> B resolvePendingTransfer(
-          R resource, TransferStatus transferStatus, DateTime now) {
+          R extends EppResource & ResourceWithTransferData,
+          B extends EppResource.Builder<R, B> & BuilderWithTransferData<B>>
+      B resolvePendingTransfer(R resource, TransferStatus transferStatus, DateTime now) {
     checkState(
         resource.getStatusValues().contains(StatusValue.PENDING_TRANSFER),
         "Resource is not in pending transfer status.");
@@ -251,15 +249,15 @@ public final class ResourceFlowUtils {
   /**
    * Resolve a pending transfer by awarding it to the gaining client.
    *
-   * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, sets the
-   * {@link TransferStatus}, clears all the server-approve fields on the {@link TransferData}
-   * including the extended registration years field, and sets the expiration time of the last
-   * pending transfer to now.
+   * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, sets the {@link
+   * TransferStatus}, clears all the server-approve fields on the {@link TransferData}, sets the new
+   * client id, and sets the last transfer time and the expiration time of the last pending transfer
+   * to now.
    */
   public static <
-        R extends EppResource & ResourceWithTransferData,
-        B extends Builder<R, B> & BuilderWithTransferData<B>>
-            R approvePendingTransfer(R resource, TransferStatus transferStatus, DateTime now) {
+          R extends EppResource & ResourceWithTransferData,
+          B extends Builder<R, B> & BuilderWithTransferData<B>>
+      R approvePendingTransfer(R resource, TransferStatus transferStatus, DateTime now) {
     B builder = ResourceFlowUtils.<R, B>resolvePendingTransfer(resource, transferStatus, now);
     return builder
         .setLastTransferTime(now)
@@ -270,10 +268,9 @@ public final class ResourceFlowUtils {
   /**
    * Resolve a pending transfer by denying it.
    *
-   * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, sets the
-   * {@link TransferStatus}, clears all the server-approve fields on the {@link TransferData}
-   * including the extended registration years field, sets the new client id, and sets the last
-   * transfer time and the expiration time of the last pending transfer to now.
+   * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, sets the {@link
+   * TransferStatus}, clears all the server-approve fields on the {@link TransferData}, and sets the
+   * expiration time of the last pending transfer to now.
    */
   public static <R extends EppResource & ResourceWithTransferData> R denyPendingTransfer(
       R resource, TransferStatus transferStatus, DateTime now) {
