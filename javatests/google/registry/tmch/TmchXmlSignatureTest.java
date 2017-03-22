@@ -21,7 +21,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-import java.security.SignatureException;
+import google.registry.tmch.TmchXmlSignature.CertificateSignatureException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.CertificateRevokedException;
@@ -62,15 +62,16 @@ public class TmchXmlSignatureTest {
     tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PILOT));
   }
 
-  public void wrongCertificateAuthority() throws Exception {
+  @Test
+  public void testWrongCertificateAuthority() throws Exception {
     tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PRODUCTION));
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
-    thrown.expectRootCause(SignatureException.class, "Signature does not match");
+    thrown.expectRootCause(CertificateSignatureException.class, "Signature does not match");
     tmchXmlSignature.verify(smdData);
   }
 
   @Test
-  public void timeTravelBeforeCertificateWasCreated() throws Exception {
+  public void testTimeTravelBeforeCertificateWasCreated() throws Exception {
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
     clock.setTo(DateTime.parse("2013-05-01T00:00:00Z"));
     thrown.expectRootCause(CertificateNotYetValidException.class);
@@ -78,7 +79,7 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void timeTravelAfterCertificateHasExpired() throws Exception {
+  public void testTimeTravelAfterCertificateHasExpired() throws Exception {
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
     clock.setTo(DateTime.parse("2023-06-01T00:00:00Z"));
     thrown.expectRootCause(CertificateExpiredException.class);
