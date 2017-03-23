@@ -208,8 +208,6 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     Registry registry = Registry.get(tld);
     FeesAndCredits feesAndCredits =
         pricingLogic.getCreatePrice(registry, targetId, now, command.getPeriod().getValue());
-    // Superusers can create reserved domains, force creations on domains that require a claims
-    // notice without specifying a claims key, and override blocks on registering premium domains.
     verifyUnitIsYears(command.getPeriod());
     int years = command.getPeriod().getValue();
     validateRegistrationPeriod(years);
@@ -220,6 +218,8 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     }
     boolean isAnchorTenant =
         matchesAnchorTenantReservation(domainName, authInfo.getPw().getValue());
+    // Superusers can create reserved domains, force creations on domains that require a claims
+    // notice without specifying a claims key, and override blocks on registering premium domains.
     if (!isSuperuser) {
       verifyPremiumNameIsNotBlocked(targetId, now, clientId);
       prohibitLandrushIfExactlyOneSunrise(registry, now);

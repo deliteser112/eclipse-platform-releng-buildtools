@@ -190,6 +190,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     Period period = command.getPeriod();
     verifyUnitIsYears(period);
     int years = period.getValue();
+    validateRegistrationPeriod(years);
     failfastForCreate(targetId, now);
     verifyResourceDoesNotExist(DomainResource.class, targetId, now);
     // Validate that this is actually a legal domain name on a TLD that the registrar has access to.
@@ -248,7 +249,6 @@ public class DomainCreateFlow implements TransactionalFlow {
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
-    validateRegistrationPeriod(years);
     HistoryEntry historyEntry = buildHistory(repoId, period, now);
     // Bill for the create.
     BillingEvent.OneTime createBillingEvent =

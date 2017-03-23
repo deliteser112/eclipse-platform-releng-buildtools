@@ -133,6 +133,9 @@ public final class DomainRenewFlow implements TransactionalFlow {
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyRenewAllowed(authInfo, existingDomain, command);
     int years = command.getPeriod().getValue();
+    DateTime newExpirationTime =
+        leapSafeAddYears(existingDomain.getRegistrationExpirationTime(), years);  // Uncapped
+    validateRegistrationPeriod(now, newExpirationTime);
     FeeRenewCommandExtension feeRenew =
         eppInput.getSingleExtension(FeeRenewCommandExtension.class);
     FeesAndCredits feesAndCredits =
@@ -150,9 +153,6 @@ public final class DomainRenewFlow implements TransactionalFlow {
         .setModificationTime(now)
         .setParent(Key.create(existingDomain))
         .build();
-    DateTime oldExpirationTime = existingDomain.getRegistrationExpirationTime();
-    DateTime newExpirationTime = leapSafeAddYears(oldExpirationTime, years);  // Uncapped
-    validateRegistrationPeriod(now, oldExpirationTime, years);
     String tld = existingDomain.getTld();
     // Bill for this explicit renew itself.
     BillingEvent.OneTime explicitRenewEvent =

@@ -144,8 +144,8 @@ public class DomainAllocateFlow implements TransactionalFlow {
     InternetDomainName domainName = validateDomainName(command.getFullyQualifiedDomainName());
     Registry registry = Registry.get(domainName.parent().toString());
     Period period = command.getPeriod();
-    Integer years = period.getValue();
     verifyUnitIsYears(period);
+    int years = period.getValue();
     validateRegistrationPeriod(years);
     validateCreateCommandContactsAndNameservers(command, registry, domainName);
     SecDnsCreateExtension secDnsCreate =

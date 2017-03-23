@@ -24,7 +24,6 @@ import static com.google.common.collect.Sets.union;
 import static google.registry.flows.domain.DomainPricingLogic.getMatchingLrpToken;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
-import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
@@ -668,17 +667,14 @@ public class DomainFlowUtils {
   }
 
   /**
-   * Check whether a new registration period (via a renew) does not extend beyond a maximum number
-   * of years (e.g. {@link DomainResource#MAX_REGISTRATION_YEARS}).
+   * Check whether a new expiration time (via a renew) does not extend beyond a maximum number of
+   * years (e.g. {@link DomainResource#MAX_REGISTRATION_YEARS}) from "now".
    *
    * @throws ExceedsMaxRegistrationYearsException if the new registration period is too long
    */
-  public static void validateRegistrationPeriod(
-      DateTime now,
-      DateTime oldExpirationTime,
-      int years) throws EppException {
-    DateTime newExpirationTime = leapSafeAddYears(oldExpirationTime, years); // uncapped
-    if (extendRegistrationWithCap(now, oldExpirationTime, years).isBefore(newExpirationTime)) {
+  public static void validateRegistrationPeriod(DateTime now, DateTime newExpirationTime)
+      throws EppException {
+    if (leapSafeAddYears(now, MAX_REGISTRATION_YEARS).isBefore(newExpirationTime)) {
       throw new ExceedsMaxRegistrationYearsException();
     }
   }
