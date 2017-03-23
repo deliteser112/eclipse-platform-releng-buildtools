@@ -33,6 +33,7 @@ import google.registry.model.registrar.Registrar.BillingMethod;
 import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.Registrar.Type;
 import google.registry.util.CidrAddressBlock;
+import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -201,6 +202,14 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     assertThat(loadByClientId("NewRegistrar").getBillingIdentifier()).isNull();
     runCommand("--billing_id=12345", "--force", "NewRegistrar");
     assertThat(loadByClientId("NewRegistrar").getBillingIdentifier()).isEqualTo(12345);
+  }
+
+  @Test
+  public void testSuccess_billingAccountMap() throws Exception {
+    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap()).isEmpty();
+    runCommand("--billing_account_map=USD=abc123,JPY=789xyz", "--force", "NewRegistrar");
+    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap())
+        .containsExactly(CurrencyUnit.USD, "abc123", CurrencyUnit.JPY, "789xyz");
   }
 
   @Test

@@ -18,8 +18,11 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.testing.ExceptionRule;
+import google.registry.tools.params.KeyValueMapParameter.CurrencyUnitToStringMap;
 import google.registry.tools.params.KeyValueMapParameter.StringToIntegerMap;
 import google.registry.tools.params.KeyValueMapParameter.StringToStringMap;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.IllegalCurrencyException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +37,7 @@ public class KeyValueMapParameterTest {
 
   private final StringToStringMap stringToStringInstance = new StringToStringMap();
   private final StringToIntegerMap stringToIntegerInstance = new StringToIntegerMap();
+  private final CurrencyUnitToStringMap currencyUnitToStringMap = new CurrencyUnitToStringMap();
 
   @Test
   public void testSuccess_convertStringToString_singleEntry() throws Exception {
@@ -45,6 +49,12 @@ public class KeyValueMapParameterTest {
   public void testSuccess_convertStringToInteger_singleEntry() throws Exception {
     assertThat(stringToIntegerInstance.convert("key=1"))
         .isEqualTo(ImmutableMap.of("key", 1));
+  }
+
+  @Test
+  public void testSuccess_convertCurrencyUnitToString_singleEntry() throws Exception {
+    assertThat(currencyUnitToStringMap.convert("USD=123abc"))
+        .isEqualTo(ImmutableMap.of(CurrencyUnit.USD, "123abc"));
   }
 
   @Test
@@ -60,6 +70,12 @@ public class KeyValueMapParameterTest {
   }
 
   @Test
+  public void testSuccess_convertCurrencyUnitToString() throws Exception {
+    assertThat(currencyUnitToStringMap.convert("USD=123abc,JPY=xyz789"))
+        .isEqualTo(ImmutableMap.of(CurrencyUnit.USD, "123abc", CurrencyUnit.JPY, "xyz789"));
+  }
+
+  @Test
   public void testSuccess_convertStringToString_empty() throws Exception {
     assertThat(stringToStringInstance.convert("")).isEmpty();
   }
@@ -70,9 +86,20 @@ public class KeyValueMapParameterTest {
   }
 
   @Test
+  public void testSuccess_convertCurrencyUnitToString_empty() throws Exception {
+    assertThat(currencyUnitToStringMap.convert("")).isEmpty();
+  }
+
+  @Test
   public void testFailure_convertStringToInteger_badType() throws Exception {
     thrown.expect(NumberFormatException.class);
     stringToIntegerInstance.convert("key=1,key2=foo");
+  }
+
+  @Test
+  public void testFailure_convertCurrencyUnitToString_badType() throws Exception {
+    thrown.expect(IllegalCurrencyException.class, "XYZ");
+    currencyUnitToStringMap.convert("USD=123abc,XYZ=xyz789");
   }
 
   @Test
@@ -88,6 +115,12 @@ public class KeyValueMapParameterTest {
   }
 
   @Test
+  public void testFailure_convertCurrencyUnitToString_badSeparator() throws Exception {
+    thrown.expect(IllegalArgumentException.class);
+    currencyUnitToStringMap.convert("USD=123abc&JPY=xyz789");
+  }
+
+  @Test
   public void testFailure_convertStringToString_badFormat() throws Exception {
     thrown.expect(IllegalArgumentException.class);
     stringToStringInstance.convert("foo");
@@ -98,4 +131,11 @@ public class KeyValueMapParameterTest {
     thrown.expect(IllegalArgumentException.class);
     stringToIntegerInstance.convert("foo");
   }
+
+  @Test
+  public void testFailure_convertCurrencyUnitToString_badFormat() throws Exception {
+    thrown.expect(IllegalArgumentException.class);
+    currencyUnitToStringMap.convert("foo");
+  }
 }
+

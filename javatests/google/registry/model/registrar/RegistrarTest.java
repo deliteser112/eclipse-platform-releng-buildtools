@@ -27,6 +27,7 @@ import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.EntityTestCase;
 import google.registry.model.common.EntityGroupRoot;
@@ -34,6 +35,7 @@ import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.Registrar.Type;
 import google.registry.testing.ExceptionRule;
 import google.registry.util.CidrAddressBlock;
+import org.joda.money.CurrencyUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,45 +52,51 @@ public class RegistrarTest extends EntityTestCase {
   public void setUp() throws Exception {
     createTld("xn--q9jyb4c");
     // Set up a new persisted registrar entity.
-    registrar = cloneAndSetAutoTimestamps(
-        new Registrar.Builder()
-            .setClientId("registrar")
-            .setRegistrarName("full registrar name")
-            .setType(Type.REAL)
-            .setState(State.PENDING)
-            .setAllowedTlds(ImmutableSet.of("xn--q9jyb4c"))
-            .setWhoisServer("whois.example.com")
-            .setBlockPremiumNames(true)
-            .setClientCertificate(SAMPLE_CERT, clock.nowUtc())
-            .setIpAddressWhitelist(ImmutableList.of(
-                CidrAddressBlock.create("192.168.1.1/31"),
-                CidrAddressBlock.create("10.0.0.1/8")))
-            .setPassword("foobar")
-            .setInternationalizedAddress(new RegistrarAddress.Builder()
-                .setStreet(ImmutableList.of("123 Example Boulevard"))
-                .setCity("Williamsburg")
-                .setState("NY")
-                .setZip("11211")
-                .setCountryCode("US")
-                .build())
-            .setLocalizedAddress(new RegistrarAddress.Builder()
-                .setStreet(ImmutableList.of("123 Example Boulevard."))
-                .setCity("Williamsburg")
-                .setState("NY")
-                .setZip("11211")
-                .setCountryCode("US")
-                .build())
-            .setPhoneNumber("+1.2125551212")
-            .setFaxNumber("+1.2125551213")
-            .setEmailAddress("contact-us@example.com")
-            .setUrl("http://www.example.com")
-            .setReferralUrl("http://www.example.com")
-            .setIcannReferralEmail("foo@example.com")
-            .setDriveFolderId("drive folder id")
-            .setIanaIdentifier(8L)
-            .setBillingIdentifier(5325L)
-            .setPhonePasscode("01234")
-            .build());
+    registrar =
+        cloneAndSetAutoTimestamps(
+            new Registrar.Builder()
+                .setClientId("registrar")
+                .setRegistrarName("full registrar name")
+                .setType(Type.REAL)
+                .setState(State.PENDING)
+                .setAllowedTlds(ImmutableSet.of("xn--q9jyb4c"))
+                .setWhoisServer("whois.example.com")
+                .setBlockPremiumNames(true)
+                .setClientCertificate(SAMPLE_CERT, clock.nowUtc())
+                .setIpAddressWhitelist(
+                    ImmutableList.of(
+                        CidrAddressBlock.create("192.168.1.1/31"),
+                        CidrAddressBlock.create("10.0.0.1/8")))
+                .setPassword("foobar")
+                .setInternationalizedAddress(
+                    new RegistrarAddress.Builder()
+                        .setStreet(ImmutableList.of("123 Example Boulevard"))
+                        .setCity("Williamsburg")
+                        .setState("NY")
+                        .setZip("11211")
+                        .setCountryCode("US")
+                        .build())
+                .setLocalizedAddress(
+                    new RegistrarAddress.Builder()
+                        .setStreet(ImmutableList.of("123 Example Boulevard."))
+                        .setCity("Williamsburg")
+                        .setState("NY")
+                        .setZip("11211")
+                        .setCountryCode("US")
+                        .build())
+                .setPhoneNumber("+1.2125551212")
+                .setFaxNumber("+1.2125551213")
+                .setEmailAddress("contact-us@example.com")
+                .setUrl("http://www.example.com")
+                .setReferralUrl("http://www.example.com")
+                .setIcannReferralEmail("foo@example.com")
+                .setDriveFolderId("drive folder id")
+                .setIanaIdentifier(8L)
+                .setBillingIdentifier(5325L)
+                .setBillingAccountMap(
+                    ImmutableMap.of(CurrencyUnit.USD, "abc123", CurrencyUnit.JPY, "789xyz"))
+                .setPhonePasscode("01234")
+                .build());
     persistResource(registrar);
     persistSimpleResources(ImmutableList.of(
         new RegistrarContact.Builder()
@@ -223,6 +231,14 @@ public class RegistrarTest extends EntityTestCase {
         .setIanaIdentifier(null)
         .setBillingIdentifier(null)
         .build();
+  }
+
+  @Test
+   public void testSuccess_clearingBillingAccountMap() throws Exception {
+    registrar = registrar.asBuilder()
+        .setBillingAccountMap(null)
+        .build();
+    assertThat(registrar.getBillingAccountMap()).isEmpty();
   }
 
   @Test

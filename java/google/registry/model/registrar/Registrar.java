@@ -41,6 +41,7 @@ import com.google.common.base.Predicates;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
@@ -48,12 +49,15 @@ import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.condition.IfNull;
+import com.googlecode.objectify.mapper.Mapper;
 import google.registry.model.Buildable;
 import google.registry.model.CreateAutoTimestamp;
 import google.registry.model.ImmutableObject;
@@ -62,6 +66,7 @@ import google.registry.model.Jsonifiable;
 import google.registry.model.UpdateAutoTimestamp;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.common.EntityGroupRoot;
+import google.registry.model.registrar.Registrar.BillingAccountEntry.CurrencyMapper;
 import google.registry.util.CidrAddressBlock;
 import google.registry.util.NonFinalForTesting;
 import java.security.MessageDigest;
@@ -74,6 +79,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
+import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
 
 /** Information about a registrar. */
@@ -293,6 +299,39 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   /** Identifier of registrar used in external billing system (e.g. Oracle). */
   Long billingIdentifier;
 
+  /**
+   * Map of currency-to-billing account for the registrar.
+   *
+   * <p>A registrar can have different billing accounts that are denoted in different currencies.
+   * This provides flexibility for billing systems that require such distinction.
+   */
+  @Nullable
+  @Mapify(CurrencyMapper.class)
+  Map<CurrencyUnit, BillingAccountEntry> billingAccountMap;
+
+  /** A billing account entry for this registrar, consisting of a currency and an account Id. */
+  @Embed
+  static class BillingAccountEntry extends ImmutableObject {
+
+    CurrencyUnit currency;
+    String accountId;
+
+    BillingAccountEntry() {};
+
+    BillingAccountEntry(CurrencyUnit currency, String accountId) {
+      this.accountId = accountId;
+      this.currency = currency;
+    }
+
+    /** Mapper to use for {@code @Mapify}. */
+    static class CurrencyMapper implements Mapper<CurrencyUnit, BillingAccountEntry> {
+      @Override
+      public CurrencyUnit getKey(BillingAccountEntry billingAccountEntry) {
+        return billingAccountEntry.currency;
+      }
+    }
+  }
+
   /** URL of registrar's website. */
   String url;
 
@@ -368,6 +407,18 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
   public Long getBillingIdentifier() {
     return billingIdentifier;
+  }
+
+  public ImmutableMap<CurrencyUnit, String> getBillingAccountMap() {
+    if (billingAccountMap == null) {
+      return ImmutableMap.of();
+    }
+    ImmutableMap.Builder<CurrencyUnit, String> billingAccountMapBuilder =
+        new ImmutableMap.Builder<>();
+    for (Map.Entry<CurrencyUnit, BillingAccountEntry> entry : billingAccountMap.entrySet()) {
+      billingAccountMapBuilder.put(entry.getKey(), entry.getValue().accountId);
+    }
+    return billingAccountMapBuilder.build();
   }
 
   public DateTime getLastUpdateTime() {
@@ -585,6 +636,21 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
       checkArgument(billingIdentifier == null || billingIdentifier > 0,
           "Billing ID must be a positive number");
       getInstance().billingIdentifier = billingIdentifier;
+      return this;
+    }
+
+    public Builder setBillingAccountMap(Map<CurrencyUnit, String> billingAccountMap) {
+      if (billingAccountMap == null) {
+        getInstance().billingAccountMap = null;
+      } else {
+        ImmutableMap.Builder<CurrencyUnit, BillingAccountEntry> billingAccountMapBuilder =
+            new ImmutableMap.Builder<>();
+        for (Map.Entry<CurrencyUnit, String> entry : billingAccountMap.entrySet()) {
+          CurrencyUnit key = entry.getKey();
+          billingAccountMapBuilder.put(key, new BillingAccountEntry(key, entry.getValue()));
+        }
+        getInstance().billingAccountMap = billingAccountMapBuilder.build();
+      }
       return this;
     }
 

@@ -34,6 +34,7 @@ import google.registry.model.registrar.Registrar;
 import google.registry.testing.CertificateSamples;
 import google.registry.tools.ServerSideCommand.Connection;
 import java.io.IOException;
+import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -343,6 +344,25 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     Registrar registrar = Registrar.loadByClientId("clientz");
     assertThat(registrar).isNotNull();
     assertThat(registrar.getBillingIdentifier()).isEqualTo(12345);
+  }
+
+  @Test
+  public void testSuccess_billingAccountMap() throws Exception {
+    runCommand(
+        "--name=blobio",
+        "--password=some_password",
+        "--registrar_type=REAL",
+        "--iana_id=8",
+        "--billing_account_map=USD=abc123,JPY=789xyz",
+        "--passcode=01234",
+        "--icann_referral_email=foo@bar.test",
+        "--force",
+        "clientz");
+
+    Registrar registrar = Registrar.loadByClientId("clientz");
+    assertThat(registrar).isNotNull();
+    assertThat(registrar.getBillingAccountMap())
+        .containsExactly(CurrencyUnit.USD, "abc123", CurrencyUnit.JPY, "789xyz");
   }
 
   @Test

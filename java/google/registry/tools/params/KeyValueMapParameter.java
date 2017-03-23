@@ -18,6 +18,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
+import org.joda.money.CurrencyUnit;
 
 /**
  * Combined converter and validator class for key-value map JCommander argument strings.
@@ -91,6 +92,19 @@ public abstract class KeyValueMapParameter<K, V>
     @Override
     protected Integer parseValue(String value) {
       return Integer.parseInt(value);
+    }
+  }
+
+  /** Combined converter and validator class for currency unit-to-string Map argument strings. */
+  public static class CurrencyUnitToStringMap extends KeyValueMapParameter<CurrencyUnit, String> {
+    @Override
+    protected CurrencyUnit parseKey(String rawKey) {
+      return CurrencyUnit.of(rawKey);
+    }
+
+    @Override
+    protected String parseValue(String value) {
+      return value;
     }
   }
 }

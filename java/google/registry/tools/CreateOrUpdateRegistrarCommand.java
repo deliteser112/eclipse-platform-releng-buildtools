@@ -32,6 +32,7 @@ import google.registry.model.billing.RegistrarBillingUtils;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.BillingMethod;
 import google.registry.model.registrar.RegistrarAddress;
+import google.registry.tools.params.KeyValueMapParameter.CurrencyUnitToStringMap;
 import google.registry.tools.params.OptionalLongParameter;
 import google.registry.tools.params.OptionalPhoneNumberParameter;
 import google.registry.tools.params.OptionalStringParameter;
@@ -168,6 +169,18 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       converter = OptionalLongParameter.class,
       validateWith = OptionalLongParameter.class)
   private Optional<Long> billingId;
+
+  @Nullable
+  @Parameter(
+    names = "--billing_account_map",
+    description =
+        "Registrar Billing Account key-value pairs (formatted as key=value[,key=value...]), "
+            + "where key is a currency unit (USD, JPY, etc) and value is the registrar's billing "
+            + "account id for that currency.",
+    converter = CurrencyUnitToStringMap.class,
+    validateWith = CurrencyUnitToStringMap.class
+  )
+  private Map<CurrencyUnit, String> billingAccountMap;
 
   @Nullable
   @Parameter(
@@ -333,6 +346,9 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       }
       if (billingId != null) {
         builder.setBillingIdentifier(billingId.orNull());
+      }
+      if (billingAccountMap != null) {
+        builder.setBillingAccountMap(billingAccountMap);
       }
       if (billingMethod != null) {
         if (oldRegistrar != null && !billingMethod.equals(oldRegistrar.getBillingMethod())) {
