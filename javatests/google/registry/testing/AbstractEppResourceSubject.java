@@ -19,17 +19,20 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.testing.DatastoreHelper.getHistoryEntriesOfType;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
+import static google.registry.util.DiffUtils.prettyPrintEntityDeepDiff;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
 import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.TruthChainer.And;
 import google.registry.testing.TruthChainer.Which;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /** Base Truth subject for asserting things about epp resources. */
@@ -55,6 +58,18 @@ abstract class AbstractEppResourceSubject
         "%s with foreign key '%s'",
         actual().getClass().getSimpleName(),
         actual().getForeignKey());
+  }
+
+  @Override
+  public void isEqualTo(@Nullable Object other) {
+    // If the objects differ and we can show an interesting ImmutableObject diff, do so.
+    if (actual() != null && other instanceof ImmutableObject && !actual().equals(other)) {
+      String diffText = prettyPrintEntityDeepDiff(
+          ((ImmutableObject) other).toDiffableFieldMap(), actual().toDiffableFieldMap());
+      fail(String.format("is equal to %s\n\nIt differs as follows:\n%s", other, diffText));
+    }
+    // Otherwise, fall back to regular behavior.
+    super.isEqualTo(other);
   }
 
   public And<S> hasRepoId(long roid) {
