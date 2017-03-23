@@ -68,8 +68,8 @@ FROM (
   FROM (
     SELECT
       *,
-      -- TODO(b/20828509): make this robust to multi-part TLDS.
-      LAST(SPLIT(targetId, '.')) AS tld
+      -- Count everything after first dot as TLD (to support multi-part TLDs).
+      REGEXP_EXTRACT(targetId, r'[.](.+)') AS tld,
     FROM [%SOURCE_DATASET%.OneTime])
   WHERE
     -- Filter out prober data.
@@ -100,13 +100,10 @@ LEFT JOIN EACH (
   FROM (
     SELECT
       *,
-      -- TODO(b/20828509): make this robust to multi-part TLDS.
-      LAST(SPLIT(targetId, '.')) AS tld
+      -- Count everything after first dot as TLD (to support multi-part TLDs).
+      REGEXP_EXTRACT(targetId, r'[.](.+)') AS tld,
     FROM
-      [%SOURCE_DATASET%.Cancellation]
-    WHERE
-      -- Filter out Registry 1.0 data - TODO(b/20828509): remove this.
-      __key__.namespace = '')
+      [%SOURCE_DATASET%.Cancellation])
   WHERE
     -- Filter out prober data.
     tld IN

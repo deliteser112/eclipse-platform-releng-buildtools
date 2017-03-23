@@ -39,8 +39,5 @@ SELECT
     AS reservedListPaths,
 FROM
   [%SOURCE_DATASET%.Registry]
-WHERE
-   -- Filter out Registry 1.0 data - TODO(b/20828509): remove this.
-  __key__.namespace = ''
 ORDER BY
   tld
