@@ -316,7 +316,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     CurrencyUnit currency;
     String accountId;
 
-    BillingAccountEntry() {};
+    BillingAccountEntry() {}
 
     BillingAccountEntry(CurrencyUnit currency, String accountId) {
       this.accountId = accountId;
