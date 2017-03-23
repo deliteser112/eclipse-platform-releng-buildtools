@@ -106,7 +106,6 @@ public final class RegistryTool {
           .put("uniform_rapid_suspension", UniformRapidSuspensionCommand.class)
           .put("update_application_status", UpdateApplicationStatusCommand.class)
           .put("update_claims_notice", UpdateClaimsNoticeCommand.class)
-          .put("update_credits", UpdateCreditsCommand.class)
           .put("update_cursors", UpdateCursorsCommand.class)
           .put("update_premium_list", UpdatePremiumListCommand.class)
           .put("update_registrar", UpdateRegistrarCommand.class)
