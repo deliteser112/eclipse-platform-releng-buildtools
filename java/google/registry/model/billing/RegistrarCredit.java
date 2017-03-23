@@ -37,7 +37,13 @@ import google.registry.model.registry.Registry;
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
 
-/** A per-registrar billing credit, applied toward future charges for registrar activity. */
+/**
+ * A per-registrar billing credit, applied toward future charges for registrar activity.
+ *
+ * <p>NOTE: While credits are tracked within the model, there is no built-in support for actually
+ * incorporating these credits into the generated billing data, and the model support for credits
+ * should be considered quasi-deprecated (it may be removed without notice).
+ */
 @ReportedOn
 @Entity
 public final class RegistrarCredit extends ImmutableObject implements Buildable {

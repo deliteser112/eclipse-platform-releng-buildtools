@@ -49,6 +49,10 @@ import org.joda.time.DateTime;
  * <p>The active balance of a credit object before (at) any given point in time T can be found by
  * taking the balance object with the latest effective time that is before (before or at) T, and
  * breaking any ties by choosing the mostly recently written among those balances.
+ *
+ * <p>NOTE: While credits are tracked within the model, there is no built-in support for actually
+ * incorporating these credits into the generated billing data, and the model support for credits
+ * should be considered quasi-deprecated (it may be removed without notice).
  */
 @ReportedOn
 @Entity
