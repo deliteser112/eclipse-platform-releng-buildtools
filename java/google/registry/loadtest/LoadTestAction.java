@@ -53,7 +53,7 @@ import org.joda.time.DateTime;
  * least one must be specified in order for load testing to do anything.
  */
 @Action(
-    path = "/_dr/loadtest",
+    path = LoadTestAction.PATH,
     method = Action.Method.POST,
     automaticallyPrintOk = true)
 public class LoadTestAction implements Runnable {
@@ -70,6 +70,8 @@ public class LoadTestAction implements Runnable {
   private static final String EXISTING_HOST = "ns1";
 
   private static final Random random = new Random();
+
+  public static final String PATH = "/_dr/loadtest";
 
   /** The client identifier of the registrar to use for load testing. */
   @Inject

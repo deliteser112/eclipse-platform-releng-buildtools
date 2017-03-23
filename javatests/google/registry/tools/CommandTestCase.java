@@ -182,6 +182,10 @@ public abstract class CommandTestCase<C extends Command> {
     return new String(stdout.toByteArray(), UTF_8);
   }
 
+  protected String getStderrAsString() {
+    return new String(stderr.toByteArray(), UTF_8);
+  }
+
   protected List<String> getStdoutAsLines() {
     return Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(getStdoutAsString());
   }

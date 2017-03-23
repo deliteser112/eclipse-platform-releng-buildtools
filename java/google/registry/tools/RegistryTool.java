@@ -89,6 +89,7 @@ public final class RegistryTool {
           .put("list_reserved_lists", ListReservedListsCommand.class)
           .put("list_tlds", ListTldsCommand.class)
           .put("load_snapshot", LoadSnapshotCommand.class)
+          .put("load_test", LoadTestCommand.class)
           .put("login", LoginCommand.class)
           .put("logout", LogoutCommand.class)
           .put("make_billing_tables", MakeBillingTablesCommand.class)

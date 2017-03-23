@@ -44,6 +44,7 @@ java_library(
         "//java/google/registry/flows",
         "//java/google/registry/gcs",
         "//java/google/registry/keyring/api",
+        "//java/google/registry/loadtest",
         "//java/google/registry/model",
         "//java/google/registry/pricing",
         "//java/google/registry/rde",
