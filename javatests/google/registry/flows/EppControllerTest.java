@@ -138,7 +138,6 @@ public class EppControllerTest extends ShardableTestCase {
     assertThat(metric.getClientId()).hasValue("some-client");
     assertThat(metric.getPrivilegeLevel()).hasValue("SUPERUSER");
     assertThat(metric.getStatus()).hasValue(Code.SUCCESS_WITH_NO_MESSAGES);
-    assertThat(metric.getCommandName()).hasValue("Create");
     assertThat(metric.getEppTarget()).hasValue("example.tld");
   }
 }

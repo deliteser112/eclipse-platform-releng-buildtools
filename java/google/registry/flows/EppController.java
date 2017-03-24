@@ -85,7 +85,6 @@ public final class EppController {
         metricBuilder.setStatus(e.getResult().getCode());
         return getErrorResponse(e.getResult(), Trid.create(null));
       }
-      metricBuilder.setCommandName(eppInput.getCommandName());
       if (!eppInput.getTargetIds().isEmpty()) {
         metricBuilder.setEppTarget(Joiner.on(',').join(eppInput.getTargetIds()));
       }

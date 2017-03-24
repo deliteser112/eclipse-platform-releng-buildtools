@@ -14,6 +14,7 @@
 
 package google.registry.monitoring.whitebox;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
@@ -141,7 +142,14 @@ public abstract class EppMetric implements BigQueryMetric {
 
     abstract Builder setEndTimestamp(DateTime endTimestamp);
 
-    public abstract Builder setCommandName(String commandName);
+    abstract Builder setCommandName(String commandName);
+
+    public Builder setCommandNameFromFlow(String flowSimpleClassName) {
+      checkArgument(
+          flowSimpleClassName.endsWith("Flow"),
+          "Must pass in the simple class name of a flow class");
+      return setCommandName(flowSimpleClassName.replaceFirst("Flow$", ""));
+    }
 
     public abstract Builder setClientId(String clientId);
 

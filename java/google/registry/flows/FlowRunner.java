@@ -56,6 +56,7 @@ public class FlowRunner {
   @Inject TransportCredentials credentials;
   @Inject EppRequestSource eppRequestSource;
   @Inject Provider<Flow> flowProvider;
+  @Inject Class<? extends Flow> flowClass;
   @Inject @InputXml byte[] inputXmlBytes;
   @Inject @DryRun boolean isDryRun;
   @Inject @Superuser boolean isSuperuser;
@@ -92,6 +93,7 @@ public class FlowRunner {
             "clientId", clientId,
             "xml", prettyXml,
             "xmlBytes", xmlBase64)));
+    metric.setCommandNameFromFlow(flowClass.getSimpleName());
     if (!isTransactional) {
       metric.incrementAttempts();
       return EppOutput.create(flowProvider.get().run());

@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.testing.TestLogHandler;
 import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppoutput.EppOutput.ResponseOrGreeting;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
@@ -59,22 +60,21 @@ public class FlowRunnerTest extends ShardableTestCase {
 
   private final TestLogHandler handler = new TestLogHandler();
 
+  static class TestCommandFlow implements Flow {
+    @Override
+    public ResponseOrGreeting run() throws EppException {
+      return mock(EppResponse.class);
+    }
+  }
+
   @Before
   public void before() {
     Logger.getLogger(FlowRunner.class.getCanonicalName()).addHandler(handler);
-
-    final EppResponse eppResponse = mock(EppResponse.class);
-
     flowRunner.clientId = "TheRegistrar";
     flowRunner.credentials = new PasswordOnlyTransportCredentials();
     flowRunner.eppRequestSource = EppRequestSource.UNIT_TEST;
-    flowRunner.flowProvider =
-        Providers.<Flow>of(
-            new Flow() {
-              @Override
-              public EppResponse run() {
-                return eppResponse;
-              }});
+    flowRunner.flowProvider = Providers.<Flow>of(new TestCommandFlow());
+    flowRunner.flowClass = TestCommandFlow.class;
     flowRunner.inputXmlBytes = "<xml/>".getBytes(UTF_8);
     flowRunner.isDryRun = false;
     flowRunner.isSuperuser = false;
@@ -98,16 +98,29 @@ public class FlowRunnerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testRun_notIsTransactional_incrementsMetricAttempts() throws Exception {
+  public void testRun_nonTransactionalCommand_incrementsMetricAttempts() throws Exception {
     flowRunner.run();
     assertThat(flowRunner.metric.build().getAttempts()).isEqualTo(1);
   }
 
   @Test
-  public void testRun_isTransactional_incrementsMetricAttempts() throws Exception {
+  public void testRun_transactionalCommand_incrementsMetricAttempts() throws Exception {
     flowRunner.isTransactional = true;
     flowRunner.run();
     assertThat(flowRunner.metric.build().getAttempts()).isEqualTo(1);
+  }
+
+  @Test
+  public void testRun_nonTransactionalCommand_setsCommandNameOnMetric() throws Exception {
+    flowRunner.isTransactional = true;
+    flowRunner.run();
+    assertThat(flowRunner.metric.build().getCommandName()).hasValue("TestCommand");
+  }
+
+  @Test
+  public void testRun_transactionalCommand_setsCommandNameOnMetric() throws Exception {
+    flowRunner.run();
+    assertThat(flowRunner.metric.build().getCommandName()).hasValue("TestCommand");
   }
 
   @Test
