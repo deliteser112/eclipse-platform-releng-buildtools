@@ -26,7 +26,9 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
+import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
+import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
 import static google.registry.model.registry.label.ReservedList.getAllowedNameservers;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
@@ -391,8 +393,8 @@ public class DomainFlowUtils {
 
   private static boolean isReserved(InternetDomainName domainName, boolean isSunrise) {
     ImmutableSet<ReservationType> types = getReservationTypes(domainName);
-    return types.contains(ReservationType.FULLY_BLOCKED)
-        || types.contains(ReservationType.RESERVED_FOR_ANCHOR_TENANT)
+    return types.contains(FULLY_BLOCKED)
+        || types.contains(RESERVED_FOR_ANCHOR_TENANT)
         || !(isSunrise || intersection(TYPES_ALLOWED_FOR_CREATE_ONLY_IN_SUNRISE, types).isEmpty());
   }
 

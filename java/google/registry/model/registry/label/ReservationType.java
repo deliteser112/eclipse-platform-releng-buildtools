@@ -14,8 +14,11 @@
 
 package google.registry.model.registry.label;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
+import com.google.common.collect.Ordering;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -27,13 +30,12 @@ public enum ReservationType {
   // label has multiple reservation types, its message is the that of the one with the highest
   // severity.
 
-  UNRESERVED(null, 0),
-  NAMESERVER_RESTRICTED("Nameserver restricted", 1),
-  ALLOWED_IN_SUNRISE("Reserved for non-sunrise", 2),
-  MISTAKEN_PREMIUM("Reserved", 3),
-  RESERVED_FOR_ANCHOR_TENANT("Reserved", 4),
-  NAME_COLLISION("Cannot be delegated", 5),
-  FULLY_BLOCKED("Reserved", 6);
+  NAMESERVER_RESTRICTED("Nameserver restricted", 0),
+  ALLOWED_IN_SUNRISE("Reserved for non-sunrise", 1),
+  MISTAKEN_PREMIUM("Reserved", 2),
+  RESERVED_FOR_ANCHOR_TENANT("Reserved", 3),
+  NAME_COLLISION("Cannot be delegated", 4),
+  FULLY_BLOCKED("Reserved", 5);
 
   @Nullable
   private final String messageForCheck;
@@ -48,20 +50,23 @@ public enum ReservationType {
     return messageForCheck;
   }
 
+  private static final Ordering<ReservationType> ORDERING = new Ordering<ReservationType>() {
+    @Override
+    public int compare(ReservationType left, ReservationType right) {
+      return Integer.compare(left.ordinal(), right.ordinal());
+    }
+  };
+
   /**
    * Returns the {@code ReservationType} with the highest severity, used when a label has multiple
    * reservation types and a reservation message is needed.
+   *
    * @param types the set of reservation types that a label is associated with.
    * @return the reservation type with the highest severity.
    */
   public static ReservationType getTypeOfHighestSeverity(Set<ReservationType> types) {
-    ReservationType mostSevereType = UNRESERVED;
-
-    for (ReservationType type : types) {
-      if (type.compareTo(mostSevereType) > 0) {
-        mostSevereType = type;
-      }
-    }
-    return mostSevereType;
+    checkArgumentNotNull(types, "types must not be null");
+    checkArgument(!types.isEmpty(), "types must not be empty");
+    return ORDERING.max(types);
   }
 }

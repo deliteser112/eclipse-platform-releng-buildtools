@@ -166,8 +166,7 @@ class DomainLabelMetrics {
     String mostSevereReservedList =
         matches.isEmpty() ? "(none)" : mostSevereMatch.reservedListName();
     String mostSevereReservationType =
-        (matches.isEmpty() ? ReservationType.UNRESERVED : mostSevereMatch.reservationType())
-            .toString();
+        (matches.isEmpty() ? "(none)" : mostSevereMatch.reservationType()).toString();
     reservedListChecks.increment(
         tld, matchCount, mostSevereReservedList, mostSevereReservationType);
     reservedListProcessingTime.record(

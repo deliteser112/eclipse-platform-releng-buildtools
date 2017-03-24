@@ -17,6 +17,7 @@ package google.registry.model.eppoutput;
 import com.google.common.collect.ImmutableList;
 import google.registry.model.ImmutableObject;
 import google.registry.model.eppoutput.EppResponse.ResponseData;
+import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
@@ -124,7 +125,7 @@ public abstract class CheckData extends ImmutableObject implements ResponseData 
   /** A version with domain namespacing. */
   @XmlType(namespace = "urn:ietf:params:xml:ns:domain-1.0")
   public static class DomainCheck extends Check {
-    public static DomainCheck create(boolean avail, String name, String reason) {
+    public static DomainCheck create(boolean avail, String name, @Nullable String reason) {
       return init(new DomainCheck(), CheckName.create(avail, name), reason);
     }
 

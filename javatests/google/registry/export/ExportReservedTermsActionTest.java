@@ -74,8 +74,7 @@ public class ExportReservedTermsActionTest {
     ReservedList rl = persistReservedList(
         "tld-reserved",
         "lol,FULLY_BLOCKED",
-        "cat,FULLY_BLOCKED",
-        "jimmy,UNRESERVED");
+        "cat,FULLY_BLOCKED");
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder()
         .setReservedLists(rl)

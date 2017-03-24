@@ -25,7 +25,6 @@ import static google.registry.model.registry.label.ReservationType.MISTAKEN_PREM
 import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
 import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
 import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
-import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.model.registry.label.ReservedList.getAllowedNameservers;
 import static google.registry.model.registry.label.ReservedList.getReservationTypes;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
@@ -82,44 +81,45 @@ public class ReservedListTest {
 
   private static void verifyUnreservedCheckCount(int unreservedCount) {
     assertThat(reservedListChecks)
-        .hasValueForLabels(unreservedCount, "tld", "0", "(none)", UNRESERVED.toString())
+        .hasValueForLabels(unreservedCount, "tld", "0", "(none)", "(none)")
         .and()
         .hasNoOtherValues();
     assertThat(reservedListProcessingTime)
-        .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
+        .hasAnyValueForLabels("tld", "0", "(none)", "(none)")
         .and()
         .hasNoOtherValues();
     assertThat(reservedListHits).hasNoOtherValues();
   }
 
   @Test
-  public void testGetReservation_allLabelsAreUnreserved_withNoReservedLists() throws Exception {
+  public void testGetReservationTypes_allLabelsAreUnreserved_withNoReservedLists()
+      throws Exception {
     assertThat(Registry.get("tld").getReservedLists()).isEmpty();
-    assertThat(getReservationTypes("doodle", "tld")).containsExactly(UNRESERVED);
-    assertThat(getReservationTypes("access", "tld")).containsExactly(UNRESERVED);
-    assertThat(getReservationTypes("rich", "tld")).containsExactly(UNRESERVED);
+    assertThat(getReservationTypes("doodle", "tld")).isEmpty();
+    assertThat(getReservationTypes("access", "tld")).isEmpty();
+    assertThat(getReservationTypes("rich", "tld")).isEmpty();
     verifyUnreservedCheckCount(3);
   }
 
   @Test
   public void testZeroReservedLists_doesNotCauseError() throws Exception {
-    assertThat(getReservationTypes("doodle", "tld")).containsExactly(UNRESERVED);
+    assertThat(getReservationTypes("doodle", "tld")).isEmpty();
     verifyUnreservedCheckCount(1);
   }
 
   @Test
-  public void testGetReservation_twoLetterCodesAreAvailable() {
+  public void testGetReservationTypes_twoLetterCodesAreAvailable() {
     for (String sld : ImmutableList.of("aa", "az", "zz", "91", "1n", "j5")) {
-      assertThat(getReservationTypes(sld, "tld")).containsExactly(UNRESERVED);
+      assertThat(getReservationTypes(sld, "tld")).isEmpty();
     }
     verifyUnreservedCheckCount(6);
   }
 
   @Test
-  public void testGetReservation_singleCharacterDomainsAreAllowed() {
+  public void testGetReservationTypes_singleCharacterDomainsAreAllowed() {
     // This isn't quite exhaustive but it's close.
     for (char c = 'a'; c <= 'z'; c++) {
-      assertThat(getReservationTypes("" + c, "tld")).containsExactly(UNRESERVED);
+      assertThat(getReservationTypes("" + c, "tld")).isEmpty();
     }
     verifyUnreservedCheckCount(26);
   }
@@ -148,13 +148,13 @@ public class ReservedListTest {
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("random.tld"), "abcdefg"))
         .isFalse();
     assertThat(reservedListChecks)
-        .hasValueForLabels(1, "tld", "0", "(none)", UNRESERVED.toString())
+        .hasValueForLabels(1, "tld", "0", "(none)", "(none)")
         .and()
         .hasValueForLabels(6, "tld", "1", "reserved1", RESERVED_FOR_ANCHOR_TENANT.toString())
         .and()
         .hasNoOtherValues();
     assertThat(reservedListProcessingTime)
-        .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
+        .hasAnyValueForLabels("tld", "0", "(none)", "(none)")
         .and()
         .hasAnyValueForLabels("tld", "1", "reserved1", RESERVED_FOR_ANCHOR_TENANT.toString())
         .and()
@@ -229,7 +229,7 @@ public class ReservedListTest {
         .and()
         .hasValueForLabels(1, "tld", "1", "reserved2", NAMESERVER_RESTRICTED.toString())
         .and()
-        .hasValueForLabels(1, "tld", "0", "(none)", UNRESERVED.toString())
+        .hasValueForLabels(1, "tld", "0", "(none)", "(none)")
         .and()
         .hasNoOtherValues();
     assertThat(reservedListProcessingTime)
@@ -243,7 +243,7 @@ public class ReservedListTest {
         .and()
         .hasAnyValueForLabels("tld", "1", "reserved2", NAMESERVER_RESTRICTED.toString())
         .and()
-        .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
+        .hasAnyValueForLabels("tld", "0", "(none)", "(none)")
         .and()
         .hasNoOtherValues();
     assertThat(reservedListHits)
@@ -261,8 +261,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testMatchesAnchorTenantReservation_duplicatingAuthCodes()
-      throws Exception {
+  public void testMatchesAnchorTenantReservation_duplicatingAuthCodes() throws Exception {
     ReservedList rl1 = persistReservedList("reserved1", "lol,RESERVED_FOR_ANCHOR_TENANT,foo");
     ReservedList rl2 = persistReservedList("reserved2", "lol,RESERVED_FOR_ANCHOR_TENANT,foo");
     createTld("tld");
@@ -276,7 +275,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testGetReservation_concatsMultipleListsCorrectly() throws Exception {
+  public void testGetReservationTypes_concatsMultipleListsCorrectly() throws Exception {
     ReservedList rl1 = persistReservedList(
         "reserved1",
         "lol,FULLY_BLOCKED # yup",
@@ -292,9 +291,9 @@ public class ReservedListTest {
     assertThat(getReservationTypes("cat", "tld")).containsExactly(FULLY_BLOCKED);
     assertThat(getReservationTypes("roflcopter", "tld")).containsExactly(FULLY_BLOCKED);
     assertThat(getReservationTypes("snowcrash", "tld")).containsExactly(FULLY_BLOCKED);
-    assertThat(getReservationTypes("doge", "tld")).containsExactly(UNRESERVED);
+    assertThat(getReservationTypes("doge", "tld")).isEmpty();
     assertThat(reservedListChecks)
-        .hasValueForLabels(1, "tld", "0", "(none)", UNRESERVED.toString())
+        .hasValueForLabels(1, "tld", "0", "(none)", "(none)")
         .and()
         .hasValueForLabels(2, "tld", "1", "reserved1", FULLY_BLOCKED.toString())
         .and()
@@ -302,7 +301,7 @@ public class ReservedListTest {
         .and()
         .hasNoOtherValues();
     assertThat(reservedListProcessingTime)
-        .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
+        .hasAnyValueForLabels("tld", "0", "(none)", "(none)")
         .and()
         .hasAnyValueForLabels("tld", "1", "reserved1", FULLY_BLOCKED.toString())
         .and()
@@ -318,7 +317,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testGetReservation_returnsAllReservationTypesFromMultipleListsForTheSameLabel()
+  public void testGetReservationTypes_returnsAllReservationTypesFromMultipleListsForTheSameLabel()
       throws Exception {
     ReservedList rl1 =
         persistReservedList("reserved1", "lol,NAME_COLLISION # yup", "cat,FULLY_BLOCKED");
@@ -335,7 +334,7 @@ public class ReservedListTest {
 
 
   @Test
-  public void testGetReservation_worksAfterReservedListRemovedUsingSet() throws Exception {
+  public void testGetReservationTypes_worksAfterReservedListRemovedUsingSet() throws Exception {
     ReservedList rl1 = persistReservedList(
         "reserved1", "lol,FULLY_BLOCKED", "cat,FULLY_BLOCKED");
     ReservedList rl2 = persistReservedList(
@@ -348,17 +347,17 @@ public class ReservedListTest {
             "roflcopter.tld should be unreserved"
                 + " after unsetting the registry's second reserved list")
         .that(getReservationTypes("roflcopter", "tld"))
-        .containsExactly(UNRESERVED);
+        .isEmpty();
     assertThat(reservedListChecks)
         .hasValueForLabels(1, "tld", "1", "reserved2", FULLY_BLOCKED.toString())
         .and()
-        .hasValueForLabels(1, "tld", "0", "(none)", UNRESERVED.toString())
+        .hasValueForLabels(1, "tld", "0", "(none)", "(none)")
         .and()
         .hasNoOtherValues();
     assertThat(reservedListProcessingTime)
         .hasAnyValueForLabels("tld", "1", "reserved2", FULLY_BLOCKED.toString())
         .and()
-        .hasAnyValueForLabels("tld", "0", "(none)", UNRESERVED.toString())
+        .hasAnyValueForLabels("tld", "0", "(none)", "(none)")
         .and()
         .hasNoOtherValues();
     assertThat(reservedListHits)
@@ -368,7 +367,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testGetReservation_combinesMultipleLists() throws Exception {
+  public void testGetReservationTypes_combinesMultipleLists() throws Exception {
     ReservedList rl1 = persistReservedList(
         "reserved1", "lol,NAME_COLLISION", "roflcopter,ALLOWED_IN_SUNRISE");
     ReservedList rl2 = persistReservedList("reserved2", "lol,FULLY_BLOCKED");

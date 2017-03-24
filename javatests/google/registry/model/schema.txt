@@ -757,7 +757,6 @@ enum google.registry.model.registry.label.ReservationType {
   NAMESERVER_RESTRICTED;
   NAME_COLLISION;
   RESERVED_FOR_ANCHOR_TENANT;
-  UNRESERVED;
 }
 class google.registry.model.registry.label.ReservedList {
   @Id java.lang.String name;

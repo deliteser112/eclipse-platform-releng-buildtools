@@ -24,10 +24,10 @@ import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWit
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
-import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.model.registry.label.ReservationType.getTypeOfHighestSeverity;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -150,8 +150,8 @@ public final class DomainCheckFlow implements Flow {
     Set<String> existingIds = checkResourcesExist(DomainResource.class, targetIds, now);
     ImmutableList.Builder<DomainCheck> checks = new ImmutableList.Builder<>();
     for (String targetId : targetIds) {
-      String message = getMessageForCheck(domainNames.get(targetId), existingIds, now);
-      checks.add(DomainCheck.create(message == null, targetId, message));
+      Optional<String> message = getMessageForCheck(domainNames.get(targetId), existingIds, now);
+      checks.add(DomainCheck.create(!message.isPresent(), targetId, message.orNull()));
     }
     BeforeResponseReturnData responseData =
         customLogic.beforeResponse(
@@ -166,10 +166,10 @@ public final class DomainCheckFlow implements Flow {
         .build();
   }
 
-  private String getMessageForCheck(
+  private Optional<String> getMessageForCheck(
       InternetDomainName domainName, Set<String> existingIds, DateTime now) {
     if (existingIds.contains(domainName.toString())) {
-      return "In use";
+      return Optional.of("In use");
     }
     Registry registry = Registry.get(domainName.parent().toString());
     if (PENDING_ALLOCATION_TLD_STATES.contains(registry.getTldState(now))
@@ -179,17 +179,19 @@ public final class DomainCheckFlow implements Flow {
               public boolean apply(DomainApplication input) {
                 return !input.getApplicationStatus().isFinalStatus();
               }})) {
-      return "Pending allocation";
+      return Optional.of("Pending allocation");
     }
     ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);
-    if (reservationTypes.equals(ImmutableSet.of(UNRESERVED))
+    if (reservationTypes.isEmpty()
         && isDomainPremium(domainName.toString(), now)
         && registry.getPremiumPriceAckRequired()
         && eppInput.getSingleExtension(FeeCheckCommandExtension.class) == null) {
-      return "Premium names require EPP ext.";
+      return Optional.of("Premium names require EPP ext.");
     }
 
-    return getTypeOfHighestSeverity(reservationTypes).getMessageForCheck();
+    return reservationTypes.isEmpty()
+        ? Optional.<String>absent()
+        : Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
   }
 
   /** Handle the fee check extension. */

@@ -25,7 +25,6 @@ import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
 import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
-import static google.registry.model.registry.label.ReservationType.UNRESERVED;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.time.DateTimeZone.UTC;
@@ -37,9 +36,9 @@ import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
@@ -211,27 +210,25 @@ public final class ReservedList
   }
 
   /**
-   * Queries the set of all reserved lists associated with the specified tld and returns the
-   * reservation types of the label. If the label is in none of the lists, it returns a set that
-   * contains UNRESERVED.
+   * Queries the set of all reserved lists associated with the specified TLD and returns the
+   * reservation types of the label.
+   *
+   * <p>If the label is in none of the lists, it returns an empty set.
    */
   public static ImmutableSet<ReservationType> getReservationTypes(String label, String tld) {
     checkNotNull(label, "label");
     if (label.length() == 0) {
       return ImmutableSet.of(FULLY_BLOCKED);
     }
-    ImmutableSet<ReservedListEntry> entries = getReservedListEntries(label, tld);
-    return entries.isEmpty()
-        ? ImmutableSet.of(UNRESERVED)
-        : ImmutableSet.copyOf(
-            Iterables.transform(
-                entries,
-                new Function<ReservedListEntry, ReservationType>() {
-                  @Override
-                  public ReservationType apply(ReservedListEntry reservedListEntry) {
-                    return reservedListEntry.reservationType;
-                  }
-                }));
+    return FluentIterable.from(getReservedListEntries(label, tld))
+        .transform(
+            new Function<ReservedListEntry, ReservationType>() {
+              @Override
+              public ReservationType apply(ReservedListEntry reservedListEntry) {
+                return reservedListEntry.reservationType;
+              }
+            })
+        .toSet();
   }
 
   /**

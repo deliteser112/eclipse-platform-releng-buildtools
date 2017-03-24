@@ -14,8 +14,6 @@
 
 package google.registry.export;
 
-import static google.registry.model.registry.label.ReservationType.UNRESERVED;
-
 import com.google.common.base.Joiner;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
@@ -45,9 +43,7 @@ public final class ExportUtils {
       ReservedList reservedList = ReservedList.load(key).get();
       if (reservedList.getShouldPublish()) {
         for (ReservedListEntry entry : reservedList.getReservedListEntries().values()) {
-          if (entry.getValue() != UNRESERVED) {
-            reservedTerms.add(entry.getLabel());
-          }
+          reservedTerms.add(entry.getLabel());
         }
       }
     }

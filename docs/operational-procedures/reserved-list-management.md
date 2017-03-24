@@ -9,9 +9,6 @@ Reserved lists are handled in a similar way to [premium
 lists](./premium-list-management.md), except that instead of each label having
 a price, it has a reservation type. The valid values for reservation types are:
 
-*   **`UNRESERVED`** - The default value for any label that isn't reserved.
-    Labels that aren't explictly under any other status implictly have this
-    value.
 *   **`NAMESERVER_RESTRICTED`** - Only nameservers included here can be set on a
     domain with this label. If the a label in this type exists on multiple
     reserved lists that are applied to the same TLD. The set of allowed

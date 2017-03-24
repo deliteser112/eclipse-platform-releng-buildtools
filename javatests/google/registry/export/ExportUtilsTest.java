@@ -41,18 +41,15 @@ public class ExportUtilsTest {
     ReservedList rl1 = persistReservedList(
         "tld-reserved1",
         "lol,FULLY_BLOCKED",
-        "cat,FULLY_BLOCKED",
-        "jimmy,UNRESERVED");
+        "cat,FULLY_BLOCKED");
     ReservedList rl2 = persistReservedList(
         "tld-reserved2",
         "lol,NAME_COLLISION",
-        "cat,UNRESERVED",
         "snow,FULLY_BLOCKED");
     ReservedList rl3 = persistReservedList(
         "tld-reserved3",
         false,
-        "tine,FULLY_BLOCKED",
-        "oval,UNRESERVED");
+        "tine,FULLY_BLOCKED");
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1, rl2, rl3).build());
     // Should not contain jimmy, tine, or oval.
