@@ -47,8 +47,6 @@ final class MakeBillingTablesCommand extends BigqueryCommand {
   private static final SqlTemplate CURRENCY_TABLE_SQL = getSql("currency_table.sql");
   private static final SqlTemplate REGISTRAR_DATA_SQL = getSql("registrar_data_view.sql");
   private static final SqlTemplate REGISTRY_DATA_SQL = getSql("registry_data_view.sql");
-  private static final SqlTemplate CREDIT_DATA_SQL = getSql("credit_data_view.sql");
-  private static final SqlTemplate CREDIT_BALANCE_DATA_SQL = getSql("credit_balance_data_view.sql");
   private static final SqlTemplate BILLING_DATA_SQL = getSql("billing_data_view.sql");
 
   /** Runs the main billing table/view creation logic. */
@@ -62,8 +60,6 @@ final class MakeBillingTablesCommand extends BigqueryCommand {
       makeCurrencyTable();
       makeRegistrarView();
       makeRegistryView();
-      makeCreditView();
-      makeCreditBalanceView();
       makeBillingView();
     } catch (TableCreationException e) {
       // Swallow since we already will have printed an error message.
@@ -113,46 +109,6 @@ final class MakeBillingTablesCommand extends BigqueryCommand {
                 .build(),
             bigquery().buildDestinationTable("RegistryData")
                 .description("Synthetic view of registry information.")
-                .type(TableType.VIEW)
-                .build()));
-  }
-
-  /**
-   * Generates a view of registrar credit entities that links in information from the owning
-   * Registrar (e.g. billing ID).
-   */
-  private void makeCreditView() throws Exception {
-    handleTableCreation(
-        "credit data view",
-        bigquery().query(
-            CREDIT_DATA_SQL
-                .put("SOURCE_DATASET", sourceDatasetId)
-                .put("DEST_DATASET", bigquery().getDatasetId())
-                .build(),
-            bigquery().buildDestinationTable("CreditData")
-                .description("Synthetic view of registrar credit information.")
-                .type(TableType.VIEW)
-                .build()));
-  }
-
-  /**
-   * Generates a view of registrar credit balance entities that collapses them down to the one
-   * 'true' credit balance for a given credit ID and effective time, eliminating any duplicates by
-   * choosing the most recently written balance entry of the set.
-   *
-   * <p>The result is a list of the historical balances of each credit (according to the most recent
-   * data written) that can be used to find the active balance of a credit at any point in time.
-   */
-  private void makeCreditBalanceView() throws Exception {
-    handleTableCreation(
-        "credit balance data view",
-        bigquery().query(
-            CREDIT_BALANCE_DATA_SQL
-                .put("SOURCE_DATASET", sourceDatasetId)
-                .put("DEST_DATASET", bigquery().getDatasetId())
-                .build(),
-            bigquery().buildDestinationTable("CreditBalanceData")
-                .description("Synthetic view of registrar credit balance information.")
                 .type(TableType.VIEW)
                 .build()));
   }
