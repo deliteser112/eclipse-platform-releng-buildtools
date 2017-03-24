@@ -45,7 +45,7 @@ public class DomainNameUtilsTest {
   }
 
   @Test
-  public void testCanonicalizeDomainName_acePrefixUnicodeChars() {
+  public void testCanonicalizeDomainName_acePrefixUnicodeChars() throws Exception {
     thrown.expect(IllegalArgumentException.class);
     canonicalizeDomainName("xn--みんな");
   }

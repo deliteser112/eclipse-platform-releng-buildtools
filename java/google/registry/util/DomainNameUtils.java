@@ -60,7 +60,7 @@ public final class DomainNameUtils {
   public static String getTldFromDomainName(String fullyQualifiedDomainName) {
     checkArgument(
         !Strings.isNullOrEmpty(fullyQualifiedDomainName),
-        "secondLevelDomainName cannot be null or empty");
+        "fullyQualifiedDomainName cannot be null or empty");
     return getTldFromDomainName(InternetDomainName.from(fullyQualifiedDomainName));
   }
 
@@ -74,7 +74,7 @@ public final class DomainNameUtils {
    */
   public static String getTldFromDomainName(InternetDomainName domainName) {
     checkArgumentNotNull(domainName);
-    checkArgument(domainName.hasParent(), "secondLevelDomainName does not have a TLD");
+    checkArgument(domainName.hasParent(), "domainName does not have a TLD");
     return domainName.parent().toString();
   }
 
