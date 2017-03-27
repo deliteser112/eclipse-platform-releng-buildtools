@@ -701,4 +701,11 @@ public class DomainAllocateFlowTest
     thrown.expect(ExceedsMaxRegistrationYearsException.class);
     runFlowAsSuperuser();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    runFlow(CommitMode.LIVE, UserPrivileges.SUPERUSER);
+    assertIcannReportingActivityFieldLogged("srs-dom-create");
+  }
 }

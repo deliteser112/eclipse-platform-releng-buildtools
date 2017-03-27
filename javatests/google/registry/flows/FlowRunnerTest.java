@@ -29,9 +29,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.testing.TestLogHandler;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput.ResponseOrGreeting;
 import google.registry.model.eppoutput.EppResponse;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -67,6 +69,14 @@ public class FlowRunnerTest extends ShardableTestCase {
     }
   }
 
+  @ReportingSpec(ActivityReportField.CONTACT_CHECK)
+  static class TestReportingSpecCommandFlow implements Flow {
+    @Override
+    public ResponseOrGreeting run() throws EppException {
+      return mock(EppResponse.class);
+    }
+  }
+
   @Before
   public void before() {
     Logger.getLogger(FlowRunner.class.getCanonicalName()).addHandler(handler);
@@ -83,18 +93,6 @@ public class FlowRunnerTest extends ShardableTestCase {
     flowRunner.sessionMetadata =
         new StatelessRequestSessionMetadata("TheRegistrar", ImmutableSet.<String>of());
     flowRunner.trid = Trid.create("client-123", "server-456");
-  }
-
-  @Test
-  public void testRun_reportingLogStatement_basic() throws Exception {
-    flowRunner.run();
-    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
-        .containsExactly(
-              "trid", "server-456",
-              "clientId", "TheRegistrar",
-              "xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n",
-              // Base64-encoding of "<xml/>":
-              "xmlBytes", "PHhtbC8+");
   }
 
   @Test
@@ -124,6 +122,31 @@ public class FlowRunnerTest extends ShardableTestCase {
   }
 
   @Test
+  public void testRun_reportingLogStatement_basic() throws Exception {
+    flowRunner.run();
+    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
+        .containsExactly(
+              "trid", "server-456",
+              "clientId", "TheRegistrar",
+              "xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n",
+              "xmlBytes", "PHhtbC8+", // Base64-encoding of "<xml/>".
+              "icannActivityReportField", "");
+  }
+
+  @Test
+  public void testRun_reportingLogStatement_withReportingSpec() throws Exception {
+    flowRunner.flowClass = TestReportingSpecCommandFlow.class;
+    flowRunner.run();
+    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
+        .containsExactly(
+              "trid", "server-456",
+              "clientId", "TheRegistrar",
+              "xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n",
+              "xmlBytes", "PHhtbC8+", // Base64-encoding of "<xml/>".
+              "icannActivityReportField", "srs-cont-check");
+  }
+
+  @Test
   public void testRun_reportingLogStatement_noClientId() throws Exception {
     flowRunner.clientId = "";
     flowRunner.run();
@@ -132,8 +155,8 @@ public class FlowRunnerTest extends ShardableTestCase {
               "trid", "server-456",
               "clientId", "",
               "xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n",
-              // Base64-encoding of "<xml/>":
-              "xmlBytes", "PHhtbC8+");
+              "xmlBytes", "PHhtbC8+",  // Base64-encoding of "<xml/>".
+              "icannActivityReportField", "");
   }
 
   @Test
@@ -147,7 +170,8 @@ public class FlowRunnerTest extends ShardableTestCase {
               "trid", "server-456",
               "clientId", "TheRegistrar",
               "xml", domainCreateXml,
-              "xmlBytes", base64().encode(domainCreateXml.getBytes(UTF_8)));
+              "xmlBytes", base64().encode(domainCreateXml.getBytes(UTF_8)),
+              "icannActivityReportField", "");
   }
 
   @Test

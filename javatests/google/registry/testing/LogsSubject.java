@@ -15,16 +15,16 @@
 package google.registry.testing;
 
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.TestLogHandler;
 import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.Correspondence;
 import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.StringSubject;
 import com.google.common.truth.Subject;
-
-import google.registry.testing.TruthChainer.And;
-
+import google.registry.testing.TruthChainer.Which;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -64,21 +64,27 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
     return builder.build();
   }
 
-  public And<LogsSubject> hasNoLogsAtLevel(Level level) {
+  public void hasNoLogsAtLevel(Level level) {
     check()
         .withFailureMessage("Logs at level %s", level)
         .that(getMessagesAtLevel(level))
         .isEmpty();
-    return new And<>(this);
   }
 
-  public And<LogsSubject> hasLogAtLevelWithMessage(Level level, String message) {
+  public Which<StringSubject> hasLogAtLevelWithMessage(Level level, String message) {
+    List<String> messagesAtLevel = getMessagesAtLevel(level);
     check()
         .withFailureMessage("Logs at level %s", level)
-        .that(getMessagesAtLevel(level))
+        .that(messagesAtLevel)
         .comparingElementsUsing(CONTAINS_CORRESPONDENCE)
         .contains(message);
-    return new And<>(this);
+    for (String messageCandidate : messagesAtLevel) {
+      if (messageCandidate.contains(message)) {
+        return new Which<>(assertThat(messageCandidate)
+            .named(String.format("log message at %s matching '%s'", level, message)));
+      }
+    }
+    throw new AssertionError("Message check passed yet matching message not found");
   }
 
   public static DelegatedVerb<LogsSubject, TestLogHandler> assertAboutLogs() {

@@ -36,6 +36,7 @@ import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ApplicationId;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Info;
 import google.registry.model.domain.DomainInfoData;
@@ -47,6 +48,7 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.mark.Mark;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
 import google.registry.util.Clock;
@@ -64,6 +66,7 @@ import javax.inject.Inject;
  * @error {@link DomainApplicationInfoFlow.ApplicationLaunchPhaseMismatchException}
  * @error {@link MissingApplicationIdException}
  */
+@ReportingSpec(ActivityReportField.DOMAIN_INFO) // Applications are technically domains in EPP.
 public final class DomainApplicationInfoFlow implements Flow {
 
   @Inject ResourceCommand resourceCommand;

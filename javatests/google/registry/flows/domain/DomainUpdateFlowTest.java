@@ -1393,4 +1393,12 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     thrown.expect(FeesRequiredForNonFreeOperationException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistReferencedEntities();
+    persistDomain();
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-update");
+  }
 }

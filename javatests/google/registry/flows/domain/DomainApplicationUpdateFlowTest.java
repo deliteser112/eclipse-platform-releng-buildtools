@@ -923,4 +923,13 @@ public class DomainApplicationUpdateFlowTest
     thrown.expect(FeesMismatchException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistReferencedEntities();
+    persistApplication();
+    clock.advanceOneMilli();
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-update");
+  }
 }

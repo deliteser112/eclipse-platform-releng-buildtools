@@ -274,4 +274,12 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     thrown.expect(HostNameNotNormalizedException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistActiveHost("ns1.example.tld");
+    clock.advanceOneMilli();
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-host-delete");
+  }
 }

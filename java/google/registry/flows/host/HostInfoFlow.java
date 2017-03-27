@@ -27,12 +27,14 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostInfoData;
 import google.registry.model.host.HostInfoData.Builder;
 import google.registry.model.host.HostResource;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.util.Clock;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -48,6 +50,7 @@ import org.joda.time.DateTime;
  * @error {@link HostFlowUtils.HostNameNotNormalizedException}
  * @error {@link HostFlowUtils.HostNameNotPunyCodedException}
  */
+@ReportingSpec(ActivityReportField.HOST_INFO)
 public final class HostInfoFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;

@@ -265,4 +265,10 @@ public class DomainTransferRejectFlowTest
 
   // NB: No need to test pending delete status since pending transfers will get cancelled upon
   // entering pending delete phase. So it's already handled in that test case.
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-transfer-reject");
+  }
 }

@@ -58,6 +58,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeOperationException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainApplication;
@@ -76,6 +77,7 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -114,6 +116,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.UrgentAttributeNotSupportedException}
  * @error {@link DomainApplicationUpdateFlow.ApplicationStatusProhibitsUpdateException}
  */
+@ReportingSpec(ActivityReportField.DOMAIN_UPDATE) // Applications are technically domains in EPP.
 public class DomainApplicationUpdateFlow implements TransactionalFlow {
 
   /**

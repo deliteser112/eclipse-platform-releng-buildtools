@@ -46,6 +46,7 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.ResourceFlowUtils;
 import google.registry.flows.SessionMetadata;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.custom.DomainDeleteFlowCustomLogic;
 import google.registry.flows.custom.DomainDeleteFlowCustomLogic.AfterValidationParameters;
 import google.registry.flows.custom.DomainDeleteFlowCustomLogic.BeforeResponseParameters;
@@ -77,6 +78,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessage.OneTime;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferStatus;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -95,6 +97,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.BadCommandForRegistryPhaseException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  */
+@ReportingSpec(ActivityReportField.DOMAIN_DELETE)
 public final class DomainDeleteFlow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(

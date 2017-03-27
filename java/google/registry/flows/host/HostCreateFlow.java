@@ -36,6 +36,7 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -49,6 +50,7 @@ import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -73,6 +75,7 @@ import org.joda.time.DateTime;
  * @error {@link SubordinateHostMustHaveIpException}
  * @error {@link UnexpectedExternalHostIpException}
  */
+@ReportingSpec(ActivityReportField.HOST_CREATE)
 public final class HostCreateFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;

@@ -32,6 +32,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.model.EppResource;
 import google.registry.model.domain.DomainBase;
@@ -40,6 +41,7 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -60,6 +62,7 @@ import org.joda.time.DateTime;
  * @error {@link HostFlowUtils.HostNameNotNormalizedException}
  * @error {@link HostFlowUtils.HostNameNotPunyCodedException}
  */
+@ReportingSpec(ActivityReportField.HOST_DELETE)
 public final class HostDeleteFlow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(

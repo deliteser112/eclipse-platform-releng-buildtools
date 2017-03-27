@@ -872,4 +872,10 @@ public class DomainCheckFlowTest
     // TODO: If at some point we have more than one type of fees that are time dependent, populate
     // this test to test if the notAfter date is the earliest of the end points of the ranges.
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-check");
+  }
 }

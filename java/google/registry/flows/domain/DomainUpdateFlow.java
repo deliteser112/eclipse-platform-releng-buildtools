@@ -55,6 +55,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.custom.DomainUpdateFlowCustomLogic;
 import google.registry.flows.custom.DomainUpdateFlowCustomLogic.AfterValidationParameters;
 import google.registry.flows.custom.DomainUpdateFlowCustomLogic.BeforeSaveParameters;
@@ -80,6 +81,7 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -129,6 +131,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.TooManyNameserversException}
  * @error {@link DomainFlowUtils.UrgentAttributeNotSupportedException}
  */
+@ReportingSpec(ActivityReportField.DOMAIN_UPDATE)
 public final class DomainUpdateFlow implements TransactionalFlow {
 
   /**

@@ -24,12 +24,14 @@ import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CheckData.HostCheck;
 import google.registry.model.eppoutput.CheckData.HostCheckData;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostCommand.Check;
 import google.registry.model.host.HostResource;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.util.Clock;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +44,7 @@ import javax.inject.Inject;
  *
  * @error {@link google.registry.flows.exceptions.TooManyResourceChecksException}
  */
+@ReportingSpec(ActivityReportField.HOST_CHECK)
 public final class HostCheckFlow implements Flow {
 
   @Inject ResourceCommand resourceCommand;

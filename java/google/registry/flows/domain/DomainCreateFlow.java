@@ -58,6 +58,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseReturnData;
@@ -95,6 +96,7 @@ import google.registry.model.poll.PollMessage.Autorenew;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.tmch.LordnTask;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -155,6 +157,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainCreateFlow.DomainHasOpenApplicationsException}
  * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
  */
+@ReportingSpec(ActivityReportField.DOMAIN_CREATE)
 public class DomainCreateFlow implements TransactionalFlow {
 
   private static final ImmutableSet<TldState> SUNRISE_STATES =

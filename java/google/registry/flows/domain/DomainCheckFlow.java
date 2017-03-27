@@ -42,6 +42,7 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic.BeforeResponseReturnData;
@@ -61,6 +62,7 @@ import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservationType;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.util.Clock;
 import java.util.HashSet;
 import java.util.List;
@@ -94,6 +96,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.UnknownFeeCommandException}
  * @error {@link OnlyCheckedNamesCanBeFeeCheckedException}
  */
+@ReportingSpec(ActivityReportField.DOMAIN_CHECK)
 public final class DomainCheckFlow implements Flow {
 
   /**

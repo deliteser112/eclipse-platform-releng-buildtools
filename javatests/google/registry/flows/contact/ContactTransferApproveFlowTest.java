@@ -209,4 +209,10 @@ public class ContactTransferApproveFlowTest
         String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("contact_transfer_approve.xml");
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-cont-transfer-approve");
+  }
 }

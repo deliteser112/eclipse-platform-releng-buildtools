@@ -547,4 +547,11 @@ public class DomainRestoreRequestFlowTest extends
     thrown.expect(FeesRequiredForPremiumNameException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistPendingDeleteDomain();
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-rgp-restore-request");
+  }
 }

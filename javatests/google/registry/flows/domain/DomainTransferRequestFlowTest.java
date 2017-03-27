@@ -949,4 +949,12 @@ public class DomainTransferRequestFlowTest
     thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
     doFailingTest("domain_transfer_request.xml");
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    setupDomain("example", "tld");
+    clock.advanceOneMilli();
+    runTest("domain_transfer_request.xml", UserPrivileges.NORMAL);
+    assertIcannReportingActivityFieldLogged("srs-dom-transfer-request");
+  }
 }

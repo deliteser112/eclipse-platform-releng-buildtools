@@ -1952,4 +1952,11 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     thrown.expect(ExceedsMaxRegistrationYearsException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistContactsAndHosts();
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-create");
+  }
 }

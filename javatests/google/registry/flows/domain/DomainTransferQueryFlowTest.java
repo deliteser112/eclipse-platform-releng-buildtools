@@ -221,4 +221,10 @@ public class DomainTransferQueryFlowTest
         String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("domain_transfer_query.xml");
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-transfer-query");
+  }
 }

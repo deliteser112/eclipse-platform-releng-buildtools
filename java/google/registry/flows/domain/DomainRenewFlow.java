@@ -41,6 +41,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.custom.DomainRenewFlowCustomLogic;
 import google.registry.flows.custom.DomainRenewFlowCustomLogic.AfterValidationParameters;
 import google.registry.flows.custom.DomainRenewFlowCustomLogic.BeforeResponseParameters;
@@ -69,6 +70,7 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -99,6 +101,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainRenewFlow.IncorrectCurrentExpirationDateException}
  */
+@ReportingSpec(ActivityReportField.DOMAIN_RENEW)
 public final class DomainRenewFlow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> RENEW_DISALLOWED_STATUSES = ImmutableSet.of(

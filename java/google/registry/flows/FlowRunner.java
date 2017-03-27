@@ -27,6 +27,7 @@ import google.registry.flows.FlowModule.DryRun;
 import google.registry.flows.FlowModule.InputXml;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.Transactional;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.monitoring.whitebox.EppMetric;
@@ -92,7 +93,8 @@ public class FlowRunner {
             "trid", trid.getServerTransactionId(),
             "clientId", clientId,
             "xml", prettyXml,
-            "xmlBytes", xmlBase64)));
+            "xmlBytes", xmlBase64,
+            "icannActivityReportField", extractActivityReportField(flowClass))));
     metric.setCommandNameFromFlow(flowClass.getSimpleName());
     if (!isTransactional) {
       metric.incrementAttempts();
@@ -131,5 +133,17 @@ public class FlowRunner {
     DryRunException(EppOutput output) {
       this.output = output;
     }
+  }
+
+  /**
+   * Returns the ICANN activity report field for the given flow class, or the empty string if no
+   * activity report field specification is found.
+   */
+  private static final String extractActivityReportField(Class<? extends Flow> flowClass) {
+    ReportingSpec reportingSpec = flowClass.getAnnotation(ReportingSpec.class);
+    if (reportingSpec != null) {
+      return reportingSpec.value().getFieldName();
+    }
+    return "";
   }
 }

@@ -1224,4 +1224,13 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
         .hasMetadataReason("host-update-test").and()
         .hasMetadataRequestedByRegistrar(false);
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    createTld("tld");
+    persistActiveSubordinateHost(oldHostName(), persistActiveDomain("example.tld"));
+    clock.advanceOneMilli();
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-host-update");
+  }
 }

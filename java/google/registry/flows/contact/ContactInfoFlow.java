@@ -27,11 +27,13 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.contact.ContactInfoData;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppResponse;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.util.Clock;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -46,6 +48,7 @@ import org.joda.time.DateTime;
  *
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  */
+@ReportingSpec(ActivityReportField.CONTACT_INFO)
 public final class ContactInfoFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;

@@ -213,4 +213,10 @@ public class ContactTransferRequestFlowTest
     thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
     doFailingTest("contact_transfer_request.xml");
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-cont-transfer-request");
+  }
 }

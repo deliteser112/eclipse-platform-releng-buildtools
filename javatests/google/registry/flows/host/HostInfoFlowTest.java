@@ -179,4 +179,11 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
     thrown.expect(HostNameNotNormalizedException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistHostResource();
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-host-info");
+  }
 }

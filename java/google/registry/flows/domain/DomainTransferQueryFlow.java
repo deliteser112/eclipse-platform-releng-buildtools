@@ -26,11 +26,13 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
 import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppoutput.EppResponse;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.util.Clock;
@@ -52,6 +54,7 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.NoTransferHistoryToQueryException}
  * @error {@link google.registry.flows.exceptions.NotAuthorizedToViewTransferException}
  */
+@ReportingSpec(ActivityReportField.DOMAIN_TRANSFER_QUERY)
 public final class DomainTransferQueryFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;

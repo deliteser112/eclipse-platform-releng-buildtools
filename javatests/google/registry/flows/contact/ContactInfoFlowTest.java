@@ -177,4 +177,11 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
         String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistContactResource(true);
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-cont-info");
+  }
 }

@@ -392,4 +392,12 @@ public class ContactUpdateFlowTest
     thrown.expect(AddRemoveSameValueException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistActiveContact(getUniqueIdFromCommand());
+    clock.advanceOneMilli();
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-cont-update");
+  }
 }

@@ -261,4 +261,10 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     thrown.expect(HostNameTooShallowException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-host-create");
+  }
 }

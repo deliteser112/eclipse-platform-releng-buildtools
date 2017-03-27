@@ -357,4 +357,11 @@ public class DomainApplicationInfoFlowTest
         .size();
     assertThat(numReadsWithContactsOrHosts).isEqualTo(1);
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistTestEntities(HostsState.HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-info");
+  }
 }

@@ -32,6 +32,7 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.custom.DomainInfoFlowCustomLogic;
 import google.registry.flows.custom.DomainInfoFlowCustomLogic.AfterValidationParameters;
 import google.registry.flows.custom.DomainInfoFlowCustomLogic.BeforeResponseParameters;
@@ -49,6 +50,7 @@ import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.util.Clock;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -68,6 +70,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.RestoresAreAlwaysForOneYearException}
  * @error {@link DomainFlowUtils.TransfersAreAlwaysForOneYearException}
  */
+@ReportingSpec(ActivityReportField.DOMAIN_INFO)
 public final class DomainInfoFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;

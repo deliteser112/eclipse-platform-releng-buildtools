@@ -662,4 +662,11 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
         .size();
     assertThat(numReadsWithContactsOrHosts).isEqualTo(1);
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistTestEntities(false);
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-info");
+  }
 }

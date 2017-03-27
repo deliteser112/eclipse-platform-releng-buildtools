@@ -28,6 +28,7 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.contact.ContactCommand.Create;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.ContactResource.Builder;
@@ -39,6 +40,7 @@ import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -49,6 +51,7 @@ import org.joda.time.DateTime;
  * @error {@link ContactFlowUtils.BadInternationalizedPostalInfoException}
  * @error {@link ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException}
  */
+@ReportingSpec(ActivityReportField.CONTACT_CREATE)
 public final class ContactCreateFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;

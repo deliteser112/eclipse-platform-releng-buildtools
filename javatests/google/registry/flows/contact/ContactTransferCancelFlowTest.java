@@ -195,4 +195,10 @@ public class ContactTransferCancelFlowTest
         String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("contact_transfer_cancel.xml");
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-cont-transfer-cancel");
+  }
 }

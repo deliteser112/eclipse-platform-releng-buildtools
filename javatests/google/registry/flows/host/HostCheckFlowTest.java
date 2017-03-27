@@ -78,4 +78,10 @@ public class HostCheckFlowTest extends ResourceCheckFlowTestCase<HostCheckFlow, 
     thrown.expect(TooManyResourceChecksException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-host-check");
+  }
 }

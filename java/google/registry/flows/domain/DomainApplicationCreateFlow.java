@@ -58,6 +58,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic;
 import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.AfterValidationParameters;
 import google.registry.flows.custom.DomainApplicationCreateFlowCustomLogic.BeforeResponseParameters;
@@ -93,6 +94,7 @@ import google.registry.model.ofy.ObjectifyService;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.smd.AbstractSignedMark;
 import google.registry.model.smd.EncodedSignedMark;
 import javax.inject.Inject;
@@ -166,6 +168,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainFlowUtils.UnsupportedMarkTypeException}
  */
+@ReportingSpec(ActivityReportField.DOMAIN_CREATE)  // Applications are technically domains in EPP.
 public final class DomainApplicationCreateFlow implements TransactionalFlow {
 
   @Inject ExtensionManager extensionManager;

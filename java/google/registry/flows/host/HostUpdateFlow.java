@@ -42,6 +42,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.model.EppResource;
@@ -57,6 +58,7 @@ import google.registry.model.host.HostCommand.Update.Change;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import java.util.Objects;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -94,6 +96,7 @@ import org.joda.time.DateTime;
  * @error {@link HostAlreadyExistsException}
  * @error {@link RenameHostToExternalRemoveIpException}
  */
+@ReportingSpec(ActivityReportField.HOST_UPDATE)
 public final class HostUpdateFlow implements TransactionalFlow {
 
   /**

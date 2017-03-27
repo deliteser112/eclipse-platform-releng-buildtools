@@ -183,4 +183,10 @@ public class ContactTransferQueryFlowTest
         String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("contact_transfer_query.xml");
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-cont-transfer-query");
+  }
 }

@@ -33,6 +33,7 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
@@ -41,6 +42,7 @@ import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -58,6 +60,7 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
  * @error {@link google.registry.flows.exceptions.ResourceToDeleteIsReferencedException}
  */
+@ReportingSpec(ActivityReportField.CONTACT_DELETE)
 public final class ContactDeleteFlow implements TransactionalFlow {
 
   private static final ImmutableSet<StatusValue> DISALLOWED_STATUSES = ImmutableSet.of(

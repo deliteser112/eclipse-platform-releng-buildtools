@@ -18,12 +18,14 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.tmch.ClaimsListShardTest.createTestClaimsListShard;
+import static google.registry.testing.LogsSubject.assertAboutLogs;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.testing.TestLogHandler;
 import com.googlecode.objectify.Key;
 import google.registry.flows.FlowUtils.NotLoggedInException;
 import google.registry.model.EppResource;
@@ -38,8 +40,11 @@ import google.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
 import google.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.TypeUtils.TypeInstantiator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -50,6 +55,16 @@ import org.junit.Test;
  */
 public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource>
     extends FlowTestCase<F> {
+
+  private final TestLogHandler logHandler = new TestLogHandler();
+
+  @Before
+  public void beforeResourceFlowTestCase() {
+    // Attach TestLogHandler to the root logger so it has access to all log messages.
+    // Note that in theory for assertIcannReportingActivityFieldLogged() below it would suffice to
+    // attach it only to the FlowRunner logger, but for some reason this doesn't work for all flows.
+    Logger.getLogger("").addHandler(logHandler);
+  }
 
   protected R reloadResourceByForeignKey(DateTime now) throws Exception {
     // Force the session to be cleared so that when we read it back, we read from Datastore and
@@ -150,5 +165,12 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
         new TaskMatcher()
             .etaDelta(Duration.standardSeconds(75), Duration.standardSeconds(105)) // expected: 90
             .payload(expectedPayload));
+  }
+
+  protected void assertIcannReportingActivityFieldLogged(String fieldName) {
+    assertAboutLogs().that(logHandler)
+        .hasLogAtLevelWithMessage(Level.INFO, "EPP-REPORTING-LOG-SIGNATURE")
+        .which()
+        .contains(fieldName);
   }
 }

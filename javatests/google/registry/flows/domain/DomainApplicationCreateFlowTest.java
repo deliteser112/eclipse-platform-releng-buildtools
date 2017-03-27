@@ -1860,4 +1860,12 @@ public class DomainApplicationCreateFlowTest
     // ❤☀☆☂☻♞☯.tld
     doFailingDomainNameTest("xn--k3hel9n7bxlu1e.tld", InvalidIdnDomainLabelException.class);
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-create");
+  }
 }

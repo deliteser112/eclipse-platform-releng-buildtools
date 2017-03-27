@@ -640,4 +640,11 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     thrown.expect(FeesRequiredForPremiumNameException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistDomain();
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-renew");
+  }
 }

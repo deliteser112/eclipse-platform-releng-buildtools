@@ -31,6 +31,7 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
@@ -38,6 +39,7 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -55,6 +57,7 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.exceptions.NotPendingTransferException}
  */
+@ReportingSpec(ActivityReportField.CONTACT_TRANSFER_APPROVE)
 public final class ContactTransferApproveFlow implements TransactionalFlow {
 
   @Inject ResourceCommand resourceCommand;

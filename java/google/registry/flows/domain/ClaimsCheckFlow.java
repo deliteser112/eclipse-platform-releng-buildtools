@@ -33,6 +33,7 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
+import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.domain.DomainCommand.Check;
 import google.registry.model.domain.launch.LaunchCheckExtension;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension;
@@ -42,6 +43,7 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
+import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.util.Clock;
 import java.util.HashSet;
@@ -60,6 +62,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
  * @error {@link ClaimsCheckNotAllowedInSunrise}
  */
+@ReportingSpec(ActivityReportField.DOMAIN_CHECK)  // Claims check is a special domain check.
 public final class ClaimsCheckFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;

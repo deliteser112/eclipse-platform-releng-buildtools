@@ -305,4 +305,13 @@ public class DomainApplicationDeleteFlowTest
     thrown.expect(ApplicationDomainNameMismatchException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    persistResource(
+        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    clock.advanceOneMilli();
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-dom-delete");
+  }
 }

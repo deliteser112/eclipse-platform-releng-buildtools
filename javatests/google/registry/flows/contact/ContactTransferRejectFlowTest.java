@@ -205,4 +205,10 @@ public class ContactTransferRejectFlowTest
         String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("contact_transfer_reject.xml");
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-cont-transfer-reject");
+  }
 }

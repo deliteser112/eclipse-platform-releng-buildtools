@@ -91,4 +91,10 @@ public class ContactCreateFlowTest
     thrown.expect(DeclineContactDisclosureFieldDisallowedPolicyException.class);
     runFlow();
   }
+
+  @Test
+  public void testIcannActivityReportField_getsLogged() throws Exception {
+    runFlow();
+    assertIcannReportingActivityFieldLogged("srs-cont-create");
+  }
 }
