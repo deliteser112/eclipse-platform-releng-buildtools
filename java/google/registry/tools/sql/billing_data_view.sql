@@ -23,6 +23,7 @@ SELECT
   BillingEvent.eventTime AS eventTime,
   BillingEvent.clientId AS registrarId,
   Registrar.billingIdentifier AS billingId,
+  RegistrarAccount.billingAccountId AS billingAccountId,
   BillingEvent.tld AS tld,
   IF(
     CONCAT(',', BillingEvent.flags, ',') CONTAINS (',ALLOCATION,'),
@@ -87,6 +88,19 @@ LEFT JOIN EACH (
   ) AS Registrar
 ON
   BillingEvent.clientId = Registrar.clientId
+
+-- Join to pick up currency specific registrar account id from registrar
+-- account view.
+LEFT JOIN EACH (
+  SELECT
+    registrarId,
+    billingAccountId,
+    currency
+  FROM
+    [%DEST_DATASET%.RegistrarAccountData]) AS RegistrarAccount
+ON
+  BillingEvent.clientId = RegistrarAccount.registrarId
+  AND BillingEvent.currency = RegistrarAccount.currency
 
 -- Join to pick up cancellations for billing events.
 LEFT JOIN EACH (
