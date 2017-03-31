@@ -217,6 +217,26 @@ public class Registry extends ImmutableObject implements Buildable {
     }
   }
 
+  /** Returns the registry for a given TLD, throwing if none exists. */
+  public static Registry get(String tld) {
+    Registry registry = CACHE.getUnchecked(tld).orNull();
+    if (registry == null) {
+      throw new RegistryNotFoundException(tld);
+    }
+    return registry;
+  }
+
+  /**
+   * Invalidates the cache entry.
+   *
+   * <p>This is called automatically when the registry is saved. One should also call it when a
+   * registry is deleted.
+   */
+  @OnSave
+  public void invalidateInCache() {
+    CACHE.invalidate(tldStr);
+  }
+
   /** A cache that loads the {@link Registry} for a given tld. */
   private static final LoadingCache<String, Optional<Registry>> CACHE =
       CacheBuilder.newBuilder()
@@ -235,21 +255,6 @@ public class Registry extends ImmutableObject implements Buildable {
                           .now();
                     }}));
               }});
-
-  /** Returns the registry for a given TLD, throwing if none exists. */
-  public static Registry get(String tld) {
-    Registry registry = CACHE.getUnchecked(tld).orNull();
-    if (registry == null) {
-      throw new RegistryNotFoundException(tld);
-    }
-    return registry;
-  }
-
-  /** Whenever a registry is saved, invalidate the cache entry. */
-  @OnSave
-  void updateCache() {
-    CACHE.invalidate(tldStr);
-  }
 
   /**
    * The name of the pricing engine that this TLD uses.

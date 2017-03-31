@@ -85,6 +85,7 @@ import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
+import google.registry.model.registry.Registry.TldType;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.PremiumList.PremiumListEntry;
 import google.registry.model.registry.label.PremiumList.PremiumListRevision;
@@ -237,7 +238,23 @@ public class DatastoreHelper {
 
   public static Registry newRegistry(
       String tld, String roidSuffix, ImmutableSortedMap<DateTime, TldState> tldStates) {
-    return new Registry.Builder()
+    return setupRegistry(new Registry.Builder(), tld, roidSuffix, tldStates);
+  }
+
+  public static Registry newRegistry(
+      String tld,
+      String roidSuffix,
+      ImmutableSortedMap<DateTime, TldState> tldStates,
+      TldType tldType) {
+    return setupRegistry(new Registry.Builder().setTldType(tldType), tld, roidSuffix, tldStates);
+  }
+
+  private static Registry setupRegistry(
+      Registry.Builder registryBuilder,
+      String tld,
+      String roidSuffix,
+      ImmutableSortedMap<DateTime, TldState> tldStates) {
+    return registryBuilder
         .setTldStr(tld)
         .setRoidSuffix(roidSuffix)
         .setTldStateTransitions(tldStates)
