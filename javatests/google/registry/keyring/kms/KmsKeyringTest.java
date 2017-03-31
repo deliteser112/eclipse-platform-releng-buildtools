@@ -16,13 +16,13 @@ package google.registry.keyring.kms;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.persistResources;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.google.common.collect.ImmutableList;
+import google.registry.keyring.api.KeySerializer;
 import google.registry.model.server.KmsSecret;
 import google.registry.model.server.KmsSecretRevision;
 import google.registry.model.server.KmsSecretRevision.Builder;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.BouncyCastleProviderRule;
 import java.io.IOException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
@@ -35,6 +35,8 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class KmsKeyringTest {
+
+  @Rule public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
@@ -51,8 +53,8 @@ public class KmsKeyringTest {
 
     PGPKeyPair rdeSigningKey = keyring.getRdeSigningKey();
 
-    assertThat(rdeSigningKey.getKeyID())
-        .isEqualTo(KmsTestHelper.getPublicKeyring().getPublicKey().getKeyID());
+    assertThat(KeySerializer.serializeKeyPair(rdeSigningKey))
+        .isEqualTo(KeySerializer.serializeKeyPair(KmsTestHelper.getKeyPair()));
   }
 
   @Test
@@ -62,17 +64,20 @@ public class KmsKeyringTest {
     PGPPublicKey rdeStagingEncryptionKey = keyring.getRdeStagingEncryptionKey();
 
     assertThat(rdeStagingEncryptionKey.getFingerprint())
-        .isEqualTo(KmsTestHelper.getPublicKeyring().getPublicKey().getFingerprint());
+        .isEqualTo(KmsTestHelper.getPublicKey().getFingerprint());
   }
 
   @Test
   public void test_getRdeStagingDecryptionKey() throws Exception {
     savePrivateKeySecret("rde-staging-private");
+    savePublicKeySecret("rde-staging-public");
 
     PGPPrivateKey rdeStagingDecryptionKey = keyring.getRdeStagingDecryptionKey();
+    PGPPublicKey rdeStagingEncryptionKey = keyring.getRdeStagingEncryptionKey();
+    PGPKeyPair keyPair = new PGPKeyPair(rdeStagingEncryptionKey, rdeStagingDecryptionKey);
 
-    assertThat(rdeStagingDecryptionKey.getKeyID())
-        .isEqualTo(KmsTestHelper.getPrivateKeyring().getSecretKey().getKeyID());
+    assertThat(KeySerializer.serializeKeyPair(keyPair))
+        .isEqualTo(KeySerializer.serializeKeyPair(KmsTestHelper.getKeyPair()));
   }
 
   @Test
@@ -82,7 +87,7 @@ public class KmsKeyringTest {
     PGPPublicKey rdeReceiverKey = keyring.getRdeReceiverKey();
 
     assertThat(rdeReceiverKey.getFingerprint())
-        .isEqualTo(KmsTestHelper.getPublicKeyring().getPublicKey().getFingerprint());
+        .isEqualTo(KmsTestHelper.getPublicKey().getFingerprint());
   }
 
   @Test
@@ -91,8 +96,8 @@ public class KmsKeyringTest {
 
     PGPKeyPair brdaSigningKey = keyring.getBrdaSigningKey();
 
-    assertThat(brdaSigningKey.getKeyID())
-        .isEqualTo(KmsTestHelper.getPrivateKeyring().getPublicKey().getKeyID());
+    assertThat(KeySerializer.serializeKeyPair(brdaSigningKey))
+        .isEqualTo(KeySerializer.serializeKeyPair(KmsTestHelper.getKeyPair()));
   }
 
   @Test
@@ -102,80 +107,80 @@ public class KmsKeyringTest {
     PGPPublicKey brdaReceiverKey = keyring.getBrdaReceiverKey();
 
     assertThat(brdaReceiverKey.getFingerprint())
-        .isEqualTo(KmsTestHelper.getPublicKeyring().getPublicKey().getFingerprint());
+        .isEqualTo(KmsTestHelper.getPublicKey().getFingerprint());
   }
 
   @Test
   public void test_getRdeSshClientPublicKey() throws Exception {
-    saveCleartextSecret("rde-ssh-client-public");
+    saveCleartextSecret("rde-ssh-client-public-string");
 
     String rdeSshClientPublicKey = keyring.getRdeSshClientPublicKey();
 
-    assertThat(rdeSshClientPublicKey).isEqualTo("rde-ssh-client-publicmoo");
+    assertThat(rdeSshClientPublicKey).isEqualTo("rde-ssh-client-public-stringmoo");
   }
 
   @Test
   public void test_getRdeSshClientPrivateKey() throws Exception {
-    saveCleartextSecret("rde-ssh-client-private");
+    saveCleartextSecret("rde-ssh-client-private-string");
 
     String rdeSshClientPrivateKey = keyring.getRdeSshClientPrivateKey();
 
-    assertThat(rdeSshClientPrivateKey).isEqualTo("rde-ssh-client-privatemoo");
+    assertThat(rdeSshClientPrivateKey).isEqualTo("rde-ssh-client-private-stringmoo");
   }
 
   @Test
   public void test_getIcannReportingPassword() throws Exception {
-    saveCleartextSecret("icann-reporting-password");
+    saveCleartextSecret("icann-reporting-password-string");
 
     String icannReportingPassword = keyring.getIcannReportingPassword();
 
-    assertThat(icannReportingPassword).isEqualTo("icann-reporting-passwordmoo");
+    assertThat(icannReportingPassword).isEqualTo("icann-reporting-password-stringmoo");
   }
 
   @Test
   public void test_getMarksdbDnlLogin() throws Exception {
-    saveCleartextSecret("marksdb-dnl-login");
+    saveCleartextSecret("marksdb-dnl-login-string");
 
     String marksdbDnlLogin = keyring.getMarksdbDnlLogin();
 
-    assertThat(marksdbDnlLogin).isEqualTo("marksdb-dnl-loginmoo");
+    assertThat(marksdbDnlLogin).isEqualTo("marksdb-dnl-login-stringmoo");
   }
 
   @Test
   public void test_getMarksdbLordnPassword() throws Exception {
-    saveCleartextSecret("marksdb-lordn-password");
+    saveCleartextSecret("marksdb-lordn-password-string");
 
     String marksdbLordnPassword = keyring.getMarksdbLordnPassword();
 
-    assertThat(marksdbLordnPassword).isEqualTo("marksdb-lordn-passwordmoo");
+    assertThat(marksdbLordnPassword).isEqualTo("marksdb-lordn-password-stringmoo");
   }
 
   @Test
   public void test_getMarksdbSmdrlLogin() throws Exception {
-    saveCleartextSecret("marksdb-smdrl-login");
+    saveCleartextSecret("marksdb-smdrl-login-string");
 
     String marksdbSmdrlLogin = keyring.getMarksdbSmdrlLogin();
 
-    assertThat(marksdbSmdrlLogin).isEqualTo("marksdb-smdrl-loginmoo");
+    assertThat(marksdbSmdrlLogin).isEqualTo("marksdb-smdrl-login-stringmoo");
 
   }
 
   @Test
   public void test_getJsonCredential() throws Exception {
-    saveCleartextSecret("json-credential");
+    saveCleartextSecret("json-credential-string");
 
     String jsonCredential = keyring.getJsonCredential();
 
-    assertThat(jsonCredential).isEqualTo("json-credentialmoo");
+    assertThat(jsonCredential).isEqualTo("json-credential-stringmoo");
   }
 
   @Test
   public void test_getBraintreePrivateKey() throws Exception {
-    saveCleartextSecret("braintree-private-key");
+    saveCleartextSecret("braintree-private-key-string");
 
     String braintreePrivateKey = keyring.getBraintreePrivateKey();
 
-    assertThat(braintreePrivateKey).isEqualTo("braintree-private-keymoo");
+    assertThat(braintreePrivateKey).isEqualTo("braintree-private-key-stringmoo");
   }
 
   private static void persistSecret(String secretName, byte[] secretValue) throws IOException {
@@ -192,15 +197,15 @@ public class KmsKeyringTest {
   }
 
   private static void saveCleartextSecret(String secretName) throws Exception {
-    persistSecret(secretName, (secretName + "moo").getBytes(UTF_8));
+    persistSecret(secretName, KeySerializer.serializeString(secretName + "moo"));
   }
 
   private static void savePublicKeySecret(String publicKeyName) throws Exception {
-    persistSecret(publicKeyName, KmsTestHelper.getPublicKeyring().getPublicKey().getEncoded());
+    persistSecret(publicKeyName, KeySerializer.serializePublicKey(KmsTestHelper.getPublicKey()));
   }
 
   private static void savePrivateKeySecret(String privateKeyName) throws Exception {
-    persistSecret(privateKeyName, KmsTestHelper.getPrivateKeyring().getEncoded());
+    persistSecret(privateKeyName, KeySerializer.serializeKeyPair(KmsTestHelper.getKeyPair()));
   }
 
   private static void saveKeyPairSecret(String publicKeyName, String privateKeyName)

@@ -18,9 +18,13 @@ import static com.google.common.io.Resources.getResource;
 
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
+import org.bouncycastle.openpgp.PGPKeyPair;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPSecretKey;
 import org.bouncycastle.openpgp.PGPUtil;
-import org.bouncycastle.openpgp.bc.BcPGPPublicKeyRing;
 import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRing;
+import org.bouncycastle.openpgp.operator.bc.BcPBESecretKeyDecryptorBuilder;
+import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
 
 /** Stores dummy values for test use in {@link KmsUpdaterTest} and {@link KmsKeyringTest}. */
 final class KmsTestHelper {
@@ -28,20 +32,25 @@ final class KmsTestHelper {
   static final String DUMMY_CRYPTO_KEY_VERSION = "cheeseburger";
   static final String DUMMY_ENCRYPTED_VALUE = "meow";
 
-  /** The contents of a dummy PGP public key stored in a file. */
-  private static final ByteSource PGP_PUBLIC_KEYRING =
-      Resources.asByteSource(getResource(KmsTestHelper.class, "pgp-public-keyring.asc"));
-
   /** The contents of a dummy PGP private key stored in a file. */
   private static final ByteSource PGP_PRIVATE_KEYRING =
       Resources.asByteSource(getResource(KmsTestHelper.class, "pgp-private-keyring-registry.asc"));
 
-  static BcPGPPublicKeyRing getPublicKeyring() throws Exception {
-    return new BcPGPPublicKeyRing(PGPUtil.getDecoderStream(PGP_PUBLIC_KEYRING.openStream()));
+  private static BcPGPSecretKeyRing getPrivateKeyring() throws Exception {
+    return new BcPGPSecretKeyRing(PGPUtil.getDecoderStream(PGP_PRIVATE_KEYRING.openStream()));
   }
 
-  static BcPGPSecretKeyRing getPrivateKeyring() throws Exception {
-    return new BcPGPSecretKeyRing(PGPUtil.getDecoderStream(PGP_PRIVATE_KEYRING.openStream()));
+  static PGPPublicKey getPublicKey() throws Exception {
+    return getPrivateKeyring().getPublicKey();
+  }
+
+  static PGPKeyPair getKeyPair() throws Exception {
+    PGPSecretKey secretKey = getPrivateKeyring().getSecretKey();
+    return new PGPKeyPair(
+        secretKey.getPublicKey(),
+        secretKey.extractPrivateKey(
+            new BcPBESecretKeyDecryptorBuilder(new BcPGPDigestCalculatorProvider())
+            .build(new char[0])));
   }
 
   private KmsTestHelper() {}

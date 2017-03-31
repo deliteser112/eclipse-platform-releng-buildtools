@@ -17,13 +17,15 @@ package google.registry.keyring.kms;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.googlecode.objectify.Key;
+import google.registry.keyring.api.KeySerializer;
 import google.registry.model.server.KmsSecret;
 import google.registry.model.server.KmsSecretRevision;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.BouncyCastleProviderRule;
 import java.io.IOException;
+import org.bouncycastle.openpgp.PGPKeyPair;
+import org.bouncycastle.openpgp.PGPPublicKey;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,6 +36,8 @@ import org.junit.runners.JUnit4;
 public class KmsUpdaterTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+
+  @Rule public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
 
   private KmsUpdater updater;
 
@@ -51,11 +55,15 @@ public class KmsUpdaterTest {
         .update();
 
     verifySecretAndSecretRevisionWritten(
-        "braintree-private-key", "braintree-private-key/foo", getCiphertext("value1"));
+        "braintree-private-key-string",
+        "braintree-private-key-string/foo",
+        getCiphertext("value1"));
     verifySecretAndSecretRevisionWritten(
-        "icann-reporting-password", "icann-reporting-password/foo", getCiphertext("value2"));
+        "icann-reporting-password-string",
+        "icann-reporting-password-string/foo",
+        getCiphertext("value2"));
     verifySecretAndSecretRevisionWritten(
-        "json-credential", "json-credential/foo", getCiphertext("value3"));
+        "json-credential-string", "json-credential-string/foo", getCiphertext("value3"));
   }
 
   @Test
@@ -63,31 +71,33 @@ public class KmsUpdaterTest {
     updater.setBraintreePrivateKey("value1").update();
 
     verifySecretAndSecretRevisionWritten(
-        "braintree-private-key", "braintree-private-key/foo", getCiphertext("value1"));
+        "braintree-private-key-string",
+        "braintree-private-key-string/foo",
+        getCiphertext("value1"));
   }
 
   @Test
   public void test_setBrdaReceiverKey() throws Exception {
-    updater.setBrdaReceiverPublicKey(KmsTestHelper.getPublicKeyring().getPublicKey()).update();
+    updater.setBrdaReceiverPublicKey(KmsTestHelper.getPublicKey()).update();
 
     verifySecretAndSecretRevisionWritten(
         "brda-receiver-public",
         "brda-receiver-public/foo",
-        getCiphertext(KmsTestHelper.getPublicKeyring().getPublicKey().getEncoded()));
+        getCiphertext(KmsTestHelper.getPublicKey()));
   }
 
   @Test
   public void test_setBrdaSigningKey() throws Exception {
-    updater.setBrdaSigningKey(KmsTestHelper.getPrivateKeyring()).update();
+    updater.setBrdaSigningKey(KmsTestHelper.getKeyPair()).update();
 
     verifySecretAndSecretRevisionWritten(
         "brda-signing-private",
         "brda-signing-private/foo",
-        getCiphertext(KmsTestHelper.getPrivateKeyring().getEncoded()));
+        getCiphertext(KmsTestHelper.getKeyPair()));
     verifySecretAndSecretRevisionWritten(
         "brda-signing-public",
         "brda-signing-public/foo",
-        getCiphertext(KmsTestHelper.getPrivateKeyring().getPublicKey().getEncoded()));
+        getCiphertext(KmsTestHelper.getPublicKey()));
   }
 
   @Test
@@ -95,7 +105,9 @@ public class KmsUpdaterTest {
     updater.setIcannReportingPassword("value1").update();
 
     verifySecretAndSecretRevisionWritten(
-        "icann-reporting-password", "icann-reporting-password/foo", getCiphertext("value1"));
+        "icann-reporting-password-string",
+        "icann-reporting-password-string/foo",
+        getCiphertext("value1"));
   }
 
   @Test
@@ -103,7 +115,7 @@ public class KmsUpdaterTest {
     updater.setJsonCredential("value1").update();
 
     verifySecretAndSecretRevisionWritten(
-        "json-credential", "json-credential/foo", getCiphertext("value1"));
+        "json-credential-string", "json-credential-string/foo", getCiphertext("value1"));
   }
 
   @Test
@@ -111,7 +123,7 @@ public class KmsUpdaterTest {
     updater.setMarksdbDnlLogin("value1").update();
 
     verifySecretAndSecretRevisionWritten(
-        "marksdb-dnl-login", "marksdb-dnl-login/foo", getCiphertext("value1"));
+        "marksdb-dnl-login-string", "marksdb-dnl-login-string/foo", getCiphertext("value1"));
   }
 
   @Test
@@ -119,7 +131,9 @@ public class KmsUpdaterTest {
     updater.setMarksdbLordnPassword("value1").update();
 
     verifySecretAndSecretRevisionWritten(
-        "marksdb-lordn-password", "marksdb-lordn-password/foo", getCiphertext("value1"));
+        "marksdb-lordn-password-string",
+        "marksdb-lordn-password-string/foo",
+        getCiphertext("value1"));
   }
 
   @Test
@@ -127,31 +141,32 @@ public class KmsUpdaterTest {
     updater.setMarksdbSmdrlLogin("value1").update();
 
     verifySecretAndSecretRevisionWritten(
-        "marksdb-smdrl-login", "marksdb-smdrl-login/foo", getCiphertext("value1"));
+        "marksdb-smdrl-login-string", "marksdb-smdrl-login-string/foo", getCiphertext("value1"));
   }
 
   @Test
   public void test_setRdeReceiverKey() throws Exception {
-    updater.setRdeReceiverPublicKey(KmsTestHelper.getPublicKeyring().getPublicKey()).update();
+    updater.setRdeReceiverPublicKey(KmsTestHelper.getPublicKey()).update();
 
     verifySecretAndSecretRevisionWritten(
         "rde-receiver-public",
         "rde-receiver-public/foo",
-        getCiphertext(KmsTestHelper.getPublicKeyring().getPublicKey().getEncoded()));
+        getCiphertext(
+            KeySerializer.serializePublicKey(KmsTestHelper.getPublicKey())));
   }
 
   @Test
   public void test_setRdeSigningKey() throws Exception {
-    updater.setRdeSigningKey(KmsTestHelper.getPrivateKeyring()).update();
+    updater.setRdeSigningKey(KmsTestHelper.getKeyPair()).update();
 
     verifySecretAndSecretRevisionWritten(
         "rde-signing-private",
         "rde-signing-private/foo",
-        getCiphertext(KmsTestHelper.getPrivateKeyring().getEncoded()));
+        getCiphertext(KmsTestHelper.getKeyPair()));
     verifySecretAndSecretRevisionWritten(
         "rde-signing-public",
         "rde-signing-public/foo",
-        getCiphertext(KmsTestHelper.getPrivateKeyring().getPublicKey().getEncoded()));
+        getCiphertext(KmsTestHelper.getPublicKey()));
   }
 
   @Test
@@ -159,7 +174,9 @@ public class KmsUpdaterTest {
     updater.setRdeSshClientPrivateKey("value1").update();
 
     verifySecretAndSecretRevisionWritten(
-        "rde-ssh-client-private", "rde-ssh-client-private/foo", getCiphertext("value1"));
+        "rde-ssh-client-private-string",
+        "rde-ssh-client-private-string/foo",
+        getCiphertext("value1"));
   }
 
   @Test
@@ -167,21 +184,23 @@ public class KmsUpdaterTest {
     updater.setRdeSshClientPublicKey("value1").update();
 
     verifySecretAndSecretRevisionWritten(
-        "rde-ssh-client-public", "rde-ssh-client-public/foo", getCiphertext("value1"));
+        "rde-ssh-client-public-string",
+        "rde-ssh-client-public-string/foo",
+        getCiphertext("value1"));
   }
 
   @Test
   public void test_setRdeStagingKey() throws Exception {
-    updater.setRdeStagingKey(KmsTestHelper.getPrivateKeyring()).update();
+    updater.setRdeStagingKey(KmsTestHelper.getKeyPair()).update();
 
     verifySecretAndSecretRevisionWritten(
         "rde-staging-private",
         "rde-staging-private/foo",
-        getCiphertext(KmsTestHelper.getPrivateKeyring().getEncoded()));
+        getCiphertext(KmsTestHelper.getKeyPair()));
     verifySecretAndSecretRevisionWritten(
         "rde-staging-public",
         "rde-staging-public/foo",
-        getCiphertext(KmsTestHelper.getPrivateKeyring().getPublicKey().getEncoded()));
+        getCiphertext(KmsTestHelper.getPublicKey()));
   }
 
 
@@ -200,6 +219,14 @@ public class KmsUpdaterTest {
   }
 
   private static String getCiphertext(String plaintext) throws IOException {
-    return getCiphertext(plaintext.getBytes(UTF_8));
+    return getCiphertext(KeySerializer.serializeString(plaintext));
+  }
+
+  private static String getCiphertext(PGPPublicKey publicKey) throws IOException {
+    return getCiphertext(KeySerializer.serializePublicKey(publicKey));
+  }
+
+  private static String getCiphertext(PGPKeyPair keyPair) throws Exception {
+    return getCiphertext(KeySerializer.serializeKeyPair(keyPair));
   }
 }

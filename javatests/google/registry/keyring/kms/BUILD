@@ -15,6 +15,7 @@ java_library(
         "pgp-public-keyring.asc",
     ],
     deps = [
+        "//java/google/registry/keyring/api",
         "//java/google/registry/keyring/kms",
         "//java/google/registry/model",
         "//javatests/google/registry/testing",
