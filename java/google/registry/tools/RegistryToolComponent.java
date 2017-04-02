@@ -69,6 +69,7 @@ interface RegistryToolComponent {
   void inject(GenerateApplicationsReportCommand command);
   void inject(GenerateDnsReportCommand command);
   void inject(GenerateEscrowDepositCommand command);
+  void inject(GetKeyringSecretCommand command);
   void inject(GhostrydeCommand command);
   void inject(ListCursorsCommand command);
   void inject(LoginCommand command);

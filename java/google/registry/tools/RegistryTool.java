@@ -73,6 +73,7 @@ public final class RegistryTool {
           .put("get_domain", GetDomainCommand.class)
           .put("get_history_entries", GetHistoryEntriesCommand.class)
           .put("get_host", GetHostCommand.class)
+          .put("get_keyring_secret", GetKeyringSecretCommand.class)
           .put("get_lrp_token", GetLrpTokenCommand.class)
           .put("get_registrar", GetRegistrarCommand.class)
           .put("get_resource_by_key", GetResourceByKeyCommand.class)
