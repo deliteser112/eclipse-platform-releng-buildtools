@@ -36,6 +36,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.appengine.api.datastore.DatastoreFailureException;
+import com.google.appengine.api.datastore.DatastoreTimeoutException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
@@ -43,7 +45,9 @@ import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
+import google.registry.testing.FakeSleeper;
 import google.registry.testing.InjectRule;
+import google.registry.util.Retrier;
 import google.registry.whois.WhoisMetrics.WhoisMetric;
 import java.io.IOException;
 import java.io.Reader;
@@ -75,6 +79,7 @@ public class WhoisServerTest {
     whoisServer.whoisMetrics = new WhoisMetrics();
     whoisServer.metricBuilder = WhoisMetric.builderForRequest(clock);
     whoisServer.disclaimer = "Doodle Disclaimer";
+    whoisServer.retrier = new Retrier(new FakeSleeper(clock), 3);
     return whoisServer;
   }
 
@@ -489,5 +494,25 @@ public class WhoisServerTest {
             .build();
     verify(server.whoisMetrics).recordWhoisMetric(eq(expected));
     assertThat(response.getPayload()).isEqualTo("Internal Server Error");
+  }
+
+  @Test
+  public void testRun_retryOnTransientFailure() throws Exception {
+    persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
+    WhoisServer server = newWhoisServer("ns1.cat.lol");
+    WhoisResponse expectedResponse =
+        server.whoisReader.readCommand(server.input, clock.nowUtc()).executeQuery(clock.nowUtc());
+
+    WhoisReader mockReader = mock(WhoisReader.class);
+    WhoisCommand mockCommand = mock(WhoisCommand.class);
+    when(mockReader.readCommand(any(Reader.class), any(DateTime.class))).thenReturn(mockCommand);
+    when(mockCommand.executeQuery(any(DateTime.class)))
+        .thenThrow(new DatastoreFailureException("Expected transient exception #1"))
+        .thenThrow(new DatastoreTimeoutException("Expected transient exception #2"))
+        .thenReturn(expectedResponse);
+
+    server.whoisReader = mockReader;
+    server.run();
+    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_nameserver.txt"));
   }
 }

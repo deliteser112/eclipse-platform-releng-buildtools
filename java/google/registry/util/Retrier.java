@@ -52,11 +52,12 @@ public class Retrier implements Serializable {
    * <p>Retrying is done a fixed number of times, with exponential backoff, if the exception that is
    * thrown is deemed retryable by the predicate. If the error is not considered retryable, or if
    * the thread is interrupted, or if the allowable number of attempts has been exhausted, the
-   * original exception is propagated through to the caller.
+   * original exception is propagated through to the caller. Checked exceptions are wrapped in a
+   * RuntimeException, while unchecked exceptions are propagated as-is.
    *
    * @return <V> the value returned by the {@link Callable}.
    */
-  public final <V> V callWithRetry(Callable<V> callable, Predicate<Throwable> isRetryable) {
+  private <V> V callWithRetry(Callable<V> callable, Predicate<Throwable> isRetryable) {
     int failures = 0;
     while (true) {
       try {
@@ -87,7 +88,8 @@ public class Retrier implements Serializable {
    * <p>Retrying is done a fixed number of times, with exponential backoff, if the exception that is
    * thrown is on a whitelist of retryable errors. If the error is not on the whitelist, or if the
    * thread is interrupted, or if the allowable number of attempts has been exhausted, the original
-   * exception is propagated through to the caller.
+   * exception is propagated through to the caller. Checked exceptions are wrapped in a
+   * RuntimeException, while unchecked exceptions are propagated as-is.
    *
    * @return <V> the value returned by the {@link Callable}.
    */

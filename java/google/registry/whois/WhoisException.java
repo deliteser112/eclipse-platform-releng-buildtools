@@ -68,4 +68,11 @@ public final class WhoisException extends Exception implements WhoisResponse {
         .toString();
     return WhoisResponseResults.create(plaintext, 0);
   }
+
+  /** Exception that wraps WhoisExceptions returned from Retrier. */
+  public static final class UncheckedWhoisException extends RuntimeException {
+    UncheckedWhoisException(WhoisException whoisException) {
+      super(whoisException);
+    }
+  }
 }

@@ -35,7 +35,7 @@ public interface WhoisResponse {
   /** Returns the time at which this response was created. */
   DateTime getTimestamp();
 
-  /** A wraper class for the plaintext response of a WHOIS command and its number of results. */
+  /** A wrapper class for the plaintext response of a WHOIS command and its number of results. */
   @AutoValue
   abstract static class WhoisResponseResults {
     public abstract String plainTextOutput();

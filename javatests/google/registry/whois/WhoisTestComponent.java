@@ -18,6 +18,7 @@ import dagger.Component;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.request.RequestModule;
 import google.registry.util.SystemClock.SystemClockModule;
+import google.registry.util.SystemSleeper.SystemSleeperModule;
 import javax.inject.Singleton;
 
 @Singleton
@@ -25,6 +26,7 @@ import javax.inject.Singleton;
     ConfigModule.class,
     RequestModule.class,
     SystemClockModule.class,
+    SystemSleeperModule.class,
     WhoisModule.class,
 })
 interface WhoisTestComponent {

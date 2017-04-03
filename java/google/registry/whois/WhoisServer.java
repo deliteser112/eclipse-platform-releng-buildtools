@@ -18,6 +18,8 @@ import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
+import com.google.appengine.api.datastore.DatastoreFailureException;
+import com.google.appengine.api.datastore.DatastoreTimeoutException;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
@@ -26,9 +28,12 @@ import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
+import google.registry.util.Retrier;
+import google.registry.whois.WhoisException.UncheckedWhoisException;
 import google.registry.whois.WhoisMetrics.WhoisMetric;
 import google.registry.whois.WhoisResponse.WhoisResponseResults;
 import java.io.Reader;
+import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -72,6 +77,7 @@ public class WhoisServer implements Runnable {
   @Inject Clock clock;
   @Inject Reader input;
   @Inject Response response;
+  @Inject Retrier retrier;
   @Inject WhoisReader whoisReader;
   @Inject @Config("whoisDisclaimer") String disclaimer;
   @Inject WhoisMetric.Builder metricBuilder;
@@ -81,25 +87,41 @@ public class WhoisServer implements Runnable {
   @Override
   public void run() {
     String responseText;
-    DateTime now = clock.nowUtc();
+    final DateTime now = clock.nowUtc();
     try {
-      WhoisCommand command = whoisReader.readCommand(input, now);
+      final WhoisCommand command = whoisReader.readCommand(input, now);
       metricBuilder.setCommand(command);
       WhoisResponseResults results =
-          command.executeQuery(now).getResponse(PREFER_UNICODE, disclaimer);
+          retrier.callWithRetry(
+              new Callable<WhoisResponseResults>() {
+                @Override
+                public WhoisResponseResults call() {
+                  WhoisResponseResults results;
+                  try {
+                    results = command.executeQuery(now).getResponse(PREFER_UNICODE, disclaimer);
+                  } catch (WhoisException e) {
+                    throw new UncheckedWhoisException(e);
+                  }
+                  return results;
+                }
+              },
+              DatastoreTimeoutException.class,
+              DatastoreFailureException.class);
       responseText = results.plainTextOutput();
-      metricBuilder.setNumResults(results.numResults());
-      metricBuilder.setStatus(SC_OK);
+      setWhoisMetrics(metricBuilder, results.numResults(), SC_OK);
+    } catch (UncheckedWhoisException u) {
+      WhoisException e = (WhoisException) u.getCause();
+      WhoisResponseResults results = e.getResponse(PREFER_UNICODE, disclaimer);
+      responseText = results.plainTextOutput();
+      setWhoisMetrics(metricBuilder, 0, e.getStatus());
     } catch (WhoisException e) {
       WhoisResponseResults results = e.getResponse(PREFER_UNICODE, disclaimer);
       responseText = results.plainTextOutput();
-      metricBuilder.setNumResults(0);
-      metricBuilder.setStatus(e.getStatus());
+      setWhoisMetrics(metricBuilder, 0, e.getStatus());
     } catch (Throwable t) {
       logger.severe(t, "WHOIS request crashed");
       responseText = "Internal Server Error";
-      metricBuilder.setNumResults(0);
-      metricBuilder.setStatus(SC_INTERNAL_SERVER_ERROR);
+      setWhoisMetrics(metricBuilder, 0, SC_INTERNAL_SERVER_ERROR);
     }
     // Note that we always return 200 (OK) even if an error was hit. This is because returning an
     // non-OK HTTP status code will cause the proxy server to silently close the connection. Since
@@ -109,5 +131,11 @@ public class WhoisServer implements Runnable {
     response.setContentType(CONTENT_TYPE);
     response.setPayload(responseText);
     whoisMetrics.recordWhoisMetric(metricBuilder.build());
+  }
+
+  private static void setWhoisMetrics(
+      WhoisMetric.Builder metricBuilder, int numResults, int status) {
+    metricBuilder.setNumResults(numResults);
+    metricBuilder.setStatus(status);
   }
 }
