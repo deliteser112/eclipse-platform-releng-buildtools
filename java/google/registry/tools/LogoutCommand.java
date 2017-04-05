@@ -28,7 +28,6 @@ class LogoutCommand implements Command {
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Inject AbstractDataStoreFactory dataStoreFactory;
-  @Inject @AuthModule.ClientScopeQualifier String clientScopeQualifier;
 
   @Override
   public void run() throws IOException {
