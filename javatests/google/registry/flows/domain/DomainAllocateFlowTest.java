@@ -45,7 +45,6 @@ import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainAllocateFlow.HasFinalStatusException;
 import google.registry.flows.domain.DomainAllocateFlow.MissingApplicationException;
 import google.registry.flows.domain.DomainAllocateFlow.OnlySuperuserCanAllocateException;
-import google.registry.flows.domain.DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException;
 import google.registry.flows.domain.DomainFlowUtils.ExceedsMaxRegistrationYearsException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForDomainException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForTldException;
@@ -327,34 +326,6 @@ public class DomainAllocateFlowTest
   }
 
   @Test
-  public void testFailure_domainCreateRestricted_domainNotReserved() throws Exception {
-    setupDomainApplication("tld", TldState.QUIET_PERIOD);
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "lol,NAMESERVER_RESTRICTED," + "ns2.example.net:ns3.example.net"))
-            .build());
-    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class, "example-one.tld");
-    runFlowAsSuperuser();
-  }
-
-  @Test
-  public void testSuccess_domainCreateNotRestricted_domainNotReserved() throws Exception {
-    setupDomainApplication("tld", TldState.QUIET_PERIOD);
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "lol,NAMESERVER_RESTRICTED," + "ns2.example.net:ns3.example.net"))
-            .build());
-    doSuccessfulTest(2);
-  }
-
-  @Test
   public void testSuccess_tldAndDomainNameserversWhitelistBothSatistfied() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     persistResource(
@@ -405,26 +376,6 @@ public class DomainAllocateFlowTest
                 ImmutableSet.of("ns4.example.net", "ns2.example.net", "ns3.example.net"))
             .build());
     thrown.expect(NameserversNotAllowedForTldException.class, "ns1.example.net");
-    runFlowAsSuperuser();
-  }
-
-  @Test
-  public void testFailure_tldNameserversAllowed_domainCreateRestricted_domainNotReserved()
-      throws Exception {
-    setupDomainApplication("tld", TldState.QUIET_PERIOD);
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setReservedLists(
-                persistReservedList(
-                    "reserved",
-                    "lol,NAMESERVER_RESTRICTED,"
-                        + "ns2.example.net:ns3.example.net:ns1.example.net"))
-            .setAllowedFullyQualifiedHostNames(
-                ImmutableSet.of("ns1.example.net", "ns2.example.net", "ns3.example.net"))
-            .build());
-    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class, "example-one.tld");
     runFlowAsSuperuser();
   }
 

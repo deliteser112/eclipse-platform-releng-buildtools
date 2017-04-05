@@ -29,7 +29,6 @@ import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToT
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.updateDsData;
 import static google.registry.flows.domain.DomainFlowUtils.validateContactsHaveTypes;
-import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDsData;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnDomain;
@@ -107,7 +106,6 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedForDomainException}
  * @error {@link DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException}
- * @error {@link DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
  * @error {@link DomainFlowUtils.SecDnsAllUsageException}
@@ -213,9 +211,6 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
         tld, add.getNameserverFullyQualifiedHostNames());
     InternetDomainName domainName =
         InternetDomainName.from(existingApplication.getFullyQualifiedDomainName());
-    if (registry.getDomainCreateRestricted()) {
-      validateDomainAllowedOnCreateRestrictedTld(domainName);
-    }
     validateNameserversAllowedOnDomain(
         domainName, nullToEmpty(add.getNameserverFullyQualifiedHostNames()));
   }

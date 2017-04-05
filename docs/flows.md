@@ -768,8 +768,6 @@ application. Updates cannot change the domain name that is being applied for.
     *   Nameservers are not whitelisted for this domain.
     *   Nameservers not specified for domain with nameserver-restricted
         reservation.
-    *   Requested domain does not have nameserver-restricted reservation for a
-        TLD that requires such a reservation to create domains.
     *   Registrant is not whitelisted for this TLD.
     *   Application status prohibits this domain update.
 *   2306
@@ -880,8 +878,6 @@ An EPP flow that creates a new application for a domain resource.
     *   Resource linked to this domain does not exist.
 *   2304
     *   The claims period for this TLD has ended.
-    *   Requested domain does not have nameserver-restricted reservation for a
-        TLD that requires such a reservation to create domains.
     *   Requested domain is reserved.
     *   Requested domain requires a claims notice.
     *   Nameservers are not whitelisted for this domain.
@@ -942,8 +938,6 @@ An EPP flow that allocates a new domain resource from a domain application.
     *   Domain application with specific ROID does not exist.
 *   2304
     *   Domain application already has a final status.
-    *   Requested domain does not have nameserver-restricted reservation for a
-        TLD that requires such a reservation to create domains.
     *   Registrant is not whitelisted for this TLD.
     *   Nameservers are not whitelisted for this domain.
     *   Nameservers are not whitelisted for this TLD.

@@ -23,6 +23,7 @@ import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateRespon
 import static google.registry.flows.domain.DomainFlowUtils.failfastForCreate;
 import static google.registry.flows.domain.DomainFlowUtils.prepareMarkedLrpTokenEntity;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
+import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
@@ -201,6 +202,9 @@ public class DomainCreateFlow implements TransactionalFlow {
     String domainLabel = domainName.parts().get(0);
     Registry registry = Registry.get(domainName.parent().toString());
     validateCreateCommandContactsAndNameservers(command, registry, domainName);
+    if (registry.getDomainCreateRestricted()) {
+      validateDomainAllowedOnCreateRestrictedTld(domainName);
+    }
     TldState tldState = registry.getTldState(now);
     boolean isAnchorTenant = isAnchorTenant(domainName);
     LaunchCreateExtension launchCreate = eppInput.getSingleExtension(LaunchCreateExtension.class);

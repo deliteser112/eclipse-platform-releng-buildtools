@@ -40,7 +40,6 @@ import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.ResourceFlowUtils.StatusNotClientSettableException;
 import google.registry.flows.domain.DomainApplicationUpdateFlow.ApplicationStatusProhibitsUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.ApplicationDomainNameMismatchException;
-import google.registry.flows.domain.DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
 import google.registry.flows.domain.DomainFlowUtils.EmptySecDnsUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
@@ -788,22 +787,6 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testSuccess_domainCreateRestricted_addedNameserverAllowed() throws Exception {
-    persistReferencedEntities();
-    persistApplication();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.tld:ns2.example.tld"))
-            .build());
-    clock.advanceOneMilli();
-    doSuccessfulTest();
-  }
-
-  @Test
   public void testSuccess_addedNameserversAllowedInTldAndDomainNameserversWhitelists()
       throws Exception {
     persistReferencedEntities();
@@ -857,58 +840,6 @@ public class DomainApplicationUpdateFlowTest
     clock.advanceOneMilli();
     thrown.expect(NameserversNotAllowedForTldException.class, "ns2.example.tld");
     runFlow();
-  }
-
-  @Test
-  public void testFailure_tldNameserversAllowed_domainCreateRestricted_domainNotReserved()
-      throws Exception {
-    persistReferencedEntities();
-    persistApplication();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setAllowedFullyQualifiedHostNames(
-                ImmutableSet.of("ns1.example.tld", "ns2.example.tld"))
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.tld:ns2.example.tld"))
-            .build());
-    clock.advanceOneMilli();
-    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testFailure_domainCreateRestricted_domainNotReserved() throws Exception {
-    persistReferencedEntities();
-    persistApplication();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.tld:ns2.example.tld"))
-            .build());
-    clock.advanceOneMilli();
-    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class);
-    runFlow();
-  }
-
-  @Test
-  public void testSuccess_domainCreateNotRestricted_domainNotReserved() throws Exception {
-    persistReferencedEntities();
-    persistApplication();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.tld:ns2.example.tld"))
-            .build());
-    clock.advanceOneMilli();
-    doSuccessfulTest();
   }
 
   @Test

@@ -780,9 +780,6 @@ public class DomainFlowUtils {
         nullToEmpty(command.getNameserverFullyQualifiedHostNames());
     validateNameserversCountForTld(tld, domainName, fullyQualifiedHostNames.size());
     validateNameserversAllowedOnTld(tld, fullyQualifiedHostNames);
-    if (registry.getDomainCreateRestricted()) {
-      validateDomainAllowedOnCreateRestrictedTld(domainName);
-    }
     validateNameserversAllowedOnDomain(domainName, fullyQualifiedHostNames);
   }
 
