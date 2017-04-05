@@ -125,6 +125,7 @@ import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.DatastoreHelper;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.util.Map;
@@ -1995,5 +1996,14 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-create");
+  }
+
+  @Test
+  public void testEppMetric_isSuccessfullyCreated() throws Exception {
+    persistContactsAndHosts();
+    runFlow();
+    EppMetric eppMetric = getEppMetric();
+    assertThat(eppMetric.getCommandName()).hasValue("DomainCreate");
+    assertThat(eppMetric.getAttempts()).isEqualTo(1);
   }
 }

@@ -15,6 +15,7 @@
 package google.registry.flows;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppXmlTransformer.marshal;
@@ -46,6 +47,7 @@ import google.registry.model.ofy.Ofy;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
+import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.EppLoader;
 import google.registry.testing.ExceptionRule;
@@ -96,6 +98,8 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   protected TransportCredentials credentials = new PasswordOnlyTransportCredentials();
   protected EppRequestSource eppRequestSource = EppRequestSource.UNIT_TEST;
 
+  private EppMetric.Builder eppMetricBuilder;
+
   @Before
   public void init() throws Exception {
     sessionMetadata = new HttpSessionMetadata(new FakeHttpSession());
@@ -121,6 +125,11 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   /** Returns the EPP data loaded by a previous call to setEppInput. */
   protected EppInput getEppInput() throws EppException {
     return eppLoader.getEpp();
+  }
+
+  protected EppMetric getEppMetric() {
+    checkNotNull(eppMetricBuilder, "Run the flow first before checking EPP metrics");
+    return eppMetricBuilder.build();
   }
 
   protected String readFile(String filename) {
@@ -273,6 +282,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
 
   private EppOutput runFlowInternal(CommitMode commitMode, UserPrivileges userPrivileges)
       throws Exception {
+    eppMetricBuilder = EppMetric.builderForRequest("request-id-1", clock);
     // Assert that the xml triggers the flow we expect.
     assertThat(FlowPicker.getFlowClass(eppLoader.getEpp()))
         .isEqualTo(new TypeInstantiator<F>(getClass()){}.getExactType());
@@ -293,7 +303,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
                 .build())
             .build()
             .flowRunner()
-            .run();
+            .run(eppMetricBuilder);
   }
 
   /** Run a flow and marshal the result to EPP, or throw if it doesn't validate. */

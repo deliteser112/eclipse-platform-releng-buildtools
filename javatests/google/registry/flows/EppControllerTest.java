@@ -75,14 +75,14 @@ public class EppControllerTest extends ShardableTestCase {
         .thenReturn(flowComponentBuilder);
     when(flowComponentBuilder.build()).thenReturn(flowComponent);
     when(flowComponent.flowRunner()).thenReturn(flowRunner);
-    when(flowRunner.run()).thenReturn(eppOutput);
     when(eppOutput.isResponse()).thenReturn(true);
     when(eppOutput.getResponse()).thenReturn(eppResponse);
     when(eppResponse.getResult()).thenReturn(result);
     when(result.getCode()).thenReturn(Code.SUCCESS_WITH_NO_MESSAGES);
 
     eppController = new EppController();
-    eppController.metricBuilder = EppMetric.builderForRequest("request-id-1", clock);
+    eppController.eppMetricBuilder = EppMetric.builderForRequest("request-id-1", clock);
+    when(flowRunner.run(eppController.eppMetricBuilder)).thenReturn(eppOutput);
     eppController.bigQueryMetricsEnqueuer = metricsEnqueuer;
     eppController.flowComponentBuilder = flowComponentBuilder;
     eppController.eppMetrics = eppMetrics;

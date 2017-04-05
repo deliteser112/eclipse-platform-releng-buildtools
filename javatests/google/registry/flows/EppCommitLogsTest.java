@@ -29,6 +29,7 @@ import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
+import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.EppLoader;
 import google.registry.testing.ExceptionRule;
@@ -87,7 +88,7 @@ public class EppCommitLogsTest extends ShardableTestCase {
             .build())
         .build()
         .flowRunner()
-        .run();
+        .run(EppMetric.builder());
   }
 
   @Test

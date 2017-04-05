@@ -62,12 +62,12 @@ public class FlowRunner {
   @Inject @DryRun boolean isDryRun;
   @Inject @Superuser boolean isSuperuser;
   @Inject @Transactional boolean isTransactional;
-  @Inject EppMetric.Builder metric;
   @Inject SessionMetadata sessionMetadata;
   @Inject Trid trid;
   @Inject FlowRunner() {}
 
-  public EppOutput run() throws EppException {
+  /** Runs the EPP flow, and records metrics on the given builder. */
+  public EppOutput run(final EppMetric.Builder eppMetricBuilder) throws EppException {
     String prettyXml = prettyPrint(inputXmlBytes);
     String xmlBase64 = base64().encode(inputXmlBytes);
     // This log line is very fragile since it's used for ICANN reporting - DO NOT CHANGE.
@@ -95,16 +95,16 @@ public class FlowRunner {
             "xml", prettyXml,
             "xmlBytes", xmlBase64,
             "icannActivityReportField", extractActivityReportField(flowClass))));
-    metric.setCommandNameFromFlow(flowClass.getSimpleName());
+    eppMetricBuilder.setCommandNameFromFlow(flowClass.getSimpleName());
     if (!isTransactional) {
-      metric.incrementAttempts();
+      eppMetricBuilder.incrementAttempts();
       return EppOutput.create(flowProvider.get().run());
     }
     try {
       return ofy().transact(new Work<EppOutput>() {
         @Override
         public EppOutput run() {
-          metric.incrementAttempts();
+          eppMetricBuilder.incrementAttempts();
           try {
             EppOutput output = EppOutput.create(flowProvider.get().run());
             if (isDryRun) {

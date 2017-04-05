@@ -47,7 +47,7 @@ public final class EppController {
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Inject FlowComponent.Builder flowComponentBuilder;
-  @Inject EppMetric.Builder metricBuilder;
+  @Inject EppMetric.Builder eppMetricBuilder;
   @Inject EppMetrics eppMetrics;
   @Inject BigQueryMetricsEnqueuer bigQueryMetricsEnqueuer;
   @Inject EppController() {}
@@ -60,8 +60,8 @@ public final class EppController {
       boolean isDryRun,
       boolean isSuperuser,
       byte[] inputXmlBytes) {
-    metricBuilder.setClientId(Optional.fromNullable(sessionMetadata.getClientId()));
-    metricBuilder.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
+    eppMetricBuilder.setClientId(Optional.fromNullable(sessionMetadata.getClientId()));
+    eppMetricBuilder.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
     try {
       EppInput eppInput;
       try {
@@ -82,11 +82,11 @@ public final class EppController {
             new String(inputXmlBytes, UTF_8).trim(), // Charset decoding failures are swallowed.
             Strings.repeat("=", 40));
         // Return early by sending an error message, with no clTRID since we couldn't unmarshal it.
-        metricBuilder.setStatus(e.getResult().getCode());
+        eppMetricBuilder.setStatus(e.getResult().getCode());
         return getErrorResponse(e.getResult(), Trid.create(null));
       }
       if (!eppInput.getTargetIds().isEmpty()) {
-        metricBuilder.setEppTarget(Joiner.on(',').join(eppInput.getTargetIds()));
+        eppMetricBuilder.setEppTarget(Joiner.on(',').join(eppInput.getTargetIds()));
       }
       EppOutput output = runFlowConvertEppErrors(flowComponentBuilder
           .flowModule(new FlowModule.Builder()
@@ -100,11 +100,11 @@ public final class EppController {
               .build())
           .build());
       if (output.isResponse()) {
-        metricBuilder.setStatus(output.getResponse().getResult().getCode());
+        eppMetricBuilder.setStatus(output.getResponse().getResult().getCode());
       }
       return output;
     } finally {
-      EppMetric metric = metricBuilder.build();
+      EppMetric metric = eppMetricBuilder.build();
       bigQueryMetricsEnqueuer.export(metric);
       eppMetrics.incrementEppRequests(metric);
       eppMetrics.recordProcessingTime(metric);
@@ -114,7 +114,7 @@ public final class EppController {
   /** Runs an EPP flow and converts known exceptions into EPP error responses. */
   private EppOutput runFlowConvertEppErrors(FlowComponent flowComponent) {
     try {
-      return flowComponent.flowRunner().run();
+      return flowComponent.flowRunner().run(eppMetricBuilder);
     } catch (EppException | EppExceptionInProviderException e) {
       // The command failed. Send the client an error message.
       EppException eppEx = (EppException) (e instanceof EppException ? e : e.getCause());

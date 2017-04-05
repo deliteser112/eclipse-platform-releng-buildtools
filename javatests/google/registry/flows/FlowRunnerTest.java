@@ -59,6 +59,8 @@ public class FlowRunnerTest extends ShardableTestCase {
   public final AppEngineRule appEngineRule = new AppEngineRule.Builder().build();
 
   private final FlowRunner flowRunner = new FlowRunner();
+  private final EppMetric.Builder eppMetricBuilder =
+      EppMetric.builderForRequest("request-id-1", new FakeClock());
 
   private final TestLogHandler handler = new TestLogHandler();
 
@@ -89,7 +91,6 @@ public class FlowRunnerTest extends ShardableTestCase {
     flowRunner.isDryRun = false;
     flowRunner.isSuperuser = false;
     flowRunner.isTransactional = false;
-    flowRunner.metric = EppMetric.builderForRequest("request-id-1", new FakeClock());
     flowRunner.sessionMetadata =
         new StatelessRequestSessionMetadata("TheRegistrar", ImmutableSet.<String>of());
     flowRunner.trid = Trid.create("client-123", "server-456");
@@ -97,33 +98,33 @@ public class FlowRunnerTest extends ShardableTestCase {
 
   @Test
   public void testRun_nonTransactionalCommand_incrementsMetricAttempts() throws Exception {
-    flowRunner.run();
-    assertThat(flowRunner.metric.build().getAttempts()).isEqualTo(1);
+    flowRunner.run(eppMetricBuilder);
+    assertThat(eppMetricBuilder.build().getAttempts()).isEqualTo(1);
   }
 
   @Test
   public void testRun_transactionalCommand_incrementsMetricAttempts() throws Exception {
     flowRunner.isTransactional = true;
-    flowRunner.run();
-    assertThat(flowRunner.metric.build().getAttempts()).isEqualTo(1);
+    flowRunner.run(eppMetricBuilder);
+    assertThat(eppMetricBuilder.build().getAttempts()).isEqualTo(1);
   }
 
   @Test
   public void testRun_nonTransactionalCommand_setsCommandNameOnMetric() throws Exception {
     flowRunner.isTransactional = true;
-    flowRunner.run();
-    assertThat(flowRunner.metric.build().getCommandName()).hasValue("TestCommand");
+    flowRunner.run(eppMetricBuilder);
+    assertThat(eppMetricBuilder.build().getCommandName()).hasValue("TestCommand");
   }
 
   @Test
   public void testRun_transactionalCommand_setsCommandNameOnMetric() throws Exception {
-    flowRunner.run();
-    assertThat(flowRunner.metric.build().getCommandName()).hasValue("TestCommand");
+    flowRunner.run(eppMetricBuilder);
+    assertThat(eppMetricBuilder.build().getCommandName()).hasValue("TestCommand");
   }
 
   @Test
   public void testRun_reportingLogStatement_basic() throws Exception {
-    flowRunner.run();
+    flowRunner.run(eppMetricBuilder);
     assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
         .containsExactly(
               "trid", "server-456",
@@ -136,7 +137,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   @Test
   public void testRun_reportingLogStatement_withReportingSpec() throws Exception {
     flowRunner.flowClass = TestReportingSpecCommandFlow.class;
-    flowRunner.run();
+    flowRunner.run(eppMetricBuilder);
     assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
         .containsExactly(
               "trid", "server-456",
@@ -149,7 +150,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   @Test
   public void testRun_reportingLogStatement_noClientId() throws Exception {
     flowRunner.clientId = "";
-    flowRunner.run();
+    flowRunner.run(eppMetricBuilder);
     assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
         .containsExactly(
               "trid", "server-456",
@@ -164,7 +165,7 @@ public class FlowRunnerTest extends ShardableTestCase {
     String domainCreateXml = loadFileWithSubstitutions(
         getClass(), "domain_create_prettyprinted.xml", ImmutableMap.<String, String>of());
     flowRunner.inputXmlBytes = domainCreateXml.getBytes(UTF_8);
-    flowRunner.run();
+    flowRunner.run(eppMetricBuilder);
     assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
         .containsExactly(
               "trid", "server-456",
@@ -176,7 +177,7 @@ public class FlowRunnerTest extends ShardableTestCase {
 
   @Test
   public void testRun_legacyLoggingStatement_basic() throws Exception {
-    flowRunner.run();
+    flowRunner.run(eppMetricBuilder);
     assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
         .containsExactly(
             "server-456",
@@ -195,7 +196,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   public void testRun_legacyLoggingStatement_httpSessionMetadata() throws Exception {
     flowRunner.sessionMetadata = new HttpSessionMetadata(new FakeHttpSession());
     flowRunner.sessionMetadata.setClientId("TheRegistrar");
-    flowRunner.run();
+    flowRunner.run(eppMetricBuilder);
     assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
         .contains(
             "HttpSessionMetadata"
@@ -206,7 +207,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   public void testRun_legacyLoggingStatement_gaeUserCredentials() throws Exception {
     flowRunner.credentials =
         GaeUserCredentials.forTestingUser(new User("user@example.com", "authDomain"), false);
-    flowRunner.run();
+    flowRunner.run(eppMetricBuilder);
     assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
         .contains("GaeUserCredentials{gaeUser=user@example.com, isAdmin=false}");
   }
@@ -214,7 +215,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   @Test
   public void testRun_legacyLoggingStatement_tlsCredentials() throws Exception {
     flowRunner.credentials = new TlsCredentials("abc123def", Optional.of("127.0.0.1"), "sni");
-    flowRunner.run();
+    flowRunner.run(eppMetricBuilder);
     assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
         .contains(
             "TlsCredentials{clientCertificateHash=abc123def, clientAddress=/127.0.0.1, sni=sni}");
@@ -223,7 +224,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   @Test
   public void testRun_legacyLoggingStatement_dryRun() throws Exception {
     flowRunner.isDryRun = true;
-    flowRunner.run();
+    flowRunner.run(eppMetricBuilder);
     assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
         .contains("DRY_RUN");
   }
@@ -233,7 +234,7 @@ public class FlowRunnerTest extends ShardableTestCase {
     String domainCreateXml = loadFileWithSubstitutions(
         getClass(), "domain_create_prettyprinted.xml", ImmutableMap.<String, String>of());
     flowRunner.inputXmlBytes = domainCreateXml.getBytes(UTF_8);
-    flowRunner.run();
+    flowRunner.run(eppMetricBuilder);
     String logMessage = findLogMessageByPrefix(handler, "EPP Command\n\t");
     List<String> lines = Splitter.on("\n\t").splitToList(logMessage);
     assertThat(lines.size()).named("number of lines in log message").isAtLeast(9);
