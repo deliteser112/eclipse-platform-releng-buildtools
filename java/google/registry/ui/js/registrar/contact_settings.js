@@ -115,7 +115,9 @@ registry.registrar.ContactSettings.prototype.renderItem = function(rspObj) {
       var contact = contacts[c];
       var types = contact.types;
       if (!types) {
-        continue;
+        // If the contact has no types, synthesize an "OTHER" type so that it
+        // still will be displayed in the console.
+        types = 'OTHER';
       }
       types = types.split(',');
       for (var t in types) {

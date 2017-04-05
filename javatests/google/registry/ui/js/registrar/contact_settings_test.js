@@ -73,6 +73,8 @@ function tearDown() {
 
 
 function testCollectionView() {
+  testContactWithoutType = createTestContact('notype@example.com');
+  testContactWithoutType.types = '';
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'contact-settings',
     xsrfToken: test.testXsrfToken,
@@ -86,11 +88,12 @@ function testCollectionView() {
         status: 'SUCCESS',
         message: 'OK',
         results: [{
-          contacts: [testContact]
+          contacts: [testContact, testContactWithoutType]
         }]
       }
   );
   assertEquals(1, $('admin-contacts').childNodes.length);
+  assertEquals(1, $('other-contacts').childNodes.length);
   // XXX: Needs more field testing.
 }
 
