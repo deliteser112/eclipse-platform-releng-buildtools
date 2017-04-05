@@ -17,6 +17,8 @@ java_library(
         "//javatests/google/registry/testing",
         "//third_party/java/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk//:testonly",
+        "@com_google_appengine_api_stubs",
+        "@com_google_appengine_testing",
         "@com_google_guava",
         "@com_google_truth",
         "@javax_servlet_api",

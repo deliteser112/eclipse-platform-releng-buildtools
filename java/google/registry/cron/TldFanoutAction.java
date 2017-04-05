@@ -23,12 +23,14 @@ import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Multimaps.filterKeys;
 import static com.google.common.collect.Sets.difference;
+import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static google.registry.model.registry.Registries.getTldsOfType;
 import static google.registry.model.registry.Registry.TldType.REAL;
 import static google.registry.model.registry.Registry.TldType.TEST;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.appengine.api.taskqueue.Queue;
+import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableListMultimap;
@@ -38,6 +40,7 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.ParameterMap;
 import google.registry.request.RequestParameters;
+import google.registry.request.Response;
 import google.registry.util.TaskEnqueuer;
 import java.util.Random;
 import java.util.Set;
@@ -93,6 +96,7 @@ public final class TldFanoutAction implements Runnable {
   private static final Random random = new Random();
 
   @Inject TaskEnqueuer taskEnqueuer;
+  @Inject Response response;
   @Inject @Parameter(ENDPOINT_PARAM) String endpoint;
   @Inject @Parameter(QUEUE_PARAM) String queue;
   @Inject @Parameter(FOR_EACH_REAL_TLD_PARAM) boolean forEachRealTld;
@@ -105,15 +109,26 @@ public final class TldFanoutAction implements Runnable {
 
   @Override
   public void run() {
-    Set<String> namespaces = ImmutableSet.copyOf(concat(
-        runInEmpty ? ImmutableSet.of("") : ImmutableSet.<String>of(),
-        forEachRealTld ? getTldsOfType(REAL) : ImmutableSet.<String>of(),
-        forEachTestTld ? getTldsOfType(TEST) : ImmutableSet.<String>of()));
+    Set<String> tlds =
+        difference(
+            ImmutableSet.copyOf(
+                concat(
+                    runInEmpty ? ImmutableSet.of("") : ImmutableSet.<String>of(),
+                    forEachRealTld ? getTldsOfType(REAL) : ImmutableSet.<String>of(),
+                    forEachTestTld ? getTldsOfType(TEST) : ImmutableSet.<String>of())),
+            excludes);
     Multimap<String, String> flowThruParams = filterKeys(params, not(in(CONTROL_PARAMS)));
     Queue taskQueue = getQueue(queue);
-    for (String namespace : difference(namespaces, excludes)) {
-      taskEnqueuer.enqueue(taskQueue, createTaskOptions(namespace, flowThruParams));
+    String outputPayload = String.format(
+        "OK: Launched the following %d tasks in queue %s\n", tlds.size(), queue);
+    for (String tld : tlds) {
+      TaskOptions taskOptions = createTaskOptions(tld, flowThruParams);
+      TaskHandle taskHandle = taskEnqueuer.enqueue(taskQueue, taskOptions);
+      outputPayload += String.format(
+          "- Task: %s, tld: %s, endpoint: %s\n", taskHandle.getName(), tld, taskOptions.getUrl());
     }
+    response.setContentType(PLAIN_TEXT_UTF_8);
+    response.setPayload(outputPayload);
   }
 
   private TaskOptions createTaskOptions(String tld, Multimap<String, String> params) {
