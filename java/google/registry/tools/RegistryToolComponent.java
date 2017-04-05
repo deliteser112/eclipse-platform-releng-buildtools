@@ -21,9 +21,13 @@ import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
 import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
+import google.registry.keyring.kms.KmsModule;
+import google.registry.request.Modules.AppIdentityCredentialModule;
 import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.URLFetchServiceModule;
+import google.registry.request.Modules.UrlFetchTransportModule;
+import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
@@ -40,6 +44,8 @@ import javax.inject.Singleton;
 @Component(
   modules = {
     AppEngineConnectionFlags.FlagsModule.class,
+    // TODO(b/36866706): Find a way to replace this with a command-line friendly version
+    AppIdentityCredentialModule.class,
     AuthModule.class,
     ConfigModule.class,
     DatastoreServiceModule.class,
@@ -50,10 +56,14 @@ import javax.inject.Singleton;
     DummyKeyringModule.class,
     Jackson2Module.class,
     KeyModule.class,
+    KmsModule.class,
     RegistryToolModule.class,
     SystemClockModule.class,
     SystemSleeperModule.class,
     URLFetchServiceModule.class,
+    UrlFetchTransportModule.class,
+    // TODO(b/36866706): Find a way to replace this with a command-line friendly version
+    UseAppIdentityCredentialForGoogleApisModule.class,
     UserServiceModule.class,
     VoidDnsWriterModule.class,
     WhoisModule.class,
@@ -78,6 +88,7 @@ interface RegistryToolComponent {
   void inject(SendEscrowReportToIcannCommand command);
   void inject(SetupOteCommand command);
   void inject(UpdateCursorsCommand command);
+  void inject(UpdateKmsKeyringCommand command);
   void inject(UpdateTldCommand command);
   void inject(ValidateEscrowDepositCommand command);
   void inject(WhoisQueryCommand command);

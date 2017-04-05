@@ -19,6 +19,7 @@ import com.beust.jcommander.Parameters;
 import google.registry.keyring.api.KeySerializer;
 import google.registry.keyring.api.Keyring;
 import google.registry.tools.Command.RemoteApiCommand;
+import google.registry.tools.params.KeyringKeyName;
 import google.registry.tools.params.PathParameter;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -39,23 +40,6 @@ final class GetKeyringSecretCommand implements RemoteApiCommand {
 
   @Inject
   GetKeyringSecretCommand() {}
-
-  private enum KeyringKeyName {
-    BRAINTREE_PRIVATE_KEY,
-    BRDA_RECEIVER_PUBLIC_KEY,
-    BRDA_SIGNING_KEY_PAIR,
-    ICANN_REPORTING_PASSWORD,
-    JSON_CREDENTIAL,
-    MARKSDB_DNL_LOGIN,
-    MARKSDB_LORDN_PASSWORD,
-    MARKSDB_SMDRL_LOGIN,
-    RDE_RECEIVER_PUBLIC_KEY,
-    RDE_SIGNING_KEY_PAIR,
-    RDE_SSH_CLIENT_PRIVATE_KEY,
-    RDE_SSH_CLIENT_PUBLIC_KEY,
-    RDE_STAGING_KEY_PAIR,
-    RDE_STAGING_PUBLIC_KEY,
-  }
 
   @Parameter(names = "--keyname", description = "The secret to load", required = true)
   private KeyringKeyName keyringKeyName;
