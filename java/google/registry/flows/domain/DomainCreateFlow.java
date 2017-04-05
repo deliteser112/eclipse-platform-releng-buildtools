@@ -38,6 +38,8 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
+import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
+import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
@@ -85,6 +87,7 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CreateData.DomainCreateData;
@@ -276,24 +279,29 @@ public class DomainCreateFlow implements TransactionalFlow {
     if (!feesAndCredits.getEapCost().isZero()) {
       entitiesToSave.add(createEapBillingEvent(feesAndCredits, createBillingEvent));
     }
-    DomainResource newDomain = new DomainResource.Builder()
-        .setCreationClientId(clientId)
-        .setPersistedCurrentSponsorClientId(clientId)
-        .setRepoId(repoId)
-        .setIdnTableName(validateDomainNameWithIdnTables(domainName))
-        .setRegistrationExpirationTime(registrationExpirationTime)
-        .setAutorenewBillingEvent(Key.create(autorenewBillingEvent))
-        .setAutorenewPollMessage(Key.create(autorenewPollMessage))
-        .setLaunchNotice(hasClaimsNotice ? launchCreate.getNotice() : null)
-        .setSmdId(signedMarkId)
-        .setDsData(secDnsCreate == null ? null : secDnsCreate.getDsData())
-        .setRegistrant(command.getRegistrant())
-        .setAuthInfo(command.getAuthInfo())
-        .setFullyQualifiedDomainName(targetId)
-        .setNameservers(command.getNameservers())
-        .setContacts(command.getContacts())
-        .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.ADD, createBillingEvent))
-        .build();
+    DomainResource newDomain =
+        new DomainResource.Builder()
+            .setCreationClientId(clientId)
+            .setPersistedCurrentSponsorClientId(clientId)
+            .setRepoId(repoId)
+            .setIdnTableName(validateDomainNameWithIdnTables(domainName))
+            .setRegistrationExpirationTime(registrationExpirationTime)
+            .setAutorenewBillingEvent(Key.create(autorenewBillingEvent))
+            .setAutorenewPollMessage(Key.create(autorenewPollMessage))
+            .setLaunchNotice(hasClaimsNotice ? launchCreate.getNotice() : null)
+            .setSmdId(signedMarkId)
+            .setDsData(secDnsCreate == null ? null : secDnsCreate.getDsData())
+            .setRegistrant(command.getRegistrant())
+            .setAuthInfo(command.getAuthInfo())
+            .setFullyQualifiedDomainName(targetId)
+            .setNameservers(command.getNameservers())
+            .setStatusValues(
+                registry.getDomainCreateRestricted()
+                    ? ImmutableSet.of(SERVER_UPDATE_PROHIBITED, SERVER_TRANSFER_PROHIBITED)
+                    : ImmutableSet.<StatusValue>of())
+            .setContacts(command.getContacts())
+            .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.ADD, createBillingEvent))
+            .build();
     entitiesToSave.add(
         newDomain,
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),

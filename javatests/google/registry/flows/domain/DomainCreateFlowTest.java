@@ -17,6 +17,9 @@ package google.registry.flows.domain;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
+import static google.registry.model.eppcommon.StatusValue.OK;
+import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
+import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
@@ -1877,6 +1880,40 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .build());
     thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class, "example.tld");
     runFlow();
+  }
+
+  @Test
+  public void testSuccess_domainCreateRestricted_serverStatusSet() throws Exception {
+    persistContactsAndHosts();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setDomainCreateRestricted(true)
+            .setReservedLists(
+                persistReservedList(
+                    "reserved",
+                    "example,NAMESERVER_RESTRICTED,"
+                        + "ns1.example.net:ns2.example.net:ns3.example.net"))
+            .build());
+    doSuccessfulTest();
+    assertThat(reloadResourceByForeignKey().getStatusValues())
+        .containsExactly(SERVER_UPDATE_PROHIBITED, SERVER_TRANSFER_PROHIBITED);
+  }
+
+  @Test
+  public void testSuccess_domainCreateNotRestricted_serverStatusNotSet() throws Exception {
+    persistContactsAndHosts();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                persistReservedList(
+                    "reserved",
+                    "example,NAMESERVER_RESTRICTED,"
+                        + "ns1.example.net:ns2.example.net:ns3.example.net"))
+            .build());
+    doSuccessfulTest();
+    assertThat(reloadResourceByForeignKey().getStatusValues()).containsExactly(OK);
   }
 
   @Test
