@@ -406,6 +406,16 @@ public class DeleteContactsAndHostsAction implements Runnable {
     abstract boolean isSuperuser();
     abstract TaskHandle task();
 
+    @AutoValue.Builder
+    abstract static class Builder {
+      abstract Builder setKey(Key<? extends EppResource> key);
+      abstract Builder setLastUpdateTime(DateTime lastUpdateTime);
+      abstract Builder setRequestingClientId(String requestingClientId);
+      abstract Builder setIsSuperuser(boolean isSuperuser);
+      abstract Builder setTask(TaskHandle task);
+      abstract DeletionRequest build();
+    }
+
     static Optional<DeletionRequest> createFromTask(TaskHandle task, DateTime now)
         throws Exception {
       ImmutableMap<String, String> params = ImmutableMap.copyOf(task.extractParams());
@@ -422,14 +432,15 @@ public class DeleteContactsAndHostsAction implements Runnable {
         return Optional.absent();
       }
       return Optional.<DeletionRequest>of(
-          new AutoValue_DeleteContactsAndHostsAction_DeletionRequest(
-              resourceKey,
-              resource.getUpdateAutoTimestamp().getTimestamp(),
-              checkNotNull(
-                  params.get(PARAM_REQUESTING_CLIENT_ID), "Requesting client id not specified"),
-              Boolean.valueOf(
-                  checkNotNull(params.get(PARAM_IS_SUPERUSER), "Is superuser not specified")),
-              task));
+          new AutoValue_DeleteContactsAndHostsAction_DeletionRequest.Builder()
+              .setKey(resourceKey)
+              .setLastUpdateTime(resource.getUpdateAutoTimestamp().getTimestamp())
+              .setRequestingClientId(checkNotNull(
+                  params.get(PARAM_REQUESTING_CLIENT_ID), "Requesting client id not specified"))
+              .setIsSuperuser(Boolean.valueOf(
+                  checkNotNull(params.get(PARAM_IS_SUPERUSER), "Is superuser not specified")))
+              .setTask(task)
+              .build());
     }
   }
 
