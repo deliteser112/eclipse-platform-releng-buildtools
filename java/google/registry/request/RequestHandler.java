@@ -171,9 +171,8 @@ public class RequestHandler<C> {
     Optional<AuthResult> authResult =
         requestAuthenticator.authorize(route.get().action().auth(), req);
     if (!authResult.isPresent()) {
-      logger.warning("Request would not have been authorized");
-      // TODO(b/28219927): Change this to call rsp.sendError(SC_FORBIDDEN) and return
-      authResult = Optional.of(AuthResult.NOT_AUTHENTICATED);
+      rsp.sendError(SC_FORBIDDEN, "Not authorized");
+      return;
     }
 
     // Build a new request component using any modules we've constructed by this point.

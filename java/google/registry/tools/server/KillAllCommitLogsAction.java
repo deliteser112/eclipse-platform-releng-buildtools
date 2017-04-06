@@ -35,7 +35,14 @@ import google.registry.request.Response;
 import java.util.Arrays;
 import javax.inject.Inject;
 
-/** Deletes all commit logs in Datastore. */
+/**
+ * Deletes all commit logs in Datastore.
+ *
+ * <p>Because there are no auth settings in the {@link Action} annotation, this command can only be
+ * run internally, or by pretending to be internal by setting the X-AppEngine-QueueName header,
+ * which only admin users can do. That makes this command hard to use, which is appropriate, given
+ * the drastic consequences of accidental execution.
+ */
 @Action(path = "/_dr/task/killAllCommitLogs", method = POST)
 public class KillAllCommitLogsAction implements Runnable {
 

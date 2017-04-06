@@ -30,7 +30,13 @@ import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-/** A mapreduce that enqueues publish tasks on all active domains. */
+/**
+ * A mapreduce that enqueues publish tasks on all active domains.
+ *
+ * <p>Because there are no auth settings in the {@link Action} annotation, this command can only be
+ * run internally, or by pretending to be internal by setting the X-AppEngine-QueueName header,
+ * which only admin users can do.
+ */
 @Action(path = "/_dr/task/refreshAllDomains")
 public class RefreshAllDomainsAction implements Runnable {
 

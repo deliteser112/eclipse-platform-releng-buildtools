@@ -35,7 +35,14 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import javax.inject.Inject;
 
-/** Deletes all {@link EppResource} objects in Datastore, including indices and descendants. */
+/**
+ * Deletes all {@link EppResource} objects in Datastore, including indices and descendants.
+ *
+ * <p>Because there are no auth settings in the {@link Action} annotation, this command can only be
+ * run internally, or by pretending to be internal by setting the X-AppEngine-QueueName header,
+ * which only admin users can do. That makes this command hard to use, which is appropriate, given
+ * the drastic consequences of accidental execution.
+ */
 @Action(path = "/_dr/task/killAllEppResources", method = POST)
 public class KillAllEppResourcesAction implements Runnable {
 

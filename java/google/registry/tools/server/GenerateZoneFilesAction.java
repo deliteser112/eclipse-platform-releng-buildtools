@@ -47,6 +47,8 @@ import google.registry.model.host.HostResource;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.JsonActionRunner;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -72,8 +74,13 @@ import org.joda.time.Duration;
 @Action(
     path = GenerateZoneFilesAction.PATH,
     method = POST,
-    xsrfProtection = true,
-    xsrfScope = "admin")
+    auth =
+    @Auth(
+      methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+      minimumLevel = AuthLevel.APP,
+      userPolicy = Auth.UserPolicy.ADMIN
+    )
+)
 public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonAction {
 
   public static final String PATH = "/_dr/task/generateZoneFiles";

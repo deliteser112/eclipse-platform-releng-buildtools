@@ -48,7 +48,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -458,8 +457,6 @@ public final class RequestHandlerTest {
     assertThat(providedAuthResult.userAuthInfo()).isAbsent();
   }
 
-  // TODO(b/28219927): turn this on once we actually do authorization
-  @Ignore
   @Test
   public void testAuthNeeded_notLoggedIn() throws Exception {
     when(req.getMethod()).thenReturn("GET");
@@ -467,26 +464,11 @@ public final class RequestHandlerTest {
 
     handler.handleRequest(req, rsp);
 
-    verify(rsp).sendError(403);
+    verify(rsp).sendError(403, "Not authorized");
     assertThat(providedAuthResult).isNull();
     assertThat(providedAuthResult).isNull();
   }
 
-  // TODO(b/28219927): remove this once we actually do authorization
-  @Test
-  public void testAuthNeeded_notLoggedIn_interim() throws Exception {
-    when(req.getMethod()).thenReturn("GET");
-    when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
-
-    handler.handleRequest(req, rsp);
-
-    assertThat(providedAuthResult).isNotNull();
-    assertThat(providedAuthResult.authLevel()).isEqualTo(AuthLevel.NONE);
-    assertThat(providedAuthResult.userAuthInfo()).isAbsent();
-  }
-
-  // TODO(b/28219927): turn this on once we actually do authorization
-  @Ignore
   @Test
   public void testAuthNeeded_notAuthorized() throws Exception {
     userService.setUser(testUser,  false);
@@ -495,22 +477,8 @@ public final class RequestHandlerTest {
 
     handler.handleRequest(req, rsp);
 
-    verify(rsp).sendError(403);
+    verify(rsp).sendError(403, "Not authorized");
     assertThat(providedAuthResult).isNull();
-  }
-
-  // TODO(b/28219927): remove this once we actually do authorization
-  @Test
-  public void testAuthNeeded_notAuthorized_interim() throws Exception {
-    userService.setUser(testUser,  false);
-    when(req.getMethod()).thenReturn("GET");
-    when(req.getRequestURI()).thenReturn("/auth/adminUserAnyMethod");
-
-    handler.handleRequest(req, rsp);
-
-    assertThat(providedAuthResult).isNotNull();
-    assertThat(providedAuthResult.authLevel()).isEqualTo(AuthLevel.NONE);
-    assertThat(providedAuthResult.userAuthInfo()).isAbsent();
   }
 
   @Test

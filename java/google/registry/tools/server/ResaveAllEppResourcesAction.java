@@ -34,6 +34,10 @@ import javax.inject.Inject;
  * <p>This is useful for completing data migrations on EppResource fields that are accomplished
  * with @OnSave or @OnLoad annotations, and also guarantees that all EppResources will get fresh
  * commit logs (for backup purposes).
+ *
+ * <p>Because there are no auth settings in the {@link Action} annotation, this command can only be
+ * run internally, or by pretending to be internal by setting the X-AppEngine-QueueName header,
+ * which only admin users can do.
  */
 @Action(path = "/_dr/task/resaveAllEppResources")
 public class ResaveAllEppResourcesAction implements Runnable {
