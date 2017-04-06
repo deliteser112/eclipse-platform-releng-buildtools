@@ -112,7 +112,9 @@ public class WhoisMetrics {
       private Clock clock = null;
 
       public Builder setCommand(WhoisCommand command) {
-        return setCommandName(command.getClass().getSimpleName());
+        // All WHOIS command class names share the "Command" suffix, so strip it out in order to
+        // have shorter labels.
+        return setCommandName(command.getClass().getSimpleName().replaceFirst("Command$", ""));
       }
 
       public abstract Builder setCommandName(String commandName);

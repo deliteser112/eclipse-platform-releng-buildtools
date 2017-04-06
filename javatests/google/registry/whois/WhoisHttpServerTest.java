@@ -352,7 +352,7 @@ public class WhoisHttpServerTest {
     server.run();
     WhoisMetric expected =
         WhoisMetric.builderForRequest(clock)
-            .setCommandName("NameserverLookupByHostCommand")
+            .setCommandName("NameserverLookupByHost")
             .setNumResults(1)
             .setStatus(SC_OK)
             .build();

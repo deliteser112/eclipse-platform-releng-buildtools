@@ -456,7 +456,7 @@ public class WhoisServerTest {
     server.run();
     WhoisMetric expected =
         WhoisMetric.builderForRequest(clock)
-            .setCommandName("NameserverLookupByIpCommand")
+            .setCommandName("NameserverLookupByIp")
             .setNumResults(2)
             .setStatus(SC_OK)
             .build();
@@ -470,7 +470,7 @@ public class WhoisServerTest {
     server.run();
     WhoisMetric expected =
         WhoisMetric.builderForRequest(clock)
-            .setCommandName("DomainLookupCommand")
+            .setCommandName("DomainLookup")
             .setNumResults(0)
             .setStatus(SC_NOT_FOUND)
             .build();
