@@ -81,7 +81,7 @@ final class GenerateEscrowDepositCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-m", "--mode"},
-      description = "RDE/BRDA mode of operation.")
+      description = "FULL/THIN mode of operation.")
   private RdeMode mode = RdeMode.FULL;
 
   @Parameter(

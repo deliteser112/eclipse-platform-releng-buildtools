@@ -17,6 +17,7 @@ package google.registry.rde;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 import static google.registry.model.common.Cursor.getCursorTimeOrStartOfTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -107,9 +108,13 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
     final RdeMode mode = key.mode();
     final String tld = key.tld();
     final DateTime watermark = key.watermark();
-    final int revision = RdeRevision.getNextRevision(tld, watermark, mode);
+    final int revision = key.revision().or(RdeRevision.getNextRevision(tld, watermark, mode));
     String id = RdeUtil.timestampToId(watermark);
     String prefix = RdeNamingUtils.makeRydeFilename(tld, watermark, mode, 1, revision);
+    if (key.manual()) {
+      checkState(key.directoryWithTrailingSlash().isPresent(), "Manual subdirectory not specified");
+      prefix = "manual/" + key.directoryWithTrailingSlash().get() + prefix;
+    }
     GcsFilename xmlFilename = new GcsFilename(bucket, prefix + ".xml.ghostryde");
     GcsFilename xmlLengthFilename = new GcsFilename(bucket, prefix + ".xml.length");
     GcsFilename reportFilename = new GcsFilename(bucket, prefix + "-report.xml.ghostryde");
@@ -193,20 +198,25 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
     }
 
     // Now that we're done, kick off RdeUploadAction and roll forward the cursor transactionally.
+    if (key.manual()) {
+      logger.info("Manual operation; not advancing cursor or enqueuing upload task");
+      return;
+    }
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
         Registry registry = Registry.get(tld);
         DateTime position = getCursorTimeOrStartOfTime(
-            ofy().load().key(Cursor.createKey(key.cursor(), registry)).now());
-        DateTime newPosition = key.watermark().plus(key.interval());
+            ofy().load().key(Cursor.createKey(key.cursor().get(), registry)).now());
+        checkState(key.interval().isPresent(), "Interval must be present");
+        DateTime newPosition = key.watermark().plus(key.interval().get());
         if (!position.isBefore(newPosition)) {
           logger.warning("Cursor has already been rolled forward.");
           return;
         }
         verify(position.equals(key.watermark()),
             "Partial ordering of RDE deposits broken: %s %s", position, key);
-        ofy().save().entity(Cursor.create(key.cursor(), newPosition, registry)).now();
+        ofy().save().entity(Cursor.create(key.cursor().get(), newPosition, registry)).now();
         logger.infofmt("Rolled forward %s on %s cursor to %s", key.cursor(), tld, newPosition);
         RdeRevision.saveRevision(tld, watermark, mode, revision);
         if (mode == RdeMode.FULL) {

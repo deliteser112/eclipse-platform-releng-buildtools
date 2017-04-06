@@ -15,10 +15,13 @@
 package google.registry.module.backend;
 
 import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.registry.Registries.assertTldsExist;
 import static google.registry.request.RequestParameters.extractOptionalDatetimeParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
+import static google.registry.request.RequestParameters.extractSetOfParameters;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.batch.ExpandRecurringBillingEventsAction;
@@ -37,6 +40,14 @@ public class BackendModule {
   @Parameter(RequestParameters.PARAM_TLD)
   static String provideTld(HttpServletRequest req) {
     return assertTldExists(extractRequiredParameter(req, RequestParameters.PARAM_TLD));
+  }
+
+  @Provides
+  @Parameter(RequestParameters.PARAM_TLD)
+  static ImmutableSet<String> provideTlds(HttpServletRequest req) {
+    ImmutableSet<String> tlds = extractSetOfParameters(req, RequestParameters.PARAM_TLD);
+    assertTldsExist(tlds);
+    return tlds;
   }
 
   @Provides

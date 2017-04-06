@@ -17,8 +17,11 @@ package google.registry.rde;
 import static google.registry.util.PipelineUtils.createJobPath;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 
+import com.google.common.base.Ascii;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimaps;
 import google.registry.config.RegistryConfig.Config;
@@ -34,10 +37,14 @@ import google.registry.model.index.EppResourceIndex;
 import google.registry.model.rde.RdeMode;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.Parameter;
+import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /**
@@ -47,7 +54,7 @@ import org.joda.time.Duration;
  *
  * <p>This task starts by asking {@link PendingDepositChecker} which deposits need to be generated.
  * If there's nothing to deposit, we return 204 No Content; otherwise, we fire off a MapReduce job
- * and redirect to its status GUI.
+ * and redirect to its status GUI. The task can also be run in manual operation, as described below.
  *
  * <p>The mapreduce job scans every {@link EppResource} in Datastore. It maps a point-in-time
  * representation of each entity to the escrow XML files in which it should appear.
@@ -150,6 +157,27 @@ import org.joda.time.Duration;
  *   guarantee referential correctness of your deposits, you must never delete a registrar entity.
  * </ul>
  *
+ * <h3>Manual Operation</h3>
+ *
+ * <p>The task can be run in manual operation by setting certain parameters. Rather than generating
+ * deposits which are currently outstanding, the task will generate specific deposits. The files
+ * will be stored in a subdirectory of the "manual" directory, to avoid overwriting regular deposit
+ * files. Cursors and revision numbers will not be updated, and the upload task will not be kicked
+ * off. The parameters are:
+ * <ul>
+ * <li>manual: if present and true, manual operation is indicated
+ * <li>directory: the subdirectory of "manual" into which the files should be placed
+ * <li>mode: the mode(s) to generate: FULL for RDE deposits, THIN for BRDA deposits
+ * <li>tld: the tld(s) for which deposits should be generated
+ * <li>watermark: the date(s) for which deposits should be generated; dates should be start-of-day
+ * <li>revision: optional; if not specified, the next available revision number will be used
+ * </ul>
+ *
+ * <p>The manual, directory, mode, tld and watermark parameters must be present for manual
+ * operation; they must all be absent for standard operation (except that manual can be present but
+ * set to false). The revision parameter is optional in manual operation, and must be absent for
+ * standard operation.
+ *
  * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-registry-data-escrow-06">Registry Data Escrow Specification</a>
  * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-dnrd-objects-mapping-05">Domain Name Registration Data Objects Mapping</a>
  */
@@ -164,23 +192,20 @@ public final class RdeStagingAction implements Runnable {
   @Inject Response response;
   @Inject MapreduceRunner mrRunner;
   @Inject @Config("transactionCooldown") Duration transactionCooldown;
+  @Inject @Parameter(RdeModule.PARAM_MANUAL) boolean manual;
+  @Inject @Parameter(RdeModule.PARAM_DIRECTORY) Optional<String> directory;
+  @Inject @Parameter(RdeModule.PARAM_MODE) ImmutableSet<String> modeStrings;
+  @Inject @Parameter(RequestParameters.PARAM_TLD) ImmutableSet<String> tlds;
+  @Inject @Parameter(RdeModule.PARAM_WATERMARK) ImmutableSet<DateTime> watermarks;
+  @Inject @Parameter(RdeModule.PARAM_REVISION) Optional<Integer> revision;
+
   @Inject RdeStagingAction() {}
 
   @Override
   public void run() {
-    ImmutableSetMultimap<String, PendingDeposit> pendings = ImmutableSetMultimap.copyOf(
-        Multimaps.filterValues(
-            pendingDepositChecker.getTldsAndWatermarksPendingDepositForRdeAndBrda(),
-            new Predicate<PendingDeposit>() {
-              @Override
-              public boolean apply(PendingDeposit pending) {
-                if (clock.nowUtc().isBefore(pending.watermark().plus(transactionCooldown))) {
-                  logger.infofmt("Ignoring within %s cooldown: %s", transactionCooldown, pending);
-                  return false;
-                } else {
-                  return true;
-                }
-              }}));
+    ImmutableSetMultimap<String, PendingDeposit> pendings =
+        manual ? getManualPendingDeposits() : getStandardPendingDeposits();
+
     if (pendings.isEmpty()) {
       String message = "Nothing needs to be deposited";
       logger.info(message);
@@ -188,6 +213,7 @@ public final class RdeStagingAction implements Runnable {
       response.setPayload(message);
       return;
     }
+
     for (PendingDeposit pending : pendings.values()) {
       logger.infofmt("%s", pending);
     }
@@ -202,5 +228,98 @@ public final class RdeStagingAction implements Runnable {
                 // Add an extra shard that maps over a null resource. See the mapper code for why.
                 new NullInput<EppResource>(),
                 EppResourceInputs.createEntityInput(EppResource.class)))));
+  }
+
+  private ImmutableSetMultimap<String, PendingDeposit> getStandardPendingDeposits() {
+    if (directory.isPresent()) {
+      throw new BadRequestException("Directory parameter not allowed in standard operation");
+    }
+    if (!modeStrings.isEmpty()) {
+      throw new BadRequestException("Mode parameter not allowed in standard operation");
+    }
+    if (!tlds.isEmpty()) {
+      throw new BadRequestException("Tld parameter not allowed in standard operation");
+    }
+    if (!watermarks.isEmpty()) {
+      throw new BadRequestException("Watermark parameter not allowed in standard operation");
+    }
+    if (revision.isPresent()) {
+      throw new BadRequestException("Revision parameter not allowed in standard operation");
+    }
+
+    return ImmutableSetMultimap.copyOf(
+        Multimaps.filterValues(
+            pendingDepositChecker.getTldsAndWatermarksPendingDepositForRdeAndBrda(),
+            new Predicate<PendingDeposit>() {
+              @Override
+              public boolean apply(PendingDeposit pending) {
+                if (clock.nowUtc().isBefore(pending.watermark().plus(transactionCooldown))) {
+                  logger.infofmt("Ignoring within %s cooldown: %s", transactionCooldown, pending);
+                  return false;
+                } else {
+                  return true;
+                }
+              }}));
+  }
+
+  private ImmutableSetMultimap<String, PendingDeposit> getManualPendingDeposits() {
+    if (!directory.isPresent()) {
+      throw new BadRequestException("Directory parameter required in manual operation");
+    }
+    if (directory.get().startsWith("/")) {
+      throw new BadRequestException("Directory must not start with a slash");
+    }
+    String directoryWithTrailingSlash =
+        directory.get().endsWith("/") ? directory.get() : (directory.get() + '/');
+
+    if (modeStrings.isEmpty()) {
+      throw new BadRequestException("Mode parameter required in manual operation");
+    }
+
+    ImmutableSet.Builder<RdeMode> modesBuilder = new ImmutableSet.Builder<>();
+    for (String modeString : modeStrings) {
+      try {
+        modesBuilder.add(RdeMode.valueOf(Ascii.toUpperCase(modeString)));
+      } catch (IllegalArgumentException e) {
+        throw new BadRequestException("Mode must be FULL for RDE deposits, THIN for BRDA deposits");
+      }
+    }
+    ImmutableSet<RdeMode> modes = modesBuilder.build();
+
+    if (tlds.isEmpty()) {
+      throw new BadRequestException("Tld parameter required in manual operation");
+    }
+
+    if (watermarks.isEmpty()) {
+      throw new BadRequestException("Watermark parameter required in manual operation");
+    }
+    // In theory, BRDA deposits should be on a specific day of the week, but in manual mode, let the
+    // user create deposits on other days. But dates should definitely be at the start of the day;
+    // otherwise, confusion is likely.
+    for (DateTime watermark : watermarks) {
+      if (!watermark.equals(watermark.withTimeAtStartOfDay())) {
+        throw new BadRequestException("Watermarks must be at the start of a day.");
+      }
+    }
+
+    ImmutableSetMultimap.Builder<String, PendingDeposit> pendingsBuilder =
+        new ImmutableSetMultimap.Builder<>();
+
+    for (String tld : tlds) {
+      for (DateTime watermark : watermarks) {
+        for (RdeMode mode : modes) {
+          pendingsBuilder.put(
+              tld,
+              PendingDeposit.createInManualOperation(
+                  tld,
+                  watermark,
+                  mode,
+                  directoryWithTrailingSlash,
+                  revision));
+        }
+      }
+    }
+
+    return pendingsBuilder.build();
   }
 }

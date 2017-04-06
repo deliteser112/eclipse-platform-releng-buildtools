@@ -15,12 +15,19 @@
 package google.registry.rde;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
+import static google.registry.request.RequestParameters.extractBooleanParameter;
+import static google.registry.request.RequestParameters.extractOptionalIntParameter;
+import static google.registry.request.RequestParameters.extractOptionalParameter;
+import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
+import static google.registry.request.RequestParameters.extractSetOfDatetimeParameters;
+import static google.registry.request.RequestParameters.extractSetOfParameters;
 
 import com.google.appengine.api.taskqueue.Queue;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.request.Parameter;
-import google.registry.request.RequestParameters;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
@@ -34,12 +41,45 @@ import org.joda.time.DateTime;
 public final class RdeModule {
 
   static final String PARAM_WATERMARK = "watermark";
-  static final String PATH = "path";
+  static final String PARAM_MANUAL = "manual";
+  static final String PARAM_DIRECTORY = "directory";
+  static final String PARAM_MODE = "mode";
+  static final String PARAM_REVISION = "revision";
 
   @Provides
   @Parameter(PARAM_WATERMARK)
   static DateTime provideWatermark(HttpServletRequest req) {
-    return DateTime.parse(RequestParameters.extractRequiredParameter(req, PARAM_WATERMARK));
+    return extractRequiredDatetimeParameter(req, PARAM_WATERMARK);
+  }
+
+  @Provides
+  @Parameter(PARAM_WATERMARK)
+  static ImmutableSet<DateTime> provideWatermarks(HttpServletRequest req) {
+    return extractSetOfDatetimeParameters(req, PARAM_WATERMARK);
+  }
+
+  @Provides
+  @Parameter(PARAM_MANUAL)
+  static boolean provideManual(HttpServletRequest req) {
+    return extractBooleanParameter(req, PARAM_MANUAL);
+  }
+
+  @Provides
+  @Parameter(PARAM_DIRECTORY)
+  static Optional<String> provideDirectory(HttpServletRequest req) {
+    return extractOptionalParameter(req, PARAM_DIRECTORY);
+  }
+
+  @Provides
+  @Parameter(PARAM_MODE)
+  static ImmutableSet<String> provideMode(HttpServletRequest req) {
+    return extractSetOfParameters(req, PARAM_MODE);
+  }
+
+  @Provides
+  @Parameter(PARAM_REVISION)
+  static Optional<Integer> provideRevision(HttpServletRequest req) {
+    return extractOptionalIntParameter(req, PARAM_REVISION);
   }
 
   @Provides

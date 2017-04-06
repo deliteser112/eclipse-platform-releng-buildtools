@@ -176,6 +176,33 @@ public final class RequestParameters {
   }
 
   /**
+   * Returns all GET or POST date parameters associated with {@code name}, or an empty set if none.
+   *
+   * <p>Dates are parsed as an <a href="https://goo.gl/pk5Q2k">ISO 8601</a> timestamp, e.g. {@code
+   * 1984-12-18TZ}, {@code 2000-01-01T16:20:00Z}.
+   *
+   * @throws BadRequestException if one of the parameter values is not a valid {@link DateTime}.
+   */
+  public static ImmutableSet<DateTime> extractSetOfDatetimeParameters(
+      HttpServletRequest req, String name) {
+    String[] stringParams = req.getParameterValues(name);
+    if (stringParams == null) {
+      return ImmutableSet.<DateTime>of();
+    }
+    ImmutableSet.Builder<DateTime> datesBuilder = new ImmutableSet.Builder<>();
+    for (String stringParam : stringParams) {
+      try {
+        if (!isNullOrEmpty(stringParam)) {
+          datesBuilder.add(DateTime.parse(stringParam));
+        }
+      } catch (IllegalArgumentException e) {
+        throw new BadRequestException("Bad ISO 8601 timestamp: " + name);
+      }
+    }
+    return datesBuilder.build();
+  }
+
+  /**
    * Returns first request parameter associated with {@code name} parsed as an optional
    * {@link InetAddress} (which might be IPv6).
    *
