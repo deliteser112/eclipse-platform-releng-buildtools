@@ -258,7 +258,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testFailure_badTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "TLD foo does not exist");
+    thrown.expect(IllegalArgumentException.class, "TLDs do not exist: foo");
     runCommand("--assignee=domain.tld", "--tlds=foo");
   }
 

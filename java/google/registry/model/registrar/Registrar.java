@@ -29,7 +29,7 @@ import static google.registry.config.RegistryConfig.getDefaultRegistrarWhoisServ
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
-import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.registry.Registries.assertTldsExist;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
 import static google.registry.util.X509Utils.getCertificateHash;
@@ -670,10 +670,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     }
 
     public Builder setAllowedTlds(Set<String> allowedTlds) {
-      for (String tld : allowedTlds) {
-        assertTldExists(tld);
-      }
-      getInstance().allowedTlds = ImmutableSortedSet.copyOf(allowedTlds);
+      getInstance().allowedTlds = ImmutableSortedSet.copyOf(assertTldsExist(allowedTlds));
       return this;
     }
 

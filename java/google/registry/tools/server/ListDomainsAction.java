@@ -16,7 +16,7 @@ package google.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.EppResourceUtils.queryNotDeleted;
-import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.registry.Registries.assertTldsExist;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
 
@@ -68,9 +68,7 @@ public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
   @Override
   public ImmutableSet<DomainResource> loadObjects() {
     checkArgument(!tlds.isEmpty(), "Must specify TLDs to query");
-    for (String tld : tlds) {
-      assertTldExists(tld);
-    }
+    assertTldsExist(tlds);
     ImmutableSortedSet.Builder<DomainResource> builder =
         new ImmutableSortedSet.Builder<DomainResource>(COMPARATOR);
     for (List<String> batch : Lists.partition(tlds.asList(), MAX_NUM_SUBQUERIES)) {

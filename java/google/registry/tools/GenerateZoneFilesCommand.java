@@ -14,7 +14,7 @@
 
 package google.registry.tools;
 
-import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.registry.Registries.assertTldsExist;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardMinutes;
 
@@ -54,9 +54,7 @@ final class GenerateZoneFilesCommand implements ServerSideCommand {
 
   @Override
   public void run() throws IOException {
-    for (String tld : mainParameters) {
-      assertTldExists(tld);
-    }
+    assertTldsExist(mainParameters);
     ImmutableMap<String, Object> params = ImmutableMap.of(
         "tlds", mainParameters,
         "exportTime", exportDate.toString());

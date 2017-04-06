@@ -61,7 +61,7 @@ public class ListDomainsActionTest extends ListActionTestCase {
         null,
         null,
         null,
-        "^TLD %%%badtld%%% does not exist$");
+        "^TLDs do not exist: %%%badtld%%%$");
   }
 
   @Test

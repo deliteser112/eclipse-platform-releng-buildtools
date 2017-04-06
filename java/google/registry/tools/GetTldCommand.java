@@ -14,7 +14,7 @@
 
 package google.registry.tools;
 
-import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.registry.Registries.assertTldsExist;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -33,8 +33,8 @@ final class GetTldCommand implements RemoteApiCommand {
 
   @Override
   public void run() {
-    for (String tld : mainParameters) {
-      System.out.println(Registry.get(assertTldExists(tld)));
+    for (String tld : assertTldsExist(mainParameters)) {
+      System.out.println(Registry.get(tld));
     }
   }
 }

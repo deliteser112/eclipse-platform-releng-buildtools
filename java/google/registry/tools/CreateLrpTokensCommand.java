@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.model.registry.Registries.assertTldsExist;
 import static google.registry.util.TokenUtils.TokenType.LRP;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -49,7 +49,7 @@ import google.registry.util.TokenUtils;
 import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
@@ -74,7 +74,7 @@ public class CreateLrpTokensCommand implements RemoteApiCommand {
       names = {"-t", "--tlds"},
       description = "Comma-delimited list of TLDs that the tokens to create will be valid on",
       required = true)
-  private String tlds;
+  private List<String> tlds;
 
   @Parameter(
       names = {"-i", "--input"},
@@ -121,10 +121,7 @@ public class CreateLrpTokensCommand implements RemoteApiCommand {
     checkArgument(
         (assignee == null) || (metadataColumns == null),
         "Metadata columns cannot be specified along with an assignee.");
-    final Set<String> validTlds = ImmutableSet.copyOf(Splitter.on(',').split(tlds));
-    for (String tld : validTlds) {
-      assertTldExists(tld);
-    }
+    ImmutableSet<String> validTlds = ImmutableSet.copyOf(assertTldsExist(tlds));
 
     LineReader reader = new LineReader(
         (assigneesFile != null)

@@ -15,8 +15,9 @@
 package google.registry.model.registry;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.base.Predicates.in;
+import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Maps.filterValues;
 import static google.registry.model.CacheUtils.memoizeWithShortExpiration;
@@ -24,8 +25,10 @@ import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
@@ -76,13 +79,23 @@ public final class Registries {
     return ImmutableSet.copyOf(filterValues(cache.get(), equalTo(type)).keySet());
   }
 
-  /** Shortcut to check whether a tld exists or else throw. If it exists, it is returned back. */
+  /** Pass-through check that the specified TLD exists, otherwise throw an IAE. */
   public static String assertTldExists(String tld) {
     checkArgument(
-        getTlds().contains(checkNotNull(emptyToNull(tld), "Null or empty TLD specified")),
+        getTlds().contains(checkArgumentNotNull(emptyToNull(tld), "Null or empty TLD specified")),
         "TLD %s does not exist",
         tld);
     return tld;
+  }
+
+  /** Pass-through check that every TLD in the given iterable exists, otherwise throw an IAE. */
+  public static Iterable<String> assertTldsExist(Iterable<String> tlds) {
+    for (String tld : tlds) {
+      checkArgumentNotNull(emptyToNull(tld), "Null or empty TLD specified");
+    }
+    ImmutableSet<String> badTlds = FluentIterable.from(tlds).filter(not(in(getTlds()))).toSet();
+    checkArgument(badTlds.isEmpty(), "TLDs do not exist: %s", Joiner.on(", ").join(badTlds));
+    return tlds;
   }
 
   /**
