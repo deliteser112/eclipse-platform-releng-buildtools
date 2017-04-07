@@ -1260,7 +1260,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   @Test
-  public void testSuccess_domainCreateRestricted_addedNameserverAllowed() throws Exception {
+  public void testSuccess_domainCreateRestricted_addedNameserverNotAllowed() throws Exception {
     persistReferencedEntities();
     persistDomain();
     persistResource(
@@ -1372,6 +1372,38 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                     "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
             .build());
     doSuccessfulTest();
+  }
+
+  @Test
+  public void testSuccess_domainCreateRestricted_reApplyServerProhibitedStatusCodes()
+      throws Exception {
+    persistReferencedEntities();
+    persistDomain();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setDomainCreateRestricted(true)
+            .setReservedLists(
+                persistReservedList(
+                    "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
+            .build());
+    doSuccessfulTest();
+    assertAboutDomains()
+        .that(reloadResourceByForeignKey())
+        .hasStatusValue(StatusValue.SERVER_UPDATE_PROHIBITED)
+        .and()
+        .hasStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED);
+  }
+
+  @Test
+  public void testSuccess_domainCreateNotRestricted_doNotApplyServerProhibitedStatusCodes()
+      throws Exception {
+    persistReferencedEntities();
+    persistDomain();
+    doSuccessfulTest();
+    assertAboutDomains()
+        .that(reloadResourceByForeignKey())
+        .hasExactlyStatusValues(StatusValue.CLIENT_HOLD);
   }
 
   @Test

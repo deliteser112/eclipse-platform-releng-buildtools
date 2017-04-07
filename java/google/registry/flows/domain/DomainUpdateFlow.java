@@ -267,22 +267,30 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     checkSameValuesNotAddedAndRemoved(add.getStatusValues(), remove.getStatusValues());
     Change change = command.getInnerChange();
     SecDnsUpdateExtension secDnsUpdate = eppInput.getSingleExtension(SecDnsUpdateExtension.class);
-    return domain.asBuilder()
-        // Handle the secDNS extension.
-        .setDsData(secDnsUpdate != null
-            ? updateDsData(domain.getDsData(), secDnsUpdate)
-            : domain.getDsData())
-        .setLastEppUpdateTime(now)
-        .setLastEppUpdateClientId(clientId)
-        .addStatusValues(add.getStatusValues())
-        .removeStatusValues(remove.getStatusValues())
-        .addNameservers(add.getNameservers())
-        .removeNameservers(remove.getNameservers())
-        .addContacts(add.getContacts())
-        .removeContacts(remove.getContacts())
-        .setRegistrant(firstNonNull(change.getRegistrant(), domain.getRegistrant()))
-        .setAuthInfo(firstNonNull(change.getAuthInfo(), domain.getAuthInfo()))
-        .build();
+    DomainResource.Builder domainBuilder =
+        domain
+            .asBuilder()
+            // Handle the secDNS extension.
+            .setDsData(
+                secDnsUpdate != null
+                    ? updateDsData(domain.getDsData(), secDnsUpdate)
+                    : domain.getDsData())
+            .setLastEppUpdateTime(now)
+            .setLastEppUpdateClientId(clientId)
+            .addStatusValues(add.getStatusValues())
+            .removeStatusValues(remove.getStatusValues())
+            .addNameservers(add.getNameservers())
+            .removeNameservers(remove.getNameservers())
+            .addContacts(add.getContacts())
+            .removeContacts(remove.getContacts())
+            .setRegistrant(firstNonNull(change.getRegistrant(), domain.getRegistrant()))
+            .setAuthInfo(firstNonNull(change.getAuthInfo(), domain.getAuthInfo()));
+    if (Registry.get(domain.getTld()).getDomainCreateRestricted()) {
+      domainBuilder
+          .addStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED)
+          .addStatusValue(StatusValue.SERVER_UPDATE_PROHIBITED);
+    }
+    return domainBuilder.build();
   }
 
   private DomainResource convertSunrushAddToAdd(
