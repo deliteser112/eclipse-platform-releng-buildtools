@@ -14,10 +14,8 @@
 
 package google.registry.rde;
 
-import static com.google.common.base.Predicates.equalTo;
-import static com.google.common.base.Predicates.not;
-import static com.google.common.collect.Iterables.filter;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import google.registry.model.rde.RdeMode;
 import google.registry.xjc.rde.XjcRdeDepositTypeType;
 import google.registry.xjc.rdeheader.XjcRdeHeader;
@@ -43,9 +41,7 @@ public final class RdeCounter {
 
   @Inject
   public RdeCounter() {
-    for (RdeResourceType resourceType : getResourceTypesExcludingHeader()) {
-      counts.put(resourceType, new AtomicLong());
-    }
+    NON_HEADER_RDE_RESOURCE_TYPES.forEach(type -> counts.put(type, new AtomicLong()));
   }
 
   /** Increment the count on a given resource. */
@@ -57,11 +53,10 @@ public final class RdeCounter {
   public XjcRdeHeader makeHeader(String tld, RdeMode mode) {
     XjcRdeHeader header = new XjcRdeHeader();
     header.setTld(tld);
-    for (RdeResourceType resourceType : getResourceTypesExcludingHeader()) {
-      if (resourceType.getModes().contains(mode)) {
-        header.getCounts().add(makeCount(resourceType.getUri(), counts.get(resourceType).get()));
-      }
-    }
+    NON_HEADER_RDE_RESOURCE_TYPES
+        .stream()
+        .filter(type -> type.getModes().contains(mode))
+        .forEach(type -> header.getCounts().add(makeCount(type.getUri(), counts.get(type).get())));
     return header;
   }
 
@@ -81,9 +76,9 @@ public final class RdeCounter {
     return report;
   }
 
-  private Iterable<RdeResourceType> getResourceTypesExcludingHeader() {
-    return filter(EnumSet.allOf(RdeResourceType.class), not(equalTo(RdeResourceType.HEADER)));
-  }
+  private static final ImmutableSet<RdeResourceType> NON_HEADER_RDE_RESOURCE_TYPES =
+      Sets.difference(EnumSet.allOf(RdeResourceType.class), ImmutableSet.of(RdeResourceType.HEADER))
+          .immutableCopy();
 
   private static XjcRdeHeaderCount makeCount(String uri, long count) {
     XjcRdeHeaderCount bean = new XjcRdeHeaderCount();
