@@ -115,6 +115,19 @@ interface EppTestComponent {
     Sleeper provideSleeper() {
       return sleeper;
     }
+
+    @Provides
+    ServerTridProvider provideServerTridProvider() {
+      return new FakeServerTridProvider();
+    }
+  }
+
+  public static class FakeServerTridProvider implements ServerTridProvider {
+
+    @Override
+    public String createServerTrid() {
+      return "server-trid";
+    }
   }
 
   /** Subcomponent for request scoped injections. */

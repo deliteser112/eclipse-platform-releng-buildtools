@@ -337,7 +337,7 @@ public class ContactResourceToXjcConverterTest {
             .setTransferRequestTime(DateTime.parse("1925-04-19TZ"))
             .setPendingTransferExpirationTime(DateTime.parse("1925-04-21TZ"))
             .setTransferStatus(TransferStatus.SERVER_APPROVED)
-            .setTransferRequestTrid(Trid.create("client trid"))
+            .setTransferRequestTrid(Trid.create("client-trid", "server-trid"))
             .build())
         .setDisclose(new Disclose.Builder()
             .setFlag(true)

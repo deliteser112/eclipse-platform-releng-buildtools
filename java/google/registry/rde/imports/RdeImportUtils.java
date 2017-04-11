@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
@@ -25,6 +26,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.flows.ServerTridProvider;
+import google.registry.flows.ServerTridProviderImpl;
 import google.registry.gcs.GcsUtils;
 import google.registry.model.EppResource;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
@@ -69,6 +72,8 @@ public class RdeImportUtils {
   private final Clock clock;
   private final String escrowBucketName;
   private final GcsUtils gcsUtils;
+
+  private static final ServerTridProvider serverTridProvider = new ServerTridProviderImpl();
 
   @Inject
   public RdeImportUtils(
@@ -175,7 +180,8 @@ public class RdeImportUtils {
     // Client trids must be a token between 3 and 64 characters long
     // Base64 encoded UUID string meets this requirement
     return Trid.create(
-        "Import_" + BaseEncoding.base64().encode(UUID.randomUUID().toString().getBytes()));
+        "Import_" + BaseEncoding.base64().encode(UUID.randomUUID().toString().getBytes(US_ASCII)),
+        serverTridProvider.createServerTrid());
   }
 
   public static BillingEvent.Recurring createAutoRenewBillingEventForDomainImport(

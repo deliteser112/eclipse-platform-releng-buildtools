@@ -90,7 +90,7 @@ public class DomainApplicationTest extends EntityTestCase {
             .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))
             .setLaunchNotice(
                 LaunchNotice.create("tcnid", "validatorId", START_OF_TIME, START_OF_TIME))
-            .setCreationTrid(Trid.create("client creation trid"))
+            .setCreationTrid(Trid.create("client-creation-trid", "server-trid"))
             .setPhase(LaunchPhase.LANDRUSH)
             // TODO(b/32447342): set period
             .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "abcdefg=")))

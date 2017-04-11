@@ -17,6 +17,7 @@ package google.registry.module.frontend;
 import dagger.Component;
 import google.registry.braintree.BraintreeModule;
 import google.registry.config.RegistryConfig.ConfigModule;
+import google.registry.flows.ServerTridProviderModule;
 import google.registry.flows.custom.CustomLogicFactoryModule;
 import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
@@ -51,6 +52,7 @@ import javax.inject.Singleton;
         Jackson2Module.class,
         KeyModule.class,
         ModulesServiceModule.class,
+        ServerTridProviderModule.class,
         StackdriverModule.class,
         SystemClockModule.class,
         SystemSleeperModule.class,

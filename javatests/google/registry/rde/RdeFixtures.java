@@ -177,7 +177,7 @@ final class RdeFixtures {
                 Key.create(billingEvent)))
             .setTransferRequestTime(DateTime.parse("1919-01-01T00:00:00Z"))
             .setTransferStatus(TransferStatus.PENDING)
-            .setTransferRequestTrid(Trid.create("client trid"))
+            .setTransferRequestTrid(Trid.create("client-trid", "server-trid"))
             .build())
         .build();
     clock.advanceOneMilli();

@@ -47,7 +47,7 @@ public class EppExceptionSubject extends Subject<EppExceptionSubject, EppExcepti
     try {
       marshal(
           EppOutput.create(new EppResponse.Builder()
-              .setTrid(Trid.create(null))
+              .setTrid(Trid.create(null, "server-trid"))
               .setResult(actual().getResult())
               .build()),
           ValidationMode.STRICT);

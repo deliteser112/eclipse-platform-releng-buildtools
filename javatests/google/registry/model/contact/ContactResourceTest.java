@@ -110,7 +110,7 @@ public class ContactResourceTest extends EntityTestCase {
                         Key.create(BillingEvent.OneTime.class, 1)))
                 .setTransferRequestTime(clock.nowUtc())
                 .setTransferStatus(TransferStatus.SERVER_APPROVED)
-                .setTransferRequestTrid(Trid.create("client trid"))
+                .setTransferRequestTrid(Trid.create("client-trid", "server-trid"))
                 .build())
             .build()));
   }

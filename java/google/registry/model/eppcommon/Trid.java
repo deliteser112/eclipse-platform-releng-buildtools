@@ -14,13 +14,12 @@
 
 package google.registry.model.eppcommon;
 
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.io.BaseEncoding;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.ImmutableObject;
-import java.nio.ByteBuffer;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -33,19 +32,6 @@ import javax.xml.bind.annotation.XmlType;
 @Embed
 @XmlType(propOrder = {"clientTransactionId", "serverTransactionId"})
 public class Trid extends ImmutableObject {
-
-  private static final String SERVER_ID = getServerId();
-  private static final AtomicLong COUNTER = new AtomicLong();
-
-  /** Creates a unique id for this server instance, as a base64 encoded UUID. */
-  private static String getServerId() {
-    UUID uuid = UUID.randomUUID();
-    ByteBuffer buffer = ByteBuffer.allocate(16);
-    buffer.asLongBuffer()
-        .put(0, uuid.getMostSignificantBits())
-        .put(1, uuid.getLeastSignificantBits());
-    return BaseEncoding.base64().encode(buffer.array());
-  }
 
   /** The server transaction id. */
   @XmlElement(name = "svTRID", namespace = "urn:ietf:params:xml:ns:epp-1.0")
@@ -63,17 +49,9 @@ public class Trid extends ImmutableObject {
     return clientTransactionId;
   }
 
-  public static Trid create(String clientTransactionId) {
-    Trid instance = new Trid();
-    instance.clientTransactionId = clientTransactionId;
-    // The server id can be at most 64 characters. The SERVER_ID is at most 22 characters (128 bits
-    // in base64), plus the dash. That leaves 41 characters, so we just append the counter in hex.
-    instance.serverTransactionId = String.format("%s-%x", SERVER_ID, COUNTER.incrementAndGet());
-    return instance;
-  }
-
   @VisibleForTesting
-  public static Trid create(String clientTransactionId, String serverTransactionId) {
+  public static Trid create(@Nullable String clientTransactionId, String serverTransactionId) {
+    checkArgumentNotNull(serverTransactionId, "serverTransactionId cannot be null");
     Trid instance = new Trid();
     instance.clientTransactionId = clientTransactionId;
     instance.serverTransactionId = serverTransactionId;

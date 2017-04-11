@@ -137,7 +137,7 @@ public class DomainResourceTest extends EntityTestCase {
                     .setServerApproveAutorenewPollMessage(autorenewPollKey)
                     .setTransferRequestTime(clock.nowUtc().plusDays(1))
                     .setTransferStatus(TransferStatus.SERVER_APPROVED)
-                    .setTransferRequestTrid(Trid.create("client trid"))
+                    .setTransferRequestTrid(Trid.create("client-trid", "server-trid"))
                     .build())
             .setDeletePollMessage(onetimePollKey)
             .setAutorenewBillingEvent(recurringBillKey)

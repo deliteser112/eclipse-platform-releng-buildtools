@@ -89,7 +89,7 @@ public class DomainAllocateFlowTest
   private static final String SMD_ID = "1-1";
 
   private static final String CLIENT_ID = "TheRegistrar";
-  private static final Trid TRID = Trid.create("ABC-123");
+  private static final Trid TRID = Trid.create("ABC-123", "server-trid");
 
   /** The applicationId, expressed as a base 10 String. */
   private String applicationId = "2-TLD";

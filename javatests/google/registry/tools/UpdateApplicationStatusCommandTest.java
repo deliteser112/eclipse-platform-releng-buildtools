@@ -45,7 +45,6 @@ import org.junit.Test;
 public class UpdateApplicationStatusCommandTest
     extends CommandTestCase<UpdateApplicationStatusCommand> {
 
-  private Trid trid = Trid.create("ABC123");
   private DomainApplication domainApplication;
   private DateTime creationTime;
 
@@ -71,7 +70,7 @@ public class UpdateApplicationStatusCommandTest
         new HistoryEntry.Builder()
             .setParent(domainApplication)
             .setModificationTime(creationTime)
-            .setTrid(trid)
+            .setTrid(Trid.create("ABC123", "server-trid"))
             .setType(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE)
             .build());
 
@@ -81,7 +80,7 @@ public class UpdateApplicationStatusCommandTest
         new HistoryEntry.Builder()
             .setParent(domainApplication)
             .setModificationTime(creationTime)
-            .setTrid(Trid.create("ABC124"))
+            .setTrid(Trid.create("ABC124", "server-trid"))
             .setType(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE)
             .build());
   }
@@ -106,7 +105,7 @@ public class UpdateApplicationStatusCommandTest
         .doesNotHaveApplicationStatus(REJECTED);
     assertThat(getPollMessageCount()).isEqualTo(0);
 
-    Trid creationTrid = Trid.create("DEF456");
+    Trid creationTrid = Trid.create("DEF456", "server-trid");
     persistResource(reloadResource(domainApplication).asBuilder()
         .setCreationTrid(creationTrid)
         .build());
@@ -144,7 +143,7 @@ public class UpdateApplicationStatusCommandTest
         .doesNotHaveApplicationStatus(ALLOCATED);
     assertThat(getPollMessageCount()).isEqualTo(0);
 
-    Trid creationTrid = Trid.create("DEF456");
+    Trid creationTrid = Trid.create("DEF456", "server-trid");
     persistResource(reloadResource(domainApplication).asBuilder()
         .setCreationTrid(creationTrid)
         .build());
@@ -178,7 +177,7 @@ public class UpdateApplicationStatusCommandTest
         .hasStatusValue(StatusValue.PENDING_CREATE);
     assertThat(getPollMessageCount()).isEqualTo(0);
 
-    Trid creationTrid = Trid.create("DEF456");
+    Trid creationTrid = Trid.create("DEF456", "server-trid");
     persistResource(reloadResource(domainApplication).asBuilder()
         .setCreationTrid(creationTrid)
         .build());
@@ -229,7 +228,7 @@ public class UpdateApplicationStatusCommandTest
     PollMessage pollMessage = getFirstPollMessage();
     DomainPendingActionNotificationResponse response = (DomainPendingActionNotificationResponse)
         FluentIterable.from(pollMessage.getResponseData()).first().get();
-    assertThat(response.getTrid()).isEqualTo(trid);
+    assertThat(response.getTrid()).isEqualTo(Trid.create("ABC123", "server-trid"));
   }
 
   @Test

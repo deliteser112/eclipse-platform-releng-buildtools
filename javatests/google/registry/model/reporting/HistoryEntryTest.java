@@ -44,7 +44,7 @@ public class HistoryEntryTest extends EntityTestCase {
       .setModificationTime(clock.nowUtc())
       .setClientId("foo")
       .setOtherClientId("otherClient")
-      .setTrid(Trid.create("ABC-123"))
+      .setTrid(Trid.create("ABC-123", "server-trid"))
       .setBySuperuser(false)
       .setReason("reason")
       .setRequestedByRegistrar(false)

@@ -17,6 +17,7 @@ package google.registry.module.tools;
 import dagger.Component;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.export.DriveModule;
+import google.registry.flows.ServerTridProviderModule;
 import google.registry.flows.custom.CustomLogicFactoryModule;
 import google.registry.gcs.GcsServiceModule;
 import google.registry.groups.DirectoryModule;
@@ -57,12 +58,13 @@ import javax.inject.Singleton;
         Jackson2Module.class,
         KeyModule.class,
         ModulesServiceModule.class,
+        ServerTridProviderModule.class,
+        SystemClockModule.class,
+        SystemSleeperModule.class,
         ToolsRequestComponentModule.class,
         UrlFetchTransportModule.class,
         UseAppIdentityCredentialForGoogleApisModule.class,
         UserServiceModule.class,
-        SystemClockModule.class,
-        SystemSleeperModule.class,
     })
 interface ToolsComponent {
   ToolsRequestHandler requestHandler();

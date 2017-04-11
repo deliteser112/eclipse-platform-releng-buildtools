@@ -154,17 +154,18 @@ public class FlowModule {
 
   @Provides
   @FlowScope
+  Trid provideTrid(EppInput eppInput, ServerTridProvider serverTridProvider) {
+    return Trid.create(
+        eppInput.getCommandWrapper().getClTrid(), serverTridProvider.createServerTrid());
+  }
+
+  @Provides
+  @FlowScope
   @ClientId
   static String provideClientId(SessionMetadata sessionMetadata) {
     // Treat a missing clientId as null so we can always inject a non-null value. All we do with the
     // clientId is log it (as "") or detect its absence, both of which work fine with empty.
     return Strings.nullToEmpty(sessionMetadata.getClientId());
-  }
-
-  @Provides
-  @FlowScope
-  static Trid provideTrid(EppInput eppInput) {
-    return Trid.create(eppInput.getCommandWrapper().getClTrid());
   }
 
   @Provides

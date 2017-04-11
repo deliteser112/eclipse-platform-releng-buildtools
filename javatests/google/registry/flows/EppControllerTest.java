@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
+import google.registry.flows.EppTestComponent.FakeServerTridProvider;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse;
@@ -86,12 +87,14 @@ public class EppControllerTest extends ShardableTestCase {
     eppController.bigQueryMetricsEnqueuer = metricsEnqueuer;
     eppController.flowComponentBuilder = flowComponentBuilder;
     eppController.eppMetrics = eppMetrics;
+    eppController.serverTridProvider = new FakeServerTridProvider();
   }
 
   @Test
   public void testMarshallingUnknownError() throws Exception {
     marshal(
-        EppController.getErrorResponse(Result.create(Code.COMMAND_FAILED), Trid.create(null)),
+        EppController.getErrorResponse(
+            Result.create(Code.COMMAND_FAILED), Trid.create(null, "server-trid")),
         ValidationMode.STRICT);
   }
 

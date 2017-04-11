@@ -102,7 +102,7 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
             .setParent(application)
             .setClientId("NewRegistrar")
             .setModificationTime(application.getCreationTime())
-            .setTrid(Trid.create("ABC-123"))
+            .setTrid(Trid.create("ABC-123", "server-trid"))
             .setXmlBytes(toByteArray(getResource(AllocateDomainCommandTest.class, xmlFile)))
             .build());
   }

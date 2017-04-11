@@ -340,7 +340,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
     return new HistoryEntry.Builder()
         .setType(HistoryEntry.Type.RDE_IMPORT)
         .setClientId(clid)
-        .setTrid(Trid.create(null))
+        .setTrid(Trid.create("client-trid", "server-trid"))
         .setModificationTime(DateTime.now())
         .setXmlBytes(objectXml)
         .setBySuperuser(true)

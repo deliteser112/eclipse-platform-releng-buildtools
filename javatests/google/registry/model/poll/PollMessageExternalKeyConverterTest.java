@@ -70,7 +70,7 @@ public class PollMessageExternalKeyConverterTest {
       .setXmlBytes("<xml></xml>".getBytes(UTF_8))
       .setModificationTime(clock.nowUtc())
       .setClientId("foo")
-      .setTrid(Trid.create("ABC-123"))
+      .setTrid(Trid.create("ABC-123", "server-trid"))
       .setBySuperuser(false)
       .setReason("reason")
       .setRequestedByRegistrar(false)

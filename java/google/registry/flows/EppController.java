@@ -50,6 +50,7 @@ public final class EppController {
   @Inject EppMetric.Builder eppMetricBuilder;
   @Inject EppMetrics eppMetrics;
   @Inject BigQueryMetricsEnqueuer bigQueryMetricsEnqueuer;
+  @Inject ServerTridProvider serverTridProvider;
   @Inject EppController() {}
 
   /** Reads EPP XML, executes the matching flow, and returns an {@link EppOutput}. */
@@ -83,7 +84,8 @@ public final class EppController {
             Strings.repeat("=", 40));
         // Return early by sending an error message, with no clTRID since we couldn't unmarshal it.
         eppMetricBuilder.setStatus(e.getResult().getCode());
-        return getErrorResponse(e.getResult(), Trid.create(null));
+        return getErrorResponse(
+            e.getResult(), Trid.create(null, serverTridProvider.createServerTrid()));
       }
       if (!eppInput.getTargetIds().isEmpty()) {
         eppMetricBuilder.setEppTarget(Joiner.on(',').join(eppInput.getTargetIds()));
