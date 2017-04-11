@@ -303,6 +303,20 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
+  public void testManualRun_invalidRevision_throwsException() throws Exception {
+    createTldWithEscrowEnabled("lol");
+    clock.setTo(DateTime.parse("2000-01-01TZ"));
+    action.manual = true;
+    action.directory = Optional.of("test/");
+    action.modeStrings = ImmutableSet.of("full");
+    action.tlds = ImmutableSet.of("lol");
+    action.watermarks = ImmutableSet.of(DateTime.parse("2001-01-01T00:00:00Z"));
+    action.revision = Optional.of(-1);
+    thrown.expect(BadRequestException.class);
+    action.run();
+  }
+
+  @Test
   public void testManualRun_validParameters_runsMapReduce() throws Exception {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));

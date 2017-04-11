@@ -14,234 +14,102 @@
 
 package google.registry.tools;
 
-import static google.registry.model.EppResourceUtils.loadAtPointInTime;
-import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.registry.Registries.assertTldExists;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.joda.time.DateTimeZone.UTC;
+import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
+import static google.registry.model.registry.Registries.assertTldsExist;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Function;
-import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Result;
-import google.registry.config.RegistryConfig.Config;
-import google.registry.model.EppResource;
-import google.registry.model.EppResourceUtils;
-import google.registry.model.ImmutableObject;
-import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
-import google.registry.model.host.HostResource;
-import google.registry.model.index.EppResourceIndex;
-import google.registry.model.index.EppResourceIndexBucket;
+import com.google.appengine.api.modules.ModulesService;
+import com.google.appengine.api.taskqueue.Queue;
+import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.common.base.Joiner;
 import google.registry.model.rde.RdeMode;
-import google.registry.model.rde.RdeNamingUtils;
-import google.registry.model.registrar.Registrar;
-import google.registry.rde.DepositFragment;
-import google.registry.rde.RdeCounter;
-import google.registry.rde.RdeMarshaller;
-import google.registry.rde.RdeResourceType;
-import google.registry.rde.RdeUtil;
-import google.registry.tldconfig.idn.IdnTableEnum;
+import google.registry.rde.RdeModule;
+import google.registry.rde.RdeStagingAction;
+import google.registry.request.RequestParameters;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.DateTimeParameter;
-import google.registry.tools.params.PathParameter;
-import google.registry.xjc.rdeheader.XjcRdeHeader;
-import google.registry.xjc.rdeheader.XjcRdeHeaderElement;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.List;
 import javax.inject.Inject;
+import javax.inject.Named;
 import org.joda.time.DateTime;
 
-/** Command to generate an XML RDE escrow deposit (with relevant files) in current directory. */
+/**
+ * Command to kick off the server-side generation of an XML RDE or BRDA escrow deposit, which will
+ * be stored in the specified manual subdirectory of the GCS RDE bucket.
+ */
 @Parameters(separators = " =", commandDescription = "Generate an XML escrow deposit.")
 final class GenerateEscrowDepositCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-t", "--tld"},
-      description = "Top level domain for which deposit should be generated.",
+      description = "Top level domain(s) for which deposit should be generated.",
       required = true)
-  private String tld;
+  private List<String> tlds;
 
   @Parameter(
       names = {"-w", "--watermark"},
-      description = "Point-in-time timestamp for snapshotting Datastore.",
-      validateWith = DateTimeParameter.class)
-  private DateTime watermark = DateTime.now(UTC);
+      description = "Point-in-time timestamp(s) for snapshotting Datastore.",
+      required = true,
+      converter = DateTimeParameter.class)
+  private List<DateTime> watermarks;
 
   @Parameter(
       names = {"-m", "--mode"},
-      description = "FULL/THIN mode of operation.")
+      description = "Mode of operation: FULL for RDE deposits, THIN for BRDA deposits.")
   private RdeMode mode = RdeMode.FULL;
 
   @Parameter(
       names = {"-r", "--revision"},
       description = "Revision number. Use >0 for resends.")
-  private int revision = 0;
+  private Integer revision;
 
   @Parameter(
       names = {"-o", "--outdir"},
-      description = "Specify output directory. Default is current directory.",
-      validateWith = PathParameter.OutputDirectory.class)
-  private Path outdir = Paths.get(".");
+      description = "Specify output subdirectory (under GCS RDE bucket, directory manual).",
+      required = true)
+  private String outdir;
 
-  @Inject
-  EscrowDepositEncryptor encryptor;
-
-  @Inject
-  RdeCounter counter;
-
-  @Inject
-  @Config("eppResourceIndexBucketCount")
-  int eppResourceIndexBucketCount;
+  @Inject ModulesService modulesService;
+  @Inject @Named("rde-report") Queue queue;
 
   @Override
   public void run() throws Exception {
-    RdeMarshaller marshaller = new RdeMarshaller();
-    assertTldExists(tld);
-    String suffix = String.format("-%s-%s.tmp.xml", tld, watermark);
-    Path xmlPath = outdir.resolve("deposit" + suffix);
-    Path reportPath = outdir.resolve("report" + suffix);
-    try {
-      String id = RdeUtil.timestampToId(watermark);
-      XjcRdeHeader header;
-      try (OutputStream xmlOutputBytes = Files.newOutputStream(xmlPath);
-          Writer xmlOutput = new OutputStreamWriter(xmlOutputBytes, UTF_8)) {
-        xmlOutput.write(
-            marshaller.makeHeader(id, watermark, RdeResourceType.getUris(mode), revision));
-        for (ImmutableObject resource
-            : Iterables.concat(Registrar.loadAll(), load(scan()))) {
-          DepositFragment frag;
-          if (resource instanceof Registrar) {
-            frag = marshaller.marshalRegistrar((Registrar) resource);
-          } else if (resource instanceof ContactResource) {
-            frag = marshaller.marshalContact((ContactResource) resource);
-          } else if (resource instanceof DomainResource) {
-            DomainResource domain = (DomainResource) resource;
-            if (!domain.getTld().equals(tld)) {
-              continue;
-            }
-            frag = marshaller.marshalDomain(domain, mode);
-          } else if (resource instanceof HostResource) {
-            HostResource host = (HostResource) resource;
-            frag = host.isSubordinate()
-                ? marshaller.marshalSubordinateHost(
-                    host,
-                    // Note that loadAtPointInTime() does cloneProjectedAtTime(watermark) for us.
-                    loadAtPointInTime(
-                        ofy().load().key(host.getSuperordinateDomain()).now(), watermark).now())
-                : marshaller.marshalExternalHost(host);
-          } else {
-            continue;  // Surprise polymorphic entities, e.g. DomainApplication.
-          }
-          if (!frag.xml().isEmpty()) {
-            xmlOutput.write(frag.xml());
-            counter.increment(frag.type());
-          }
-          if (!frag.error().isEmpty()) {
-            System.err.print(frag.error());
-          }
-        }
-        for (IdnTableEnum idn : IdnTableEnum.values()) {
-          xmlOutput.write(marshaller.marshalIdn(idn.getTable()));
-          counter.increment(RdeResourceType.IDN);
-        }
-        header = counter.makeHeader(tld, mode);
-        xmlOutput.write(marshaller.marshalStrictlyOrDie(new XjcRdeHeaderElement(header)));
-        xmlOutput.write(marshaller.makeFooter());
-      }
-      try (OutputStream reportOutputBytes = Files.newOutputStream(reportPath)) {
-        counter.makeReport(id, watermark, header, revision).marshal(reportOutputBytes, UTF_8);
-      }
-      String name = RdeNamingUtils.makeRydeFilename(tld, watermark, mode, 1, revision);
-      encryptor.encrypt(tld, xmlPath, outdir);
-      Files.move(xmlPath, outdir.resolve(name + ".xml"), REPLACE_EXISTING);
-      Files.move(reportPath, outdir.resolve(name + "-report.xml"), REPLACE_EXISTING);
-    } finally {
-      Files.deleteIfExists(xmlPath);
-      Files.deleteIfExists(reportPath);
+
+    if (tlds.isEmpty()) {
+      throw new ParameterException("At least one TLD must be specified");
     }
-  }
+    assertTldsExist(tlds);
 
-  private Iterable<EppResource> scan() {
-    return Iterables.concat(
-        Iterables.transform(
-            getEppResourceIndexBuckets(),
-            new Function<Key<EppResourceIndexBucket>, Iterable<EppResource>>() {
-              @Override
-              public Iterable<EppResource> apply(Key<EppResourceIndexBucket> bucket) {
-                System.err.printf("Scanning EppResourceIndexBucket %d of %d...\n",
-                    bucket.getId(), eppResourceIndexBucketCount);
-                return scanBucket(bucket);
-              }}));
-  }
-
-  private Iterable<EppResource> scanBucket(final Key<EppResourceIndexBucket> bucket) {
-    return ofy().load()
-        .keys(FluentIterable
-            .from(mode == RdeMode.FULL
-                ? Arrays.asList(
-                    Key.getKind(ContactResource.class),
-                    Key.getKind(DomainResource.class),
-                    Key.getKind(HostResource.class))
-                : Arrays.asList(
-                    Key.getKind(DomainResource.class)))
-            .transformAndConcat(new Function<String, Iterable<EppResourceIndex>>() {
-              @Override
-              public Iterable<EppResourceIndex> apply(String kind) {
-                return ofy().load()
-                    .type(EppResourceIndex.class)
-                    .ancestor(bucket)
-                    .filter("kind", kind)
-                    .iterable();
-              }})
-            .transform(new Function<EppResourceIndex, Key<EppResource>>() {
-              @Override
-              @SuppressWarnings("unchecked")
-              public Key<EppResource> apply(EppResourceIndex index) {
-                return (Key<EppResource>) index.getKey();
-              }}))
-        .values();
-  }
-
-  private <T extends EppResource> Iterable<T> load(final Iterable<T> resources) {
-    return FluentIterable
-        .from(Iterables.partition(
-            Iterables.transform(resources,
-                new Function<T, Result<T>>() {
-                  @Override
-                  public Result<T> apply(T resource) {
-                    return EppResourceUtils.loadAtPointInTime(resource, watermark);
-                  }}),
-            1000))
-        .transformAndConcat(new Function<Iterable<Result<T>>, Iterable<T>>() {
-          @Override
-          public Iterable<T> apply(Iterable<Result<T>> results) {
-            return Iterables.transform(results,
-                new Function<Result<T>, T>() {
-                  @Override
-                  public T apply(Result<T> result) {
-                    return result.now();
-                  }});
-          }})
-        .filter(Predicates.notNull());
-  }
-
-  private ImmutableList<Key<EppResourceIndexBucket>> getEppResourceIndexBuckets() {
-    ImmutableList.Builder<Key<EppResourceIndexBucket>> builder = new ImmutableList.Builder<>();
-    for (int i = 1; i <= eppResourceIndexBucketCount; i++) {
-      builder.add(Key.create(EppResourceIndexBucket.class, i));
+    for (DateTime watermark : watermarks) {
+      if (!watermark.withTimeAtStartOfDay().equals(watermark)) {
+        throw new ParameterException("Each watermark date must be the start of a day");
+      }
     }
-    return builder.build();
+
+    if ((revision != null) && (revision < 0)) {
+      throw new ParameterException("Revision must be greater than or equal to zero");
+    }
+
+    if (outdir.isEmpty()) {
+      throw new ParameterException("Output subdirectory must not be empty");
+    }
+
+    // Unlike many tool commands, this command is actually invoking an action on the backend module
+    // (because it's a mapreduce). So we invoke it in a different way.
+    String hostname = modulesService.getVersionHostname("backend", null);
+    TaskOptions opts =
+        withUrl(RdeStagingAction.PATH)
+            .header("Host", hostname)
+            .param(RdeModule.PARAM_MANUAL, String.valueOf(true))
+            .param(RequestParameters.PARAM_TLD, Joiner.on(',').join(tlds))
+            .param(RdeModule.PARAM_WATERMARK, Joiner.on(',').join(watermarks))
+            .param(RdeModule.PARAM_MODE, mode.toString())
+            .param(RdeModule.PARAM_DIRECTORY, outdir);
+    if (revision != null) {
+      opts = opts.param(RdeModule.PARAM_REVISION, String.valueOf(revision));
+    }
+    queue.add(opts);
   }
 }

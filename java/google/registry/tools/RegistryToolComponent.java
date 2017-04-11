@@ -22,9 +22,11 @@ import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
 import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.kms.KmsModule;
+import google.registry.rde.RdeModule;
 import google.registry.request.Modules.AppIdentityCredentialModule;
 import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.request.Modules.Jackson2Module;
+import google.registry.request.Modules.ModulesServiceModule;
 import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
@@ -57,6 +59,8 @@ import javax.inject.Singleton;
     Jackson2Module.class,
     KeyModule.class,
     KmsModule.class,
+    ModulesServiceModule.class,
+    RdeModule.class,
     RegistryToolModule.class,
     SystemClockModule.class,
     SystemSleeperModule.class,

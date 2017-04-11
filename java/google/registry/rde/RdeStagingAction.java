@@ -181,8 +181,10 @@ import org.joda.time.Duration;
  * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-registry-data-escrow-06">Registry Data Escrow Specification</a>
  * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-dnrd-objects-mapping-05">Domain Name Registration Data Objects Mapping</a>
  */
-@Action(path = "/_dr/task/rdeStaging")
+@Action(path = RdeStagingAction.PATH)
 public final class RdeStagingAction implements Runnable {
+
+  public static final String PATH = "/_dr/task/rdeStaging";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -300,6 +302,10 @@ public final class RdeStagingAction implements Runnable {
       if (!watermark.equals(watermark.withTimeAtStartOfDay())) {
         throw new BadRequestException("Watermarks must be at the start of a day.");
       }
+    }
+
+    if (revision.isPresent() && (revision.get() < 0)) {
+      throw new BadRequestException("Revision must be greater than or equal to zero");
     }
 
     ImmutableSetMultimap.Builder<String, PendingDeposit> pendingsBuilder =

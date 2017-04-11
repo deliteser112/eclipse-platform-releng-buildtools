@@ -40,11 +40,11 @@ import org.joda.time.DateTime;
 @Module
 public final class RdeModule {
 
-  static final String PARAM_WATERMARK = "watermark";
-  static final String PARAM_MANUAL = "manual";
-  static final String PARAM_DIRECTORY = "directory";
-  static final String PARAM_MODE = "mode";
-  static final String PARAM_REVISION = "revision";
+  public static final String PARAM_WATERMARK = "watermark";
+  public static final String PARAM_MANUAL = "manual";
+  public static final String PARAM_DIRECTORY = "directory";
+  public static final String PARAM_MODE = "mode";
+  public static final String PARAM_REVISION = "revision";
 
   @Provides
   @Parameter(PARAM_WATERMARK)

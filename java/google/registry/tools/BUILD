@@ -49,6 +49,7 @@ java_library(
         "//java/google/registry/model",
         "//java/google/registry/pricing",
         "//java/google/registry/rde",
+        "//java/google/registry/request",
         "//java/google/registry/request:modules",
         "//java/google/registry/security",
         "//java/google/registry/tldconfig/idn",
