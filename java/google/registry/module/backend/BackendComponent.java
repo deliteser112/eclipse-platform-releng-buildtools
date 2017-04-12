@@ -24,8 +24,9 @@ import google.registry.gcs.GcsServiceModule;
 import google.registry.groups.DirectoryModule;
 import google.registry.groups.GroupsModule;
 import google.registry.groups.GroupssettingsModule;
-import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
+import google.registry.keyring.kms.KeyringModule;
+import google.registry.keyring.kms.KmsModule;
 import google.registry.module.backend.BackendRequestComponent.BackendRequestComponentModule;
 import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.monitoring.whitebox.StackdriverModule;
@@ -56,7 +57,6 @@ import javax.inject.Singleton;
         DatastoreServiceModule.class,
         DirectoryModule.class,
         DriveModule.class,
-        DummyKeyringModule.class,
         GcsServiceModule.class,
         GoogleCredentialModule.class,
         GroupsModule.class,
@@ -64,6 +64,8 @@ import javax.inject.Singleton;
         JSchModule.class,
         Jackson2Module.class,
         KeyModule.class,
+        KeyringModule.class,
+        KmsModule.class,
         ModulesServiceModule.class,
         SpreadsheetServiceModule.class,
         StackdriverModule.class,

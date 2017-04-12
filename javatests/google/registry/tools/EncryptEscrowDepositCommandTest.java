@@ -50,8 +50,8 @@ public class EncryptEscrowDepositCommandTest
     res.pgpFileFactory = new RydePgpFileOutputStreamFactory(Providers.of(1024));
     res.pgpSigningFactory = new RydePgpSigningOutputStreamFactory();
     res.tarFactory = new RydeTarOutputStreamFactory();
-    res.rdeReceiverKey = new FakeKeyringModule().get().getRdeReceiverKey();
-    res.rdeSigningKey = new FakeKeyringModule().get().getRdeSigningKey();
+    res.rdeReceiverKey = Providers.of(new FakeKeyringModule().get().getRdeReceiverKey());
+    res.rdeSigningKey = Providers.of(new FakeKeyringModule().get().getRdeSigningKey());
     return res;
   }
 

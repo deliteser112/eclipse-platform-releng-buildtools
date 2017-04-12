@@ -94,12 +94,12 @@ public class ComparingInvocationHandlerTest {
       return super.stringifyResult(method, a);
     }
 
-    @Override protected boolean compareException(Method method, Throwable a, Throwable b) {
-      return exceptionEqualsResult && super.compareException(method, a, b);
+    @Override protected boolean compareThrown(Method method, Throwable a, Throwable b) {
+      return exceptionEqualsResult && super.compareThrown(method, a, b);
     }
 
-    @Override protected String stringifyException(Method method, Throwable a) {
-      return String.format("testException(%s)", super.stringifyException(method, a));
+    @Override protected String stringifyThrown(Method method, Throwable a) {
+      return String.format("testException(%s)", super.stringifyThrown(method, a));
     }
   }
 

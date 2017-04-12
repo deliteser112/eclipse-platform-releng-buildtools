@@ -117,7 +117,7 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * @param actual the exception thrown by a call to method for the "actual" implementation
    * @param second the exception thrown by a call to method for the "second" implementation
    */
-  protected boolean compareException(
+  protected boolean compareThrown(
       @SuppressWarnings("unused") Method method,
       Throwable actual,
       Throwable second) {
@@ -133,10 +133,10 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * @param method the method whose return value is given
    * @param exception the exception thrown by a call to method
    */
-  protected String stringifyException(
+  protected String stringifyThrown(
       @SuppressWarnings("unused") Method method,
-      Throwable exception) {
-    return exception.toString();
+      Throwable throwable) {
+    return throwable.toString();
   }
 
   @Override
@@ -159,26 +159,26 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
 
     // First compare the two implementations' result, and log any differences:
     if (actualException != null && secondException != null) {
-      if (!compareException(method, actualException, secondException)) {
+      if (!compareThrown(method, actualException, secondException)) {
         log(
             method,
             String.format(
                 "Both implementations threw, but got different exceptions! '%s' vs '%s'",
-                stringifyException(method, actualException),
-                stringifyException(method, secondException)));
+                stringifyThrown(method, actualException),
+                stringifyThrown(method, secondException)));
       }
     } else if (actualException != null) {
       log(
           method,
           String.format(
               "Only actual implementation threw exception: %s",
-              stringifyException(method, actualException)));
+              stringifyThrown(method, actualException)));
     } else if (secondException != null) {
       log(
           method,
           String.format(
               "Only second implementation threw exception: %s",
-              stringifyException(method, secondException)));
+              stringifyThrown(method, secondException)));
     } else {
       // Neither threw exceptions - we compare the results
       if (!compareResults(method, actualResult, secondResult)) {

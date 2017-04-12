@@ -13,6 +13,7 @@ java_library(
         "//java/google/registry/dns",
         "//java/google/registry/flows",
         "//java/google/registry/keyring/api",
+        "//java/google/registry/keyring/kms",
         "//java/google/registry/monitoring/metrics",
         "//java/google/registry/monitoring/whitebox",
         "//java/google/registry/rdap",

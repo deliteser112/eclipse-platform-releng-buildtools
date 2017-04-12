@@ -21,6 +21,8 @@ import google.registry.util.ComparingInvocationHandler;
 import google.registry.util.FormattingLogger;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
@@ -43,7 +45,7 @@ import org.bouncycastle.openpgp.PGPPublicKey;
  * <p>If both keyrings threw exceptions, there is no check whether the exeptions are the same. The
  * assumption is that an error happened in both, but they might report that error differently.
  */
-final class ComparatorKeyring extends ComparingInvocationHandler<Keyring> {
+public final class ComparatorKeyring extends ComparingInvocationHandler<Keyring> {
 
   @VisibleForTesting
   static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
@@ -96,6 +98,14 @@ final class ComparatorKeyring extends ComparingInvocationHandler<Keyring> {
       return stringify((PGPKeyPair) a);
     }
     return super.stringifyResult(method, a);
+  }
+
+  @Override
+  protected String stringifyThrown(Method method, Throwable throwable) {
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(stringWriter);
+    throwable.printStackTrace(printWriter);
+    return String.format("%s\nStack trace:\n%s", throwable.toString(), stringWriter.toString());
   }
 
   // .equals implementation for PGP types.

@@ -38,6 +38,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
@@ -54,8 +55,8 @@ final class EscrowDepositEncryptor {
   @Inject RydePgpFileOutputStreamFactory pgpFileFactory;
   @Inject RydePgpSigningOutputStreamFactory pgpSigningFactory;
   @Inject RydeTarOutputStreamFactory tarFactory;
-  @Inject @Key("rdeSigningKey") PGPKeyPair rdeSigningKey;
-  @Inject @Key("rdeReceiverKey") PGPPublicKey rdeReceiverKey;
+  @Inject @Key("rdeSigningKey") Provider<PGPKeyPair> rdeSigningKey;
+  @Inject @Key("rdeReceiverKey") Provider<PGPPublicKey> rdeReceiverKey;
   @Inject EscrowDepositEncryptor() {}
 
   /** Creates a {@code .ryde} and {@code .sig} file, provided an XML deposit file. */
@@ -68,12 +69,12 @@ final class EscrowDepositEncryptor {
       Path rydePath = outdir.resolve(name + ".ryde");
       Path sigPath = outdir.resolve(name + ".sig");
       Path pubPath = outdir.resolve(tld + ".pub");
-      PGPKeyPair signingKey = rdeSigningKey;
+      PGPKeyPair signingKey = rdeSigningKey.get();
       try (OutputStream rydeOutput = Files.newOutputStream(rydePath);
           RydePgpSigningOutputStream signLayer =
               pgpSigningFactory.create(rydeOutput, signingKey)) {
         try (RydePgpEncryptionOutputStream encryptLayer =
-                pgpEncryptionFactory.create(signLayer, rdeReceiverKey);
+                pgpEncryptionFactory.create(signLayer, rdeReceiverKey.get());
             RydePgpCompressionOutputStream compressLayer =
                 pgpCompressionFactory.create(encryptLayer);
             RydePgpFileOutputStream fileLayer =

@@ -23,6 +23,7 @@ import com.beust.jcommander.Parameters;
 import com.google.common.io.ByteStreams;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.rde.Ghostryde;
+import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
@@ -39,7 +41,7 @@ import org.joda.time.DateTime;
 
 /** Command to encrypt/decrypt {@code .ghostryde} files. */
 @Parameters(separators = " =", commandDescription = "Encrypt/decrypt a ghostryde file.")
-final class GhostrydeCommand implements Command {
+final class GhostrydeCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-e", "--encrypt"},
@@ -71,11 +73,11 @@ final class GhostrydeCommand implements Command {
 
   @Inject
   @Key("rdeStagingEncryptionKey")
-  PGPPublicKey rdeStagingEncryptionKey;
+  Provider<PGPPublicKey> rdeStagingEncryptionKey;
 
   @Inject
   @Key("rdeStagingDecryptionKey")
-  PGPPrivateKey rdeStagingDecryptionKey;
+  Provider<PGPPrivateKey> rdeStagingDecryptionKey;
 
   @Override
   public final void run() throws Exception {
@@ -93,7 +95,7 @@ final class GhostrydeCommand implements Command {
         : output;
     try (OutputStream out = Files.newOutputStream(outFile);
         Ghostryde.Encryptor encryptor =
-            ghostryde.openEncryptor(out, rdeStagingEncryptionKey);
+            ghostryde.openEncryptor(out, rdeStagingEncryptionKey.get());
         Ghostryde.Compressor kompressor = ghostryde.openCompressor(encryptor);
         Ghostryde.Output ghostOutput =
             ghostryde.openOutput(kompressor, input.getFileName().toString(),
@@ -106,7 +108,7 @@ final class GhostrydeCommand implements Command {
   private void runDecrypt() throws IOException, PGPException {
     try (InputStream in = Files.newInputStream(input);
         Ghostryde.Decryptor decryptor =
-            ghostryde.openDecryptor(in, rdeStagingDecryptionKey);
+            ghostryde.openDecryptor(in, rdeStagingDecryptionKey.get());
         Ghostryde.Decompressor decompressor = ghostryde.openDecompressor(decryptor);
         Ghostryde.Input ghostInput = ghostryde.openInput(decompressor)) {
       Path outFile = Files.isDirectory(output)

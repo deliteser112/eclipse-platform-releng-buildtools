@@ -19,8 +19,9 @@ import google.registry.braintree.BraintreeModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.flows.ServerTridProviderModule;
 import google.registry.flows.custom.CustomLogicFactoryModule;
-import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
+import google.registry.keyring.kms.KeyringModule;
+import google.registry.keyring.kms.KmsModule;
 import google.registry.module.frontend.FrontendRequestComponent.FrontendRequestComponentModule;
 import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.monitoring.whitebox.StackdriverModule;
@@ -46,11 +47,12 @@ import javax.inject.Singleton;
         ConfigModule.class,
         ConsoleConfigModule.class,
         CustomLogicFactoryModule.class,
-        DummyKeyringModule.class,
         FrontendMetricsModule.class,
         FrontendRequestComponentModule.class,
         Jackson2Module.class,
         KeyModule.class,
+        KeyringModule.class,
+        KmsModule.class,
         ModulesServiceModule.class,
         ServerTridProviderModule.class,
         StackdriverModule.class,

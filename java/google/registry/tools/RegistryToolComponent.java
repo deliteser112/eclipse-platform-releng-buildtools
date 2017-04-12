@@ -19,12 +19,13 @@ import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
-import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
+import google.registry.keyring.kms.KeyringModule;
 import google.registry.keyring.kms.KmsModule;
 import google.registry.rde.RdeModule;
 import google.registry.request.Modules.AppIdentityCredentialModule;
 import google.registry.request.Modules.DatastoreServiceModule;
+import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.ModulesServiceModule;
 import google.registry.request.Modules.URLFetchServiceModule;
@@ -55,9 +56,10 @@ import javax.inject.Singleton;
     DefaultRequestFactoryModule.class,
     DefaultRequestFactoryModule.RequestFactoryModule.class,
     DnsUpdateWriterModule.class,
-    DummyKeyringModule.class,
+    GoogleCredentialModule.class,
     Jackson2Module.class,
     KeyModule.class,
+    KeyringModule.class,
     KmsModule.class,
     ModulesServiceModule.class,
     RdeModule.class,

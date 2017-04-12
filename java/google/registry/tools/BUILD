@@ -52,7 +52,6 @@ java_library(
         "//java/google/registry/request",
         "//java/google/registry/request:modules",
         "//java/google/registry/security",
-        "//java/google/registry/tldconfig/idn",
         "//java/google/registry/tmch",
         "//java/google/registry/tools/params",
         "//java/google/registry/tools/server",
