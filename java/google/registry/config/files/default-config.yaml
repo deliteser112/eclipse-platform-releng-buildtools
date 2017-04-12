@@ -123,6 +123,19 @@ caching:
   # premium price entries that exist.
   staticPremiumListMaxCachedEntries: 200000
 
+oAuth:
+  # OAuth scopes to check for access tokens. Superset of requiredOauthScopes.
+  availableOauthScopes:
+    - https://www.googleapis.com/auth/userinfo.email
+
+  # OAuth scopes required for authenticating. Subset of availableOauthScopes.
+  requiredOauthScopes:
+    - https://www.googleapis.com/auth/userinfo.email
+
+  # OAuth client Ids that are allowed to authenticate and communicate with
+  # backend services, e. g. nomulus tool, EPP proxy, etc.
+  allowedOauthClientIds: []
+
 rde:
   # URL prefix of ICANN's server to upload RDE reports to. Nomulus adds /TLD/ID
   # to the end of this to construct the full URL.

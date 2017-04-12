@@ -925,7 +925,7 @@ public final class RegistryConfig {
     }
 
     /**
-     * Provides the OAuth scopes to check for on access tokens.
+     * Provides the OAuth scopes to check for access tokens.
      *
      * <p>This list should be a superset of the required OAuth scope set provided below.
      *
@@ -933,14 +933,14 @@ public final class RegistryConfig {
      * API, which requires at least one of:
      *
      * <ul>
-     *   <li>https://www.googleapis.com/auth/appengine.apis</li>
-     *   <li>https://www.googleapis.com/auth/cloud-platform</li>
+     *   <li>https://www.googleapis.com/auth/appengine.apis
+     *   <li>https://www.googleapis.com/auth/cloud-platform
      * </ul>
      */
     @Provides
     @Config("availableOauthScopes")
-    public static ImmutableSet<String> provideAvailableOauthScopes() {
-      return ImmutableSet.of("https://www.googleapis.com/auth/userinfo.email");
+    public static ImmutableSet<String> provideAvailableOauthScopes(RegistryConfigSettings config) {
+      return ImmutableSet.copyOf(config.oAuth.availableOauthScopes);
     }
 
     /**
@@ -951,15 +951,15 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("requiredOauthScopes")
-    public static ImmutableSet<String> provideRequiredOauthScopes() {
-      return ImmutableSet.of("https://www.googleapis.com/auth/userinfo.email");
+    public static ImmutableSet<String> provideRequiredOauthScopes(RegistryConfigSettings config) {
+      return ImmutableSet.copyOf(config.oAuth.requiredOauthScopes);
     }
 
     /** Provides the allowed OAuth client IDs (could be multibinding). */
     @Provides
     @Config("allowedOauthClientIds")
-    public static ImmutableSet<String> provideAllowedOauthClientIds() {
-      return ImmutableSet.of("PUT.YOUR.PROXY.CLIENT.ID.HERE", "PUT.YOUR.REGTOOL.CLIENT.ID.HERE");
+    public static ImmutableSet<String> provideAllowedOauthClientIds(RegistryConfigSettings config) {
+      return ImmutableSet.copyOf(config.oAuth.allowedOauthClientIds);
     }
 
     /**

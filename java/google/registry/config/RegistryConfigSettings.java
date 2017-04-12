@@ -22,6 +22,7 @@ public class RegistryConfigSettings {
 
   public AppEngine appEngine;
   public GSuite gSuite;
+  public OAuth oAuth;
   public RegistryPolicy registryPolicy;
   public Datastore datastore;
   public Caching caching;
@@ -44,6 +45,13 @@ public class RegistryConfigSettings {
       public String hostName;
       public int port;
     }
+  }
+
+  /** Configuration options for OAuth settings. */
+  public static class OAuth {
+    public List<String> availableOauthScopes;
+    public List<String> requiredOauthScopes;
+    public List<String> allowedOauthClientIds;
   }
 
   /** Configuration options for the G Suite account used by Nomulus. */
