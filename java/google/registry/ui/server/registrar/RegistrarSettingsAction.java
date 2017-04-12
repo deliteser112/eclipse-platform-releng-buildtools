@@ -35,6 +35,7 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
+import google.registry.model.registrar.RegistrarContact.Type;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.JsonActionRunner;
@@ -268,12 +269,25 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
         throw new ContactRequirementException(t);
       }
     }
-    // Ensure at least one tech contact has a phone number if one was present before.
-    if (any(oldContactsByType.get(RegistrarContact.Type.TECH), HAS_PHONE)
-        && !any(newContactsByType.get(RegistrarContact.Type.TECH), HAS_PHONE)) {
-      throw new ContactRequirementException(String.format(
-          "At least one %s contact must have a phone number",
-          RegistrarContact.Type.TECH.getDisplayName()));
+    ensurePhoneNumberNotRemovedForContactTypes(
+        oldContactsByType, newContactsByType, Type.ABUSE, Type.TECH);
+  }
+
+  /**
+   * Ensure that for each given registrar type, a phone number is present after update, if there 
+   * was one before.
+   */
+  private static void ensurePhoneNumberNotRemovedForContactTypes(
+      Multimap<RegistrarContact.Type, RegistrarContact> oldContactsByType,
+      Multimap<RegistrarContact.Type, RegistrarContact> newContactsByType,
+      RegistrarContact.Type... types) {
+    for (RegistrarContact.Type type : types) {
+      if (any(oldContactsByType.get(type), HAS_PHONE)
+          && !any(newContactsByType.get(type), HAS_PHONE)) {
+        throw new ContactRequirementException(
+            String.format(
+                "At least one %s contact must have a phone number", type.getDisplayName()));
+      }
     }
   }
 
