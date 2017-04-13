@@ -62,8 +62,8 @@ public class ConcurrentTest {
       fail("Didn't throw!");
     } catch (UncheckedExecutionException e) {
       // We can't use ExpectedException because root cause must be one level of indirection away.
-      assertThat(e.getCause()).isInstanceOf(RuntimeException.class);
-      assertThat(e.getCause()).hasMessage("hello");
+      assertThat(e).hasCauseThat().isInstanceOf(RuntimeException.class);
+      assertThat(e).hasCauseThat().hasMessageThat().isEqualTo("hello");
     }
   }
 

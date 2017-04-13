@@ -20,12 +20,11 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import google.registry.testing.ExceptionRule;
 import google.registry.tools.ServerSideCommand.Connection;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -33,8 +32,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class LoadTestCommandTest extends CommandTestCase<LoadTestCommand> {
   Connection connection = mock(Connection.class);
-
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
 
   @Before
   public void setUp() throws Exception {

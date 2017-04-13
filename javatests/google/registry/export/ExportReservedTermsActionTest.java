@@ -14,7 +14,6 @@
 
 package google.registry.export;
 
-import static com.google.common.base.Throwables.getRootCause;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.export.ExportReservedTermsAction.EXPORT_MIME_TYPE;
@@ -130,7 +129,7 @@ public class ExportReservedTermsActionTest {
       assertWithMessage("Expected RuntimeException to be thrown").fail();
     } catch (RuntimeException e) {
       verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
-      assertThat(getRootCause(e)).hasMessage("errorMessage");
+      assertThat(e).hasCauseThat().hasMessageThat().isEqualTo("errorMessage");
     }
   }
 
@@ -141,7 +140,10 @@ public class ExportReservedTermsActionTest {
       assertWithMessage("Expected RuntimeException to be thrown").fail();
     } catch (RuntimeException e) {
       verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
-      assertThat(getRootCause(e)).hasMessage("No registry object found for fakeTld");
+      assertThat(e)
+          .hasCauseThat()
+          .hasMessageThat()
+          .isEqualTo("No registry object found for fakeTld");
     }
   }
 }

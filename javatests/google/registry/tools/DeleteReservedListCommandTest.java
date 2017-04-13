@@ -59,8 +59,9 @@ public class DeleteReservedListCommandTest extends CommandTestCase<DeleteReserve
       assertWithMessage("Expected IllegalArgumentException to be thrown").fail();
     } catch (IllegalArgumentException e) {
       assertThat(ReservedList.get(reservedList.getName())).isPresent();
-      assertThat(e).hasMessage(
-          "Cannot delete reserved list because it is used on these tld(s): xn--q9jyb4c");
+      assertThat(e)
+          .hasMessageThat()
+          .isEqualTo("Cannot delete reserved list because it is used on these tld(s): xn--q9jyb4c");
     }
   }
 }

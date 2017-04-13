@@ -38,7 +38,7 @@ public class EppExceptionSubject extends Subject<EppExceptionSubject, EppExcepti
   }
 
   public And<EppExceptionSubject> hasMessage(String expected) {
-    assertThat(actual()).hasMessage(expected);
+    assertThat(actual()).hasMessageThat().isEqualTo(expected);
     return new And<>(this);
   }
 

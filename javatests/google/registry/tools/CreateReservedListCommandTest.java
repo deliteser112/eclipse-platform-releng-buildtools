@@ -175,7 +175,7 @@ public class CreateReservedListCommandTest extends
       assertWithMessage("Expected IllegalArgumentException to be thrown").fail();
     } catch (IllegalArgumentException e) {
       assertThat(ReservedList.get(name)).isAbsent();
-      assertThat(e).hasMessage(expectedErrorMsg);
+      assertThat(e).hasMessageThat().isEqualTo(expectedErrorMsg);
     }
   }
 

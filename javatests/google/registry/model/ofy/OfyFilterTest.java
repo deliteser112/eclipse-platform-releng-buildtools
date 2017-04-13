@@ -81,9 +81,11 @@ public class OfyFilterTest {
       Key.create(entity);
       fail("Should not be able to create key for unregistered entity");
     } catch (IllegalStateException e) {
-      assertThat(e).hasMessage(
-          "class google.registry.model.ofy.OfyFilterTest$UnregisteredEntity "
-              + "has not been registered");
+      assertThat(e)
+          .hasMessageThat()
+          .isEqualTo(
+              "class google.registry.model.ofy.OfyFilterTest$UnregisteredEntity "
+                  + "has not been registered");
     }
   }
 
