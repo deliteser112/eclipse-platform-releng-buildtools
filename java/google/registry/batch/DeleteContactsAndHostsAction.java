@@ -23,9 +23,11 @@ import static com.googlecode.objectify.Key.getKind;
 import static google.registry.flows.ResourceFlowUtils.createResolvedTransferData;
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_CLIENT_TRANSACTION_ID;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_IS_SUPERUSER;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTING_CLIENT_ID;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_SERVER_TRANSACTION_ID;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.EppResourceUtils.isDeleted;
@@ -68,7 +70,11 @@ import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppoutput.EppResponse.ResponseData;
 import google.registry.model.host.HostResource;
+import google.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
+import google.registry.model.poll.PendingActionNotificationResponse.HostPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferStatus;
@@ -318,6 +324,8 @@ public class DeleteContactsAndHostsAction implements Runnable {
               .setMsg(pollMessageText)
               .setParent(historyEntry)
               .setEventTime(now)
+              .setResponseData(
+                  getPollMessageResponseData(deletionRequest, resource, deleteAllowed, now))
               .build();
 
       EppResource resourceToSave;
@@ -346,6 +354,35 @@ public class DeleteContactsAndHostsAction implements Runnable {
       ofy().save().<ImmutableObject>entities(resourceToSave, historyEntry, pollMessage);
       return DeletionResult.create(
           deleteAllowed ? Type.DELETED : Type.NOT_DELETED, pollMessageText);
+    }
+
+    private static ImmutableList<? extends ResponseData> getPollMessageResponseData(
+        DeletionRequest deletionRequest,
+        EppResource resource,
+        boolean deleteAllowed,
+        DateTime now) {
+      Optional<String> clientTransactionId = deletionRequest.clientTransactionId();
+      Optional<String> serverTransactionId = deletionRequest.serverTransactionId();
+      // TODO(b/36402020): Make this unconditional, once older tasks enqueued without Trid data
+      // have been processed out of the queue.
+      checkState(
+          clientTransactionId.isPresent() == serverTransactionId.isPresent(),
+          "Found one part of TRID without the other!");
+      if (clientTransactionId.isPresent() && serverTransactionId.isPresent()) {
+        Trid trid = Trid.create(clientTransactionId.get(), serverTransactionId.get());
+        if (resource instanceof HostResource) {
+          return ImmutableList.of(
+              HostPendingActionNotificationResponse.create(
+                  ((HostResource) resource).getFullyQualifiedHostName(), deleteAllowed, trid, now));
+        } else if (resource instanceof ContactResource) {
+          return ImmutableList.of(
+              ContactPendingActionNotificationResponse.create(
+                  ((ContactResource) resource).getContactId(), deleteAllowed, trid, now));
+        } else {
+          throw new IllegalStateException("EPP resource of unknown type " + Key.create(resource));
+        }
+      }
+      return ImmutableList.of();
     }
 
     /**
@@ -403,6 +440,13 @@ public class DeleteContactsAndHostsAction implements Runnable {
      * the actual current owner of the resource).
      */
     abstract String requestingClientId();
+
+    /** First half of TRID for the original request, split for serializability. */
+    abstract Optional<String> clientTransactionId();
+
+    /** Second half of TRID for the original request, split for serializability. */
+    abstract Optional<String> serverTransactionId();
+
     abstract boolean isSuperuser();
     abstract TaskHandle task();
 
@@ -411,6 +455,8 @@ public class DeleteContactsAndHostsAction implements Runnable {
       abstract Builder setKey(Key<? extends EppResource> key);
       abstract Builder setLastUpdateTime(DateTime lastUpdateTime);
       abstract Builder setRequestingClientId(String requestingClientId);
+      abstract Builder setClientTransactionId(Optional<String> clientTransactionId);
+      abstract Builder setServerTransactionId(Optional<String> serverTransactionId);
       abstract Builder setIsSuperuser(boolean isSuperuser);
       abstract Builder setTask(TaskHandle task);
       abstract DeletionRequest build();
@@ -435,10 +481,18 @@ public class DeleteContactsAndHostsAction implements Runnable {
           new AutoValue_DeleteContactsAndHostsAction_DeletionRequest.Builder()
               .setKey(resourceKey)
               .setLastUpdateTime(resource.getUpdateAutoTimestamp().getTimestamp())
-              .setRequestingClientId(checkNotNull(
-                  params.get(PARAM_REQUESTING_CLIENT_ID), "Requesting client id not specified"))
-              .setIsSuperuser(Boolean.valueOf(
-                  checkNotNull(params.get(PARAM_IS_SUPERUSER), "Is superuser not specified")))
+              .setRequestingClientId(
+                  checkNotNull(
+                      params.get(PARAM_REQUESTING_CLIENT_ID), "Requesting client id not specified"))
+              .setClientTransactionId(
+                  Optional.fromNullable(
+                      params.get(PARAM_CLIENT_TRANSACTION_ID)))
+              .setServerTransactionId(
+                  Optional.fromNullable(
+                      params.get(PARAM_SERVER_TRANSACTION_ID)))
+              .setIsSuperuser(
+                  Boolean.valueOf(
+                      checkNotNull(params.get(PARAM_IS_SUPERUSER), "Is superuser not specified")))
               .setTask(task)
               .build());
     }

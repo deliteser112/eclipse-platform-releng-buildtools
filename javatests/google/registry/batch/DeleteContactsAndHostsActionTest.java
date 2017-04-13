@@ -69,9 +69,12 @@ import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
+import google.registry.model.eppoutput.EppResponse.ResponseData;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.poll.PendingActionNotificationResponse;
+import google.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
+import google.registry.model.poll.PendingActionNotificationResponse.HostPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessage.OneTime;
 import google.registry.model.registry.Registry;
@@ -147,7 +150,8 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_contact_referencedByActiveDomain_doesNotGetDeleted() throws Exception {
     ContactResource contact = persistContactPendingDelete("blah8221");
     persistResource(newDomainResource("example.tld", contact));
-    enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        contact, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     ContactResource contactUpdated =
         loadByForeignKey(ContactResource.class, "blah8221", clock.nowUtc());
@@ -164,14 +168,17 @@ public class DeleteContactsAndHostsActionTest
     assertPollMessageFor(
         historyEntry,
         "TheRegistrar",
-        "Can't delete contact blah8221 because it is referenced by a domain.");
+        "Can't delete contact blah8221 because it is referenced by a domain.",
+        false,
+        contact);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
   public void testSuccess_contact_notReferenced_getsDeleted_andPiiWipedOut() throws Exception {
     ContactResource contact = persistContactWithPii("jim919");
-    enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        contact, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     assertThat(loadByForeignKey(ContactResource.class, "jim919", clock.nowUtc())).isNull();
     ContactResource contactAfterDeletion = ofy().load().entity(contact).now();
@@ -195,7 +202,7 @@ public class DeleteContactsAndHostsActionTest
         .and()
         .hasNullFaxNumber();
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(contactAfterDeletion, CONTACT_DELETE);
-    assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted contact jim919.");
+    assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted contact jim919.", true, contact);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
@@ -203,7 +210,8 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_contactWithoutPendingTransfer_isDeletedAndHasNoTransferData()
       throws Exception {
     ContactResource contact = persistContactPendingDelete("blah8221");
-    enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        contact, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     ContactResource contactAfterDeletion = ofy().load().entity(contact).now();
     assertThat(contactAfterDeletion.getTransferData()).isEqualTo(TransferData.EMPTY);
@@ -218,7 +226,8 @@ public class DeleteContactsAndHostsActionTest
             transferRequestTime,
             transferRequestTime.plus(Registry.DEFAULT_TRANSFER_GRACE_PERIOD),
             clock.nowUtc());
-    enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        contact, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     // Check that the contact is deleted as of now.
     assertThat(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())).isNull();
@@ -263,7 +272,8 @@ public class DeleteContactsAndHostsActionTest
             .asBuilder()
             .setDeletionTime(clock.nowUtc().minusDays(3))
             .build());
-    enqueuer.enqueueAsyncDelete(contactUsed, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        contactUsed, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     assertThat(loadByForeignKey(ContactResource.class, "blah1234", clock.nowUtc())).isNull();
     ContactResource contactBeforeDeletion =
@@ -279,14 +289,16 @@ public class DeleteContactsAndHostsActionTest
         .hasOnlyOneHistoryEntryWhich()
         .hasType(CONTACT_DELETE);
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(contactBeforeDeletion, CONTACT_DELETE);
-    assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted contact blah1234.");
+    assertPollMessageFor(
+        historyEntry, "TheRegistrar", "Deleted contact blah1234.", true, contactUsed);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
   public void testSuccess_contact_notRequestedByOwner_doesNotGetDeleted() throws Exception {
     ContactResource contact = persistContactPendingDelete("jane0991");
-    enqueuer.enqueueAsyncDelete(contact, "OtherRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        contact, "OtherRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     ContactResource contactAfter =
         loadByForeignKey(ContactResource.class, "jane0991", clock.nowUtc());
@@ -299,14 +311,17 @@ public class DeleteContactsAndHostsActionTest
     assertPollMessageFor(
         historyEntry,
         "OtherRegistrar",
-        "Can't delete contact jane0991 because it was transferred prior to deletion.");
+        "Can't delete contact jane0991 because it was transferred prior to deletion.",
+        false,
+        contact);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
   public void testSuccess_contact_notRequestedByOwner_isSuperuser_getsDeleted() throws Exception {
     ContactResource contact = persistContactWithPii("nate007");
-    enqueuer.enqueueAsyncDelete(contact, "OtherRegistrar", true);
+    enqueuer.enqueueAsyncDelete(
+        contact, "OtherRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), true);
     runMapreduce();
     assertThat(loadByForeignKey(ContactResource.class, "nate007", clock.nowUtc())).isNull();
     ContactResource contactAfterDeletion = ofy().load().entity(contact).now();
@@ -330,7 +345,7 @@ public class DeleteContactsAndHostsActionTest
         .and()
         .hasNullFaxNumber();
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(contactAfterDeletion, CONTACT_DELETE);
-    assertPollMessageFor(historyEntry, "OtherRegistrar", "Deleted contact nate007.");
+    assertPollMessageFor(historyEntry, "OtherRegistrar", "Deleted contact nate007.", true, contact);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
@@ -338,10 +353,14 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_targetResourcesDontExist_areDelayedForADay() throws Exception {
     ContactResource contactNotSaved = newContactResource("somecontact");
     HostResource hostNotSaved = newHostResource("a11.blah.foo");
-    enqueuer.enqueueAsyncDelete(contactNotSaved, "TheRegistrar", false);
-    enqueuer.enqueueAsyncDelete(hostNotSaved, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        contactNotSaved, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+    enqueuer.enqueueAsyncDelete(
+        hostNotSaved, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
-    String payloadFormat = "resourceKey=%s&requestingClientId=TheRegistrar&isSuperuser=false";
+    String payloadFormat =
+        "resourceKey=%s&requestingClientId=TheRegistrar&"
+            + "clientTransactionId=fakeClientTrid&serverTransactionId=fakeServerTrid&isSuperuser=false";
     assertTasksEnqueued(
         QUEUE_ASYNC_DELETE,
         new TaskMatcher()
@@ -369,8 +388,10 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_resourcesNotInPendingDelete_areSkipped() throws Exception {
     ContactResource contact = persistActiveContact("blah2222");
     HostResource host = persistActiveHost("rustles.your.jimmies");
-    enqueuer.enqueueAsyncDelete(contact, "TheRegistrar", false);
-    enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        contact, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+    enqueuer.enqueueAsyncDelete(
+        host, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     assertThat(loadByForeignKey(ContactResource.class, "blah2222", clock.nowUtc()))
         .isEqualTo(contact);
@@ -383,8 +404,10 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_alreadyDeletedResources_areSkipped() throws Exception {
     ContactResource contactDeleted = persistDeletedContact("blah1236", clock.nowUtc().minusDays(2));
     HostResource hostDeleted = persistDeletedHost("a.lim.lop", clock.nowUtc().minusDays(3));
-    enqueuer.enqueueAsyncDelete(contactDeleted, "TheRegistrar", false);
-    enqueuer.enqueueAsyncDelete(hostDeleted, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        contactDeleted, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+    enqueuer.enqueueAsyncDelete(
+        hostDeleted, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     assertThat(ofy().load().entity(contactDeleted).now()).isEqualTo(contactDeleted);
     assertThat(ofy().load().entity(hostDeleted).now()).isEqualTo(hostDeleted);
@@ -395,7 +418,8 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_host_referencedByActiveDomain_doesNotGetDeleted() throws Exception {
     HostResource host = persistHostPendingDelete("ns1.example.tld");
     persistUsedDomain("example.tld", persistActiveContact("abc456"), host);
-    enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        host, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     HostResource hostAfter =
         loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc());
@@ -410,14 +434,17 @@ public class DeleteContactsAndHostsActionTest
     assertPollMessageFor(
         historyEntry,
         "TheRegistrar",
-        "Can't delete host ns1.example.tld because it is referenced by a domain.");
+        "Can't delete host ns1.example.tld because it is referenced by a domain.",
+        false,
+        host);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
   public void testSuccess_host_notReferenced_getsDeleted() throws Exception {
     HostResource host = persistHostPendingDelete("ns2.example.tld");
-    enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        host, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc())).isNull();
     HostResource hostBeforeDeletion =
@@ -433,7 +460,7 @@ public class DeleteContactsAndHostsActionTest
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HOST_DELETE);
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostBeforeDeletion, HOST_DELETE);
-    assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted host ns2.example.tld.");
+    assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted host ns2.example.tld.", true, host);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
@@ -446,7 +473,8 @@ public class DeleteContactsAndHostsActionTest
             .setNameservers(ImmutableSet.of(Key.create(host)))
             .setDeletionTime(clock.nowUtc().minusDays(5))
             .build());
-    enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        host, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     assertThat(loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc())).isNull();
     HostResource hostBeforeDeletion =
@@ -462,7 +490,7 @@ public class DeleteContactsAndHostsActionTest
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HOST_DELETE);
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostBeforeDeletion, HOST_DELETE);
-    assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted host ns1.example.tld.");
+    assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted host ns1.example.tld.", true, host);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
@@ -480,7 +508,8 @@ public class DeleteContactsAndHostsActionTest
                 .asBuilder()
                 .setSuperordinateDomain(Key.create(domain))
                 .build());
-    enqueuer.enqueueAsyncDelete(host, "TheRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        host, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     // Check that the host is deleted as of now.
     assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc())).isNull();
@@ -501,14 +530,15 @@ public class DeleteContactsAndHostsActionTest
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HOST_DELETE);
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostBeforeDeletion, HOST_DELETE);
-    assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted host ns2.example.tld.");
+    assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted host ns2.example.tld.", true, host);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
   public void testSuccess_host_notRequestedByOwner_doesNotGetDeleted() throws Exception {
     HostResource host = persistHostPendingDelete("ns2.example.tld");
-    enqueuer.enqueueAsyncDelete(host, "OtherRegistrar", false);
+    enqueuer.enqueueAsyncDelete(
+        host, "OtherRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     runMapreduce();
     HostResource hostAfter =
         loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc());
@@ -521,14 +551,17 @@ public class DeleteContactsAndHostsActionTest
     assertPollMessageFor(
         historyEntry,
         "OtherRegistrar",
-        "Can't delete host ns2.example.tld because it was transferred prior to deletion.");
+        "Can't delete host ns2.example.tld because it was transferred prior to deletion.",
+        false,
+        host);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
   @Test
   public void testSuccess_host_notRequestedByOwner_isSuperuser_getsDeleted() throws Exception {
     HostResource host = persistHostPendingDelete("ns66.example.tld");
-    enqueuer.enqueueAsyncDelete(host, "OtherRegistrar", true);
+    enqueuer.enqueueAsyncDelete(
+        host, "OtherRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), true);
     runMapreduce();
     assertThat(loadByForeignKey(HostResource.class, "ns66.example.tld", clock.nowUtc())).isNull();
     HostResource hostBeforeDeletion =
@@ -544,7 +577,8 @@ public class DeleteContactsAndHostsActionTest
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HOST_DELETE);
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostBeforeDeletion, HOST_DELETE);
-    assertPollMessageFor(historyEntry, "OtherRegistrar", "Deleted host ns66.example.tld.");
+    assertPollMessageFor(
+        historyEntry, "OtherRegistrar", "Deleted host ns66.example.tld.", true, host);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
   }
 
@@ -560,7 +594,8 @@ public class DeleteContactsAndHostsActionTest
     HostResource h4 = persistHostPendingDelete("used.host.com");
     persistUsedDomain("usescontactandhost.tld", c4, h4);
     for (EppResource resource : ImmutableList.<EppResource>of(c1, c2, c3, c4, h1, h2, h3, h4)) {
-      enqueuer.enqueueAsyncDelete(resource, "TheRegistrar", false);
+      enqueuer.enqueueAsyncDelete(
+          resource, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
     }
     runMapreduce();
     for (EppResource resource : ImmutableList.<EppResource>of(c1, c2, c3, h1, h2, h3)) {
@@ -605,13 +640,38 @@ public class DeleteContactsAndHostsActionTest
 
   /**
    * Helper method to check that one poll message exists with a given history entry, resource,
-   * client id, and message.
+   * client id, and message. Also checks that the only resulting async response matches the resource
+   * type, and has the appropriate actionResult, nameOrId, and Trid.
    */
-  private static void assertPollMessageFor(HistoryEntry historyEntry, String clientId, String msg) {
+  private static void assertPollMessageFor(
+      HistoryEntry historyEntry,
+      String clientId,
+      String msg,
+      boolean expectedActionResult,
+      EppResource resource) {
     PollMessage.OneTime pollMessage = (OneTime) getOnlyPollMessageForHistoryEntry(historyEntry);
-    assertThat(msg).isEqualTo(pollMessage.getMsg());
-    assertThat(clientId).isEqualTo(pollMessage.getClientId());
+    assertThat(pollMessage.getMsg()).isEqualTo(msg);
     assertThat(pollMessage.getClientId()).isEqualTo(clientId);
+
+    ImmutableList<ResponseData> pollResponses = pollMessage.getResponseData();
+    assertThat(pollResponses).hasSize(1);
+    ResponseData responseData = pollMessage.getResponseData().get(0);
+
+    String expectedResourceName;
+    if (resource instanceof HostResource) {
+      assertThat(responseData).isInstanceOf(HostPendingActionNotificationResponse.class);
+      expectedResourceName = ((HostResource) resource).getFullyQualifiedHostName();
+    } else {
+      assertThat(responseData).isInstanceOf(ContactPendingActionNotificationResponse.class);
+      expectedResourceName = ((ContactResource) resource).getContactId();
+    }
+    PendingActionNotificationResponse pendingResponse =
+        (PendingActionNotificationResponse) responseData;
+    assertThat(pendingResponse.getActionResult()).isEqualTo(expectedActionResult);
+    assertThat(pendingResponse.getNameAsString()).isEqualTo(expectedResourceName);
+    Trid trid = pendingResponse.getTrid();
+    assertThat(trid.getClientTransactionId()).isEqualTo("fakeClientTrid");
+    assertThat(trid.getServerTransactionId()).isEqualTo("fakeServerTrid");
   }
 
   private static ContactResource persistContactPendingDelete(String contactId) {

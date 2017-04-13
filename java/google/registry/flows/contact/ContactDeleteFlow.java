@@ -40,6 +40,7 @@ import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
@@ -78,6 +79,7 @@ public final class ContactDeleteFlow implements TransactionalFlow {
   @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject Trid trid;
   @Inject @Superuser boolean isSuperuser;
   @Inject Optional<AuthInfo> authInfo;
   @Inject HistoryEntry.Builder historyBuilder;
@@ -98,7 +100,7 @@ public final class ContactDeleteFlow implements TransactionalFlow {
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingContact);
     }
-    asyncFlowEnqueuer.enqueueAsyncDelete(existingContact, clientId, isSuperuser);
+    asyncFlowEnqueuer.enqueueAsyncDelete(existingContact, clientId, trid, isSuperuser);
     ContactResource newContact =
         existingContact.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();
     historyBuilder

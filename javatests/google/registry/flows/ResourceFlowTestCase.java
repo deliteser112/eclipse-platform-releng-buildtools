@@ -32,6 +32,7 @@ import google.registry.model.EppResource;
 import google.registry.model.EppResourceUtils;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationIdTargetExtension;
+import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.index.EppResourceIndex;
@@ -155,11 +156,16 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
 
   /** Asserts the presence of a single enqueued async contact or host deletion */
   protected static <T extends EppResource> void assertAsyncDeletionTaskEnqueued(
-      T resource, String requestingClientId, boolean isSuperuser) throws Exception {
+      T resource, String requestingClientId, Trid trid, boolean isSuperuser) throws Exception {
     String expectedPayload =
         String.format(
-            "resourceKey=%s&requestingClientId=%s&isSuperuser=%s",
-            Key.create(resource).getString(), requestingClientId, Boolean.toString(isSuperuser));
+            "resourceKey=%s&requestingClientId=%s&clientTransactionId=%s&"
+                + "serverTransactionId=%s&isSuperuser=%s",
+            Key.create(resource).getString(),
+            requestingClientId,
+            trid.getClientTransactionId(),
+            trid.getServerTransactionId(),
+            Boolean.toString(isSuperuser));
     assertTasksEnqueued(
         "async-delete-pull",
         new TaskMatcher()

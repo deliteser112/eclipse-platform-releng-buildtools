@@ -39,6 +39,7 @@ import google.registry.model.eppoutput.EppResponse.ResponseData;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
+import google.registry.model.poll.PendingActionNotificationResponse.HostPendingActionNotificationResponse;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
@@ -189,6 +190,7 @@ public abstract class PollMessage extends ImmutableObject
     List<ContactTransferResponse> contactTransferResponses;
     List<DomainPendingActionNotificationResponse> domainPendingActionNotificationResponses;
     List<DomainTransferResponse> domainTransferResponses;
+    List<HostPendingActionNotificationResponse> hostPendingActionNotificationResponses;
 
     // Extensions. Objectify cannot persist a base class type, so we must have a separate field
     // to hold every possible derived type of ResponseExtensions that we might store.
@@ -211,6 +213,7 @@ public abstract class PollMessage extends ImmutableObject
           .addAll(nullToEmpty(contactTransferResponses))
           .addAll(nullToEmpty(domainPendingActionNotificationResponses))
           .addAll(nullToEmpty(domainTransferResponses))
+          .addAll(nullToEmpty(hostPendingActionNotificationResponses))
           .build();
     }
 
@@ -240,6 +243,8 @@ public abstract class PollMessage extends ImmutableObject
             iterable.filter(DomainPendingActionNotificationResponse.class).toList());
         getInstance().domainTransferResponses = forceEmptyToNull(
             iterable.filter(DomainTransferResponse.class).toList());
+        getInstance().hostPendingActionNotificationResponses = forceEmptyToNull(
+            iterable.filter(HostPendingActionNotificationResponse.class).toList());
         return this;
       }
 

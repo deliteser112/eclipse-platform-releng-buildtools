@@ -38,6 +38,7 @@ import google.registry.model.EppResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
@@ -80,6 +81,7 @@ public final class HostDeleteFlow implements TransactionalFlow {
   @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject Trid trid;
   @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
@@ -106,7 +108,7 @@ public final class HostDeleteFlow implements TransactionalFlow {
               : existingHost;
       verifyResourceOwnership(clientId, owningResource);
     }
-    asyncFlowEnqueuer.enqueueAsyncDelete(existingHost, clientId, isSuperuser);
+    asyncFlowEnqueuer.enqueueAsyncDelete(existingHost, clientId, trid, isSuperuser);
     HostResource newHost =
         existingHost.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();
     historyBuilder

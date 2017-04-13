@@ -37,6 +37,7 @@ import google.registry.flows.host.HostFlowUtils.HostNameNotNormalizedException;
 import google.registry.flows.host.HostFlowUtils.HostNameNotPunyCodedException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
@@ -68,7 +69,8 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     runFlowAssertResponse(readFile("host_delete_response.xml"));
     HostResource deletedHost = reloadResourceByForeignKey();
     assertAboutHosts().that(deletedHost).hasStatusValue(StatusValue.PENDING_DELETE);
-    assertAsyncDeletionTaskEnqueued(deletedHost, "TheRegistrar", false);
+    assertAsyncDeletionTaskEnqueued(
+        deletedHost, "TheRegistrar", Trid.create("ABC-12345", "server-trid"), false);
     assertAboutHosts().that(deletedHost)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.HOST_PENDING_DELETE);
@@ -134,7 +136,8 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
         CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("host_delete_response.xml"));
     HostResource deletedHost = reloadResourceByForeignKey();
     assertAboutHosts().that(deletedHost).hasStatusValue(StatusValue.PENDING_DELETE);
-    assertAsyncDeletionTaskEnqueued(deletedHost, "NewRegistrar", true);
+    assertAsyncDeletionTaskEnqueued(
+        deletedHost, "NewRegistrar", Trid.create("ABC-12345", "server-trid"), true);
     assertAboutHosts().that(deletedHost)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.HOST_PENDING_DELETE);

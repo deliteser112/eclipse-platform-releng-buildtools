@@ -550,6 +550,11 @@ class google.registry.model.poll.PendingActionNotificationResponse$DomainPending
   google.registry.model.poll.PendingActionNotificationResponse$NameOrId nameOrId;
   org.joda.time.DateTime processedDate;
 }
+class google.registry.model.poll.PendingActionNotificationResponse$HostPendingActionNotificationResponse {
+  google.registry.model.eppcommon.Trid trid;
+  google.registry.model.poll.PendingActionNotificationResponse$NameOrId nameOrId;
+  org.joda.time.DateTime processedDate;
+}
 class google.registry.model.poll.PendingActionNotificationResponse$NameOrId {
   boolean actionResult;
   java.lang.String value;
@@ -578,6 +583,7 @@ class google.registry.model.poll.PollMessage$OneTime {
   java.lang.String msg;
   java.util.List<google.registry.model.poll.PendingActionNotificationResponse$ContactPendingActionNotificationResponse> contactPendingActionNotificationResponses;
   java.util.List<google.registry.model.poll.PendingActionNotificationResponse$DomainPendingActionNotificationResponse> domainPendingActionNotificationResponses;
+  java.util.List<google.registry.model.poll.PendingActionNotificationResponse$HostPendingActionNotificationResponse> hostPendingActionNotificationResponses;
   java.util.List<google.registry.model.transfer.TransferResponse$ContactTransferResponse> contactTransferResponses;
   java.util.List<google.registry.model.transfer.TransferResponse$DomainTransferResponse> domainTransferResponses;
   org.joda.time.DateTime eventTime;

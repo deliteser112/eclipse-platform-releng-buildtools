@@ -125,4 +125,30 @@ public abstract class PendingActionNotificationResponse
           processedDate);
     }
   }
+
+  /** An adapter to output the XML in response to resolving a pending command on a host. */
+  @Embed
+  @XmlRootElement(name = "panData", namespace = "urn:ietf:params:xml:ns:domain-1.0")
+  @XmlType(
+    propOrder = {"name", "trid", "processedDate"},
+    namespace = "urn:ietf:params:xml:ns:domain-1.0"
+  )
+  public static class HostPendingActionNotificationResponse
+      extends PendingActionNotificationResponse {
+
+    @XmlElement
+    NameOrId getName() {
+      return nameOrId;
+    }
+
+    public static HostPendingActionNotificationResponse create(
+        String fullyQualifiedHostName, boolean actionResult, Trid trid, DateTime processedDate) {
+      return init(
+          new HostPendingActionNotificationResponse(),
+          fullyQualifiedHostName,
+          actionResult,
+          trid,
+          processedDate);
+    }
+  }
 }

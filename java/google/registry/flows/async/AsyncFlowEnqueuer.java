@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.EppResource;
+import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
@@ -36,6 +37,8 @@ public final class AsyncFlowEnqueuer {
   /** The HTTP parameter names used by async flows. */
   public static final String PARAM_RESOURCE_KEY = "resourceKey";
   public static final String PARAM_REQUESTING_CLIENT_ID = "requestingClientId";
+  public static final String PARAM_CLIENT_TRANSACTION_ID = "clientTransactionId";
+  public static final String PARAM_SERVER_TRANSACTION_ID = "serverTransactionId";
   public static final String PARAM_IS_SUPERUSER = "isSuperuser";
   public static final String PARAM_HOST_KEY = "hostKey";
 
@@ -70,17 +73,18 @@ public final class AsyncFlowEnqueuer {
 
   /** Enqueues a task to asynchronously delete a contact or host, by key. */
   public void enqueueAsyncDelete(
-      EppResource resourceToDelete, String requestingClientId, boolean isSuperuser) {
+      EppResource resourceToDelete, String requestingClientId, Trid trid, boolean isSuperuser) {
     Key<EppResource> resourceKey = Key.create(resourceToDelete);
     logger.infofmt(
         "Enqueuing async deletion of %s on behalf of registrar %s.",
         resourceKey, requestingClientId);
     TaskOptions task =
-        TaskOptions.Builder
-            .withMethod(Method.PULL)
+        TaskOptions.Builder.withMethod(Method.PULL)
             .countdownMillis(asyncDeleteDelay.getMillis())
             .param(PARAM_RESOURCE_KEY, resourceKey.getString())
             .param(PARAM_REQUESTING_CLIENT_ID, requestingClientId)
+            .param(PARAM_CLIENT_TRANSACTION_ID, trid.getClientTransactionId())
+            .param(PARAM_SERVER_TRANSACTION_ID, trid.getServerTransactionId())
             .param(PARAM_IS_SUPERUSER, Boolean.toString(isSuperuser));
     addTaskToQueueWithRetry(asyncDeletePullQueue, task);
   }

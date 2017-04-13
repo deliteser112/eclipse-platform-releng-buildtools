@@ -31,6 +31,7 @@ import google.registry.flows.exceptions.ResourceStatusProhibitsOperationExceptio
 import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
 import google.registry.model.reporting.HistoryEntry;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,7 +59,8 @@ public class ContactDeleteFlowTest
     runFlowAssertResponse(readFile("contact_delete_response.xml"));
     ContactResource deletedContact = reloadResourceByForeignKey();
     assertAboutContacts().that(deletedContact).hasStatusValue(StatusValue.PENDING_DELETE);
-    assertAsyncDeletionTaskEnqueued(deletedContact, "TheRegistrar", false);
+    assertAsyncDeletionTaskEnqueued(
+        deletedContact, "TheRegistrar", Trid.create("ABC-12345", "server-trid"), false);
     assertAboutContacts().that(deletedContact)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.CONTACT_PENDING_DELETE);
@@ -127,7 +129,8 @@ public class ContactDeleteFlowTest
         CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("contact_delete_response.xml"));
     ContactResource deletedContact = reloadResourceByForeignKey();
     assertAboutContacts().that(deletedContact).hasStatusValue(StatusValue.PENDING_DELETE);
-    assertAsyncDeletionTaskEnqueued(deletedContact, "NewRegistrar", true);
+    assertAsyncDeletionTaskEnqueued(
+        deletedContact, "NewRegistrar", Trid.create("ABC-12345", "server-trid"), true);
     assertAboutContacts().that(deletedContact)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.CONTACT_PENDING_DELETE);
