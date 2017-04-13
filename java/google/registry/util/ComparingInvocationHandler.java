@@ -131,7 +131,7 @@ public abstract class ComparingInvocationHandler<T> implements InvocationHandler
    * stack trace for example), override this method with the desired implementation.
    *
    * @param method the method whose return value is given
-   * @param exception the exception thrown by a call to method
+   * @param throwable the exception thrown by a call to method
    */
   protected String stringifyThrown(
       @SuppressWarnings("unused") Method method,

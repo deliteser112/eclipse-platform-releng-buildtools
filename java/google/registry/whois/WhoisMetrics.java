@@ -25,7 +25,6 @@ import google.registry.monitoring.metrics.IncrementableMetric;
 import google.registry.monitoring.metrics.LabelDescriptor;
 import google.registry.monitoring.metrics.MetricRegistryImpl;
 import google.registry.util.Clock;
-import google.registry.whois.WhoisMetrics.WhoisMetric;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
