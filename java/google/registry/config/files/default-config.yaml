@@ -124,7 +124,7 @@ caching:
   staticPremiumListMaxCachedEntries: 200000
 
 oAuth:
-  # OAuth scopes to check for access tokens. Superset of requiredOauthScopes.
+  # OAuth scopes to detect on access tokens. Superset of requiredOauthScopes.
   availableOauthScopes:
     - https://www.googleapis.com/auth/userinfo.email
 

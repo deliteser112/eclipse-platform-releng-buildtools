@@ -925,17 +925,16 @@ public final class RegistryConfig {
     }
 
     /**
-     * Provides the OAuth scopes to check for access tokens.
+     * Provides the OAuth scopes that authentication logic should detect on access tokens.
      *
-     * <p>This list should be a superset of the required OAuth scope set provided below.
+     * <p>This list should be a superset of the required OAuth scope set provided below.  Note that
+     * ideally, this setting would not be required and all scopes on an access token would be
+     * detected automatically, but that is not the case due to the way {@code OAuthService} works.
      *
-     * <p>If we feel the need, we could define additional fixed scopes, similar to the Java remote
-     * API, which requires at least one of:
-     *
-     * <ul>
-     *   <li>https://www.googleapis.com/auth/appengine.apis
-     *   <li>https://www.googleapis.com/auth/cloud-platform
-     * </ul>
+     * <p>This is an independent setting from the required OAuth scopes (below) to support use cases
+     * where certain actions require some additional scope (e.g. access to a user's Google Drive)
+     * but that scope shouldn't be required for authentication alone; in that case the Drive scope
+     * would be specified only for this setting, allowing that action to check for its presence.
      */
     @Provides
     @Config("availableOauthScopes")
@@ -944,10 +943,18 @@ public final class RegistryConfig {
     }
 
     /**
-     * Provides the required OAuth scopes for simply authenticating.
+     * Provides the OAuth scopes that are required for authenticating successfully.
      *
      * <p>This set contains the scopes which must be present to authenticate a user. It should be a
      * subset of the scopes we request from the OAuth interface, provided above.
+     *
+     * <p>If we feel the need, we could define additional fixed scopes, similar to the Java remote
+     * API, which requires at least one of:
+     *
+     * <ul>
+     *   <li>https://www.googleapis.com/auth/appengine.apis
+     *   <li>https://www.googleapis.com/auth/cloud-platform
+     * </ul>
      */
     @Provides
     @Config("requiredOauthScopes")
