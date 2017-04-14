@@ -286,7 +286,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
           && !any(newContactsByType.get(type), HAS_PHONE)) {
         throw new ContactRequirementException(
             String.format(
-                "At least one %s contact must have a phone number", type.getDisplayName()));
+                "Please provide a phone number for at least one %s contact",
+                type.getDisplayName()));
       }
     }
   }

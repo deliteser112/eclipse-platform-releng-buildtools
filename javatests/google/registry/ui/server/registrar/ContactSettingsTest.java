@@ -125,8 +125,8 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
         "op", "update",
         "args", reqJson));
     assertThat(response).containsEntry("status", "ERROR");
-    assertThat(response).containsEntry("message", "At least one "
-        + RegistrarContact.Type.TECH.getDisplayName() + " contact must have a phone number");
+    assertThat(response).containsEntry("message", "Please provide a phone number for at least one "
+        + RegistrarContact.Type.TECH.getDisplayName() + " contact");
   }
 
   @Test
@@ -149,7 +149,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
         "op", "update",
         "args", reqJson));
     assertThat(response).containsEntry("status", "ERROR");
-    assertThat(response).containsEntry("message", "At least one "
-        + RegistrarContact.Type.ABUSE.getDisplayName() + " contact must have a phone number");
+    assertThat(response).containsEntry("message", "Please provide a phone number for at least one "
+        + RegistrarContact.Type.ABUSE.getDisplayName() + " contact");
   }
 }
