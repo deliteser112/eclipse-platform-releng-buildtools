@@ -26,6 +26,7 @@ import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,11 +42,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link ExportReservedTermsAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class ExportReservedTermsActionTest {
 
   @Rule
@@ -53,11 +53,8 @@ public class ExportReservedTermsActionTest {
       .withDatastore()
       .build();
 
-  @Mock
-  private DriveConnection driveConnection;
-
-  @Mock
-  private Response response;
+  private final DriveConnection driveConnection = mock(DriveConnection.class);
+  private final Response response = mock(Response.class);
 
   private void runAction(String tld) {
     ExportReservedTermsAction action = new ExportReservedTermsAction();

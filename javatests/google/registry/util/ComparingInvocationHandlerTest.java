@@ -16,21 +16,19 @@ package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-
 import javax.annotation.Nullable;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link ComparingInvocationHandler}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class ComparingInvocationHandlerTest {
 
   static class Dummy {
@@ -106,8 +104,8 @@ public class ComparingInvocationHandlerTest {
   private static final String ACTUAL_RESULT = "actual result";
   private static final String SECOND_RESULT = "second result";
 
-  @Mock MyInterface myActualMock;
-  @Mock MyInterface mySecondMock;
+  private final MyInterface myActualMock = mock(MyInterface.class);
+  private final MyInterface mySecondMock = mock(MyInterface.class);
   private MyInterfaceComparingInvocationHandler invocationHandler;
 
   @Before public void setUp() {

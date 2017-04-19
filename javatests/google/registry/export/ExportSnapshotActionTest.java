@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_KINDS_TO_LOAD_PARAM;
 import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_NAME_PARAM;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.google.common.base.Joiner;
@@ -30,16 +31,15 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link ExportSnapshotAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class ExportSnapshotActionTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withTaskQueue().build();
 
-  @Mock private DatastoreBackupService backupService;
+  private final DatastoreBackupService backupService = mock(DatastoreBackupService.class);
 
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2014-08-01T01:02:03Z"));

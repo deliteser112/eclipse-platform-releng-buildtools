@@ -22,6 +22,7 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.api.services.bigquery.Bigquery;
@@ -57,11 +58,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link BigqueryPollJobAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class BigqueryPollJobActionTest {
 
   @Rule
@@ -73,15 +73,15 @@ public class BigqueryPollJobActionTest {
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
-  @Mock Bigquery bigquery;
-  @Mock Bigquery.Jobs bigqueryJobs;
-  @Mock Bigquery.Jobs.Get bigqueryJobsGet;
-
-  static final String PROJECT_ID = "project_id";
-  static final String JOB_ID = "job_id";
-  static final String CHAINED_QUEUE_NAME = UpdateSnapshotViewAction.QUEUE;
-  static final TaskEnqueuer ENQUEUER =
+  private static final String PROJECT_ID = "project_id";
+  private static final String JOB_ID = "job_id";
+  private static final String CHAINED_QUEUE_NAME = UpdateSnapshotViewAction.QUEUE;
+  private static final TaskEnqueuer ENQUEUER =
       new TaskEnqueuer(new Retrier(new FakeSleeper(new FakeClock()), 1));
+
+  private final Bigquery bigquery = mock(Bigquery.class);
+  private final Bigquery.Jobs bigqueryJobs = mock(Bigquery.Jobs.class);
+  private final Bigquery.Jobs.Get bigqueryJobsGet = mock(Bigquery.Jobs.Get.class);
 
   private final CapturingLogHandler logHandler = new CapturingLogHandler();
   private BigqueryPollJobAction action = new BigqueryPollJobAction();
@@ -139,7 +139,7 @@ public class BigqueryPollJobActionTest {
 
   private void assertLogMessage(Level level, String message) {
     for (LogRecord logRecord : logHandler.getRecords()) {
-      if (logRecord.getLevel() == level && logRecord.getMessage().contains(message)) {
+      if (logRecord.getLevel().equals(level) && logRecord.getMessage().contains(message)) {
         return;
       }
     }

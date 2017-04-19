@@ -66,12 +66,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link VerifyEntityIntegrityAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class VerifyEntityIntegrityActionTest
     extends MapreduceTestCase<VerifyEntityIntegrityAction> {
 
@@ -82,20 +81,13 @@ public class VerifyEntityIntegrityActionTest
   private ArgumentCaptor<TableDataInsertAllRequest> rowsCaptor;
   private final DateTime now = DateTime.parse("2012-01-02T03:04:05Z");
 
-  @Mock
-  private Bigquery bigquery;
-
-  @Mock
-  private Bigquery.Tabledata bigqueryTableData;
-
-  @Mock
-  private Bigquery.Tabledata.InsertAll bigqueryInsertAll;
-
-  @Mock
-  private BigqueryFactory bigqueryFactory;
-
-  @Mock
-  private VerifyEntityIntegrityStreamerFactory streamerFactory;
+  private final Bigquery bigquery = mock(Bigquery.class);
+  private final Bigquery.Tabledata bigqueryTableData = mock(Bigquery.Tabledata.class);
+  private final Bigquery.Tabledata.InsertAll bigqueryInsertAll =
+      mock(Bigquery.Tabledata.InsertAll.class);
+  private final BigqueryFactory bigqueryFactory = mock(BigqueryFactory.class);
+  private final VerifyEntityIntegrityStreamerFactory streamerFactory =
+      mock(VerifyEntityIntegrityStreamerFactory.class);
 
   @Before
   public void before() throws Exception {

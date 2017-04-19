@@ -25,6 +25,7 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,12 +42,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link UpdateSnapshotViewAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class UpdateSnapshotViewActionTest {
 
   @Rule
@@ -57,23 +57,13 @@ public class UpdateSnapshotViewActionTest {
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
-  @Mock
-  private BigqueryFactory bigqueryFactory;
-
-  @Mock
-  private Bigquery bigquery;
-
-  @Mock
-  private Bigquery.Datasets bigqueryDatasets;
-
-  @Mock
-  private Bigquery.Datasets.Insert bigqueryDatasetsInsert;
-
-  @Mock
-  private Bigquery.Tables bigqueryTables;
-
-  @Mock
-  private Bigquery.Tables.Update bigqueryTablesUpdate;
+  private final BigqueryFactory bigqueryFactory = mock(BigqueryFactory.class);
+  private final Bigquery bigquery = mock(Bigquery.class);
+  private final Bigquery.Datasets bigqueryDatasets = mock(Bigquery.Datasets.class);
+  private final Bigquery.Datasets.Insert bigqueryDatasetsInsert =
+      mock(Bigquery.Datasets.Insert.class);
+  private final Bigquery.Tables bigqueryTables = mock(Bigquery.Tables.class);
+  private final Bigquery.Tables.Update bigqueryTablesUpdate = mock(Bigquery.Tables.Update.class);
 
   private UpdateSnapshotViewAction action;
 

@@ -26,6 +26,7 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,12 +55,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link LoadSnapshotAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class LoadSnapshotActionTest {
 
   @Rule
@@ -70,26 +70,14 @@ public class LoadSnapshotActionTest {
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
-  @Mock
-  private BigqueryFactory bigqueryFactory;
-
-  @Mock
-  private Bigquery bigquery;
-
-  @Mock
-  private Bigquery.Jobs bigqueryJobs;
-
-  @Mock
-  private Bigquery.Jobs.Insert bigqueryJobsInsert;
-
-  @Mock
-  private Bigquery.Datasets bigqueryDatasets;
-
-  @Mock
-  private Bigquery.Datasets.Insert bigqueryDatasetsInsert;
-
-  @Mock
-  private BigqueryPollJobEnqueuer bigqueryPollEnqueuer;
+  private final BigqueryFactory bigqueryFactory = mock(BigqueryFactory.class);
+  private final Bigquery bigquery = mock(Bigquery.class);
+  private final Bigquery.Jobs bigqueryJobs = mock(Bigquery.Jobs.class);
+  private final Bigquery.Jobs.Insert bigqueryJobsInsert = mock(Bigquery.Jobs.Insert.class);
+  private final Bigquery.Datasets bigqueryDatasets = mock(Bigquery.Datasets.class);
+  private final Bigquery.Datasets.Insert bigqueryDatasetsInsert =
+      mock(Bigquery.Datasets.Insert.class);
+  private final BigqueryPollJobEnqueuer bigqueryPollEnqueuer = mock(BigqueryPollJobEnqueuer.class);
 
   private FakeClock clock = new FakeClock(new DateTime(1391096117045L, UTC));
   private LoadSnapshotAction action;

@@ -38,8 +38,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 import org.xbill.DNS.ARecord;
 import org.xbill.DNS.DClass;
 import org.xbill.DNS.Flags;
@@ -52,16 +51,13 @@ import org.xbill.DNS.Type;
 import org.xbill.DNS.Update;
 
 /** Unit tests for {@link DnsMessageTransport}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class DnsMessageTransportTest {
 
   private static final String UPDATE_HOST = "127.0.0.1";
 
-  @Mock
-  private SocketFactory mockFactory;
-
-  @Mock
-  private Socket mockSocket;
+  private final SocketFactory mockFactory = mock(SocketFactory.class);
+  private final Socket mockSocket = mock(Socket.class);
 
   private Message simpleQuery;
   private Message expectedResponse;

@@ -19,6 +19,7 @@ import static google.registry.bigquery.BigqueryUtils.FieldType.STRING;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,31 +36,20 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link BigqueryFactory}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class BigqueryFactoryTest {
 
-  @Mock
-  private BigqueryFactory.Subfactory subfactory;
-
-  @Mock
-  private Bigquery bigquery;
-
-  @Mock
-  private Bigquery.Datasets bigqueryDatasets;
-
-  @Mock
-  private Bigquery.Datasets.Insert bigqueryDatasetsInsert;
-
-  @Mock
-  private Bigquery.Tables bigqueryTables;
-
-  @Mock
-  private Bigquery.Tables.Insert bigqueryTablesInsert;
+  private final BigqueryFactory.Subfactory subfactory = mock(BigqueryFactory.Subfactory.class);
+  private final Bigquery bigquery = mock(Bigquery.class);
+  private final Bigquery.Datasets bigqueryDatasets = mock(Bigquery.Datasets.class);
+  private final Bigquery.Datasets.Insert bigqueryDatasetsInsert =
+      mock(Bigquery.Datasets.Insert.class);
+  private final Bigquery.Tables bigqueryTables = mock(Bigquery.Tables.class);
+  private final Bigquery.Tables.Insert bigqueryTablesInsert = mock(Bigquery.Tables.Insert.class);
 
   private BigqueryFactory factory;
 

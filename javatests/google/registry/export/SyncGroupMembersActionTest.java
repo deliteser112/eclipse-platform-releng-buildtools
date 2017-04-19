@@ -26,6 +26,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,8 +49,7 @@ import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /**
  * Unit tests for {@link SyncGroupMembersAction}.
@@ -57,7 +57,7 @@ import org.mockito.runners.MockitoJUnitRunner;
  * <p>Note that this relies on the registrars NewRegistrar and TheRegistrar created by default in
  * {@link AppEngineRule}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class SyncGroupMembersActionTest {
 
   @Rule
@@ -71,11 +71,8 @@ public class SyncGroupMembersActionTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  @Mock
-  private DirectoryGroupsConnection connection;
-
-  @Mock
-  private Response response;
+  private final DirectoryGroupsConnection connection = mock(DirectoryGroupsConnection.class);
+  private final Response response = mock(Response.class);
 
   private void runAction() {
     SyncGroupMembersAction action = new SyncGroupMembersAction();

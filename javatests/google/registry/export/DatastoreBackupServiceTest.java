@@ -18,6 +18,7 @@ import static com.google.appengine.api.datastore.DatastoreServiceFactory.getData
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.datastore.Entity;
@@ -35,11 +36,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link DatastoreBackupService}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class DatastoreBackupServiceTest {
 
   @Rule
@@ -54,8 +54,7 @@ public class DatastoreBackupServiceTest {
       .withTaskQueue()
       .build();
 
-  @Mock
-  private ModulesService modulesService;
+  private final ModulesService modulesService = mock(ModulesService.class);
 
   private static final DateTime START_TIME = DateTime.parse("2014-08-01T01:02:03Z");
 

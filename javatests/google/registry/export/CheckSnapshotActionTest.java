@@ -19,6 +19,7 @@ import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_KINDS_TO
 import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_NAME_PARAM;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Joiner;
@@ -41,11 +42,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link CheckSnapshotAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class CheckSnapshotActionTest {
 
   static final DateTime START_TIME = DateTime.parse("2014-08-01T01:02:03Z");
@@ -55,7 +55,7 @@ public class CheckSnapshotActionTest {
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withTaskQueue().build();
   @Rule public final ExceptionRule thrown = new ExceptionRule();
 
-  @Mock private DatastoreBackupService backupService;
+  private final DatastoreBackupService backupService = mock(DatastoreBackupService.class);
 
   private DatastoreBackupInfo backupInfo;
 
