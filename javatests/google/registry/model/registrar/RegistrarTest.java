@@ -29,6 +29,7 @@ import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import google.registry.model.EntityTestCase;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.registrar.Registrar.State;
@@ -46,7 +47,8 @@ public class RegistrarTest extends EntityTestCase {
   @Rule
   public ExceptionRule thrown = new ExceptionRule();
 
-  Registrar registrar;
+  private Registrar registrar;
+  private RegistrarContact abuseAdminContact;
 
   @Before
   public void setUp() throws Exception {
@@ -98,7 +100,7 @@ public class RegistrarTest extends EntityTestCase {
                 .setPhonePasscode("01234")
                 .build());
     persistResource(registrar);
-    persistSimpleResources(ImmutableList.of(
+    abuseAdminContact =
         new RegistrarContact.Builder()
             .setParent(registrar)
             .setName("John Abused")
@@ -107,20 +109,20 @@ public class RegistrarTest extends EntityTestCase {
             .setVisibleInWhoisAsTech(false)
             .setPhoneNumber("+1.2125551213")
             .setFaxNumber("+1.2125551213")
-            .setTypes(ImmutableSet.of(
-                RegistrarContact.Type.ABUSE,
-                RegistrarContact.Type.ADMIN))
-            .build(),
-        new RegistrarContact.Builder()
-            .setParent(registrar)
-            .setName("John Doe")
-            .setEmailAddress("johndoe@example.com")
-            .setPhoneNumber("+1.2125551213")
-            .setFaxNumber("+1.2125551213")
-            .setTypes(ImmutableSet.of(
-                RegistrarContact.Type.LEGAL,
-                RegistrarContact.Type.MARKETING))
-            .build()));
+            .setTypes(ImmutableSet.of(RegistrarContact.Type.ABUSE, RegistrarContact.Type.ADMIN))
+            .build();
+    persistSimpleResources(
+        ImmutableList.of(
+            abuseAdminContact,
+            new RegistrarContact.Builder()
+                .setParent(registrar)
+                .setName("John Doe")
+                .setEmailAddress("johndoe@example.com")
+                .setPhoneNumber("+1.2125551213")
+                .setFaxNumber("+1.2125551213")
+                .setTypes(
+                    ImmutableSet.of(RegistrarContact.Type.LEGAL, RegistrarContact.Type.MARKETING))
+                .build()));
   }
 
   @Test
@@ -272,6 +274,40 @@ public class RegistrarTest extends EntityTestCase {
     for (RegistrarContact rc : registrar.getContacts()) {
       rc.toJsonMap();
     }
+  }
+
+  @Test
+  public void testSuccess_getContactsByType() throws Exception {
+    RegistrarContact newTechContact =
+        persistSimpleResource(
+            new RegistrarContact.Builder()
+                .setParent(registrar)
+                .setName("Jake Tech")
+                .setEmailAddress("jaketech@example.com")
+                .setVisibleInWhoisAsAdmin(true)
+                .setVisibleInWhoisAsTech(true)
+                .setPhoneNumber("+1.2125551213")
+                .setFaxNumber("+1.2125551213")
+                .setTypes(ImmutableSet.of(RegistrarContact.Type.TECH))
+                .build());
+    RegistrarContact newTechAbuseContact =
+        persistSimpleResource(
+            new RegistrarContact.Builder()
+                .setParent(registrar)
+                .setName("Jim Tech-Abuse")
+                .setEmailAddress("jimtechAbuse@example.com")
+                .setVisibleInWhoisAsAdmin(true)
+                .setVisibleInWhoisAsTech(true)
+                .setPhoneNumber("+1.2125551213")
+                .setFaxNumber("+1.2125551213")
+                .setTypes(ImmutableSet.of(RegistrarContact.Type.TECH, RegistrarContact.Type.ABUSE))
+                .build());
+    ImmutableSortedSet<RegistrarContact> techContacts =
+        registrar.getContactsOfType(RegistrarContact.Type.TECH);
+    assertThat(techContacts).containsExactly(newTechContact, newTechAbuseContact).inOrder();
+    ImmutableSortedSet<RegistrarContact> abuseContacts =
+        registrar.getContactsOfType(RegistrarContact.Type.ABUSE);
+    assertThat(abuseContacts).containsExactly(newTechAbuseContact, abuseAdminContact).inOrder();
   }
 
   @Test

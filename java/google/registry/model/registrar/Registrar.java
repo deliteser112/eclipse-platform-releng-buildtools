@@ -188,6 +188,17 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
       immutableEnumSet(
           Type.REAL, Type.PDT, Type.OTE, Type.EXTERNAL_MONITORING, Type.MONITORING, Type.INTERNAL);
 
+  /**
+   * Compare two instances of {@link RegistrarContact} by their email addresses lexicographically.
+   */
+  private static final Comparator<RegistrarContact> CONTACT_EMAIL_COMPARATOR =
+      new Comparator<RegistrarContact>() {
+        @Override
+        public int compare(RegistrarContact rc1, RegistrarContact rc2) {
+          return rc1.getEmailAddress().compareTo(rc2.getEmailAddress());
+        }
+      };
+
   @Parent
   Key<EntityGroupRoot> parent = getCrossTldKey();
 
@@ -532,14 +543,30 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    * address.
    */
   public ImmutableSortedSet<RegistrarContact> getContacts() {
-    return FluentIterable
-        .from(ofy().load().type(RegistrarContact.class).ancestor(Registrar.this))
+    return FluentIterable.from(getContactsIterable())
         .filter(notNull())
-        .toSortedSet(new Comparator<RegistrarContact>() {
-          @Override
-          public int compare(RegistrarContact rc1, RegistrarContact rc2) {
-            return rc1.getEmailAddress().compareTo(rc2.getEmailAddress());
-          }});
+        .toSortedSet(CONTACT_EMAIL_COMPARATOR);
+  }
+
+  /**
+   * Returns a list of {@link RegistrarContact} objects of a given type for this registrar sorted by
+   * their email address.
+   */
+  public ImmutableSortedSet<RegistrarContact> getContactsOfType(final RegistrarContact.Type type) {
+    return FluentIterable.from(getContactsIterable())
+        .filter(notNull())
+        .filter(
+            new Predicate<RegistrarContact>() {
+              @Override
+              public boolean apply(@Nullable RegistrarContact contact) {
+                return contact.getTypes().contains(type);
+              }
+            })
+        .toSortedSet(CONTACT_EMAIL_COMPARATOR);
+  }
+
+  private Iterable<RegistrarContact> getContactsIterable() {
+    return ofy().load().type(RegistrarContact.class).ancestor(Registrar.this);
   }
 
   @Override
