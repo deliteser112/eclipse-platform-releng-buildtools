@@ -40,10 +40,10 @@ import java.util.NoSuchElementException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdeContactReader} */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RdeContactReaderTest {
 
   private static final ByteSource DEPOSIT_1_CONTACT =

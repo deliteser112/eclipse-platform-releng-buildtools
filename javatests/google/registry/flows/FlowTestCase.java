@@ -64,14 +64,14 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /**
  * Base class for resource flow unit tests.
  *
  * @param <F> the flow type
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
 
   /** Whether to actually write to Datastore or just simulate. */

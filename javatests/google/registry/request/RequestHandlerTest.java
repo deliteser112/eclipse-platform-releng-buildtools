@@ -17,6 +17,7 @@ package google.registry.request;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -51,11 +52,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RequestHandler}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public final class RequestHandlerTest {
 
   @Rule
@@ -221,23 +221,12 @@ public final class RequestHandlerTest {
     }
   }
 
-  @Mock
-  private HttpServletRequest req;
-
-  @Mock
-  private HttpServletResponse rsp;
-
-  @Mock
-  private BumblebeeTask bumblebeeTask;
-
-  @Mock
-  private SlothTask slothTask;
-
-  @Mock
-  private UsersOnlyAction usersOnlyAction;
-
-  @Mock
-  private SafeSlothTask safeSlothTask;
+  private final HttpServletRequest req = mock(HttpServletRequest.class);
+  private final HttpServletResponse rsp = mock(HttpServletResponse.class);
+  private final BumblebeeTask bumblebeeTask = mock(BumblebeeTask.class);
+  private final SlothTask slothTask = mock(SlothTask.class);
+  private final UsersOnlyAction usersOnlyAction = mock(UsersOnlyAction.class);
+  private final SafeSlothTask safeSlothTask = mock(SafeSlothTask.class);
 
   private final Component component = new Component();
   private final StringWriter httpOutput = new StringWriter();

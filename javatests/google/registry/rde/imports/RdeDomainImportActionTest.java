@@ -60,10 +60,10 @@ import org.joda.time.Seconds;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdeDomainImportAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImportAction> {
 
   private static final ByteSource DEPOSIT_1_DOMAIN = RdeImportsTestData.get("deposit_1_domain.xml");

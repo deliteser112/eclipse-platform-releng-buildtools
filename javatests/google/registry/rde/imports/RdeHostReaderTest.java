@@ -40,10 +40,10 @@ import java.util.NoSuchElementException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdeHostReader} */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RdeHostReaderTest {
 
   private static final ByteSource DEPOSIT_1_HOST = RdeImportsTestData.get("deposit_1_host.xml");

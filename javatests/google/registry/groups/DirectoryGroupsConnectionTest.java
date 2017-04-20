@@ -22,6 +22,7 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,50 +54,29 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /**
  * Unit tests for {@link DirectoryGroupsConnection}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class DirectoryGroupsConnectionTest {
 
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
-  @Mock
-  private Directory directory;
-
-  @Mock
-  private Groupssettings groupsSettings;
-
-  @Mock
-  private Directory.Members members;
-
-  @Mock
-  private Directory.Groups directoryGroups;
-
-  @Mock
-  private Groupssettings.Groups settingsGroups;
-
-  @Mock
-  private Directory.Members.Insert membersInsert;
-
-  @Mock
-  private Directory.Groups.Insert groupsInsert;
-
-  @Mock
-  private Directory.Groups.Get groupsGet;
-
-  @Mock
-  private Directory.Members.Get membersGet;
-
-  @Mock
-  private Directory.Members.List membersList;
-
-  @Mock
-  private Groupssettings.Groups.Patch groupsSettingsPatch;
+  private final Directory directory = mock(Directory.class);
+  private final Groupssettings groupsSettings = mock(Groupssettings.class);
+  private final Directory.Members members = mock(Directory.Members.class);
+  private final Directory.Groups directoryGroups = mock(Directory.Groups.class);
+  private final Groupssettings.Groups settingsGroups = mock(Groupssettings.Groups.class);
+  private final Directory.Members.Insert membersInsert = mock(Directory.Members.Insert.class);
+  private final Directory.Groups.Insert groupsInsert = mock(Directory.Groups.Insert.class);
+  private final Directory.Groups.Get groupsGet = mock(Directory.Groups.Get.class);
+  private final Directory.Members.Get membersGet = mock(Directory.Members.Get.class);
+  private final Directory.Members.List membersList = mock(Directory.Members.List.class);
+  private final Groupssettings.Groups.Patch groupsSettingsPatch =
+      mock(Groupssettings.Groups.Patch.class);
 
   private DirectoryGroupsConnection connection;
   private Member expectedOwner = new Member();

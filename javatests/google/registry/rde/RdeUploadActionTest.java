@@ -89,11 +89,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 import org.mockito.stubbing.OngoingStubbing;
 
 /** Unit tests for {@link RdeUploadAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RdeUploadActionTest {
 
   private static final int BUFFER_SIZE = 64 * 1024;

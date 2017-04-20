@@ -21,6 +21,7 @@ import static google.registry.request.RequestParameters.extractOptionalDatetimeP
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
@@ -31,18 +32,16 @@ import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RequestParameters}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RequestParametersTest {
 
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
-  @Mock
-  private HttpServletRequest req;
+  private final HttpServletRequest req = mock(HttpServletRequest.class);
 
   @Test
   public void testExtractRequiredParameter_valuePresent_returnsValue() throws Exception {

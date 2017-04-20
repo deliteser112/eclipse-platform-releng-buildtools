@@ -33,10 +33,10 @@ import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdeContactInput} */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RdeContactInputTest {
 
   private static final ByteSource DEPOSIT_0_CONTACT =

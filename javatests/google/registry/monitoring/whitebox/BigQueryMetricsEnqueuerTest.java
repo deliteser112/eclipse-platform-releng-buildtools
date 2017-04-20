@@ -18,6 +18,7 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
 import static google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer.QUEUE_BIGQUERY_STREAMING_METRICS;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
@@ -34,12 +35,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link BigQueryMetricsEnqueuer}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class BigQueryMetricsEnqueuerTest {
 
   @Rule
@@ -52,7 +52,7 @@ public class BigQueryMetricsEnqueuerTest {
       .withTaskQueue()
       .build();
 
-  @Mock ModulesService modulesService;
+  private final ModulesService modulesService = mock(ModulesService.class);
 
   private BigQueryMetricsEnqueuer enqueuer;
 

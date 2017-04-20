@@ -23,6 +23,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,11 +62,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdeImportUtils} */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RdeImportUtilsTest extends ShardableTestCase {
 
   private static final ByteSource DEPOSIT_XML = RdeImportsTestData.get("deposit_full.xml");
@@ -84,8 +84,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
-  @Mock
-  private GcsUtils gcsUtils;
+  private final GcsUtils gcsUtils = mock(GcsUtils.class);
 
   private RdeImportUtils rdeImportUtils;
   private FakeClock clock;

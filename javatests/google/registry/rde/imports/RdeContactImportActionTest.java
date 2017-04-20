@@ -46,10 +46,10 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdeContactImportAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RdeContactImportActionTest extends MapreduceTestCase<RdeContactImportAction> {
 
   private static final ByteSource DEPOSIT_1_CONTACT =
