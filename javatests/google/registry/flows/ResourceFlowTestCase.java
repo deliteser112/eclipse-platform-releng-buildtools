@@ -175,7 +175,7 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
 
   protected void assertIcannReportingActivityFieldLogged(String fieldName) {
     assertAboutLogs().that(logHandler)
-        .hasLogAtLevelWithMessage(Level.INFO, "EPP-REPORTING-LOG-SIGNATURE")
+        .hasLogAtLevelWithMessage(Level.INFO, "FLOW-LOG-SIGNATURE-METADATA")
         .which()
         .contains(fieldName);
   }

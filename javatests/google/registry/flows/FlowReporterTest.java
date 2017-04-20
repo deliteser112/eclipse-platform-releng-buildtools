@@ -71,55 +71,55 @@ public class FlowReporterTest extends ShardableTestCase {
   }
 
   @Test
-  public void testRecordToLogs_basic() throws Exception {
+  public void testRecordToLogs_eppInput_basic() throws Exception {
     flowReporter.recordToLogs();
-    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
+    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-EPPINPUT: ")))
         .containsExactly(
-              "trid", "server-456",
-              "clientId", "TheRegistrar",
               "xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n",
-              "xmlBytes", "PHhtbC8+", // Base64-encoding of "<xml/>".
-              "icannActivityReportField", "");
+              "xmlBytes", "PHhtbC8+"); // Base64-encoding of "<xml/>".
   }
 
   @Test
-  public void testRecordToLogs_withReportingSpec() throws Exception {
-    flowReporter.flowClass = TestReportingSpecCommandFlow.class;
-    flowReporter.recordToLogs();
-    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
-        .containsExactly(
-              "trid", "server-456",
-              "clientId", "TheRegistrar",
-              "xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n",
-              "xmlBytes", "PHhtbC8+", // Base64-encoding of "<xml/>".
-              "icannActivityReportField", "srs-cont-check");
-  }
-
-  @Test
-  public void testRecordToLogs_noClientId() throws Exception {
-    flowReporter.clientId = "";
-    flowReporter.recordToLogs();
-    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
-        .containsExactly(
-              "trid", "server-456",
-              "clientId", "",
-              "xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n",
-              "xmlBytes", "PHhtbC8+",  // Base64-encoding of "<xml/>".
-              "icannActivityReportField", "");
-  }
-
-  @Test
-  public void testRecordToLogs_complexEppInput() throws Exception {
+  public void testRecordToLogs_eppInput_complex() throws Exception {
     String domainCreateXml = loadFileWithSubstitutions(
         getClass(), "domain_create_prettyprinted.xml", ImmutableMap.<String, String>of());
     flowReporter.inputXmlBytes = domainCreateXml.getBytes(UTF_8);
     flowReporter.recordToLogs();
-    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "EPP-REPORTING-LOG-SIGNATURE: ")))
+    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-EPPINPUT: ")))
+        .containsExactly(
+              "xml", domainCreateXml,
+              "xmlBytes", base64().encode(domainCreateXml.getBytes(UTF_8)));
+  }
+
+  @Test
+  public void testRecordToLogs_metadata_basic() throws Exception {
+    flowReporter.recordToLogs();
+    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: ")))
         .containsExactly(
               "trid", "server-456",
               "clientId", "TheRegistrar",
-              "xml", domainCreateXml,
-              "xmlBytes", base64().encode(domainCreateXml.getBytes(UTF_8)),
+              "icannActivityReportField", "");
+  }
+
+  @Test
+  public void testRecordToLogs_metadata_withReportingSpec() throws Exception {
+    flowReporter.flowClass = TestReportingSpecCommandFlow.class;
+    flowReporter.recordToLogs();
+    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: ")))
+        .containsExactly(
+              "trid", "server-456",
+              "clientId", "TheRegistrar",
+              "icannActivityReportField", "srs-cont-check");
+  }
+
+  @Test
+  public void testRecordToLogs_metadata_noClientId() throws Exception {
+    flowReporter.clientId = "";
+    flowReporter.recordToLogs();
+    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: ")))
+        .containsExactly(
+              "trid", "server-456",
+              "clientId", "",
               "icannActivityReportField", "");
   }
 

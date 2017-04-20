@@ -28,12 +28,20 @@ import org.json.simple.JSONValue;
 
 /** Reporter used by {@link FlowRunner} to record flow execution data for reporting. */
 public class FlowReporter {
+
   /**
-   * Log signature used by reporting pipelines to extract matching log lines.
+   * Log signature for recording flow EPP input data.
    *
    * <p><b>WARNING:<b/> DO NOT CHANGE this value unless you want to break reporting.
    */
-  private static final String REPORTING_LOG_SIGNATURE = "EPP-REPORTING-LOG-SIGNATURE";
+  private static final String EPPINPUT_LOG_SIGNATURE = "FLOW-LOG-SIGNATURE-EPPINPUT";
+
+  /**
+   * Log signature for recording flow metadata (anything beyond or derived from the raw EPP input).
+   *
+   * <p><b>WARNING:<b/> DO NOT CHANGE this value unless you want to break reporting.
+   */
+  private static final String METADATA_LOG_SIGNATURE = "FLOW-LOG-SIGNATURE-METADATA";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -45,16 +53,23 @@ public class FlowReporter {
 
   /** Records information about the current flow execution in the GAE request logs. */
   public void recordToLogs() {
-    // WARNING: This JSON log statement is parsed by reporting pipelines - be careful when changing.
+    // WARNING: These log statements are parsed by reporting pipelines - be careful when changing.
     // It should be safe to add new keys, but be very cautious in changing existing keys.
     logger.infofmt(
         "%s: %s",
-        REPORTING_LOG_SIGNATURE,
+        EPPINPUT_LOG_SIGNATURE,
+        JSONValue.toJSONString(ImmutableMap.<String, Object>of(
+            "xml", prettyPrint(inputXmlBytes),
+            "xmlBytes", base64().encode(inputXmlBytes))));
+    // Explicitly log flow metadata separately from the EPP XML itself so that it stays compact
+    // enough to be sure to fit in a single log entry (the XML part in rare cases could be long
+    // enough to overflow into multiple log entries, breaking routine parsing of the JSON format).
+    logger.infofmt(
+        "%s: %s",
+        METADATA_LOG_SIGNATURE,
         JSONValue.toJSONString(ImmutableMap.<String, Object>of(
             "trid", trid.getServerTransactionId(),
             "clientId", clientId,
-            "xml", prettyPrint(inputXmlBytes),
-            "xmlBytes", base64().encode(inputXmlBytes),
             "icannActivityReportField", extractActivityReportField(flowClass))));
   }
 
