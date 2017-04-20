@@ -16,6 +16,7 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.UserServiceFactory;
@@ -30,11 +31,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link ConsoleUiAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class ConsoleUiActionTest {
 
   @Rule
@@ -43,8 +43,7 @@ public class ConsoleUiActionTest {
       .withUserService(UserInfo.create("marla.singer@example.com", "12345"))
       .build();
 
-  @Mock
-  private SessionUtils sessionUtils;
+  private final SessionUtils sessionUtils = mock(SessionUtils.class);
 
   private final FakeResponse response = new FakeResponse();
   private final ConsoleUiAction action = new ConsoleUiAction();

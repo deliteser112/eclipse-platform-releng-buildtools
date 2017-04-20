@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,34 +41,22 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentMatcher;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Tests for {@link DriveConnection}.*/
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class DriveConnectionTest {
 
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
-  @Mock
-  Drive drive;
-
-  @Mock
-  Files files;
-
-  @Mock
-  Children children;
-
-  @Mock
-  Files.Insert insert;
-
-  @Mock
-  Files.Update update;
-
-  @Mock
-  Children.List childrenList;
+  private final Drive drive = mock(Drive.class);
+  private final Files files = mock(Files.class);
+  private final Children children = mock(Children.class);
+  private final Files.Insert insert = mock(Files.Insert.class);
+  private final Files.Update update = mock(Files.Update.class);
+  private final Children.List childrenList = mock(Children.List.class);
 
   private static final byte[] DATA = {1, 2, 3};
   ChildList childList;

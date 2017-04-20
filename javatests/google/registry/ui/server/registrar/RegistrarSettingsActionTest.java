@@ -32,10 +32,10 @@ import java.util.Map;
 import javax.mail.internet.InternetAddress;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Tests for {@link RegistrarSettingsAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase {
 
   @Test

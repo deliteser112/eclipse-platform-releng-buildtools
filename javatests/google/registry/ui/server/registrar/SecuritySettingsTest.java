@@ -29,7 +29,7 @@ import google.registry.model.registrar.Registrar;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /**
  * Unit tests for security_settings.js use of {@link RegistrarSettingsAction}.
@@ -37,7 +37,7 @@ import org.mockito.runners.MockitoJUnitRunner;
  * <p>The default read and session validation tests are handled by the
  * superclass.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
 
   @Test

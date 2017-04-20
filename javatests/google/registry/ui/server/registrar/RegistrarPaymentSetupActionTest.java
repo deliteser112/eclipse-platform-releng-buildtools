@@ -17,6 +17,7 @@ package google.registry.ui.server.registrar;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,11 +32,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Tests for {@link RegistrarPaymentSetupAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RegistrarPaymentSetupActionTest {
 
   @Rule
@@ -43,14 +43,9 @@ public class RegistrarPaymentSetupActionTest {
       .withDatastore()
       .build();
 
-  @Mock
-  private BraintreeGateway braintreeGateway;
-
-  @Mock
-  private ClientTokenGateway clientTokenGateway;
-
-  @Mock
-  private BraintreeRegistrarSyncer customerSyncer;
+  private final BraintreeGateway braintreeGateway = mock(BraintreeGateway.class);
+  private final ClientTokenGateway clientTokenGateway = mock(ClientTokenGateway.class);
+  private final BraintreeRegistrarSyncer customerSyncer = mock(BraintreeRegistrarSyncer.class);
 
   private final RegistrarPaymentSetupAction action = new RegistrarPaymentSetupAction();
 

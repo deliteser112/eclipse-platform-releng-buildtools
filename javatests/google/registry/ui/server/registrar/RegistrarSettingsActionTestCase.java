@@ -19,6 +19,7 @@ import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDispla
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.security.JsonHttpTestUtils.createJsonResponseSupplier;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.modules.ModulesService;
@@ -50,11 +51,10 @@ import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Base class for tests using {@link RegistrarSettingsAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RegistrarSettingsActionTestCase {
 
   static final String CLIENT_ID = "TheRegistrar";
@@ -68,20 +68,11 @@ public class RegistrarSettingsActionTestCase {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  @Mock
-  HttpServletRequest req;
-
-  @Mock
-  HttpServletResponse rsp;
-
-  @Mock
-  SendEmailService emailService;
-
-  @Mock
-  ModulesService modulesService;
-
-  @Mock
-  SessionUtils sessionUtils;
+  final HttpServletRequest req = mock(HttpServletRequest.class);
+  final HttpServletResponse rsp = mock(HttpServletResponse.class);
+  final SendEmailService emailService = mock(SendEmailService.class);
+  final ModulesService modulesService = mock(ModulesService.class);
+  final SessionUtils sessionUtils = mock(SessionUtils.class);
 
   Message message;
 

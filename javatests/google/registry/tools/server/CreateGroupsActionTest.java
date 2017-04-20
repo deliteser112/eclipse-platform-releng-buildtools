@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,13 +34,12 @@ import google.registry.testing.InjectRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /**
  * Unit tests for {@link CreateGroupsAction}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class CreateGroupsActionTest {
 
   @Rule
@@ -53,11 +53,8 @@ public class CreateGroupsActionTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  @Mock
-  private DirectoryGroupsConnection connection;
-
-  @Mock
-  private Response response;
+  private final DirectoryGroupsConnection connection = mock(DirectoryGroupsConnection.class);
+  private final Response response = mock(Response.class);
 
   private void runAction(String clientId) {
     CreateGroupsAction action = new CreateGroupsAction();

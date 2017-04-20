@@ -51,10 +51,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link LordnTask}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class LordnTaskTest {
 
   private static final Clock clock = new FakeClock(DateTime.parse("2010-05-01T10:11:12Z"));

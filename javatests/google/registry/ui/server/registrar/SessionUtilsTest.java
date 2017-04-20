@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.AppEngineRule.THE_REGISTRAR_GAE_USER_ID;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -37,11 +38,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link SessionUtils}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class SessionUtilsTest {
 
   @Rule
@@ -55,17 +55,10 @@ public class SessionUtilsTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  @Mock
-  private UserService userService;
-
-  @Mock
-  private HttpServletRequest req;
-
-  @Mock
-  private HttpServletResponse rsp;
-
-  @Mock
-  private HttpSession session;
+  private final UserService userService = mock(UserService.class);
+  private final HttpServletRequest req = mock(HttpServletRequest.class);
+  private final HttpServletResponse rsp = mock(HttpServletResponse.class);
+  private final HttpSession session = mock(HttpSession.class);
 
   private SessionUtils sessionUtils;
   private final User jart = new User("jart@google.com", "google.com", THE_REGISTRAR_GAE_USER_ID);
@@ -112,7 +105,7 @@ public class SessionUtilsTest {
   }
 
   @Test
-  public void testCheckRegistrarConsoleLogin_notLoggedIn_throwsIllegalStateException() 
+  public void testCheckRegistrarConsoleLogin_notLoggedIn_throwsIllegalStateException()
       throws Exception {
     thrown.expect(IllegalStateException.class);
     @SuppressWarnings("unused")

@@ -19,6 +19,7 @@ import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddres
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,11 +39,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link SendEmailUtils}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class SendEmailUtilsTest {
 
   @Rule
@@ -51,8 +51,7 @@ public class SendEmailUtilsTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  @Mock
-  private SendEmailService emailService;
+  private final SendEmailService emailService = mock(SendEmailService.class);
 
   private Message message;
   private SendEmailUtils sendEmailUtils;
