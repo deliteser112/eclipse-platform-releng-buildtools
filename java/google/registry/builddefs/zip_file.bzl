@@ -107,6 +107,18 @@ A zip file can be assembled across many rules. For example:
       mappings = {"webapp/html": ""},
   )
 
+You can exclude files with the "exclude" attribute:
+
+  # //webapp/BUILD
+  zip_file(
+      name = "war_without_tears",
+      deps = ["war"],
+      exclude = ["assets/js/tears.js"],
+  )
+
+Note that "exclude" excludes based on the mapped path relative to the root of
+the zipfile. If the file doesn't exist, you'll get an error.
+
 """
 
 load('//java/google/registry/builddefs:defs.bzl',
@@ -136,6 +148,7 @@ def _zip_file(ctx):
   ]
   cmd += ['"${zipper}" x "${repo}/%s"' % dep.zip_file.path
           for dep in ctx.attr.deps]
+  cmd += ['rm %s' % filename for filename in ctx.attr.exclude]
   cmd += ['mkdir -p "${tmp}/%s"' % zip_path
           for zip_path in set(
               [zip_path[:zip_path.rindex('/')]
@@ -217,6 +230,7 @@ zip_file = rule(
         'srcs': attr.label_list(allow_files=True),
         'data': attr.label_list(cfg='data', allow_files=True),
         'deps': attr.label_list(providers=['zip_file']),
+        'exclude': attr.string_list(),
         'mappings': attr.string_dict(),
         '_zipper': attr.label(default=Label(ZIPPER), single_file=True),
     })
