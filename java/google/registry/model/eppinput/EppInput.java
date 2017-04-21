@@ -17,6 +17,8 @@ package google.registry.model.eppinput;
 import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
+import com.google.common.base.Ascii;
+import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -63,6 +65,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSchema;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -80,17 +83,57 @@ public class EppInput extends ImmutableObject {
     return commandWrapper;
   }
 
-  public String getCommandName() {
-    return (commandWrapper instanceof Hello)
+  /**
+   * Returns the EPP command name, defined as the name of the {@code InnerCommand} element within
+   * the {@code <command>} element (e.g. "create" or "poll"), or "hello" for the hello command.
+   */
+  public String getCommandType() {
+    return Ascii.toLowerCase((commandWrapper instanceof Hello)
         ? Hello.class.getSimpleName()
-        : commandWrapper.getCommand().getClass().getSimpleName();
+        : commandWrapper.getCommand().getClass().getSimpleName());
   }
 
-  public ImmutableList<String> getTargetIds() {
+  /**
+   * Returns the EPP resource type ("domain", "contact", or "host") for commands that operate on
+   * EPP resources, otherwise absent.
+   */
+  public Optional<String> getResourceType() {
+    ResourceCommand resourceCommand = getResourceCommand();
+    if (resourceCommand != null) {
+       XmlSchema xmlSchemaAnnotation =
+           resourceCommand.getClass().getPackage().getAnnotation(XmlSchema.class);
+       if (xmlSchemaAnnotation != null && xmlSchemaAnnotation.xmlns().length > 0) {
+         return Optional.of(xmlSchemaAnnotation.xmlns()[0].prefix());
+       }
+    }
+    return Optional.absent();
+  }
+
+  @Nullable
+  private ResourceCommand getResourceCommand() {
     InnerCommand innerCommand = commandWrapper.getCommand();
-    ResourceCommand resourceCommand = innerCommand instanceof ResourceCommandWrapper
+    return innerCommand instanceof ResourceCommandWrapper
         ? ((ResourceCommandWrapper) innerCommand).getResourceCommand()
         : null;
+  }
+
+  /**
+   * Returns the target ID (name for domains and hosts, contact ID for contacts) if this command
+   * always acts on a single EPP resource, or absent otherwise (e.g. for "check" or "poll").
+   */
+  public Optional<String> getSingleTargetId() {
+    ResourceCommand resourceCommand = getResourceCommand();
+    return resourceCommand instanceof SingleResourceCommand
+        ? Optional.of(((SingleResourceCommand) resourceCommand).getTargetId())
+        : Optional.<String>absent();
+  }
+
+  /**
+   * Returns all the target IDs (name for domains and hosts, contact ID for contacts) that this
+   * command references if it acts on EPP resources, or the empty list otherwise (e.g. for "poll").
+   */
+  public ImmutableList<String> getTargetIds() {
+    ResourceCommand resourceCommand = getResourceCommand();
     if (resourceCommand instanceof SingleResourceCommand) {
       return ImmutableList.of(((SingleResourceCommand) resourceCommand).getTargetId());
     } else if (resourceCommand instanceof ResourceCheck) {

@@ -36,9 +36,11 @@ public class EppInputTest {
         unmarshal(
             EppInput.class,
             readResourceBytes(ContactResourceTest.class, "testdata/contact_info.xml").read());
-    assertThat(input.getTargetIds()).containsExactly("sh8013");
     assertThat(input.getCommandWrapper().getClTrid()).isEqualTo("ABC-12345");
-    assertThat(input.getCommandName()).isEqualTo("Info");
+    assertThat(input.getCommandType()).isEqualTo("info");
+    assertThat(input.getResourceType()).hasValue("contact");
+    assertThat(input.getSingleTargetId()).hasValue("sh8013");
+    assertThat(input.getTargetIds()).containsExactly("sh8013");
   }
 
   @Test
@@ -47,18 +49,22 @@ public class EppInputTest {
         unmarshal(
             EppInput.class,
             readResourceBytes(DomainResourceTest.class, "testdata/domain_check.xml").read());
-    assertThat(input.getTargetIds()).containsExactly("example.com", "example.net", "example.org");
     assertThat(input.getCommandWrapper().getClTrid()).isEqualTo("ABC-12345");
-    assertThat(input.getCommandName()).isEqualTo("Check");
+    assertThat(input.getCommandType()).isEqualTo("check");
+    assertThat(input.getResourceType()).hasValue("domain");
+    assertThat(input.getSingleTargetId()).isAbsent();
+    assertThat(input.getTargetIds()).containsExactly("example.com", "example.net", "example.org");
   }
 
   @Test
   public void testUnmarshalling_login() throws Exception {
     EppInput input =
         unmarshal(EppInput.class, readResourceBytes(getClass(), "testdata/login_valid.xml").read());
-    assertThat(input.getTargetIds()).isEmpty();
     assertThat(input.getCommandWrapper().getClTrid()).isEqualTo("ABC-12345");
-    assertThat(input.getCommandName()).isEqualTo("Login");
+    assertThat(input.getCommandType()).isEqualTo("login");
+    assertThat(input.getResourceType()).isAbsent();
+    assertThat(input.getSingleTargetId()).isAbsent();
+    assertThat(input.getTargetIds()).isEmpty();
     InnerCommand command = input.getCommandWrapper().getCommand();
     assertThat(command).isInstanceOf(Login.class);
     Login loginCommand = (Login) command;

@@ -39,7 +39,7 @@ public class EppXmlTransformerTest extends ShardableTestCase {
   public void testUnmarshalingEppInput() throws Exception {
     EppInput input = unmarshal(
         EppInput.class, readResourceBytes(getClass(), "testdata/contact_info.xml").read());
-    assertThat(input.getCommandName()).isEqualTo("Info");
+    assertThat(input.getCommandType()).isEqualTo("info");
   }
 
   @Test
