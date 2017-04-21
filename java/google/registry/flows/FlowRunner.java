@@ -73,8 +73,10 @@ public class FlowRunner {
         eppRequestSource,
         isDryRun ? "DRY_RUN" : "LIVE",
         isSuperuser ? "SUPERUSER" : "NORMAL");
-    // Record information about this flow to the GAE request logs for reporting purposes.
-    flowReporter.recordToLogs();
+    // Record flow info to the GAE request logs for reporting purposes if it's not a dry run.
+    if (!isDryRun) {
+      flowReporter.recordToLogs();
+    }
     eppMetricBuilder.setCommandNameFromFlow(flowClass.getSimpleName());
     if (!isTransactional) {
       eppMetricBuilder.incrementAttempts();

@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.google.appengine.api.users.User;
@@ -117,6 +118,13 @@ public class FlowRunnerTest extends ShardableTestCase {
   public void testRun_callsFlowReporterOnce() throws Exception {
     flowRunner.run(eppMetricBuilder);
     verify(flowRunner.flowReporter).recordToLogs();
+  }
+
+  @Test
+  public void testRun_dryRun_doesNotCallFlowReporter() throws Exception {
+    flowRunner.isDryRun = true;
+    flowRunner.run(eppMetricBuilder);
+    verify(flowRunner.flowReporter, never()).recordToLogs();
   }
 
   @Test
