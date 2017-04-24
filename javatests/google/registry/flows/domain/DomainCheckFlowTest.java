@@ -875,7 +875,12 @@ public class DomainCheckFlowTest
 
   @Test
   public void testIcannActivityReportField_getsLogged() throws Exception {
+    createTld("com", TldState.GENERAL_AVAILABILITY);
+    createTld("net", TldState.GENERAL_AVAILABILITY);
+    createTld("org", TldState.GENERAL_AVAILABILITY);
+    setEppInput("domain_check.xml");
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-check");
+    assertTldsFieldLogged("com", "net", "org");
   }
 }

@@ -363,5 +363,6 @@ public class DomainApplicationInfoFlowTest
     persistTestEntities(HostsState.HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-info");
+    assertTldsFieldLogged("tld");
   }
 }

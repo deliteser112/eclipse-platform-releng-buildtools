@@ -158,5 +158,6 @@ public class ClaimsCheckFlowTest extends ResourceFlowTestCase<ClaimsCheckFlow, D
   public void testIcannActivityReportField_getsLogged() throws Exception {
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-check");
+    assertTldsFieldLogged("tld");
   }
 }

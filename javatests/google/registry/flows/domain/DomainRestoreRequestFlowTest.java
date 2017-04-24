@@ -553,5 +553,6 @@ public class DomainRestoreRequestFlowTest extends
     persistPendingDeleteDomain();
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-rgp-restore-request");
-  }
+    assertTldsFieldLogged("tld");
+ }
 }

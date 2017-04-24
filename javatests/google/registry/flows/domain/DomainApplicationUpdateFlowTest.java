@@ -862,5 +862,6 @@ public class DomainApplicationUpdateFlowTest
     clock.advanceOneMilli();
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-update");
+    assertTldsFieldLogged("tld");
   }
 }

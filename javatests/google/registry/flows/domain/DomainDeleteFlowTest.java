@@ -744,5 +744,6 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     clock.advanceOneMilli();
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-delete");
+    assertTldsFieldLogged("tld");
   }
 }

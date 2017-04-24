@@ -45,6 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -173,10 +174,25 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
             .payload(expectedPayload));
   }
 
+
+  protected void assertClientIdFieldLogged(String clientId) {
+    assertAboutLogs().that(logHandler)
+        .hasLogAtLevelWithMessage(Level.INFO, "FLOW-LOG-SIGNATURE-METADATA")
+        .which()
+        .contains("\"clientId\":" + JSONValue.toJSONString(clientId));
+  }
+
+  protected void assertTldsFieldLogged(String... tlds) {
+    assertAboutLogs().that(logHandler)
+        .hasLogAtLevelWithMessage(Level.INFO, "FLOW-LOG-SIGNATURE-METADATA")
+        .which()
+        .contains("\"tlds\":" + JSONValue.toJSONString(ImmutableList.copyOf(tlds)));
+  }
+
   protected void assertIcannReportingActivityFieldLogged(String fieldName) {
     assertAboutLogs().that(logHandler)
         .hasLogAtLevelWithMessage(Level.INFO, "FLOW-LOG-SIGNATURE-METADATA")
         .which()
-        .contains(fieldName);
+        .contains("\"icannActivityReportField\":" + JSONValue.toJSONString(fieldName));
   }
 }

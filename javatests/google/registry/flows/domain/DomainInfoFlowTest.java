@@ -668,5 +668,6 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     persistTestEntities(false);
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-info");
+    assertTldsFieldLogged("tld");
   }
 }

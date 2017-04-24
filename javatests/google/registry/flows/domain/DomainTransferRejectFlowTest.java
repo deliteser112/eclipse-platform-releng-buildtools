@@ -270,5 +270,6 @@ public class DomainTransferRejectFlowTest
   public void testIcannActivityReportField_getsLogged() throws Exception {
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-transfer-reject");
+    assertTldsFieldLogged("tld");
   }
 }

@@ -1812,5 +1812,8 @@ public class DomainApplicationCreateFlowTest
     clock.advanceOneMilli();
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-create");
+    assertTldsFieldLogged("tld");
+    // Ensure we log the client ID for srs-dom-create so we can also use it for attempted-adds.
+    assertClientIdFieldLogged("TheRegistrar");
   }
 }

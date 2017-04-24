@@ -658,5 +658,8 @@ public class DomainAllocateFlowTest
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     runFlow(CommitMode.LIVE, UserPrivileges.SUPERUSER);
     assertIcannReportingActivityFieldLogged("srs-dom-create");
+    assertTldsFieldLogged("tld");
+    // Ensure we log the client ID for srs-dom-create so we can also use it for attempted-adds.
+    assertClientIdFieldLogged("TheRegistrar");
   }
 }

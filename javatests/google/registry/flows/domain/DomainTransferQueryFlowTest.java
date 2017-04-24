@@ -226,5 +226,6 @@ public class DomainTransferQueryFlowTest
   public void testIcannActivityReportField_getsLogged() throws Exception {
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-transfer-query");
+    assertTldsFieldLogged("tld");
   }
 }

@@ -1432,5 +1432,6 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistDomain();
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-update");
+    assertTldsFieldLogged("tld");
   }
 }

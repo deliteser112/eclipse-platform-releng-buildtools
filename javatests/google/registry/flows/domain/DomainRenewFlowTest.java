@@ -646,5 +646,6 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     persistDomain();
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-renew");
+    assertTldsFieldLogged("tld");
   }
 }

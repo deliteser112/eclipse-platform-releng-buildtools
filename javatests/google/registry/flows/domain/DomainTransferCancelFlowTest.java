@@ -307,5 +307,6 @@ public class DomainTransferCancelFlowTest
     clock.advanceOneMilli();
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-transfer-cancel");
+    assertTldsFieldLogged("tld");
   }
 }

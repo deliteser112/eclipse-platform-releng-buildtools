@@ -313,5 +313,6 @@ public class DomainApplicationDeleteFlowTest
     clock.advanceOneMilli();
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-delete");
+    assertTldsFieldLogged("tld");
   }
 }

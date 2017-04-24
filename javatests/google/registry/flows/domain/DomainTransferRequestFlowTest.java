@@ -956,5 +956,6 @@ public class DomainTransferRequestFlowTest
     clock.advanceOneMilli();
     runTest("domain_transfer_request.xml", UserPrivileges.NORMAL);
     assertIcannReportingActivityFieldLogged("srs-dom-transfer-request");
+    assertTldsFieldLogged("tld");
   }
 }
