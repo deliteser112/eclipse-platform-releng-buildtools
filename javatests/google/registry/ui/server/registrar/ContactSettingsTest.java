@@ -128,28 +128,4 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response).containsEntry("message", "Please provide a phone number for at least one "
         + RegistrarContact.Type.TECH.getDisplayName() + " contact");
   }
-
-  @Test
-  public void testPost_updateContacts_requireAbusePhone_error() throws Exception {
-    // First make the contact a abuse contact as well.
-    Registrar registrar = Registrar.loadByClientId(CLIENT_ID);
-    RegistrarContact rc = AppEngineRule.makeRegistrarContact2()
-        .asBuilder()
-        .setTypes(ImmutableSet.of(RegistrarContact.Type.ADMIN, RegistrarContact.Type.ABUSE))
-        .build();
-    // Lest we anger the timestamp inversion bug.
-    persistResource(registrar);
-    persistSimpleResource(rc);
-
-    // Now try to remove the phone number.
-    rc = rc.asBuilder().setPhoneNumber(null).build();
-    Map<String, Object> reqJson = registrar.toJsonMap();
-    reqJson.put("contacts", ImmutableList.of(rc.toJsonMap()));
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update",
-        "args", reqJson));
-    assertThat(response).containsEntry("status", "ERROR");
-    assertThat(response).containsEntry("message", "Please provide a phone number for at least one "
-        + RegistrarContact.Type.ABUSE.getDisplayName() + " contact");
-  }
 }

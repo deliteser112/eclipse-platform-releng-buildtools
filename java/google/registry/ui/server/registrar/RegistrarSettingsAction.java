@@ -269,8 +269,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
         throw new ContactRequirementException(t);
       }
     }
-    ensurePhoneNumberNotRemovedForContactTypes(
-        oldContactsByType, newContactsByType, Type.ABUSE, Type.TECH);
+    ensurePhoneNumberNotRemovedForContactTypes(oldContactsByType, newContactsByType, Type.TECH);
   }
 
   /**
