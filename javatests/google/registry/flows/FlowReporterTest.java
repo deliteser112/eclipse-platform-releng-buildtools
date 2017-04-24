@@ -138,7 +138,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Test
   public void testRecordToLogs_metadata_notResourceFlow_noResourceTypeOrTld() throws Exception {
-    when(flowReporter.eppInput.getResourceType()).thenReturn(Optional.absent());
+    when(flowReporter.eppInput.getResourceType()).thenReturn(Optional.<String>absent());
     flowReporter.recordToLogs();
     Map<String, Object> json =
         parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
@@ -174,7 +174,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Test
   public void testRecordToLogs_metadata_multipleTargetIds_uniqueTldSet() throws Exception {
-    when(flowReporter.eppInput.getSingleTargetId()).thenReturn(Optional.absent());
+    when(flowReporter.eppInput.getSingleTargetId()).thenReturn(Optional.<String>absent());
     when(flowReporter.eppInput.getTargetIds())
         .thenReturn(ImmutableList.of("target.co.uk", "foo.uk", "bar.uk", "baz.com"));
     flowReporter.recordToLogs();
