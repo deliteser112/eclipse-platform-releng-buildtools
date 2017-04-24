@@ -819,8 +819,10 @@ public class DatastoreHelper {
       public void vrun() {
         saveResource(resource, wantBackup);
       }});
-    // Force the session to be cleared so that when we read it back, we read from Datastore
-    // and not from the transaction cache or memcache.
+    // Force the session cache to be cleared so that when we read the resource back, we read from
+    // Datastore (or memcache) and not from the session cache. This is needed to trigger Objectify's
+    // load process (unmarshalling entity protos to POJOs, nulling out empty collections, calling
+    // @OnLoad methods, etc.) which is bypassed for entities loaded from the session cache.
     ofy().clearSessionCache();
     return ofy().load().entity(resource).now();
   }

@@ -83,6 +83,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
+      .withMemcache()
       .withTaskQueue()
       .build();
 
