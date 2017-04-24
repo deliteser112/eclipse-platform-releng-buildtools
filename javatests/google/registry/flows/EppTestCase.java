@@ -26,6 +26,7 @@ import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.ofy.Ofy;
+import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeHttpSession;
 import google.registry.testing.FakeResponse;
@@ -48,6 +49,7 @@ public class EppTestCase extends ShardableTestCase {
 
   private SessionMetadata sessionMetadata;
   private TransportCredentials credentials = new PasswordOnlyTransportCredentials();
+  private EppMetric.Builder eppMetricBuilder;
   private boolean isSuperuser;
 
   @Before
@@ -114,8 +116,9 @@ public class EppTestCase extends ShardableTestCase {
     EppRequestHandler handler = new EppRequestHandler();
     FakeResponse response = new FakeResponse();
     handler.response = response;
+    eppMetricBuilder = EppMetric.builderForRequest("request-id-1", clock);
     handler.eppController = DaggerEppTestComponent.builder()
-        .fakesAndMocksModule(new FakesAndMocksModule(clock, TmchCaMode.PILOT))
+        .fakesAndMocksModule(FakesAndMocksModule.create(clock, TmchCaMode.PILOT, eppMetricBuilder))
         .build()
         .startRequest()
         .eppController();
@@ -132,5 +135,9 @@ public class EppTestCase extends ShardableTestCase {
     // Run the resulting xml through the unmarshaller to verify that it was valid.
     EppXmlTransformer.validateOutput(result);
     return result;
+  }
+
+  protected EppMetric getRecordedEppMetric() {
+    return eppMetricBuilder.build();
   }
 }

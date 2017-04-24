@@ -53,27 +53,31 @@ interface EppTestComponent {
   @Module
   static class FakesAndMocksModule {
 
-    final BigQueryMetricsEnqueuer metricsEnqueuer;
-    final DnsQueue dnsQueue;
-    final DomainFlowTmchUtils domainFlowTmchUtils;
-    final EppMetric.Builder metricBuilder;
-    final FakeClock clock;
-    final ModulesService modulesService;
-    final Sleeper sleeper;
+    private BigQueryMetricsEnqueuer metricsEnqueuer;
+    private DnsQueue dnsQueue;
+    private DomainFlowTmchUtils domainFlowTmchUtils;
+    private EppMetric.Builder metricBuilder;
+    private FakeClock clock;
+    private ModulesService modulesService;
+    private Sleeper sleeper;
 
-    FakesAndMocksModule() {
-      this(new FakeClock(), TmchCaMode.PILOT);
+    public static FakesAndMocksModule create() {
+      FakeClock clock = new FakeClock();
+      return create(clock, TmchCaMode.PILOT, EppMetric.builderForRequest("request-id-1", clock));
     }
 
-    FakesAndMocksModule(FakeClock clock, TmchCaMode tmchCaMode) {
-      this.clock = clock;
-      this.domainFlowTmchUtils =
+    public static FakesAndMocksModule create(
+        FakeClock clock, TmchCaMode tmchCaMode, EppMetric.Builder eppMetricBuilder) {
+      FakesAndMocksModule instance = new FakesAndMocksModule();
+      instance.clock = clock;
+      instance.domainFlowTmchUtils =
           new DomainFlowTmchUtils(new TmchXmlSignature(new TmchCertificateAuthority(tmchCaMode)));
-      this.sleeper = new FakeSleeper(clock);
-      this.dnsQueue = DnsQueue.create();
-      this.metricBuilder = EppMetric.builderForRequest("request-id-1", clock);
-      this.modulesService = mock(ModulesService.class);
-      this.metricsEnqueuer = mock(BigQueryMetricsEnqueuer.class);
+      instance.sleeper = new FakeSleeper(clock);
+      instance.dnsQueue = DnsQueue.create();
+      instance.metricBuilder = eppMetricBuilder;
+      instance.modulesService = mock(ModulesService.class);
+      instance.metricsEnqueuer = mock(BigQueryMetricsEnqueuer.class);
+      return instance;
     }
 
     @Provides

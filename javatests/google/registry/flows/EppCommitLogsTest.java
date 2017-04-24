@@ -73,19 +73,22 @@ public class EppCommitLogsTest extends ShardableTestCase {
     SessionMetadata sessionMetadata = new HttpSessionMetadata(new FakeHttpSession());
     sessionMetadata.setClientId("TheRegistrar");
     DaggerEppTestComponent.builder()
-        .fakesAndMocksModule(new FakesAndMocksModule(clock, TmchCaMode.PILOT))
+        .fakesAndMocksModule(
+            FakesAndMocksModule.create(
+                clock, TmchCaMode.PILOT, EppMetric.builderForRequest("request-id-1", clock)))
         .build()
         .startRequest()
         .flowComponentBuilder()
-        .flowModule(new FlowModule.Builder()
-            .setSessionMetadata(sessionMetadata)
-            .setCredentials(new PasswordOnlyTransportCredentials())
-            .setEppRequestSource(EppRequestSource.UNIT_TEST)
-            .setIsDryRun(false)
-            .setIsSuperuser(false)
-            .setInputXmlBytes(eppLoader.getEppXml().getBytes(UTF_8))
-            .setEppInput(eppLoader.getEpp())
-            .build())
+        .flowModule(
+            new FlowModule.Builder()
+                .setSessionMetadata(sessionMetadata)
+                .setCredentials(new PasswordOnlyTransportCredentials())
+                .setEppRequestSource(EppRequestSource.UNIT_TEST)
+                .setIsDryRun(false)
+                .setIsSuperuser(false)
+                .setInputXmlBytes(eppLoader.getEppXml().getBytes(UTF_8))
+                .setEppInput(eppLoader.getEpp())
+                .build())
         .build()
         .flowRunner()
         .run(EppMetric.builder());

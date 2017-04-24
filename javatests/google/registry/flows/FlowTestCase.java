@@ -288,11 +288,14 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
         .isEqualTo(new TypeInstantiator<F>(getClass()){}.getExactType());
     // Run the flow.
     return DaggerEppTestComponent.builder()
-        .fakesAndMocksModule(new FakesAndMocksModule(clock, tmchCaMode))
+        .fakesAndMocksModule(
+            FakesAndMocksModule.create(
+                clock, tmchCaMode, EppMetric.builderForRequest("request-id-1", clock)))
         .build()
         .startRequest()
         .flowComponentBuilder()
-            .flowModule(new FlowModule.Builder()
+        .flowModule(
+            new FlowModule.Builder()
                 .setSessionMetadata(sessionMetadata)
                 .setCredentials(credentials)
                 .setEppRequestSource(eppRequestSource)
@@ -301,9 +304,9 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
                 .setInputXmlBytes(eppLoader.getEppXml().getBytes(UTF_8))
                 .setEppInput(eppLoader.getEpp())
                 .build())
-            .build()
-            .flowRunner()
-            .run(eppMetricBuilder);
+        .build()
+        .flowRunner()
+        .run(eppMetricBuilder);
   }
 
   /** Run a flow and marshal the result to EPP, or throw if it doesn't validate. */

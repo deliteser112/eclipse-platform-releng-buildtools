@@ -25,6 +25,7 @@ import google.registry.flows.FlowModule.DryRun;
 import google.registry.flows.FlowModule.InputXml;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.Transactional;
+import google.registry.flows.session.LoginFlow;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.monitoring.whitebox.EppMetric;
@@ -80,7 +81,12 @@ public class FlowRunner {
     eppMetricBuilder.setCommandNameFromFlow(flowClass.getSimpleName());
     if (!isTransactional) {
       eppMetricBuilder.incrementAttempts();
-      return EppOutput.create(flowProvider.get().run());
+      EppOutput eppOutput = EppOutput.create(flowProvider.get().run());
+      if (flowClass.equals(LoginFlow.class)) {
+        // In LoginFlow, clientId isn't known until after the flow executes, so save it then.
+        eppMetricBuilder.setClientId(sessionMetadata.getClientId());
+      }
+      return eppOutput;
     }
     try {
       return ofy().transact(new Work<EppOutput>() {

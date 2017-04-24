@@ -61,7 +61,7 @@ public class CheckApiActionTest {
     action.response = new FakeResponse();
     action.checkApiServletRegistrarClientId = "TheRegistrar";
     action.eppController = DaggerEppTestComponent.builder()
-        .fakesAndMocksModule(new FakesAndMocksModule())
+        .fakesAndMocksModule(FakesAndMocksModule.create())
         .build()
         .startRequest()
         .eppController();
