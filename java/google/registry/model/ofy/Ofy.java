@@ -25,7 +25,6 @@ import static google.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
 
 import com.google.appengine.api.datastore.DatastoreFailureException;
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
-import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -121,12 +120,31 @@ public class Ofy {
     checkState(inTransaction(), "Must be called in a transaction");
   }
 
+  /** 
+   * Load from Datastore, bypassing memcache even when the results might be there.
+   * 
+   * <p>In general, this is the correct method to use for loads. Loading from memcache can, in rare
+   * instances, produce a stale result (when a memcache write fails and the previous result is not
+   * cleared out) and so using memcache should be avoided unless the caller can tolerate staleness
+   * until the memcache expiration time and there is a specific need for very low latency that is
+   * worth the extra complexity of reasoning about caching.
+   */
   public Loader load() {
-    return ofy().load();
+    // TODO(b/27424173): change to false when memcache audit changes are implemented.
+    return ofy().cache(true).load();
   }
 
-  public Loader loadEventuallyConsistent() {
-    return ofy().consistency(Consistency.EVENTUAL).load();
+  /** 
+   * Load from Datastore, bypassing memcache even when the results might be there.
+   * 
+   * <p>In general, prefer {@link #load} over this method. Loading from memcache can, in rare
+   * instances, produce a stale result (when a memcache write fails and the previous result is not
+   * cleared out) and so using memcache should be avoided unless the caller can tolerate staleness
+   * until the memcache expiration time and there is a specific need for very low latency that is
+   * worth the extra complexity of reasoning about caching.
+   */
+  public Loader loadWithMemcache() {
+    return ofy().cache(true).load();
   }
 
   /**
@@ -267,7 +285,7 @@ public class Ofy {
           }
           return Objects.equals(
               union(work.getMutations(), manifest),
-              ImmutableSet.copyOf(ofy().load().ancestor(manifest)));
+              ImmutableSet.copyOf(load().ancestor(manifest)));
         }});
   }
 

@@ -136,7 +136,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
 
   private boolean doesEnoughDataExistThatThisTaskIsWorthRunning() {
     int tenth = Math.max(1, maxDeletes / 10);
-    int count = queryManifests(ofy.loadEventuallyConsistent())
+    int count = queryManifests(ofy.load())
         .limit(tenth)
         .count();
     if (0 < count && count < tenth) {
