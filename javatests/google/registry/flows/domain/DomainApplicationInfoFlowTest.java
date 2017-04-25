@@ -14,7 +14,6 @@
 
 package google.registry.flows.domain;
 
-import static com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig.getLocalMemcacheService;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
@@ -24,11 +23,10 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.MemcacheHelper.clearMemcache;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static google.registry.util.DatastoreServiceUtils.KEY_TO_KIND_FUNCTION;
 
-import com.google.appengine.api.memcache.MemcacheServicePb.MemcacheFlushRequest;
-import com.google.appengine.tools.development.LocalRpcService;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
@@ -336,8 +334,7 @@ public class DomainApplicationInfoFlowTest
     persistTestEntities(HostsState.HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
     // Clear out memcache and session cache so that we count actual Datastore calls.
     ofy().clearSessionCache();
-    getLocalMemcacheService().flushAll(
-        new LocalRpcService.Status(), MemcacheFlushRequest.newBuilder().build());
+    clearMemcache();
     int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
     doSuccessfulTest("domain_info_sunrise_response.xml", HostsState.HOSTS_EXIST);
     // Get all of the keys loaded in the flow, with each distinct load() call as a list of keys.
