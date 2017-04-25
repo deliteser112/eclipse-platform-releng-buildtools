@@ -24,6 +24,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newRegistry;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
+import static google.registry.testing.MemcacheHelper.setMemcacheContents;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
@@ -33,6 +34,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
+import google.registry.model.ofy.RequestCapturingAsyncDatastoreService;
 import google.registry.model.registry.Registry.RegistryNotFoundException;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.PremiumList;
@@ -477,5 +479,19 @@ public class RegistryTest extends EntityTestCase {
     Registry.get("tld").asBuilder()
         .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
         .build();
+  }
+
+  @Test
+  public void testLoadHitsMemcache() {
+    Registry registry = Registry.get("tld");
+    // In unit tests the in-memory cache has a duration of 0, so even without this line we should
+    // expect this to hit memcache. Nevertheless, remove it from the cache explicitly so that if the
+    // unit test caching is ever set to nonzero this won't spuriously pass.
+    registry.invalidateInCache();
+    setMemcacheContents(Key.create(getCrossTldKey(), Registry.class, "tld"));
+    int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
+    Registry.get("tld");
+    int numReadsForGet = RequestCapturingAsyncDatastoreService.getReads().size() - numPreviousReads;
+    assertThat(numReadsForGet).isEqualTo(0);
   }
 }

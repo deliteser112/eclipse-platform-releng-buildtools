@@ -250,7 +250,7 @@ public class Registry extends ImmutableObject implements Buildable {
                     @Override
                     public Registry run() {
                       return ofy()
-                          .load()
+                          .loadWithMemcache()
                           .key(Key.create(getCrossTldKey(), Registry.class, tld))
                           .now();
                     }}));
