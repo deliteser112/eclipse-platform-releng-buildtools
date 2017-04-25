@@ -22,7 +22,7 @@ import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.union;
 import static google.registry.flows.domain.DomainPricingLogic.getMatchingLrpToken;
-import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.EppResourceUtils.loadByForeignKeyWithMemcache;
 import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
@@ -800,8 +800,11 @@ public class DomainFlowUtils {
     DomainResource domain = ofy().doTransactionless(new Work<DomainResource>() {
       @Override
       public DomainResource run() {
-        // This is cacheable because we are outside of a transaction.
-        return loadByForeignKey(DomainResource.class, targetId, now);
+        // We want to load the ForeignKeyIndex and DomainResource from memcache if possible so that
+        // repeated create attempts of the same domain will not put load on datastore. This is safe
+        // because this is only a failfast method, and if memcache is stale the worst case scenario
+        // is that we will fall through to the regular transactional flow and fail there.
+        return loadByForeignKeyWithMemcache(DomainResource.class, targetId, now);
       }});
     // If the domain exists already and isn't in the add grace period then there is no way it will
     // be suddenly deleted and therefore the create must fail.

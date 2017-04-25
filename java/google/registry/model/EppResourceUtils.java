@@ -16,7 +16,6 @@ package google.registry.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.transform;
-import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
@@ -25,6 +24,7 @@ import static google.registry.util.DateTimeUtils.latestOf;
 import com.google.common.base.Function;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
+import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.util.ResultNow;
 import google.registry.model.EppResource.Builder;
@@ -93,14 +93,41 @@ public final class EppResourceUtils {
   @Nullable
   public static <T extends EppResource> T loadByForeignKey(
       Class<T> clazz, String foreignKey, DateTime now) {
+    return loadByForeignKeyInternal(clazz, foreignKey, now, false);
+  }
+
+  /**
+   * Loads the last created version of an {@link EppResource} from Datastore or memcache.
+   *
+   * <p>In general, prefer {@link #loadByForeignKey} over this method. Loading from memcache can, in
+   * rare instances, produce a stale result (when a memcache write fails and the previous result is
+   * not cleared out) and so using memcache should be avoided unless the caller can tolerate
+   * staleness until the memcache expiration time and there is a specific need for very low latency
+   * that is worth the extra complexity of reasoning about caching.
+   *
+   * @param clazz the resource type to load
+   * @param foreignKey id to match
+   * @param now the current logical time to project resources at
+   */
+  @Nullable
+  public static <T extends EppResource> T loadByForeignKeyWithMemcache(
+      Class<T> clazz, String foreignKey, DateTime now) {
+    return loadByForeignKeyInternal(clazz, foreignKey, now, true);
+  }
+
+  @Nullable
+  private static <T extends EppResource> T loadByForeignKeyInternal(
+      Class<T> clazz, String foreignKey, DateTime now, boolean useMemcache) {
     checkArgument(
         ForeignKeyedEppResource.class.isAssignableFrom(clazz),
         "loadByForeignKey may only be called for foreign keyed EPP resources");
-    Key<T> resourceKey = loadAndGetKey(clazz, foreignKey, now);
-    if (resourceKey == null) {
+    Loader loader = useMemcache ? ofy().loadWithMemcache() : ofy().load();
+    ForeignKeyIndex<T> fki = loader.type(ForeignKeyIndex.mapToFkiClass(clazz)).id(foreignKey).now();
+    // The value of fki.getResourceKey() might be null for hard-deleted prober data.
+    if (fki == null || isAtOrAfter(now, fki.getDeletionTime()) || fki.getResourceKey() == null) {
       return null;
     }
-    T resource = ofy().load().key(resourceKey).now();
+    T resource = loader.key(fki.getResourceKey()).now();
     if (resource == null || isAtOrAfter(now, resource.getDeletionTime())) {
       return null;
     }

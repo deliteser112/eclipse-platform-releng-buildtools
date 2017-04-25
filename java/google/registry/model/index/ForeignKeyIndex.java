@@ -62,7 +62,7 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   @Entity
   public static class ForeignKeyHostIndex extends ForeignKeyIndex<HostResource> {}
 
-  private static final ImmutableMap<
+  static final ImmutableMap<
           Class<? extends EppResource>, Class<? extends ForeignKeyIndex<?>>>
       RESOURCE_CLASS_TO_FKI_CLASS =
           ImmutableMap.<Class<? extends EppResource>, Class<? extends ForeignKeyIndex<?>>>of(
@@ -102,14 +102,19 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
     return topReference;
   }
 
-  /**
-   * Create a {@link ForeignKeyIndex} instance for a resource, expiring at a specified time.
-   */
+
+  @SuppressWarnings("unchecked")
+  public static <T extends EppResource> Class<ForeignKeyIndex<T>> mapToFkiClass(
+      Class<T> resourceClass) {
+    return (Class<ForeignKeyIndex<T>>) RESOURCE_CLASS_TO_FKI_CLASS.get(resourceClass);
+  }
+
+  /** Create a {@link ForeignKeyIndex} instance for a resource, expiring at a specified time. */
   public static <E extends EppResource> ForeignKeyIndex<E> create(
       E resource, DateTime deletionTime) {
     @SuppressWarnings("unchecked")
-    Class<? extends ForeignKeyIndex<E>> fkiClass =
-        (Class<? extends ForeignKeyIndex<E>>) RESOURCE_CLASS_TO_FKI_CLASS.get(resource.getClass());
+    Class<ForeignKeyIndex<E>> fkiClass =
+        ForeignKeyIndex.mapToFkiClass((Class<E>) resource.getClass());
     ForeignKeyIndex<E> instance = instantiate(fkiClass);
     instance.topReference = Key.create(resource);
     instance.foreignKey = resource.getForeignKey();
@@ -120,7 +125,7 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   /** Create a {@link ForeignKeyIndex} key for a resource. */
   public static Key<ForeignKeyIndex<?>> createKey(EppResource resource) {
     return Key.<ForeignKeyIndex<?>>create(
-        RESOURCE_CLASS_TO_FKI_CLASS.get(resource.getClass()), resource.getForeignKey());
+        mapToFkiClass(resource.getClass()), resource.getForeignKey());
   }
 
   /**
@@ -162,11 +167,10 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
    * <p>The returned map will omit any keys for which the {@link ForeignKeyIndex} doesn't exist or
    * has been soft deleted.
    */
-  @SuppressWarnings("unchecked")
   public static <E extends EppResource> Map<String, ForeignKeyIndex<E>> load(
       Class<E> clazz, Iterable<String> foreignKeys, final DateTime now) {
-    return (Map<String, ForeignKeyIndex<E>>) filterValues(
-        ofy().load().type(RESOURCE_CLASS_TO_FKI_CLASS.get(clazz)).ids(foreignKeys),
+    return filterValues(
+        ofy().load().type(mapToFkiClass(clazz)).ids(foreignKeys),
         new Predicate<ForeignKeyIndex<?>>() {
           @Override
           public boolean apply(ForeignKeyIndex<?> fki) {
