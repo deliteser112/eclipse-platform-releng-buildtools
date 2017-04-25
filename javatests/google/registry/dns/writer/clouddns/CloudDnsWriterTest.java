@@ -38,7 +38,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.InetAddresses;
 import com.google.common.util.concurrent.RateLimiter;
-import com.google.testing.mockito.Mocks;
 import com.googlecode.objectify.Key;
 import google.registry.dns.writer.clouddns.CloudDnsWriter.ZoneStateException;
 import google.registry.model.domain.DomainResource;
@@ -61,20 +60,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 /** Test case for {@link CloudDnsWriter}. */
-@RunWith(JUnit4.class)
+@RunWith(MockitoJUnitRunner.class)
 public class CloudDnsWriterTest {
-
-  @Rule
-  public final Mocks mocks = new Mocks(this);
 
   private static final Inet4Address IPv4 = (Inet4Address) InetAddresses.forString("127.0.0.1");
   private static final Inet6Address IPv6 = (Inet6Address) InetAddresses.forString("::1");

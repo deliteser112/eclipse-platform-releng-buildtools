@@ -11,7 +11,6 @@ java_library(
     name = "dnsupdate",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/testing/mockito",
         "//java/google/registry/dns/writer/dnsupdate",
         "//java/google/registry/model",
         "//javatests/google/registry/testing",

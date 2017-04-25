@@ -9,7 +9,6 @@ java_library(
     name = "sheet",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/testing/mockito",
         "//java/google/registry/config",
         "//java/google/registry/export/sheet",
         "//java/google/registry/model",

@@ -32,7 +32,6 @@ import static org.mockito.Mockito.verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.testing.mockito.Mocks;
 import google.registry.model.common.Cursor;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
@@ -46,13 +45,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link SyncRegistrarsSheet}. */
-@RunWith(JUnit4.class)
+@RunWith(MockitoJUnitRunner.class)
 public class SyncRegistrarsSheetTest {
 
   @Rule
@@ -62,9 +61,6 @@ public class SyncRegistrarsSheetTest {
 
   @Rule
   public final InjectRule inject = new InjectRule();
-
-  @Rule
-  public final Mocks mocks = new Mocks(this);
 
   @Captor
   private ArgumentCaptor<ImmutableList<ImmutableMap<String, String>>> rowsCaptor;

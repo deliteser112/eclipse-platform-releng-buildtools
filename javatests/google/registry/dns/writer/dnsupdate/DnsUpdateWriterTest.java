@@ -34,7 +34,6 @@ import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.google.testing.mockito.Mocks;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -53,10 +52,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.xbill.DNS.Flags;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.Opcode;
@@ -68,7 +67,7 @@ import org.xbill.DNS.Type;
 import org.xbill.DNS.Update;
 
 /** Unit tests for {@link DnsUpdateWriter}. */
-@RunWith(JUnit4.class)
+@RunWith(MockitoJUnitRunner.class)
 public class DnsUpdateWriterTest {
 
   @Rule
@@ -80,9 +79,6 @@ public class DnsUpdateWriterTest {
 
   @Rule
   public final InjectRule inject = new InjectRule();
-
-  @Rule
-  public final Mocks mocks = new Mocks(this);
 
   @Mock
   private DnsMessageTransport mockResolver;
