@@ -11,6 +11,7 @@ java_library(
     name = "clouddns",
     srcs = glob(["*Test.java"]),
     deps = [
+        "//java/com/google/testing/mockito",
         "//java/google/registry/dns/writer/clouddns",
         "//java/google/registry/model",
         "//java/google/registry/util",
