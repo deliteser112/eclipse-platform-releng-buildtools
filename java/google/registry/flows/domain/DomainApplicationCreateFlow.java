@@ -195,8 +195,8 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
-    Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     failfastForCreate(targetId, now);
+    Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     // Fail if the domain is already registered (e.g. this is a landrush application but the domain
     // was awarded at the end of sunrise). However, multiple domain applications can be created for
     // the same domain name, so don't try to load an existing application.

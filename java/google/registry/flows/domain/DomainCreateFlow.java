@@ -193,12 +193,12 @@ public class DomainCreateFlow implements TransactionalFlow {
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
+    failfastForCreate(targetId, now);
     Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     Period period = command.getPeriod();
     verifyUnitIsYears(period);
     int years = period.getValue();
     validateRegistrationPeriod(years);
-    failfastForCreate(targetId, now);
     verifyResourceDoesNotExist(DomainResource.class, targetId, now);
     // Validate that this is actually a legal domain name on a TLD that the registrar has access to.
     InternetDomainName domainName = validateDomainName(command.getFullyQualifiedDomainName());

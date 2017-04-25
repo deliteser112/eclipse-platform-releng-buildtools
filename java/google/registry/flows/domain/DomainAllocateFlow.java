@@ -139,8 +139,8 @@ public class DomainAllocateFlow implements TransactionalFlow {
     validateClientIsLoggedIn(clientId);
     verifyIsSuperuser();
     DateTime now = ofy().getTransactionTime();
-    Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     failfastForCreate(targetId, now);
+    Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     verifyResourceDoesNotExist(DomainResource.class, targetId, now);
     InternetDomainName domainName = validateDomainName(command.getFullyQualifiedDomainName());
     Registry registry = Registry.get(domainName.parent().toString());
