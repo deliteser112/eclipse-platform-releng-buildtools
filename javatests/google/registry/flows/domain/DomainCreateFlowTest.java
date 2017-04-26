@@ -896,7 +896,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_alreadyExists_triggersFailfast() throws Exception {
-    // This fails fast and throws DomainAlreadyExistsException from init() as a special case.
     persistContactsAndHosts();
     persistActiveDomain(getUniqueIdFromCommand());
     try {
