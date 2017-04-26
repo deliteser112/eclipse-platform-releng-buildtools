@@ -641,7 +641,7 @@ public class Registry extends ImmutableObject implements Buildable {
     }
 
     public Builder setTldStr(String tldStr) {
-      checkArgument(tldStr != null, "TLD must not be null.");
+      checkArgument(tldStr != null, "TLD must not be null");
       getInstance().tldStr = tldStr;
       return this;
     }
@@ -746,7 +746,7 @@ public class Registry extends ImmutableObject implements Buildable {
     }
 
     public Builder setCreateBillingCost(Money amount) {
-      checkArgument(amount.isPositiveOrZero(), "create billing cost cannot be negative");
+      checkArgument(amount.isPositiveOrZero(), "createBillingCost cannot be negative");
       getInstance().createBillingCost = amount;
       return this;
     }
@@ -813,7 +813,7 @@ public class Registry extends ImmutableObject implements Buildable {
     }
 
     public Builder setRestoreBillingCost(Money amount) {
-      checkArgument(amount.isPositiveOrZero(), "restore billing cost cannot be negative");
+      checkArgument(amount.isPositiveOrZero(), "restoreBillingCost cannot be negative");
       getInstance().restoreBillingCost = amount;
       return this;
     }
@@ -828,7 +828,7 @@ public class Registry extends ImmutableObject implements Buildable {
      */
     public Builder setRenewBillingCostTransitions(
         ImmutableSortedMap<DateTime, Money> renewCostsMap) {
-      checkArgumentNotNull(renewCostsMap, "renew billing costs map cannot be null");
+      checkArgumentNotNull(renewCostsMap, "Renew billing costs map cannot be null");
       checkArgument(Iterables.all(
           renewCostsMap.values(),
           new Predicate<Money>() {
@@ -836,7 +836,7 @@ public class Registry extends ImmutableObject implements Buildable {
             public boolean apply(Money amount) {
               return amount.isPositiveOrZero();
             }}),
-          "renew billing cost cannot be negative");
+          "Renew billing cost cannot be negative");
       getInstance().renewBillingCostTransitions =
           TimedTransitionProperty.fromValueMap(renewCostsMap, BillingCostTransition.class);
       return this;
@@ -868,7 +868,7 @@ public class Registry extends ImmutableObject implements Buildable {
 
     public Builder setServerStatusChangeBillingCost(Money amount) {
       checkArgument(
-          amount.isPositiveOrZero(), "server status change billing cost cannot be negative");
+          amount.isPositiveOrZero(), "Server status change billing cost cannot be negative");
       getInstance().serverStatusChangeBillingCost = amount;
       return this;
     }
@@ -906,7 +906,7 @@ public class Registry extends ImmutableObject implements Buildable {
       final Registry instance = getInstance();
       // Pick up the name of the associated TLD from the instance object.
       String tldName = instance.tldStr;
-      checkArgument(tldName != null, "No registry TLD specified.");
+      checkArgument(tldName != null, "No registry TLD specified");
       // Check for canonical form by converting to an InternetDomainName and then back.
       checkArgument(
           InternetDomainName.isValid(tldName)
@@ -945,6 +945,9 @@ public class Registry extends ImmutableObject implements Buildable {
           "All EAP fees must be in the registry's currency");
       checkArgumentNotNull(
           instance.pricingEngineClassName, "All registries must have a configured pricing engine");
+      checkArgumentNotNull(
+          instance.dnsWriter,
+          "A DNS writer must be specified. VoidDnsWriter can be used if DNS writing isn't wanted");
       instance.tldStrId = tldName;
       instance.tldUnicode = Idn.toUnicode(tldName);
       return super.build();

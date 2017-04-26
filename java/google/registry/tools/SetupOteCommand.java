@@ -32,7 +32,9 @@ import google.registry.util.StringGenerator;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
+import javax.inject.Named;
 import org.joda.time.Duration;
 
 /** Composite command to set up OT&E TLDs and accounts. */
@@ -51,6 +53,10 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
   private static final Duration SHORT_PENDING_DELETE_LENGTH = Duration.standardMinutes(5);
 
   private static final String DEFAULT_PREMIUM_LIST = "default_sandbox_list";
+
+  @Inject
+  @Named("dnsWriterNames")
+  Set<String> dnsWriterNames;
 
   @Parameter(
       names = {"-r", "--registrar"},
@@ -76,6 +82,12 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
   private Path certFile;
 
   @Parameter(
+      names = {"--dns_writer"},
+      description = "DNS writer to use on all TLDs",
+      required = true)
+  private String dnsWriter;
+
+  @Parameter(
       names = {"--premium_list"},
       description = "premium list to apply to all TLDs")
   private String premiumList = DEFAULT_PREMIUM_LIST;
@@ -97,15 +109,17 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
       Duration redemptionGracePeriod,
       Duration pendingDeleteLength) throws Exception {
     CreateTldCommand command = new CreateTldCommand();
+    command.addGracePeriod = addGracePeriod;
+    command.dnsWriter = Optional.of(dnsWriter);
+    command.dnsWriterNames = dnsWriterNames;
+    command.force = force;
     command.initialTldState = initialTldState;
     command.mainParameters = ImmutableList.of(tldName);
-    command.roidSuffix = String.format(
-        "%S%X", tldName.replaceAll("[^a-z0-9]", "").substring(0, 7), roidSuffixCounter++);
-    command.addGracePeriod = addGracePeriod;
-    command.redemptionGracePeriod = redemptionGracePeriod;
     command.pendingDeleteLength = pendingDeleteLength;
     command.premiumListName = Optional.of(premiumList);
-    command.force = force;
+    command.roidSuffix = String.format(
+        "%S%X", tldName.replaceAll("[^a-z0-9]", "").substring(0, 7), roidSuffixCounter++);
+    command.redemptionGracePeriod = redemptionGracePeriod;
     command.run();
   }
 

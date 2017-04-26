@@ -59,6 +59,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
     persistReservedList("xn--q9jyb4c_r1", "foo,FULLY_BLOCKED");
     persistReservedList("xn--q9jyb4c_r2", "moop,FULLY_BLOCKED");
     createTld("xn--q9jyb4c");
+    command.dnsWriterNames = ImmutableSet.of("VoidDnsWriter", "FooDnsWriter");
   }
 
   @Test
@@ -171,6 +172,13 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
     runCommandForced("--pending_delete_length=PT300S", "xn--q9jyb4c");
 
     assertThat(Registry.get("xn--q9jyb4c").getPendingDeleteLength()).isEqualTo(standardMinutes(5));
+  }
+
+  @Test
+  public void testSuccess_dnsWriter() throws Exception {
+    assertThat(Registry.get("xn--q9jyb4c").getDnsWriter()).isEqualTo("VoidDnsWriter");
+    runCommandForced("--dns_writer=FooDnsWriter", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getDnsWriter()).isEqualTo("FooDnsWriter");
   }
 
   @Test
@@ -445,37 +453,42 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testFailure_invalidAddGracePeriod() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "Invalid format: \"5m\"");
     runCommandForced("--add_grace_period=5m", "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_invalidRedemptionGracePeriod() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "Invalid format: \"5m\"");
     runCommandForced("--redemption_grace_period=5m", "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_invalidPendingDeleteLength() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "Invalid format: \"5m\"");
     runCommandForced("--pending_delete_length=5m", "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_invalidTldState() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(
+        ParameterException.class,
+        "INVALID_STATE not formatted correctly or has transition times out of order");
     runCommandForced("--tld_state_transitions=" + START_OF_TIME + "=INVALID_STATE", "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_invalidTldStateTransitionTime() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(
+        ParameterException.class,
+        "INVALID_STATE not formatted correctly or has transition times out of order");
     runCommandForced("--tld_state_transitions=tomorrow=INVALID_STATE", "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_tldStatesOutOfOrder() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(
+        IllegalArgumentException.class, "The TLD states are chronologically out of order");
     runCommandForced(
         String.format(
             "--tld_state_transitions=%s=SUNRISE,%s=PREDELEGATION", now, now.plusMonths(1)),
@@ -484,7 +497,9 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testFailure_duplicateTldStateTransitions() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(
+        IllegalArgumentException.class,
+        "The TLD states are chronologically out of order");
     runCommandForced(
         String.format("--tld_state_transitions=%s=SUNRISE,%s=SUNRISE", now, now.plusMonths(1)),
         "xn--q9jyb4c");
@@ -492,7 +507,8 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testFailure_duplicateTldStateTransitionTimes() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(
+        ParameterException.class, "not formatted correctly or has transition times out of order");
     runCommandForced(
         String.format("--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE", now, now),
         "xn--q9jyb4c");
@@ -500,7 +516,8 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testFailure_outOfOrderTldStateTransitionTimes() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(
+        ParameterException.class, "not formatted correctly or has transition times out of order");
     runCommandForced(
         String.format("--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE", now, now.minus(1)),
         "xn--q9jyb4c");
@@ -567,15 +584,15 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testFailure_invalidRenewBillingCost() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(
+        ParameterException.class, "not formatted correctly or has transition times out of order");
     runCommandForced(
-        String.format("--renew_billing_cost_transitions=%s=US42", START_OF_TIME),
-        "xn--q9jyb4c");
+        String.format("--renew_billing_cost_transitions=%s=US42", START_OF_TIME), "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_negativeRenewBillingCost() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "Renew billing cost cannot be negative");
     runCommandForced(
         String.format("--renew_billing_cost_transitions=%s=USD-42", START_OF_TIME),
         "xn--q9jyb4c");
@@ -583,13 +600,15 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testFailure_invalidRenewCostTransitionTime() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(
+        ParameterException.class, "not formatted correctly or has transition times out of order");
     runCommandForced("--renew_billing_cost_transitions=tomorrow=USD 1", "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_duplicateRenewCostTransitionTimes() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(
+        ParameterException.class, "not formatted correctly or has transition times out of order");
     runCommandForced(
         String.format("--renew_billing_cost_transitions=\"%s=USD 1,%s=USD 2\"", now, now),
         "xn--q9jyb4c");
@@ -597,7 +616,8 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testFailure_outOfOrderRenewCostTransitionTimes() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(
+        ParameterException.class, "not formatted correctly or has transition times out of order");
     runCommandForced(
         String.format("--renew_billing_cost_transitions=\"%s=USD 1,%s=USD 2\"", now, now.minus(1)),
         "xn--q9jyb4c");
@@ -605,26 +625,33 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testFailure_noTldName() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(ParameterException.class, "Main parameters are required (\"Names of the TLDs\")");
     runCommandForced();
   }
 
   @Test
-  public void testFailure_oneArgumentDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+  public void testFailure_oneTldDoesNotExist() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "TLD foo does not exist");
     runCommandForced("foo", "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_duplicateArguments() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "Duplicate arguments found: 'xn--q9jyb4c'");
     runCommandForced("xn--q9jyb4c", "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_tldDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "TLD foobarbaz does not exist");
     runCommandForced("foobarbaz");
+  }
+
+  @Test
+  public void testFailure_specifiedDnsWriter_doesntExist() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class, "The DNS writer 'InvalidDnsWriter' doesn't exist");
+    runCommandForced("xn--q9jyb4c", "--dns_writer=InvalidDnsWriter");
   }
 
   @Test

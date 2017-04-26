@@ -30,7 +30,9 @@ public abstract class TransitionListParameter<V> extends KeyValueMapParameter<Da
   private static final DateTimeParameter DATE_TIME_CONVERTER = new DateTimeParameter();
 
   public TransitionListParameter() {
-    super("Not formatted correctly or has transition times out of order.");
+    // This is not sentence-capitalized like most exception messages because it is appended to the
+    // end of the toString() of the transition map in rendering a full exception message.
+    super("not formatted correctly or has transition times out of order");
   }
 
   @Override
@@ -40,10 +42,10 @@ public abstract class TransitionListParameter<V> extends KeyValueMapParameter<Da
 
   @Override
   protected final ImmutableSortedMap<DateTime, V> processMap(ImmutableMap<DateTime, V> map) {
-    checkArgument(Ordering.natural().isOrdered(map.keySet()), "Transition times out of order.");
+    checkArgument(Ordering.natural().isOrdered(map.keySet()), "Transition times out of order");
     return ImmutableSortedMap.copyOf(map);
   }
-  
+
   /** Converter-validator for TLD state transitions. */
   public static class TldStateTransitions extends TransitionListParameter<TldState> {
     @Override

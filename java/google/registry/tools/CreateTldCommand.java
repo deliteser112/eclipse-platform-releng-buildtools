@@ -86,7 +86,7 @@ class CreateTldCommand extends CreateOrUpdateTldCommand {
 
   @Override
   Registry getOldRegistry(String tld) {
-    checkState(!getTlds().contains(tld), "TLD already exists");
+    checkState(!getTlds().contains(tld), "TLD '%s' already exists", tld);
     return null;
   }
 

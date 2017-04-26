@@ -345,13 +345,13 @@ public class RegistryTest extends EntityTestCase {
 
   @Test
   public void testFailure_tldNeverSet() {
-    thrown.expect(IllegalArgumentException.class, "No registry TLD specified.");
+    thrown.expect(IllegalArgumentException.class, "No registry TLD specified");
     new Registry.Builder().build();
   }
 
   @Test
   public void testFailure_setTldStr_null() {
-    thrown.expect(IllegalArgumentException.class, "TLD must not be null.");
+    thrown.expect(IllegalArgumentException.class, "TLD must not be null");
     new Registry.Builder().setTldStr(null);
   }
 
@@ -405,13 +405,13 @@ public class RegistryTest extends EntityTestCase {
 
   @Test
   public void testFailure_negativeCreateBillingCost() {
-    thrown.expect(IllegalArgumentException.class, "billing cost cannot be negative");
+    thrown.expect(IllegalArgumentException.class, "createBillingCost cannot be negative");
     Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, -42));
   }
 
   @Test
   public void testFailure_negativeRestoreBillingCost() {
-    thrown.expect(IllegalArgumentException.class, "billing cost cannot be negative");
+    thrown.expect(IllegalArgumentException.class, "restoreBillingCost cannot be negative");
     Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, -42));
   }
 

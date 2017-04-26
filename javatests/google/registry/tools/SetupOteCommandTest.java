@@ -47,6 +47,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Before
   public void init() {
+    command.dnsWriterNames = ImmutableSet.of("FooDnsWriter", "BarDnsWriter", "VoidDnsWriter");
     command.passwordGenerator = passwordGenerator;
     persistPremiumList("default_sandbox_list", "sandbox,USD 1000");
     persistPremiumList("alternate_list", "rich,USD 3000");
@@ -57,6 +58,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
       String tldName,
       String roidSuffix,
       TldState tldState,
+      String dnsWriter,
       String premiumList,
       Duration addGracePeriodLength,
       Duration redemptionGracePeriodLength,
@@ -65,10 +67,9 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     assertThat(registry).isNotNull();
     assertThat(registry.getRoidSuffix()).isEqualTo(roidSuffix);
     assertThat(registry.getTldState(DateTime.now(UTC))).isEqualTo(tldState);
-
+    assertThat(registry.getDnsWriter()).isEqualTo(dnsWriter);
     assertThat(registry.getPremiumList()).isNotNull();
     assertThat(registry.getPremiumList().getName()).isEqualTo(premiumList);
-
     assertThat(registry.getAddGracePeriodLength()).isEqualTo(addGracePeriodLength);
     assertThat(registry.getRedemptionGracePeriodLength()).isEqualTo(redemptionGracePeriodLength);
     assertThat(registry.getPendingDeleteLength()).isEqualTo(pendingDeleteLength);
@@ -76,11 +77,12 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   /** Verify TLD creation with registry default durations. */
   private void verifyTldCreation(
-      String tldName, String roidSuffix, TldState tldState, String premiumList) {
+      String tldName, String roidSuffix, TldState tldState, String dnsWriter, String premiumList) {
     verifyTldCreation(
         tldName,
         roidSuffix,
         tldState,
+        dnsWriter,
         premiumList,
         Registry.DEFAULT_ADD_GRACE_PERIOD,
         Registry.DEFAULT_REDEMPTION_GRACE_PERIOD,
@@ -108,14 +110,18 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
+        "--dns_writer=VoidDnsWriter",
         "--certfile=" + getCertFilename());
 
-    verifyTldCreation("blobio-sunrise", "BLOBIOS0", TldState.SUNRISE, "default_sandbox_list");
-    verifyTldCreation("blobio-landrush", "BLOBIOL1", TldState.LANDRUSH, "default_sandbox_list");
+    verifyTldCreation(
+        "blobio-sunrise", "BLOBIOS0", TldState.SUNRISE, "VoidDnsWriter", "default_sandbox_list");
+    verifyTldCreation(
+        "blobio-landrush", "BLOBIOL1", TldState.LANDRUSH, "VoidDnsWriter", "default_sandbox_list");
     verifyTldCreation(
         "blobio-ga",
         "BLOBIOG2",
         TldState.GENERAL_AVAILABILITY,
+        "VoidDnsWriter",
         "default_sandbox_list",
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
@@ -135,14 +141,18 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1,2.2.2.2",
         "--registrar=blobio",
+        "--dns_writer=FooDnsWriter",
         "--certfile=" + getCertFilename());
 
-    verifyTldCreation("blobio-sunrise", "BLOBIOS0", TldState.SUNRISE, "default_sandbox_list");
-    verifyTldCreation("blobio-landrush", "BLOBIOL1", TldState.LANDRUSH, "default_sandbox_list");
+    verifyTldCreation(
+        "blobio-sunrise", "BLOBIOS0", TldState.SUNRISE, "FooDnsWriter", "default_sandbox_list");
+    verifyTldCreation(
+        "blobio-landrush", "BLOBIOL1", TldState.LANDRUSH, "FooDnsWriter", "default_sandbox_list");
     verifyTldCreation(
         "blobio-ga",
         "BLOBIOG2",
         TldState.GENERAL_AVAILABILITY,
+        "FooDnsWriter",
         "default_sandbox_list",
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
@@ -163,14 +173,18 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
         "--certfile=" + getCertFilename(),
+        "--dns_writer=BarDnsWriter",
         "--premium_list=alternate_list");
 
-    verifyTldCreation("blobio-sunrise", "BLOBIOS0", TldState.SUNRISE, "alternate_list");
-    verifyTldCreation("blobio-landrush", "BLOBIOL1", TldState.LANDRUSH, "alternate_list");
+    verifyTldCreation(
+        "blobio-sunrise", "BLOBIOS0", TldState.SUNRISE, "BarDnsWriter", "alternate_list");
+    verifyTldCreation(
+        "blobio-landrush", "BLOBIOL1", TldState.LANDRUSH, "BarDnsWriter", "alternate_list");
     verifyTldCreation(
         "blobio-ga",
         "BLOBIOG2",
         TldState.GENERAL_AVAILABILITY,
+        "BarDnsWriter",
         "alternate_list",
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
@@ -187,79 +201,108 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_missingIpWhitelist() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(ParameterException.class, "option is required: -w, --ip_whitelist");
     runCommandForced(
         "--registrar=blobio",
+        "--dns_writer=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
   @Test
   public void testFailure_missingRegistrar() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(ParameterException.class, "option is required: -r, --registrar");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
+        "--dns_writer=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
   @Test
   public void testFailure_missingCertificateFile() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(ParameterException.class, "option is required: -c, --certfile");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
+        "--dns_writer=VoidDnsWriter",
+        "--registrar=blobio");
+  }
+
+  @Test
+  public void testFailure_missingDnsWriter() throws Exception {
+    thrown.expect(ParameterException.class, "option is required: --dns_writer");
+    runCommandForced(
+        "--ip_whitelist=1.1.1.1",
+        "--certfile=" + getCertFilename(),
         "--registrar=blobio");
   }
 
   @Test
   public void testFailure_invalidCert() throws Exception {
-    thrown.expect(CertificateParsingException.class);
+    thrown.expect(CertificateParsingException.class, "No X509Certificate found");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
+        "--dns_writer=VoidDnsWriter",
         "--certfile=/dev/null");
   }
 
   @Test
   public void testFailure_invalidRegistrar() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "Registrar name is invalid");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=3blobio",
+        "--dns_writer=VoidDnsWriter",
+        "--certfile=" + getCertFilename());
+  }
+
+  @Test
+  public void testFailure_invalidDnsWriter() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class, "The DNS writer 'InvalidDnsWriter' doesn't exist");
+    runCommandForced(
+        "--ip_whitelist=1.1.1.1",
+        "--registrar=blobio",
+        "--dns_writer=InvalidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
   @Test
   public void testFailure_registrarTooShort() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "Registrar name is invalid");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=bl",
+        "--dns_writer=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
   @Test
   public void testFailure_registrarTooLong() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "Registrar name is invalid");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobiotoooolong",
+        "--dns_writer=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
   @Test
   public void testFailure_registrarInvalidCharacter() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "Registrar name is invalid");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blo#bio",
+        "--dns_writer=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
   @Test
   public void testFailure_invalidPremiumList() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "The premium list 'foo' doesn't exist");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
+        "--dns_writer=VoidDnsWriter",
         "--certfile=" + getCertFilename(),
         "--premium_list=foo");
   }
@@ -267,10 +310,11 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_tldExists() throws Exception {
     createTld("blobio-sunrise");
-    thrown.expect(IllegalStateException.class);
+    thrown.expect(IllegalStateException.class, "TLD 'blobio-sunrise' already exists");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
+        "--dns_writer=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
@@ -281,10 +325,11 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         .setRegistrarName("blobio-1")
         .build();
     persistResource(registrar);
-    thrown.expect(IllegalStateException.class);
+    thrown.expect(IllegalStateException.class, "Registrar blobio-1 already exists");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
+        "--dns_writer=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 }

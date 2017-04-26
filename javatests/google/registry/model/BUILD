@@ -20,6 +20,7 @@ java_library(
     ] + glob(["**/testdata/*.xml"]),
     deps = [
         "//java/google/registry/config",
+        "//java/google/registry/dns/writer",
         "//java/google/registry/flows",
         "//java/google/registry/model",
         "//java/google/registry/monitoring/metrics/contrib",

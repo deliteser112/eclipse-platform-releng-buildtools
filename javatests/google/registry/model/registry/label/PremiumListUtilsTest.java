@@ -38,6 +38,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
+import google.registry.dns.writer.VoidDnsWriter;
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList.PremiumListEntry;
@@ -95,6 +96,7 @@ public class PremiumListUtilsTest {
         new Registry.Builder()
             .setTldStr("ghost")
             .setPremiumPricingEngine(StaticPremiumListPricingEngine.NAME)
+            .setDnsWriter(VoidDnsWriter.NAME)
             .build());
     assertThat(Registry.get("ghost").getPremiumList()).isNull();
     assertThat(getPremiumPrice("blah", Registry.get("ghost"))).isAbsent();

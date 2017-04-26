@@ -260,7 +260,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
     assertAllowedEnvironment();
     initTldCommand();
     String duplicates = Joiner.on(", ").join(findDuplicates(mainParameters));
-    checkArgument(duplicates.isEmpty(), "Duplicate arguments found: \"%s\"", duplicates);
+    checkArgument(duplicates.isEmpty(), "Duplicate arguments found: '%s'", duplicates);
     Set<String> tlds = ImmutableSet.copyOf(mainParameters);
     checkArgument(roidSuffix == null || tlds.size() == 1,
         "Can't update roid suffixes on multiple TLDs simultaneously");
@@ -268,7 +268,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
       checkArgument(tld.equals(canonicalizeDomainName(tld)));
       checkArgument(
           !CharMatcher.javaDigit().matches(tld.charAt(0)),
-          "TLDs cannot begin with a number.");
+          "TLDs cannot begin with a number");
       Registry oldRegistry = getOldRegistry(tld);
       // TODO(b/26901539): Add a flag to set the pricing engine once we have more than one option.
       Registry.Builder builder =
@@ -388,14 +388,12 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
         }
       }
 
-      if (dnsWriter != null) {
-        if (dnsWriter.isPresent()) {
+      if (dnsWriter != null && dnsWriter.isPresent()) {
           checkArgument(
               dnsWriterNames.contains(dnsWriter.get()),
               "The DNS writer '%s' doesn't exist",
               dnsWriter.get());
           builder.setDnsWriter(dnsWriter.get());
-        }
       }
 
       if (lrpPeriod != null) {
