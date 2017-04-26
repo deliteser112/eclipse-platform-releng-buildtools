@@ -1524,7 +1524,6 @@ public class DomainApplicationCreateFlowTest
 
   @Test
   public void testFailure_alreadyExists_triggersFailfast() throws Exception {
-    // This fails fast and throws DomainAlreadyExistsException from init() as a special case.
     persistContactsAndHosts();
     clock.advanceOneMilli();
     persistActiveDomain(getUniqueIdFromCommand());
@@ -1536,6 +1535,8 @@ public class DomainApplicationCreateFlowTest
           getUniqueIdFromCommand());
     } catch (ResourceAlreadyExistsException e) {
       assertThat(e.isFailfast()).isTrue();
+      assertAboutEppExceptions().that(e).marshalsToXml().and().hasMessage(
+          String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
     }
   }
 

@@ -40,6 +40,7 @@ import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.MemcacheHelper.setMemcacheContents;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
@@ -906,6 +907,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
           getUniqueIdFromCommand());
     } catch (ResourceAlreadyExistsException e) {
       assertThat(e.isFailfast()).isTrue();
+      assertAboutEppExceptions().that(e).marshalsToXml().and().hasMessage(
+          String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
     }
   }
 
