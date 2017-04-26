@@ -136,7 +136,7 @@ public class DeleteProberDataAction implements Runnable {
       }
 
       final Key<EppResourceIndex> eppIndex = Key.create(EppResourceIndex.create(domainKey));
-      final Key<ForeignKeyIndex<?>> fki = ForeignKeyIndex.createKey(domain);
+      final Key<? extends ForeignKeyIndex<?>> fki = ForeignKeyIndex.createKey(domain);
 
       int entitiesDeleted = ofy().transact(new Work<Integer>() {
         @Override

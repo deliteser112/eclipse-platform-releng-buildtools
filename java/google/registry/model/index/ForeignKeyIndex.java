@@ -113,9 +113,8 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   public static <E extends EppResource> ForeignKeyIndex<E> create(
       E resource, DateTime deletionTime) {
     @SuppressWarnings("unchecked")
-    Class<ForeignKeyIndex<E>> fkiClass =
-        ForeignKeyIndex.mapToFkiClass((Class<E>) resource.getClass());
-    ForeignKeyIndex<E> instance = instantiate(fkiClass);
+    Class<E> resourceClass = (Class<E>) resource.getClass();
+    ForeignKeyIndex<E> instance = instantiate(mapToFkiClass(resourceClass));
     instance.topReference = Key.create(resource);
     instance.foreignKey = resource.getForeignKey();
     instance.deletionTime = deletionTime;
@@ -123,9 +122,10 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   }
 
   /** Create a {@link ForeignKeyIndex} key for a resource. */
-  public static Key<ForeignKeyIndex<?>> createKey(EppResource resource) {
-    return Key.<ForeignKeyIndex<?>>create(
-        mapToFkiClass(resource.getClass()), resource.getForeignKey());
+  public static <E extends EppResource> Key<ForeignKeyIndex<E>> createKey(E resource) {
+    @SuppressWarnings("unchecked")
+    Class<E> resourceClass = (Class<E>) resource.getClass();
+    return Key.<ForeignKeyIndex<E>>create(mapToFkiClass(resourceClass), resource.getForeignKey());
   }
 
   /**
