@@ -35,7 +35,6 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
-import google.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.request.Action;
@@ -137,7 +136,7 @@ public class DeleteProberDataAction implements Runnable {
       }
 
       final Key<EppResourceIndex> eppIndex = Key.create(EppResourceIndex.create(domainKey));
-      final Key<ForeignKeyIndex<?>> fki = ForeignKeyDomainIndex.createKey(domain);
+      final Key<ForeignKeyIndex<?>> fki = ForeignKeyIndex.createKey(domain);
 
       int entitiesDeleted = ofy().transact(new Work<Integer>() {
         @Override

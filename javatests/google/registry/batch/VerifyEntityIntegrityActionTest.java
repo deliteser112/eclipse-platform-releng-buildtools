@@ -50,9 +50,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
-import google.registry.model.index.ForeignKeyIndex.ForeignKeyContactIndex;
-import google.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
-import google.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
@@ -219,7 +216,7 @@ public class VerifyEntityIntegrityActionTest
     runMapreduce();
     assertIntegrityErrors(
         IntegrityError.create(
-            ForeignKeyDomainIndex.createKey(domain2),
+            ForeignKeyIndex.createKey(domain2),
             Key.create(domain1),
             "Found inactive resource deleted more recently than when active resource was created"));
   }
@@ -231,11 +228,11 @@ public class VerifyEntityIntegrityActionTest
     runMapreduce();
     assertIntegrityErrors(
         IntegrityError.create(
-            Key.create(ForeignKeyContactIndex.class, "dupeid"),
+            ForeignKeyIndex.createKey(contact1),
             Key.create(contact1),
             "Multiple active EppResources with same foreign key"),
         IntegrityError.create(
-            Key.create(ForeignKeyContactIndex.class, "dupeid"),
+            ForeignKeyIndex.createKey(contact2),
             Key.create(contact2),
             "Multiple active EppResources with same foreign key"));
   }
@@ -246,7 +243,7 @@ public class VerifyEntityIntegrityActionTest
     persistResource(
         hostLosing.asBuilder().setFullyQualifiedHostName("gaining.example.tld").build());
     persistSimpleResource(
-        ForeignKeyHostIndex.create(hostLosing, DateTime.parse("2010-01-01T00:00:00Z")));
+        ForeignKeyIndex.create(hostLosing, DateTime.parse("2010-01-01T00:00:00Z")));
     // The old FKI with a primary key of "losing.example.tld" still exists, and it points to the
     // resource which has a hostname of "gaining.example.tld", but this isn't an error because the
     // FKI is soft-deleted.
@@ -264,7 +261,7 @@ public class VerifyEntityIntegrityActionTest
             .setDeletionTime(DateTime.parse("2013-01-01T00:00:00Z"))
             .build());
     ForeignKeyIndex<?> fki = persistSimpleResource(
-        ForeignKeyHostIndex.create(hostLosing, DateTime.parse("2014-01-01T00:00:00Z")));
+        ForeignKeyIndex.create(hostLosing, DateTime.parse("2014-01-01T00:00:00Z")));
     // The old FKI is pointing to the old name but has a deletion time more recent than the deleted
     // host, so it should have the same foreign key.
     runMapreduce();

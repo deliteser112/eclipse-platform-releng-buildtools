@@ -20,7 +20,6 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -35,7 +34,6 @@ import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
-import google.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
 import google.registry.request.Response;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
@@ -83,7 +81,6 @@ public class RdeHostLinkActionTest extends MapreduceTestCase<RdeHostLinkAction> 
             .setRepoId("Hns1_example1_test-TEST")
             .build());
     DomainResource superordinateDomain = persistActiveDomain("example1.test");
-    ForeignKeyDomainIndex.create(superordinateDomain, END_OF_TIME);
     Key<DomainResource> superOrdinateDomainKey = Key.create(superordinateDomain);
     pushToGcs(DEPOSIT_1_HOST);
     runMapreduce();
