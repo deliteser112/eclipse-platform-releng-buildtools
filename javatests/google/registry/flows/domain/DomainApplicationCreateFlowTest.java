@@ -126,6 +126,8 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.testing.DatastoreHelper;
 import google.registry.tmch.TmchCertificateAuthority;
+import google.registry.tmch.TmchXmlSignature;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -134,7 +136,6 @@ import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /** Unit tests for {@link DomainApplicationCreateFlow}. */
@@ -291,13 +292,19 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  @Ignore("I'm not sure how to get this to throw without creating a custom CA / certs")
   public void testFailure_signedMarkCertificateCorrupt() throws Exception {
     useTmchProdCert();
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_encoded_signed_mark_certificate_corrupt.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
+    // It's hard to make the real verification code throw a GeneralSecurityException. Instead,
+    // replace the TmchXmlSignature with a stub that throws it for us.
+    this.testTmchXmlSignature =  new TmchXmlSignature(null) {
+      @Override
+      public void verify(byte[] smdXml) throws GeneralSecurityException {
+        throw new GeneralSecurityException();
+      }};
     thrown.expect(SignedMarkCertificateInvalidException.class);
     runFlow();
   }

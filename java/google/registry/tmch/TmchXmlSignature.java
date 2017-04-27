@@ -56,7 +56,7 @@ import org.xml.sax.SAXException;
 
 /** Helper class for verifying TMCH certificates and XML signatures. */
 @ThreadSafe
-public final class TmchXmlSignature {
+public class TmchXmlSignature {
 
   @VisibleForTesting
   final TmchCertificateAuthority tmchCertificateAuthority;

@@ -56,6 +56,8 @@ import google.registry.testing.FakeHttpSession;
 import google.registry.testing.InjectRule;
 import google.registry.testing.ShardableTestCase;
 import google.registry.testing.TestDataHelper;
+import google.registry.tmch.TmchCertificateAuthority;
+import google.registry.tmch.TmchXmlSignature;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import google.registry.xml.ValidationMode;
 import java.util.List;
@@ -98,6 +100,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   protected FakeClock clock = new FakeClock(DateTime.now(UTC));
   protected TransportCredentials credentials = new PasswordOnlyTransportCredentials();
   protected EppRequestSource eppRequestSource = EppRequestSource.UNIT_TEST;
+  protected TmchXmlSignature testTmchXmlSignature = null;
 
   private EppMetric.Builder eppMetricBuilder;
 
@@ -288,10 +291,12 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     assertThat(FlowPicker.getFlowClass(eppLoader.getEpp()))
         .isEqualTo(new TypeInstantiator<F>(getClass()){}.getExactType());
     // Run the flow.
+    TmchXmlSignature tmchXmlSignature =
+        testTmchXmlSignature != null
+            ? testTmchXmlSignature
+            : new TmchXmlSignature(new TmchCertificateAuthority(tmchCaMode));
     return DaggerEppTestComponent.builder()
-        .fakesAndMocksModule(
-            FakesAndMocksModule.create(
-                clock, tmchCaMode, EppMetric.builderForRequest("request-id-1", clock)))
+        .fakesAndMocksModule(FakesAndMocksModule.create(clock, eppMetricBuilder, tmchXmlSignature))
         .build()
         .startRequest()
         .flowComponentBuilder()

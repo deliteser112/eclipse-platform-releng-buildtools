@@ -23,7 +23,6 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.net.MediaType;
-import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.ofy.Ofy;
 import google.registry.monitoring.whitebox.EppMetric;
@@ -118,7 +117,7 @@ public class EppTestCase extends ShardableTestCase {
     handler.response = response;
     eppMetricBuilder = EppMetric.builderForRequest("request-id-1", clock);
     handler.eppController = DaggerEppTestComponent.builder()
-        .fakesAndMocksModule(FakesAndMocksModule.create(clock, TmchCaMode.PILOT, eppMetricBuilder))
+        .fakesAndMocksModule(FakesAndMocksModule.create(clock, eppMetricBuilder))
         .build()
         .startRequest()
         .eppController();

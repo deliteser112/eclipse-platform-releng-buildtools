@@ -25,7 +25,6 @@ import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardDays;
 
 import com.googlecode.objectify.Key;
-import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
@@ -74,8 +73,7 @@ public class EppCommitLogsTest extends ShardableTestCase {
     sessionMetadata.setClientId("TheRegistrar");
     DaggerEppTestComponent.builder()
         .fakesAndMocksModule(
-            FakesAndMocksModule.create(
-                clock, TmchCaMode.PILOT, EppMetric.builderForRequest("request-id-1", clock)))
+            FakesAndMocksModule.create(clock, EppMetric.builderForRequest("request-id-1", clock)))
         .build()
         .startRequest()
         .flowComponentBuilder()

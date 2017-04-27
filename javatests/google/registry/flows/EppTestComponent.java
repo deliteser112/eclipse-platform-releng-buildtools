@@ -63,15 +63,23 @@ interface EppTestComponent {
 
     public static FakesAndMocksModule create() {
       FakeClock clock = new FakeClock();
-      return create(clock, TmchCaMode.PILOT, EppMetric.builderForRequest("request-id-1", clock));
+      return create(clock, EppMetric.builderForRequest("request-id-1", clock));
+    }
+
+    public static FakesAndMocksModule create(FakeClock clock, EppMetric.Builder metricBuilder) {
+      return create(
+          clock,
+          metricBuilder,
+          new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PILOT)));
     }
 
     public static FakesAndMocksModule create(
-        FakeClock clock, TmchCaMode tmchCaMode, EppMetric.Builder eppMetricBuilder) {
+        FakeClock clock,
+        EppMetric.Builder eppMetricBuilder,
+        TmchXmlSignature tmchXmlSignature) {
       FakesAndMocksModule instance = new FakesAndMocksModule();
       instance.clock = clock;
-      instance.domainFlowTmchUtils =
-          new DomainFlowTmchUtils(new TmchXmlSignature(new TmchCertificateAuthority(tmchCaMode)));
+      instance.domainFlowTmchUtils = new DomainFlowTmchUtils(tmchXmlSignature);
       instance.sleeper = new FakeSleeper(clock);
       instance.dnsQueue = DnsQueue.create();
       instance.metricBuilder = eppMetricBuilder;
