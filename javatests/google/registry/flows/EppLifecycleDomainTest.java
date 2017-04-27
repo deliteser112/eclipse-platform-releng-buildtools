@@ -14,8 +14,12 @@
 
 package google.registry.flows;
 
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_AND_CLOSE;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.EppMetricSubject.assertThat;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
@@ -36,10 +40,8 @@ import org.junit.runners.JUnit4;
 public class EppLifecycleDomainTest extends EppTestCase {
 
   @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .withTaskQueue()
-      .build();
+  public final AppEngineRule appEngine =
+      AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
   @Before
   public void initTld() {
@@ -60,13 +62,9 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "contact_create_response_jd1234.xml",
         startTime.plusMinutes(1));
     assertCommandAndResponse(
-        "host_create.xml",
-        "host_create_response.xml",
-        startTime.plusMinutes(2));
+        "host_create.xml", "host_create_response.xml", startTime.plusMinutes(2));
     assertCommandAndResponse(
-        "host_create2.xml",
-        "host_create2_response.xml",
-        startTime.plusMinutes(3));
+        "host_create2.xml", "host_create2_response.xml", startTime.plusMinutes(3));
   }
 
   /** Creates the domain fakesite.example with two nameservers on it. */
@@ -175,7 +173,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     assertCommandAndResponse(
         "domain_info.xml",
         "domain_info_response_pendingdelete.xml",
-        DateTime.parse("2000-08-01T00:02:00Z"));  // 1 day out.
+        DateTime.parse("2000-08-01T00:02:00Z")); // 1 day out.
 
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
@@ -195,6 +193,12 @@ public class EppLifecycleDomainTest extends EppTestCase {
   @Test
   public void testDeletionOfDomain_afterRenameOfSubordinateHost_succeeds() throws Exception {
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("Login")
+        .and()
+        .hasStatus(SUCCESS);
     createFakesite();
     createSubordinateHost();
     // Update the ns3 host to no longer be on fakesite.example domain.
@@ -202,17 +206,48 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "host_update_fakesite.xml",
         "generic_success_response.xml",
         DateTime.parse("2002-05-30T01:01:00Z"));
+    // Add assert about EppMetric
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("HostUpdate")
+        .and()
+        .hasEppTarget("ns3.fakesite.example")
+        .and()
+        .hasStatus(SUCCESS);
     // Delete the fakesite.example domain (which should succeed since it no longer has subords).
     assertCommandAndResponse(
         "domain_delete_fakesite.xml",
         "generic_success_action_pending_response.xml",
         DateTime.parse("2002-05-30T01:02:00Z"));
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("DomainDelete")
+        .and()
+        .hasEppTarget("fakesite.example")
+        .and()
+        .hasStatus(SUCCESS_WITH_ACTION_PENDING);
     // Check info on the renamed host and verify that it's still around and wasn't deleted.
     assertCommandAndResponse(
         "host_info_ns9000_example.xml",
         "host_info_response_ns9000_example.xml",
         DateTime.parse("2002-06-30T01:03:00Z"));
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("HostInfo")
+        .and()
+        .hasEppTarget("ns9000.example.external")
+        .and()
+        .hasStatus(SUCCESS);
     assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("Logout")
+        .and()
+        .hasStatus(SUCCESS_AND_CLOSE);
   }
 
   @Test
@@ -259,10 +294,15 @@ public class EppLifecycleDomainTest extends EppTestCase {
   @Test
   public void testDomainCreation_failsBeforeSunrise() throws Exception {
     DateTime sunriseDate = DateTime.parse("2000-05-30T00:00:00Z");
-    createTld("example", ImmutableSortedMap.of(
-        START_OF_TIME, TldState.PREDELEGATION,
-        sunriseDate, TldState.SUNRISE,
-        sunriseDate.plusMonths(2), TldState.GENERAL_AVAILABILITY));
+    createTld(
+        "example",
+        ImmutableSortedMap.of(
+            START_OF_TIME,
+            TldState.PREDELEGATION,
+            sunriseDate,
+            TldState.SUNRISE,
+            sunriseDate.plusMonths(2),
+            TldState.GENERAL_AVAILABILITY));
 
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
 
@@ -284,9 +324,11 @@ public class EppLifecycleDomainTest extends EppTestCase {
   @Test
   public void testDomainCheckFee_succeeds() throws Exception {
     DateTime gaDate = DateTime.parse("2000-05-30T00:00:00Z");
-    createTld("example", ImmutableSortedMap.of(
-        START_OF_TIME, TldState.PREDELEGATION,
-        gaDate, TldState.GENERAL_AVAILABILITY));
+    createTld(
+        "example",
+        ImmutableSortedMap.of(
+            START_OF_TIME, TldState.PREDELEGATION,
+            gaDate, TldState.GENERAL_AVAILABILITY));
 
     assertCommandAndResponse("login_valid_fee_extension.xml", "login_response.xml");
 
@@ -307,10 +349,11 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     // As the winning registrar, request a transfer. Capture the server trid; we'll need it later.
     assertCommandAndResponse("login2_valid.xml", "login_response.xml");
-    String response = assertCommandAndResponse(
-        "domain_transfer_request_1_year.xml",
-        "domain_transfer_response_1_year.xml",
-        DateTime.parse("2001-01-01T00:00:00Z"));
+    String response =
+        assertCommandAndResponse(
+            "domain_transfer_request_1_year.xml",
+            "domain_transfer_response_1_year.xml",
+            DateTime.parse("2001-01-01T00:00:00Z"));
     Matcher matcher = Pattern.compile("<svTRID>(.*)</svTRID>").matcher(response);
     matcher.find();
     String transferRequestTrid = matcher.group(1);
@@ -327,7 +370,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         ImmutableMap.of("ID", "1-C-EXAMPLE-17-23"),
         "poll_ack_response_empty.xml",
         null,
-    DateTime.parse("2001-01-01T00:01:00Z"));
+        DateTime.parse("2001-01-01T00:01:00Z"));
 
     // Five days in the future, expect a server approval poll message to the loser, and ack it.
     assertCommandAndResponse(
@@ -376,8 +419,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     assertCommandAndResponse("logout.xml", "logout_response.xml");
 
     // Log back in as the first registrar and verify things.
-    assertCommandAndResponse(
-        "login_valid.xml", "login_response.xml");
+    assertCommandAndResponse("login_valid.xml", "login_response.xml");
     assertCommandAndResponse(
         "domain_info_fakesite.xml",
         "domain_info_response_fakesite_pending_transfer.xml",
@@ -421,7 +463,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     // Log back in as the first registrar and verify domain is pending transfer.
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse("domain_info_fakesite.xml",
+    assertCommandAndResponse(
+        "domain_info_fakesite.xml",
         "domain_info_response_fakesite_3_nameservers_pending_transfer.xml",
         DateTime.parse("2002-05-30T01:00:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
@@ -502,7 +545,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
     assertCommandAndResponse("login2_valid.xml", "login_response.xml");
     assertCommandAndResponse(
         "domain_transfer_request_1_year.xml",
-        "domain_transfer_response_1_year.xml", DateTime.parse("2001-01-01T00:00:00Z"));
+        "domain_transfer_response_1_year.xml",
+        DateTime.parse("2001-01-01T00:00:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
 
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
@@ -587,7 +631,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     assertCommandAndResponse(
         "domain_transfer_query_fakesite.xml",
         "domain_transfer_query_response_no_transfer_history.xml",
-         DateTime.parse("2000-09-02T00:00:00Z"));
+        DateTime.parse("2000-09-02T00:00:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
     // Request a transfer of the domain to the second registrar.
     assertCommandAndResponse("login2_valid.xml", "login_response.xml");

@@ -14,7 +14,9 @@
 
 package google.registry.flows;
 
-import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_AND_CLOSE;
+import static google.registry.testing.EppMetricSubject.assertThat;
 
 import google.registry.testing.AppEngineRule;
 import org.junit.Rule;
@@ -31,10 +33,20 @@ public class EppLifecycleLoginTest extends EppTestCase {
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
   @Test
-  public void testLoginAndLogout_recordClientIdInEppMetric() throws Exception {
+  public void testLoginAndLogout_recordsEppMetric() throws Exception {
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertThat(getRecordedEppMetric().getClientId()).hasValue("NewRegistrar");
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("Login")
+        .and()
+        .hasStatus(SUCCESS);
     assertCommandAndResponse("logout.xml", "logout_response.xml");
-    assertThat(getRecordedEppMetric().getClientId()).hasValue("NewRegistrar");
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("Logout")
+        .and()
+        .hasStatus(SUCCESS_AND_CLOSE);
   }
 }
