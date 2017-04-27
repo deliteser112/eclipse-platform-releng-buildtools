@@ -47,6 +47,7 @@ registry_ear_file(
 
 # We use the production "nocron" earfile only in the event of a datastore
 # restore.
+# for details.
 registry_ear_file(
     name = "registry_nocron_ear",
     out = "registry_nocron.ear",
