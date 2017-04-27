@@ -14,7 +14,7 @@
 
 package google.registry.model.ofy;
 
-import static com.googlecode.objectify.ObjectifyService.ofy;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.googlecode.objectify.Key;

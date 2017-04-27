@@ -18,8 +18,8 @@ import static com.google.common.base.Functions.constant;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Maps.filterValues;
 import static com.google.common.collect.Maps.toMap;
-import static com.googlecode.objectify.ObjectifyService.ofy;
 import static google.registry.model.ofy.CommitLogBucket.getArbitraryBucketId;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;

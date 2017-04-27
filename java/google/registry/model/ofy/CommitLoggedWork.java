@@ -20,8 +20,8 @@ import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Maps.filterKeys;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
-import static com.googlecode.objectify.ObjectifyService.ofy;
 import static google.registry.model.ofy.CommitLogBucket.loadBucket;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.base.Function;
@@ -132,10 +132,15 @@ class CommitLoggedWork<R> extends VoidWork {
     if (isBeforeOrAt(info.transactionTime, bucket.getLastWrittenTime())) {
       throw new TimestampInversionException(info.transactionTime, bucket.getLastWrittenTime());
     }
+    // The keys read by Objectify during this transaction. This won't include the keys of
+    // asynchronous save and delete operations that haven't been reaped, but that's ok because we
+    // already logged all of those keys in {@link TransactionInfo} and now just need to figure out
+    // what was loaded.
+    ImmutableSet<Key<?>> keysInSessionCache = ofy().getSessionKeys();
     Map<Key<BackupGroupRoot>, BackupGroupRoot> rootsForTouchedKeys =
         getBackupGroupRoots(touchedKeys);
     Map<Key<BackupGroupRoot>, BackupGroupRoot> rootsForUntouchedKeys =
-        getBackupGroupRoots(difference(getObjectifySessionCacheKeys(), touchedKeys));
+        getBackupGroupRoots(difference(keysInSessionCache, touchedKeys));
     // Check the update timestamps of all keys in the transaction, whether touched or merely read.
     checkBackupGroupRootTimestamps(
         info.transactionTime,
@@ -153,7 +158,7 @@ class CommitLoggedWork<R> extends VoidWork {
               return CommitLogMutation.create(manifestKey, saveEntity);
             }})
         .toSet();
-    ofy().save()
+    ofy().saveWithoutBackup()
       .entities(new ImmutableSet.Builder<>()
           .add(manifest)
           .add(bucket.asBuilder().setLastWrittenTime(info.transactionTime).build())
@@ -161,17 +166,6 @@ class CommitLoggedWork<R> extends VoidWork {
           .addAll(untouchedRootsWithTouchedChildren)
           .build())
       .now();
-  }
-
-  /**
-   * Returns keys read by Objectify during this transaction.
-   *
-   * <p>This won't include the keys of asynchronous save and delete operations that haven't been
-   * reaped. But that's ok because we already logged all of those keys in {@link TransactionInfo}
-   * and only need this method to figure out what was loaded.
-   */
-  private ImmutableSet<Key<?>> getObjectifySessionCacheKeys() {
-    return ((SessionKeyExposingObjectify) ofy()).getSessionKeys();
   }
 
   /** Check that the timestamp of each BackupGroupRoot is in the past. */

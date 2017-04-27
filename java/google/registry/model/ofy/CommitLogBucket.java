@@ -16,8 +16,8 @@ package google.registry.model.ofy;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.DiscreteDomain.integers;
-import static com.googlecode.objectify.ObjectifyService.ofy;
 import static google.registry.config.RegistryConfig.getCommitLogBucketCount;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Function;

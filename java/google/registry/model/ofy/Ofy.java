@@ -107,6 +107,16 @@ public class Ofy {
     return ofy().factory();
   }
 
+  /**
+   * Returns keys read by Objectify during this transaction.
+   *
+   * <p>This won't include the keys of asynchronous save and delete operations that haven't been
+   * reaped.
+   */
+  public ImmutableSet<Key<?>> getSessionKeys() {
+    return ((SessionKeyExposingObjectify) ofy()).getSessionKeys();
+  }
+
   /** Clears the session cache. */
   public void clearSessionCache() {
     ofy().clear();
@@ -120,9 +130,9 @@ public class Ofy {
     checkState(inTransaction(), "Must be called in a transaction");
   }
 
-  /** 
+  /**
    * Load from Datastore, bypassing memcache even when the results might be there.
-   * 
+   *
    * <p>In general, this is the correct method to use for loads. Loading from memcache can, in rare
    * instances, produce a stale result (when a memcache write fails and the previous result is not
    * cleared out) and so using memcache should be avoided unless the caller can tolerate staleness
@@ -134,9 +144,9 @@ public class Ofy {
     return ofy().cache(true).load();
   }
 
-  /** 
+  /**
    * Load from Datastore, bypassing memcache even when the results might be there.
-   * 
+   *
    * <p>In general, prefer {@link #load} over this method. Loading from memcache can, in rare
    * instances, produce a stale result (when a memcache write fails and the previous result is not
    * cleared out) and so using memcache should be avoided unless the caller can tolerate staleness
