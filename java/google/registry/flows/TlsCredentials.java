@@ -40,7 +40,7 @@ import javax.servlet.http.HttpServletRequest;
  *
  * <p>Credentials are based on the following headers:
  * <dl>
- *   <dt>X-GFE-Requested-Servername-SNI
+ *   <dt>X-GFE-SSL-Certificate
  *   <dd>
  *     This field should contain a base64 encoded digest of the client's TLS certificate. It is
  *     validated during an EPP login command against a known good value that is transmitted out of
