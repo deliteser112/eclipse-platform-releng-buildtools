@@ -24,6 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.MemcacheHelper.clearMemcache;
+import static google.registry.testing.MemcacheHelper.setMemcacheContents;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static google.registry.util.DatastoreServiceUtils.KEY_TO_KIND_FUNCTION;
 
@@ -52,6 +53,7 @@ import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
+import google.registry.model.index.DomainApplicationIndex;
 import google.registry.model.ofy.RequestCapturingAsyncDatastoreService;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.smd.EncodedSignedMark;
@@ -326,6 +328,28 @@ public class DomainApplicationInfoFlowTest
         application.asBuilder().setPhase(LaunchPhase.SUNRISE).build());
     thrown.expect(ApplicationLaunchPhaseMismatchException.class);
     runFlow();
+  }
+
+  @Test
+  public void testLoadsComeFromMemcache() throws Exception {
+    persistTestEntities(HostsState.HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
+    setMemcacheContents(
+        Key.create(application),
+        DomainApplicationIndex.createKey(application),
+        Key.create(registrant),
+        Key.create(contact),
+        Key.create(host1),
+        Key.create(host2));
+    int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
+    doSuccessfulTest("domain_info_sunrise_response.xml", HostsState.HOSTS_EXIST);
+
+    // Everything should be in memcache so nothing should hit datastore.
+    int numReadsInFlow = RequestCapturingAsyncDatastoreService.getReads().size() - numPreviousReads;
+    // TODO(b/27424173): This is 1 because there is no @Cache annotation on DomainBase, and we
+    // don't want to blindly add it because that's a production change that adds potentially
+    // dangerous caching. When the recommendations from the audit in b/27424173 are done and we've
+    // tested the new safer caching this should be set to 0.
+    assertThat(numReadsInFlow).isEqualTo(1);
   }
 
   /** Test that we load contacts and hosts as a batch rather than individually. */

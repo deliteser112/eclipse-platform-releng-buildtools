@@ -14,13 +14,14 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.collect.Sets.union;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
-import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
+import static google.registry.flows.ResourceFlowUtils.verifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 import static google.registry.flows.domain.DomainFlowUtils.loadForeignKeyedDesignatedContacts;
-import static google.registry.flows.domain.DomainFlowUtils.prefetchReferencedResources;
+import static google.registry.model.EppResourceUtils.loadByForeignKeyWithMemcache;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
@@ -94,17 +95,22 @@ public final class DomainInfoFlow implements Flow {
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = clock.nowUtc();
-    DomainResource domain = loadAndVerifyExistence(DomainResource.class, targetId, now);
+    DomainResource domain = verifyExistence(
+        DomainResource.class,
+        targetId,
+        loadByForeignKeyWithMemcache(DomainResource.class, targetId, now));
     verifyOptionalAuthInfo(authInfo, domain);
     customLogic.afterValidation(AfterValidationParameters.newBuilder().setDomain(domain).build());
-    prefetchReferencedResources(domain);
+    // Prefetch all referenced resources. Calling values() blocks until loading is done.
+    ofy().loadWithMemcache()
+        .values(union(domain.getNameservers(), domain.getReferencedContacts())).values();
     // Registrars can only see a few fields on unauthorized domains.
     // This is a policy decision that is left up to us by the rfcs.
     DomainInfoData.Builder infoBuilder = DomainInfoData.newBuilder()
         .setFullyQualifiedDomainName(domain.getFullyQualifiedDomainName())
         .setRepoId(domain.getRepoId())
         .setCurrentSponsorClientId(domain.getCurrentSponsorClientId())
-        .setRegistrant(ofy().load().key(domain.getRegistrant()).now().getContactId());
+        .setRegistrant(ofy().loadWithMemcache().key(domain.getRegistrant()).now().getContactId());
     // If authInfo is non-null, then the caller is authorized to see the full information since we
     // will have already verified the authInfo is valid.
     if (clientId.equals(domain.getCurrentSponsorClientId()) || authInfo.isPresent()) {

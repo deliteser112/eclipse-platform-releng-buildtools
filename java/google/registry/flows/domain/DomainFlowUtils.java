@@ -917,12 +917,6 @@ public class DomainFlowUtils {
         .build();
   }
 
-  /** Bulk-load all referenced resources on a domain so they are in the session cache. */
-  static void prefetchReferencedResources(DomainBase domain) {
-    // Calling values() on the result blocks until loading is done.
-    ofy().load().values(union(domain.getNameservers(), domain.getReferencedContacts())).values();
-  }
-
   static ImmutableSet<ForeignKeyedDesignatedContact> loadForeignKeyedDesignatedContacts(
       ImmutableSet<DesignatedContact> contacts) {
     ImmutableSet.Builder<ForeignKeyedDesignatedContact> builder = new ImmutableSet.Builder<>();

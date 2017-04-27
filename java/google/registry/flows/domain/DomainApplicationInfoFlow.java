@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.collect.Sets.union;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyExistence;
@@ -21,13 +22,12 @@ import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.loadForeignKeyedDesignatedContacts;
-import static google.registry.flows.domain.DomainFlowUtils.prefetchReferencedResources;
 import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
-import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
@@ -88,10 +88,14 @@ public final class DomainApplicationInfoFlow implements Flow {
     if (applicationId.isEmpty()) {
       throw new MissingApplicationIdException();
     }
-    DomainApplication application = verifyExistence(
+    DomainApplication application =
+        ofy().loadWithMemcache().key(Key.create(DomainApplication.class, applicationId)).now();
+    verifyExistence(
         DomainApplication.class,
         applicationId,
-        loadDomainApplication(applicationId, clock.nowUtc()));
+        application != null &&  clock.nowUtc().isBefore(application.getDeletionTime())
+            ? application
+            : null);
     verifyApplicationDomainMatchesTargetId(application, targetId);
     verifyOptionalAuthInfo(authInfo, application);
     LaunchInfoExtension launchInfo = eppInput.getSingleExtension(LaunchInfoExtension.class);
@@ -101,13 +105,16 @@ public final class DomainApplicationInfoFlow implements Flow {
     // We don't support authInfo for applications, so if it's another registrar always fail.
     verifyResourceOwnership(clientId, application);
     boolean showDelegatedHosts = ((Info) resourceCommand).getHostsRequest().requestDelegated();
-    prefetchReferencedResources(application);
+    // Prefetch all referenced resources. Calling values() blocks until loading is done.
+    ofy().loadWithMemcache()
+        .values(union(application.getNameservers(), application.getReferencedContacts())).values();
     return responseBuilder
         .setResData(DomainInfoData.newBuilder()
             .setFullyQualifiedDomainName(application.getFullyQualifiedDomainName())
             .setRepoId(application.getRepoId())
             .setStatusValues(application.getStatusValues())
-            .setRegistrant(ofy().load().key(application.getRegistrant()).now().getContactId())
+            .setRegistrant(
+                ofy().loadWithMemcache().key(application.getRegistrant()).now().getContactId())
             .setContacts(loadForeignKeyedDesignatedContacts(application.getContacts()))
             .setNameservers(showDelegatedHosts
                 ? application.loadNameserverFullyQualifiedHostNames()
