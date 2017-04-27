@@ -361,28 +361,20 @@ public class DeleteContactsAndHostsAction implements Runnable {
         EppResource resource,
         boolean deleteAllowed,
         DateTime now) {
-      Optional<String> clientTransactionId = deletionRequest.clientTransactionId();
-      Optional<String> serverTransactionId = deletionRequest.serverTransactionId();
-      // TODO(b/36402020): Make this unconditional, once older tasks enqueued without Trid data
-      // have been processed out of the queue.
-      checkState(
-          clientTransactionId.isPresent() == serverTransactionId.isPresent(),
-          "Found one part of TRID without the other!");
-      if (clientTransactionId.isPresent() && serverTransactionId.isPresent()) {
-        Trid trid = Trid.create(clientTransactionId.get(), serverTransactionId.get());
-        if (resource instanceof HostResource) {
-          return ImmutableList.of(
-              HostPendingActionNotificationResponse.create(
-                  ((HostResource) resource).getFullyQualifiedHostName(), deleteAllowed, trid, now));
-        } else if (resource instanceof ContactResource) {
-          return ImmutableList.of(
-              ContactPendingActionNotificationResponse.create(
-                  ((ContactResource) resource).getContactId(), deleteAllowed, trid, now));
-        } else {
-          throw new IllegalStateException("EPP resource of unknown type " + Key.create(resource));
-        }
+      String clientTransactionId = deletionRequest.clientTransactionId();
+      String serverTransactionId = deletionRequest.serverTransactionId();
+      Trid trid = Trid.create(clientTransactionId, serverTransactionId);
+      if (resource instanceof HostResource) {
+        return ImmutableList.of(
+            HostPendingActionNotificationResponse.create(
+                ((HostResource) resource).getFullyQualifiedHostName(), deleteAllowed, trid, now));
+      } else if (resource instanceof ContactResource) {
+        return ImmutableList.of(
+            ContactPendingActionNotificationResponse.create(
+                ((ContactResource) resource).getContactId(), deleteAllowed, trid, now));
+      } else {
+        throw new IllegalStateException("EPP resource of unknown type " + Key.create(resource));
       }
-      return ImmutableList.of();
     }
 
     /**
@@ -442,10 +434,10 @@ public class DeleteContactsAndHostsAction implements Runnable {
     abstract String requestingClientId();
 
     /** First half of TRID for the original request, split for serializability. */
-    abstract Optional<String> clientTransactionId();
+    abstract String clientTransactionId();
 
     /** Second half of TRID for the original request, split for serializability. */
-    abstract Optional<String> serverTransactionId();
+    abstract String serverTransactionId();
 
     abstract boolean isSuperuser();
     abstract TaskHandle task();
@@ -455,8 +447,8 @@ public class DeleteContactsAndHostsAction implements Runnable {
       abstract Builder setKey(Key<? extends EppResource> key);
       abstract Builder setLastUpdateTime(DateTime lastUpdateTime);
       abstract Builder setRequestingClientId(String requestingClientId);
-      abstract Builder setClientTransactionId(Optional<String> clientTransactionId);
-      abstract Builder setServerTransactionId(Optional<String> serverTransactionId);
+      abstract Builder setClientTransactionId(String clientTransactionId);
+      abstract Builder setServerTransactionId(String serverTransactionId);
       abstract Builder setIsSuperuser(boolean isSuperuser);
       abstract Builder setTask(TaskHandle task);
       abstract DeletionRequest build();
@@ -485,11 +477,13 @@ public class DeleteContactsAndHostsAction implements Runnable {
                   checkNotNull(
                       params.get(PARAM_REQUESTING_CLIENT_ID), "Requesting client id not specified"))
               .setClientTransactionId(
-                  Optional.fromNullable(
-                      params.get(PARAM_CLIENT_TRANSACTION_ID)))
+                  checkNotNull(
+                      params.get(PARAM_CLIENT_TRANSACTION_ID),
+                      "Client transaction id not specified"))
               .setServerTransactionId(
-                  Optional.fromNullable(
-                      params.get(PARAM_SERVER_TRANSACTION_ID)))
+                  checkNotNull(
+                      params.get(PARAM_SERVER_TRANSACTION_ID),
+                      "Server transaction id not specified"))
               .setIsSuperuser(
                   Boolean.valueOf(
                       checkNotNull(params.get(PARAM_IS_SUPERUSER), "Is superuser not specified")))
