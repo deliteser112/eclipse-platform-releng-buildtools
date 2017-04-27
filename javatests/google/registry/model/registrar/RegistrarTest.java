@@ -30,6 +30,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.VoidWork;
 import google.registry.model.EntityTestCase;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.registrar.Registrar.State;
@@ -374,5 +376,22 @@ public class RegistrarTest extends EntityTestCase {
   public void testFailure_phonePasscodeInvalidCharacters() throws Exception {
     thrown.expect(IllegalArgumentException.class);
     new Registrar.Builder().setPhonePasscode("code1");
+  }
+
+  @Test
+  public void testLoadByClientId_isTransactionless() {
+    ofy().transact(new VoidWork() {
+      @Override
+      public void vrun() {
+        assertThat(Registrar.loadByClientId("registrar")).isNotNull();
+        // Load something as a control to make sure we are seeing loaded keys in the session cache.
+        ofy().load().entity(abuseAdminContact).now();
+        assertThat(ofy().getSessionKeys()).contains(Key.create(abuseAdminContact));
+        assertThat(ofy().getSessionKeys()).doesNotContain(Key.create(registrar));
+      }});
+    ofy().clearSessionCache();
+    // Conversely, loads outside of a transaction should end up in the session cache.
+    assertThat(Registrar.loadByClientId("registrar")).isNotNull();
+    assertThat(ofy().getSessionKeys()).contains(Key.create(registrar));
   }
 }
