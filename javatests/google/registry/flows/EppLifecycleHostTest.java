@@ -14,7 +14,10 @@
 
 package google.registry.flows;
 
+import static google.registry.model.eppoutput.Result.Code.SUCCESS;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.EppMetricSubject.assertThat;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.testing.AppEngineRule;
@@ -33,6 +36,68 @@ public class EppLifecycleHostTest extends EppTestCase {
       .withDatastore()
       .withTaskQueue()
       .build();
+
+  @Test
+  public void testLifecycle() throws Exception {
+    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertCommandAndResponse(
+        "hello.xml",
+        ImmutableMap.<String, String>of(),
+        "greeting.xml",
+        ImmutableMap.of("DATE", "2000-06-02T00:00:00Z"),
+        DateTime.parse("2000-06-02T00:00:00Z"));
+    // Note that Hello commands don't set a status code on the response.
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("Hello")
+        .and()
+        .hasNoStatus();
+    assertCommandAndResponse(
+        "host_create.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.tld"),
+        "host_create_response.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.tld", "CRDATE", "2000-06-02T00:01:00Z"),
+        DateTime.parse("2000-06-02T00:01:00Z"));
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("HostCreate")
+        .and()
+        .hasEppTarget("ns1.example.tld")
+        .and()
+        .hasStatus(SUCCESS);
+    assertCommandAndResponse(
+        "host_info.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.tld"),
+        "host_info_response.xml",
+        ImmutableMap.<String, String>of(
+            "HOSTNAME", "ns1.example.tld", "ROID", "1-ROID", "CRDATE", "2000-06-02T00:01:00Z"),
+        DateTime.parse("2000-06-02T00:02:00Z"));
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("HostInfo")
+        .and()
+        .hasEppTarget("ns1.example.tld")
+        .and()
+        .hasStatus(SUCCESS);
+    assertCommandAndResponse(
+        "host_delete.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.tld"),
+        "generic_success_action_pending_response.xml",
+        ImmutableMap.<String, String>of(),
+        DateTime.parse("2000-06-02T00:03:00Z"));
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("HostDelete")
+        .and()
+        .hasEppTarget("ns1.example.tld")
+        .and()
+        .hasStatus(SUCCESS_WITH_ACTION_PENDING);
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
 
   @Test
   public void testRenamingHostToExistingHost_fails() throws Exception {

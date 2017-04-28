@@ -16,7 +16,7 @@
         <host:clID>TheRegistrar</host:clID>
         <host:crID>NewRegistrar</host:crID>
         <host:crDate>2000-06-06T00:01:00Z</host:crDate>
-        <host:trDate>%trDate%</host:trDate>
+        <host:trDate>%TRDATE%</host:trDate>
       </host:infData>
     </resData>
     <trID>

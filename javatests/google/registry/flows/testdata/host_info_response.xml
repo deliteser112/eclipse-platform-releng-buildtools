@@ -4,10 +4,15 @@
       <msg>Command completed successfully</msg>
     </result>
     <resData>
-      <host:creData xmlns:host="urn:ietf:params:xml:ns:host-1.0">
+      <host:infData
+       xmlns:host="urn:ietf:params:xml:ns:host-1.0">
         <host:name>%HOSTNAME%</host:name>
+        <host:roid>%ROID%</host:roid>
+        <host:status s="ok"/>
+        <host:clID>NewRegistrar</host:clID>
+        <host:crID>NewRegistrar</host:crID>
         <host:crDate>%CRDATE%</host:crDate>
-      </host:creData>
+      </host:infData>
     </resData>
     <trID>
       <clTRID>ABC-12345</clTRID>

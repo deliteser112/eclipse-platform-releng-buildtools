@@ -54,6 +54,13 @@ public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
     return hasValue(status, actual().getStatus(), "has status");
   }
 
+  public And<EppMetricSubject> hasNoStatus() {
+    if (actual().getStatus().isPresent()) {
+      fail("has no status");
+    }
+    return new And<>(this);
+  }
+
   private <E> And<EppMetricSubject> hasValue(E expected, Optional<E> actual, String verb) {
     checkArgumentNotNull(expected, "Expected value cannot be null");
     if (actual == null) {

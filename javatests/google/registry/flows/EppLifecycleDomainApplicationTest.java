@@ -62,11 +62,17 @@ public class EppLifecycleDomainApplicationTest extends EppTestCase {
         startTime.plusMinutes(1));
     assertCommandAndResponse(
         "host_create.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.external"),
         "host_create_response.xml",
+        ImmutableMap.of(
+            "HOSTNAME", "ns1.example.external", "CRDATE", startTime.plusMinutes(2).toString()),
         startTime.plusMinutes(2));
     assertCommandAndResponse(
-        "host_create2.xml",
-        "host_create2_response.xml",
+        "host_create.xml",
+        ImmutableMap.of("HOSTNAME", "ns2.example.external"),
+        "host_create_response.xml",
+        ImmutableMap.of(
+            "HOSTNAME", "ns2.example.external", "CRDATE", startTime.plusMinutes(3).toString()),
         startTime.plusMinutes(3));
   }
 

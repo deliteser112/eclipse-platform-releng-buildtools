@@ -6,7 +6,7 @@
     <resData>
       <host:infData
        xmlns:host="urn:ietf:params:xml:ns:host-1.0">
-        <host:name>%hostname%</host:name>
+        <host:name>%HOSTNAME%</host:name>
         <host:roid>NS1_EXAMPLE1-REP</host:roid>
         <host:status s="ok"/>
         <host:status s="linked"/>
@@ -18,7 +18,7 @@
         <host:crDate>2000-06-06T00:01:00Z</host:crDate>
         <host:upID>TheRegistrar</host:upID>
         <host:upDate>2002-05-30T01:01:00Z</host:upDate>
-        <host:trDate>%trDate%</host:trDate>
+        <host:trDate>%TRDATE%</host:trDate>
       </host:infData>
     </resData>
     <trID>

@@ -62,9 +62,19 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "contact_create_response_jd1234.xml",
         startTime.plusMinutes(1));
     assertCommandAndResponse(
-        "host_create.xml", "host_create_response.xml", startTime.plusMinutes(2));
+        "host_create.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.external"),
+        "host_create_response.xml",
+        ImmutableMap.of(
+            "HOSTNAME", "ns1.example.external", "CRDATE", startTime.plusMinutes(2).toString()),
+        startTime.plusMinutes(2));
     assertCommandAndResponse(
-        "host_create2.xml", "host_create2_response.xml", startTime.plusMinutes(3));
+        "host_create.xml",
+        ImmutableMap.of("HOSTNAME", "ns2.example.external"),
+        "host_create_response.xml",
+        ImmutableMap.of(
+            "HOSTNAME", "ns2.example.external", "CRDATE", startTime.plusMinutes(3).toString()),
+        startTime.plusMinutes(3));
   }
 
   /** Creates the domain fakesite.example with two nameservers on it. */
@@ -336,6 +346,14 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "domain_check_fee_premium.xml",
         "domain_check_fee_premium_response.xml",
         gaDate.plusDays(1));
+    assertThat(getRecordedEppMetric())
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasCommandName("DomainCheck")
+        .and()
+        .hasEppTarget("rich.example")
+        .and()
+        .hasStatus(SUCCESS);
 
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
@@ -481,7 +499,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "host_info_fakesite.xml",
         null,
         "host_info_response_fakesite_post_transfer.xml",
-        ImmutableMap.of("trDate", "2002-06-04T00:00:00Z"),
+        ImmutableMap.of("TRDATE", "2002-06-04T00:00:00Z"),
         DateTime.parse("2002-06-09T00:01:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
@@ -589,9 +607,9 @@ public class EppLifecycleDomainTest extends EppTestCase {
     // Verify that the lastTransferTime now reflects the superordinate domain's transfer.
     assertCommandAndResponse(
         "host_info.xml",
-        ImmutableMap.of("hostname", "ns3.fakesite.example"),
+        ImmutableMap.of("HOSTNAME", "ns3.fakesite.example"),
         "host_info_response_fakesite_post_transfer.xml",
-        ImmutableMap.of("trDate", "2001-01-06T00:00:00.000Z"),
+        ImmutableMap.of("TRDATE", "2001-01-06T00:00:00.000Z"),
         DateTime.parse("2001-01-07T00:00:00Z"));
     assertCommandAndResponse(
         "domain_create_secondsite.xml",
@@ -608,11 +626,11 @@ public class EppLifecycleDomainTest extends EppTestCase {
     // The last transfer time on the host should still be what it was from the transfer.
     assertCommandAndResponse(
         "host_info.xml",
-        ImmutableMap.of("hostname", "ns3.secondsite.example"),
+        ImmutableMap.of("HOSTNAME", "ns3.secondsite.example"),
         "host_info_response_fakesite_post_transfer_and_update.xml",
         ImmutableMap.of(
-            "hostname", "ns3.secondsite.example",
-            "trDate", "2001-01-06T00:00:00.000Z"),
+            "HOSTNAME", "ns3.secondsite.example",
+            "TRDATE", "2001-01-06T00:00:00.000Z"),
         DateTime.parse("2003-01-07T00:00:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
@@ -644,7 +662,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "host_info_fakesite.xml",
         null,
         "host_info_response_fakesite_post_transfer.xml",
-        ImmutableMap.of("trDate", "2001-01-06T00:00:00.000Z"),
+        ImmutableMap.of("TRDATE", "2001-01-06T00:00:00.000Z"),
         DateTime.parse("2001-01-07T00:00:00Z"));
     // Update the host to be external by renaming it to ns3.notarealsite.external
     assertCommandAndResponse(
@@ -658,11 +676,11 @@ public class EppLifecycleDomainTest extends EppTestCase {
     // The last transfer time on the host should still be what it was from the transfer.
     assertCommandAndResponse(
         "host_info.xml",
-        ImmutableMap.of("hostname", "ns3.notarealsite.external"),
+        ImmutableMap.of("HOSTNAME", "ns3.notarealsite.external"),
         "host_info_response_fakesite_post_transfer_and_update_no_addresses.xml",
         ImmutableMap.of(
-            "hostname", "ns3.notarealsite.external",
-            "trDate", "2001-01-06T00:00:00.000Z"),
+            "HOSTNAME", "ns3.notarealsite.external",
+            "TRDATE", "2001-01-06T00:00:00.000Z"),
         DateTime.parse("2001-01-07T00:00:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
