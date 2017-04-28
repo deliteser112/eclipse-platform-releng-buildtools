@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
@@ -63,6 +64,7 @@ final class GetHistoryEntriesCommand implements RemoteApiCommand {
           type != null && uniqueId != null,
           "If either of 'type' or 'id' are set then both must be");
       parentKey = type.getKey(uniqueId, DateTime.now(UTC));
+      checkArgumentNotNull(parentKey, "Invalid resource ID");
     }
     for (HistoryEntry entry :
             (parentKey == null
