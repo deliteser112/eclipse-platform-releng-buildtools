@@ -72,7 +72,6 @@ public class FlowRunnerTest extends ShardableTestCase {
   @Before
   public void before() {
     Logger.getLogger(FlowRunner.class.getCanonicalName()).addHandler(handler);
-    Logger.getLogger(FlowReporter.class.getCanonicalName()).addHandler(handler);
     flowRunner.clientId = "TheRegistrar";
     flowRunner.credentials = new PasswordOnlyTransportCredentials();
     flowRunner.eppRequestSource = EppRequestSource.UNIT_TEST;
