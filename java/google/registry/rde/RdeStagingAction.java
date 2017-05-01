@@ -14,6 +14,8 @@
 
 package google.registry.rde;
 
+import static google.registry.request.Action.Method.GET;
+import static google.registry.request.Action.Method.POST;
 import static google.registry.util.PipelineUtils.createJobPath;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 
@@ -41,6 +43,8 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
@@ -181,7 +185,15 @@ import org.joda.time.Duration;
  * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-registry-data-escrow-06">Registry Data Escrow Specification</a>
  * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-dnrd-objects-mapping-05">Domain Name Registration Data Objects Mapping</a>
  */
-@Action(path = RdeStagingAction.PATH)
+@Action(
+  path = RdeStagingAction.PATH,
+  method = {GET, POST},
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      ))
 public final class RdeStagingAction implements Runnable {
 
   public static final String PATH = "/_dr/task/rdeStaging";
