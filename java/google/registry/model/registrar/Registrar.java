@@ -863,7 +863,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     return ofy().doTransactionless(new Work<Registrar>() {
       @Override
       public Registrar run() {
-        return ofy().load()
+        return ofy().loadWithMemcache()
             .type(Registrar.class)
             .parent(getCrossTldKey())
             .id(clientId)

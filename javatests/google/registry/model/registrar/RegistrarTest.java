@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+ // Copyright 2017 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
+import static google.registry.testing.MemcacheHelper.setMemcacheContents;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -34,6 +35,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import google.registry.model.EntityTestCase;
 import google.registry.model.common.EntityGroupRoot;
+import google.registry.model.ofy.RequestCapturingAsyncDatastoreService;
 import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.Registrar.Type;
 import google.registry.testing.ExceptionRule;
@@ -393,5 +395,14 @@ public class RegistrarTest extends EntityTestCase {
     // Conversely, loads outside of a transaction should end up in the session cache.
     assertThat(Registrar.loadByClientId("registrar")).isNotNull();
     assertThat(ofy().getSessionKeys()).contains(Key.create(registrar));
+  }
+
+  @Test
+  public void testLoadByClientId_usesMemcache() {
+    setMemcacheContents(Key.create(registrar));
+    int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
+    Registrar.loadByClientId("registrar");
+    int numReadsInLoad = RequestCapturingAsyncDatastoreService.getReads().size() - numPreviousReads;
+    assertThat(numReadsInLoad).isEqualTo(0);
   }
 }
