@@ -17,15 +17,14 @@ package google.registry.flows;
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestLogHandlerUtils.findFirstLogMessageByPrefix;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.google.common.testing.TestLogHandler;
 import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.eppcommon.Trid;
@@ -35,7 +34,6 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.testing.ShardableTestCase;
 import java.util.Map;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -82,7 +80,7 @@ public class FlowReporterTest extends ShardableTestCase {
   @Test
   public void testRecordToLogs_eppInput_basic() throws Exception {
     flowReporter.recordToLogs();
-    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-EPPINPUT: ")))
+    assertThat(parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-EPPINPUT: ")))
         .containsExactly(
               "xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n",
               "xmlBytes", "PHhtbC8+"); // Base64-encoding of "<xml/>".
@@ -94,7 +92,7 @@ public class FlowReporterTest extends ShardableTestCase {
         getClass(), "domain_create_prettyprinted.xml", ImmutableMap.<String, String>of());
     flowReporter.inputXmlBytes = domainCreateXml.getBytes(UTF_8);
     flowReporter.recordToLogs();
-    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-EPPINPUT: ")))
+    assertThat(parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-EPPINPUT: ")))
         .containsExactly(
               "xml", domainCreateXml,
               "xmlBytes", base64().encode(domainCreateXml.getBytes(UTF_8)));
@@ -103,7 +101,7 @@ public class FlowReporterTest extends ShardableTestCase {
   @Test
   public void testRecordToLogs_metadata_basic() throws Exception {
     flowReporter.recordToLogs();
-    assertThat(parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: ")))
+    assertThat(parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: ")))
         .containsExactly(
               "serverTrid", "server-456",
               "clientId", "TheRegistrar",
@@ -122,7 +120,7 @@ public class FlowReporterTest extends ShardableTestCase {
     flowReporter.flowClass = TestReportingSpecCommandFlow.class;
     flowReporter.recordToLogs();
     Map<String, Object> json =
-        parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
+        parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
     assertThat(json).containsEntry("flowClassName", "TestReportingSpecCommandFlow");
     assertThat(json).containsEntry("icannActivityReportField", "srs-cont-check");
   }
@@ -132,7 +130,7 @@ public class FlowReporterTest extends ShardableTestCase {
     flowReporter.clientId = "";
     flowReporter.recordToLogs();
     Map<String, Object> json =
-        parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
+        parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
     assertThat(json).containsEntry("clientId", "");
   }
 
@@ -141,7 +139,7 @@ public class FlowReporterTest extends ShardableTestCase {
     when(flowReporter.eppInput.getResourceType()).thenReturn(Optional.<String>absent());
     flowReporter.recordToLogs();
     Map<String, Object> json =
-        parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
+        parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
     assertThat(json).containsEntry("resourceType", "");
     assertThat(json).containsEntry("tld", "");
     assertThat(json).containsEntry("tlds", ImmutableList.of());
@@ -153,7 +151,7 @@ public class FlowReporterTest extends ShardableTestCase {
     when(flowReporter.eppInput.getResourceType()).thenReturn(Optional.of("contact"));
     flowReporter.recordToLogs();
     Map<String, Object> json =
-        parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
+        parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
     assertThat(json).containsEntry("resourceType", "contact");
     assertThat(json).containsEntry("tld", "");
     assertThat(json).containsEntry("tlds", ImmutableList.of());
@@ -165,7 +163,7 @@ public class FlowReporterTest extends ShardableTestCase {
     when(flowReporter.eppInput.getTargetIds()).thenReturn(ImmutableList.of("target.co.uk"));
     flowReporter.recordToLogs();
     Map<String, Object> json =
-        parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
+        parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
     assertThat(json).containsEntry("targetId", "target.co.uk");
     assertThat(json).containsEntry("targetIds", ImmutableList.of("target.co.uk"));
     assertThat(json).containsEntry("tld", "co.uk");
@@ -179,7 +177,7 @@ public class FlowReporterTest extends ShardableTestCase {
         .thenReturn(ImmutableList.of("target.co.uk", "foo.uk", "bar.uk", "baz.com"));
     flowReporter.recordToLogs();
     Map<String, Object> json =
-        parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
+        parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
     assertThat(json).containsEntry("targetId", "");
     assertThat(json).containsEntry(
         "targetIds", ImmutableList.of("target.co.uk", "foo.uk", "bar.uk", "baz.com"));
@@ -193,7 +191,7 @@ public class FlowReporterTest extends ShardableTestCase {
     when(flowReporter.eppInput.getTargetIds()).thenReturn(ImmutableList.of("TARGET.FOO"));
     flowReporter.recordToLogs();
     Map<String, Object> json =
-        parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
+        parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
     assertThat(json).containsEntry("targetId", "TARGET.FOO");
     assertThat(json).containsEntry("targetIds", ImmutableList.of("TARGET.FOO"));
     assertThat(json).containsEntry("tld", "foo");
@@ -206,7 +204,7 @@ public class FlowReporterTest extends ShardableTestCase {
     when(flowReporter.eppInput.getTargetIds()).thenReturn(ImmutableList.of("<foo@bar.com>"));
     flowReporter.recordToLogs();
     Map<String, Object> json =
-        parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
+        parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
     assertThat(json).containsEntry("targetId", "<foo@bar.com>");
     assertThat(json).containsEntry("targetIds", ImmutableList.of("<foo@bar.com>"));
     assertThat(json).containsEntry("tld", "com>");
@@ -219,7 +217,7 @@ public class FlowReporterTest extends ShardableTestCase {
     when(flowReporter.eppInput.getTargetIds()).thenReturn(ImmutableList.of("target,foo"));
     flowReporter.recordToLogs();
     Map<String, Object> json =
-        parseJsonMap(findLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
+        parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
     assertThat(json).containsEntry("targetId", "target,foo");
     assertThat(json).containsEntry("targetIds", ImmutableList.of("target,foo"));
     assertThat(json).containsEntry("tld", "");
@@ -229,22 +227,5 @@ public class FlowReporterTest extends ShardableTestCase {
   @SuppressWarnings("unchecked")
   private static Map<String, Object> parseJsonMap(String json) throws Exception {
     return (Map<String, Object>) JSONValue.parseWithException(json);
-  }
-
-  /**
-   * Find the first log message stored in the handler that has the provided prefix, and return
-   * that message with the prefix stripped off.
-   */
-  private static String findLogMessageByPrefix(TestLogHandler handler, final String prefix) {
-    return Iterables.find(
-            handler.getStoredLogRecords(),
-            new Predicate<LogRecord>() {
-              @Override
-              public boolean apply(LogRecord logRecord) {
-                return logRecord.getMessage().startsWith(prefix);
-              }
-            })
-        .getMessage()
-        .replaceFirst("^" + prefix, "");
   }
 }

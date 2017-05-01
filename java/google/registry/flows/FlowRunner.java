@@ -14,7 +14,6 @@
 
 package google.registry.flows;
 
-import static com.google.common.base.Throwables.getStackTraceAsString;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.xml.XmlTransformer.prettyPrint;
 
@@ -100,17 +99,13 @@ public class FlowRunner {
             }
             return output;
           } catch (EppException e) {
-            throw new RuntimeException(e);
+            throw new EppRuntimeException(e);
           }
         }});
     } catch (DryRunException e) {
       return e.output;
-    } catch (RuntimeException e) {
-      logger.warning(getStackTraceAsString(e));
-      if (e.getCause() instanceof EppException) {
-        throw (EppException) e.getCause();
-      }
-      throw e;
+    } catch (EppRuntimeException e) {
+      throw e.getCause();
     }
   }
 
@@ -120,6 +115,18 @@ public class FlowRunner {
 
     DryRunException(EppOutput output) {
       this.output = output;
+    }
+  }
+
+  /** Exception for explicitly propagating an EppException out of the transactional {@code Work}. */
+  private static class EppRuntimeException extends RuntimeException {
+    EppRuntimeException(EppException cause) {
+      super(cause);
+    }
+
+    @Override
+    public synchronized EppException getCause() {
+      return (EppException) super.getCause();
     }
   }
 }

@@ -16,6 +16,7 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestLogHandlerUtils.findFirstLogMessageByPrefix;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -24,11 +25,9 @@ import static org.mockito.Mockito.verify;
 import com.google.appengine.api.users.User;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.testing.TestLogHandler;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput.ResponseOrGreeting;
@@ -40,7 +39,6 @@ import google.registry.testing.FakeHttpSession;
 import google.registry.testing.Providers;
 import google.registry.testing.ShardableTestCase;
 import java.util.List;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.junit.Before;
 import org.junit.Rule;
@@ -129,7 +127,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   @Test
   public void testRun_legacyLoggingStatement_basic() throws Exception {
     flowRunner.run(eppMetricBuilder);
-    assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
+    assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
         .containsExactly(
             "server-456",
             "TheRegistrar",
@@ -148,7 +146,7 @@ public class FlowRunnerTest extends ShardableTestCase {
     flowRunner.sessionMetadata = new HttpSessionMetadata(new FakeHttpSession());
     flowRunner.sessionMetadata.setClientId("TheRegistrar");
     flowRunner.run(eppMetricBuilder);
-    assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
+    assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
         .contains(
             "HttpSessionMetadata"
                 + "{clientId=TheRegistrar, failedLoginAttempts=0, serviceExtensionUris=}");
@@ -159,7 +157,7 @@ public class FlowRunnerTest extends ShardableTestCase {
     flowRunner.credentials =
         GaeUserCredentials.forTestingUser(new User("user@example.com", "authDomain"), false);
     flowRunner.run(eppMetricBuilder);
-    assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
+    assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
         .contains("GaeUserCredentials{gaeUser=user@example.com, isAdmin=false}");
   }
 
@@ -167,7 +165,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   public void testRun_legacyLoggingStatement_tlsCredentials() throws Exception {
     flowRunner.credentials = new TlsCredentials("abc123def", Optional.of("127.0.0.1"), "sni");
     flowRunner.run(eppMetricBuilder);
-    assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
+    assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
         .contains(
             "TlsCredentials{clientCertificateHash=abc123def, clientAddress=/127.0.0.1, sni=sni}");
   }
@@ -176,7 +174,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   public void testRun_legacyLoggingStatement_dryRun() throws Exception {
     flowRunner.isDryRun = true;
     flowRunner.run(eppMetricBuilder);
-    assertThat(Splitter.on("\n\t").split(findLogMessageByPrefix(handler, "EPP Command\n\t")))
+    assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
         .contains("DRY_RUN");
   }
 
@@ -186,27 +184,10 @@ public class FlowRunnerTest extends ShardableTestCase {
         getClass(), "domain_create_prettyprinted.xml", ImmutableMap.<String, String>of());
     flowRunner.inputXmlBytes = domainCreateXml.getBytes(UTF_8);
     flowRunner.run(eppMetricBuilder);
-    String logMessage = findLogMessageByPrefix(handler, "EPP Command\n\t");
+    String logMessage = findFirstLogMessageByPrefix(handler, "EPP Command\n\t");
     List<String> lines = Splitter.on("\n\t").splitToList(logMessage);
     assertThat(lines.size()).named("number of lines in log message").isAtLeast(9);
     String xml = Joiner.on('\n').join(lines.subList(3, lines.size() - 3));
     assertThat(xml).isEqualTo(domainCreateXml);
-  }
-
-  /**
-   * Find the first log message stored in the handler that has the provided prefix, and return
-   * that message with the prefix stripped off.
-   */
-  private static String findLogMessageByPrefix(TestLogHandler handler, final String prefix) {
-    return Iterables.find(
-            handler.getStoredLogRecords(),
-            new Predicate<LogRecord>() {
-              @Override
-              public boolean apply(LogRecord logRecord) {
-                return logRecord.getMessage().startsWith(prefix);
-              }
-            })
-        .getMessage()
-        .replaceFirst("^" + prefix, "");
   }
 }

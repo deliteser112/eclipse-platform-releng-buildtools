@@ -118,12 +118,14 @@ public final class EppController {
     try {
       return flowComponent.flowRunner().run(eppMetricBuilder);
     } catch (EppException | EppExceptionInProviderException e) {
-      // The command failed. Send the client an error message.
+      // The command failed. Send the client an error message, but only log at INFO since many of
+      // these failures are innocuous or due to client error, so there's nothing we have to change.
+      logger.info(e, "Flow returned failure response");
       EppException eppEx = (EppException) (e instanceof EppException ? e : e.getCause());
       return getErrorResponse(eppEx.getResult(), flowComponent.trid());
     } catch (Throwable e) {
-      // Something bad and unexpected happened. Send the client a generic error, and log it.
-      logger.severe(e, "Unexpected failure");
+      // Something bad and unexpected happened. Send the client a generic error, and log at SEVERE.
+      logger.severe(e, "Unexpected failure in flow execution");
       return getErrorResponse(Result.create(Code.COMMAND_FAILED), flowComponent.trid());
     }
   }
