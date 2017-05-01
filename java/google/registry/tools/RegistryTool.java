@@ -50,6 +50,7 @@ public final class RegistryTool {
           .put("delete_credit", DeleteCreditCommand.class)
           .put("delete_domain", DeleteDomainCommand.class)
           .put("delete_entity", DeleteEntityCommand.class)
+          .put("delete_host", DeleteHostCommand.class)
           .put("delete_premium_list", DeletePremiumListCommand.class)
           .put("delete_reserved_list", DeleteReservedListCommand.class)
           .put("delete_tld", DeleteTldCommand.class)
