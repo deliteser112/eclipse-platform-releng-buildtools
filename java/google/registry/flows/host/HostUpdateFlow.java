@@ -24,6 +24,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
+import static google.registry.flows.host.HostFlowUtils.verifySuperordinateDomainNotInPendingDelete;
 import static google.registry.flows.host.HostFlowUtils.verifySuperordinateDomainOwnership;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -90,6 +91,7 @@ import org.joda.time.DateTime;
  * @error {@link HostFlowUtils.HostNameTooShallowException}
  * @error {@link HostFlowUtils.InvalidHostNameException}
  * @error {@link HostFlowUtils.SuperordinateDomainDoesNotExistException}
+ * @error {@link HostFlowUtils.SuperordinateDomainInPendingDeleteException}
  * @error {@link CannotAddIpToExternalHostException}
  * @error {@link CannotRemoveSubordinateHostLastIpException}
  * @error {@link CannotRenameExternalHostException}
@@ -139,6 +141,7 @@ public final class HostUpdateFlow implements TransactionalFlow {
     // Note that lookupSuperordinateDomain calls cloneProjectedAtTime on the domain for us.
     Optional<DomainResource> newSuperordinateDomain =
         lookupSuperordinateDomain(validateHostName(newHostName), now);
+    verifySuperordinateDomainNotInPendingDelete(newSuperordinateDomain.orNull());
     EppResource owningResource = firstNonNull(oldSuperordinateDomain, existingHost);
     verifyUpdateAllowed(
         command, existingHost, newSuperordinateDomain.orNull(), owningResource, isHostRename);

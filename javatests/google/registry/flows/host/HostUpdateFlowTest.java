@@ -59,6 +59,7 @@ import google.registry.flows.host.HostFlowUtils.HostNameTooLongException;
 import google.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
 import google.registry.flows.host.HostFlowUtils.InvalidHostNameException;
 import google.registry.flows.host.HostFlowUtils.SuperordinateDomainDoesNotExistException;
+import google.registry.flows.host.HostFlowUtils.SuperordinateDomainInPendingDeleteException;
 import google.registry.flows.host.HostUpdateFlow.CannotAddIpToExternalHostException;
 import google.registry.flows.host.HostUpdateFlow.CannotRemoveSubordinateHostLastIpException;
 import google.registry.flows.host.HostUpdateFlow.CannotRenameExternalHostException;
@@ -759,6 +760,28 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     thrown.expect(
         SuperordinateDomainDoesNotExistException.class,
         "(example.tld)");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_superordinateInPendingDelete() throws Exception {
+    setEppHostUpdateInput(
+        "ns1.example.tld",
+        "ns2.example.tld",
+        "<host:addr ip=\"v4\">192.0.2.22</host:addr>",
+        "<host:addr ip=\"v6\">1080:0:0:0:8:800:200C:417A</host:addr>");
+    createTld("tld");
+    DomainResource domain = persistResource(newDomainResource("example.tld")
+            .asBuilder()
+            .setSubordinateHosts(ImmutableSet.of(oldHostName()))
+            .setDeletionTime(clock.nowUtc().plusDays(35))
+            .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
+            .build());
+    persistActiveSubordinateHost(oldHostName(), domain);
+    clock.advanceOneMilli();
+    thrown.expect(
+        SuperordinateDomainInPendingDeleteException.class,
+        "example.tld");
     runFlow();
   }
 

@@ -18,15 +18,18 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppXmlTransformer.IpAddressVersionMismatchException;
 import google.registry.flows.ResourceFlowTestCase;
@@ -40,7 +43,9 @@ import google.registry.flows.host.HostFlowUtils.HostNameTooLongException;
 import google.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
 import google.registry.flows.host.HostFlowUtils.InvalidHostNameException;
 import google.registry.flows.host.HostFlowUtils.SuperordinateDomainDoesNotExistException;
+import google.registry.flows.host.HostFlowUtils.SuperordinateDomainInPendingDeleteException;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
 import org.joda.time.DateTime;
@@ -164,6 +169,22 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     thrown.expect(
         SuperordinateDomainDoesNotExistException.class,
         "(example.tld)");
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_superordinateInPendingDelete() throws Exception {
+    setEppHostCreateInputWithIps("ns1.example.tld");
+    createTld("tld");
+    persistResource(newDomainResource("example.tld")
+        .asBuilder()
+        .setDeletionTime(clock.nowUtc().plusDays(35))
+        .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
+        .build());
+    clock.advanceOneMilli();
+    thrown.expect(
+        SuperordinateDomainInPendingDeleteException.class,
+        "example.tld");
     runFlow();
   }
 

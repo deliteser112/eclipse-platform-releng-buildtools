@@ -1009,6 +1009,7 @@ are enqueued to update DNS accordingly.
     *   This resource has clientUpdateProhibited on it, and the update does not
         clear that status.
     *   Resource status prohibits this operation.
+    *   Superordinate domain for this hostname is in pending delete.
     *   Cannot remove all IP addresses from a subordinate host.
     *   Cannot rename an external host.
 *   2306
@@ -1094,6 +1095,8 @@ allows creating a host name, and if necessary enqueues tasks to update DNS.
     *   Resource with this id already exists.
 *   2303
     *   Superordinate domain for this hostname does not exist.
+*   2304
+    *   Superordinate domain for this hostname is in pending delete.
 *   2306
     *   Host names must be at least two levels below the public suffix.
 

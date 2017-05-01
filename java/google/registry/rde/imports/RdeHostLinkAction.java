@@ -28,6 +28,7 @@ import com.googlecode.objectify.VoidWork;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
@@ -105,6 +106,14 @@ public class RdeHostLinkAction implements Runnable {
         if (!superordinateDomain.isPresent()) {
           getContext().incrementCounter("post-import hosts out of zone");
           logger.infofmt("Host %s is out of zone", xjcHost.getName());
+          return;
+        }
+        if (superordinateDomain.get().getStatusValues().contains(StatusValue.PENDING_DELETE)) {
+          getContext()
+              .incrementCounter(
+                  "post-import hosts with superordinate domains in pending delete");
+          logger.infofmt(
+              "Host %s has a superordinate domain in pending delete", xjcHost.getName());
           return;
         }
         // at this point, the host is definitely in zone and should be linked

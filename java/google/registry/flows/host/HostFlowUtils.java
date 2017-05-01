@@ -30,7 +30,9 @@ import google.registry.flows.EppException.ObjectDoesNotExistException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
+import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.eppcommon.StatusValue;
 import google.registry.util.Idn;
 import org.joda.time.DateTime;
 
@@ -124,6 +126,24 @@ public class HostFlowUtils {
   static class HostDomainNotOwnedException extends AuthorizationErrorException {
     public HostDomainNotOwnedException() {
       super("Domain for host is sponsored by another registrar");
+    }
+  }
+
+  /** Ensure that the superordinate domain is not in pending delete. */
+  static void verifySuperordinateDomainNotInPendingDelete(
+      DomainResource superordinateDomain) throws EppException {
+    if ((superordinateDomain != null)
+        && superordinateDomain.getStatusValues().contains(StatusValue.PENDING_DELETE)) {
+      throw new SuperordinateDomainInPendingDeleteException(
+          superordinateDomain.getFullyQualifiedDomainName());
+    }
+  }
+
+  /** Superordinate domain for this hostname is in pending delete. */
+  static class SuperordinateDomainInPendingDeleteException
+      extends StatusProhibitsOperationException {
+    public SuperordinateDomainInPendingDeleteException(String domainName) {
+      super(domainName);
     }
   }
 
