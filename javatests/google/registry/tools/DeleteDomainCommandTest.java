@@ -22,29 +22,36 @@ public class DeleteDomainCommandTest extends EppToolCommandTestCase<DeleteDomain
 
   @Test
   public void testSuccess() throws Exception {
-    runCommand("--client=NewRegistrar", "--domain_name=example.tld", "--force",
-        "--reason=Test");
+    runCommand("--client=NewRegistrar", "--domain_name=example.tld", "--force", "--reason=Test");
     eppVerifier().verifySent("domain_delete.xml");
   }
 
   @Test
   public void testSuccess_multipleWordReason() throws Exception {
-    runCommand("--client=NewRegistrar", "--domain_name=example.tld", "--force",
-        "--reason=\"Test test\"");
+    runCommand(
+        "--client=NewRegistrar", "--domain_name=example.tld", "--force", "--reason=\"Test test\"");
     eppVerifier().verifySent("domain_delete_multiple_word_reason.xml");
   }
 
   @Test
   public void testSuccess_requestedByRegistrarFalse() throws Exception {
-    runCommand("--client=NewRegistrar", "--domain_name=example.tld", "--force",
-        "--reason=Test", "--registrar_request=false");
+    runCommand(
+        "--client=NewRegistrar",
+        "--domain_name=example.tld",
+        "--force",
+        "--reason=Test",
+        "--registrar_request=false");
     eppVerifier().verifySent("domain_delete.xml");
   }
 
   @Test
   public void testSuccess_requestedByRegistrarTrue() throws Exception {
-    runCommand("--client=NewRegistrar", "--domain_name=example.tld", "--force",
-        "--reason=Test", "--registrar_request=true");
+    runCommand(
+        "--client=NewRegistrar",
+        "--domain_name=example.tld",
+        "--force",
+        "--reason=Test",
+        "--registrar_request=true");
     eppVerifier().verifySent("domain_delete_by_registrar.xml");
   }
 
@@ -69,14 +76,14 @@ public class DeleteDomainCommandTest extends EppToolCommandTestCase<DeleteDomain
   @Test
   public void testFailure_unknownFlag() throws Exception {
     thrown.expect(ParameterException.class);
-    runCommand("--client=NewRegistrar", "--domain_name=example.tld",
-        "--force", "--reason=Test", "--foo");
+    runCommand(
+        "--client=NewRegistrar", "--domain_name=example.tld", "--force", "--reason=Test", "--foo");
   }
 
   @Test
   public void testFailure_mainParameter() throws Exception {
     thrown.expect(ParameterException.class);
-    runCommand("--client=NewRegistrar", "--domain_name=example.tld",
-        "--force", "--reason=Test", "foo");
+    runCommand(
+        "--client=NewRegistrar", "--domain_name=example.tld", "--force", "--reason=Test", "foo");
   }
 }
