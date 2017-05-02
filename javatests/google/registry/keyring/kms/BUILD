@@ -18,6 +18,7 @@ java_library(
         "//java/google/registry/keyring/api",
         "//java/google/registry/keyring/kms",
         "//java/google/registry/model",
+        "//java/google/registry/util",
         "//javatests/google/registry/testing",
         "//third_party/java/objectify:objectify-v4_1",
         "@com_google_api_client",

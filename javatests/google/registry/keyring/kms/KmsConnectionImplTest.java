@@ -34,6 +34,9 @@ import com.google.api.services.cloudkms.v1beta1.model.EncryptRequest;
 import com.google.api.services.cloudkms.v1beta1.model.EncryptResponse;
 import com.google.api.services.cloudkms.v1beta1.model.KeyRing;
 import com.google.api.services.cloudkms.v1beta1.model.UpdateCryptoKeyPrimaryVersionRequest;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeSleeper;
+import google.registry.util.Retrier;
 import java.io.ByteArrayInputStream;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,6 +71,8 @@ public class KmsConnectionImplTest {
 
   @Mock private CloudKMS.Projects.Locations.KeyRings.CryptoKeys.Encrypt kmsCryptoKeysEncrypt;
   @Mock private CloudKMS.Projects.Locations.KeyRings.CryptoKeys.Decrypt kmsCryptoKeysDecrypt;
+
+  private final Retrier retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
 
   @Captor private ArgumentCaptor<KeyRing> keyRing;
   @Captor private ArgumentCaptor<CryptoKey> cryptoKey;
@@ -116,7 +121,7 @@ public class KmsConnectionImplTest {
   public void test_encrypt_createsKeyRingIfNotFound() throws Exception {
     when(kmsKeyRingsGet.execute()).thenThrow(createNotFoundException());
 
-    new KmsConnectionImpl("foo", "bar", kms).encrypt("key", "moo".getBytes(UTF_8));
+    new KmsConnectionImpl("foo", "bar", retrier, kms).encrypt("key", "moo".getBytes(UTF_8));
 
     verify(kmsKeyRings).create(locationName.capture(), keyRing.capture());
     assertThat(locationName.getValue()).isEqualTo("projects/foo/locations/global");
@@ -135,7 +140,7 @@ public class KmsConnectionImplTest {
   public void test_encrypt_newCryptoKey() throws Exception {
     when(kmsCryptoKeysGet.execute()).thenThrow(createNotFoundException());
 
-    new KmsConnectionImpl("foo", "bar", kms).encrypt("key", "moo".getBytes(UTF_8));
+    new KmsConnectionImpl("foo", "bar", retrier, kms).encrypt("key", "moo".getBytes(UTF_8));
 
     verify(kmsCryptoKeys).create(keyRingName.capture(), cryptoKey.capture());
     assertThat(keyRingName.getValue()).isEqualTo("projects/foo/locations/global/keyRings/bar");
@@ -154,7 +159,7 @@ public class KmsConnectionImplTest {
 
   @Test
   public void test_encrypt() throws Exception {
-    new KmsConnectionImpl("foo", "bar", kms).encrypt("key", "moo".getBytes(UTF_8));
+    new KmsConnectionImpl("foo", "bar", retrier, kms).encrypt("key", "moo".getBytes(UTF_8));
 
 
     verify(kmsCryptoKeyVersions).create(cryptoKeyName.capture(), cryptoKeyVersion.capture());
@@ -182,7 +187,7 @@ public class KmsConnectionImplTest {
     when(kmsCryptoKeysDecrypt.execute())
         .thenReturn(new DecryptResponse().encodePlaintext("moo".getBytes(UTF_8)));
 
-    byte[] plaintext = new KmsConnectionImpl("foo", "bar", kms).decrypt("key", "blah");
+    byte[] plaintext = new KmsConnectionImpl("foo", "bar", retrier, kms).decrypt("key", "blah");
 
     verify(kmsCryptoKeys).decrypt(cryptoKeyName.capture(), decryptRequest.capture());
     assertThat(cryptoKeyName.getValue())

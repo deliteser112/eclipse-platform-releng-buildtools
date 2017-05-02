@@ -27,7 +27,9 @@ import com.google.api.services.cloudkms.v1beta1.model.KeyRing;
 import com.google.api.services.cloudkms.v1beta1.model.UpdateCryptoKeyPrimaryVersionRequest;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyringException;
+import google.registry.util.Retrier;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 /** The {@link KmsConnection} which talks to Cloud KMS. */
@@ -41,14 +43,17 @@ class KmsConnectionImpl implements KmsConnection {
   private final CloudKMS kms;
   private final String kmsKeyRingName;
   private final String projectId;
+  private final Retrier retrier;
 
   @Inject
   KmsConnectionImpl(
       @Config("cloudKmsProjectId") String projectId,
       @Config("cloudKmsKeyRing") String kmsKeyringName,
+      Retrier retrier,
       CloudKMS kms) {
     this.projectId = projectId;
     this.kmsKeyRingName = kmsKeyringName;
+    this.retrier = retrier;
     this.kms = kms;
   }
 
@@ -129,21 +134,32 @@ class KmsConnectionImpl implements KmsConnection {
   }
 
   @Override
-  public byte[] decrypt(String cryptoKeyName, String encodedCiphertext) {
+  public byte[] decrypt(final String cryptoKeyName, final String encodedCiphertext) {
     try {
-      return kms.projects()
-          .locations()
-          .keyRings()
-          .cryptoKeys()
-          .decrypt(
-              getCryptoKeyName(projectId, kmsKeyRingName, cryptoKeyName),
-              new DecryptRequest().setCiphertext(encodedCiphertext))
-          .execute()
-          .decodePlaintext();
-    } catch (IOException e) {
+      return retrier.callWithRetry(
+          new Callable<byte[]>() {
+            @Override
+            public byte[] call() throws IOException {
+              return attemptDecrypt(cryptoKeyName, encodedCiphertext);
+            }
+          },
+          IOException.class);
+    } catch (RuntimeException e) {
       throw new KeyringException(
           String.format("CloudKMS decrypt operation failed for secret %s", cryptoKeyName), e);
     }
+  }
+
+  private byte[] attemptDecrypt(String cryptoKeyName, String encodedCiphertext) throws IOException{
+    return kms.projects()
+        .locations()
+        .keyRings()
+        .cryptoKeys()
+        .decrypt(
+            getCryptoKeyName(projectId, kmsKeyRingName, cryptoKeyName),
+            new DecryptRequest().setCiphertext(encodedCiphertext))
+        .execute()
+        .decodePlaintext();
   }
 
   private static String getLocationName(String projectId) {
