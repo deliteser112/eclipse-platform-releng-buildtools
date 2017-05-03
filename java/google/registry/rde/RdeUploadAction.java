@@ -32,6 +32,7 @@ import com.google.common.io.ByteStreams;
 import com.googlecode.objectify.VoidWork;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
+import dagger.Lazy;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule.Key;
@@ -87,7 +88,15 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
   @Inject GcsUtils gcsUtils;
   @Inject Ghostryde ghostryde;
   @Inject EscrowTaskRunner runner;
-  @Inject JSch jsch;
+
+  // Using Lazy<JSch> instead of JSch to prevent fetching of rdeSsh*Keys before we know we're
+  // actually going to use them. See b/37868282
+  //
+  // This prevents making an unnecessary time-expensive (and potentially failing) API call to the
+  // external KMS system when the RdeUploadAction ends up not being used (if the EscrowTaskRunner
+  // determins this EscrowTask was already completed today).
+  @Inject Lazy<JSch> lazyJsch;
+
   @Inject JSchSshSessionFactory jschSshSessionFactory;
   @Inject Response response;
   @Inject RydePgpCompressionOutputStreamFactory pgpCompressionFactory;
@@ -193,7 +202,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
         Ghostryde.Decryptor decryptor = ghostryde.openDecryptor(gcsInput, stagingDecryptionKey);
         Ghostryde.Decompressor decompressor = ghostryde.openDecompressor(decryptor);
         Ghostryde.Input xmlInput = ghostryde.openInput(decompressor)) {
-      try (JSchSshSession session = jschSshSessionFactory.create(jsch, uploadUrl);
+      try (JSchSshSession session = jschSshSessionFactory.create(lazyJsch.get(), uploadUrl);
           JSchSftpChannel ftpChan = session.openSftpChannel()) {
         byte[] signature;
         String rydeFilename = name + ".ryde";

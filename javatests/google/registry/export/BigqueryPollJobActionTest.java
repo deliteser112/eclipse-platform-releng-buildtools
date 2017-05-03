@@ -33,7 +33,6 @@ import com.google.api.services.bigquery.model.JobStatus;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
-import dagger.Lazy;
 import google.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotModifiedException;
@@ -41,6 +40,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
+import google.registry.testing.Lazies;
 import google.registry.testing.TaskQueueHelper;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.CapturingLogHandler;
@@ -94,12 +94,7 @@ public class BigqueryPollJobActionTest {
     action.enqueuer = ENQUEUER;
     action.projectId = PROJECT_ID;
     action.jobId = JOB_ID;
-    action.chainedQueueName =
-        new Lazy<String>() {
-          @Override
-          public String get() {
-            return CHAINED_QUEUE_NAME;
-          }};
+    action.chainedQueueName = Lazies.of(CHAINED_QUEUE_NAME);
     Logger.getLogger(BigqueryPollJobAction.class.getName()).addHandler(logHandler);
   }
 

@@ -68,6 +68,7 @@ import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.IoSpyRule;
+import google.registry.testing.Lazies;
 import google.registry.testing.Providers;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.testing.sftp.SftpServerRule;
@@ -189,10 +190,11 @@ public class RdeUploadActionTest {
       action.clock = clock;
       action.gcsUtils = new GcsUtils(gcsService, BUFFER_SIZE);
       action.ghostryde = new Ghostryde(BUFFER_SIZE);
-      action.jsch =
-          JSchModule.provideJSch(
-              "user@ignored",
-              keyring.getRdeSshClientPrivateKey(), keyring.getRdeSshClientPublicKey());
+      action.lazyJsch =
+          Lazies.of(
+              JSchModule.provideJSch(
+                  "user@ignored",
+                  keyring.getRdeSshClientPrivateKey(), keyring.getRdeSshClientPublicKey()));
       action.jschSshSessionFactory = new JSchSshSessionFactory(standardSeconds(3));
       action.response = response;
       action.pgpCompressionFactory = compressFactory;
@@ -285,7 +287,7 @@ public class RdeUploadActionTest {
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
     RdeUploadAction action = createAction(uploadUrl);
-    action.jsch = createThrowingJSchSpy(action.jsch, 2);
+    action.lazyJsch = Lazies.of(createThrowingJSchSpy(action.lazyJsch.get(), 2));
     action.runWithLock(uploadCursor);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
@@ -306,7 +308,7 @@ public class RdeUploadActionTest {
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
     RdeUploadAction action = createAction(uploadUrl);
-    action.jsch = createThrowingJSchSpy(action.jsch, 3);
+    action.lazyJsch = Lazies.of(createThrowingJSchSpy(action.lazyJsch.get(), 3));
     thrown.expect(RuntimeException.class, "The crow flies in square circles.");
     action.runWithLock(uploadCursor);
   }
