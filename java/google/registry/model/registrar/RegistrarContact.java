@@ -123,14 +123,21 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
   String gaeUserId;
 
   /**
-   * Whether this contact is publicly visible in WHOIS results as an Admin contact.
+   * Whether this contact is publicly visible in WHOIS registrar query results as an Admin contact.
    */
   boolean visibleInWhoisAsAdmin = false;
 
   /**
-   * Whether this contact is publicly visible in WHOIS results as a Technical contact.
+   * Whether this contact is publicly visible in WHOIS registrar query results as a Technical
+   * contact.
    */
   boolean visibleInWhoisAsTech = false;
+
+  /**
+   * Whether this contact's phone number and email address is publicly visible in WHOIS domain query
+   * results as registrar abuse contact info.
+   */
+  boolean visibleInDomainWhoisAsAbuse = false;
 
   public static ImmutableSet<Type> typesFromCSV(String csv) {
     return typesFromStrings(Arrays.asList(csv.split(",")));
@@ -193,6 +200,10 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
     return visibleInWhoisAsTech;
   }
 
+  public boolean getVisibleInDomainWhoisAsAbuse() {
+    return visibleInDomainWhoisAsAbuse;
+  }
+
   public String getGaeUserId() {
     return gaeUserId;
   }
@@ -225,11 +236,19 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
       result.append("Fax: ").append(getFaxNumber()).append('\n');
     }
     result.append("Types: ").append(getTypes()).append('\n');
-    result.append("Visible in WHOIS as Admin contact: ")
+    result
+        .append("Visible in registrar WHOIS query as Admin contact: ")
         .append(getVisibleInWhoisAsAdmin() ? "Yes" : "No")
         .append("\n");
-    result.append("Visible in WHOIS as Technical contact: ")
+    result
+        .append("Visible in registrar WHOIS query as Technical contact: ")
         .append(getVisibleInWhoisAsTech() ? "Yes" : "No")
+        .append("\n");
+    result
+        .append(
+            "Phone number and email visible in domain WHOIS query as "
+                + "Registrar Abuse contact info: ")
+        .append(getVisibleInDomainWhoisAsAbuse() ? "Yes" : "No")
         .append("\n");
     if (getGaeUserId() != null) {
       result.append("GAE-UserID: ").append(getGaeUserId()).append('\n');
@@ -247,6 +266,7 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
         .put("types", Joiner.on(',').join(transform(getTypes(), toStringFunction())))
         .put("visibleInWhoisAsAdmin", visibleInWhoisAsAdmin)
         .put("visibleInWhoisAsTech", visibleInWhoisAsTech)
+        .put("visibleInDomainWhoisAsAbuse", visibleInDomainWhoisAsAbuse)
         .put("gaeUserId", gaeUserId)
         .build();
   }
@@ -308,6 +328,11 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
 
     public Builder setVisibleInWhoisAsTech(boolean visible) {
       getInstance().visibleInWhoisAsTech = visible;
+      return this;
+    }
+
+    public Builder setVisibleInDomainWhoisAsAbuse(boolean visible) {
+      getInstance().visibleInDomainWhoisAsAbuse = visible;
       return this;
     }
 

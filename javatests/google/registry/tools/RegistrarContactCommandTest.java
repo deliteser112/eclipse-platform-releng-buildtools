@@ -61,8 +61,10 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
             "John Doe",
             "john.doe@example.com",
             "Types: [ADMIN]",
-            "Visible in WHOIS as Admin contact: Yes",
-            "Visible in WHOIS as Technical contact: No");
+            "Visible in registrar WHOIS query as Admin contact: Yes",
+            "Visible in registrar WHOIS query as Technical contact: No",
+            "Phone number and email visible in domain WHOIS query as "
+                + "Registrar Abuse contact info: No");
   }
 
   @Test

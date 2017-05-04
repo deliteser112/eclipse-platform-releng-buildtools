@@ -203,49 +203,71 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("state", "SUSPENDED");
     assertThat(row).containsEntry("ianaIdentifier", "8");
     assertThat(row).containsEntry("billingIdentifier", "");
-    assertThat(row).containsEntry("primaryContacts", ""
-        + "Jane Doe\n"
-        + "contact@example.com\n"
-        + "Tel: +1.1234567890\n"
-        + "Types: [ADMIN, BILLING]\n"
-        + "Visible in WHOIS as Admin contact: No\n"
-        + "Visible in WHOIS as Technical contact: No\n"
-        + "\n"
-        + "John Doe\n"
-        + "john.doe@example.tld\n"
-        + "Tel: +1.1234567890\n"
-        + "Fax: +1.1234567891\n"
-        + "Types: [ADMIN]\n"
-        + "Visible in WHOIS as Admin contact: No\n"
-        + "Visible in WHOIS as Technical contact: Yes\n"
-        + "GAE-UserID: light\n");
-    assertThat(row).containsEntry("techContacts", ""
-        + "Jane Smith\n"
-        + "pride@example.net\n"
-        + "Types: [TECH]\n"
-        + "Visible in WHOIS as Admin contact: No\n"
-        + "Visible in WHOIS as Technical contact: No\n");
+    assertThat(row)
+        .containsEntry(
+            "primaryContacts",
+            ""
+                + "Jane Doe\n"
+                + "contact@example.com\n"
+                + "Tel: +1.1234567890\n"
+                + "Types: [ADMIN, BILLING]\n"
+                + "Visible in registrar WHOIS query as Admin contact: No\n"
+                + "Visible in registrar WHOIS query as Technical contact: No\n"
+                + "Phone number and email visible in domain WHOIS query as "
+                + "Registrar Abuse contact info: No\n"
+                + "\n"
+                + "John Doe\n"
+                + "john.doe@example.tld\n"
+                + "Tel: +1.1234567890\n"
+                + "Fax: +1.1234567891\n"
+                + "Types: [ADMIN]\n"
+                + "Visible in registrar WHOIS query as Admin contact: No\n"
+                + "Visible in registrar WHOIS query as Technical contact: Yes\n"
+                + "Phone number and email visible in domain WHOIS query as "
+                + "Registrar Abuse contact info: No\n"
+                + "GAE-UserID: light\n");
+    assertThat(row)
+        .containsEntry(
+            "techContacts",
+            ""
+                + "Jane Smith\n"
+                + "pride@example.net\n"
+                + "Types: [TECH]\n"
+                + "Visible in registrar WHOIS query as Admin contact: No\n"
+                + "Visible in registrar WHOIS query as Technical contact: No\n"
+                + "Phone number and email visible in domain WHOIS query as "
+                + "Registrar Abuse contact info: No\n");
     assertThat(row).containsEntry("marketingContacts", "");
     assertThat(row).containsEntry("abuseContacts", "");
     assertThat(row).containsEntry("whoisInquiryContacts", "");
     assertThat(row).containsEntry("legalContacts", "");
-    assertThat(row).containsEntry("billingContacts", ""
-        + "Jane Doe\n"
-        + "contact@example.com\n"
-        + "Tel: +1.1234567890\n"
-        + "Types: [ADMIN, BILLING]\n"
-        + "Visible in WHOIS as Admin contact: No\n"
-        + "Visible in WHOIS as Technical contact: No\n");
+    assertThat(row)
+        .containsEntry(
+            "billingContacts",
+            ""
+                + "Jane Doe\n"
+                + "contact@example.com\n"
+                + "Tel: +1.1234567890\n"
+                + "Types: [ADMIN, BILLING]\n"
+                + "Visible in registrar WHOIS query as Admin contact: No\n"
+                + "Visible in registrar WHOIS query as Technical contact: No\n"
+                + "Phone number and email visible in domain WHOIS query as "
+                + "Registrar Abuse contact info: No\n");
     assertThat(row).containsEntry("contactsMarkedAsWhoisAdmin", "");
-    assertThat(row).containsEntry("contactsMarkedAsWhoisTech", ""
-        + "John Doe\n"
-        + "john.doe@example.tld\n"
-        + "Tel: +1.1234567890\n"
-        + "Fax: +1.1234567891\n"
-        + "Types: [ADMIN]\n"
-        + "Visible in WHOIS as Admin contact: No\n"
-        + "Visible in WHOIS as Technical contact: Yes\n"
-        + "GAE-UserID: light\n");
+    assertThat(row)
+        .containsEntry(
+            "contactsMarkedAsWhoisTech",
+            ""
+                + "John Doe\n"
+                + "john.doe@example.tld\n"
+                + "Tel: +1.1234567890\n"
+                + "Fax: +1.1234567891\n"
+                + "Types: [ADMIN]\n"
+                + "Visible in registrar WHOIS query as Admin contact: No\n"
+                + "Visible in registrar WHOIS query as Technical contact: Yes\n"
+                + "Phone number and email visible in domain WHOIS query as "
+                + "Registrar Abuse contact info: No\n"
+                + "GAE-UserID: light\n");
     assertThat(row).containsEntry("emailAddress", "nowhere@example.org");
     assertThat(row).containsEntry(
         "address.street", "I get fallen back upon since there's no l10n addr");

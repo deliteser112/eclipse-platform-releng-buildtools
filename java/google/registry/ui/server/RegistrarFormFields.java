@@ -208,6 +208,10 @@ public final class RegistrarFormFields {
       FormField.named("visibleInWhoisAsTech", Boolean.class)
           .build();
 
+  public static final FormField<Boolean, Boolean>
+      PHONE_AND_EMAIL_VISIBLE_IN_DOMAIN_WHOIS_AS_ABUSE_FIELD =
+          FormField.named("visibleInDomainWhoisAsAbuse", Boolean.class).build();
+
   public static final FormField<String, String> CONTACT_PHONE_NUMBER_FIELD =
       FormFields.PHONE_NUMBER.asBuilder()
           .build();
@@ -228,42 +232,50 @@ public final class RegistrarFormFields {
           .build();
 
   public static final Function<Map<String, ?>, RegistrarContact.Builder>
-      REGISTRAR_CONTACT_TRANSFORM = new Function<Map<String, ?>, RegistrarContact.Builder>() {
-        @Nullable
-        @Override
-        public RegistrarContact.Builder apply(@Nullable Map<String, ?> args) {
-          if (args == null) {
-            return null;
-          }
-          RegistrarContact.Builder builder = new RegistrarContact.Builder();
-          for (String name : CONTACT_NAME_FIELD.extractUntyped(args).asSet()) {
-            builder.setName(name);
-          }
-          for (String emailAddress : CONTACT_EMAIL_ADDRESS_FIELD.extractUntyped(args).asSet()) {
-            builder.setEmailAddress(emailAddress);
-          }
-          for (Boolean visible :
-                   CONTACT_VISIBLE_IN_WHOIS_AS_ADMIN_FIELD.extractUntyped(args).asSet()) {
-            builder.setVisibleInWhoisAsAdmin(visible);
-          }
-          for (Boolean visible :
-                   CONTACT_VISIBLE_IN_WHOIS_AS_TECH_FIELD.extractUntyped(args).asSet()) {
-            builder.setVisibleInWhoisAsTech(visible);
-          }
-          for (String phoneNumber : CONTACT_PHONE_NUMBER_FIELD.extractUntyped(args).asSet()) {
-            builder.setPhoneNumber(phoneNumber);
-          }
-          for (String faxNumber : CONTACT_FAX_NUMBER_FIELD.extractUntyped(args).asSet()) {
-            builder.setFaxNumber(faxNumber);
-          }
-          for (Set<RegistrarContact.Type> types : CONTACT_TYPES.extractUntyped(args).asSet()) {
-            builder.setTypes(types);
-          }
-          for (String gaeUserId : CONTACT_GAE_USER_ID_FIELD.extractUntyped(args).asSet()) {
-            builder.setGaeUserId(gaeUserId);
-          }
-          return builder;
-        }};
+      REGISTRAR_CONTACT_TRANSFORM =
+          new Function<Map<String, ?>, RegistrarContact.Builder>() {
+            @Nullable
+            @Override
+            public RegistrarContact.Builder apply(@Nullable Map<String, ?> args) {
+              if (args == null) {
+                return null;
+              }
+              RegistrarContact.Builder builder = new RegistrarContact.Builder();
+              for (String name : CONTACT_NAME_FIELD.extractUntyped(args).asSet()) {
+                builder.setName(name);
+              }
+              for (String emailAddress : CONTACT_EMAIL_ADDRESS_FIELD.extractUntyped(args).asSet()) {
+                builder.setEmailAddress(emailAddress);
+              }
+              for (Boolean visible :
+                  CONTACT_VISIBLE_IN_WHOIS_AS_ADMIN_FIELD.extractUntyped(args).asSet()) {
+                builder.setVisibleInWhoisAsAdmin(visible);
+              }
+              for (Boolean visible :
+                  CONTACT_VISIBLE_IN_WHOIS_AS_TECH_FIELD.extractUntyped(args).asSet()) {
+                builder.setVisibleInWhoisAsTech(visible);
+              }
+              for (Boolean visible :
+                  PHONE_AND_EMAIL_VISIBLE_IN_DOMAIN_WHOIS_AS_ABUSE_FIELD
+                      .extractUntyped(args)
+                      .asSet()) {
+                builder.setVisibleInDomainWhoisAsAbuse(visible);
+              }
+              for (String phoneNumber : CONTACT_PHONE_NUMBER_FIELD.extractUntyped(args).asSet()) {
+                builder.setPhoneNumber(phoneNumber);
+              }
+              for (String faxNumber : CONTACT_FAX_NUMBER_FIELD.extractUntyped(args).asSet()) {
+                builder.setFaxNumber(faxNumber);
+              }
+              for (Set<RegistrarContact.Type> types : CONTACT_TYPES.extractUntyped(args).asSet()) {
+                builder.setTypes(types);
+              }
+              for (String gaeUserId : CONTACT_GAE_USER_ID_FIELD.extractUntyped(args).asSet()) {
+                builder.setGaeUserId(gaeUserId);
+              }
+              return builder;
+            }
+          };
 
   public static final FormField<List<Map<String, ?>>, List<RegistrarContact.Builder>>
       CONTACTS_FIELD = FormField.mapNamed("contacts")
