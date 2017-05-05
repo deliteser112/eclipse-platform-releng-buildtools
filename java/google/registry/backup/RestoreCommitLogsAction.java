@@ -87,7 +87,7 @@ public class RestoreCommitLogsAction implements Runnable {
     if (dryRun) {
       logger.info("Running in dryRun mode");
     }
-    List<GcsFileMetadata> diffFiles = diffLister.listDiffFiles(fromTime);
+    List<GcsFileMetadata> diffFiles = diffLister.listDiffFiles(fromTime, null);
     if (diffFiles.isEmpty()) {
       logger.info("Nothing to restore");
       return;

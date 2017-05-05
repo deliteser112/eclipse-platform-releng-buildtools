@@ -34,11 +34,11 @@ import google.registry.backup.BackupModule.Backups;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.Callable;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -52,12 +52,53 @@ class GcsDiffFileLister {
   @Inject @Backups ListeningExecutorService executor;
   @Inject GcsDiffFileLister() {}
 
-  List<GcsFileMetadata> listDiffFiles(DateTime fromTime) {
+  /**
+   * Traverses the sequence of diff files backwards from checkpointTime and inserts the file
+   * metadata into "sequence".  Returns true if a complete sequence was discovered, false if one or
+   * more files are missing.
+   */
+  private boolean constructDiffSequence(
+      Map<DateTime, ListenableFuture<GcsFileMetadata>> upperBoundTimesToMetadata,
+      DateTime fromTime,
+      DateTime lastTime,
+      TreeMap<DateTime, GcsFileMetadata> sequence) {
+    DateTime checkpointTime = lastTime;
+    while (isBeforeOrAt(fromTime, checkpointTime)) {
+      GcsFileMetadata metadata;
+      if (upperBoundTimesToMetadata.containsKey(checkpointTime)) {
+        metadata = Futures.getUnchecked(upperBoundTimesToMetadata.get(checkpointTime));
+      } else {
+        String filename = DIFF_FILE_PREFIX + checkpointTime;
+        logger.info("Patching GCS list; discovered file " + filename);
+        metadata = getMetadata(filename);
+
+        // If we hit a gap, quit.
+        if (metadata == null) {
+          logger.infofmt(
+              "Gap discovered in sequence terminating at %s, missing file %s",
+              sequence.lastKey(),
+              filename);
+          logger.infofmt("Found sequence from %s to %s", checkpointTime, lastTime);
+          return false;
+        }
+      }
+      sequence.put(checkpointTime, metadata);
+      checkpointTime = getLowerBoundTime(metadata);
+    }
+    logger.infofmt("Found sequence from %s to %s", checkpointTime, lastTime);
+    return true;
+  }
+
+  ImmutableList<GcsFileMetadata> listDiffFiles(DateTime fromTime, @Nullable DateTime toTime) {
     logger.info("Requested restore from time: " + fromTime);
+    if (toTime != null) {
+      logger.info("  Until time: " + toTime);
+    }
     // List all of the diff files on GCS and build a map from each file's upper checkpoint time
     // (extracted from the filename) to its asynchronously-loaded metadata, keeping only files with
     // an upper checkpoint time > fromTime.
-    Map<DateTime, ListenableFuture<GcsFileMetadata>> upperBoundTimesToMetadata = new HashMap<>();
+    TreeMap<DateTime, ListenableFuture<GcsFileMetadata>> upperBoundTimesToMetadata
+        = new TreeMap<>();
     Iterator<ListItem> listItems;
     try {
       // TODO(b/23554360): Use a smarter prefixing strategy to speed this up.
@@ -71,44 +112,69 @@ class GcsDiffFileLister {
     while (listItems.hasNext()) {
       final String filename = listItems.next().getName();
       DateTime upperBoundTime = DateTime.parse(filename.substring(DIFF_FILE_PREFIX.length()));
-      if (isBeforeOrAt(fromTime, upperBoundTime)) {
+      if (isInRange(upperBoundTime, fromTime, toTime)) {
         upperBoundTimesToMetadata.put(upperBoundTime, executor.submit(
             new Callable<GcsFileMetadata>() {
               @Override
               public GcsFileMetadata call() throws Exception {
                 return getMetadata(filename);
               }}));
+        lastUpperBoundTime = latestOf(upperBoundTime, lastUpperBoundTime);
       }
-      lastUpperBoundTime = latestOf(upperBoundTime, lastUpperBoundTime);
     }
     if (upperBoundTimesToMetadata.isEmpty()) {
       logger.info("No files found");
       return ImmutableList.of();
     }
+
+    // Reconstruct the sequence of files by traversing backwards from "lastUpperBoundTime" (i.e. the
+    // last file that we found) and finding its previous file until we either run out of files or
+    // get to one that preceeds "fromTime".
+    //
     // GCS file listing is eventually consistent, so it's possible that we are missing a file. The
     // metadata of a file is sufficient to identify the preceding file, so if we start from the
     // last file and work backwards we can verify that we have no holes in our chain (although we
     // may be missing files at the end).
-    ImmutableList.Builder<GcsFileMetadata> filesBuilder = new ImmutableList.Builder<>();
+    TreeMap<DateTime, GcsFileMetadata> sequence = new TreeMap<>();
     logger.info("Restoring until: " + lastUpperBoundTime);
-    DateTime checkpointTime = lastUpperBoundTime;
-    while (checkpointTime.isAfter(fromTime)) {
-      GcsFileMetadata metadata;
-      if (upperBoundTimesToMetadata.containsKey(checkpointTime)) {
-        metadata = Futures.getUnchecked(upperBoundTimesToMetadata.get(checkpointTime));
-      } else {
-        String filename = DIFF_FILE_PREFIX + checkpointTime;
-        logger.info("Patching GCS list; discovered file " + filename);
-        metadata = getMetadata(filename);
-        checkState(metadata != null, "Could not read metadata for file %s", filename);
+    boolean inconsistentFileSet = !constructDiffSequence(
+        upperBoundTimesToMetadata, fromTime, lastUpperBoundTime, sequence);
+
+    // Verify that all of the elements in the original set are represented in the sequence.  If we
+    // find anything that's not represented, construct a sequence for it.
+    boolean checkForMoreExtraDiffs = true;  // Always loop at least once.
+    while (checkForMoreExtraDiffs) {
+      checkForMoreExtraDiffs = false;
+      for (DateTime key : upperBoundTimesToMetadata.descendingKeySet()) {
+        if (!isInRange(key, fromTime, toTime)) {
+          break;
+        }
+        if (!sequence.containsKey(key)) {
+          constructDiffSequence(upperBoundTimesToMetadata, fromTime, key, sequence);
+          checkForMoreExtraDiffs = true;
+          inconsistentFileSet = true;
+          break;
+        }
       }
-      filesBuilder.add(metadata);
-      checkpointTime = getLowerBoundTime(metadata);
     }
-    ImmutableList<GcsFileMetadata> files = filesBuilder.build().reverse();
-    logger.info("Actual restore from time: " + getLowerBoundTime(files.get(0)));
-    logger.infofmt("Found %d files to restore", files.size());
-    return files;
+
+    checkState(
+        !inconsistentFileSet,
+        "Unable to compute commit diff history, there are either gaps or forks in the history "
+        + "file set.  Check log for details.");
+
+    logger.info("Actual restore from time: " + getLowerBoundTime(sequence.firstEntry().getValue()));
+    logger.infofmt("Found %d files to restore", sequence.size());
+    return ImmutableList.copyOf(sequence.values());
+  }
+
+  /**
+   * Returns true if 'time' is in range of 'start' and 'end'.
+   *
+   * <p>If 'end' is null, returns true if 'time' is after 'start'.
+   */
+  private boolean isInRange(DateTime time, DateTime start, @Nullable DateTime end) {
+    return isBeforeOrAt(start, time) && (end == null || isBeforeOrAt(time, end));
   }
 
   private DateTime getLowerBoundTime(GcsFileMetadata metadata) {

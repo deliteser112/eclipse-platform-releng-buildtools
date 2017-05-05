@@ -21,6 +21,7 @@ import static google.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHE
 import static google.registry.backup.ExportCommitLogDiffAction.DIFF_FILE_PREFIX;
 import static java.lang.reflect.Proxy.newProxyInstance;
 import static org.joda.time.DateTimeZone.UTC;
+import static org.junit.Assert.fail;
 
 import com.google.appengine.tools.cloudstorage.GcsFileMetadata;
 import com.google.appengine.tools.cloudstorage.GcsFileOptions;
@@ -31,13 +32,17 @@ import com.google.appengine.tools.cloudstorage.ListItem;
 import com.google.appengine.tools.cloudstorage.ListResult;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
+import com.google.common.testing.TestLogHandler;
 import google.registry.testing.AppEngineRule;
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,6 +59,7 @@ public class GcsDiffFileListerTest {
   final DateTime now = DateTime.now(UTC);
   final GcsDiffFileLister diffLister = new GcsDiffFileLister();
   final GcsService gcsService = GcsServiceFactory.createGcsService();
+  private final TestLogHandler logHandler = new TestLogHandler();
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -73,6 +79,7 @@ public class GcsDiffFileListerTest {
               .build(),
           ByteBuffer.wrap(new byte[]{1, 2, 3}));
     }
+    Logger.getLogger(GcsDiffFileLister.class.getCanonicalName()).addHandler(logHandler);
   }
 
   private Iterable<DateTime> extractTimesFromDiffFiles(List<GcsFileMetadata> diffFiles) {
@@ -86,18 +93,32 @@ public class GcsDiffFileListerTest {
           }});
   }
 
-  @Test
-  public void testList_noFilesFound() {
-    DateTime fromTime = now.plusMillis(1);
-    assertThat(extractTimesFromDiffFiles(diffLister.listDiffFiles(fromTime))).isEmpty();
+  private Iterable<DateTime> listDiffFiles(DateTime fromTime, DateTime toTime) {
+    return extractTimesFromDiffFiles(diffLister.listDiffFiles(fromTime, toTime));
+  }
+
+  private void addGcsFile(int fileAge, int prevAge) throws IOException {
+    gcsService.createOrReplace(
+        new GcsFilename(GCS_BUCKET, DIFF_FILE_PREFIX + now.minusMinutes(fileAge)),
+        new GcsFileOptions.Builder()
+            .addUserMetadata(LOWER_BOUND_CHECKPOINT, now.minusMinutes(prevAge).toString())
+            .build(),
+        ByteBuffer.wrap(new byte[]{1, 2, 3}));
+  }
+
+  private void assertLogContains(String message) {
+    for (LogRecord entry : logHandler.getStoredLogRecords()) {
+      if (entry.getMessage().contains(message)) {
+        return;
+      }
+    }
+    fail("No log entry contains " + message);
   }
 
   @Test
-  public void testList_findsFiles_backToFromTimeExclusive() {
-    DateTime fromTime = now.minusMinutes(2);
-    assertThat(extractTimesFromDiffFiles(diffLister.listDiffFiles(fromTime)))
-        .containsExactly(now.minusMinutes(1), now)
-        .inOrder();
+  public void testList_noFilesFound() {
+    DateTime fromTime = now.plusMillis(1);
+    assertThat(listDiffFiles(fromTime, null)).isEmpty();
   }
 
   @Test
@@ -135,13 +156,98 @@ public class GcsDiffFileListerTest {
           }});
     DateTime fromTime = now.minusMinutes(4).minusSeconds(1);
     // Request all files with checkpoint > fromTime.
-    assertThat(extractTimesFromDiffFiles(diffLister.listDiffFiles(fromTime)))
+    assertThat(listDiffFiles(fromTime, null))
         .containsExactly(
             now.minusMinutes(4),
             now.minusMinutes(3),
             now.minusMinutes(2),
             now.minusMinutes(1),
             now)
+        .inOrder();
+  }
+
+  @Test
+  public void testList_failsOnFork() throws Exception {
+    // We currently have files for now-4m ... now, construct the following sequence:
+    //  now-8m <- now-7m <- now-6m  now-5m <- now-4m ... now
+    //    ^___________________________|
+    addGcsFile(5, 8);
+    for (int i = 6; i < 9; ++i) {
+      addGcsFile(i, i + 1);
+    }
+
+    try {
+      listDiffFiles(now.minusMinutes(9), null);
+      fail("Should have thrown IllegalStateException.");
+    } catch (IllegalStateException expected) {
+    }
+    assertLogContains(String.format(
+        "Found sequence from %s to %s", now.minusMinutes(9), now));
+    assertLogContains(String.format(
+        "Found sequence from %s to %s", now.minusMinutes(9), now.minusMinutes(6)));
+  }
+
+  @Test
+  public void testList_boundaries() throws Exception {
+    assertThat(listDiffFiles(now.minusMinutes(4), now))
+        .containsExactly(
+            now.minusMinutes(4),
+            now.minusMinutes(3),
+            now.minusMinutes(2),
+            now.minusMinutes(1),
+            now)
+        .inOrder();
+
+  }
+
+  @Test
+  public void testList_failsOnGaps() throws Exception {
+    // We currently have files for now-4m ... now, construct the following sequence:
+    //  now-8m <- now-7m <- now-6m  {missing} <- now-4m ... now
+    for (int i = 6; i < 9; ++i) {
+      addGcsFile(i, i + 1);
+    }
+
+    try {
+      listDiffFiles(now.minusMinutes(9), null);
+      fail("Should have thrown IllegalStateException.");
+    } catch (IllegalStateException expected) {
+    }
+    assertLogContains(String.format(
+        "Gap discovered in sequence terminating at %s, missing file commit_diff_until_%s",
+        now, now.minusMinutes(5)));
+    assertLogContains(String.format(
+        "Found sequence from %s to %s", now.minusMinutes(9), now.minusMinutes(6)));
+    assertLogContains(String.format(
+        "Found sequence from %s to %s", now.minusMinutes(5), now));
+
+    // Verify that we can work around the gap.
+    DateTime fromTime = now.minusMinutes(4).minusSeconds(1);
+    assertThat(listDiffFiles(fromTime, null))
+        .containsExactly(
+            now.minusMinutes(4),
+            now.minusMinutes(3),
+            now.minusMinutes(2),
+            now.minusMinutes(1),
+            now)
+        .inOrder();
+    assertThat(listDiffFiles(
+            now.minusMinutes(8).minusSeconds(1), now.minusMinutes(6).plusSeconds(1)))
+        .containsExactly(
+            now.minusMinutes(8),
+            now.minusMinutes(7),
+            now.minusMinutes(6))
+        .inOrder();
+  }
+
+  @Test
+  public void testList_toTimeSpecified() {
+    assertThat(listDiffFiles(
+            now.minusMinutes(4).minusSeconds(1), now.minusMinutes(2).plusSeconds(1)))
+        .containsExactly(
+            now.minusMinutes(4),
+            now.minusMinutes(3),
+            now.minusMinutes(2))
         .inOrder();
   }
 }
