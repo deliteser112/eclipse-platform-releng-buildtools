@@ -33,6 +33,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadPremiumListEntries;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static org.joda.time.Duration.standardMinutes;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -63,7 +64,8 @@ public class PremiumListUtilsTest {
   @Before
   public void before() throws Exception {
     // createTld() overwrites the premium list, so call it first.
-    PremiumList.cachePremiumListEntries = PremiumList.createCachePremiumListEntries(60);
+    PremiumList.cachePremiumListEntries =
+        PremiumList.createCachePremiumListEntries(standardMinutes(1));
     createTld("tld");
     PremiumList pl =
         persistPremiumList(

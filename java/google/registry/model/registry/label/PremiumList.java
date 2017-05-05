@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import org.joda.money.Money;
+import org.joda.time.Duration;
 
 /**
  * A premium list entity, persisted to Datastore, that is used to check domain label prices.
@@ -193,16 +194,15 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
    * that exist, as well as those that might exist according to the Bloom filter, must be cached).
    * The entries judged least likely to be accessed again will be evicted first.
    */
-  @NonFinalForTesting
-  @VisibleForTesting
+  @NonFinalForTesting @VisibleForTesting
   static LoadingCache<Key<PremiumListEntry>, Optional<PremiumListEntry>> cachePremiumListEntries =
-      createCachePremiumListEntries(getSingletonCachePersistDuration().getMillis());
+      createCachePremiumListEntries(getSingletonCachePersistDuration());
 
   @VisibleForTesting
   static LoadingCache<Key<PremiumListEntry>, Optional<PremiumListEntry>>
-      createCachePremiumListEntries(long cachePersistDurationMillis) {
+      createCachePremiumListEntries(Duration cachePersistDuration) {
     return CacheBuilder.newBuilder()
-        .expireAfterWrite(cachePersistDurationMillis, MILLISECONDS)
+        .expireAfterWrite(cachePersistDuration.getMillis(), MILLISECONDS)
         .maximumSize(getStaticPremiumListMaxCachedEntries())
         .build(
             new CacheLoader<Key<PremiumListEntry>, Optional<PremiumListEntry>>() {
