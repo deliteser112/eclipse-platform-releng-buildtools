@@ -33,7 +33,6 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.MemcacheHelper.setMemcacheContents;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
@@ -108,7 +107,6 @@ import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeExcep
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedMarkTypeException;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.model.domain.DomainApplication;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.launch.ApplicationStatus;
@@ -116,8 +114,6 @@ import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
-import google.registry.model.index.ForeignKeyIndex;
-import google.registry.model.ofy.RequestCapturingAsyncDatastoreService;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
@@ -1546,30 +1542,6 @@ public class DomainApplicationCreateFlowTest
           String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
     }
   }
-
-  @Test
-  public void testFailfast_withMemcachedDomainAndFki_hitsMemcache() throws Exception {
-    persistContactsAndHosts();
-    clock.advanceOneMilli();
-    DomainResource domain = persistActiveDomain(getUniqueIdFromCommand());
-    setMemcacheContents(Key.create(domain), ForeignKeyIndex.createKey(domain));
-    int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
-    try {
-      runFlow();
-      assert_().fail("Expected to throw ResourceAlreadyExistsException");
-    } catch (ResourceAlreadyExistsException e) {
-      assertThat(e.isFailfast()).isTrue();
-    }
-    // Everything should have been loaded from memcache so nothing should hit datastore.
-    int numReadsInFlow =
-        RequestCapturingAsyncDatastoreService.getReads().size() - numPreviousReads;
-    // TODO(b/27424173): This is 1 because there is no @Cache annotation on DomainBase, and we
-    // don't want to blindly add it because that's a production change that adds potentially
-    // dangerous caching. When the recommendations from the audit in b/27424173 are done and we've
-    // tested the new safer caching this should be set to 0.
-    assertThat(numReadsInFlow).isEqualTo(1);
-  }
-
 
   @Test
   public void testFailure_registrantNotWhitelisted() throws Exception {

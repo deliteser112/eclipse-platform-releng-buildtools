@@ -41,7 +41,6 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.MemcacheHelper.setMemcacheContents;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
@@ -58,7 +57,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.googlecode.objectify.Key;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException;
@@ -124,8 +122,6 @@ import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
-import google.registry.model.index.ForeignKeyIndex;
-import google.registry.model.ofy.RequestCapturingAsyncDatastoreService;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
@@ -910,28 +906,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
       assertAboutEppExceptions().that(e).marshalsToXml().and().hasMessage(
           String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
     }
-  }
-
-  @Test
-  public void testFailfast_withMemcachedDomainAndFki_hitsMemcache() throws Exception {
-    persistContactsAndHosts();
-    DomainResource domain = persistActiveDomain(getUniqueIdFromCommand());
-    setMemcacheContents(Key.create(domain), ForeignKeyIndex.createKey(domain));
-    int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
-    try {
-      runFlow();
-      assert_().fail("Expected to throw ResourceAlreadyExistsException");
-    } catch (ResourceAlreadyExistsException e) {
-      assertThat(e.isFailfast()).isTrue();
-    }
-    // Everything should have been loaded from memcache so nothing should hit datastore.
-    int numReadsInFlow =
-        RequestCapturingAsyncDatastoreService.getReads().size() - numPreviousReads;
-    // TODO(b/27424173): This is 1 because there is no @Cache annotation on DomainBase, and we
-    // don't want to blindly add it because that's a production change that adds potentially
-    // dangerous caching. When the recommendations from the audit in b/27424173 are done and we've
-    // tested the new safer caching this should be set to 0.
-    assertThat(numReadsInFlow).isEqualTo(1);
   }
 
   /**

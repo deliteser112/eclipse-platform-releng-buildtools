@@ -140,8 +140,7 @@ public class Ofy {
    * worth the extra complexity of reasoning about caching.
    */
   public Loader load() {
-    // TODO(b/27424173): change to false when memcache audit changes are implemented.
-    return ofy().cache(true).load();
+    return ofy().cache(false).load();
   }
 
   /**
@@ -154,7 +153,8 @@ public class Ofy {
    * worth the extra complexity of reasoning about caching.
    */
   public Loader loadWithMemcache() {
-    return ofy().cache(true).load();
+    // TODO(b/27424173): Remove this method if we determine we are ok with no memcache.
+    return ofy().cache(false).load();
   }
 
   /**
