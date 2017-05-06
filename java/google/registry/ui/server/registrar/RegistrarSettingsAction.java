@@ -29,6 +29,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.googlecode.objectify.Work;
 import google.registry.config.RegistryConfig.Config;
@@ -52,6 +53,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -270,11 +272,25 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       }
     }
     ensurePhoneNumberNotRemovedForContactTypes(oldContactsByType, newContactsByType, Type.TECH);
+    Optional<RegistrarContact> domainWhoisAbuseContact =
+        getDomainWhoisVisibleAbuseContact(updatedContacts);
+    // If the new set has a domain WHOIS abuse contact, it must have a phone number.
+    if (domainWhoisAbuseContact.isPresent()
+        && domainWhoisAbuseContact.get().getPhoneNumber() == null) {
+      throw new ContactRequirementException(
+          "The abuse contact visible in domain WHOIS query must have a phone number");
+    }
+    // If there was a domain WHOIS abuse contact in the old set, the new set must have one.
+    if (getDomainWhoisVisibleAbuseContact(existingContacts).isPresent()
+        && !domainWhoisAbuseContact.isPresent()) {
+      throw new ContactRequirementException(
+          "An abuse contact visible in domain WHOIS query must be designated");
+    }
   }
 
   /**
-   * Ensure that for each given registrar type, a phone number is present after update, if there 
-   * was one before.
+   * Ensure that for each given registrar type, a phone number is present after update, if there was
+   * one before.
    */
   private static void ensurePhoneNumberNotRemovedForContactTypes(
       Multimap<RegistrarContact.Type, RegistrarContact> oldContactsByType,
@@ -289,6 +305,24 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
                 type.getDisplayName()));
       }
     }
+  }
+
+  /**
+   * Retrieves the registrar contact whose phone number and email address is visible in domain WHOIS
+   * query as abuse contact (if any).
+   *
+   * <p>Frontend processing ensures that only one contact can be set as abuse contact in domain
+   * WHOIS record. Therefore it is possible to return inside the loop once one such contact is
+   * found.
+   */
+  private static Optional<RegistrarContact> getDomainWhoisVisibleAbuseContact(
+      Set<RegistrarContact> contacts) {
+    return Iterables.tryFind(contacts, new Predicate<RegistrarContact>() {
+      @Override
+      public boolean apply(@Nullable RegistrarContact contact) {
+        return contact.getVisibleInDomainWhoisAsAbuse();
+      }
+    });
   }
 
   /**

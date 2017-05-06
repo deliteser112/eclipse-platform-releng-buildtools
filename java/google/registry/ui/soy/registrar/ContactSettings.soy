@@ -46,7 +46,9 @@
                 {param name: $c['name'] /}
                 {param emailAddress: $c['emailAddress'] /}
                 {param visibleInWhois:
-                    ($c['visibleInWhoisAsAdmin'] or $c['visibleInWhoisAsTech']) /}
+                    ($c['visibleInWhoisAsAdmin']
+                    or $c['visibleInWhoisAsTech']
+                    or $c['visibleInDomainWhoisAsAbuse']) /}
                 {param phoneNumber: $c['phoneNumber'] /}
                 {param faxNumber: $c['faxNumber'] /}
               {/call}
@@ -199,12 +201,17 @@
       <p class="{css setting-item-list}">
         {let $visibleAsAdmin: $item['visibleInWhoisAsAdmin'] == true /}
         {let $visibleAsTech: $item['visibleInWhoisAsTech'] == true /}
-        {if (not $visibleAsAdmin) and (not $visibleAsTech)}
+        {let $visibleAsDomainAbuse: $item['visibleInDomainWhoisAsAbuse'] == true /}
+        {if (not $visibleAsAdmin) and (not $visibleAsTech) and (not $visibleAsDomainAbuse)}
           <span class="{css whois-not-visible}">Not visible in WHOIS</span>
         {else}
-          {if $visibleAsAdmin}Admin{/if}
+          {if $visibleAsAdmin}Registrar Admin{/if}
           {if $visibleAsAdmin and $visibleAsTech},{sp}{/if}
-          {if $visibleAsTech}Technical{/if}
+          {if $visibleAsTech}Registrar Technical{/if}
+          {if $visibleAsTech}
+            {if $visibleAsDomainAbuse},{sp}{/if}
+          {elseif $visibleAsAdmin and $visibleAsDomainAbuse},{sp}{/if}
+          {if $visibleAsDomainAbuse}Domain Abuse{/if}
         {/if}
 {/template}
 
@@ -231,14 +238,26 @@
   </tr>
   <tr><td colspan="2"><hr></tr>
     {call .whoisVisibleRadios_}
-      {param description: 'Show in WHOIS as Admin contact' /}
+      {param description: 'Show in Registrar WHOIS record as Admin contact' /}
       {param fieldName: $namePrefix + 'visibleInWhoisAsAdmin' /}
       {param visible: $item['visibleInWhoisAsAdmin'] == true /}
     {/call}
     {call .whoisVisibleRadios_}
-      {param description: 'Show in WHOIS as Technical contact' /}
+      {param description: 'Show in Registrar WHOIS record as Technical contact' /}
       {param fieldName: $namePrefix + 'visibleInWhoisAsTech' /}
       {param visible: $item['visibleInWhoisAsTech'] == true /}
+    {/call}
+    {call .whoisVisibleRadios_}
+      {param description:
+        'Show Phone and Email in Domain WHOIS Record as Registrar Abuse Contact' +
+            ' (Per CL&D Requirements)'
+      /}
+      {param note:
+        '*Can only apply to one contact. Selecting Yes for this contact will' +
+            ' force this setting for all other contacts to be No.'
+      /}
+      {param fieldName: $namePrefix + 'visibleInDomainWhoisAsAbuse' /}
+      {param visible: $item['visibleInDomainWhoisAsAbuse'] == true /}
     {/call}
 {/template}
 
@@ -246,16 +265,21 @@
 /** @private */
 {template .whoisVisibleRadios_ private="true"}
   {@param description: string}
+  {@param? note: string}
   {@param fieldName: string}
   {@param visible: bool}
   <tr class="{css kd-settings-pane-section}">
     <td>
       <label for="{$fieldName}">{$description}</label>
+      {if $note}
+        <span class="{css description}">{$note}</span>
+      {/if}
     </td>
     <td class="{css setting}">
       <label for="{$fieldName}">
         <input
           name="{$fieldName}"
+          id="{$fieldName}.true"
           type="radio"
           value="true"
           {if $visible} checked{/if}>{sp}Yes
@@ -263,6 +287,7 @@
       <label for="{$fieldName}">
         <input
           name="{$fieldName}"
+          id="{$fieldName}.false"
           type="radio"
           value="false"
           {if not $visible} checked{/if}>{sp}No

@@ -142,7 +142,7 @@ function testItemEditButtons() {
 function testItemEdit() {
   testItemView();
   registry.testing.click($('reg-app-btn-edit'));
-  document.forms.namedItem('item').elements['contacts[0].name'].value = 'bob';
+  $('contacts[0].name').setAttribute('value', 'bob');
   registry.testing.click($('reg-app-btn-save'));
   testContact.name = 'bob';
   registry.testing.assertReqMockRsp(
@@ -248,6 +248,36 @@ function testOneOfManyUpdate() {
 }
 
 
+function testDomainWhoisAbuseContactOverride() {
+  registry.registrar.ConsoleTestUtil.visit(test, {
+    path: 'contact-settings/test@example.com',
+    xsrfToken: test.testXsrfToken,
+    testClientId: test.testClientId
+  });
+  var oldDomainWhoisAbuseContact = createTestContact('old@asdf.com');
+  oldDomainWhoisAbuseContact.visibleInDomainWhoisAsAbuse = true;
+  var testContacts = [oldDomainWhoisAbuseContact, testContact];
+  registry.testing.assertReqMockRsp(
+      test.testXsrfToken, '/registrar-settings', {op: 'read', args: {}},
+      {status: 'SUCCESS', message: 'OK', results: [{contacts: testContacts}]});
+  // Edit testContact.
+  registry.testing.click($('reg-app-btn-edit'));
+  $('contacts[1].visibleInDomainWhoisAsAbuse.true')
+      .setAttribute('checked', 'checked');
+  $('contacts[1].visibleInDomainWhoisAsAbuse.false').removeAttribute('checked');
+  registry.testing.click($('reg-app-btn-save'));
+
+  // Should save them all back, and flip the old abuse contact's visibility
+  // boolean.
+  testContact.visibleInDomainWhoisAsAbuse = true;
+  oldDomainWhoisAbuseContact.visibleInDomainWhoisAsAbuse = false;
+  registry.testing.assertReqMockRsp(
+      test.testXsrfToken, '/registrar-settings',
+      {op: 'update', args: {contacts: testContacts, readonly: false}},
+      {status: 'SUCCESS', message: 'OK', results: [{contacts: testContacts}]});
+}
+
+
 function testDelete() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'contact-settings/test@example.com',
@@ -305,6 +335,7 @@ function createTestContact(opt_email) {
     faxNumber: '+1.2345551234',
     visibleInWhoisAsAdmin: false,
     visibleInWhoisAsTech: false,
+    visibleInDomainWhoisAsAbuse: false,
     types: 'ADMIN'
   };
 }
@@ -318,6 +349,7 @@ function createTestContact(opt_email) {
 function simulateJsonForContact(contact) {
   contact.visibleInWhoisAsAdmin = contact.visibleInWhoisAsAdmin == 'true';
   contact.visibleInWhoisAsTech = contact.visibleInWhoisAsTech == 'true';
+  contact.visibleInDomainWhoisAsAbuse = contact.visibleInDomainWhoisAsAbuse == 'true';
   contact.types = '';
   for (var tNdx in contact.type) {
     if (contact.type[tNdx]) {

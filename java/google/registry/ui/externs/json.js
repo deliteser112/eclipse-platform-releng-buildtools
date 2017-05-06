@@ -108,6 +108,7 @@ registry.json.RegistrarAddress;
  *   emailAddress: string,
  *   visibleInWhoisAsAdmin: boolean,
  *   visibleInWhoisAsTech: boolean,
+ *   visibleInDomainWhoisAsAbuse: boolean,
  *   phoneNumber: (string?|undefined),
  *   faxNumber: (string?|undefined),
  *   types: (string?|undefined)

@@ -196,6 +196,8 @@ registry.registrar.ContactSettings.prototype.prepareUpdate =
   }
   contact.visibleInWhoisAsAdmin = contact.visibleInWhoisAsAdmin == 'true';
   contact.visibleInWhoisAsTech = contact.visibleInWhoisAsTech == 'true';
+  contact.visibleInDomainWhoisAsAbuse =
+      contact.visibleInDomainWhoisAsAbuse == 'true';
   contact.types = '';
   for (var tNdx in contact.type) {
     if (contact.type[tNdx]) {
@@ -206,6 +208,14 @@ registry.registrar.ContactSettings.prototype.prepareUpdate =
     }
   }
   delete contact['type'];
+  // Override previous domain WHOIS abuse contact.
+  if (contact.visibleInDomainWhoisAsAbuse) {
+    for (var c in modelCopy.contacts) {
+      if (modelCopy.contacts[c].emailAddress != contact.emailAddress) {
+        modelCopy.contacts[c].visibleInDomainWhoisAsAbuse = false;
+      }
+    }
+  }
   this.nextId = contact.emailAddress;
 };
 

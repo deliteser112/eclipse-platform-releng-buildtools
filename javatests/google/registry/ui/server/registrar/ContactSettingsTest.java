@@ -128,4 +128,55 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response).containsEntry("message", "Please provide a phone number for at least one "
         + RegistrarContact.Type.TECH.getDisplayName() + " contact");
   }
+
+  @Test
+  public void testPost_updateContacts_cannotRemoveWhoisAbuseContact_error() throws Exception {
+    // First make the contact's info visible in whois as abuse contact info.
+    Registrar registrar = Registrar.loadByClientId(CLIENT_ID);
+    RegistrarContact rc =
+        AppEngineRule.makeRegistrarContact2()
+            .asBuilder()
+            .setVisibleInDomainWhoisAsAbuse(true)
+            .build();
+    // Lest we anger the timestamp inversion bug.
+    persistResource(registrar);
+    persistSimpleResource(rc);
+
+    // Now try to remove the contact.
+    rc = rc.asBuilder().setVisibleInDomainWhoisAsAbuse(false).build();
+    Map<String, Object> reqJson = registrar.toJsonMap();
+    reqJson.put("contacts", ImmutableList.of(rc.toJsonMap()));
+    Map<String, Object> response =
+        action.handleJsonRequest(ImmutableMap.of("op", "update", "args", reqJson));
+    assertThat(response).containsEntry("status", "ERROR");
+    assertThat(response)
+        .containsEntry(
+            "message", "An abuse contact visible in domain WHOIS query must be designated");
+  }
+
+  @Test
+  public void testPost_updateContacts_whoisAbuseContactMustHavePhoneNumber_error()
+      throws Exception {
+    // First make the contact's info visible in whois as abuse contact info.
+    Registrar registrar = Registrar.loadByClientId(CLIENT_ID);
+    RegistrarContact rc =
+        AppEngineRule.makeRegistrarContact2()
+            .asBuilder()
+            .setVisibleInDomainWhoisAsAbuse(true)
+            .build();
+    // Lest we anger the timestamp inversion bug.
+    persistResource(registrar);
+    persistSimpleResource(rc);
+
+    // Now try to set the phone number to null.
+    rc = rc.asBuilder().setPhoneNumber(null).build();
+    Map<String, Object> reqJson = registrar.toJsonMap();
+    reqJson.put("contacts", ImmutableList.of(rc.toJsonMap()));
+    Map<String, Object> response =
+        action.handleJsonRequest(ImmutableMap.of("op", "update", "args", reqJson));
+    assertThat(response).containsEntry("status", "ERROR");
+    assertThat(response)
+        .containsEntry(
+            "message", "The abuse contact visible in domain WHOIS query must have a phone number");
+  }
 }
