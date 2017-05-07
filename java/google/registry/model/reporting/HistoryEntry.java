@@ -31,6 +31,7 @@ import google.registry.model.annotations.ReportedOn;
 import google.registry.model.domain.Period;
 import google.registry.model.eppcommon.Trid;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /** A record of an EPP command that mutated a resource. */
@@ -121,8 +122,8 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
    */
   String otherClientId;
 
-  /** Transaction id that made this change. */
-  Trid trid;
+  /** Transaction id that made this change, or null if the entry was not created by a flow. */
+  @Nullable Trid trid;
 
   /** Whether this change was created by a superuser. */
   boolean bySuperuser;
@@ -170,7 +171,8 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
     return otherClientId;
   }
 
-  public Trid getTrid() {
+  /** Returns the TRID, which may be null if the entry was not created by a normal flow. */
+  @Nullable public Trid getTrid() {
     return trid;
   }
 
