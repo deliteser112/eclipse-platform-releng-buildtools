@@ -24,6 +24,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
@@ -34,8 +35,10 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
 import google.registry.util.FormattingLogger;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -64,39 +67,60 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
   @Override
   public WhoisResponseResults getResponse(final boolean preferUnicode, String disclaimer) {
     Registrar registrar = getRegistrar(domain.getCurrentSponsorClientId());
-    String plaintext = new DomainEmitter()
-        .emitField(
-            "Domain Name", maybeFormatHostname(domain.getFullyQualifiedDomainName(), preferUnicode))
-        .emitField("Domain ID", domain.getRepoId())
-        .emitField("WHOIS Server", registrar.getWhoisServer())
-        .emitField("Referral URL", registrar.getReferralUrl())
-        .emitField("Updated Date", getFormattedString(domain.getLastEppUpdateTime()))
-        .emitField("Creation Date", getFormattedString(domain.getCreationTime()))
-        .emitField(
-            "Registry Expiry Date", getFormattedString(domain.getRegistrationExpirationTime()))
-        .emitField("Sponsoring Registrar", registrar.getRegistrarName())
-        .emitField(
-            "Sponsoring Registrar IANA ID",
-            registrar.getIanaIdentifier() == null ? null : registrar.getIanaIdentifier().toString())
-        .emitStatusValues(domain.getStatusValues(), domain.getGracePeriods())
-        .emitContact("Registrant", domain.getRegistrant(), preferUnicode)
-        .emitContact("Admin", getContactReference(Type.ADMIN), preferUnicode)
-        .emitContact("Tech", getContactReference(Type.TECH), preferUnicode)
-        .emitContact("Billing", getContactReference(Type.BILLING), preferUnicode)
-        .emitSet(
-            "Name Server",
-            domain.loadNameserverFullyQualifiedHostNames(),
-            new Function<String, String>() {
+    Optional<RegistrarContact> abuseContact =
+        Iterables.tryFind(
+            registrar.getContacts(),
+            new Predicate<RegistrarContact>() {
               @Override
-              public String apply(String hostName) {
-                return maybeFormatHostname(hostName, preferUnicode);
+              public boolean apply(@Nullable RegistrarContact contact) {
+                return contact.getVisibleInDomainWhoisAsAbuse();
               }
-            })
-        .emitField("DNSSEC", isNullOrEmpty(domain.getDsData()) ? "unsigned" : "signedDelegation")
-        .emitLastUpdated(getTimestamp())
-        .emitAwipMessage()
-        .emitFooter(disclaimer)
-        .toString();
+            });
+    String plaintext =
+        new DomainEmitter()
+            .emitField(
+                "Domain Name",
+                maybeFormatHostname(domain.getFullyQualifiedDomainName(), preferUnicode))
+            .emitField("Registry Domain ID", domain.getRepoId())
+            .emitField("Registrar WHOIS Server", registrar.getWhoisServer())
+            .emitField("Registrar URL", registrar.getReferralUrl())
+            .emitField("Updated Date", getFormattedString(domain.getLastEppUpdateTime()))
+            .emitField("Creation Date", getFormattedString(domain.getCreationTime()))
+            .emitField(
+                "Registry Expiry Date", getFormattedString(domain.getRegistrationExpirationTime()))
+            .emitField("Registrar", registrar.getRegistrarName())
+            .emitField(
+                "Registrar IANA ID",
+                Objects.toString(registrar.getIanaIdentifier(), ""))
+            // Email address is a required field for registrar contacts. Therefore as long as there
+            // is an abuse contact, we can get an email address from it.
+            .emitField(
+                "Registrar Abuse Contact Email",
+                abuseContact.isPresent() ? abuseContact.get().getEmailAddress() : null)
+            .emitField(
+                "Registrar Abuse Contact Phone",
+                abuseContact.isPresent() ? abuseContact.get().getPhoneNumber() : null)
+            .emitStatusValues(domain.getStatusValues(), domain.getGracePeriods())
+            .emitContact("Registrant", domain.getRegistrant(), preferUnicode)
+            .emitContact("Admin", getContactReference(Type.ADMIN), preferUnicode)
+            .emitContact("Tech", getContactReference(Type.TECH), preferUnicode)
+            .emitContact("Billing", getContactReference(Type.BILLING), preferUnicode)
+            .emitSet(
+                "Name Server",
+                domain.loadNameserverFullyQualifiedHostNames(),
+                new Function<String, String>() {
+                  @Override
+                  public String apply(String hostName) {
+                    return maybeFormatHostname(hostName, preferUnicode);
+                  }
+                })
+            .emitField(
+                "DNSSEC", isNullOrEmpty(domain.getDsData()) ? "unsigned" : "signedDelegation")
+            .emitWicfLink()
+            .emitLastUpdated(getTimestamp())
+            .emitAwipMessage()
+            .emitFooter(disclaimer)
+            .toString();
     return WhoisResponseResults.create(plaintext, 1);
   }
 
@@ -139,7 +163,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
             domain.getFullyQualifiedDomainName(), contact);
         return this;
       }
-      emitField(contactType, "ID", contactResource.getContactId());
+      emitField("Registry", contactType, "ID", contactResource.getContactId());
       PostalInfo postalInfo = chooseByUnicodePreference(
           preferUnicode,
           contactResource.getLocalizedPostalInfo(),

@@ -55,17 +55,20 @@ final class NameserverWhoisResponse extends WhoisResponseImpl {
               : host.getPersistedCurrentSponsorClientId();
       Registrar registrar = getRegistrar(clientId);
       emitter
-          .emitField("Server Name", maybeFormatHostname(
-              host.getFullyQualifiedHostName(), preferUnicode))
-          .emitSet("IP Address", host.getInetAddresses(),
+          .emitField(
+              "Server Name", maybeFormatHostname(host.getFullyQualifiedHostName(), preferUnicode))
+          .emitSet(
+              "IP Address",
+              host.getInetAddresses(),
               new Function<InetAddress, String>() {
                 @Override
                 public String apply(InetAddress addr) {
                   return InetAddresses.toAddrString(addr);
-                }})
+                }
+              })
           .emitField("Registrar", registrar.getRegistrarName())
-          .emitField("WHOIS Server", registrar.getWhoisServer())
-          .emitField("Referral URL", registrar.getReferralUrl());
+          .emitField("Registrar WHOIS Server", registrar.getWhoisServer())
+          .emitField("Registrar URL", registrar.getReferralUrl());
       if (i < hosts.size() - 1) {
         emitter.emitNewline();
       }

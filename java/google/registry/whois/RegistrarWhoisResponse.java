@@ -45,23 +45,24 @@ class RegistrarWhoisResponse extends WhoisResponseImpl {
   @Override
   public WhoisResponseResults getResponse(boolean preferUnicode, String disclaimer) {
     Set<RegistrarContact> contacts = registrar.getContacts();
-    String plaintext = new RegistrarEmitter()
-        .emitField("Registrar Name", registrar.getRegistrarName())
-        .emitAddress(
-            null,
-            chooseByUnicodePreference(
-                preferUnicode,
-                registrar.getLocalizedAddress(),
-                registrar.getInternationalizedAddress()))
-        .emitPhonesAndEmail(
-            registrar.getPhoneNumber(), registrar.getFaxNumber(), registrar.getEmailAddress())
-        .emitField("WHOIS Server", registrar.getWhoisServer())
-        .emitField("Referral URL", registrar.getReferralUrl())
-        .emitRegistrarContacts("Admin", contacts, AdminOrTech.ADMIN)
-        .emitRegistrarContacts("Technical", contacts, AdminOrTech.TECH)
-        .emitLastUpdated(getTimestamp())
-        .emitFooter(disclaimer)
-        .toString();
+    String plaintext =
+        new RegistrarEmitter()
+            .emitField("Registrar", registrar.getRegistrarName())
+            .emitAddress(
+                null,
+                chooseByUnicodePreference(
+                    preferUnicode,
+                    registrar.getLocalizedAddress(),
+                    registrar.getInternationalizedAddress()))
+            .emitPhonesAndEmail(
+                registrar.getPhoneNumber(), registrar.getFaxNumber(), registrar.getEmailAddress())
+            .emitField("Registrar WHOIS Server", registrar.getWhoisServer())
+            .emitField("Registrar URL", registrar.getReferralUrl())
+            .emitRegistrarContacts("Admin", contacts, AdminOrTech.ADMIN)
+            .emitRegistrarContacts("Technical", contacts, AdminOrTech.TECH)
+            .emitLastUpdated(getTimestamp())
+            .emitFooter(disclaimer)
+            .toString();
     return WhoisResponseResults.create(plaintext, 1);
   }
 

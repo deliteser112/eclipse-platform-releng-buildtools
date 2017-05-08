@@ -99,7 +99,7 @@ public final class FullFieldsTestEntityHelper {
             .setVisibleInWhoisAsAdmin(false)
             .setVisibleInWhoisAsTech(true)
             .build(),
-          new RegistrarContact.Builder()
+        new RegistrarContact.Builder()
             .setParent(registrar)
             .setName("Jane Doe")
             .setEmailAddress("janedoe@example.com")
@@ -110,7 +110,15 @@ public final class FullFieldsTestEntityHelper {
             // distinction to make sure we're not relying on it.  Sigh.
             .setVisibleInWhoisAsAdmin(true)
             .setVisibleInWhoisAsTech(false)
-        .build());
+            .build(),
+        new RegistrarContact.Builder()
+            .setParent(registrar)
+            .setName("Jake Doe")
+            .setEmailAddress("jakedoe@example.com")
+            .setPhoneNumber("+1.2125551216")
+            .setFaxNumber("+1.2125551216")
+            .setVisibleInDomainWhoisAsAbuse(true)
+            .build());
   }
 
   public static HostResource makeHostResource(String fqhn, String ip) {

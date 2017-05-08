@@ -1,19 +1,21 @@
 Domain Name: example.tld
-Domain ID: 3-TLD
-WHOIS Server: whois.nic.fakewhois.example
-Referral URL: http://www.referral.example/path
+Registry Domain ID: 3-TLD
+Registrar WHOIS Server: whois.nic.fakewhois.example
+Registrar URL: http://www.referral.example/path
 Updated Date: 2009-05-29T20:13:00Z
 Creation Date: 2000-10-08T00:45:00Z
 Registry Expiry Date: 2010-10-08T00:44:59Z
-Sponsoring Registrar: New Registrar
-Sponsoring Registrar IANA ID: 5555555
+Registrar: New Registrar
+Registrar IANA ID: 5555555
+Registrar Abuse Contact Email: jakedoe@theregistrar.com
+Registrar Abuse Contact Phone: +1.2125551216
 Domain Status: addPeriod https://icann.org/epp#addPeriod
 Domain Status: clientDeleteProhibited https://icann.org/epp#clientDeleteProhibited
 Domain Status: clientRenewProhibited https://icann.org/epp#clientRenewProhibited
 Domain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited
 Domain Status: serverUpdateProhibited https://icann.org/epp#serverUpdateProhibited
 Domain Status: transferPeriod https://icann.org/epp#transferPeriod
-Registrant ID: 5372808-ERL
+Registry Registrant ID: 5372808-ERL
 Registrant Name: EXAMPLE REGISTRANT
 Registrant Organization: EXAMPLE ORGANIZATION
 Registrant Street: 123 EXAMPLE STREET
@@ -26,7 +28,7 @@ Registrant Phone Ext: 1234
 Registrant Fax: +1.5555551213
 Registrant Fax Ext: 4321
 Registrant Email: EMAIL@EXAMPLE.tld
-Admin ID: 5372809-ERL
+Registry Admin ID: 5372809-ERL
 Admin Name: EXAMPLE REGISTRANT ADMINISTRATIVE
 Admin Organization: EXAMPLE REGISTRANT ORGANIZATION
 Admin Street: 123 EXAMPLE STREET
@@ -39,7 +41,7 @@ Admin Phone Ext: 1234
 Admin Fax: +1.5555551213
 Admin Fax Ext:
 Admin Email: EMAIL@EXAMPLE.tld
-Tech ID: 5372811-ERL
+Registry Tech ID: 5372811-ERL
 Tech Name: EXAMPLE REGISTRAR TECHNICAL
 Tech Organization: EXAMPLE REGISTRAR LLC
 Tech Street: 123 EXAMPLE STREET
@@ -55,10 +57,9 @@ Tech Email: EMAIL@EXAMPLE.tld
 Name Server: ns01.exampleregistrar.tld
 Name Server: ns02.exampleregistrar.tld
 DNSSEC: signedDelegation
+URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf/
 >>> Last update of WHOIS database: 2009-05-29T20:15:00Z <<<
 
 For more information on Whois status codes, please visit https://icann.org/epp
-
-URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
 
 Doodle Disclaimer

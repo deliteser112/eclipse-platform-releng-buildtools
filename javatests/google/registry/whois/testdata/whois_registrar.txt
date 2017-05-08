@@ -1,4 +1,4 @@
-Registrar Name: Example Registrar, Inc.
+Registrar: Example Registrar, Inc.
 Street: 1234 Admiralty Way
 City: Marina del Rey
 State/Province: CA
@@ -7,8 +7,8 @@ Country: US
 Phone Number: +1.3105551212
 Fax Number: +1.3105551213
 Email: registrar@example.tld
-WHOIS Server: whois.example-registrar.tld
-Referral URL: http://www.example-registrar.tld
+Registrar WHOIS Server: whois.example-registrar.tld
+Registrar URL: http://www.example-registrar.tld
 Admin Contact: Jane Registrar
 Phone Number: +1.3105551214
 Fax Number: +1.3105551213
@@ -22,7 +22,5 @@ Phone Number: +1.3105551215
 Fax Number: +1.3105551216
 Email: johngeek@example-registrar.tld
 >>> Last update of WHOIS database: 2009-05-29T20:15:00Z <<<
-
-URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
 
 Doodle Disclaimer

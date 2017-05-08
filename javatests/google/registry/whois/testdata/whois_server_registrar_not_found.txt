@@ -1,6 +1,4 @@
 No registrar found.
 >>> Last update of WHOIS database: 2009-06-29T20:13:00Z <<<
 
-URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
-
 Doodle Disclaimer

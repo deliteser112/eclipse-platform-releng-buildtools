@@ -40,10 +40,10 @@ abstract class WhoisResponseImpl implements WhoisResponse {
 
   /** Field name for ICANN problem reporting URL appended to all WHOIS responses. */
   private static final String ICANN_REPORTING_URL_FIELD =
-      "URL of the ICANN WHOIS Data Problem Reporting System";
+      "URL of the ICANN Whois Inaccuracy Complaint Form";
 
   /** ICANN problem reporting URL appended to all WHOIS responses. */
-  private static final String ICANN_REPORTING_URL = "http://wdprs.internic.net/";
+  private static final String ICANN_REPORTING_URL = "https://www.icann.org/wicf/";
 
   private static final Registrar EMPTY_REGISTRAR = new Supplier<Registrar>() {
       @Override
@@ -147,6 +147,12 @@ abstract class WhoisResponseImpl implements WhoisResponse {
       return thisCastToDerived();
     }
 
+    /** Emit Whois Inaccuracy Complaint Form link. Only used for domain queries. */
+    E emitWicfLink() {
+      emitField(ICANN_REPORTING_URL_FIELD, ICANN_REPORTING_URL);
+      return thisCastToDerived();
+    }
+
     /** Returns raw text that should be appended to the end of ALL WHOIS responses. */
     E emitLastUpdated(DateTime timestamp) {
       // We are assuming that our WHOIS database is always completely up to date, since it's
@@ -160,8 +166,7 @@ abstract class WhoisResponseImpl implements WhoisResponse {
 
     /** Returns raw text that should be appended to the end of ALL WHOIS responses. */
     E emitFooter(String disclaimer) {
-      emitField(ICANN_REPORTING_URL_FIELD, ICANN_REPORTING_URL);
-      stringBuilder.append("\r\n").append(disclaimer).append("\r\n");
+      stringBuilder.append(disclaimer).append("\r\n");
       return thisCastToDerived();
     }
 

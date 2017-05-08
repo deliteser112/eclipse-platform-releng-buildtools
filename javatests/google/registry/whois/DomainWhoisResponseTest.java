@@ -35,6 +35,7 @@ import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.whois.WhoisResponse.WhoisResponseResults;
@@ -66,8 +67,21 @@ public class DomainWhoisResponseTest {
   @Before
   public void setUp() {
     // Update the registrar to have an IANA ID.
+    Registrar registrar =
+        persistResource(
+            Registrar.loadByClientId("NewRegistrar")
+                .asBuilder()
+                .setIanaIdentifier(5555555L)
+                .build());
+
     persistResource(
-        Registrar.loadByClientId("NewRegistrar").asBuilder().setIanaIdentifier(5555555L).build());
+        new RegistrarContact.Builder()
+            .setParent(registrar)
+            .setName("Jake Doe")
+            .setEmailAddress("jakedoe@theregistrar.com")
+            .setPhoneNumber("+1.2125551216")
+            .setVisibleInDomainWhoisAsAbuse(true)
+            .build());
 
     createTld("tld");
 

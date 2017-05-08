@@ -1,17 +1,19 @@
 Domain Name: cat.xn--q9jyb4c
-Domain ID: 9-Q9JYB4C
-WHOIS Server: whois.example.com
-Referral URL: http://www.example.com
+Registry Domain ID: 9-Q9JYB4C
+Registrar WHOIS Server: whois.example.com
+Registrar URL: http://www.example.com
 Updated Date: 2009-05-29T20:13:00Z
 Creation Date: 2000-10-08T00:45:00Z
 Registry Expiry Date: 2110-10-08T00:44:59Z
-Sponsoring Registrar: Yes Virginia &lt;script&gt;
-Sponsoring Registrar IANA ID: 1
+Registrar: Yes Virginia &lt;script&gt;
+Registrar IANA ID: 1
+Registrar Abuse Contact Email: jakedoe@example.com
+Registrar Abuse Contact Phone: +1.2125551216
 Domain Status: clientDeleteProhibited https://icann.org/epp#clientDeleteProhibited
 Domain Status: clientRenewProhibited https://icann.org/epp#clientRenewProhibited
 Domain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited
 Domain Status: serverUpdateProhibited https://icann.org/epp#serverUpdateProhibited
-Registrant ID: 5372808-ERL
+Registry Registrant ID: 5372808-ERL
 Registrant Name: (◕‿◕)
 Registrant Organization: GOOGLE INCORPORATED &lt;script&gt;
 Registrant Street: 123 Example Boulevard &lt;script&gt;
@@ -24,7 +26,7 @@ Registrant Phone Ext:
 Registrant Fax: +1.2126660420
 Registrant Fax Ext:
 Registrant Email: lol@cat.みんな
-Admin ID: 5372808-IRL
+Registry Admin ID: 5372808-IRL
 Admin Name: Santa Claus
 Admin Organization: GOOGLE INCORPORATED &lt;script&gt;
 Admin Street: 123 Example Boulevard &lt;script&gt;
@@ -37,7 +39,7 @@ Admin Phone Ext:
 Admin Fax: +1.2126660420
 Admin Fax Ext:
 Admin Email: BOFH@cat.みんな
-Tech ID: 5372808-TRL
+Registry Tech ID: 5372808-TRL
 Tech Name: The Raven
 Tech Organization: GOOGLE INCORPORATED &lt;script&gt;
 Tech Street: 123 Example Boulevard &lt;script&gt;
@@ -53,10 +55,9 @@ Tech Email: bog@cat.みんな
 Name Server: ns1.cat.xn--q9jyb4c
 Name Server: ns2.cat.xn--q9jyb4c
 DNSSEC: signedDelegation
+URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf/
 >>> Last update of WHOIS database: 2009-06-29T20:13:00Z <<<
 
 For more information on Whois status codes, please visit https://icann.org/epp
-
-URL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/
 
 Doodle Disclaimer
