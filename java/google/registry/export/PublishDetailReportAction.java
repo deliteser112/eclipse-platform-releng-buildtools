@@ -28,6 +28,10 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.Auth.AuthMethod;
+import google.registry.request.auth.Auth.UserPolicy;
+import google.registry.request.auth.AuthLevel;
 import google.registry.storage.drive.DriveConnection;
 import google.registry.util.FormattingLogger;
 import java.io.FileNotFoundException;
@@ -39,6 +43,11 @@ import javax.inject.Inject;
 @Action(
     path = PublishDetailReportAction.PATH,
     method = Action.Method.POST,
+    auth = @Auth(
+        methods = {AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = UserPolicy.ADMIN
+    ),
     xsrfProtection = true,
     xsrfScope = "admin")
 public final class PublishDetailReportAction implements Runnable, JsonAction {
