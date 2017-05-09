@@ -69,10 +69,12 @@ public class RestoreCommitLogsAction implements Runnable {
   static final String PATH = "/_dr/task/restoreCommitLogs";
   static final String DRY_RUN_PARAM = "dryRun";
   static final String FROM_TIME_PARAM = "fromTime";
+  static final String TO_TIME_PARAM = "toTime";
 
   @Inject GcsService gcsService;
   @Inject @Parameter(DRY_RUN_PARAM) boolean dryRun;
   @Inject @Parameter(FROM_TIME_PARAM) DateTime fromTime;
+  @Inject @Parameter(TO_TIME_PARAM) DateTime toTime;
   @Inject DatastoreService datastoreService;
   @Inject GcsDiffFileLister diffLister;
   @Inject Retrier retrier;
@@ -87,7 +89,7 @@ public class RestoreCommitLogsAction implements Runnable {
     if (dryRun) {
       logger.info("Running in dryRun mode");
     }
-    List<GcsFileMetadata> diffFiles = diffLister.listDiffFiles(fromTime, null);
+    List<GcsFileMetadata> diffFiles = diffLister.listDiffFiles(fromTime, toTime);
     if (diffFiles.isEmpty()) {
       logger.info("Nothing to restore");
       return;

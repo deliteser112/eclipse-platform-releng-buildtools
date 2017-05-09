@@ -19,6 +19,7 @@ import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator
 import static google.registry.backup.ExportCommitLogDiffAction.LOWER_CHECKPOINT_TIME_PARAM;
 import static google.registry.backup.ExportCommitLogDiffAction.UPPER_CHECKPOINT_TIME_PARAM;
 import static google.registry.backup.RestoreCommitLogsAction.FROM_TIME_PARAM;
+import static google.registry.backup.RestoreCommitLogsAction.TO_TIME_PARAM;
 import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -78,6 +79,12 @@ public final class BackupModule {
   @Parameter(FROM_TIME_PARAM)
   static DateTime provideFromTime(HttpServletRequest req) {
     return extractRequiredDatetimeParameter(req, FROM_TIME_PARAM);
+  }
+
+  @Provides
+  @Parameter(TO_TIME_PARAM)
+  static DateTime provideToTime(HttpServletRequest req) {
+    return extractRequiredDatetimeParameter(req, TO_TIME_PARAM);
   }
 
   @Provides
