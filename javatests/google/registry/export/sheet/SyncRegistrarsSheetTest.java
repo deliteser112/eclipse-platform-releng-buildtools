@@ -22,6 +22,7 @@ import static google.registry.model.common.Cursor.CursorType.SYNC_REGISTRAR_SHEE
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
+import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static org.joda.time.DateTimeZone.UTC;
@@ -94,13 +95,7 @@ public class SyncRegistrarsSheetTest {
 
   @Test
   public void test_wereRegistrarsModified_atDifferentCursorTimes() throws Exception {
-    persistResource(new Registrar.Builder()
-        .setClientId("SomeRegistrar")
-        .setRegistrarName("Some Registrar Inc.")
-        .setType(Registrar.Type.REAL)
-        .setIanaIdentifier(8L)
-        .setState(Registrar.State.ACTIVE)
-        .build());
+    persistNewRegistrar("SomeRegistrar", "Some Registrar Inc.", Registrar.Type.REAL, 8L);
     persistResource(Cursor.createGlobal(SYNC_REGISTRAR_SHEET, clock.nowUtc().minusHours(1)));
     assertThat(newSyncRegistrarsSheet().wereRegistrarsModified()).isTrue();
     persistResource(Cursor.createGlobal(SYNC_REGISTRAR_SHEET, clock.nowUtc().plusHours(1)));
@@ -327,18 +322,14 @@ public class SyncRegistrarsSheetTest {
 
   @Test
   public void testRun_missingValues_stillWorks() throws Exception {
-    persistResource(new Registrar.Builder()
-        .setClientId("SomeRegistrar")
-        .setType(Registrar.Type.REAL)
-        .setIanaIdentifier(8L)
-        .build());
+    persistNewRegistrar("SomeRegistrar", "Some Registrar", Registrar.Type.REAL, 8L);
 
     newSyncRegistrarsSheet().run("foobar");
 
     verify(sheetSynchronizer).synchronize(eq("foobar"), rowsCaptor.capture());
     ImmutableMap<String, String> row = getOnlyElement(getOnlyElement(rowsCaptor.getAllValues()));
     assertThat(row).containsEntry("clientIdentifier", "SomeRegistrar");
-    assertThat(row).containsEntry("registrarName", "");
+    assertThat(row).containsEntry("registrarName", "Some Registrar");
     assertThat(row).containsEntry("state", "");
     assertThat(row).containsEntry("ianaIdentifier", "8");
     assertThat(row).containsEntry("billingIdentifier", "");
@@ -352,8 +343,8 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("contactsMarkedAsWhoisAdmin", "");
     assertThat(row).containsEntry("contactsMarkedAsWhoisTech", "");
     assertThat(row).containsEntry("emailAddress", "");
-    assertThat(row).containsEntry("address.street", "UNKNOWN");
-    assertThat(row).containsEntry("address.city", "UNKNOWN");
+    assertThat(row).containsEntry("address.street", "123 Fake St");
+    assertThat(row).containsEntry("address.city", "Fakington");
     assertThat(row).containsEntry("address.state", "");
     assertThat(row).containsEntry("address.zip", "");
     assertThat(row).containsEntry("address.countryCode", "US");

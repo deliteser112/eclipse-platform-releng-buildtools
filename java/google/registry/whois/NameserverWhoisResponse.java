@@ -53,7 +53,8 @@ final class NameserverWhoisResponse extends WhoisResponseImpl {
                   .cloneProjectedAtTime(getTimestamp())
                   .getCurrentSponsorClientId()
               : host.getPersistedCurrentSponsorClientId();
-      Registrar registrar = getRegistrar(clientId);
+      Registrar registrar =
+          checkNotNull(Registrar.loadByClientId(clientId), "Could not load registrar %s", clientId);
       emitter
           .emitField(
               "Server Name", maybeFormatHostname(host.getFullyQualifiedHostName(), preferUnicode))

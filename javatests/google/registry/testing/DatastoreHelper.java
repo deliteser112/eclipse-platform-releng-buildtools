@@ -83,6 +83,7 @@ import google.registry.model.ofy.ObjectifyService;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarAddress;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.Registry.TldType;
@@ -611,14 +612,22 @@ public class DatastoreHelper {
         .build());
   }
 
-  /** Creates a stripped-down {@link Registrar} with the specified clientId and ianaIdentifier */
-  public static Registrar persistNewRegistrar(String clientId, long ianaIdentifier) {
+  /** Persists and returns a {@link Registrar} with the specified attributes. */
+  public static Registrar persistNewRegistrar(
+      String clientId, String registrarName, Registrar.Type type, long ianaIdentifier) {
     return persistSimpleResource(
         new Registrar.Builder()
-          .setClientId(clientId)
-          .setType(Registrar.Type.REAL)
-          .setIanaIdentifier(ianaIdentifier)
-          .build());
+            .setClientId(clientId)
+            .setRegistrarName(registrarName)
+            .setType(type)
+            .setIanaIdentifier(ianaIdentifier)
+            .setLocalizedAddress(
+                new RegistrarAddress.Builder()
+                    .setStreet(ImmutableList.of("123 Fake St"))
+                    .setCity("Fakington")
+                    .setCountryCode("US")
+                    .build())
+            .build());
   }
 
   private static Iterable<BillingEvent> getBillingEvents() {

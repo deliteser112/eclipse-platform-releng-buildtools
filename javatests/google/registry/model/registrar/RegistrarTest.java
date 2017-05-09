@@ -314,8 +314,26 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testFailure_missingRegistrarType() throws Exception {
-    thrown.expect(NullPointerException.class);
-    new Registrar.Builder().build();
+    thrown.expect(IllegalArgumentException.class, "Registrar type cannot be null");
+    new Registrar.Builder().setRegistrarName("blah").build();
+  }
+
+  @Test
+  public void testFailure_missingRegistrarName() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "Registrar name cannot be null");
+    new Registrar.Builder().setClientId("blahid").setType(Registrar.Type.TEST).build();
+  }
+
+  @Test
+  public void testFailure_missingAddress() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Must specify at least one of localized or internationalized address");
+    new Registrar.Builder()
+        .setClientId("blahid")
+        .setType(Registrar.Type.TEST)
+        .setRegistrarName("Blah Co")
+        .build();
   }
 
   @Test

@@ -130,7 +130,8 @@ public final class FullFieldsTestEntityHelper {
     HostResource.Builder builder = new HostResource.Builder()
         .setRepoId(generateNewContactHostRoid())
         .setFullyQualifiedHostName(Idn.toASCII(fqhn))
-        .setCreationTimeForTest(DateTime.parse("2000-10-08T00:45:00Z"));
+        .setCreationTimeForTest(DateTime.parse("2000-10-08T00:45:00Z"))
+        .setPersistedCurrentSponsorClientId("TheRegistrar");
     if ((ip1 != null) || (ip2 != null)) {
       ImmutableSet.Builder<InetAddress> ipBuilder = new ImmutableSet.Builder<>();
       if (ip1 != null) {

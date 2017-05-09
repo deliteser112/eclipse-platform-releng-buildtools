@@ -20,6 +20,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -58,16 +59,8 @@ public class MutatingCommandTest {
 
   @Before
   public void init() {
-    registrar1 = persistResource(new Registrar.Builder()
-        .setType(Registrar.Type.REAL)
-        .setClientId("Registrar1")
-        .setIanaIdentifier(1L)
-        .build());
-    registrar2 = persistResource(new Registrar.Builder()
-        .setType(Registrar.Type.REAL)
-        .setClientId("Registrar2")
-        .setIanaIdentifier(2L)
-        .build());
+    registrar1 = persistNewRegistrar("Registrar1", "Registrar1", Registrar.Type.REAL, 1L);
+    registrar2 = persistNewRegistrar("Registrar2", "Registrar2", Registrar.Type.REAL, 2L);
     newRegistrar1 = registrar1.asBuilder().setBillingIdentifier(42L).build();
     newRegistrar2 = registrar2.asBuilder().setBlockPremiumNames(true).build();
 

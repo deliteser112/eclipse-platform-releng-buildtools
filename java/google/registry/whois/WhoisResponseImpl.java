@@ -21,12 +21,10 @@ import static com.google.common.html.HtmlEscapers.htmlEscaper;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import google.registry.model.eppcommon.Address;
-import google.registry.model.registrar.Registrar;
 import google.registry.util.Idn;
 import google.registry.xml.UtcDateTimeAdapter;
 import java.util.Arrays;
@@ -44,13 +42,6 @@ abstract class WhoisResponseImpl implements WhoisResponse {
 
   /** ICANN problem reporting URL appended to all WHOIS responses. */
   private static final String ICANN_REPORTING_URL = "https://www.icann.org/wicf/";
-
-  private static final Registrar EMPTY_REGISTRAR = new Supplier<Registrar>() {
-      @Override
-      public Registrar get() {
-        // Use Type.TEST here to avoid requiring an IANA ID (the type does not appear in WHOIS).
-        return new Registrar.Builder().setType(Registrar.Type.TEST).build();
-      }}.get();
 
   /** The time at which this response was created. */
   private final DateTime timestamp;
@@ -196,11 +187,4 @@ abstract class WhoisResponseImpl implements WhoisResponse {
 
   /** An emitter that needs no special logic. */
   static class BasicEmitter extends Emitter<BasicEmitter> {}
-
-  /** Returns the registrar for this client id, or an empty registrar with null values. */
-  static Registrar getRegistrar(@Nullable String clientId) {
-    return Optional
-        .fromNullable(clientId == null ? null : Registrar.loadByClientId(clientId))
-        .or(EMPTY_REGISTRAR);
-  }
 }

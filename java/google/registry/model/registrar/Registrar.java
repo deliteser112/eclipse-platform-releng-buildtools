@@ -32,6 +32,7 @@ import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.model.registry.Registries.assertTldsExist;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static google.registry.util.X509Utils.getCertificateHash;
 import static google.registry.util.X509Utils.loadCertificate;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -849,7 +850,11 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     /** Build the registrar, nullifying empty fields. */
     @Override
     public Registrar build() {
-      checkNotNull(getInstance().type, "Registrar type cannot be null");
+      checkArgumentNotNull(getInstance().type, "Registrar type cannot be null");
+      checkArgumentNotNull(getInstance().registrarName, "Registrar name cannot be null");
+      checkArgument(
+          getInstance().localizedAddress != null || getInstance().internationalizedAddress != null,
+          "Must specify at least one of localized or internationalized address");
       checkArgument(getInstance().type.isValidIanaId(getInstance().ianaIdentifier),
           String.format("Supplied IANA ID is not valid for %s registrar type: %s",
             getInstance().type, getInstance().ianaIdentifier));
@@ -860,6 +865,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   /** Load a registrar entity by its client id outside of a transaction. */
   @Nullable
   public static Registrar loadByClientId(final String clientId) {
+    checkNotNull(clientId, "Client ID cannot be null");
     return ofy().doTransactionless(new Work<Registrar>() {
       @Override
       public Registrar run() {

@@ -15,6 +15,7 @@
 package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
@@ -120,12 +121,8 @@ public class RegistrarWhoisResponseTest {
 
   @Test
   public void testSetOfFields() {
-    Registrar registrar = new Registrar.Builder()
-        .setClientId("exregistrar")
-        .setType(Registrar.Type.REAL)
-        .setIanaIdentifier(8L)
-        .setState(Registrar.State.ACTIVE)
-        .build();
+    Registrar registrar =
+        persistNewRegistrar("exregistrar", "Ex-Registrar", Registrar.Type.REAL, 8L);
 
     RegistrarWhoisResponse registrarWhoisResponse =
         new RegistrarWhoisResponse(registrar, clock.nowUtc());

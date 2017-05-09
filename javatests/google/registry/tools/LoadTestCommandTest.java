@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
+import google.registry.model.registrar.Registrar;
 import google.registry.tools.ServerSideCommand.Connection;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +38,7 @@ public class LoadTestCommandTest extends CommandTestCase<LoadTestCommand> {
   public void setUp() throws Exception {
     command.setConnection(connection);
     createTld("example");
-    persistNewRegistrar("acme", 99);
+    persistNewRegistrar("acme", "ACME", Registrar.Type.REAL, 99L);
   }
 
   @Test

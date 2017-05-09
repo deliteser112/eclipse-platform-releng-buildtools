@@ -66,7 +66,11 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
 
   @Override
   public WhoisResponseResults getResponse(final boolean preferUnicode, String disclaimer) {
-    Registrar registrar = getRegistrar(domain.getCurrentSponsorClientId());
+    Registrar registrar =
+        checkNotNull(
+            Registrar.loadByClientId(domain.getCurrentSponsorClientId()),
+            "Could not load registrar %s",
+            domain.getCurrentSponsorClientId());
     Optional<RegistrarContact> abuseContact =
         Iterables.tryFind(
             registrar.getContacts(),

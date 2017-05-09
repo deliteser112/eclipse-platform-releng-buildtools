@@ -16,6 +16,7 @@ package google.registry.model.ofy;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.initOfy;
+import static google.registry.testing.DatastoreHelper.newContactResource;
 import static org.junit.Assert.fail;
 
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
@@ -26,8 +27,7 @@ import com.googlecode.objectify.ObjectifyFilter;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-import google.registry.model.registrar.Registrar;
-import google.registry.model.registrar.Registrar.Type;
+import google.registry.model.contact.ContactResource;
 import google.registry.testing.ExceptionRule;
 import org.junit.After;
 import org.junit.Before;
@@ -93,9 +93,8 @@ public class OfyFilterTest {
   @Test
   public void testKeyCreateAfterFilter() throws Exception {
     new OfyFilter().init(null);
-    Registrar registrar =
-        new Registrar.Builder().setType(Type.TEST).setClientId("clientId").build();
-    Key.create(registrar);
+    ContactResource contact = newContactResource("contact1234");
+    Key.create(contact);
   }
 
   @Entity

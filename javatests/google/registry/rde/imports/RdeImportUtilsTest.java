@@ -47,6 +47,7 @@ import google.registry.model.host.HostResource;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.EppResourceIndexBucket;
 import google.registry.model.index.ForeignKeyIndex;
+import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
@@ -96,7 +97,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     rdeImportUtils = new RdeImportUtils(ofy(), clock, "import-bucket", gcsUtils);
     createTld("test", TldState.PREDELEGATION);
     createTld("getld", TldState.GENERAL_AVAILABILITY);
-    persistNewRegistrar("RegistrarX", 1L);
+    persistNewRegistrar("RegistrarX", "RegistrarX", Registrar.Type.REAL, 1L);
   }
 
   @After
@@ -287,8 +288,8 @@ public class RdeImportUtilsTest extends ShardableTestCase {
         .setContacts(ImmutableSet.of(
             DesignatedContact.create(Type.ADMIN, Key.create(admin)),
             DesignatedContact.create(Type.TECH, Key.create(admin))))
-        .setPersistedCurrentSponsorClientId("RegistrarX")
-        .setCreationClientId("RegistrarX")
+        .setPersistedCurrentSponsorClientId("registrarx")
+        .setCreationClientId("registrarx")
         .setCreationTime(DateTime.parse("1999-04-03T22:00:00.0Z"))
         .setRegistrationExpirationTime(DateTime.parse("2015-04-03T22:00:00.0Z"))
         .build();
