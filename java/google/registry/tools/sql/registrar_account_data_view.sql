@@ -34,7 +34,7 @@ FROM (
     billingAccountMap.accountId,
     ROW_NUMBER() OVER (PARTITION BY registrarId) AS pos
   FROM
-    FLATTEN([latest_snapshot.Registrar], billingAccountMap.accountId)) AS I
+    FLATTEN([%SOURCE_DATASET%.Registrar], billingAccountMap.accountId)) AS I
 JOIN (
   SELECT
     __key__.name AS registrarId,
