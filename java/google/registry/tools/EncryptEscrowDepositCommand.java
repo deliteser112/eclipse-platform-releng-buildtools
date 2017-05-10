@@ -18,6 +18,7 @@ import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,7 +26,7 @@ import javax.inject.Inject;
 
 /** Command to encrypt an escrow deposit. */
 @Parameters(separators = " =", commandDescription = "Encrypt an escrow deposit")
-class EncryptEscrowDepositCommand implements Command {
+class EncryptEscrowDepositCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-t", "--tld"},
