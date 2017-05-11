@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import com.google.common.collect.ImmutableMap;
+import google.registry.tools.javascrap.PopulateNullRegistrarFieldsCommand;
 import google.registry.tools.javascrap.RemoveDomainTransferDataCommand;
 import google.registry.tools.javascrap.RemoveIpAddressCommand;
 
@@ -97,6 +98,7 @@ public final class RegistryTool {
           .put("logout", LogoutCommand.class)
           .put("make_billing_tables", MakeBillingTablesCommand.class)
           .put("pending_escrow", PendingEscrowCommand.class)
+          .put("populate_null_registrar_fields", PopulateNullRegistrarFieldsCommand.class)
           .put("publish_detail_report", PublishDetailReportCommand.class)
           .put("registrar_activity_report", RegistrarActivityReportCommand.class)
           .put("registrar_contact", RegistrarContactCommand.class)
