@@ -24,14 +24,19 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import google.registry.model.billing.RegistrarBillingUtils;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.BillingMethod;
 import google.registry.model.registrar.RegistrarAddress;
+import google.registry.model.registry.Registry;
 import google.registry.tools.params.KeyValueMapParameter.CurrencyUnitToStringMap;
 import google.registry.tools.params.OptionalLongParameter;
 import google.registry.tools.params.OptionalPhoneNumberParameter;
@@ -44,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -383,12 +389,6 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       if (contactsRequireSyncing != null) {
         builder.setContactsRequireSyncing(contactsRequireSyncing);
       }
-      // When creating a new REAL registrar or changing the type to REAL, a passcode is required.
-      // Leave existing REAL registrars alone.
-      if (Registrar.Type.REAL.equals(registrarType)
-          && (oldRegistrar == null || oldRegistrar.getPhonePasscode() == null)) {
-        checkArgument(phonePasscode != null, "--passcode is required for REAL registrars.");
-      }
       if (phonePasscode != null) {
         builder.setPhonePasscode(phonePasscode);
       }
@@ -414,7 +414,37 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
         }
       }
 
-      stageEntityChange(oldRegistrar, builder.build());
+      Registrar newRegistrar = builder.build();
+
+      // Apply some extra validation when creating a new REAL registrar or changing the type of a
+      // registrar to REAL. Leave existing REAL registrars alone.
+      if (Registrar.Type.REAL.equals(registrarType)) {
+        // Require a phone passcode.
+        checkArgument(
+            newRegistrar.getPhonePasscode() != null, "--passcode is required for REAL registrars.");
+        // Check if registrar has billing account IDs for the currency of the TLDs that it is
+        // allowed to register.
+        ImmutableSet<CurrencyUnit> tldCurrencies =
+            FluentIterable.from(newRegistrar.getAllowedTlds())
+                .transform(
+                    new Function<String, CurrencyUnit>() {
+                      @Override
+                      public CurrencyUnit apply(String tld) {
+                        return Registry.get(tld).getCurrency();
+                      }
+                    })
+                .toSet();
+        Set<CurrencyUnit> currenciesWithoutBillingAccountId =
+            newRegistrar.getBillingAccountMap() == null
+                ? tldCurrencies
+                : Sets.difference(tldCurrencies, newRegistrar.getBillingAccountMap().keySet());
+        checkArgument(
+            currenciesWithoutBillingAccountId.isEmpty(),
+            "Need billing account map entries for currencies: %s",
+            Joiner.on(' ').join(currenciesWithoutBillingAccountId));
+      }
+
+      stageEntityChange(oldRegistrar, newRegistrar);
     }
   }
 }

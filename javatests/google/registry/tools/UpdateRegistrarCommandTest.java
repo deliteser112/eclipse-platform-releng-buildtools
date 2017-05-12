@@ -213,6 +213,31 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
+  public void testFailure_billingAccountMap_doesNotContainEntryForTldAllowed() throws Exception {
+    createTlds("foo");
+    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap()).isEmpty();
+    thrown.expect(IllegalArgumentException.class, "USD");
+    runCommand(
+        "--billing_account_map=JPY=789xyz",
+        "--allowed_tlds=foo",
+        "--force",
+        "--registrar_type=REAL",
+        "NewRegistrar");
+  }
+
+  public void testSuccess_billingAccountMap_onlyAppliesToRealRegistrar() throws Exception {
+    createTlds("foo");
+    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap()).isEmpty();
+    runCommand(
+        "--billing_account_map=JPY=789xyz",
+        "--allowed_tlds=foo",
+        "--force",
+        "NewRegistrar");
+    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap())
+        .containsExactly(CurrencyUnit.JPY, "789xyz");
+  }
+
+  @Test
   public void testSuccess_changeBillingMethodToBraintreeWhenBalanceIsZero() throws Exception {
     createTlds("xn--q9jyb4c");
     assertThat(loadByClientId("NewRegistrar").getBillingMethod()).isEqualTo(BillingMethod.EXTERNAL);

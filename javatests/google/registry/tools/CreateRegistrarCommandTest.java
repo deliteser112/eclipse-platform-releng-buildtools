@@ -167,6 +167,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
         "--registrar_type=REAL",
         "--iana_id=8",
         "--allowed_tlds=xn--q9jyb4c,foobar",
+        "--billing_account_map=USD=123abc",
         "--passcode=01234",
         "--icann_referral_email=foo@bar.test",
         "--street=\"123 Fake St\"",
@@ -429,6 +430,53 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     assertThat(registrar).isNotNull();
     assertThat(registrar.getBillingAccountMap())
         .containsExactly(CurrencyUnit.USD, "abc123", CurrencyUnit.JPY, "789xyz");
+  }
+
+  @Test
+  public void testFailure_billingAccountMap_doesNotContainEntryForTldAllowed() throws Exception {
+    createTlds("foo");
+
+    thrown.expect(IllegalArgumentException.class, "USD");
+    runCommandForced(
+        "--name=blobio",
+        "--password=some_password",
+        "--registrar_type=REAL",
+        "--iana_id=8",
+        "--billing_account_map=JPY=789xyz",
+        "--allowed_tlds=foo",
+        "--passcode=01234",
+        "--icann_referral_email=foo@bar.test",
+        "--street=\"123 Fake St\"",
+        "--city Fakington",
+        "--state MA",
+        "--zip 00351",
+        "--cc US",
+        "clientz");
+  }
+
+  @Test
+  public void testSuccess_billingAccountMap_onlyAppliesToRealRegistrar() throws Exception {
+    createTlds("foo");
+
+    runCommandForced(
+        "--name=blobio",
+        "--password=some_password",
+        "--registrar_type=TEST",
+        "--billing_account_map=JPY=789xyz",
+        "--allowed_tlds=foo",
+        "--passcode=01234",
+        "--icann_referral_email=foo@bar.test",
+        "--street=\"123 Fake St\"",
+        "--city Fakington",
+        "--state MA",
+        "--zip 00351",
+        "--cc US",
+        "clientz");
+
+    Registrar registrar = Registrar.loadByClientId("clientz");
+    assertThat(registrar).isNotNull();
+    assertThat(registrar.getBillingAccountMap())
+        .containsExactly(CurrencyUnit.JPY, "789xyz");
   }
 
   @Test
