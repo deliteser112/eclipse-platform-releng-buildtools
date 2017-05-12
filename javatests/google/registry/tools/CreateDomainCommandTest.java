@@ -31,13 +31,13 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   public void testSuccess_complete() throws Exception {
     runCommandForced(
         "--client=NewRegistrar",
-        "--domain=example.tld",
         "--period=1",
         "--nameservers=ns1.zdns.google,ns2.zdns.google,ns3.zdns.google,ns4.zdns.google",
         "--registrant=crr-admin",
         "--admin=crr-admin",
         "--tech=crr-tech",
-        "--password=2fooBAR");
+        "--password=2fooBAR",
+        "example.tld");
     eppVerifier().verifySent("domain_create_complete.xml");
   }
 
@@ -46,69 +46,96 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
     // Test that each optional field can be omitted. Also tests the auto-gen password.
     runCommandForced(
         "--client=NewRegistrar",
-        "--domain=example.tld",
         "--registrant=crr-admin",
         "--admin=crr-admin",
-        "--tech=crr-tech");
+        "--tech=crr-tech",
+        "example.tld");
     eppVerifier().verifySent("domain_create_minimal.xml");
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("--domain=example.tld", "--registrant=crr-admin");
+  public void testSuccess_multipleDomains() throws Exception {
+    runCommandForced(
+        "--client=NewRegistrar",
+        "--registrant=crr-admin",
+        "--admin=crr-admin",
+        "--tech=crr-tech",
+        "example.tld",
+        "example.abc");
+    eppVerifier().verifySent("domain_create_minimal.xml", "domain_create_minimal_abc.xml");
+  }
+
+  @Test
+  public void testFailure_duplicateDomains() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "Duplicate arguments found: \'example.tld\'");
+    runCommandForced(
+        "--client=NewRegistrar",
+        "--registrant=crr-admin",
+        "--admin=crr-admin",
+        "--tech=crr-tech",
+        "example.tld",
+        "example.tld");
   }
 
   @Test
   public void testFailure_missingDomain() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(ParameterException.class, "Main parameters are required");
     runCommandForced(
-        "--client=NewRegistrar",
-        "--registrant=crr-admin",
-        "--admin=crr-admin",
-        "--tech=crr-tech");
+        "--client=NewRegistrar", "--registrant=crr-admin", "--admin=crr-admin", "--tech=crr-tech");
+  }
+
+  @Test
+  public void testFailure_missingClientId() throws Exception {
+    thrown.expect(ParameterException.class, "--client");
+    runCommandForced(
+        "--admin=crr-admin", "--tech=crr-tech", "--registrant=crr-admin", "example.tld");
   }
 
   @Test
   public void testFailure_missingRegistrant() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(ParameterException.class, "--registrant");
     runCommandForced(
-        "--client=NewRegistrar",
-        "--domain=example.tld",
-        "--admin=crr-admin",
-        "--tech=crr-tech");
+        "--client=NewRegistrar", "--admin=crr-admin", "--tech=crr-tech", "example.tld");
+  }
+
+  @Test
+  public void testFailure_missingAdmin() throws Exception {
+    thrown.expect(ParameterException.class, "--admin");
+    runCommandForced(
+        "--client=NewRegistrar", "--registrant=crr-admin", "--tech=crr-tech", "example.tld");
+  }
+
+  @Test
+  public void testFailure_missingTech() throws Exception {
+    thrown.expect(ParameterException.class, "--tech");
+    runCommandForced(
+        "--client=NewRegistrar", "--registrant=crr-admin", "--admin=crr-admin", "example.tld");
   }
 
   @Test
   public void testFailure_tooManyNameServers() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
+    thrown.expect(IllegalArgumentException.class, "There can be at most 13 nameservers");
     runCommandForced(
         "--client=NewRegistrar",
-        "--domain=example.tld",
         "--registrant=crr-admin",
         "--admin=crr-admin",
         "--tech=crr-tech",
-        "--nameservers=ns1.zdns.google,ns2.zdns.google,ns3.zdns.google,ns4.zdns.google",
-        "--nameservers=ns5.zdns.google,ns6.zdns.google,ns7.zdns.google,ns8.zdns.google",
-        "--nameservers=ns9.zdns.google,ns10.zdns.google,ns11.zdns.google,ns12.zdns.google",
-        "--nameservers=ns13.zdns.google,ns14.zdns.google");
+        "--nameservers=ns1.zdns.google,ns2.zdns.google,ns3.zdns.google,ns4.zdns.google,"
+            + "ns5.zdns.google,ns6.zdns.google,ns7.zdns.google,ns8.zdns.google,"
+            + "ns9.zdns.google,ns10.zdns.google,ns11.zdns.google,ns12.zdns.google,"
+            + "ns13.zdns.google,ns14.zdns.google",
+        "example.tld");
   }
 
   @Test
   public void testFailure_badPeriod() throws Exception {
-    thrown.expect(ParameterException.class);
+    thrown.expect(ParameterException.class, "--period");
     runCommandForced(
         "--client=NewRegistrar",
-        "--domain=example.tld",
         "--registrant=crr-admin",
         "--admin=crr-admin",
         "--tech=crr-tech",
-        "--period=x");
-  }
-
-  @Test
-  public void testFailure_badFax() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("--client=NewRegistrar", "--fax=3");
+        "--period=x",
+        "--domain=example.tld");
   }
 }

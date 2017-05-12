@@ -16,13 +16,17 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static google.registry.util.CollectionUtils.findDuplicates;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.template.soy.data.SoyMapData;
 import google.registry.tools.soy.DomainCreateSoyInfo;
 import google.registry.util.StringGenerator;
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 
 /** A command to create a new domain via EPP. */
@@ -35,11 +39,8 @@ final class CreateDomainCommand extends MutatingEppToolCommand {
       required = true)
   String clientId;
 
-  @Parameter(
-      names = "--domain",
-      description = "Domain name",
-      required = true)
-  private String domain;
+  @Parameter(description = "Names of the domains", required = true)
+  private List<String> mainParameters;
 
   @Parameter(
       names = "--period",
@@ -47,9 +48,9 @@ final class CreateDomainCommand extends MutatingEppToolCommand {
   private Integer period;
 
   @Parameter(
-      names = {"-n", "--nameservers"},
-      description = "List of nameservers, up to 13.",
-      variableArity = true)
+    names = {"-n", "--nameservers"},
+    description = "Comma-separated list of nameservers, up to 13."
+  )
   private List<String> ns;
 
   @Parameter(
@@ -86,15 +87,22 @@ final class CreateDomainCommand extends MutatingEppToolCommand {
       password = passwordGenerator.createString(PASSWORD_LENGTH);
     }
     checkArgument(ns == null || ns.size() <= 13, "There can be at most 13 nameservers.");
+    String duplicates = Joiner.on(", ").join(findDuplicates(mainParameters));
+    checkArgument(duplicates.isEmpty(), "Duplicate arguments found: '%s'", duplicates);
+    Set<String> domains = ImmutableSet.copyOf(mainParameters);
 
-    setSoyTemplate(DomainCreateSoyInfo.getInstance(), DomainCreateSoyInfo.DOMAINCREATE);
-    addSoyRecord(clientId, new SoyMapData(
-        "domain", domain,
-        "period", period == null ? null : period.toString(),
-        "ns", ns,
-        "registrant", registrant,
-        "admin", admin,
-        "tech", tech,
-        "password", password));
+    for (String domain : domains) {
+      setSoyTemplate(DomainCreateSoyInfo.getInstance(), DomainCreateSoyInfo.DOMAINCREATE);
+      addSoyRecord(
+          clientId,
+          new SoyMapData(
+              "domain", domain,
+              "period", period == null ? null : period.toString(),
+              "ns", ns,
+              "registrant", registrant,
+              "admin", admin,
+              "tech", tech,
+              "password", password));
+    }
   }
 }
