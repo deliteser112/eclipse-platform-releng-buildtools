@@ -1058,26 +1058,26 @@ def com_google_oauth_client_appengine():
 def com_google_oauth_client_java6():
   java_import_external(
       name = "com_google_oauth_client_java6",
-      jar_sha256 = "a1d405cb3318bf844fd9cecd4a22b9bbcfc34a0a437a3eb3e141adac6796a0c5",
-      jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.11.0-beta/google-oauth-client-java6-1.11.0-beta.jar",
-          "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.11.0-beta/google-oauth-client-java6-1.11.0-beta.jar",
-          "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.11.0-beta/google-oauth-client-java6-1.11.0-beta.jar",
-      ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "c8d61bbb65f6721b85c38a88e4cb2a1782e04b8055589036705391361b658197",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.22.0/google-oauth-client-java6-1.22.0.jar",
+          "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.22.0/google-oauth-client-java6-1.22.0.jar",
+          "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.22.0/google-oauth-client-java6-1.22.0.jar",
+      ],
       deps = ["@com_google_oauth_client"],
   )
 
 def com_google_oauth_client_jetty():
   java_import_external(
       name = "com_google_oauth_client_jetty",
-      jar_sha256 = "b96bcb1924003370f5d59d799d70c62bf1bd7ca9dace09ec1e42457d7028ba29",
-      jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-jetty/1.11.0-beta/google-oauth-client-jetty-1.11.0-beta.jar",
-          "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-jetty/1.11.0-beta/google-oauth-client-jetty-1.11.0-beta.jar",
-          "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-jetty/1.11.0-beta/google-oauth-client-jetty-1.11.0-beta.jar",
-      ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "fdeebd0a97b265af7649b77e7e5e22937a7ea99148440647ba75f73c5eacddd2",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapgs://domain-registry-maven/repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-jetty/is.com/repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-jetty/1.22.0/google-oauth-client-jetty-1.22.0.jar",
+          "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-jetty/1.22.0/google-oauth-client-jetty-1.22.0.jar",
+          "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-jetty/1.22.0/google-oauth-client-jetty-1.22.0.jar",
+      ],
       deps = [
           "@com_google_oauth_client_java6",
           "@org_mortbay_jetty",
@@ -1135,7 +1135,6 @@ def com_google_truth():
       jar_urls = [
           "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/truth/truth/0.32/truth-0.32.jar",
           "http://repo1.maven.org/maven2/com/google/truth/truth/0.32/truth-0.32.jar",
-          "http://maven.ibiblio.org/maven2/com/google/truth/truth/0.32/truth-0.32.jar",
       ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
       testonly_ = True,
