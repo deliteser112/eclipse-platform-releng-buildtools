@@ -130,7 +130,7 @@ public class AuthModule {
     /** Initiate the login flow. */
     public static void login(
         GoogleAuthorizationCodeFlow flow,
-        @ClientScopeQualifier String clientScopeQualifier) throws Exception {
+        @ClientScopeQualifier String clientScopeQualifier) throws IOException {
       new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver())
           .authorize(clientScopeQualifier);
     }
